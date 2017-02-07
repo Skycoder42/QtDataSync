@@ -14,10 +14,15 @@ DEFINES += QTDATASYNC_LIBRARY
 DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += qtdatasync_global.h \
-	setup.h
+	setup.h \
+    asyncdatastore.h \
+    setup_p.h \
+    task.h
 
 SOURCES += \
-	setup.cpp
+	setup.cpp \
+    asyncdatastore.cpp \
+    task.cpp
 
 unix {
 	target.path = /usr/lib

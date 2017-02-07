@@ -3,19 +3,30 @@
 
 #include "qtdatasync_global.h"
 #include <QObject>
+class QJsonSerializer;
 
 namespace QtDataSync {
 
+class SetupPrivate;
 class Setup : public QObject
 {
 	Q_OBJECT
 
 public:
-	explicit Setup(QObject *parent = nullptr);
+	static const QString DefaultSetup;
 
-signals:
+	static Setup *createSetup(const QString &name = DefaultSetup);
+	static Setup *setup(const QString &name = DefaultSetup);
+	static void deleteSetup(const QString &name = DefaultSetup);
 
-public slots:
+	QJsonSerializer *serializer() const;
+	void setSerializer(QJsonSerializer *serializer);
+
+private:
+	QScopedPointer<SetupPrivate> d;
+
+	explicit Setup();
+	~Setup();
 };
 
 }
