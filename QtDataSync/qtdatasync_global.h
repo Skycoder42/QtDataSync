@@ -1,0 +1,12 @@
+#ifndef QTDATASYNC_GLOBAL_H
+#define QTDATASYNC_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(QTDATASYNC_LIBRARY)
+#  define QTDATASYNCSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define QTDATASYNCSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // QTDATASYNC_GLOBAL_H
