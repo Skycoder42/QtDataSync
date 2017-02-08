@@ -27,9 +27,9 @@ Task AsyncDataStore::load(int metaTypeId, const QString &key)
 	return {this, internalLoad(metaTypeId, key)};
 }
 
-Task AsyncDataStore::save(int metaTypeId, const QString &key, const QVariant &value)
+Task AsyncDataStore::save(int metaTypeId, const QVariant &value)
 {
-	return {this, internalSave(metaTypeId, key, value)};
+	return {this, internalSave(metaTypeId, value)};
 }
 
 Task AsyncDataStore::remove(int metaTypeId, const QString &key)
@@ -50,7 +50,6 @@ QFutureInterface<QVariant> AsyncDataStore::internalLoadAll(int metaTypeId)
 							  Q_ARG(QFutureInterface<QVariant>, interface),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::LoadAll),
 							  Q_ARG(int, metaTypeId),
-							  Q_ARG(QString, {}),
 							  Q_ARG(QVariant, {}));
 	return interface;
 }
@@ -63,12 +62,11 @@ QFutureInterface<QVariant> AsyncDataStore::internalLoad(int metaTypeId, const QS
 							  Q_ARG(QFutureInterface<QVariant>, interface),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Load),
 							  Q_ARG(int, metaTypeId),
-							  Q_ARG(QString, key),
-							  Q_ARG(QVariant, {}));
+							  Q_ARG(QVariant, key));
 	return interface;
 }
 
-QFutureInterface<QVariant> AsyncDataStore::internalSave(int metaTypeId, const QString &key, const QVariant &value)
+QFutureInterface<QVariant> AsyncDataStore::internalSave(int metaTypeId, const QVariant &value)
 {
 	QFutureInterface<QVariant> interface;
 	interface.reportStarted();
@@ -76,7 +74,6 @@ QFutureInterface<QVariant> AsyncDataStore::internalSave(int metaTypeId, const QS
 							  Q_ARG(QFutureInterface<QVariant>, interface),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Save),
 							  Q_ARG(int, metaTypeId),
-							  Q_ARG(QString, key),
 							  Q_ARG(QVariant, value));
 	return interface;
 }
@@ -89,8 +86,7 @@ QFutureInterface<QVariant> AsyncDataStore::internalRemove(int metaTypeId, const 
 							  Q_ARG(QFutureInterface<QVariant>, interface),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Remove),
 							  Q_ARG(int, metaTypeId),
-							  Q_ARG(QString, key),
-							  Q_ARG(QVariant, {}));
+							  Q_ARG(QVariant, key));
 	return interface;
 }
 
@@ -102,7 +98,6 @@ QFutureInterface<QVariant> AsyncDataStore::internalRemoveAll(int metaTypeId)
 							  Q_ARG(QFutureInterface<QVariant>, interface),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::RemoveAll),
 							  Q_ARG(int, metaTypeId),
-							  Q_ARG(QString, {}),
 							  Q_ARG(QVariant, {}));
 	return interface;
 }

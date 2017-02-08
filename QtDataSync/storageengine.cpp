@@ -10,7 +10,7 @@ StorageEngine::StorageEngine(QJsonSerializer *serializer) :
 	serializer->setParent(this);
 }
 
-void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QString &key, const QVariant &value)
+void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
 {
 	try {
 		auto flags = QMetaType::typeFlags(metaTypeId);
@@ -18,18 +18,21 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, Storag
 		   !flags.testFlag(QMetaType::IsGadget))
 			throw Exception("You can only store QObjects or Q_GADGETs with QtDataSync!");
 
+		auto metaObject = QMetaType::metaObjectForType(metaTypeId);
+		auto userProp = metaObject->userProperty();
+
 		switch (taskType) {
 		case QtDataSync::StorageEngine::LoadAll:
 			loadAll(futureInterface, metaTypeId);
 			break;
 		case QtDataSync::StorageEngine::Load:
-			load(futureInterface, metaTypeId, key);
+			load(futureInterface, metaTypeId, userProp.name(), value.toString());
 			break;
 		case QtDataSync::StorageEngine::Save:
-			save(futureInterface, metaTypeId, key, value);
+			save(futureInterface, metaTypeId, userProp.name(), value);
 			break;
 		case QtDataSync::StorageEngine::Remove:
-			remove(futureInterface, metaTypeId, key);
+			remove(futureInterface, metaTypeId, userProp.name(), value.toString());
 			break;
 		case QtDataSync::StorageEngine::RemoveAll:
 			removeAll(futureInterface, metaTypeId);
@@ -65,13 +68,18 @@ void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, int meta
 	}
 }
 
-void StorageEngine::load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key)
+void StorageEngine::load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value)
 {
 	try {
-		auto value = serializer->deserialize(QJsonValue(), metaTypeId);
-		qDebug() << key << value;
+		auto obj = serializer->deserialize(QJsonValue(), metaTypeId);
+		qDebug() << "Load for"
+				 << key
+				 << "with value"
+				 << value
+				 << "loaded:"
+				 << obj;
 
-		futureInterface.reportResult(value);
+		futureInterface.reportResult(obj);
 		futureInterface.reportFinished();
 	} catch(SerializerException &e) {
 		throw Exception(e.qWhat());
@@ -85,7 +93,10 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 
 	try {
 		auto json = serializer->serialize(value);
-		qDebug() << key << json;
+		qDebug() << "Save for"
+				 << key
+				 << "of"
+				 << json;
 
 		futureInterface.reportFinished();
 	} catch(SerializerException &e) {
@@ -93,7 +104,7 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 	}
 }
 
-void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key)
+void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value)
 {
 	futureInterface.reportFinished();
 }

@@ -25,7 +25,7 @@ public:
 	explicit StorageEngine(QJsonSerializer *serializer);
 
 public slots:
-	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QString &key = {}, const QVariant &value = {});
+	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value = {});
 
 private slots:
 	void initialize();
@@ -35,9 +35,9 @@ private:
 	QJsonSerializer *serializer;
 
 	void loadAll(QFutureInterface<QVariant> futureInterface, int metaTypeId);
-	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key);
+	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value);
 	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, QVariant value);
-	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key);
+	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value);
 	void removeAll(QFutureInterface<QVariant> futureInterface, int metaTypeId);
 };
 
