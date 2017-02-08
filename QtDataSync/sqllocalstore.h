@@ -3,7 +3,9 @@
 
 #include "localstore.h"
 
+#include <QDir>
 #include <QObject>
+#include <QSqlDatabase>
 
 namespace QtDataSync {
 
@@ -21,6 +23,14 @@ public:
 	void save(quint64 id, int metaTypeId, const QString &key, const QJsonObject &object) override;
 	void remove(quint64 id, int metaTypeId, const QString &key, const QString &value) override;
 	void removeAll(quint64 id, int metaTypeId) override;
+
+private:
+	static const QString DatabaseName;
+
+	QDir storageDir;
+	QSqlDatabase database;
+
+	QString tableName(int metaTypeId) const;
 };
 
 }
