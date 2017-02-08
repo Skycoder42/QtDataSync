@@ -45,8 +45,12 @@ Setup &Setup::setSerializer(QJsonSerializer *serializer)
 void Setup::create(const QString &name)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
-	if(SetupPrivate::engines.contains(name))
-		Setup::removeSetup(name);
+	if(SetupPrivate::engines.contains(name)) {
+		qCritical() << "Failed to create setup! A setup with the name"
+					<< name
+					<< "already exists!";
+		return;
+	}
 
 	auto engine = new StorageEngine(d->serializer.take());
 
@@ -104,6 +108,7 @@ SetupPrivate::SetupPrivate() :
 
 static void initCleanupHandlers()
 {
-	Setup().create();
+	qRegisterMetaType<QFutureInterface<QVariant>>("QFutureInterface<QVariant>");
+	qRegisterMetaType<StorageEngine::TaskType>();
 	qAddPostRoutine(SetupPrivate::cleanupHandler);
 }

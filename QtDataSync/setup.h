@@ -10,6 +10,7 @@ namespace QtDataSync {
 class SetupPrivate;
 class Setup
 {
+	Q_DISABLE_COPY(Setup)
 public:
 	static const QString DefaultSetup;
 

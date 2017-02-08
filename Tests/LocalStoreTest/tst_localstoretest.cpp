@@ -2,6 +2,9 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <asyncdatastore.h>
+#include <setup.h>
+
+#include "testdata.h"
 
 class LocalStoreTest : public QObject
 {
@@ -10,7 +13,9 @@ class LocalStoreTest : public QObject
 private Q_SLOTS:
 	void initTestCase();
 	void cleanupTestCase();
-	void testLifeCycle();
+
+	void testSimpleSave_data();
+	void testSimpleSave();
 
 private:
 	QtDataSync::AsyncDataStore *store;
@@ -18,16 +23,38 @@ private:
 
 void LocalStoreTest::initTestCase()
 {
+	QtDataSync::Setup().create();
 	store = new QtDataSync::AsyncDataStore(this);
 }
 
 void LocalStoreTest::cleanupTestCase()
 {
+	store->deleteLater();
+	store = nullptr;
 }
 
-void LocalStoreTest::testLifeCycle()
+void LocalStoreTest::testSimpleSave_data()
 {
-	QVERIFY2(true, "Failure");
+	QTest::addColumn<QString>("key");
+	QTest::addColumn<TestData*>("data");
+
+	QTest::newRow("simple") << QStringLiteral("simple")
+							<< new TestData(42, this);
+}
+
+void LocalStoreTest::testSimpleSave()
+{
+	QFETCH(QString, key);
+	QFETCH(TestData*, data);
+
+	auto saveFuture = store->save(key, data);
+	saveFuture.waitForFinished();
+	auto result = store->load<TestData*>(key).result();
+	QVERIFY(result);
+	QCOMPARE(result->test, data->test);
+
+	result->deleteLater();
+	data->deleteLater();
 }
 
 QTEST_MAIN(LocalStoreTest)

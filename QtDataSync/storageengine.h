@@ -20,11 +20,12 @@ public:
 		Remove,
 		RemoveAll
 	};
+	Q_ENUM(TaskType)
 
 	explicit StorageEngine(QJsonSerializer *serializer);
 
 public slots:
-	void beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QString &key = {}, const QVariant &value = {});
+	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QString &key = {}, const QVariant &value = {});
 
 private slots:
 	void initialize();

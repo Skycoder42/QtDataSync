@@ -5,3 +5,11 @@ else:unix: LIBS += -L$$OUT_PWD/../../QtDataSync/ -lQt5DataSync
 
 INCLUDEPATH += $$PWD/../QtDataSync
 DEPENDPATH += $$PWD/../QtDataSync
+
+HEADERS += \
+	$$PWD/testdata.h
+
+SOURCES += \
+	$$PWD/testdata.cpp
+
+INCLUDEPATH += $$PWD

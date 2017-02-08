@@ -62,7 +62,7 @@ GenericTask<T> AsyncDataStore::load(const QString &key)
 template<typename T>
 GenericTask<void> AsyncDataStore::save(const QString &key, const T &value)
 {
-	return {this, internalSave(qMetaTypeId<T>(), key, value)};
+	return {this, internalSave(qMetaTypeId<T>(), key, QVariant::fromValue(value))};
 }
 
 template<typename T>
