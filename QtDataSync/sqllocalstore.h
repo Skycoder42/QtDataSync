@@ -31,6 +31,7 @@ private:
 	QSqlDatabase database;
 
 	QString tableName(int metaTypeId) const;
+	bool testTableExists(const QString &tableName) const;
 };
 
 }
