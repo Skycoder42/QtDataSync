@@ -1,6 +1,7 @@
 #ifndef SETUP_P_H
 #define SETUP_P_H
 
+#include "localstore.h"
 #include "setup.h"
 #include "storageengine.h"
 #include <QJsonSerializer>
@@ -24,6 +25,7 @@ private:
 	static unsigned long timeout;
 
 	QScopedPointer<QJsonSerializer> serializer;
+	QScopedPointer<LocalStore> localStore;
 
 	SetupPrivate();
 };
