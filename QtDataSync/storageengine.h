@@ -46,7 +46,7 @@ private:
 	QHash<quint64, RequestInfo> requestCache;
 	quint64 requestCounter;
 
-	void loadAll(QFutureInterface<QVariant> futureInterface, int metaTypeId);
+	void loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId);
 	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value);
 	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, QVariant value);
 	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value);

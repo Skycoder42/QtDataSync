@@ -27,7 +27,7 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, Storag
 
 		switch (taskType) {
 		case QtDataSync::StorageEngine::LoadAll:
-			loadAll(futureInterface, metaTypeId);
+			loadAll(futureInterface, metaTypeId, value.toInt());
 			break;
 		case QtDataSync::StorageEngine::Load:
 			load(futureInterface, metaTypeId, userProp.name(), value.toString());
@@ -90,11 +90,11 @@ void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 	info.first.reportFinished();
 }
 
-void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, int metaTypeId)
+void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId)
 {
 	auto id = requestCounter++;
-	requestCache.insert(id, {futureInterface, metaTypeId});
-	localStore->loadAll(id, metaTypeId);
+	requestCache.insert(id, {futureInterface, listMetaTypeId});
+	localStore->loadAll(id, dataMetaTypeId);
 }
 
 void StorageEngine::load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value)

@@ -21,7 +21,7 @@ public:
 	explicit AsyncDataStore(const QString &setupName, QObject *parent = nullptr);
 	~AsyncDataStore();
 
-	Task loadAll(int metaTypeId);
+	Task loadAll(int dataMetaTypeId, int listMetaTypeId);
 	Task load(int metaTypeId, const QString &key);
 	Task save(int metaTypeId, const QVariant &value);
 	Task remove(int metaTypeId, const QString &key);
@@ -41,7 +41,7 @@ public:
 private:
 	QScopedPointer<AsyncDataStorePrivate> d;
 
-	QFutureInterface<QVariant> internalLoadAll(int metaTypeId);
+	QFutureInterface<QVariant> internalLoadAll(int dataMetaTypeId, int listMetaTypeId);
 	QFutureInterface<QVariant> internalLoad(int metaTypeId, const QString &key);
 	QFutureInterface<QVariant> internalSave(int metaTypeId, const QVariant &value);
 	QFutureInterface<QVariant> internalRemove(int metaTypeId, const QString &key);
@@ -51,7 +51,7 @@ private:
 template<typename T>
 GenericTask<QList<T>> AsyncDataStore::loadAll()
 {
-	return {this, internalLoadAll(qMetaTypeId<QList<T>>())};
+	return {this, internalLoadAll(qMetaTypeId<T>(), qMetaTypeId<QList<T>>())};
 }
 
 template<typename T>
