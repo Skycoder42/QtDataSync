@@ -41,22 +41,44 @@ void SqlLocalStore::finalize()
 
 void SqlLocalStore::loadAll(quint64 id, int metaTypeId)
 {
-	emit requestCompleted(id, QJsonArray());
+	auto tName = tableName(metaTypeId);
+
+	if(testTableExists(tName)) {
+		QSqlQuery loadQuery(database);
+		loadQuery.prepare(QStringLiteral("SELECT File FROM %1").arg(tName));
+		EXEC_QUERY(loadQuery);
+
+		QJsonArray array;
+		while(loadQuery.next()) {
+			QFile file(storageDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat")));
+			file.open(QIODevice::ReadOnly);
+			auto doc = QJsonDocument::fromBinaryData(file.readAll());
+			file.close();
+
+			if(doc.isNull()) {
+				emit requestFailed(id, QStringLiteral("Failed to read data from file %1").arg(file.fileName()));
+				return;
+			} else
+				array.append(doc.object());
+		}
+
+		emit requestCompleted(id, array);
+	} else
+		emit requestCompleted(id, QJsonArray());
 }
 
 void SqlLocalStore::load(quint64 id, int metaTypeId, const QString &, const QString &value)
 {
 	auto tName = tableName(metaTypeId);
 
-	//check if table exists
 	if(testTableExists(tName)) {
-		QSqlQuery idQuery(database);
-		idQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
-		idQuery.addBindValue(value);
-		EXEC_QUERY(idQuery);
+		QSqlQuery loadQuery(database);
+		loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
+		loadQuery.addBindValue(value);
+		EXEC_QUERY(loadQuery);
 
-		if(idQuery.first()) {
-			QFile file(storageDir.absoluteFilePath(idQuery.value(0).toString() + QStringLiteral(".dat")));
+		if(loadQuery.first()) {
+			QFile file(storageDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat")));
 			file.open(QIODevice::ReadOnly);
 			auto doc = QJsonDocument::fromBinaryData(file.readAll());
 			file.close();
@@ -124,13 +146,39 @@ void SqlLocalStore::save(quint64 id, int metaTypeId, const QString &key, const Q
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::remove(quint64 id, int metaTypeId, const QString &key, const QString &value)
+void SqlLocalStore::remove(quint64 id, int metaTypeId, const QString &, const QString &value)
 {
+	auto tName = tableName(metaTypeId);
+
+	if(testTableExists(tName)) {
+		QSqlQuery loadQuery(database);
+		loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
+		loadQuery.addBindValue(value);
+		EXEC_QUERY(loadQuery);
+
+		if(loadQuery.first()) {
+			auto fileName = loadQuery.value(0).toString() + QStringLiteral(".dat");
+			if(!QFile::remove(fileName)) {
+				emit requestFailed(id, QStringLiteral("Failed to delete file %1").arg(fileName));
+				return;
+			}
+
+			QSqlQuery removeQuery(database);
+			removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(tName));
+			removeQuery.addBindValue(value);
+			EXEC_QUERY(removeQuery);
+		}
+	}
+
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
 void SqlLocalStore::removeAll(quint64 id, int metaTypeId)
 {
+	auto tName = tableName(metaTypeId);
+	QSqlQuery removeQuery(database);
+	removeQuery.prepare(QStringLiteral("DROP TABLE IF EXISTS %1").arg(tName));
+	EXEC_QUERY(removeQuery);
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
