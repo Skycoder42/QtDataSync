@@ -47,13 +47,18 @@ void LocalStoreTest::testSimpleSave()
 	QFETCH(QString, key);
 	QFETCH(TestData*, data);
 
-	auto saveFuture = store->save(key, data);
-	saveFuture.waitForFinished();
-	auto result = store->load<TestData*>(key).result();
-	QVERIFY(result);
-	QCOMPARE(result->test, data->test);
+	try {
+		auto saveFuture = store->save(key, data);
+		saveFuture.waitForFinished();
+		auto result = store->load<TestData*>(key).result();
+		QVERIFY(result);
+		QCOMPARE(result->test, data->test);
 
-	result->deleteLater();
+		result->deleteLater();
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+
 	data->deleteLater();
 }
 

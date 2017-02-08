@@ -30,6 +30,15 @@ public slots:
 private slots:
 	void initialize();
 	void finalize();
+
+private:
+	QJsonSerializer *serializer;
+
+	void loadAll(QFutureInterface<QVariant> futureInterface, int metaTypeId);
+	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key);
+	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, QVariant value);
+	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key);
+	void removeAll(QFutureInterface<QVariant> futureInterface, int metaTypeId);
 };
 
 }

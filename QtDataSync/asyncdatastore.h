@@ -50,7 +50,7 @@ private:
 template<typename T>
 GenericTask<QList<T>> AsyncDataStore::loadAll()
 {
-	return {this, internalLoadAll(qMetaTypeId<T>())};
+	return {this, internalLoadAll(qMetaTypeId<QList<T>>())};
 }
 
 template<typename T>
