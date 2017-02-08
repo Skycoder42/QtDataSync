@@ -10,6 +10,7 @@ namespace QtDataSync {
 
 class Setup;
 
+class AsyncDataStorePrivate;
 class QTDATASYNCSHARED_EXPORT AsyncDataStore : public QObject
 {
 	Q_OBJECT
@@ -17,7 +18,7 @@ class QTDATASYNCSHARED_EXPORT AsyncDataStore : public QObject
 public:
 	explicit AsyncDataStore(QObject *parent = nullptr);
 	explicit AsyncDataStore(const QString &setupName, QObject *parent = nullptr);
-	explicit AsyncDataStore(Setup *setup, QObject *parent = nullptr);
+	~AsyncDataStore();
 
 	Task loadAll(int metaTypeId);
 	Task load(int metaTypeId, const QString &key);
@@ -37,6 +38,8 @@ public:
 	GenericTask<void> removeAll();
 
 private:
+	QScopedPointer<AsyncDataStorePrivate> d;
+
 	QFutureInterface<QVariant> internalLoadAll(int metaTypeId);
 	QFutureInterface<QVariant> internalLoad(int metaTypeId, const QString &key);
 	QFutureInterface<QVariant> internalSave(int metaTypeId, const QString &key, const QVariant &value);

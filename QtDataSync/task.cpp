@@ -1,27 +1,41 @@
 #include "task.h"
+#include "asyncdatastore.h"
+
+#include <QFutureWatcher>
 using namespace QtDataSync;
 
 Task::Task(AsyncDataStore *store, QFutureInterface<QVariant> d) :
-	QFuture(&d)
+	QFuture(&d),
+	_store(store)
 {}
 
-void Task::onResult(std::function<void (QVariant)> fn)
+void Task::onResult(const std::function<void (QVariant)> &onSuccess, const std::function<void (QException)> &onExcept)
 {
-
+	auto watcher = new QFutureWatcher<QVariant>(_store);
+	QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, [=](){
+		try {
+			auto res = result();
+			if(onSuccess)
+				onSuccess(res);
+		} catch (QException &e) {
+			if(onExcept)
+				onExcept(e);
+			else {
+				qWarning() << "Unhandelt exception:"
+						   << e.what();
+			}
+		}
+		watcher->deleteLater();
+	});
 }
 
-void Task::onException(std::function<void (QException)> fn)
-{
-
-}
-
-QtDataSync::GenericTask<void>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d) :
+GenericTask<void>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d) :
 	Task(store, d)
 {}
 
-void QtDataSync::GenericTask<void>::onResult(std::function<void ()> fn)
+void GenericTask<void>::onResult(const std::function<void ()> &onSuccess, const std::function<void (QException)> &onExcept)
 {
 	Task::onResult([=](QVariant){
-		fn();
-	});
+		onSuccess();
+	}, onExcept);
 }

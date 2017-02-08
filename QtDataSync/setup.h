@@ -8,25 +8,24 @@ class QJsonSerializer;
 namespace QtDataSync {
 
 class SetupPrivate;
-class Setup : public QObject
+class Setup
 {
-	Q_OBJECT
-
 public:
 	static const QString DefaultSetup;
 
-	static Setup *createSetup(const QString &name = DefaultSetup);
-	static Setup *setup(const QString &name = DefaultSetup);
-	static void deleteSetup(const QString &name = DefaultSetup);
+	static void setCleanupTimeout(unsigned long timeout);
+	static void removeSetup(const QString &name);
+
+	Setup();
+	~Setup();
 
 	QJsonSerializer *serializer() const;
-	void setSerializer(QJsonSerializer *serializer);
+
+	Setup &setSerializer(QJsonSerializer *serializer);
+	void create(const QString &name = DefaultSetup);
 
 private:
 	QScopedPointer<SetupPrivate> d;
-
-	explicit Setup();
-	~Setup();
 };
 
 }

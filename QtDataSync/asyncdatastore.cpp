@@ -1,20 +1,21 @@
 #include "asyncdatastore.h"
-#include "setup.h"
+#include "asyncdatastore_p.h"
+#include "setup_p.h"
 using namespace QtDataSync;
 
 AsyncDataStore::AsyncDataStore(QObject *parent) :
-	AsyncDataStore(Setup::setup(), parent)
+	AsyncDataStore(Setup::DefaultSetup, parent)
 {}
 
 AsyncDataStore::AsyncDataStore(const QString &setupName, QObject *parent) :
-	AsyncDataStore(Setup::setup(setupName), parent)
-{}
-
-AsyncDataStore::AsyncDataStore(Setup *setup, QObject *parent) :
-	QObject(parent)
+	QObject(parent),
+	d(new AsyncDataStorePrivate())
 {
-	Q_ASSERT_X(setup, Q_FUNC_INFO, "AsyncDataStore requires a valid setup!");
+	d->engine = SetupPrivate::engine(setupName);
+	Q_ASSERT_X(d->engine, Q_FUNC_INFO, "AsyncDataStore requires a valid setup!");
 }
+
+AsyncDataStore::~AsyncDataStore() {}
 
 Task AsyncDataStore::loadAll(int metaTypeId)
 {
@@ -43,25 +44,60 @@ Task AsyncDataStore::removeAll(int metaTypeId)
 
 QFutureInterface<QVariant> AsyncDataStore::internalLoadAll(int metaTypeId)
 {
-
+	QFutureInterface<QVariant> interface;
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(StorageEngine::TaskType, StorageEngine::LoadAll),
+							  Q_ARG(int, metaTypeId),
+							  Q_ARG(QString, {}),
+							  Q_ARG(QVariant, {}));
+	return interface;
 }
 
 QFutureInterface<QVariant> AsyncDataStore::internalLoad(int metaTypeId, const QString &key)
 {
-
+	QFutureInterface<QVariant> interface;
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(StorageEngine::TaskType, StorageEngine::Load),
+							  Q_ARG(int, metaTypeId),
+							  Q_ARG(QString, key),
+							  Q_ARG(QVariant, {}));
+	return interface;
 }
 
 QFutureInterface<QVariant> AsyncDataStore::internalSave(int metaTypeId, const QString &key, const QVariant &value)
 {
-
+	QFutureInterface<QVariant> interface;
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(StorageEngine::TaskType, StorageEngine::Save),
+							  Q_ARG(int, metaTypeId),
+							  Q_ARG(QString, key),
+							  Q_ARG(QVariant, value));
+	return interface;
 }
 
 QFutureInterface<QVariant> AsyncDataStore::internalRemove(int metaTypeId, const QString &key)
 {
-
+	QFutureInterface<QVariant> interface;
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(StorageEngine::TaskType, StorageEngine::Remove),
+							  Q_ARG(int, metaTypeId),
+							  Q_ARG(QString, key),
+							  Q_ARG(QVariant, {}));
+	return interface;
 }
 
 QFutureInterface<QVariant> AsyncDataStore::internalRemoveAll(int metaTypeId)
 {
-
+	QFutureInterface<QVariant> interface;
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(StorageEngine::TaskType, StorageEngine::RemoveAll),
+							  Q_ARG(int, metaTypeId),
+							  Q_ARG(QString, {}),
+							  Q_ARG(QVariant, {}));
+	return interface;
 }

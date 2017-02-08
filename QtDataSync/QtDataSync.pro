@@ -17,12 +17,15 @@ HEADERS += qtdatasync_global.h \
 	setup.h \
     asyncdatastore.h \
     setup_p.h \
-    task.h
+    task.h \
+    storageengine.h \
+    asyncdatastore_p.h
 
 SOURCES += \
 	setup.cpp \
     asyncdatastore.cpp \
-    task.cpp
+    task.cpp \
+    storageengine.cpp
 
 unix {
 	target.path = /usr/lib

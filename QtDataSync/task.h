@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include <QFuture>
+#include <QPointer>
 #include <functional>
 
 namespace QtDataSync {
@@ -13,11 +14,13 @@ class QTDATASYNCSHARED_EXPORT Task : public QFuture<QVariant>
 	friend class AsyncDataStore;
 
 public:
-	void onResult(std::function<void(QVariant)> fn);
-	void onException(std::function<void(QException)> fn);
+	void onResult(const std::function<void(QVariant)> &onSuccess, const std::function<void(QException)> &onExcept = {});
 
 protected:
 	Task(AsyncDataStore *store, QFutureInterface<QVariant> d);
+
+private:
+	QPointer<AsyncDataStore> _store;
 };
 
 template <typename T>
@@ -26,7 +29,7 @@ class QTDATASYNCSHARED_EXPORT GenericTask : public Task
 	friend class AsyncDataStore;
 
 public:
-	void onResult(std::function<void(T)> fn);
+	void onResult(const std::function<void(T)> &onSuccess, const std::function<void(QException)> &onExcept = {});
 
 	T result() const;
 
@@ -40,7 +43,7 @@ class QTDATASYNCSHARED_EXPORT GenericTask<void> : public Task
 	friend class AsyncDataStore;
 
 public:
-	void onResult(std::function<void()> fn);
+	void onResult(const std::function<void()> &onSuccess, const std::function<void(QException)> &onExcept = {});
 
 private:
 	GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d);
@@ -48,17 +51,19 @@ private:
 	using QFuture<QVariant>::result;
 };
 
+// ------------- Generic Implementation -------------
+
 template<typename T>
 GenericTask<T>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d) :
 	Task(store, d)
 {}
 
 template<typename T>
-void GenericTask<T>::onResult(std::function<void(T)> fn)
+void GenericTask<T>::onResult(const std::function<void (T)> &onSuccess, const std::function<void (QException)> &onExcept)
 {
 	Task::onResult([=](QVariant result){
-		fn(result.value<T>());
-	});
+		onSuccess(result.value<T>());
+	}, onExcept);
 }
 
 template<typename T>
