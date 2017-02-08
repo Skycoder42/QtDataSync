@@ -10,8 +10,8 @@ class TestData : public QObject
 	Q_PROPERTY(int test MEMBER test)
 
 public:
-	explicit TestData(QObject *parent = nullptr);
-	explicit TestData(int test, QObject *parent = nullptr);
+	Q_INVOKABLE TestData(QObject *parent = nullptr);
+	TestData(int test, QObject *parent = nullptr);
 
 	int test;
 };

@@ -13,6 +13,11 @@ StorageEngine::StorageEngine(QJsonSerializer *serializer) :
 void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QString &key, const QVariant &value)
 {
 	try {
+		auto flags = QMetaType::typeFlags(metaTypeId);
+		if(!flags.testFlag(QMetaType::PointerToQObject) &&
+		   !flags.testFlag(QMetaType::IsGadget))
+			throw Exception("You can only store QObjects or Q_GADGETs with QtDataSync!");
+
 		switch (taskType) {
 		case QtDataSync::StorageEngine::LoadAll:
 			loadAll(futureInterface, metaTypeId);

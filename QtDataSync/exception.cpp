@@ -11,6 +11,11 @@ Exception::Exception(const QByteArray &what) :
 	_what(what)
 {}
 
+Exception::Exception(const char *what) :
+	QException(),
+	_what(what)
+{}
+
 QString Exception::qWhat() const
 {
 	return QString::fromUtf8(_what);

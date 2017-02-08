@@ -8,8 +8,9 @@ namespace QtDataSync {
 class Exception : public QException
 {
 public:
-	explicit Exception(const QString &what);
+	Exception(const QString &what);
 	Exception(const QByteArray &what);
+	Exception(const char *what);
 
 public:
 	QString qWhat() const;
