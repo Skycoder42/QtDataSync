@@ -5,6 +5,7 @@
 #include "task.h"
 #include <QObject>
 #include <QFuture>
+#include <QMetaProperty>
 
 namespace QtDataSync {
 
@@ -32,6 +33,10 @@ public:
 	GenericTask<T> load(const QString &key);
 	template<typename T>
 	GenericTask<void> save(const QString &key, const T &value);
+	template<typename T>
+	GenericTask<void> save(T *value);
+	template<typename T>
+	GenericTask<void> save(const T &value);
 	template<typename T>
 	GenericTask<T> remove(const QString &key);
 	template<typename T>
@@ -62,6 +67,24 @@ GenericTask<T> AsyncDataStore::load(const QString &key)
 template<typename T>
 GenericTask<void> AsyncDataStore::save(const QString &key, const T &value)
 {
+	return {this, internalSave(qMetaTypeId<T>(), key, QVariant::fromValue(value))};
+}
+
+template<typename T>
+GenericTask<void> AsyncDataStore::save(T *value)
+{
+	QMetaObject metaObject = T::staticMetaObject;
+	QMetaProperty userProp = metaObject.userProperty();
+	QString key = userProp.read(value).toString();
+	return {this, internalSave(qMetaTypeId<T*>(), key, QVariant::fromValue(value))};
+}
+
+template<typename T>
+GenericTask<void> AsyncDataStore::save(const T &value)
+{
+	QMetaObject metaObject = T::staticMetaObject;
+	QMetaProperty userProp = metaObject.userProperty();
+	QString key = userProp.readOnGadget(&value).toString();
 	return {this, internalSave(qMetaTypeId<T>(), key, QVariant::fromValue(value))};
 }
 

@@ -69,7 +69,7 @@ void StorageEngine::load(QFutureInterface<QVariant> futureInterface, int metaTyp
 {
 	try {
 		auto value = serializer->deserialize(QJsonValue(), metaTypeId);
-		qDebug() << value;
+		qDebug() << key << value;
 
 		futureInterface.reportResult(value);
 		futureInterface.reportFinished();
@@ -85,7 +85,7 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 
 	try {
 		auto json = serializer->serialize(value);
-		qDebug() << json;
+		qDebug() << key << json;
 
 		futureInterface.reportFinished();
 	} catch(SerializerException &e) {

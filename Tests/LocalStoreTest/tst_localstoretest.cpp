@@ -38,8 +38,8 @@ void LocalStoreTest::testSimpleSave_data()
 	QTest::addColumn<QString>("key");
 	QTest::addColumn<TestData*>("data");
 
-	QTest::newRow("simple") << QStringLiteral("simple")
-							<< new TestData(42, this);
+	QTest::newRow("simple") << QStringLiteral("42")
+							<< new TestData(42, "baum", this);
 }
 
 void LocalStoreTest::testSimpleSave()
@@ -48,11 +48,12 @@ void LocalStoreTest::testSimpleSave()
 	QFETCH(TestData*, data);
 
 	try {
-		auto saveFuture = store->save(key, data);
+		auto saveFuture = store->save(data);
 		saveFuture.waitForFinished();
 		auto result = store->load<TestData*>(key).result();
 		QVERIFY(result);
-		QCOMPARE(result->test, data->test);
+		QCOMPARE(result->id, data->id);
+		QCOMPARE(result->text, data->text);
 
 		result->deleteLater();
 	} catch(QException &e) {

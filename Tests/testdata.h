@@ -7,13 +7,15 @@ class TestData : public QObject
 {
 	Q_OBJECT
 
-	Q_PROPERTY(int test MEMBER test)
+	Q_PROPERTY(int id MEMBER id USER true)
+	Q_PROPERTY(QString text MEMBER text)
 
 public:
 	Q_INVOKABLE TestData(QObject *parent = nullptr);
-	TestData(int test, QObject *parent = nullptr);
+	TestData(int id, QString text, QObject *parent = nullptr);
 
-	int test;
+	int id;
+	QString text;
 };
 
 #endif // TESTDATA_H

@@ -1,12 +1,11 @@
 #include "testdata.h"
 
 TestData::TestData(QObject *parent) :
-	TestData(0, parent)
-{
+	TestData(0, {}, parent)
+{}
 
-}
-
-TestData::TestData(int test, QObject *parent) :
+TestData::TestData(int id, QString text, QObject *parent) :
 	QObject(parent),
-	test(test)
+	id(id),
+	text(text)
 {}
