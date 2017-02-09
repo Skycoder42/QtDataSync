@@ -26,6 +26,9 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, Storag
 		auto userProp = metaObject->userProperty();
 
 		switch (taskType) {
+		case QtDataSync::StorageEngine::Count:
+			count(futureInterface, metaTypeId);
+			break;
 		case QtDataSync::StorageEngine::LoadAll:
 			loadAll(futureInterface, metaTypeId, value.toInt());
 			break;
@@ -71,9 +74,6 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 	if(!result.isUndefined()) {
 		try {
 			auto obj = serializer->deserialize(result, info.second);
-			qDebug() << "Loaded data:"
-					 << obj;
-
 			info.first.reportResult(obj);
 		} catch(SerializerException &e) {
 			info.first.reportException(Exception(e.qWhat()));
@@ -88,6 +88,13 @@ void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 	auto info = requestCache.take(id);
 	info.first.reportException(Exception(errorString));
 	info.first.reportFinished();
+}
+
+void StorageEngine::count(QFutureInterface<QVariant> futureInterface, int metaTypeId)
+{
+	auto id = requestCounter++;
+	requestCache.insert(id, {futureInterface, QMetaType::Int});
+	localStore->count(id, metaTypeId);
 }
 
 void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId)
@@ -111,11 +118,6 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 
 	try {
 		auto json = serializer->serialize(value);
-		qDebug() << "Save for"
-				 << key
-				 << "of:"
-				 << json;
-
 		auto id = requestCounter++;
 		requestCache.insert(id, {futureInterface, metaTypeId});
 		localStore->save(id, metaTypeId, key, json.toObject());

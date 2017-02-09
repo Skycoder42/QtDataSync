@@ -17,6 +17,11 @@ AsyncDataStore::AsyncDataStore(const QString &setupName, QObject *parent) :
 
 AsyncDataStore::~AsyncDataStore() {}
 
+GenericTask<int> AsyncDataStore::count(int metaTypeId)
+{
+	return {this, internalCount(metaTypeId)};
+}
+
 Task AsyncDataStore::loadAll(int dataMetaTypeId, int listMetaTypeId)
 {
 	return {this, internalLoadAll(dataMetaTypeId, listMetaTypeId)};
@@ -40,6 +45,18 @@ Task AsyncDataStore::remove(int metaTypeId, const QString &key)
 Task AsyncDataStore::removeAll(int metaTypeId)
 {
 	return {this, internalRemoveAll(metaTypeId)};
+}
+
+QFutureInterface<QVariant> AsyncDataStore::internalCount(int metaTypeId)
+{
+	QFutureInterface<QVariant> interface;
+	interface.reportStarted();
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Count),
+							  Q_ARG(int, metaTypeId),
+							  Q_ARG(QVariant, {}));
+	return interface;
 }
 
 QFutureInterface<QVariant> AsyncDataStore::internalLoadAll(int dataMetaTypeId, int listMetaTypeId)

@@ -18,6 +18,8 @@ public:
 
 	void initialize() override;
 	void finalize() override;
+
+	void count(quint64 id, int metaTypeId) override;
 	void loadAll(quint64 id, int metaTypeId) override;
 	void load(quint64 id, int metaTypeId, const QString &key, const QString &value) override;
 	void save(quint64 id, int metaTypeId, const QString &key, const QJsonObject &object) override;

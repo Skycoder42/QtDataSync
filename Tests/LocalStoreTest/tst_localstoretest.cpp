@@ -20,6 +20,8 @@ private Q_SLOTS:
 	void testSaveAndLoad();
 
 	void testLoadAll();
+	void testRemove();
+	void testRemoveAll();
 
 private:
 	QtDataSync::AsyncDataStore *store;
@@ -45,9 +47,9 @@ void LocalStoreTest::testSaveAndLoad_data()
 
 	QTest::newRow("data0") << QStringLiteral("420")
 						   << new TestData(420, "data0", this);
-	QTest::newRow("data0") << QStringLiteral("421")
+	QTest::newRow("data1") << QStringLiteral("421")
 						   << new TestData(421, "data1", this);
-	QTest::newRow("data0") << QStringLiteral("422")
+	QTest::newRow("data2") << QStringLiteral("422")
 						   << new TestData(422, "data2", this);
 }
 
@@ -98,6 +100,26 @@ void LocalStoreTest::testLoadAll()
 
 		qDeleteAll(data);
 		qDeleteAll(testList);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void LocalStoreTest::testRemove()
+{
+	try {
+		store->remove<TestData*>("421").waitForFinished();
+		QCOMPARE(store->count<TestData*>().result(), 2);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void LocalStoreTest::testRemoveAll()
+{
+	try {
+		store->removeAll<TestData*>().waitForFinished();
+		QCOMPARE(store->count<TestData*>().result(), 0);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

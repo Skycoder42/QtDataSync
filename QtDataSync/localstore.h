@@ -19,6 +19,7 @@ public:
 	virtual void initialize();
 	virtual void finalize();
 
+	virtual void count(quint64 id, int metaTypeId) = 0;
 	virtual void loadAll(quint64 id, int metaTypeId) = 0;
 	virtual void load(quint64 id, int metaTypeId, const QString &key, const QString &value) = 0;
 	virtual void save(quint64 id, int metaTypeId, const QString &key, const QJsonObject &object) = 0;
