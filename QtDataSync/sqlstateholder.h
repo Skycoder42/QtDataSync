@@ -19,8 +19,8 @@ public:
 	void finalize() override;
 
 	QList<ChangedInfo> listLocalChanges() override;
-	void markLocalChanged(QByteArray typeName, const QString &key, ChangeState changed) override;
-	void markAllLocalChanged(QByteArray typeName, ChangeState changed) override;
+	void markLocalChanged(const QByteArray &typeName, const QString &key, ChangeState changed) override;
+	void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) override;
 
 private:
 	QSqlDatabase database;

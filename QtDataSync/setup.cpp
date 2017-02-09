@@ -2,6 +2,7 @@
 #include "setup_p.h"
 #include "sqllocalstore.h"
 #include "sqlstateholder.h"
+#include "wsremoteconnector.h"
 #include <QCoreApplication>
 using namespace QtDataSync;
 
@@ -48,6 +49,16 @@ StateHolder *Setup::stateHolder() const
 	return d->stateHolder.data();
 }
 
+RemoteConnector *Setup::remoteConnector() const
+{
+	return d->remoteConnector.data();
+}
+
+DataMerger *Setup::dataMerger() const
+{
+	return d->dataMerger.data();
+}
+
 Setup &Setup::setSerializer(QJsonSerializer *serializer)
 {
 	d->serializer.reset(serializer);
@@ -66,6 +77,18 @@ Setup &Setup::setStateHolder(StateHolder *stateHolder)
 	return *this;
 }
 
+Setup &Setup::setRemoteConnector(RemoteConnector *remoteConnector)
+{
+	d->remoteConnector.reset(remoteConnector);
+	return *this;
+}
+
+Setup &Setup::setDataMerger(DataMerger *dataMerger)
+{
+	d->dataMerger.reset(dataMerger);
+	return *this;
+}
+
 void Setup::create(const QString &name)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
@@ -78,7 +101,9 @@ void Setup::create(const QString &name)
 
 	auto engine = new StorageEngine(d->serializer.take(),
 									d->localStore.take(),
-									d->stateHolder.take());
+									d->stateHolder.take(),
+									d->remoteConnector.take(),
+									d->dataMerger.take());
 
 	auto thread = new QThread();
 	engine->moveToThread(thread);
@@ -93,6 +118,18 @@ void Setup::create(const QString &name)
 	}, Qt::QueuedConnection);
 	thread->start();
 	SetupPrivate::engines.insert(name, {thread, engine});
+}
+
+Authenticator *Setup::loadAuthenticator(QObject *parent, const QString &name)
+{
+	QMutexLocker _(&SetupPrivate::setupMutex);
+	if(SetupPrivate::engines.contains(name)) {
+		auto &info = SetupPrivate::engines[name];
+		if(info.second)
+			return info.second->remoteConnector->createAuthenticator(parent);
+	}
+
+	return nullptr;
 }
 
 // ------------- Private Implementation -------------
@@ -129,7 +166,9 @@ void SetupPrivate::cleanupHandler()
 SetupPrivate::SetupPrivate() :
 	serializer(new QJsonSerializer()),
 	localStore(new SqlLocalStore()),
-	stateHolder(new SqlStateHolder())
+	stateHolder(new SqlStateHolder()),
+	remoteConnector(new WsRemoteConnector()),
+	dataMerger(new DataMerger())
 {}
 
 // ------------- Application hooks -------------

@@ -2,6 +2,7 @@
 #define STATEHOLDER_H
 
 #include "qtdatasync_global.h"
+#include <QHash>
 #include <QObject>
 
 namespace QtDataSync {
@@ -20,7 +21,8 @@ public:
 
 	struct ChangedInfo {
 		QByteArray typeName;
-		QList<QString> keys;
+		QString key;
+		ChangeState state;
 	};
 
 	explicit StateHolder(QObject *parent = nullptr);
@@ -29,8 +31,8 @@ public:
 	virtual void finalize();
 
 	virtual QList<ChangedInfo> listLocalChanges() = 0;
-	virtual void markLocalChanged(QByteArray typeName, const QString &key, ChangeState changed) = 0;
-	virtual void markAllLocalChanged(QByteArray typeName, ChangeState changed) = 0;
+	virtual void markLocalChanged(const QByteArray &typeName, const QString &key, ChangeState changed) = 0;
+	virtual void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) = 0;
 };
 
 }

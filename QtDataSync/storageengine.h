@@ -1,7 +1,9 @@
 #ifndef STORAGEENGINE_H
 #define STORAGEENGINE_H
 
+#include "datamerger.h"
 #include "localstore.h"
+#include "remoteconnector.h"
 #include "stateholder.h"
 
 #include <QFuture>
@@ -28,7 +30,9 @@ public:
 
 	explicit StorageEngine(QJsonSerializer *serializer,
 						   LocalStore *localStore,
-						   StateHolder *stateHolder);
+						   StateHolder *stateHolder,
+						   RemoteConnector *remoteConnector,
+						   DataMerger *dataMerger);
 
 public slots:
 	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value = {});
@@ -56,6 +60,8 @@ private:
 	QJsonSerializer *serializer;
 	LocalStore *localStore;
 	StateHolder *stateHolder;
+	RemoteConnector *remoteConnector;
+	DataMerger *dataMerger;
 
 	QHash<quint64, RequestInfo> requestCache;
 	quint64 requestCounter;

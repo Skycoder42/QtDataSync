@@ -25,7 +25,12 @@ HEADERS += qtdatasync_global.h \
     sqllocalstore.h \
     stateholder.h \
     sqlstateholder.h \
-    defaultsqlkeeper.h
+    defaultsqlkeeper.h \
+    authenticator.h \
+    remoteconnector.h \
+    wsremoteconnector.h \
+    datamerger.h \
+    changecontroller.h
 
 SOURCES += \
 	setup.cpp \
@@ -37,7 +42,12 @@ SOURCES += \
     sqllocalstore.cpp \
     stateholder.cpp \
     sqlstateholder.cpp \
-    defaultsqlkeeper.cpp
+    defaultsqlkeeper.cpp \
+    authenticator.cpp \
+    remoteconnector.cpp \
+    wsremoteconnector.cpp \
+    datamerger.cpp \
+    changecontroller.cpp
 
 unix {
 	target.path = /usr/lib

@@ -40,29 +40,26 @@ void SqlStateHolder::finalize()
 QList<StateHolder::ChangedInfo> SqlStateHolder::listLocalChanges()
 {
 	QSqlQuery listQuery(database);
-	listQuery.prepare(QStringLiteral("SELECT Type, Key FROM SyncState WHERE Changed = 1"));
+	listQuery.prepare(QStringLiteral("SELECT Type, Key, Changed FROM SyncState WHERE Changed != 0"));
 	if(!listQuery.exec()) {
 		qCritical() << "Failed to load current state with error:"
 					<< listQuery.lastError().text();
 		return {};
 	}
 
-	QMultiHash<QByteArray, QString> state;
+	QList<ChangedInfo> stateList;
 	while(listQuery.next()) {
-		auto type = listQuery.value(0).toByteArray();
-		state.insert(type, listQuery.value(1).toString());
+		ChangedInfo info;
+		info.typeName = listQuery.value(0).toByteArray();
+		info.key = listQuery.value(1).toString();
+		info.state = (ChangeState)listQuery.value(2).toInt();
+		stateList.append(info);
 	}
 
-	QList<ChangedInfo> resultList;
-	foreach(auto key, state.keys()) {
-		ChangedInfo info;
-		info.typeName = key;
-		info.keys = state.values(key);
-	}
-	return resultList;
+	return stateList;
 }
 
-void SqlStateHolder::markLocalChanged(QByteArray typeName, const QString &key, ChangeState changed)
+void SqlStateHolder::markLocalChanged(const QByteArray &typeName, const QString &key, ChangeState changed)
 {
 	QSqlQuery updateQuery(database);
 
@@ -87,7 +84,7 @@ void SqlStateHolder::markLocalChanged(QByteArray typeName, const QString &key, C
 	}
 }
 
-void SqlStateHolder::markAllLocalChanged(QByteArray typeName, StateHolder::ChangeState changed)
+void SqlStateHolder::markAllLocalChanged(const QByteArray &typeName, StateHolder::ChangeState changed)
 {
 	QSqlQuery updateQuery(database);
 

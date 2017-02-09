@@ -19,18 +19,19 @@ public:
 	void initialize() override;
 	void finalize() override;
 
-	void count(quint64 id, QByteArray typeName) override;
-	void loadAll(quint64 id, QByteArray typeName) override;
-	void load(quint64 id, QByteArray typeName, const QString &key, const QString &value) override;
-	void save(quint64 id, QByteArray typeName, const QString &key, const QString &value, const QJsonObject &object) override;
-	void remove(quint64 id, QByteArray typeName, const QString &key, const QString &value) override;
-	void removeAll(quint64 id, QByteArray typeName) override;
+public slots:
+	void count(quint64 id, const QByteArray &typeName) override;
+	void loadAll(quint64 id, const QByteArray &typeName) override;
+	void load(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) override;
+	void save(quint64 id, const QByteArray &typeName, const QString &key, const QString &value, const QJsonObject &object) override;
+	void remove(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) override;
+	void removeAll(quint64 id, const QByteArray &typeName) override;
 
 private:
 	QDir storageDir;
 	QSqlDatabase database;
 
-	QString tableName(QByteArray typeName) const;
+	QString tableName(const QByteArray &typeName) const;
 	bool testTableExists(const QString &tableName) const;
 };
 

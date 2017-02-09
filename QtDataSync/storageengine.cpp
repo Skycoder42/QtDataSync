@@ -3,17 +3,21 @@
 #include <QThread>
 using namespace QtDataSync;
 
-StorageEngine::StorageEngine(QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder) :
+StorageEngine::StorageEngine(QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger) :
 	QObject(),
 	serializer(serializer),
 	localStore(localStore),
 	stateHolder(stateHolder),
+	remoteConnector(remoteConnector),
+	dataMerger(dataMerger),
 	requestCache(),
 	requestCounter(0)
 {
 	serializer->setParent(this);
 	localStore->setParent(this);
 	stateHolder->setParent(this);
+	remoteConnector->setParent(this);
+	dataMerger->setParent(this);
 }
 
 void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
@@ -64,10 +68,14 @@ void StorageEngine::initialize()
 	localStore->initialize();
 
 	stateHolder->initialize();
+	remoteConnector->initialize();
+	dataMerger->initialize();
 }
 
 void StorageEngine::finalize()
 {
+	dataMerger->finalize();
+	remoteConnector->finalize();
 	stateHolder->finalize();
 	localStore->finalize();
 	thread()->quit();

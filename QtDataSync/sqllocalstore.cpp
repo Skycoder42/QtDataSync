@@ -39,7 +39,7 @@ void SqlLocalStore::finalize()
 	DefaultSqlKeeper::releaseDatabase();
 }
 
-void SqlLocalStore::count(quint64 id, QByteArray typeName)
+void SqlLocalStore::count(quint64 id, const QByteArray &typeName)
 {
 	auto tName = tableName(typeName);
 
@@ -57,7 +57,7 @@ void SqlLocalStore::count(quint64 id, QByteArray typeName)
 	emit requestCompleted(id, 0);
 }
 
-void SqlLocalStore::loadAll(quint64 id, QByteArray typeName)
+void SqlLocalStore::loadAll(quint64 id, const QByteArray &typeName)
 {
 	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
@@ -88,7 +88,7 @@ void SqlLocalStore::loadAll(quint64 id, QByteArray typeName)
 		emit requestCompleted(id, QJsonArray());
 }
 
-void SqlLocalStore::load(quint64 id, QByteArray typeName, const QString &, const QString &value)
+void SqlLocalStore::load(quint64 id, const QByteArray &typeName, const QString &, const QString &value)
 {
 	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
@@ -118,7 +118,7 @@ void SqlLocalStore::load(quint64 id, QByteArray typeName, const QString &, const
 	emit requestCompleted(id, QJsonValue::Null);
 }
 
-void SqlLocalStore::save(quint64 id, QByteArray typeName, const QString &, const QString &value, const QJsonObject &object)
+void SqlLocalStore::save(quint64 id, const QByteArray &typeName, const QString &, const QString &value, const QJsonObject &object)
 {
 	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
@@ -176,7 +176,7 @@ void SqlLocalStore::save(quint64 id, QByteArray typeName, const QString &, const
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::remove(quint64 id, QByteArray typeName, const QString &, const QString &value)
+void SqlLocalStore::remove(quint64 id, const QByteArray &typeName, const QString &, const QString &value)
 {
 	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
@@ -204,7 +204,7 @@ void SqlLocalStore::remove(quint64 id, QByteArray typeName, const QString &, con
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::removeAll(quint64 id, QByteArray typeName)
+void SqlLocalStore::removeAll(quint64 id, const QByteArray &typeName)
 {
 	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
@@ -220,7 +220,7 @@ void SqlLocalStore::removeAll(quint64 id, QByteArray typeName)
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-QString SqlLocalStore::tableName(QByteArray typeName) const
+QString SqlLocalStore::tableName(const QByteArray &typeName) const
 {
 	return QString::fromLatin1('_' + QByteArray(typeName).toHex());
 }

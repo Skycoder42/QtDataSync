@@ -1,7 +1,9 @@
 #ifndef SETUP_P_H
 #define SETUP_P_H
 
+#include "datamerger.h"
 #include "localstore.h"
+#include "remoteconnector.h"
 #include "setup.h"
 #include "stateholder.h"
 #include "storageengine.h"
@@ -28,6 +30,8 @@ private:
 	QScopedPointer<QJsonSerializer> serializer;
 	QScopedPointer<LocalStore> localStore;
 	QScopedPointer<StateHolder> stateHolder;
+	QScopedPointer<RemoteConnector> remoteConnector;
+	QScopedPointer<DataMerger> dataMerger;
 
 	SetupPrivate();
 };
