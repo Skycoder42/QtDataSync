@@ -4,6 +4,8 @@
 #include <asyncdatastore.h>
 #include <setup.h>
 
+#include <QtJsonSerializer/QJsonSerializer>
+
 #include "testdata.h"
 
 class LocalStoreTest : public QObject
@@ -14,8 +16,10 @@ private Q_SLOTS:
 	void initTestCase();
 	void cleanupTestCase();
 
-	void testSimpleSave_data();
-	void testSimpleSave();
+	void testSaveAndLoad_data();
+	void testSaveAndLoad();
+
+	void testLoadAll();
 
 private:
 	QtDataSync::AsyncDataStore *store;
@@ -23,6 +27,7 @@ private:
 
 void LocalStoreTest::initTestCase()
 {
+	QJsonSerializer::registerListConverters<TestData*>();
 	QtDataSync::Setup().create();
 	store = new QtDataSync::AsyncDataStore(this);
 }
@@ -33,16 +38,20 @@ void LocalStoreTest::cleanupTestCase()
 	store = nullptr;
 }
 
-void LocalStoreTest::testSimpleSave_data()
+void LocalStoreTest::testSaveAndLoad_data()
 {
 	QTest::addColumn<QString>("key");
 	QTest::addColumn<TestData*>("data");
 
-	QTest::newRow("simple") << QStringLiteral("42")
-							<< new TestData(42, "baum", this);
+	QTest::newRow("data0") << QStringLiteral("420")
+						   << new TestData(420, "data0", this);
+	QTest::newRow("data0") << QStringLiteral("421")
+						   << new TestData(421, "data1", this);
+	QTest::newRow("data0") << QStringLiteral("422")
+						   << new TestData(422, "data2", this);
 }
 
-void LocalStoreTest::testSimpleSave()
+void LocalStoreTest::testSaveAndLoad()
 {
 	QFETCH(QString, key);
 	QFETCH(TestData*, data);
@@ -61,6 +70,37 @@ void LocalStoreTest::testSimpleSave()
 	}
 
 	data->deleteLater();
+}
+
+void LocalStoreTest::testLoadAll()
+{
+	try {
+		auto data = store->loadAll<TestData*>().result();
+		QCOMPARE(data.size(), 3);
+
+		QList<TestData*> testList = {
+			new TestData(420, "data0", this),
+			new TestData(421, "data1", this),
+			new TestData(422, "data2", this)
+		};
+
+		foreach(auto testData, data) {
+			auto ok = false;
+			foreach(auto realData, testList) {
+				if(testData->id == realData->id &&
+				   testData->text == realData->text) {
+					ok = true;
+					break;
+				}
+			}
+			QVERIFY2(ok, "TestData not the same");
+		}
+
+		qDeleteAll(data);
+		qDeleteAll(testList);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
 }
 
 QTEST_MAIN(LocalStoreTest)
