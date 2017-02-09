@@ -37,7 +37,7 @@ void SqlStateHolder::finalize()
 	DefaultSqlKeeper::releaseDatabase();
 }
 
-QList<StateHolder::ChangedInfo> SqlStateHolder::listLocalChanges()
+StateHolder::ChangeHash SqlStateHolder::listLocalChanges()
 {
 	QSqlQuery listQuery(database);
 	listQuery.prepare(QStringLiteral("SELECT Type, Key, Changed FROM SyncState WHERE Changed != 0"));
@@ -47,38 +47,37 @@ QList<StateHolder::ChangedInfo> SqlStateHolder::listLocalChanges()
 		return {};
 	}
 
-	QList<ChangedInfo> stateList;
+	ChangeHash stateHash;
 	while(listQuery.next()) {
-		ChangedInfo info;
-		info.typeName = listQuery.value(0).toByteArray();
-		info.key = listQuery.value(1).toString();
-		info.state = (ChangeState)listQuery.value(2).toInt();
-		stateList.append(info);
+		ChangeKey key;
+		key.first = listQuery.value(0).toByteArray();
+		key.second = listQuery.value(1).toString();
+		stateHash.insert(key, (ChangeState)listQuery.value(2).toInt());
 	}
 
-	return stateList;
+	return stateHash;
 }
 
-void SqlStateHolder::markLocalChanged(const QByteArray &typeName, const QString &key, ChangeState changed)
+void SqlStateHolder::markLocalChanged(const StateHolder::ChangeKey &key, StateHolder::ChangeState changed)
 {
 	QSqlQuery updateQuery(database);
 
 	if(changed == Unchanged) {
 		updateQuery.prepare(QStringLiteral("DELETE FROM SyncState WHERE Type = ? AND Key = ?"));
-		updateQuery.addBindValue(typeName);
-		updateQuery.addBindValue(key);
+		updateQuery.addBindValue(key.first);
+		updateQuery.addBindValue(key.second);
 	} else {
 		updateQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO SyncState (Type, Key, Changed) VALUES(?, ?, ?)"));
-		updateQuery.addBindValue(typeName);
-		updateQuery.addBindValue(key);
+		updateQuery.addBindValue(key.first);
+		updateQuery.addBindValue(key.second);
 		updateQuery.addBindValue((int)changed);
 	}
 
 	if(!updateQuery.exec()) {
 		qCritical() << "Failed to update current state for type"
-					<< typeName
+					<< key.first
 					<< "and key"
-					<< key
+					<< key.second
 					<< "with error:"
 					<< updateQuery.lastError().text();
 	}

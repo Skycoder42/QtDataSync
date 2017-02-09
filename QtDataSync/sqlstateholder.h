@@ -18,8 +18,8 @@ public:
 	void initialize() override;
 	void finalize() override;
 
-	QList<ChangedInfo> listLocalChanges() override;
-	void markLocalChanged(const QByteArray &typeName, const QString &key, ChangeState changed) override;
+	ChangeHash listLocalChanges() override;
+	void markLocalChanged(const ChangeKey &key, ChangeState changed) override;
 	void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) override;
 
 private:

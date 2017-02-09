@@ -98,8 +98,7 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 			stateHolder->markAllLocalChanged(QMetaType::typeName(info.metaTypeId),
 											 info.changeState);
 		} else {
-			stateHolder->markLocalChanged(QMetaType::typeName(info.metaTypeId),
-										  info.changeKey,
+			stateHolder->markLocalChanged({QMetaType::typeName(info.metaTypeId), info.changeKey},
 										  info.changeState);
 		}
 	}

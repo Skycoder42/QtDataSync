@@ -19,22 +19,22 @@ public:
 	};
 	Q_ENUM(ChangeState)
 
-	struct ChangedInfo {
-		QByteArray typeName;
-		QString key;
-		ChangeState state;
-	};
+	typedef QPair<QByteArray, QString> ChangeKey;
+	typedef QHash<ChangeKey, ChangeState> ChangeHash;
 
 	explicit StateHolder(QObject *parent = nullptr);
 
 	virtual void initialize();
 	virtual void finalize();
 
-	virtual QList<ChangedInfo> listLocalChanges() = 0;
-	virtual void markLocalChanged(const QByteArray &typeName, const QString &key, ChangeState changed) = 0;
+	virtual ChangeHash listLocalChanges() = 0;
+	virtual void markLocalChanged(const ChangeKey &key, ChangeState changed) = 0;
 	virtual void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) = 0;
 };
 
 }
+
+Q_DECLARE_METATYPE(QtDataSync::StateHolder::ChangeKey)
+Q_DECLARE_METATYPE(QtDataSync::StateHolder::ChangeHash)
 
 #endif // STATEHOLDER_H
