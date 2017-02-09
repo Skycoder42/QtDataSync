@@ -73,53 +73,58 @@ void StorageEngine::finalize()
 	thread()->quit();
 }
 
-void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result, const QString &changeKey)
+void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 {
 	auto info = requestCache.take(id);
 	if(!result.isUndefined()) {
 		try {
-			auto obj = serializer->deserialize(result, info.second);
-			info.first.reportResult(obj);
+			auto obj = serializer->deserialize(result, info.metaTypeId);
+			info.futureInterface.reportResult(obj);
 		} catch(SerializerException &e) {
-			info.first.reportException(Exception(e.qWhat()));
+			info.futureInterface.reportException(Exception(e.qWhat()));
 		}
 	}
 
-	if(!changeKey.isEmpty()) {
-		stateHolder->markLocalChanged(QMetaType::typeName(info.second),
-									  changeKey,
-									  true);
+	if(info.changeAction) {
+		if(info.changeKey.isEmpty()) {
+			stateHolder->markAllLocalChanged(QMetaType::typeName(info.metaTypeId),
+											 info.changeState);
+		} else {
+			stateHolder->markLocalChanged(QMetaType::typeName(info.metaTypeId),
+										  info.changeKey,
+										  info.changeState);
+		}
 	}
 
-	info.first.reportFinished();
+	info.futureInterface.reportFinished();
 }
 
 void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 {
 	auto info = requestCache.take(id);
-	info.first.reportException(Exception(errorString));
-	info.first.reportFinished();
+	info.futureInterface.reportException(Exception(errorString));
+	info.futureInterface.reportFinished();
 }
 
 void StorageEngine::count(QFutureInterface<QVariant> futureInterface, int metaTypeId)
 {
 	auto id = requestCounter++;
 	requestCache.insert(id, {futureInterface, QMetaType::Int});
-	localStore->count(id, metaTypeId);
+	localStore->count(id, QMetaType::typeName(metaTypeId));
 }
 
 void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId)
 {
 	auto id = requestCounter++;
 	requestCache.insert(id, {futureInterface, listMetaTypeId});
-	localStore->loadAll(id, dataMetaTypeId);
+	localStore->loadAll(id, QMetaType::typeName(dataMetaTypeId));
 }
 
 void StorageEngine::load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value)
 {
 	auto id = requestCounter++;
 	requestCache.insert(id, {futureInterface, metaTypeId});
-	localStore->load(id, metaTypeId, key, value);
+	localStore->load(id, QMetaType::typeName(metaTypeId), key, value);
 }
 
 void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, QVariant value)
@@ -128,10 +133,15 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 		throw Exception(QStringLiteral("Failed to convert value to %1").arg(QMetaType::typeName(metaTypeId)));
 
 	try {
-		auto json = serializer->serialize(value);
+		auto json = serializer->serialize(value).toObject();
+		auto keyValue = json[key].toVariant().toString();
 		auto id = requestCounter++;
-		requestCache.insert(id, {futureInterface, metaTypeId});
-		localStore->save(id, metaTypeId, key, json.toObject());
+		RequestInfo info(futureInterface, metaTypeId);
+		info.changeAction = true;
+		info.changeKey = keyValue;
+		info.changeState = StateHolder::Changed;
+		requestCache.insert(id, info);
+		localStore->save(id, QMetaType::typeName(metaTypeId), key, keyValue, json);
 	} catch(SerializerException &e) {
 		throw Exception(e.qWhat());
 	}
@@ -140,13 +150,30 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value)
 {
 	auto id = requestCounter++;
-	requestCache.insert(id, {futureInterface, metaTypeId});
-	localStore->remove(id, metaTypeId, key, value);
+	RequestInfo info(futureInterface, metaTypeId);
+	info.changeAction = true;
+	info.changeKey = value;
+	info.changeState = StateHolder::Deleted;
+	requestCache.insert(id, info);
+	localStore->remove(id, QMetaType::typeName(metaTypeId), key, value);
 }
 
 void StorageEngine::removeAll(QFutureInterface<QVariant> futureInterface, int metaTypeId)
 {
 	auto id = requestCounter++;
-	requestCache.insert(id, {futureInterface, metaTypeId});
-	localStore->removeAll(id, metaTypeId);
+	RequestInfo info(futureInterface, metaTypeId);
+	info.changeAction = true;
+	info.changeState = StateHolder::Deleted;
+	requestCache.insert(id, info);
+	localStore->removeAll(id, QMetaType::typeName(metaTypeId));
 }
+
+
+
+StorageEngine::RequestInfo::RequestInfo(QFutureInterface<QVariant> futureInterface, int metaTypeId) :
+	futureInterface(futureInterface),
+	metaTypeId(metaTypeId),
+	changeAction(false),
+	changeKey(),
+	changeState(StateHolder::Unchanged)
+{}

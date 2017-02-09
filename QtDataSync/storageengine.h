@@ -37,11 +37,21 @@ private slots:
 	void initialize();
 	void finalize();
 
-	void requestCompleted(quint64 id, const QJsonValue &result, const QString &changeKey);
+	void requestCompleted(quint64 id, const QJsonValue &result);
 	void requestFailed(quint64 id, const QString &errorString);
 
 private:
-	typedef QPair<QFutureInterface<QVariant>, int> RequestInfo;
+	struct RequestInfo {
+		QFutureInterface<QVariant> futureInterface;
+		int metaTypeId;
+
+		bool changeAction;
+		QString changeKey;
+		StateHolder::ChangeState changeState;
+
+		RequestInfo(QFutureInterface<QVariant> futureInterface = {},
+					int metaTypeId = QMetaType::UnknownType);
+	};
 
 	QJsonSerializer *serializer;
 	LocalStore *localStore;

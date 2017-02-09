@@ -39,9 +39,9 @@ void SqlLocalStore::finalize()
 	DefaultSqlKeeper::releaseDatabase();
 }
 
-void SqlLocalStore::count(quint64 id, int metaTypeId)
+void SqlLocalStore::count(quint64 id, QByteArray typeName)
 {
-	auto tName = tableName(metaTypeId);
+	auto tName = tableName(typeName);
 
 	if(testTableExists(tName)) {
 		QSqlQuery countQuery(database);
@@ -57,9 +57,9 @@ void SqlLocalStore::count(quint64 id, int metaTypeId)
 	emit requestCompleted(id, 0);
 }
 
-void SqlLocalStore::loadAll(quint64 id, int metaTypeId)
+void SqlLocalStore::loadAll(quint64 id, QByteArray typeName)
 {
-	auto tName = tableName(metaTypeId);
+	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
 
 	if(testTableExists(tName)) {
@@ -88,9 +88,9 @@ void SqlLocalStore::loadAll(quint64 id, int metaTypeId)
 		emit requestCompleted(id, QJsonArray());
 }
 
-void SqlLocalStore::load(quint64 id, int metaTypeId, const QString &, const QString &value)
+void SqlLocalStore::load(quint64 id, QByteArray typeName, const QString &, const QString &value)
 {
-	auto tName = tableName(metaTypeId);
+	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
 
 	if(testTableExists(tName)) {
@@ -118,10 +118,9 @@ void SqlLocalStore::load(quint64 id, int metaTypeId, const QString &, const QStr
 	emit requestCompleted(id, QJsonValue::Null);
 }
 
-void SqlLocalStore::save(quint64 id, int metaTypeId, const QString &key, const QJsonObject &object)
+void SqlLocalStore::save(quint64 id, QByteArray typeName, const QString &, const QString &value, const QJsonObject &object)
 {
-	auto tName = tableName(metaTypeId);
-	auto tKey = object[key].toVariant().toString();
+	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
 
 	//create table
@@ -136,7 +135,7 @@ void SqlLocalStore::save(quint64 id, int metaTypeId, const QString &key, const Q
 	//check if the file exists
 	QSqlQuery existQuery(database);
 	existQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
-	existQuery.addBindValue(tKey);
+	existQuery.addBindValue(value);
 	EXEC_QUERY(existQuery);
 
 	auto needUpdate = false;
@@ -169,17 +168,17 @@ void SqlLocalStore::save(quint64 id, int metaTypeId, const QString &key, const Q
 	if(needUpdate) {
 		QSqlQuery insertQuery(database);
 		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (Key, File) VALUES(?, ?)").arg(tName));
-		insertQuery.addBindValue(tKey);
+		insertQuery.addBindValue(value);
 		insertQuery.addBindValue(tableDir.relativeFilePath(QFileInfo(file->fileName()).completeBaseName()));
 		EXEC_QUERY(insertQuery);
 	}
 
-	emit requestCompleted(id, QJsonValue::Undefined, tKey);
+	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::remove(quint64 id, int metaTypeId, const QString &, const QString &value)
+void SqlLocalStore::remove(quint64 id, QByteArray typeName, const QString &, const QString &value)
 {
-	auto tName = tableName(metaTypeId);
+	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
 
 	if(testTableExists(tName)) {
@@ -205,9 +204,9 @@ void SqlLocalStore::remove(quint64 id, int metaTypeId, const QString &, const QS
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::removeAll(quint64 id, int metaTypeId)
+void SqlLocalStore::removeAll(quint64 id, QByteArray typeName)
 {
-	auto tName = tableName(metaTypeId);
+	auto tName = tableName(typeName);
 	TABLE_DIR(tName)
 
 	if(!tableDir.removeRecursively()) {
@@ -221,9 +220,9 @@ void SqlLocalStore::removeAll(quint64 id, int metaTypeId)
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-QString SqlLocalStore::tableName(int metaTypeId) const
+QString SqlLocalStore::tableName(QByteArray typeName) const
 {
-	return QString::fromLatin1('_' + QByteArray(QMetaType::typeName(metaTypeId)).toHex());
+	return QString::fromLatin1('_' + QByteArray(typeName).toHex());
 }
 
 bool SqlLocalStore::testTableExists(const QString &tableName) const
