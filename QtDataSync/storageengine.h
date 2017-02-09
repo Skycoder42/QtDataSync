@@ -44,22 +44,29 @@ private slots:
 
 	void requestCompleted(quint64 id, const QJsonValue &result);
 	void requestFailed(quint64 id, const QString &errorString);
-	void operationDone(quint64 id, const QJsonValue &result);
-	void operationFailed(quint64 id, const QString &errorString);
+	void operationDone(const QJsonValue &result);
+	void operationFailed(const QString &errorString);
 
 	void loadLocalStatus();
+	void beginRemoteOperation(const ChangeController::ChangeOperation &operation);
+	void beginLocalOperation(const ChangeController::ChangeOperation &operation);
 
 private:
 	struct RequestInfo {
-		QFutureInterface<QVariant> futureInterface;
-		int metaTypeId;
+		//change controller
+		bool isChangeControllerRequest;
 
+		//store requests
+		QFutureInterface<QVariant> futureInterface;
+		int convertMetaTypeId;
+
+		//changing operations
 		bool changeAction;
-		QString changeKey;
+		ObjectKey changeKey;
 		StateHolder::ChangeState changeState;
 
-		RequestInfo(QFutureInterface<QVariant> futureInterface = {},
-					int metaTypeId = QMetaType::UnknownType);
+		RequestInfo(bool isChangeControllerRequest = false);
+		RequestInfo(QFutureInterface<QVariant> futureInterface, int metaTypeId = QMetaType::UnknownType);
 	};
 
 	QJsonSerializer *serializer;
@@ -73,9 +80,9 @@ private:
 
 	void count(QFutureInterface<QVariant> futureInterface, int metaTypeId);
 	void loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId);
-	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value);
-	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, QVariant value);
-	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QString &key, const QString &value);
+	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value);
+	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, QVariant value);
+	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value);
 	void removeAll(QFutureInterface<QVariant> futureInterface, int metaTypeId);
 };
 

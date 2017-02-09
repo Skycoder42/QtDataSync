@@ -19,7 +19,7 @@ public:
 	void finalize() override;
 
 	ChangeHash listLocalChanges() override;
-	void markLocalChanged(const ChangeKey &key, ChangeState changed) override;
+	void markLocalChanged(const ObjectKey &key, ChangeState changed) override;
 	void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) override;
 
 private:

@@ -19,10 +19,10 @@ public:
 	Authenticator *createAuthenticator(QObject *parent) override;
 
 public slots:
-	void download(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) override;
-	void upload(quint64 id, const QByteArray &typeName, const QString &key, const QString &value, const QJsonObject &object) override;
-	void remove(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) override;
-	void markUnchanged(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) override;
+	void download(const ObjectKey &key, const QByteArray &keyProperty) override;
+	void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
+	void remove(const ObjectKey &key, const QByteArray &keyProperty) override;
+	void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) override;
 };
 
 }

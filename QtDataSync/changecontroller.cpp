@@ -26,10 +26,15 @@ void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &chan
 	reloadChangeList();
 }
 
-void ChangeController::updateLocalStatus(const StateHolder::ChangeKey &key, StateHolder::ChangeState &state)
+void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::ChangeState &state)
 {
-	localState.insert(key, state);
-	reloadChangeList();
+	if(state == StateHolder::Unchanged) {
+		if(localState.remove(key) > 0)
+			reloadChangeList();
+	} else {
+		localState.insert(key, state);
+		reloadChangeList();
+	}
 }
 
 void ChangeController::updateRemoteStatus(bool canUpdate, const StateHolder::ChangeHash &changes)
@@ -38,6 +43,11 @@ void ChangeController::updateRemoteStatus(bool canUpdate, const StateHolder::Cha
 		remoteState.insert(it.key(), it.value());
 	remoteReady = canUpdate;
 	reloadChangeList();
+}
+
+void ChangeController::nextStage(bool success, const QJsonValue &result)
+{
+
 }
 
 void ChangeController::reloadChangeList()

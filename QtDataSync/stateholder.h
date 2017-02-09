@@ -19,8 +19,7 @@ public:
 	};
 	Q_ENUM(ChangeState)
 
-	typedef QPair<QByteArray, QString> ChangeKey;
-	typedef QHash<ChangeKey, ChangeState> ChangeHash;
+	typedef QHash<ObjectKey, ChangeState> ChangeHash;
 
 	explicit StateHolder(QObject *parent = nullptr);
 
@@ -28,13 +27,12 @@ public:
 	virtual void finalize();
 
 	virtual ChangeHash listLocalChanges() = 0;
-	virtual void markLocalChanged(const ChangeKey &key, ChangeState changed) = 0;
+	virtual void markLocalChanged(const ObjectKey &key, ChangeState changed) = 0;
 	virtual void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) = 0;
 };
 
 }
 
-Q_DECLARE_METATYPE(QtDataSync::StateHolder::ChangeKey)
 Q_DECLARE_METATYPE(QtDataSync::StateHolder::ChangeHash)
 
 #endif // STATEHOLDER_H

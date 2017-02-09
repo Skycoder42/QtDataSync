@@ -20,22 +20,22 @@ Authenticator *WsRemoteConnector::createAuthenticator(QObject *parent)
 
 }
 
-void WsRemoteConnector::download(quint64 id, const QByteArray &typeName, const QString &key, const QString &value)
+void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
 {
 
 }
 
-void WsRemoteConnector::upload(quint64 id, const QByteArray &typeName, const QString &key, const QString &value, const QJsonObject &object)
+void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty)
 {
 
 }
 
-void WsRemoteConnector::remove(quint64 id, const QByteArray &typeName, const QString &key, const QString &value)
+void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProperty)
 {
 
 }
 
-void WsRemoteConnector::markUnchanged(quint64 id, const QByteArray &typeName, const QString &key, const QString &value)
+void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &keyProperty)
 {
 
 }

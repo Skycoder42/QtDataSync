@@ -49,7 +49,7 @@ StateHolder::ChangeHash SqlStateHolder::listLocalChanges()
 
 	ChangeHash stateHash;
 	while(listQuery.next()) {
-		ChangeKey key;
+		ObjectKey key;
 		key.first = listQuery.value(0).toByteArray();
 		key.second = listQuery.value(1).toString();
 		stateHash.insert(key, (ChangeState)listQuery.value(2).toInt());
@@ -58,7 +58,7 @@ StateHolder::ChangeHash SqlStateHolder::listLocalChanges()
 	return stateHash;
 }
 
-void SqlStateHolder::markLocalChanged(const StateHolder::ChangeKey &key, StateHolder::ChangeState changed)
+void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeState changed)
 {
 	QSqlQuery updateQuery(database);
 

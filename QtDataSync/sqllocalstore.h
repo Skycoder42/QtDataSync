@@ -22,9 +22,9 @@ public:
 public slots:
 	void count(quint64 id, const QByteArray &typeName) override;
 	void loadAll(quint64 id, const QByteArray &typeName) override;
-	void load(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) override;
-	void save(quint64 id, const QByteArray &typeName, const QString &key, const QString &value, const QJsonObject &object) override;
-	void remove(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) override;
+	void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
+	void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
+	void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
 	void removeAll(quint64 id, const QByteArray &typeName) override;
 
 private:

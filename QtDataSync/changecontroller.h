@@ -20,32 +20,31 @@ public:
 		MarkUnchanged
 	};
 
+	struct ChangeOperation {
+		ObjectKey key;
+		Operation operation;
+		QJsonObject writeObject;
+	};
+
 	explicit ChangeController(DataMerger *merger, QObject *parent = nullptr);
 
 	void initialize();
 	void finalize();
 
 public slots:
-	void setInitialLocalStatus(const QtDataSync::StateHolder::ChangeHash &changes);
-	void updateLocalStatus(const QtDataSync::StateHolder::ChangeKey &key, QtDataSync::StateHolder::ChangeState &state);
-	void updateRemoteStatus(bool canUpdate, const QtDataSync::StateHolder::ChangeHash &changes);
+	void setInitialLocalStatus(const StateHolder::ChangeHash &changes);
+	void updateLocalStatus(const ObjectKey &key, QtDataSync::StateHolder::ChangeState &state);
+	void updateRemoteStatus(bool canUpdate, const StateHolder::ChangeHash &changes);
 
-	void nextStage(bool success, const QVariant &result);
+	void nextStage(bool success, const QJsonValue &result = QJsonValue::Undefined);
 
 signals:
 	void loadLocalStatus();
 
-	void beginRemoteOperation(const QtDataSync::StateHolder::ChangeKey &key, const QString &value, QtDataSync::ChangeController::Operation operation, const QJsonValue &writeObject);
-	void beginLocalOperation(const QtDataSync::StateHolder::ChangeKey &key, const QString &value, QtDataSync::ChangeController::Operation operation, const QJsonValue &writeObject);
+	void beginRemoteOperation(const ChangeOperation &operation);
+	void beginLocalOperation(const ChangeOperation &operation);
 
 private:
-	struct ChangeOperation {
-		StateHolder::ChangeKey key;
-		QString value;
-		QJsonValue writeObject;
-
-		Operation remoteOperation;
-	};
 	DataMerger *merger;
 
 	bool localReady;

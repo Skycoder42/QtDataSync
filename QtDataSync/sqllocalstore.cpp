@@ -88,15 +88,15 @@ void SqlLocalStore::loadAll(quint64 id, const QByteArray &typeName)
 		emit requestCompleted(id, QJsonArray());
 }
 
-void SqlLocalStore::load(quint64 id, const QByteArray &typeName, const QString &, const QString &value)
+void SqlLocalStore::load(quint64 id, const ObjectKey &key, const QByteArray &)
 {
-	auto tName = tableName(typeName);
+	auto tName = tableName(key.first);
 	TABLE_DIR(tName)
 
 	if(testTableExists(tName)) {
 		QSqlQuery loadQuery(database);
 		loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
-		loadQuery.addBindValue(value);
+		loadQuery.addBindValue(key.second);
 		EXEC_QUERY(loadQuery);
 
 		if(loadQuery.first()) {
@@ -118,9 +118,9 @@ void SqlLocalStore::load(quint64 id, const QByteArray &typeName, const QString &
 	emit requestCompleted(id, QJsonValue::Null);
 }
 
-void SqlLocalStore::save(quint64 id, const QByteArray &typeName, const QString &, const QString &value, const QJsonObject &object)
+void SqlLocalStore::save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &)
 {
-	auto tName = tableName(typeName);
+	auto tName = tableName(key.first);
 	TABLE_DIR(tName)
 
 	//create table
@@ -135,7 +135,7 @@ void SqlLocalStore::save(quint64 id, const QByteArray &typeName, const QString &
 	//check if the file exists
 	QSqlQuery existQuery(database);
 	existQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
-	existQuery.addBindValue(value);
+	existQuery.addBindValue(key.second);
 	EXEC_QUERY(existQuery);
 
 	auto needUpdate = false;
@@ -168,7 +168,7 @@ void SqlLocalStore::save(quint64 id, const QByteArray &typeName, const QString &
 	if(needUpdate) {
 		QSqlQuery insertQuery(database);
 		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (Key, File) VALUES(?, ?)").arg(tName));
-		insertQuery.addBindValue(value);
+		insertQuery.addBindValue(key.second);
 		insertQuery.addBindValue(tableDir.relativeFilePath(QFileInfo(file->fileName()).completeBaseName()));
 		EXEC_QUERY(insertQuery);
 	}
@@ -176,15 +176,15 @@ void SqlLocalStore::save(quint64 id, const QByteArray &typeName, const QString &
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::remove(quint64 id, const QByteArray &typeName, const QString &, const QString &value)
+void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 {
-	auto tName = tableName(typeName);
+	auto tName = tableName(key.first);
 	TABLE_DIR(tName)
 
 	if(testTableExists(tName)) {
 		QSqlQuery loadQuery(database);
 		loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
-		loadQuery.addBindValue(value);
+		loadQuery.addBindValue(key.second);
 		EXEC_QUERY(loadQuery);
 
 		if(loadQuery.first()) {
@@ -196,7 +196,7 @@ void SqlLocalStore::remove(quint64 id, const QByteArray &typeName, const QString
 
 			QSqlQuery removeQuery(database);
 			removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(tName));
-			removeQuery.addBindValue(value);
+			removeQuery.addBindValue(key.second);
 			EXEC_QUERY(removeQuery);
 		}
 	}
