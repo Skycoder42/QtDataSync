@@ -75,9 +75,11 @@ void StorageEngine::initialize()
 	connect(remoteConnector, &RemoteConnector::remoteStateChanged,
 			changeController, &ChangeController::updateRemoteStatus);
 	connect(changeController, &ChangeController::beginRemoteOperation,
-			this, &StorageEngine::beginRemoteOperation);
+			this, &StorageEngine::beginRemoteOperation,
+			Qt::QueuedConnection);
 	connect(changeController, &ChangeController::beginLocalOperation,
-			this, &StorageEngine::beginLocalOperation);
+			this, &StorageEngine::beginLocalOperation,
+			Qt::QueuedConnection);
 
 	//remoteConnector
 	connect(remoteConnector, &RemoteConnector::operationDone,
@@ -213,11 +215,14 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 	case ChangeController::Save:
 		info.changeAction = true;
 		info.changeKey = operation.key;
-		info.changeState = StateHolder::Changed;
+		info.changeState = StateHolder::Unchanged;
 		requestCache.insert(id, info);
 		localStore->save(id, operation.key, operation.writeObject, userProperty.name());
 		break;
 	case ChangeController::Remove:
+		info.changeAction = true;
+		info.changeKey = operation.key;
+		info.changeState = StateHolder::Unchanged;
 		requestCache.insert(id, info);
 		localStore->remove(id, operation.key, userProperty.name());
 		break;

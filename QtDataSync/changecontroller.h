@@ -45,6 +45,28 @@ signals:
 	void beginLocalOperation(const ChangeOperation &operation);
 
 private:
+	enum ActionMode {
+		DoNothing,
+		DownloadRemote,
+		DeleteLocal,
+		UploadLocal,
+		Merge,
+		DeleteRemote,
+		MarkAsUnchanged
+	};
+
+	enum ActionState {
+		DoneState,
+		DownloadState,
+		SaveState,
+		RemoteMarkState,
+		RemoveLocalState,
+		UploadState,
+		LocalMarkState,
+		LoadState,
+		RemoveRemoteState
+	};
+
 	DataMerger *merger;
 
 	bool localReady;
@@ -53,7 +75,21 @@ private:
 	StateHolder::ChangeHash localState;
 	StateHolder::ChangeHash remoteState;
 
-	void reloadChangeList();
+	ActionMode currentMode;
+	ObjectKey currentKey;
+	ActionState currentState;
+
+	QJsonObject currentObject;
+
+	void newChanges();
+
+	void generateNextAction();
+	void actionDownloadRemote(const QJsonValue &result);
+	void actionDeleteLocal();
+	void actionUploadLocal(const QJsonValue &result);
+	void actionMerge(const QJsonValue &result);
+	void actionDeleteRemote();
+	void actionMarkAsUnchanged();
 };
 
 }

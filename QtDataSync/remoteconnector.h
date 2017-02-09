@@ -23,8 +23,8 @@ public:
 
 public slots:
 	virtual void download(const ObjectKey &key, const QByteArray &keyProperty) = 0;
-	virtual void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;
-	virtual void remove(const ObjectKey &key, const QByteArray &keyProperty) = 0;
+	virtual void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;//auto unchanged
+	virtual void remove(const ObjectKey &key, const QByteArray &keyProperty) = 0;//auto unchanged
 	virtual void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) = 0;
 
 signals:
