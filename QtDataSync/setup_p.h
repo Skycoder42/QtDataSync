@@ -3,6 +3,7 @@
 
 #include "localstore.h"
 #include "setup.h"
+#include "stateholder.h"
 #include "storageengine.h"
 #include <QJsonSerializer>
 #include <QMutex>
@@ -26,6 +27,7 @@ private:
 
 	QScopedPointer<QJsonSerializer> serializer;
 	QScopedPointer<LocalStore> localStore;
+	QScopedPointer<StateHolder> stateHolder;
 
 	SetupPrivate();
 };

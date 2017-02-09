@@ -3,15 +3,17 @@
 #include <QThread>
 using namespace QtDataSync;
 
-StorageEngine::StorageEngine(QJsonSerializer *serializer, LocalStore *localStore) :
+StorageEngine::StorageEngine(QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder) :
 	QObject(),
 	serializer(serializer),
 	localStore(localStore),
+	stateHolder(stateHolder),
 	requestCache(),
 	requestCounter(0)
 {
 	serializer->setParent(this);
 	localStore->setParent(this);
+	stateHolder->setParent(this);
 }
 
 void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
@@ -60,15 +62,18 @@ void StorageEngine::initialize()
 	connect(localStore, &LocalStore::requestFailed,
 			this, &StorageEngine::requestFailed);
 	localStore->initialize();
+
+	stateHolder->initialize();
 }
 
 void StorageEngine::finalize()
 {
+	stateHolder->finalize();
 	localStore->finalize();
 	thread()->quit();
 }
 
-void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
+void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result, const QString &changeKey)
 {
 	auto info = requestCache.take(id);
 	if(!result.isUndefined()) {
@@ -78,6 +83,12 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 		} catch(SerializerException &e) {
 			info.first.reportException(Exception(e.qWhat()));
 		}
+	}
+
+	if(!changeKey.isEmpty()) {
+		stateHolder->markLocalChanged(QMetaType::typeName(info.second),
+									  changeKey,
+									  true);
 	}
 
 	info.first.reportFinished();

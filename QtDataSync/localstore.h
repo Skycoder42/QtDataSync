@@ -27,7 +27,7 @@ public:
 	virtual void removeAll(quint64 id, int metaTypeId) = 0;
 
 signals:
-	void requestCompleted(quint64 id, const QJsonValue &result);
+	void requestCompleted(quint64 id, const QJsonValue &result, const QString &changeKey = {});
 	void requestFailed(quint64 id, const QString &errorString);
 };
 

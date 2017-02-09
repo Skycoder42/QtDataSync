@@ -27,8 +27,6 @@ public:
 	void removeAll(quint64 id, int metaTypeId) override;
 
 private:
-	static const QString DatabaseName;
-
 	QDir storageDir;
 	QSqlDatabase database;
 

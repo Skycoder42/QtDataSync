@@ -1,3 +1,4 @@
+#include "defaultsqlkeeper.h"
 #include "sqllocalstore.h"
 
 #include <QJsonArray>
@@ -20,8 +21,6 @@ using namespace QtDataSync;
 	} \
 } while(false)
 
-const QString SqlLocalStore::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
-
 SqlLocalStore::SqlLocalStore(QObject *parent) :
 	LocalStore(parent),
 	storageDir(),
@@ -30,20 +29,14 @@ SqlLocalStore::SqlLocalStore(QObject *parent) :
 
 void SqlLocalStore::initialize()
 {
-	storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-	storageDir.mkpath(QStringLiteral("./qtdatasync_localstore"));
-	storageDir.cd(QStringLiteral("./qtdatasync_localstore"));
-
-	database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), DatabaseName);
-	database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("./store.db")));
-	database.open();
+	storageDir = DefaultSqlKeeper::storageDir();
+	database = DefaultSqlKeeper::aquireDatabase();
 }
 
 void SqlLocalStore::finalize()
 {
-	database.close();
 	database = QSqlDatabase();
-	QSqlDatabase::removeDatabase(DatabaseName);
+	DefaultSqlKeeper::releaseDatabase();
 }
 
 void SqlLocalStore::count(quint64 id, int metaTypeId)
@@ -175,13 +168,13 @@ void SqlLocalStore::save(quint64 id, int metaTypeId, const QString &key, const Q
 	//save key in database
 	if(needUpdate) {
 		QSqlQuery insertQuery(database);
-		insertQuery.prepare(QStringLiteral("INSERT INTO %1 (Key, File) VALUES(?, ?)").arg(tName));
+		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (Key, File) VALUES(?, ?)").arg(tName));
 		insertQuery.addBindValue(tKey);
 		insertQuery.addBindValue(tableDir.relativeFilePath(QFileInfo(file->fileName()).completeBaseName()));
 		EXEC_QUERY(insertQuery);
 	}
 
-	emit requestCompleted(id, QJsonValue::Undefined);
+	emit requestCompleted(id, QJsonValue::Undefined, tKey);
 }
 
 void SqlLocalStore::remove(quint64 id, int metaTypeId, const QString &, const QString &value)

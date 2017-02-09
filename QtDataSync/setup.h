@@ -8,6 +8,7 @@ class QJsonSerializer;
 namespace QtDataSync {
 
 class LocalStore;
+class StateHolder;
 
 class SetupPrivate;
 class Setup
@@ -24,9 +25,11 @@ public:
 
 	QJsonSerializer *serializer() const;
 	LocalStore *localStore() const;
+	StateHolder *stateHolder() const;
 
 	Setup &setSerializer(QJsonSerializer *serializer);
 	Setup &setLocalStore(LocalStore *localStore);
+	Setup &setStateHolder(StateHolder *stateHolder);
 	void create(const QString &name = DefaultSetup);
 
 private:

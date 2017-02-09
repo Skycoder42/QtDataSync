@@ -1,6 +1,7 @@
 #include "setup.h"
 #include "setup_p.h"
 #include "sqllocalstore.h"
+#include "sqlstateholder.h"
 #include <QCoreApplication>
 using namespace QtDataSync;
 
@@ -42,6 +43,11 @@ LocalStore *Setup::localStore() const
 	return d->localStore.data();
 }
 
+StateHolder *Setup::stateHolder() const
+{
+	return d->stateHolder.data();
+}
+
 Setup &Setup::setSerializer(QJsonSerializer *serializer)
 {
 	d->serializer.reset(serializer);
@@ -51,6 +57,12 @@ Setup &Setup::setSerializer(QJsonSerializer *serializer)
 Setup &Setup::setLocalStore(LocalStore *localStore)
 {
 	d->localStore.reset(localStore);
+	return *this;
+}
+
+Setup &Setup::setStateHolder(StateHolder *stateHolder)
+{
+	d->stateHolder.reset(stateHolder);
 	return *this;
 }
 
@@ -65,7 +77,8 @@ void Setup::create(const QString &name)
 	}
 
 	auto engine = new StorageEngine(d->serializer.take(),
-									d->localStore.take());
+									d->localStore.take(),
+									d->stateHolder.take());
 
 	auto thread = new QThread();
 	engine->moveToThread(thread);
@@ -115,7 +128,8 @@ void SetupPrivate::cleanupHandler()
 
 SetupPrivate::SetupPrivate() :
 	serializer(new QJsonSerializer()),
-	localStore(new SqlLocalStore())
+	localStore(new SqlLocalStore()),
+	stateHolder(new SqlStateHolder())
 {}
 
 // ------------- Application hooks -------------

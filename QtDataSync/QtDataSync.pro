@@ -22,7 +22,10 @@ HEADERS += qtdatasync_global.h \
     asyncdatastore_p.h \
     exception.h \
     localstore.h \
-    sqllocalstore.h
+    sqllocalstore.h \
+    stateholder.h \
+    sqlstateholder.h \
+    defaultsqlkeeper.h
 
 SOURCES += \
 	setup.cpp \
@@ -31,7 +34,10 @@ SOURCES += \
     storageengine.cpp \
     exception.cpp \
     localstore.cpp \
-    sqllocalstore.cpp
+    sqllocalstore.cpp \
+    stateholder.cpp \
+    sqlstateholder.cpp \
+    defaultsqlkeeper.cpp
 
 unix {
 	target.path = /usr/lib

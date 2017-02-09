@@ -2,6 +2,7 @@
 #define STORAGEENGINE_H
 
 #include "localstore.h"
+#include "stateholder.h"
 
 #include <QFuture>
 #include <QJsonSerializer>
@@ -26,7 +27,8 @@ public:
 	Q_ENUM(TaskType)
 
 	explicit StorageEngine(QJsonSerializer *serializer,
-						   LocalStore *localStore);
+						   LocalStore *localStore,
+						   StateHolder *stateHolder);
 
 public slots:
 	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value = {});
@@ -35,7 +37,7 @@ private slots:
 	void initialize();
 	void finalize();
 
-	void requestCompleted(quint64 id, const QJsonValue &result);
+	void requestCompleted(quint64 id, const QJsonValue &result, const QString &changeKey);
 	void requestFailed(quint64 id, const QString &errorString);
 
 private:
@@ -43,6 +45,7 @@ private:
 
 	QJsonSerializer *serializer;
 	LocalStore *localStore;
+	StateHolder *stateHolder;
 
 	QHash<quint64, RequestInfo> requestCache;
 	quint64 requestCounter;
