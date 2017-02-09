@@ -3,6 +3,7 @@
 
 #include <QJsonValue>
 #include <QObject>
+#include "datamerger.h"
 #include "stateholder.h"
 
 namespace QtDataSync {
@@ -19,15 +20,17 @@ public:
 		MarkUnchanged
 	};
 
-	explicit ChangeController(QObject *parent = nullptr);
+	explicit ChangeController(DataMerger *merger, QObject *parent = nullptr);
+
+	void initialize();
+	void finalize();
 
 public slots:
 	void setInitialLocalStatus(const QtDataSync::StateHolder::ChangeHash &changes);
 	void updateLocalStatus(const QtDataSync::StateHolder::ChangeKey &key, QtDataSync::StateHolder::ChangeState &state);
 	void updateRemoteStatus(bool canUpdate, const QtDataSync::StateHolder::ChangeHash &changes);
 
-	void operationDone(const QtDataSync::StateHolder::ChangeKey &key, const QString &value, const QJsonValue &result);
-	void operationFailed(const QtDataSync::StateHolder::ChangeKey &key, const QString &value, const QString &error);
+	void nextStage(bool success, const QVariant &result);
 
 signals:
 	void loadLocalStatus();
@@ -43,6 +46,7 @@ private:
 
 		Operation remoteOperation;
 	};
+	DataMerger *merger;
 
 	bool localReady;
 	bool remoteReady;

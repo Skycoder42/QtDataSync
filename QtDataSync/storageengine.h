@@ -1,6 +1,7 @@
 #ifndef STORAGEENGINE_H
 #define STORAGEENGINE_H
 
+#include "changecontroller.h"
 #include "datamerger.h"
 #include "localstore.h"
 #include "remoteconnector.h"
@@ -43,6 +44,10 @@ private slots:
 
 	void requestCompleted(quint64 id, const QJsonValue &result);
 	void requestFailed(quint64 id, const QString &errorString);
+	void operationDone(quint64 id, const QJsonValue &result);
+	void operationFailed(quint64 id, const QString &errorString);
+
+	void loadLocalStatus();
 
 private:
 	struct RequestInfo {
@@ -61,7 +66,7 @@ private:
 	LocalStore *localStore;
 	StateHolder *stateHolder;
 	RemoteConnector *remoteConnector;
-	DataMerger *dataMerger;
+	ChangeController *changeController;
 
 	QHash<quint64, RequestInfo> requestCache;
 	quint64 requestCounter;

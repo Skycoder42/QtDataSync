@@ -22,15 +22,16 @@ public:
 	virtual Authenticator *createAuthenticator(QObject *parent) = 0;
 
 public slots:
-	virtual void download(const QtDataSync::StateHolder::ChangeKey &key, const QString &value) = 0;
-	virtual void upload(const QtDataSync::StateHolder::ChangeKey &key, const QString &value, const QJsonObject &object) = 0;
-	virtual void remove(const QtDataSync::StateHolder::ChangeKey &key, const QString &value) = 0;
-	virtual void markUnchanged(const QtDataSync::StateHolder::ChangeKey &key, const QString &value) = 0;
+	virtual void download(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) = 0;
+	virtual void upload(quint64 id, const QByteArray &typeName, const QString &key, const QString &value, const QJsonObject &object) = 0;
+	virtual void remove(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) = 0;
+	virtual void markUnchanged(quint64 id, const QByteArray &typeName, const QString &key, const QString &value) = 0;
 
 signals:
 	void remoteStateChanged(bool canUpdate, const QtDataSync::StateHolder::ChangeHash &remoteChanges);
-	void operationDone(const QtDataSync::StateHolder::ChangeKey &key, const QString &value, const QJsonValue &result);
-	void operationFailed(const QtDataSync::StateHolder::ChangeKey &key, const QString &value, const QString &error);
+
+	void operationDone(quint64 id, const QJsonValue &result);
+	void operationFailed(quint64 id, const QString &error);
 
 protected:
 	virtual QByteArray loadDeviceId();

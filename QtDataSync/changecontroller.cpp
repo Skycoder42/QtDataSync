@@ -1,9 +1,22 @@
 #include "changecontroller.h"
 using namespace QtDataSync;
 
-ChangeController::ChangeController(QObject *parent) :
-	QObject(parent)
-{}
+ChangeController::ChangeController(DataMerger *merger, QObject *parent) :
+	QObject(parent),
+	merger(merger)
+{
+	merger->setParent(this);
+}
+
+void ChangeController::initialize()
+{
+	merger->initialize();
+}
+
+void ChangeController::finalize()
+{
+	merger->finalize();
+}
 
 void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &changes)
 {

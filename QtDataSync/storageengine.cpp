@@ -9,7 +9,7 @@ StorageEngine::StorageEngine(QJsonSerializer *serializer, LocalStore *localStore
 	localStore(localStore),
 	stateHolder(stateHolder),
 	remoteConnector(remoteConnector),
-	dataMerger(dataMerger),
+	changeController(new ChangeController(dataMerger, this)),
 	requestCache(),
 	requestCounter(0)
 {
@@ -17,7 +17,6 @@ StorageEngine::StorageEngine(QJsonSerializer *serializer, LocalStore *localStore
 	localStore->setParent(this);
 	stateHolder->setParent(this);
 	remoteConnector->setParent(this);
-	dataMerger->setParent(this);
 }
 
 void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
@@ -68,13 +67,23 @@ void StorageEngine::initialize()
 	localStore->initialize();
 
 	stateHolder->initialize();
+
+	connect(remoteConnector, &RemoteConnector::operationDone,
+			this, &StorageEngine::operationDone);
+	connect(remoteConnector, &RemoteConnector::operationFailed,
+			this, &StorageEngine::operationFailed);
 	remoteConnector->initialize();
-	dataMerger->initialize();
+
+	connect(changeController, &ChangeController::loadLocalStatus,
+			this, &StorageEngine::loadLocalStatus);
+	connect(remoteConnector, &RemoteConnector::remoteStateChanged,
+			changeController, &ChangeController::updateRemoteStatus);
+	changeController->initialize();
 }
 
 void StorageEngine::finalize()
 {
-	dataMerger->finalize();
+	changeController->finalize();
 	remoteConnector->finalize();
 	stateHolder->finalize();
 	localStore->finalize();
@@ -97,9 +106,11 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 		if(info.changeKey.isEmpty()) {
 			stateHolder->markAllLocalChanged(QMetaType::typeName(info.metaTypeId),
 											 info.changeState);
+			loadLocalStatus();
 		} else {
-			stateHolder->markLocalChanged({QMetaType::typeName(info.metaTypeId), info.changeKey},
-										  info.changeState);
+			StateHolder::ChangeKey key = {QMetaType::typeName(info.metaTypeId), info.changeKey};
+			stateHolder->markLocalChanged(key, info.changeState);
+			changeController->updateLocalStatus(key, info.changeState);
 		}
 	}
 
@@ -111,6 +122,22 @@ void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 	auto info = requestCache.take(id);
 	info.futureInterface.reportException(Exception(errorString));
 	info.futureInterface.reportFinished();
+}
+
+void StorageEngine::operationDone(quint64 id, const QJsonValue &result)
+{
+
+}
+
+void StorageEngine::operationFailed(quint64 id, const QString &errorString)
+{
+
+}
+
+void StorageEngine::loadLocalStatus()
+{
+	auto state = stateHolder->listLocalChanges();
+	changeController->setInitialLocalStatus(state);
 }
 
 void StorageEngine::count(QFutureInterface<QVariant> futureInterface, int metaTypeId)
