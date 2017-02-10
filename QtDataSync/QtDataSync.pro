@@ -30,7 +30,8 @@ HEADERS += qtdatasync_global.h \
     remoteconnector.h \
     wsremoteconnector.h \
     datamerger.h \
-    changecontroller.h
+    changecontroller.h \
+    datamerger_p.h
 
 SOURCES += \
 	setup.cpp \

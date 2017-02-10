@@ -8,12 +8,14 @@
 
 namespace QtDataSync {
 
+class DataMergerPrivate;
 class QTDATASYNCSHARED_EXPORT DataMerger : public QObject
 {
 	Q_OBJECT
 
 	Q_PROPERTY(SyncPolicy syncPolicy READ syncPolicy WRITE setSyncPolicy)
 	Q_PROPERTY(MergePolicy mergePolicy READ mergePolicy WRITE setMergePolicy)
+	Q_PROPERTY(bool repeatFailed READ repeatFailed WRITE setRepeatFailed)
 
 public:
 	enum SyncPolicy {
@@ -32,22 +34,24 @@ public:
 	Q_ENUM(MergePolicy)
 
 	explicit DataMerger(QObject *parent = nullptr);
+	~DataMerger();
 
 	virtual void initialize();
 	virtual void finalize();
 
 	SyncPolicy syncPolicy() const;
 	MergePolicy mergePolicy() const;
+	bool repeatFailed() const;
 
 	virtual QJsonObject merge(QJsonObject local, QJsonObject remote);
 
 public slots:
 	void setSyncPolicy(SyncPolicy syncPolicy);
 	void setMergePolicy(MergePolicy mergePolicy);
+	void setRepeatFailed(bool repeatFailed);
 
 private:
-	SyncPolicy _syncPolicy;
-	MergePolicy _mergePolicy;
+	QScopedPointer<DataMergerPrivate> d;
 };
 
 }

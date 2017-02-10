@@ -1,6 +1,5 @@
 #include "changecontroller.h"
 
-#include <QDebug>
 using namespace QtDataSync;
 
 #define UNITE_STATE(x, y) (x | (y << 16))
@@ -31,17 +30,17 @@ void ChangeController::finalize()
 
 void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &changes)
 {
-	for(auto it = changes.constBegin(); it != changes.constEnd(); it++){
-		qDebug() << "CHANGE?" << it.key() << it.value();
+	for(auto it = changes.constBegin(); it != changes.constEnd(); it++)
 		localState.insert(it.key(), it.value());
-	}
 	localReady = true;
 	newChanges();
 }
 
 void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::ChangeState &state)
 {
-	qDebug() << "CHANGE!" << key << state;
+	if(key == currentKey)
+		currentState = CancelState;//cancel whatever is currently done for that key
+
 	if(state == StateHolder::Unchanged)
 		localState.remove(key);//unchange does not trigger sync
 	else {
@@ -52,8 +51,11 @@ void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::Chan
 
 void ChangeController::updateRemoteStatus(bool canUpdate, const StateHolder::ChangeHash &changes)
 {
-	for(auto it = changes.constBegin(); it != changes.constEnd(); it++)
+	for(auto it = changes.constBegin(); it != changes.constEnd(); it++){
+		if(it.key() == currentKey)
+			currentState = CancelState;//cancel whatever is currently done for that key
 		remoteState.insert(it.key(), it.value());
+	}
 	remoteReady = canUpdate;
 	newChanges();
 }
@@ -61,10 +63,15 @@ void ChangeController::updateRemoteStatus(bool canUpdate, const StateHolder::Cha
 void ChangeController::nextStage(bool success, const QJsonValue &result)
 {
 	if(!success)//the value is skipped for now -> done by forcing "done" state
-		currentState = DoneState;
+		currentState = merger->repeatFailed() ? CancelState : DoneState;
 
 	//in case of done --> go to the next one!
-	if(currentState == DoneState)
+	if(currentState == DoneState) {
+		localState.remove(currentKey);
+		remoteState.remove(currentKey);
+	}
+	if(currentState == DoneState ||
+	   currentState == CancelState)
 		generateNextAction();
 
 	switch (currentMode) {
@@ -118,8 +125,8 @@ void ChangeController::generateNextAction()
 		else
 			break;
 
-		auto local = localState.take(currentKey);
-		auto remote = remoteState.take(currentKey);
+		auto local = localState.value(currentKey);
+		auto remote = remoteState.value(currentKey);
 
 		switch (UNITE_STATE(local, remote)) {
 		case UNITE_STATE(StateHolder::Unchanged, StateHolder::Unchanged)://u:u -> do nothing

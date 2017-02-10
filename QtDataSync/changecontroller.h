@@ -57,6 +57,7 @@ private:
 
 	enum ActionState {
 		DoneState,
+		CancelState,
 		DownloadState,
 		SaveState,
 		RemoteMarkState,
