@@ -28,7 +28,6 @@ public:
 
 	virtual ChangeHash listLocalChanges() = 0;
 	virtual void markLocalChanged(const ObjectKey &key, ChangeState changed) = 0;
-	virtual void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) = 0;
 };
 
 }

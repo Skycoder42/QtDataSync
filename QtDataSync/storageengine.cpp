@@ -34,23 +34,20 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, Storag
 			throw Exception(QStringLiteral("To save a datatype, it requires a user property"));
 
 		switch (taskType) {
-		case QtDataSync::StorageEngine::Count:
+		case Count:
 			count(futureInterface, metaTypeId);
 			break;
-		case QtDataSync::StorageEngine::LoadAll:
+		case LoadAll:
 			loadAll(futureInterface, metaTypeId, value.toInt());
 			break;
-		case QtDataSync::StorageEngine::Load:
+		case Load:
 			load(futureInterface, metaTypeId, userProp.name(), value.toString());
 			break;
-		case QtDataSync::StorageEngine::Save:
+		case Save:
 			save(futureInterface, metaTypeId, userProp.name(), value);
 			break;
-		case QtDataSync::StorageEngine::Remove:
+		case Remove:
 			remove(futureInterface, metaTypeId, userProp.name(), value.toString());
-			break;
-		case QtDataSync::StorageEngine::RemoveAll:
-			removeAll(futureInterface, metaTypeId);
 			break;
 		default:
 			break;
@@ -65,9 +62,11 @@ void StorageEngine::initialize()
 {
 	//localStore
 	connect(localStore, &LocalStore::requestCompleted,
-			this, &StorageEngine::requestCompleted);
+			this, &StorageEngine::requestCompleted,
+			Qt::QueuedConnection);
 	connect(localStore, &LocalStore::requestFailed,
-			this, &StorageEngine::requestFailed);
+			this, &StorageEngine::requestFailed,
+			Qt::QueuedConnection);
 
 	//changeController
 	connect(changeController, &ChangeController::loadLocalStatus,
@@ -83,9 +82,11 @@ void StorageEngine::initialize()
 
 	//remoteConnector
 	connect(remoteConnector, &RemoteConnector::operationDone,
-			this, &StorageEngine::operationDone);
+			this, &StorageEngine::operationDone,
+			Qt::QueuedConnection);
 	connect(remoteConnector, &RemoteConnector::operationFailed,
-			this, &StorageEngine::operationFailed);
+			this, &StorageEngine::operationFailed,
+			Qt::QueuedConnection);
 
 	localStore->initialize();
 	stateHolder->initialize();
@@ -122,14 +123,8 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 	}
 
 	if(info.changeAction) {
-		if(info.changeKey.second.isEmpty()) {
-			stateHolder->markAllLocalChanged(info.changeKey.first,
-											 info.changeState);
-			loadLocalStatus();
-		} else {
-			stateHolder->markLocalChanged(info.changeKey, info.changeState);
-			changeController->updateLocalStatus(info.changeKey, info.changeState);
-		}
+		stateHolder->markLocalChanged(info.changeKey, info.changeState);
+		changeController->updateLocalStatus(info.changeKey, info.changeState);
 	}
 }
 
@@ -284,17 +279,6 @@ void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, int metaT
 	info.changeState = StateHolder::Deleted;
 	requestCache.insert(id, info);
 	localStore->remove(id, info.changeKey, keyProperty);
-}
-
-void StorageEngine::removeAll(QFutureInterface<QVariant> futureInterface, int metaTypeId)
-{
-	auto id = requestCounter++;
-	RequestInfo info(futureInterface, metaTypeId);
-	info.changeAction = true;
-	info.changeKey = {QMetaType::typeName(metaTypeId), {}};
-	info.changeState = StateHolder::Deleted;
-	requestCache.insert(id, info);
-	localStore->removeAll(id, QMetaType::typeName(metaTypeId));
 }
 
 

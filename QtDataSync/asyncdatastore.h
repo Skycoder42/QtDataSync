@@ -26,7 +26,6 @@ public:
 	Task load(int metaTypeId, const QString &key);
 	Task save(int metaTypeId, const QVariant &value);
 	Task remove(int metaTypeId, const QString &key);
-	Task removeAll(int metaTypeId);
 
 	template<typename T>
 	GenericTask<int> count();
@@ -38,8 +37,6 @@ public:
 	GenericTask<void> save(const T &value);
 	template<typename T>
 	GenericTask<T> remove(const QString &key);
-	template<typename T>
-	GenericTask<void> removeAll();
 
 private:
 	QScopedPointer<AsyncDataStorePrivate> d;
@@ -49,7 +46,6 @@ private:
 	QFutureInterface<QVariant> internalLoad(int metaTypeId, const QString &key);
 	QFutureInterface<QVariant> internalSave(int metaTypeId, const QVariant &value);
 	QFutureInterface<QVariant> internalRemove(int metaTypeId, const QString &key);
-	QFutureInterface<QVariant> internalRemoveAll(int metaTypeId);
 };
 
 template<typename T>
@@ -80,12 +76,6 @@ template<typename T>
 GenericTask<T> AsyncDataStore::remove(const QString &key)
 {
 	return {this, internalRemove(qMetaTypeId<T>(), key)};
-}
-
-template<typename T>
-GenericTask<void> AsyncDataStore::removeAll()
-{
-	return {this, internalRemoveAll(qMetaTypeId<T>())};
 }
 
 }

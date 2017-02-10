@@ -204,22 +204,6 @@ void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::removeAll(quint64 id, const QByteArray &typeName)
-{
-	auto tName = tableName(typeName);
-	TABLE_DIR(tName)
-
-	if(!tableDir.removeRecursively()) {
-		emit requestFailed(id, QStringLiteral("Failed to delete table directory %1").arg(tName));
-		return;
-	}
-
-	QSqlQuery removeQuery(database);
-	removeQuery.prepare(QStringLiteral("DROP TABLE IF EXISTS %1").arg(tName));
-	EXEC_QUERY(removeQuery);
-	emit requestCompleted(id, QJsonValue::Undefined);
-}
-
 QString SqlLocalStore::tableName(const QByteArray &typeName) const
 {
 	return QString::fromLatin1('_' + QByteArray(typeName).toHex());

@@ -25,7 +25,6 @@ public slots:
 	virtual void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) = 0;
 	virtual void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;
 	virtual void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) = 0;
-	virtual void removeAll(quint64 id, const QByteArray &typeName) = 0;
 
 signals:
 	void requestCompleted(quint64 id, const QJsonValue &result);

@@ -1,4 +1,6 @@
 #include "changecontroller.h"
+
+#include <QDebug>
 using namespace QtDataSync;
 
 #define UNITE_STATE(x, y) (x | (y << 16))
@@ -29,14 +31,17 @@ void ChangeController::finalize()
 
 void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &changes)
 {
-	for(auto it = changes.constBegin(); it != changes.constEnd(); it++)
+	for(auto it = changes.constBegin(); it != changes.constEnd(); it++){
+		qDebug() << "CHANGE?" << it.key() << it.value();
 		localState.insert(it.key(), it.value());
+	}
 	localReady = true;
 	newChanges();
 }
 
 void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::ChangeState &state)
 {
+	qDebug() << "CHANGE!" << key << state;
 	if(state == StateHolder::Unchanged)
 		localState.remove(key);//unchange does not trigger sync
 	else {

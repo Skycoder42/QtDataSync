@@ -20,7 +20,6 @@ public:
 
 	ChangeHash listLocalChanges() override;
 	void markLocalChanged(const ObjectKey &key, ChangeState changed) override;
-	void markAllLocalChanged(const QByteArray &typeName, ChangeState changed) override;
 
 private:
 	QSqlDatabase database;

@@ -25,7 +25,6 @@ public slots:
 	void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
 	void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
 	void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
-	void removeAll(quint64 id, const QByteArray &typeName) override;
 
 private:
 	QDir storageDir;

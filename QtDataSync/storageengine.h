@@ -24,8 +24,7 @@ public:
 		LoadAll,
 		Load,
 		Save,
-		Remove,
-		RemoveAll
+		Remove
 	};
 	Q_ENUM(TaskType)
 
@@ -83,7 +82,6 @@ private:
 	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value);
 	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, QVariant value);
 	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value);
-	void removeAll(QFutureInterface<QVariant> futureInterface, int metaTypeId);
 };
 
 }

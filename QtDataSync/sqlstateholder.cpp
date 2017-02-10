@@ -82,24 +82,3 @@ void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeS
 					<< updateQuery.lastError().text();
 	}
 }
-
-void SqlStateHolder::markAllLocalChanged(const QByteArray &typeName, StateHolder::ChangeState changed)
-{
-	QSqlQuery updateQuery(database);
-
-	if(changed == Unchanged) {
-		updateQuery.prepare(QStringLiteral("DELETE FROM SyncState WHERE Type = ?"));
-		updateQuery.addBindValue(typeName);
-	} else {
-		updateQuery.prepare(QStringLiteral("UPDATE SyncState SET Changed = ? WHERE Type = ?"));
-		updateQuery.addBindValue((int)changed);
-		updateQuery.addBindValue(typeName);
-	}
-
-	if(!updateQuery.exec()) {
-		qCritical() << "Failed to update current state for all of type"
-					<< typeName
-					<< "with error:"
-					<< updateQuery.lastError().text();
-	}
-}

@@ -94,4 +94,6 @@ private:
 
 }
 
+Q_DECLARE_METATYPE(QtDataSync::ChangeController::ChangeOperation)
+
 #endif // CHANGECONTROLLER_H

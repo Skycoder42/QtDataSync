@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include "stateholder.h"
+#include <QJsonValue>
 #include <QObject>
 
 namespace QtDataSync {
@@ -30,7 +31,7 @@ public slots:
 signals:
 	void remoteStateChanged(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
 
-	void operationDone(const QJsonValue &result);
+	void operationDone(const QJsonValue &result = QJsonValue::Undefined);
 	void operationFailed(const QString &error);
 
 protected:

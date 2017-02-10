@@ -42,11 +42,6 @@ Task AsyncDataStore::remove(int metaTypeId, const QString &key)
 	return {this, internalRemove(metaTypeId, key)};
 }
 
-Task AsyncDataStore::removeAll(int metaTypeId)
-{
-	return {this, internalRemoveAll(metaTypeId)};
-}
-
 QFutureInterface<QVariant> AsyncDataStore::internalCount(int metaTypeId)
 {
 	QFutureInterface<QVariant> interface;
@@ -104,17 +99,5 @@ QFutureInterface<QVariant> AsyncDataStore::internalRemove(int metaTypeId, const 
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Remove),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, key));
-	return interface;
-}
-
-QFutureInterface<QVariant> AsyncDataStore::internalRemoveAll(int metaTypeId)
-{
-	QFutureInterface<QVariant> interface;
-	interface.reportStarted();
-	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
-							  Q_ARG(QFutureInterface<QVariant>, interface),
-							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::RemoveAll),
-							  Q_ARG(int, metaTypeId),
-							  Q_ARG(QVariant, {}));
 	return interface;
 }
