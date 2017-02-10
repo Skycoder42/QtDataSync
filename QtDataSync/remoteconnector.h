@@ -20,7 +20,7 @@ public:
 	virtual void initialize(const QDir &storageDir);
 	virtual void finalize(const QDir &storageDir);
 
-	virtual Authenticator *createAuthenticator(QObject *parent) = 0;
+	virtual Authenticator *createAuthenticator(const QDir &storageDir, QObject *parent) = 0;
 
 public slots:
 	virtual void download(const ObjectKey &key, const QByteArray &keyProperty) = 0;

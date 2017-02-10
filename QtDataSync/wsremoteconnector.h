@@ -4,6 +4,8 @@
 #include "remoteconnector.h"
 
 #include <QObject>
+#include <QSettings>
+#include <QWebSocket>
 
 namespace QtDataSync {
 
@@ -11,6 +13,8 @@ class WsRemoteConnector : public RemoteConnector
 {
 	Q_OBJECT
 public:
+	static const QString keyRemoteUrl;
+	static const QString keyHeadersGroup;
 	static const QString keyUserIdentity;
 
 	explicit WsRemoteConnector(QObject *parent = nullptr);
@@ -18,7 +22,7 @@ public:
 	void initialize(const QDir &storageDir) override;
 	void finalize(const QDir &storageDir) override;
 
-	Authenticator *createAuthenticator(QObject *parent) override;
+	Authenticator *createAuthenticator(const QDir &storageDir, QObject *parent) override;
 
 public slots:
 	void reconnect();
@@ -29,6 +33,12 @@ public slots:
 	void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) override;
 
 	void resetDeviceId() override;
+
+private:
+	QWebSocket *socket;
+	QSettings *settings;
+
+	bool connecting;
 };
 
 }

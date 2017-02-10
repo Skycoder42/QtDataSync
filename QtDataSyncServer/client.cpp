@@ -14,6 +14,8 @@ Client::Client(QWebSocket *websocket, QObject *parent) :
 			this, &Client::error);
 	connect(socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
+
+	qDebug() << "connected!";
 }
 
 void Client::binaryMessageReceived(const QByteArray &message)

@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <asyncdatastore.h>
 #include <setup.h>
+#include <wsauthenticator.h>
 
 #include <QtJsonSerializer/QJsonSerializer>
 
@@ -25,12 +26,15 @@ private Q_SLOTS:
 
 private:
 	QtDataSync::AsyncDataStore *store;
+	QtDataSync::WsAuthenticator *authenticator;
 };
 
 void LocalStoreTest::initTestCase()
 {
 	QJsonSerializer::registerListConverters<TestData*>();
 	QtDataSync::Setup().create();
+	authenticator = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(this);
+	authenticator->setRemoteUrl(QStringLiteral("ws://localhost:4242"));
 	store = new QtDataSync::AsyncDataStore(this);
 }
 

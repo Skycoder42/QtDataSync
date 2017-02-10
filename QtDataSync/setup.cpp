@@ -143,7 +143,7 @@ Authenticator *Setup::loadAuthenticator(QObject *parent, const QString &name)
 	if(SetupPrivate::engines.contains(name)) {
 		auto &info = SetupPrivate::engines[name];
 		if(info.second)
-			return info.second->remoteConnector->createAuthenticator(parent);
+			return info.second->remoteConnector->createAuthenticator(info.second->storageDir, parent);
 	}
 
 	return nullptr;
