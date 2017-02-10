@@ -37,6 +37,9 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, Storag
 		case Count:
 			count(futureInterface, metaTypeId);
 			break;
+		case Keys:
+			keys(futureInterface, metaTypeId);
+			break;
 		case LoadAll:
 			loadAll(futureInterface, metaTypeId, value.toInt());
 			break;
@@ -237,6 +240,13 @@ void StorageEngine::count(QFutureInterface<QVariant> futureInterface, int metaTy
 	localStore->count(id, QMetaType::typeName(metaTypeId));
 }
 
+void StorageEngine::keys(QFutureInterface<QVariant> futureInterface, int metaTypeId)
+{
+	auto id = requestCounter++;
+	requestCache.insert(id, {futureInterface, QMetaType::QStringList});
+	localStore->keys(id, QMetaType::typeName(metaTypeId));
+}
+
 void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId)
 {
 	auto id = requestCounter++;
@@ -292,10 +302,10 @@ StorageEngine::RequestInfo::RequestInfo(bool isChangeControllerRequest) :
 	changeState(StateHolder::Unchanged)
 {}
 
-StorageEngine::RequestInfo::RequestInfo(QFutureInterface<QVariant> futureInterface, int metaTypeId) :
+StorageEngine::RequestInfo::RequestInfo(QFutureInterface<QVariant> futureInterface, int convertMetaTypeId) :
 	isChangeControllerRequest(false),
 	futureInterface(futureInterface),
-	convertMetaTypeId(metaTypeId),
+	convertMetaTypeId(convertMetaTypeId),
 	changeAction(false),
 	changeKey(),
 	changeState(StateHolder::Unchanged)

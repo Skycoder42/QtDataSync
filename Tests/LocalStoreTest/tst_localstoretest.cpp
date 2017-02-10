@@ -21,7 +21,7 @@ private Q_SLOTS:
 
 	void testLoadAll();
 	void testRemove();
-	void testRemoveAll();
+	void testListKeys();
 
 private:
 	QtDataSync::AsyncDataStore *store;
@@ -36,7 +36,9 @@ void LocalStoreTest::initTestCase()
 
 void LocalStoreTest::cleanupTestCase()
 {
+	//DEBUG -> let network finish
 	QThread::sleep(3);
+
 	store->deleteLater();
 	store = nullptr;
 }
@@ -116,18 +118,17 @@ void LocalStoreTest::testRemove()
 	}
 }
 
-void LocalStoreTest::testRemoveAll()
+void LocalStoreTest::testListKeys()
 {
-	//TODO
-//	try {
-//		store->removeAll<TestData*>().waitForFinished();
-//		QCOMPARE(store->count<TestData*>().result(), 0);
-
-//		//DEBUG
-//		store->save(new TestData(420, "baum", this)).waitForFinished();
-//	} catch(QException &e) {
-//		QFAIL(e.what());
-//	}
+	try {
+		auto keys = store->keys<TestData*>().result();
+		QCOMPARE(keys.size(), 2);
+		foreach(auto key, keys)
+			store->remove<TestData*>(key).waitForFinished();
+		QCOMPARE(store->count<TestData*>().result(), 0);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
 }
 
 QTEST_MAIN(LocalStoreTest)

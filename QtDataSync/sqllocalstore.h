@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QObject>
 #include <QSqlDatabase>
+#include <QStringList>
 
 namespace QtDataSync {
 
@@ -21,6 +22,7 @@ public:
 
 public slots:
 	void count(quint64 id, const QByteArray &typeName) override;
+	void keys(quint64 id, const QByteArray &typeName) override;
 	void loadAll(quint64 id, const QByteArray &typeName) override;
 	void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
 	void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;

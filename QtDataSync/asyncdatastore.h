@@ -22,6 +22,7 @@ public:
 	~AsyncDataStore();
 
 	GenericTask<int> count(int metaTypeId);
+	GenericTask<QStringList> keys(int metaTypeId);
 	Task loadAll(int dataMetaTypeId, int listMetaTypeId);
 	Task load(int metaTypeId, const QString &key);
 	Task save(int metaTypeId, const QVariant &value);
@@ -29,6 +30,8 @@ public:
 
 	template<typename T>
 	GenericTask<int> count();
+	template<typename T>
+	GenericTask<QStringList> keys();
 	template<typename T>
 	GenericTask<QList<T>> loadAll();
 	template<typename T>
@@ -42,6 +45,7 @@ private:
 	QScopedPointer<AsyncDataStorePrivate> d;
 
 	QFutureInterface<QVariant> internalCount(int metaTypeId);
+	QFutureInterface<QVariant> internalKeys(int metaTypeId);
 	QFutureInterface<QVariant> internalLoadAll(int dataMetaTypeId, int listMetaTypeId);
 	QFutureInterface<QVariant> internalLoad(int metaTypeId, const QString &key);
 	QFutureInterface<QVariant> internalSave(int metaTypeId, const QVariant &value);
@@ -52,6 +56,12 @@ template<typename T>
 GenericTask<int> AsyncDataStore::count()
 {
 	return {this, internalCount(qMetaTypeId<T>())};
+}
+
+template<typename T>
+GenericTask<QStringList> AsyncDataStore::keys()
+{
+	return {this, internalKeys(qMetaTypeId<T>())};
 }
 
 template<typename T>

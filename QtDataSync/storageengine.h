@@ -21,6 +21,7 @@ class StorageEngine : public QObject
 public:
 	enum TaskType {
 		Count,
+		Keys,
 		LoadAll,
 		Load,
 		Save,
@@ -65,7 +66,7 @@ private:
 		StateHolder::ChangeState changeState;
 
 		RequestInfo(bool isChangeControllerRequest = false);
-		RequestInfo(QFutureInterface<QVariant> futureInterface, int metaTypeId = QMetaType::UnknownType);
+		RequestInfo(QFutureInterface<QVariant> futureInterface, int convertMetaTypeId = QMetaType::UnknownType);
 	};
 
 	QJsonSerializer *serializer;
@@ -78,6 +79,7 @@ private:
 	quint64 requestCounter;
 
 	void count(QFutureInterface<QVariant> futureInterface, int metaTypeId);
+	void keys(QFutureInterface<QVariant> futureInterface, int metaTypeId);
 	void loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId);
 	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value);
 	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, QVariant value);

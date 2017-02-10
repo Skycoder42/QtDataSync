@@ -22,6 +22,11 @@ GenericTask<int> AsyncDataStore::count(int metaTypeId)
 	return {this, internalCount(metaTypeId)};
 }
 
+GenericTask<QStringList> AsyncDataStore::keys(int metaTypeId)
+{
+	return {this, internalKeys(metaTypeId)};
+}
+
 Task AsyncDataStore::loadAll(int dataMetaTypeId, int listMetaTypeId)
 {
 	return {this, internalLoadAll(dataMetaTypeId, listMetaTypeId)};
@@ -49,6 +54,18 @@ QFutureInterface<QVariant> AsyncDataStore::internalCount(int metaTypeId)
 	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, interface),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Count),
+							  Q_ARG(int, metaTypeId),
+							  Q_ARG(QVariant, {}));
+	return interface;
+}
+
+QFutureInterface<QVariant> AsyncDataStore::internalKeys(int metaTypeId)
+{
+	QFutureInterface<QVariant> interface;
+	interface.reportStarted();
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Keys),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, {}));
 	return interface;

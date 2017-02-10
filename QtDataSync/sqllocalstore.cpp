@@ -57,6 +57,24 @@ void SqlLocalStore::count(quint64 id, const QByteArray &typeName)
 	emit requestCompleted(id, 0);
 }
 
+void SqlLocalStore::keys(quint64 id, const QByteArray &typeName)
+{
+	auto tName = tableName(typeName);
+
+	if(testTableExists(tName)) {
+		QSqlQuery keysQuery(database);
+		keysQuery.prepare(QStringLiteral("SELECT Key FROM %1").arg(tName));
+		EXEC_QUERY(keysQuery);
+
+		QJsonArray resList;
+		while(keysQuery.next())
+			resList.append(keysQuery.value(0).toString());
+
+		emit requestCompleted(id, resList);
+	} else
+		emit requestCompleted(id, QJsonArray());
+}
+
 void SqlLocalStore::loadAll(quint64 id, const QByteArray &typeName)
 {
 	auto tName = tableName(typeName);

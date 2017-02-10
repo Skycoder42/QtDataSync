@@ -21,6 +21,7 @@ public:
 
 public slots:
 	virtual void count(quint64 id, const QByteArray &typeName) = 0;
+	virtual void keys(quint64 id, const QByteArray &typeName) = 0;
 	virtual void loadAll(quint64 id, const QByteArray &typeName) = 0;
 	virtual void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) = 0;
 	virtual void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;
