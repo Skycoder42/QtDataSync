@@ -2,6 +2,7 @@
 #define STATEHOLDER_H
 
 #include "qtdatasync_global.h"
+#include <QDir>
 #include <QHash>
 #include <QObject>
 
@@ -23,8 +24,8 @@ public:
 
 	explicit StateHolder(QObject *parent = nullptr);
 
-	virtual void initialize(const QString &localDir);
-	virtual void finalize(const QString &localDir);
+	virtual void initialize(const QDir &storageDir);
+	virtual void finalize(const QDir &storageDir);
 
 	virtual ChangeHash listLocalChanges() = 0;
 	virtual void markLocalChanged(const ObjectKey &key, ChangeState changed) = 0;

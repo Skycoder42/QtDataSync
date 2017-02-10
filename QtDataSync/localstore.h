@@ -6,6 +6,7 @@
 #include <QString>
 #include <QJsonValue>
 #include <QJsonObject>
+#include <QDir>
 
 namespace QtDataSync {
 
@@ -16,8 +17,8 @@ class QTDATASYNCSHARED_EXPORT LocalStore : public QObject
 public:
 	explicit LocalStore(QObject *parent = nullptr);
 
-	virtual void initialize(const QString &localDir);
-	virtual void finalize(const QString &localDir);
+	virtual void initialize(const QDir &storageDir);
+	virtual void finalize(const QDir &storageDir);
 
 public slots:
 	virtual void count(quint64 id, const QByteArray &typeName) = 0;

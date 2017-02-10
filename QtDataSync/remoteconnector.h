@@ -17,8 +17,8 @@ class QTDATASYNCSHARED_EXPORT RemoteConnector : public QObject
 public:
 	explicit RemoteConnector(QObject *parent = nullptr);
 
-	virtual void initialize();
-	virtual void finalize();
+	virtual void initialize(const QDir &storageDir);
+	virtual void finalize(const QDir &storageDir);
 
 	virtual Authenticator *createAuthenticator(QObject *parent) = 0;
 
@@ -37,7 +37,11 @@ signals:
 	void operationFailed(const QString &error);
 
 protected:
+	QDir storageDir() const;
 	virtual QByteArray loadDeviceId();
+
+private:
+	QDir _storageDir;
 };
 
 }

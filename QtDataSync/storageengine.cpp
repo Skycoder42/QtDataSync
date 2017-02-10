@@ -3,9 +3,9 @@
 #include <QThread>
 using namespace QtDataSync;
 
-StorageEngine::StorageEngine(const QString &localDir, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger) :
+StorageEngine::StorageEngine(const QDir &storageDir, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger) :
 	QObject(),
-	localDir(localDir),
+	storageDir(storageDir),
 	serializer(serializer),
 	localStore(localStore),
 	stateHolder(stateHolder),
@@ -92,18 +92,18 @@ void StorageEngine::initialize()
 			this, &StorageEngine::operationFailed,
 			Qt::QueuedConnection);
 
-	localStore->initialize(localDir);
-	stateHolder->initialize(localDir);
-	changeController->initialize();
-	remoteConnector->initialize();
+	localStore->initialize(storageDir);
+	stateHolder->initialize(storageDir);
+	changeController->initialize(storageDir);
+	remoteConnector->initialize(storageDir);
 }
 
 void StorageEngine::finalize()
 {
-	remoteConnector->finalize();
-	changeController->finalize();
-	stateHolder->finalize(localDir);
-	localStore->finalize(localDir);
+	remoteConnector->finalize(storageDir);
+	changeController->finalize(storageDir);
+	stateHolder->finalize(storageDir);
+	localStore->finalize(storageDir);
 	thread()->quit();
 }
 

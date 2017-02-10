@@ -4,13 +4,17 @@
 #include "wsauthenticator.h"
 #include "wsremoteconnector.h"
 
+#include <QSettings>
+
 namespace QtDataSync {
 
 class WsAuthenticatorPrivate
 {
 public:
 	QPointer<WsRemoteConnector> connector;
-	QByteArray userIdentity;
+	QSettings *settings;
+
+	bool connected;
 
 	WsAuthenticatorPrivate(WsRemoteConnector *connector);
 };

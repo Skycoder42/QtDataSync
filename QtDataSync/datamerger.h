@@ -36,8 +36,8 @@ public:
 	explicit DataMerger(QObject *parent = nullptr);
 	~DataMerger();
 
-	virtual void initialize();
-	virtual void finalize();
+	virtual void initialize(const QDir &storageDir);
+	virtual void finalize(const QDir &storageDir);
 
 	SyncPolicy syncPolicy() const;
 	MergePolicy mergePolicy() const;

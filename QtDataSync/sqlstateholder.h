@@ -15,8 +15,8 @@ class SqlStateHolder : public StateHolder
 public:
 	explicit SqlStateHolder(QObject *parent = nullptr);
 
-	void initialize(const QString &localDir) override;
-	void finalize(const QString &localDir) override;
+	void initialize(const QDir &storageDir) override;
+	void finalize(const QDir &storageDir) override;
 
 	ChangeHash listLocalChanges() override;
 	void markLocalChanged(const ObjectKey &key, ChangeState changed) override;

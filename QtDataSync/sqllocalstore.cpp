@@ -1,4 +1,4 @@
-#include "defaultsqlkeeper.h"
+#include "defaults.h"
 #include "sqllocalstore.h"
 
 #include <QJsonArray>
@@ -27,16 +27,16 @@ SqlLocalStore::SqlLocalStore(QObject *parent) :
 	database()
 {}
 
-void SqlLocalStore::initialize(const QString &localDir)
+void SqlLocalStore::initialize(const QDir &storageDir)
 {
-	storageDir = DefaultSqlKeeper::storageDir(localDir);
-	database = DefaultSqlKeeper::aquireDatabase(localDir);
+	this->storageDir = storageDir;
+	database = Defaults::aquireDatabase(storageDir);
 }
 
-void SqlLocalStore::finalize(const QString &localDir)
+void SqlLocalStore::finalize(const QDir &storageDir)
 {
 	database = QSqlDatabase();
-	DefaultSqlKeeper::releaseDatabase(localDir);
+	Defaults::releaseDatabase(storageDir);
 }
 
 void SqlLocalStore::count(quint64 id, const QByteArray &typeName)

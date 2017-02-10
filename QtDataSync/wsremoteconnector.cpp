@@ -5,24 +5,31 @@
 #include <QJsonObject>
 using namespace QtDataSync;
 
+const QString WsRemoteConnector::keyUserIdentity(QStringLiteral("RemoteConnector/userIdentity"));
+
 WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	RemoteConnector(parent)
 {}
 
-void WsRemoteConnector::initialize()
+void WsRemoteConnector::initialize(const QDir &storageDir)
 {
-	qDebug(Q_FUNC_INFO);
-	emit remoteStateChanged(true, {});
+	RemoteConnector::initialize(storageDir);
+	reconnect();
 }
 
-void WsRemoteConnector::finalize()
+void WsRemoteConnector::finalize(const QDir &storageDir)
 {
-	qDebug(Q_FUNC_INFO);
+	RemoteConnector::finalize(storageDir);
 }
 
 Authenticator *WsRemoteConnector::createAuthenticator(QObject *parent)
 {
-	return new WsAuthenticator(this, parent);
+	return new WsAuthenticator(this, storageDir(), parent);
+}
+
+void WsRemoteConnector::reconnect()
+{
+	emit remoteStateChanged(true, {});
 }
 
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
@@ -48,4 +55,10 @@ void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &ke
 	qDebug() << Q_FUNC_INFO << key;
 	emit operationDone();
 
+}
+
+void WsRemoteConnector::resetDeviceId()
+{
+	RemoteConnector::resetDeviceId();
+	reconnect();
 }

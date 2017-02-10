@@ -28,8 +28,8 @@ public:
 
 	explicit ChangeController(DataMerger *merger, QObject *parent = nullptr);
 
-	void initialize();
-	void finalize();
+	void initialize(const QDir &storageDir);
+	void finalize(const QDir &storageDir);
 
 public slots:
 	void setInitialLocalStatus(const StateHolder::ChangeHash &changes);

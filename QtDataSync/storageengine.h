@@ -7,6 +7,7 @@
 #include "remoteconnector.h"
 #include "stateholder.h"
 
+#include <QDir>
 #include <QFuture>
 #include <QJsonSerializer>
 #include <QObject>
@@ -29,7 +30,7 @@ public:
 	};
 	Q_ENUM(TaskType)
 
-	explicit StorageEngine(const QString &localDir,
+	explicit StorageEngine(const QDir &storageDir,
 						   QJsonSerializer *serializer,
 						   LocalStore *localStore,
 						   StateHolder *stateHolder,
@@ -70,7 +71,7 @@ private:
 		RequestInfo(QFutureInterface<QVariant> futureInterface, int convertMetaTypeId = QMetaType::UnknownType);
 	};
 
-	const QString localDir;
+	const QDir storageDir;
 	QJsonSerializer *serializer;
 	LocalStore *localStore;
 	StateHolder *stateHolder;

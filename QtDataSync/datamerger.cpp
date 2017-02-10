@@ -10,9 +10,9 @@ DataMerger::DataMerger(QObject *parent) :
 DataMerger::~DataMerger()
 {}
 
-void DataMerger::initialize() {}
+void DataMerger::initialize(const QDir &) {}
 
-void DataMerger::finalize() {}
+void DataMerger::finalize(const QDir &) {}
 
 DataMerger::SyncPolicy DataMerger::syncPolicy() const
 {

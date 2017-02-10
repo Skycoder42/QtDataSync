@@ -18,14 +18,14 @@ ChangeController::ChangeController(DataMerger *merger, QObject *parent) :
 	merger->setParent(this);
 }
 
-void ChangeController::initialize()
+void ChangeController::initialize(const QDir &storageDir)
 {
-	merger->initialize();
+	merger->initialize(storageDir);
 }
 
-void ChangeController::finalize()
+void ChangeController::finalize(const QDir &storageDir)
 {
-	merger->finalize();
+	merger->finalize(storageDir);
 }
 
 void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &changes)

@@ -4,6 +4,7 @@
 #include "sqlstateholder.h"
 #include "wsremoteconnector.h"
 #include <QCoreApplication>
+#include <QStandardPaths>
 using namespace QtDataSync;
 
 static void initCleanupHandlers();
@@ -110,7 +111,11 @@ void Setup::create(const QString &name)
 		return;
 	}
 
-	auto engine = new StorageEngine(d->localDir,
+	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+	storageDir.mkpath(d->localDir);
+	storageDir.cd(d->localDir);
+
+	auto engine = new StorageEngine(storageDir,
 									d->serializer.take(),
 									d->localStore.take(),
 									d->stateHolder.take(),
