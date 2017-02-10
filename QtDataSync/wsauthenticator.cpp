@@ -43,11 +43,15 @@ bool WsAuthenticator::isConnected() const
 	return d->connected;
 }
 
+void WsAuthenticator::reconnect()
+{
+	QMetaObject::invokeMethod(d->connector, "reconnect");
+}
+
 void WsAuthenticator::setRemoteUrl(QUrl remoteUrl)
 {
 	d->settings->setValue(WsRemoteConnector::keyRemoteUrl, remoteUrl);
 	d->settings->sync();
-	QMetaObject::invokeMethod(d->connector, "reconnect");
 }
 
 void WsAuthenticator::setCustomHeaders(QHash<QByteArray, QByteArray> customHeaders)
@@ -58,14 +62,12 @@ void WsAuthenticator::setCustomHeaders(QHash<QByteArray, QByteArray> customHeade
 		d->settings->setValue(QString::fromUtf8(it.key()), it.value());
 	d->settings->endGroup();
 	d->settings->sync();
-	QMetaObject::invokeMethod(d->connector, "reconnect");
 }
 
 void WsAuthenticator::setUserIdentity(QByteArray userIdentity)
 {
 	d->settings->setValue(WsRemoteConnector::keyUserIdentity, userIdentity);
 	d->settings->sync();
-	QMetaObject::invokeMethod(d->connector, "reconnect");
 }
 
 RemoteConnector *WsAuthenticator::connector()

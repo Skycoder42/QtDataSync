@@ -33,6 +33,8 @@ public:
 	bool isConnected() const;
 
 public slots:
+	void reconnect();
+
 	void setRemoteUrl(QUrl remoteUrl);
 	void setCustomHeaders(QHash<QByteArray, QByteArray> customHeaders);
 	void setUserIdentity(QByteArray userIdentity);
