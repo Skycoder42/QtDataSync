@@ -2,34 +2,27 @@
 #define AUTHENTICATOR_H
 
 #include "qtdatasync_global.h"
-#include "remoteconnector.h"
 #include <QObject>
 #include <QPointer>
 #include <type_traits>
 
 namespace QtDataSync {
 
+class RemoteConnector;
+
 class QTDATASYNCSHARED_EXPORT Authenticator : public QObject
 {
 	Q_OBJECT
 
 public:
-	explicit Authenticator(RemoteConnector *connector, QObject *parent = nullptr);
+	explicit Authenticator(QObject *parent = nullptr);
+
+public slots:
+	void resetDeviceId();
 
 protected:
-	template<typename T>
-	T *connector() const;
-
-private:
-	QPointer<RemoteConnector> _connector;
+	virtual RemoteConnector *connector() = 0;
 };
-
-template<typename T>
-T *Authenticator::connector() const
-{
-	static_assert(std::is_base_of<RemoteConnector, T>::value, "T must inherit QtDataSync::RemoteConnector!");
-	return static_cast<T*>(_connector.data());
-}
 
 }
 

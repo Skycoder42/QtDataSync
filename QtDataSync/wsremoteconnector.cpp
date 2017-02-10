@@ -1,3 +1,4 @@
+#include "wsauthenticator.h"
 #include "wsremoteconnector.h"
 
 #include <QDebug>
@@ -21,7 +22,7 @@ void WsRemoteConnector::finalize()
 
 Authenticator *WsRemoteConnector::createAuthenticator(QObject *parent)
 {
-	qDebug(Q_FUNC_INFO);
+	return new WsAuthenticator(this, parent);
 }
 
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)

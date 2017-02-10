@@ -12,6 +12,11 @@ void RemoteConnector::initialize() {}
 
 void RemoteConnector::finalize() {}
 
+void RemoteConnector::resetDeviceId()
+{
+	QSettings().remove(QStringLiteral("__QtDataSync/RemoteConnector/deviceId"));
+}
+
 QByteArray RemoteConnector::loadDeviceId()
 {
 	static const QString key(QStringLiteral("__QtDataSync/RemoteConnector/deviceId"));
@@ -23,9 +28,4 @@ QByteArray RemoteConnector::loadDeviceId()
 		settings.setValue(key, id.toByteArray());
 		return id.toByteArray();
 	}
-}
-
-void RemoteConnector::resetDeviceId()
-{
-	QSettings().remove(QStringLiteral("__QtDataSync/RemoteConnector/deviceId"));
 }

@@ -28,6 +28,8 @@ public slots:
 	virtual void remove(const ObjectKey &key, const QByteArray &keyProperty) = 0;//auto unchanged
 	virtual void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) = 0;
 
+	virtual void resetDeviceId();
+
 signals:
 	void remoteStateChanged(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
 
@@ -36,7 +38,6 @@ signals:
 
 protected:
 	virtual QByteArray loadDeviceId();
-	virtual void resetDeviceId();
 };
 
 }

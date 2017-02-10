@@ -3,4 +3,5 @@ TEMPLATE = subdirs
 CONFIG += ordered
 SUBDIRS += \
     QtDataSync \
-    Tests
+    Tests \
+    QtDataSyncServer
