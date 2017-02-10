@@ -16,8 +16,8 @@ class QTDATASYNCSHARED_EXPORT LocalStore : public QObject
 public:
 	explicit LocalStore(QObject *parent = nullptr);
 
-	virtual void initialize();
-	virtual void finalize();
+	virtual void initialize(const QString &localDir);
+	virtual void finalize(const QString &localDir);
 
 public slots:
 	virtual void count(quint64 id, const QByteArray &typeName) = 0;

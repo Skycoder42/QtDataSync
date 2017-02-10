@@ -11,9 +11,9 @@ SqlStateHolder::SqlStateHolder(QObject *parent) :
 	StateHolder(parent)
 {}
 
-void SqlStateHolder::initialize()
+void SqlStateHolder::initialize(const QString &localDir)
 {
-	database = DefaultSqlKeeper::aquireDatabase();
+	database = DefaultSqlKeeper::aquireDatabase(localDir);
 
 	//create table
 	if(!database.tables().contains(QStringLiteral("SyncState"))) {
@@ -31,10 +31,10 @@ void SqlStateHolder::initialize()
 	}
 }
 
-void SqlStateHolder::finalize()
+void SqlStateHolder::finalize(const QString &localDir)
 {
 	database = QSqlDatabase();
-	DefaultSqlKeeper::releaseDatabase();
+	DefaultSqlKeeper::releaseDatabase(localDir);
 }
 
 StateHolder::ChangeHash SqlStateHolder::listLocalChanges()

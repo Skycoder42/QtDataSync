@@ -34,6 +34,11 @@ Setup::Setup() :
 
 Setup::~Setup(){}
 
+QString Setup::localDir() const
+{
+	return d->localDir;
+}
+
 QJsonSerializer *Setup::serializer() const
 {
 	return d->serializer.data();
@@ -57,6 +62,12 @@ RemoteConnector *Setup::remoteConnector() const
 DataMerger *Setup::dataMerger() const
 {
 	return d->dataMerger.data();
+}
+
+Setup &Setup::setLocalDir(QString localDir)
+{
+	d->localDir = localDir;
+	return *this;
 }
 
 Setup &Setup::setSerializer(QJsonSerializer *serializer)
@@ -99,7 +110,8 @@ void Setup::create(const QString &name)
 		return;
 	}
 
-	auto engine = new StorageEngine(d->serializer.take(),
+	auto engine = new StorageEngine(d->localDir,
+									d->serializer.take(),
 									d->localStore.take(),
 									d->stateHolder.take(),
 									d->remoteConnector.take(),
@@ -164,6 +176,7 @@ void SetupPrivate::cleanupHandler()
 }
 
 SetupPrivate::SetupPrivate() :
+	localDir(QStringLiteral("./qtdatasync_localstore")),
 	serializer(new QJsonSerializer()),
 	localStore(new SqlLocalStore()),
 	stateHolder(new SqlStateHolder()),

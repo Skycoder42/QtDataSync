@@ -23,8 +23,8 @@ public:
 
 	explicit StateHolder(QObject *parent = nullptr);
 
-	virtual void initialize();
-	virtual void finalize();
+	virtual void initialize(const QString &localDir);
+	virtual void finalize(const QString &localDir);
 
 	virtual ChangeHash listLocalChanges() = 0;
 	virtual void markLocalChanged(const ObjectKey &key, ChangeState changed) = 0;

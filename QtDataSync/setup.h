@@ -28,12 +28,14 @@ public:
 	Setup();
 	~Setup();
 
+	QString localDir() const;
 	QJsonSerializer *serializer() const;
 	LocalStore *localStore() const;
 	StateHolder *stateHolder() const;
 	RemoteConnector *remoteConnector() const;
 	DataMerger *dataMerger() const;
 
+	Setup &setLocalDir(QString localDir);
 	Setup &setSerializer(QJsonSerializer *serializer);
 	Setup &setLocalStore(LocalStore *localStore);
 	Setup &setStateHolder(StateHolder *stateHolder);

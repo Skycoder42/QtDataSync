@@ -27,6 +27,7 @@ private:
 	static QHash<QString, QPair<QThread*, StorageEngine*>> engines;
 	static unsigned long timeout;
 
+	QString localDir;
 	QScopedPointer<QJsonSerializer> serializer;
 	QScopedPointer<LocalStore> localStore;
 	QScopedPointer<StateHolder> stateHolder;

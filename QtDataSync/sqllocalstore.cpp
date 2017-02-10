@@ -27,16 +27,16 @@ SqlLocalStore::SqlLocalStore(QObject *parent) :
 	database()
 {}
 
-void SqlLocalStore::initialize()
+void SqlLocalStore::initialize(const QString &localDir)
 {
-	storageDir = DefaultSqlKeeper::storageDir();
-	database = DefaultSqlKeeper::aquireDatabase();
+	storageDir = DefaultSqlKeeper::storageDir(localDir);
+	database = DefaultSqlKeeper::aquireDatabase(localDir);
 }
 
-void SqlLocalStore::finalize()
+void SqlLocalStore::finalize(const QString &localDir)
 {
 	database = QSqlDatabase();
-	DefaultSqlKeeper::releaseDatabase();
+	DefaultSqlKeeper::releaseDatabase(localDir);
 }
 
 void SqlLocalStore::count(quint64 id, const QByteArray &typeName)

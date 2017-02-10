@@ -17,8 +17,8 @@ class SqlLocalStore : public LocalStore
 public:
 	explicit SqlLocalStore(QObject *parent = nullptr);
 
-	void initialize() override;
-	void finalize() override;
+	void initialize(const QString &localDir) override;
+	void finalize(const QString &localDir) override;
 
 public slots:
 	void count(quint64 id, const QByteArray &typeName) override;

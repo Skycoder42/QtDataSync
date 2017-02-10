@@ -29,7 +29,8 @@ public:
 	};
 	Q_ENUM(TaskType)
 
-	explicit StorageEngine(QJsonSerializer *serializer,
+	explicit StorageEngine(const QString &localDir,
+						   QJsonSerializer *serializer,
 						   LocalStore *localStore,
 						   StateHolder *stateHolder,
 						   RemoteConnector *remoteConnector,
@@ -69,6 +70,7 @@ private:
 		RequestInfo(QFutureInterface<QVariant> futureInterface, int convertMetaTypeId = QMetaType::UnknownType);
 	};
 
+	const QString localDir;
 	QJsonSerializer *serializer;
 	LocalStore *localStore;
 	StateHolder *stateHolder;

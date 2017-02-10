@@ -5,6 +5,6 @@ LocalStore::LocalStore(QObject *parent) :
 	QObject(parent)
 {}
 
-void LocalStore::initialize() {}
+void LocalStore::initialize(const QString &) {}
 
-void LocalStore::finalize() {}
+void LocalStore::finalize(const QString &) {}

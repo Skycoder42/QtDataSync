@@ -9,13 +9,13 @@ namespace QtDataSync {
 class DefaultSqlKeeper
 {
 public:
-	static QDir storageDir();
-	static QSqlDatabase aquireDatabase();
-	static void releaseDatabase();
+	static QDir storageDir(const QString &localDir);
+	static QSqlDatabase aquireDatabase(const QString &localDir);
+	static void releaseDatabase(const QString &localDir);
 
 private:
-	static quint64 refCounter;
 	static const QString DatabaseName;
+	static QHash<QString, quint64> refCounter;
 };
 
 }

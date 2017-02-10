@@ -5,6 +5,6 @@ StateHolder::StateHolder(QObject *parent) :
 	QObject(parent)
 {}
 
-void StateHolder::initialize() {}
+void StateHolder::initialize(const QString &) {}
 
-void StateHolder::finalize() {}
+void StateHolder::finalize(const QString &) {}

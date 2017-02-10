@@ -4,21 +4,21 @@
 #include <QDebug>
 using namespace QtDataSync;
 
-quint64 DefaultSqlKeeper::refCounter = 0;
+QHash<QString, quint64> DefaultSqlKeeper::refCounter;
 const QString DefaultSqlKeeper::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
 
-QDir DefaultSqlKeeper::storageDir()
+QDir DefaultSqlKeeper::storageDir(const QString &localDir)
 {
 	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-	storageDir.mkpath(QStringLiteral("./qtdatasync_localstore"));
-	storageDir.cd(QStringLiteral("./qtdatasync_localstore"));
+	storageDir.mkpath(localDir);
+	storageDir.cd(localDir);
 	return storageDir;
 }
 
-QSqlDatabase DefaultSqlKeeper::aquireDatabase()
+QSqlDatabase DefaultSqlKeeper::aquireDatabase(const QString &localDir)
 {
-	if(refCounter++ == 0) {
-		auto dir = storageDir();
+	if(refCounter[localDir]++ == 0) {
+		auto dir = storageDir(localDir);
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), DatabaseName);
 		database.setDatabaseName(dir.absoluteFilePath(QStringLiteral("./store.db")));
 		if(!database.open()) {
@@ -30,9 +30,9 @@ QSqlDatabase DefaultSqlKeeper::aquireDatabase()
 	return QSqlDatabase::database(DatabaseName);
 }
 
-void DefaultSqlKeeper::releaseDatabase()
+void DefaultSqlKeeper::releaseDatabase(const QString &localDir)
 {
-	if(--refCounter == 0) {
+	if(--refCounter[localDir] == 0) {
 		QSqlDatabase::database(DatabaseName).close();
 		QSqlDatabase::removeDatabase(DatabaseName);
 	}
