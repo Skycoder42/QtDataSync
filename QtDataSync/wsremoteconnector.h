@@ -15,6 +15,7 @@ class WsRemoteConnector : public RemoteConnector
 public:
 	static const QString keyRemoteUrl;
 	static const QString keyHeadersGroup;
+	static const QString keyVerifyPeer;
 	static const QString keyUserIdentity;
 
 	explicit WsRemoteConnector(QObject *parent = nullptr);

@@ -1,9 +1,11 @@
 #include "clientconnector.h"
+#include <QFile>
+#include <QSslKey>
 #include <QWebSocket>
 
-ClientConnector::ClientConnector(const QString &name, QObject *parent) :
+ClientConnector::ClientConnector(const QString &name, bool wss, QObject *parent) :
 	QObject(parent),
-	server(new QWebSocketServer(name, QWebSocketServer::NonSecureMode, this)),
+	server(new QWebSocketServer(name, wss ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode, this)),
 	clients()
 {
 	connect(server, &QWebSocketServer::newConnection,
@@ -12,6 +14,32 @@ ClientConnector::ClientConnector(const QString &name, QObject *parent) :
 			this, &ClientConnector::serverError);
 	connect(server, &QWebSocketServer::sslErrors,
 			this, &ClientConnector::sslErrors);
+}
+
+bool ClientConnector::setupWss(const QString &p12File, const QString &passphrase)
+{
+	QSslKey privateKey;
+	QSslCertificate localCert;
+	QList<QSslCertificate> caCerts;
+
+	QFile file(p12File);
+	if(!file.open(QIODevice::ReadOnly))
+		return false;
+
+	if(QSslCertificate::importPkcs12(&file,
+								  &privateKey,
+								  &localCert,
+								  &caCerts,
+								  passphrase.toUtf8())) {
+		auto conf = server->sslConfiguration();
+		conf.setLocalCertificate(localCert);
+		conf.setPrivateKey(privateKey);
+		caCerts.append(conf.caCertificates());
+		conf.setCaCertificates(caCerts);
+		server->setSslConfiguration(conf);
+		return true;
+	} else
+		return false;
 }
 
 bool ClientConnector::listen(const QHostAddress &hostAddress, quint16 port)

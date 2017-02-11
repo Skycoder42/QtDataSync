@@ -33,6 +33,11 @@ QHash<QByteArray, QByteArray> WsAuthenticator::customHeaders() const
 	return headers;
 }
 
+bool WsAuthenticator::validateServerCertificate() const
+{
+	return d->settings->value(WsRemoteConnector::keyVerifyPeer).toBool();
+}
+
 QByteArray WsAuthenticator::userIdentity() const
 {
 	return d->settings->value(WsRemoteConnector::keyUserIdentity).toByteArray();
@@ -61,6 +66,12 @@ void WsAuthenticator::setCustomHeaders(QHash<QByteArray, QByteArray> customHeade
 	for(auto it = customHeaders.constBegin(); it != customHeaders.constEnd(); it++)
 		d->settings->setValue(QString::fromUtf8(it.key()), it.value());
 	d->settings->endGroup();
+	d->settings->sync();
+}
+
+void WsAuthenticator::setValidateServerCertificate(bool validateServerCertificate)
+{
+	d->settings->setValue(WsRemoteConnector::keyVerifyPeer, validateServerCertificate);
 	d->settings->sync();
 }
 

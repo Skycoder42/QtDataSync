@@ -18,6 +18,7 @@ class WsAuthenticator : public Authenticator
 
 	Q_PROPERTY(QUrl remoteUrl READ remoteUrl WRITE setRemoteUrl)
 	Q_PROPERTY(QHash<QByteArray, QByteArray> customHeaders READ customHeaders WRITE setCustomHeaders)
+	Q_PROPERTY(bool validateServerCertificate READ validateServerCertificate WRITE setValidateServerCertificate)
 	Q_PROPERTY(QByteArray userIdentity READ userIdentity WRITE setUserIdentity)
 	Q_PROPERTY(bool connected READ isConnected NOTIFY connectedChanged)
 
@@ -29,6 +30,7 @@ public:
 
 	QUrl remoteUrl() const;
 	QHash<QByteArray, QByteArray> customHeaders() const;
+	bool validateServerCertificate() const;
 	QByteArray userIdentity() const;
 	bool isConnected() const;
 
@@ -37,6 +39,7 @@ public slots:
 
 	void setRemoteUrl(QUrl remoteUrl);
 	void setCustomHeaders(QHash<QByteArray, QByteArray> customHeaders);
+	void setValidateServerCertificate(bool validateServerCertificate);
 	void setUserIdentity(QByteArray userIdentity);
 
 signals:

@@ -8,6 +8,7 @@ using namespace QtDataSync;
 
 const QString WsRemoteConnector::keyRemoteUrl(QStringLiteral("RemoteConnector/remoteUrl"));
 const QString WsRemoteConnector::keyHeadersGroup(QStringLiteral("RemoteConnector/headers"));
+const QString WsRemoteConnector::keyVerifyPeer(QStringLiteral("RemoteConnector/verifyPeer"));
 const QString WsRemoteConnector::keyUserIdentity(QStringLiteral("RemoteConnector/userIdentity"));
 
 WsRemoteConnector::WsRemoteConnector(QObject *parent) :
@@ -57,6 +58,12 @@ void WsRemoteConnector::reconnect()
 		socket = new QWebSocket(QStringLiteral("QtDataSync"),
 								QWebSocketProtocol::VersionLatest,
 								this);
+
+		if(!settings->value(keyVerifyPeer, true).toBool()) {
+			auto conf = socket->sslConfiguration();
+			conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+			socket->setSslConfiguration(conf);
+		}
 
 		connect(socket, &QWebSocket::disconnected, this, [this](){
 			socket->deleteLater();

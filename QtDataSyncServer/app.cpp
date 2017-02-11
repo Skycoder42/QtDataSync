@@ -29,11 +29,27 @@ void App::setupParser(QCommandLineParser &parser, bool useShortOptions)
 						 "address",
 						 QHostAddress(QHostAddress::Any).toString()
 					 });
+	parser.addOption({
+						 {"s", "wss"},
+						 "Use secure websockets (TLS). <path> must be a valid p12 file containing the local certificate "
+						 "and private key. If secured with a password, use the --pass option.",
+						 "path"
+					 });
+	parser.addOption({
+						 {"p", "pass"},
+						 "The <passphrase> for the p12 file specified by the --wss option.",
+						 "passphrase"
+					 });
 }
 
 int App::startupApp(const QCommandLineParser &parser)
 {
-	connector = new ClientConnector(parser.value("name"), this);
+	auto wss = parser.isSet("wss");
+	connector = new ClientConnector(parser.value("name"), wss, this);
+	if(wss) {
+		if(!connector->setupWss(parser.value("wss"), parser.value("pass")))
+			return EXIT_FAILURE;
+	}
 	if(!connector->listen(QHostAddress(parser.value("address")), parser.value("port").toUShort()))
 		return EXIT_FAILURE;
 

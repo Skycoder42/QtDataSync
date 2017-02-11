@@ -41,6 +41,8 @@ public:
 	template<typename T>
 	GenericTask<void> remove(const QString &key);
 
+	//TODO "data changed" signal
+
 private:
 	QScopedPointer<AsyncDataStorePrivate> d;
 

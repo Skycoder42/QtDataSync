@@ -10,8 +10,9 @@ class ClientConnector : public QObject
 {
 	Q_OBJECT
 public:
-	explicit ClientConnector(const QString &name, QObject *parent = nullptr);
+	explicit ClientConnector(const QString &name, bool wss, QObject *parent = nullptr);
 
+	bool setupWss(const QString &p12File, const QString &passphrase);
 	bool listen(const QHostAddress &hostAddress, quint16 port);
 
 private slots:

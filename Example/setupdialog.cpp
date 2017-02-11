@@ -9,7 +9,12 @@ bool SetupDialog::setup(QWidget *parent)
 	SetupDialog dialog(parent);
 
 	QSettings settings;
-	dialog.ui->storageDirComboBox->addItems(settings.value(QStringLiteral("localDirs"), QStringList("./qtdatasync_localstore")).toStringList());
+	dialog.ui->storageDirComboBox->addItems(settings.value(QStringLiteral("localDirs"),
+														   QStringList(dialog.ui->storageDirComboBox->currentText()))
+											.toStringList());
+	dialog.ui->remoteURLLineEdit->setText(settings.value(QStringLiteral("remoteUrl"),
+														 dialog.ui->remoteURLLineEdit->text())
+										  .toString());
 
 	if(dialog.exec() == QDialog::Accepted) {
 		QtDataSync::Setup()
@@ -18,6 +23,7 @@ bool SetupDialog::setup(QWidget *parent)
 
 		auto auth = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(&dialog);
 		auth->setRemoteUrl(dialog.ui->remoteURLLineEdit->text());
+		auth->setValidateServerCertificate(false);
 		auth->reconnect();
 
 		QStringList items;
@@ -26,6 +32,7 @@ bool SetupDialog::setup(QWidget *parent)
 		if(!items.contains(dialog.ui->storageDirComboBox->currentText()))
 			items.append(dialog.ui->storageDirComboBox->currentText());
 		settings.setValue(QStringLiteral("localDirs"), items);
+		settings.setValue(QStringLiteral("remoteUrl"), dialog.ui->remoteURLLineEdit->text());
 
 		return true;
 	} else
