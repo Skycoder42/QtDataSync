@@ -121,7 +121,8 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 			} catch(SerializerException &e) {
 				info.futureInterface.reportException(Exception(e.qWhat()));
 			}
-		}
+		} else
+			info.futureInterface.reportResult(QVariant());
 
 		info.futureInterface.reportFinished();
 	}

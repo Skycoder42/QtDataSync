@@ -39,7 +39,7 @@ public:
 	template<typename T>
 	GenericTask<void> save(const T &value);
 	template<typename T>
-	GenericTask<T> remove(const QString &key);
+	GenericTask<void> remove(const QString &key);
 
 private:
 	QScopedPointer<AsyncDataStorePrivate> d;
@@ -83,7 +83,7 @@ GenericTask<void> AsyncDataStore::save(const T &value)
 }
 
 template<typename T>
-GenericTask<T> AsyncDataStore::remove(const QString &key)
+GenericTask<void> AsyncDataStore::remove(const QString &key)
 {
 	return {this, internalRemove(qMetaTypeId<T>(), key)};
 }

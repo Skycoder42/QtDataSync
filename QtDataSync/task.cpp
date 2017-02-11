@@ -9,12 +9,13 @@ Task::Task(AsyncDataStore *store, QFutureInterface<QVariant> d) :
 	_store(store)
 {}
 
-void Task::onResult(const std::function<void (QVariant)> &onSuccess, const std::function<void (QException)> &onExcept)
+Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std::function<void (QException &)> &onExcept)
 {
 	auto watcher = new QFutureWatcher<QVariant>(_store);
 	QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, [=](){
 		try {
-			auto res = result();
+			watcher->result();
+			auto res = watcher->result();
 			if(onSuccess)
 				onSuccess(res);
 		} catch (QException &e) {
@@ -27,15 +28,20 @@ void Task::onResult(const std::function<void (QVariant)> &onSuccess, const std::
 		}
 		watcher->deleteLater();
 	});
+	watcher->setFuture(*this);
+
+	return *this;
 }
 
 GenericTask<void>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d) :
 	Task(store, d)
 {}
 
-void GenericTask<void>::onResult(const std::function<void ()> &onSuccess, const std::function<void (QException)> &onExcept)
+GenericTask<void> &GenericTask<void>::onResult(const std::function<void ()> &onSuccess, const std::function<void (QException &)> &onExcept)
 {
 	Task::onResult([=](QVariant){
 		onSuccess();
 	}, onExcept);
+
+	return *this;
 }

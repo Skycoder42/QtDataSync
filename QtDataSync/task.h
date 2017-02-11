@@ -14,7 +14,7 @@ class QTDATASYNCSHARED_EXPORT Task : public QFuture<QVariant>
 	friend class AsyncDataStore;
 
 public:
-	void onResult(const std::function<void(QVariant)> &onSuccess, const std::function<void(QException)> &onExcept = {});
+	Task &onResult(const std::function<void(QVariant)> &onSuccess, const std::function<void(QException &)> &onExcept = {});
 
 protected:
 	Task(AsyncDataStore *store, QFutureInterface<QVariant> d);
@@ -29,7 +29,7 @@ class QTDATASYNCSHARED_EXPORT GenericTask : public Task
 	friend class AsyncDataStore;
 
 public:
-	void onResult(const std::function<void(T)> &onSuccess, const std::function<void(QException)> &onExcept = {});
+	GenericTask<T> &onResult(const std::function<void(T)> &onSuccess, const std::function<void(QException &)> &onExcept = {});
 
 	T result() const;
 
@@ -43,7 +43,7 @@ class QTDATASYNCSHARED_EXPORT GenericTask<void> : public Task
 	friend class AsyncDataStore;
 
 public:
-	void onResult(const std::function<void()> &onSuccess, const std::function<void(QException)> &onExcept = {});
+	GenericTask<void> &onResult(const std::function<void()> &onSuccess, const std::function<void(QException &)> &onExcept = {});
 
 private:
 	GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d);
@@ -59,11 +59,13 @@ GenericTask<T>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d)
 {}
 
 template<typename T>
-void GenericTask<T>::onResult(const std::function<void (T)> &onSuccess, const std::function<void (QException)> &onExcept)
+GenericTask<T> &GenericTask<T>::onResult(const std::function<void (T)> &onSuccess, const std::function<void (QException &)> &onExcept)
 {
 	Task::onResult([=](QVariant result){
 		onSuccess(result.value<T>());
 	}, onExcept);
+
+	return *this;
 }
 
 template<typename T>

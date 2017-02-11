@@ -4,4 +4,5 @@ CONFIG += ordered
 SUBDIRS += \
     QtDataSync \
     Tests \
-    QtDataSyncServer
+    QtDataSyncServer \
+    Example
