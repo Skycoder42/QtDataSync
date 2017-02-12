@@ -1,56 +1,57 @@
 #include "app.h"
 
-#include <QFile>
+#include <QFileInfo>
+#include <QDir>
 
 App::App(int &argc, char **argv) :
 	QtBackgroundProcess::App(argc, argv),
-	connector(nullptr)
+	config(nullptr),
+	connector(nullptr),
+	database(nullptr)
 {}
+
+QSettings *App::configuration() const
+{
+	return config;
+}
+
+QString App::absolutePath(const QString &path) const
+{
+	auto dir = QFileInfo(config->fileName()).dir();
+	return QDir::cleanPath(dir.absoluteFilePath(path));
+}
 
 void App::setupParser(QCommandLineParser &parser, bool useShortOptions)
 {
 	QtBackgroundProcess::App::setupParser(parser, useShortOptions);
 
+#ifndef QT_NO_DEBUG
+	auto path = PWD "/setup.conf";
+#else
+#ifdef Q_OS_UNIX
+	auto path = "/etc/QtDataSyncServer/setup.conf";
+#elif
+	auto path = QCoreApplication::applicationDirPath() + "/setup.conf";
+#endif
+#endif
 	parser.addOption({
-						 {"n", "name"},
-						 "The <name> of the server to be displayed in HTTP Handshakes.",
-						 "name",
-						 QCoreApplication::applicationName()
-					 });
-	parser.addOption({
-						 {"p", "port"},
-						 "The <port> the server should use. By default, a random port is used.",
-						 "port",
-						 "0"
-					 });
-	parser.addOption({
-						 {"a", "address"},
-						 "The host <address> to listen on for incoming connections. Default is any.",
-						 "address",
-						 QHostAddress(QHostAddress::Any).toString()
-					 });
-	parser.addOption({
-						 {"s", "wss"},
-						 "Use secure websockets (TLS). <path> must be a valid p12 file containing the local certificate "
-						 "and private key. If secured with a password, use the --pass option.",
-						 "path"
-					 });
-	parser.addOption({
-						 {"p", "pass"},
-						 "The <passphrase> for the p12 file specified by the --wss option.",
-						 "passphrase"
+						 {"c", "config-file"},
+						 "The <path> to the configuration file. The default path depends on the platform",
+						 "path",
+						 path
 					 });
 }
 
 int App::startupApp(const QCommandLineParser &parser)
 {
-	auto wss = parser.isSet("wss");
-	connector = new ClientConnector(parser.value("name"), wss, this);
-	if(wss) {
-		if(!connector->setupWss(parser.value("wss"), parser.value("pass")))
+	config = new QSettings(parser.value("config-file"), QSettings::IniFormat, this);
+
+	database = new DatabaseController(this);
+
+	connector = new ClientConnector(this);
+	if(!connector->setupWss())
 			return EXIT_FAILURE;
-	}
-	if(!connector->listen(QHostAddress(parser.value("address")), parser.value("port").toUShort()))
+	if(!connector->listen())
 		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;

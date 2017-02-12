@@ -2,12 +2,17 @@
 #include <QFile>
 #include <QSslKey>
 #include <QWebSocket>
+#include "app.h"
 
-ClientConnector::ClientConnector(const QString &name, bool wss, QObject *parent) :
+ClientConnector::ClientConnector(QObject *parent) :
 	QObject(parent),
-	server(new QWebSocketServer(name, wss ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode, this)),
+	server(nullptr),
 	clients()
 {
+	auto name = qApp->configuration()->value("server/name", QCoreApplication::applicationName()).toString();
+	auto mode = qApp->configuration()->value("server/wss", false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+
+	server = new QWebSocketServer(name, mode, this);
 	connect(server, &QWebSocketServer::newConnection,
 			this, &ClientConnector::newConnection);
 	connect(server, &QWebSocketServer::serverError,
@@ -16,13 +21,19 @@ ClientConnector::ClientConnector(const QString &name, bool wss, QObject *parent)
 			this, &ClientConnector::sslErrors);
 }
 
-bool ClientConnector::setupWss(const QString &p12File, const QString &passphrase)
+bool ClientConnector::setupWss()
 {
+	if(server->secureMode() != QWebSocketServer::SecureMode)
+		return true;
+
+	auto filePath = qApp->configuration()->value("server/wss/pfx").toString();
+	filePath = qApp->absolutePath(filePath);
+
 	QSslKey privateKey;
 	QSslCertificate localCert;
 	QList<QSslCertificate> caCerts;
 
-	QFile file(p12File);
+	QFile file(filePath);
 	if(!file.open(QIODevice::ReadOnly))
 		return false;
 
@@ -30,7 +41,7 @@ bool ClientConnector::setupWss(const QString &p12File, const QString &passphrase
 								  &privateKey,
 								  &localCert,
 								  &caCerts,
-								  passphrase.toUtf8())) {
+								  qApp->configuration()->value("server/wss/pass").toString().toUtf8())) {
 		auto conf = server->sslConfiguration();
 		conf.setLocalCertificate(localCert);
 		conf.setPrivateKey(privateKey);
@@ -42,9 +53,11 @@ bool ClientConnector::setupWss(const QString &p12File, const QString &passphrase
 		return false;
 }
 
-bool ClientConnector::listen(const QHostAddress &hostAddress, quint16 port)
+bool ClientConnector::listen()
 {
-	if(server->listen(hostAddress, port)) {
+	auto host = qApp->configuration()->value("server/host", QHostAddress(QHostAddress::Any).toString()).toString();
+	auto port = (quint16)qApp->configuration()->value("server/port", 0).toUInt();
+	if(server->listen(QHostAddress(host), port)) {
 		qInfo() << "Listening on port" << server->serverPort();
 		return true;
 	} else {
