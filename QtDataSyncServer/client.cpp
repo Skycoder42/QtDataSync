@@ -20,6 +20,11 @@ Client::Client(QWebSocket *websocket, QObject *parent) :
 			this, &Client::sslErrors);
 }
 
+QUuid Client::userId() const
+{
+	return clientId;
+}
+
 void Client::binaryMessageReceived(const QByteArray &message)
 {
 	QJsonParseError error;
@@ -44,7 +49,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				<< socket->peerAddress();
 		sendCommand("identity", clientId.toString());
 
-		emit connected(devId);
+		emit connected(devId, true);
 	} else if(obj["command"] == QStringLiteral("identify")) {
 		QUuid devId(data["deviceId"].toString());
 		if(devId.isNull())
@@ -53,7 +58,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 		if(clientId.isNull())
 			return;
 
-		emit connected(devId);
+		emit connected(devId, false);
 	} else {
 		qDebug() << "Unknown command"
 				 << obj["command"].toString();

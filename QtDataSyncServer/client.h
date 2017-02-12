@@ -13,8 +13,10 @@ class Client : public QObject
 public:
 	explicit Client(QWebSocket *websocket, QObject *parent = nullptr);
 
+	QUuid userId() const;
+
 signals:
-	void connected(const QUuid &deviceId);
+	void connected(const QUuid &deviceId, bool addClient);
 
 private slots:
 	void binaryMessageReceived(const QByteArray &message);
