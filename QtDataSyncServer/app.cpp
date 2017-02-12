@@ -47,8 +47,7 @@ int App::startupApp(const QCommandLineParser &parser)
 	config = new QSettings(parser.value("config-file"), QSettings::IniFormat, this);
 
 	database = new DatabaseController(this);
-
-	connector = new ClientConnector(this);
+	connector = new ClientConnector(database, this);
 	if(!connector->setupWss())
 			return EXIT_FAILURE;
 	if(!connector->listen())

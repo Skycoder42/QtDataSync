@@ -1,6 +1,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "databasecontroller.h"
+
 #include <QJsonValue>
 #include <QObject>
 #include <QUuid>
@@ -11,7 +13,7 @@ class Client : public QObject
 	Q_OBJECT
 
 public:
-	explicit Client(QWebSocket *websocket, QObject *parent = nullptr);
+	explicit Client(DatabaseController *database, QWebSocket *websocket, QObject *parent = nullptr);
 
 	QUuid userId() const;
 
@@ -24,8 +26,15 @@ private slots:
 	void sslErrors(const QList<QSslError> &errors);
 
 private:
+	DatabaseController *database;
 	QWebSocket *socket;
 	QUuid clientId;
+	QUuid deviceId;
+
+	void createIdentity(const QJsonObject &data);
+	Q_INVOKABLE void createIdentityResult(QUuid identity);
+	void identify(const QJsonObject &data);
+	Q_INVOKABLE void identifyResult(bool ok);
 
 	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
 };

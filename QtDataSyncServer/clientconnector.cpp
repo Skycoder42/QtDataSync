@@ -4,8 +4,9 @@
 #include <QWebSocket>
 #include "app.h"
 
-ClientConnector::ClientConnector(QObject *parent) :
+ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) :
 	QObject(parent),
+	database(database),
 	server(nullptr),
 	clients()
 {
@@ -71,7 +72,7 @@ void ClientConnector::newConnection()
 {
 	while (server->hasPendingConnections()) {
 		auto socket = server->nextPendingConnection();
-		auto client = new Client(socket, this);
+		auto client = new Client(database, socket, this);
 		connect(client, &Client::connected, this, [=](QUuid devId){
 			clients.insert(devId, client);
 			qDebug() << "connected" << devId;

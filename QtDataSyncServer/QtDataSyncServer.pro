@@ -1,4 +1,4 @@
-QT += core websockets backgroundprocess sql
+QT += core websockets backgroundprocess sql concurrent
 QT -= gui
 
 CONFIG += c++11
@@ -34,4 +34,4 @@ HEADERS += \
 	databasecontroller.h
 
 DISTFILES += \
-    setup.conf
+	setup.conf
