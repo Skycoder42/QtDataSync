@@ -1,4 +1,4 @@
-QT += core websockets backgroundprocess
+QT += core websockets backgroundprocess sql
 QT -= gui
 
 CONFIG += c++11
@@ -11,8 +11,8 @@ TEMPLATE = app
 
 SOURCES += \
 	clientconnector.cpp \
-    app.cpp \
-    client.cpp
+	app.cpp \
+	client.cpp
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -27,5 +27,5 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
 	clientconnector.h \
-    app.h \
-    client.h
+	app.h \
+	client.h

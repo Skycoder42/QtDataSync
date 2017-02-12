@@ -1,7 +1,9 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <QJsonValue>
 #include <QObject>
+#include <QUuid>
 #include <QWebSocket>
 
 class Client : public QObject
@@ -11,6 +13,9 @@ class Client : public QObject
 public:
 	explicit Client(QWebSocket *websocket, QObject *parent = nullptr);
 
+signals:
+	void connected(const QUuid &deviceId);
+
 private slots:
 	void binaryMessageReceived(const QByteArray &message);
 	void error();
@@ -18,6 +23,9 @@ private slots:
 
 private:
 	QWebSocket *socket;
+	QUuid clientId;
+
+	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
 };
 
 #endif // CLIENT_H

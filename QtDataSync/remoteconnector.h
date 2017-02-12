@@ -4,6 +4,7 @@
 #include "qtdatasync_global.h"
 #include "stateholder.h"
 #include <QJsonValue>
+#include <QJsonObject>
 #include <QObject>
 
 namespace QtDataSync {

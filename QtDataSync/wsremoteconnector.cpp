@@ -3,6 +3,7 @@
 #include "wsremoteconnector.h"
 
 #include <QDebug>
+#include <QJsonDocument>
 #include <QJsonObject>
 using namespace QtDataSync;
 
@@ -65,6 +66,14 @@ void WsRemoteConnector::reconnect()
 			socket->setSslConfiguration(conf);
 		}
 
+		connect(socket, &QWebSocket::connected,
+				this, &WsRemoteConnector::connected);
+		connect(socket, &QWebSocket::binaryMessageReceived,
+				this, &WsRemoteConnector::binaryMessageReceived);
+		connect(socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
+				this, &WsRemoteConnector::error);
+		connect(socket, &QWebSocket::sslErrors,
+				this, &WsRemoteConnector::sslErrors);
 		connect(socket, &QWebSocket::disconnected, this, [this](){
 			socket->deleteLater();
 			socket = nullptr;
@@ -114,4 +123,58 @@ void WsRemoteConnector::resetDeviceId()
 {
 	RemoteConnector::resetDeviceId();
 	reconnect();
+}
+
+void WsRemoteConnector::connected()
+{
+	connecting = false;
+	//check if a client ID exists
+	auto id = settings->value(keyUserIdentity).toByteArray();
+	if(id.isNull()) {
+		QJsonObject data;
+		data["deviceId"] = QString::fromUtf8(loadDeviceId());
+		sendCommand("createIdentity", data);
+	} else {
+		QJsonObject data;
+		data["userId"] = QString::fromUtf8(id);
+		data["deviceId"] = QString::fromUtf8(loadDeviceId());
+		sendCommand("identify", data);
+	}
+}
+
+void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
+{
+	QJsonParseError error;
+	auto doc = QJsonDocument::fromJson(message, &error);
+	if(error.error != QJsonParseError::NoError) {
+		qWarning() << "Invalid data received. Parser error:"
+				   << error.errorString();
+		return;
+	}
+
+	auto obj = doc.object();
+	if(obj["command"] == QStringLiteral("identity")) {
+		auto identity = obj["data"].toString().toUtf8();
+		settings->setValue(keyUserIdentity, identity);
+	}
+}
+
+void WsRemoteConnector::error()
+{
+
+}
+
+void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
+{
+
+}
+
+void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue &data)
+{
+	QJsonObject message;
+	message["command"] = QString::fromLatin1(command);
+	message["data"] = data;
+
+	QJsonDocument doc(message);
+	socket->sendBinaryMessage(doc.toJson(QJsonDocument::Compact));
 }

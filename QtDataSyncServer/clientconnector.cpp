@@ -58,7 +58,15 @@ void ClientConnector::newConnection()
 {
 	while (server->hasPendingConnections()) {
 		auto socket = server->nextPendingConnection();
-		new Client(socket, this);
+		auto client = new Client(socket, this);
+		connect(client, &Client::connected, this, [=](QUuid devId){
+			clients.insert(devId, client);
+			qDebug() << "connected" << devId;
+			connect(client, &Client::destroyed, this, [=](){
+				clients.remove(devId);
+				qDebug() << "disconnected" << devId;
+			});
+		});
 	}
 }
 

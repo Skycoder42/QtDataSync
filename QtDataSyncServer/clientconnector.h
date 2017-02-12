@@ -23,7 +23,7 @@ private slots:
 private:
 	QWebSocketServer *server;
 
-	QHash<QByteArray, Client*> clients;
+	QHash<QUuid, Client*> clients;
 };
 
 #endif // CLIENTCONNECTOR_H

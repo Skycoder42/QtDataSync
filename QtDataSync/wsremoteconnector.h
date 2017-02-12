@@ -35,6 +35,14 @@ public slots:
 
 	void resetDeviceId() override;
 
+private slots:
+	void connected();
+	void binaryMessageReceived(const QByteArray &message);
+	void error();
+	void sslErrors(const QList<QSslError> &errors);
+
+	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
+
 private:
 	QWebSocket *socket;
 	QSettings *settings;
