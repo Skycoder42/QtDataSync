@@ -34,6 +34,8 @@ private:
 	bool multiThreaded;
 	QThreadPool *pool;
 	QThreadStorage<DatabaseWrapper> threadStore;
+
+	void initDatabase();
 };
 
 #endif // DATABASECONTROLLER_H

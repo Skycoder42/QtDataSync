@@ -25,14 +25,10 @@ void App::setupParser(QCommandLineParser &parser, bool useShortOptions)
 {
 	QtBackgroundProcess::App::setupParser(parser, useShortOptions);
 
-#ifndef QT_NO_DEBUG
-	auto path = PWD "/setup.conf";
-#else
 #ifdef Q_OS_UNIX
 	auto path = "/etc/QtDataSyncServer/setup.conf";
 #elif
 	auto path = QCoreApplication::applicationDirPath() + "/setup.conf";
-#endif
 #endif
 	parser.addOption({
 						 {"c", "config-file"},

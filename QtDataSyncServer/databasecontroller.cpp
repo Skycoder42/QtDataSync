@@ -12,6 +12,8 @@ DatabaseController::DatabaseController(QObject *parent) :
 	multiThreaded = qApp->configuration()->value("database/multithreaded", false).toBool();
 	if(!multiThreaded)
 		pool->setMaxThreadCount(1);//limit to 1 thread
+
+	this->initDatabase();
 }
 
 DatabaseController::~DatabaseController()
@@ -28,14 +30,14 @@ void DatabaseController::createIdentity(QObject *object, const QByteArray &metho
 		auto identity = QUuid::createUuid();
 
 		QSqlQuery query(db);
-		query.prepare(QStringLiteral("INSERT INTO Users (Identity) VALUES(?)"));
+		query.prepare(QStringLiteral("INSERT INTO users (Identity) VALUES(?)"));
 		query.addBindValue(identity.toString());
 		if(query.exec()) {
 			QMetaObject::invokeMethod(object, method.constData(), Q_ARG(QUuid, identity));
 			return;
 		} else {
 			qCritical() << "Failed to add new user identity with error:"
-						<< query.lastError().text();
+						<< qPrintable(query.lastError().text());
 			QMetaObject::invokeMethod(object, method.constData(), Q_ARG(QUuid, {}));
 		}
 	});
@@ -47,7 +49,7 @@ void DatabaseController::identify(const QUuid &identity, QObject *object, const 
 		auto db = threadStore.localData().database();
 
 		QSqlQuery query(db);
-		query.prepare(QStringLiteral("SELECT Identity FROM Users WHERE Identity = ?"));
+		query.prepare(QStringLiteral("SELECT Identity FROM users WHERE Identity = ?"));
 		query.addBindValue(identity.toString());
 		if(query.exec()) {
 			if(query.first()) {
@@ -56,10 +58,27 @@ void DatabaseController::identify(const QUuid &identity, QObject *object, const 
 			}
 		} else {
 			qCritical() << "Failed to identify user with error:"
-						<< query.lastError().text();
+						<< qPrintable(query.lastError().text());
 		}
 
 		QMetaObject::invokeMethod(object, method.constData(), Q_ARG(bool, false));
+	});
+}
+
+void DatabaseController::initDatabase()
+{
+	QtConcurrent::run(pool, [=](){
+		auto db = threadStore.localData().database();
+
+		if(!db.tables().contains("users")) {
+			QSqlQuery createUsers(db);
+			if(!createUsers.exec(QStringLiteral("CREATE TABLE users ( "
+												"	Identity	UUID PRIMARY KEY NOT NULL UNIQUE "
+												");"))) {
+				qCritical() << "Failed to create users table with error:"
+							<< qPrintable(createUsers.lastError().text());
+			}
+		}
 	});
 }
 
@@ -69,8 +88,8 @@ DatabaseController::DatabaseWrapper::DatabaseWrapper() :
 	dbName(QUuid::createUuid().toString())
 {
 	auto config = qApp->configuration();
-	auto db = QSqlDatabase::addDatabase(config->value("database/driver", "QSQLITE").toString(), dbName);
-	db.setDatabaseName(qApp->absolutePath(config->value("database/name", "./data.db").toString()));
+	auto db = QSqlDatabase::addDatabase(config->value("database/driver", "QPSQL").toString(), dbName);
+	db.setDatabaseName(config->value("database/name", "QtDataSync").toString());
 	db.setHostName(config->value("database/host").toString());
 	db.setPort(config->value("database/port").toInt());
 	db.setUserName(config->value("database/username").toString());
@@ -79,17 +98,7 @@ DatabaseController::DatabaseWrapper::DatabaseWrapper() :
 
 	if(!db.open()) {
 		qCritical() << "Failed to open database with error:"
-					<< db.lastError().text();
-	} else if(!db.tables().contains("Users")) {
-		QSqlQuery createUsers(db);
-		createUsers.prepare(QStringLiteral("CREATE TABLE Users ("
-										   "	Identity	TEXT NOT NULL UNIQUE,"
-										   "	PRIMARY KEY(Identity)"
-										   ");"));
-		if(!createUsers.exec()) {
-			qCritical() << "Failed to create Users table with error:"
-						<< createUsers.lastError().text();
-		}
+					<< qPrintable(db.lastError().text());
 	}
 }
 
