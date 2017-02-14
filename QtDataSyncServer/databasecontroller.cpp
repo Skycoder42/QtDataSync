@@ -73,10 +73,51 @@ void DatabaseController::initDatabase()
 		if(!db.tables().contains("users")) {
 			QSqlQuery createUsers(db);
 			if(!createUsers.exec(QStringLiteral("CREATE TABLE users ( "
-												"	Identity	UUID PRIMARY KEY NOT NULL UNIQUE "
+												"	identity	UUID PRIMARY KEY NOT NULL UNIQUE "
 												");"))) {
 				qCritical() << "Failed to create users table with error:"
 							<< qPrintable(createUsers.lastError().text());
+				return;
+			}
+		}
+		if(!db.tables().contains("devices")) {
+			QSqlQuery createDevices(db);
+			if(!createDevices.exec(QStringLiteral("CREATE TABLE devices ( "
+												  "		id			SERIAL PRIMARY KEY NOT NULL, "
+												  "		deviceid	UUID NOT NULL, "
+												  "		userid		UUID NOT NULL REFERENCES users(identity), "
+												  "		CONSTRAINT device_id UNIQUE (deviceid, userid)"
+												  ");"))) {
+				qCritical() << "Failed to create devices table with error:"
+							<< qPrintable(createDevices.lastError().text());
+				return;
+			}
+		}
+		if(!db.tables().contains("data")) {
+			QSqlQuery createData(db);
+			if(!createData.exec(QStringLiteral("CREATE TABLE data ( "
+											   "	index	SERIAL PRIMARY KEY NOT NULL, "
+											   "	userid	UUID NOT NULL REFERENCES users(identity), "
+											   "	type	TEXT NOT NULL, "
+											   "	key		TEXT NOT NULL, "
+											   "	data	JSON, "
+											   "	CONSTRAINT data_id UNIQUE (type, key)"
+											   ");"))) {
+				qCritical() << "Failed to create data table with error:"
+							<< qPrintable(createData.lastError().text());
+				return;
+			}
+		}
+		if(!db.tables().contains("states")) {
+			QSqlQuery createStates(db);
+			if(!createStates.exec(QStringLiteral("CREATE TABLE states ( "
+												 "	dataindex	INTEGER NOT NULL REFERENCES data(index), "
+												 "	deviceid	INTEGER NOT NULL REFERENCES devices(id), "
+												 "	PRIMARY KEY (dataindex, deviceid)"
+												 ");"))) {
+				qCritical() << "Failed to create states table with error:"
+							<< qPrintable(createStates.lastError().text());
+				return;
 			}
 		}
 	});
