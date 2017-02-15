@@ -23,6 +23,7 @@ public:
 
 private:
 	QSqlDatabase database;
+	QDir storageDir;
 };
 
 }

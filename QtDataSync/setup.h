@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include <QObject>
+#include <QLoggingCategory>
 class QJsonSerializer;
 
 namespace QtDataSync {
@@ -22,6 +23,7 @@ public:
 
 	static void setCleanupTimeout(unsigned long timeout);
 	static void removeSetup(const QString &name);
+
 	template <typename T>
 	static T *authenticatorForSetup(QObject *parent = nullptr, const QString &name = DefaultSetup);
 

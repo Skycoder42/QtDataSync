@@ -1,7 +1,10 @@
 #include "exception.h"
 #include "storageengine.h"
+#include "defaults.h"
 #include <QThread>
 using namespace QtDataSync;
+
+#define LOG Defaults::loggingCategory(storageDir)
 
 StorageEngine::StorageEngine(const QDir &storageDir, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger) :
 	QObject(),
@@ -137,8 +140,8 @@ void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 {
 	auto info = requestCache.take(id);
 	if(info.isChangeControllerRequest) {
-		qWarning() << "Local operation failed with error:"
-				   << errorString;
+		qCCritical(LOG) << "Local operation failed with error:"
+						<< errorString;
 		changeController->nextStage(false);
 	} else {
 		info.futureInterface.reportException(Exception(errorString));
@@ -153,8 +156,8 @@ void StorageEngine::operationDone(const QJsonValue &result)
 
 void StorageEngine::operationFailed(const QString &errorString)
 {
-	qWarning() << "Network operation failed with error:"
-			   << errorString;
+	qCWarning(LOG) << "Network operation failed with error:"
+				   << errorString;
 	changeController->nextStage(false);
 }
 
@@ -169,9 +172,10 @@ void StorageEngine::beginRemoteOperation(const ChangeController::ChangeOperation
 	auto metaTypeId = QMetaType::type(operation.key.first);
 	auto metaObject = QMetaType::metaObjectForType(metaTypeId);
 	if(!metaObject) {
-		qWarning() << "Remote operation for invalid type"
-				   << operation.key.first
-				   << "requested!";
+		qCWarning(LOG) << "Remote operation for invalid type"
+					   << operation.key.first
+					   << "requested!";
+		return;
 	}
 
 	auto userProperty = QMetaType::metaObjectForType(metaTypeId)->userProperty();
@@ -198,9 +202,10 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 	auto metaTypeId = QMetaType::type(operation.key.first);
 	auto metaObject = QMetaType::metaObjectForType(metaTypeId);
 	if(!metaObject) {
-		qWarning() << "Remote operation for invalid type"
-				   << operation.key.first
-				   << "requested!";
+		qCWarning(LOG) << "Local operation for invalid type"
+					   << operation.key.first
+					   << "requested!";
+		return;
 	}
 
 	auto id = requestCounter++;

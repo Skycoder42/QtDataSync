@@ -7,6 +7,8 @@
 #include <QJsonObject>
 using namespace QtDataSync;
 
+#define LOG Defaults::loggingCategory(storageDir)
+
 const QString WsRemoteConnector::keyRemoteUrl(QStringLiteral("RemoteConnector/remoteUrl"));
 const QString WsRemoteConnector::keyHeadersGroup(QStringLiteral("RemoteConnector/headers"));
 const QString WsRemoteConnector::keyVerifyPeer(QStringLiteral("RemoteConnector/verifyPeer"));
@@ -21,6 +23,7 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 
 void WsRemoteConnector::initialize(const QDir &storageDir)
 {
+	this->storageDir = storageDir;
 	RemoteConnector::initialize(storageDir);
 	settings = Defaults::settings(storageDir, this);
 	reconnect();
@@ -97,25 +100,25 @@ void WsRemoteConnector::reconnect()
 
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
 {
-	qDebug() << Q_FUNC_INFO << key;
+	qCDebug(LOG) << Q_FUNC_INFO << key;
 	emit operationDone(QJsonObject());
 }
 
 void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty)
 {
-	qDebug() << Q_FUNC_INFO << key;
+	qCDebug(LOG) << Q_FUNC_INFO << key;
 	emit operationDone();
 }
 
 void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProperty)
 {
-	qDebug() << Q_FUNC_INFO << key;
+	qCDebug(LOG) << Q_FUNC_INFO << key;
 	emit operationDone();
 }
 
 void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &keyProperty)
 {
-	qDebug() << Q_FUNC_INFO << key;
+	qCDebug(LOG) << Q_FUNC_INFO << key;
 	emit operationDone();
 
 }
@@ -155,8 +158,8 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	QJsonParseError error;
 	auto doc = QJsonDocument::fromJson(message, &error);
 	if(error.error != QJsonParseError::NoError) {
-		qWarning() << "Invalid data received. Parser error:"
-				   << error.errorString();
+		qCWarning(LOG) << "Invalid data received. Parser error:"
+					   << error.errorString();
 		return;
 	}
 
@@ -169,8 +172,8 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 
 void WsRemoteConnector::error()
 {
-	qWarning() << "Socket error"
-			   << socket->errorString();
+	qCWarning(LOG) << "Socket error"
+				   << socket->errorString();
 	state = Closing;
 	socket->close();
 }
@@ -178,8 +181,8 @@ void WsRemoteConnector::error()
 void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
-		qWarning() << "SSL errors"
-				   << error.errorString();
+		qCWarning(LOG) << "SSL errors"
+					   << error.errorString();
 	}
 	if(settings->value(keyVerifyPeer, true).toBool()) {
 		state = Closing;

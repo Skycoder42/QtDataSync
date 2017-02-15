@@ -1,3 +1,4 @@
+#include "defaults.h"
 #include "setup.h"
 #include "setup_p.h"
 #include "sqllocalstore.h"
@@ -115,6 +116,8 @@ void Setup::create(const QString &name)
 	storageDir.mkpath(d->localDir);
 	storageDir.cd(d->localDir);
 
+	Defaults::registerSetup(storageDir, name);
+
 	auto engine = new StorageEngine(storageDir,
 									d->serializer.take(),
 									d->localStore.take(),
@@ -132,6 +135,7 @@ void Setup::create(const QString &name)
 		QMutexLocker _(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
 		thread->deleteLater();
+		Defaults::unregisterSetup(storageDir);
 	}, Qt::QueuedConnection);
 	thread->start();
 	SetupPrivate::engines.insert(name, {thread, engine});

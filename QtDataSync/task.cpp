@@ -22,8 +22,9 @@ Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std:
 			if(onExcept)
 				onExcept(e);
 			else {
-				qWarning() << "Unhandelt exception:"
-						   << e.what();
+				qCritical() << "Unhandelt exception:"
+							<< e.what();
+				e.raise();
 			}
 		}
 		watcher->deleteLater();

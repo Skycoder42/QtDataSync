@@ -56,6 +56,7 @@ private slots:
 
 private:
 	QWebSocket *socket;
+	QDir storageDir;
 	QSettings *settings;
 
 	SocketState state;

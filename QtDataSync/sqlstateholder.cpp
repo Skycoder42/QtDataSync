@@ -7,12 +7,17 @@
 
 using namespace QtDataSync;
 
+#define LOG Defaults::loggingCategory(storageDir)
+
 SqlStateHolder::SqlStateHolder(QObject *parent) :
-	StateHolder(parent)
+	StateHolder(parent),
+	database(),
+	storageDir()
 {}
 
 void SqlStateHolder::initialize(const QDir &storageDir)
 {
+	this->storageDir = storageDir;
 	database = Defaults::aquireDatabase(storageDir);
 
 	//create table
@@ -25,8 +30,8 @@ void SqlStateHolder::initialize(const QDir &storageDir)
 												"PRIMARY KEY(Type, Key)"
 										   ");"));
 		if(!createQuery.exec()) {
-			qCritical() << "Failed to create SyncState table with error:"
-						<< createQuery.lastError().text();
+			qCCritical(LOG) << "Failed to create SyncState table with error:"
+							<< createQuery.lastError().text();
 		}
 	}
 }
@@ -42,8 +47,8 @@ StateHolder::ChangeHash SqlStateHolder::listLocalChanges()
 	QSqlQuery listQuery(database);
 	listQuery.prepare(QStringLiteral("SELECT Type, Key, Changed FROM SyncState WHERE Changed != 0"));
 	if(!listQuery.exec()) {
-		qCritical() << "Failed to load current state with error:"
-					<< listQuery.lastError().text();
+		qCCritical(LOG) << "Failed to load current state with error:"
+						<< listQuery.lastError().text();
 		return {};
 	}
 
@@ -74,11 +79,11 @@ void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeS
 	}
 
 	if(!updateQuery.exec()) {
-		qCritical() << "Failed to update current state for type"
-					<< key.first
-					<< "and key"
-					<< key.second
-					<< "with error:"
-					<< updateQuery.lastError().text();
+		qCCritical(LOG) << "Failed to update current state for type"
+						<< key.first
+						<< "and key"
+						<< key.second
+						<< "with error:"
+						<< updateQuery.lastError().text();
 	}
 }
