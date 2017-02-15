@@ -30,7 +30,7 @@ void DatabaseController::createIdentity(QObject *object, const QByteArray &metho
 		auto identity = QUuid::createUuid();
 
 		QSqlQuery query(db);
-		query.prepare(QStringLiteral("INSERT INTO users (Identity) VALUES(?)"));
+		query.prepare(QStringLiteral("INSERT INTO users (identity) VALUES(?)"));
 		query.addBindValue(identity.toString());
 		if(query.exec()) {
 			QMetaObject::invokeMethod(object, method.constData(), Q_ARG(QUuid, identity));
@@ -49,7 +49,7 @@ void DatabaseController::identify(const QUuid &identity, QObject *object, const 
 		auto db = threadStore.localData().database();
 
 		QSqlQuery query(db);
-		query.prepare(QStringLiteral("SELECT Identity FROM users WHERE Identity = ?"));
+		query.prepare(QStringLiteral("SELECT EXISTS(SELECT identity FROM users WHERE identity = ?) AS exists"));
 		query.addBindValue(identity.toString());
 		if(query.exec()) {
 			if(query.first()) {

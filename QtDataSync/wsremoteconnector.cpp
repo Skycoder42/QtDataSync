@@ -16,7 +16,7 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	RemoteConnector(parent),
 	socket(nullptr),
 	settings(nullptr),
-	connecting(false)
+	state(Disconnected)
 {}
 
 void WsRemoteConnector::initialize(const QDir &storageDir)
@@ -38,21 +38,23 @@ Authenticator *WsRemoteConnector::createAuthenticator(const QDir &storageDir, QO
 
 void WsRemoteConnector::reconnect()
 {
-	if(connecting)
+	if(state == Connecting ||
+	   state == Closing)
 		return;
 
-	connecting = true;
 	if(socket) {
+		state = Closing;
 		connect(socket, &QWebSocket::destroyed,
 				this, &WsRemoteConnector::reconnect,
 				Qt::QueuedConnection);
 		socket->close();
 	} else {
+		state = Connecting;
 		settings->sync();
 
 		auto remoteUrl = settings->value(keyRemoteUrl).toUrl();
 		if(!remoteUrl.isValid()) {
-			connecting = false;
+			state = Disconnected;
 			return;
 		}
 
@@ -74,10 +76,9 @@ void WsRemoteConnector::reconnect()
 				this, &WsRemoteConnector::error);
 		connect(socket, &QWebSocket::sslErrors,
 				this, &WsRemoteConnector::sslErrors);
-		connect(socket, &QWebSocket::disconnected, this, [this](){
-			socket->deleteLater();
-			socket = nullptr;
-		});
+		connect(socket, &QWebSocket::disconnected,
+				this, &WsRemoteConnector::disconnected,
+				Qt::QueuedConnection);
 
 		QNetworkRequest request(remoteUrl);
 		request.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
@@ -127,7 +128,7 @@ void WsRemoteConnector::resetDeviceId()
 
 void WsRemoteConnector::connected()
 {
-	connecting = false;
+	state = Identifying;
 	//check if a client ID exists
 	auto id = settings->value(keyUserIdentity).toByteArray();
 	if(id.isNull()) {
@@ -140,6 +141,13 @@ void WsRemoteConnector::connected()
 		data["deviceId"] = QString::fromUtf8(loadDeviceId());
 		sendCommand("identify", data);
 	}
+}
+
+void WsRemoteConnector::disconnected()
+{
+	state = Disconnected;
+	socket->deleteLater();
+	socket = nullptr;
 }
 
 void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
@@ -161,12 +169,22 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 
 void WsRemoteConnector::error()
 {
-
+	qWarning() << "Socket error"
+			   << socket->errorString();
+	state = Closing;
+	socket->close();
 }
 
 void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 {
-
+	foreach(auto error, errors) {
+		qWarning() << "SSL errors"
+				   << error.errorString();
+	}
+	if(settings->value(keyVerifyPeer, true).toBool()) {
+		state = Closing;
+		socket->close();
+	}
 }
 
 void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue &data)

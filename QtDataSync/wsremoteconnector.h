@@ -13,6 +13,16 @@ class WsRemoteConnector : public RemoteConnector
 {
 	Q_OBJECT
 public:
+	enum SocketState {
+		Disconnected,
+		Connecting,
+		Identifying,
+		Reloading,
+		Idle,
+		Closing
+	};
+	Q_ENUM(SocketState)
+
 	static const QString keyRemoteUrl;
 	static const QString keyHeadersGroup;
 	static const QString keyVerifyPeer;
@@ -37,6 +47,7 @@ public slots:
 
 private slots:
 	void connected();
+	void disconnected();
 	void binaryMessageReceived(const QByteArray &message);
 	void error();
 	void sslErrors(const QList<QSslError> &errors);
@@ -47,7 +58,7 @@ private:
 	QWebSocket *socket;
 	QSettings *settings;
 
-	bool connecting;
+	SocketState state;
 };
 
 }
