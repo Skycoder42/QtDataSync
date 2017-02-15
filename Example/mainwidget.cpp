@@ -4,6 +4,9 @@
 #include "ui_mainwidget.h"
 #include <setup.h>
 
+static QtMessageHandler prevHandler;
+static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+
 MainWidget::MainWidget(QWidget *parent) :
 	QWidget(parent),
 	ui(new Ui::MainWidget),
@@ -12,6 +15,8 @@ MainWidget::MainWidget(QWidget *parent) :
 	ui->setupUi(this);
 	connect(ui->reloadButton, &QPushButton::clicked,
 			this, &MainWidget::reload);
+
+	prevHandler = qInstallMessageHandler(filterLogger);
 }
 
 MainWidget::~MainWidget()
@@ -34,10 +39,10 @@ void MainWidget::on_addButton_clicked()
 	update(data);
 
 	store->save<SampleData*>(data).onResult([this, data](){
-		report(true, QStringLiteral("Data with id %1 saved!").arg(data->id));
+		report(QtInfoMsg, QStringLiteral("Data with id %1 saved!").arg(data->id));
 		data->deleteLater();
 	}, [this, data](QException &exception) {
-		report(false, exception.what());
+		report(QtCriticalMsg, exception.what());
 		data->deleteLater();
 	});
 }
@@ -50,18 +55,32 @@ void MainWidget::on_deleteButton_clicked()
 		items.remove(id);
 		delete item;
 		store->remove<SampleData*>(QString::number(id)).onResult([this, id](){
-			report(true, QStringLiteral("Data with id %1 removed!").arg(id));
+			report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
 		}, [this](QException &exception) {
-			report(false, exception.what());
+			report(QtCriticalMsg, exception.what());
 		});
 	}
 }
 
-void MainWidget::report(bool success, const QString &message)
+void MainWidget::report(QtMsgType type, const QString &message)
 {
-	auto icon = style()->standardPixmap(success ?
-											QStyle::SP_MessageBoxInformation :
-											QStyle::SP_MessageBoxCritical);
+	QIcon icon;
+	switch (type) {
+	case QtDebugMsg:
+	case QtInfoMsg:
+		icon = style()->standardPixmap(QStyle::SP_MessageBoxInformation);
+		break;
+	case QtWarningMsg:
+		icon = style()->standardPixmap(QStyle::SP_MessageBoxWarning);
+		break;
+	case QtCriticalMsg:
+	case QtFatalMsg:
+		icon = style()->standardPixmap(QStyle::SP_MessageBoxCritical);
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
 	new QListWidgetItem(icon, message, ui->reportListWidget);
 }
 
@@ -84,11 +103,11 @@ void MainWidget::reload()
 	ui->dataTreeWidget->clear();
 
 	store->loadAll<SampleData*>().onResult([this](QList<SampleData*> data){
-		report(true, "All Data loaded from store!");
+		report(QtInfoMsg, "All Data loaded from store!");
 		foreach (auto d, data)
 			update(d);
 	}, [this](QException &exception) {
-		report(false, QString::fromLatin1(exception.what()));
+		report(QtCriticalMsg, QString::fromLatin1(exception.what()));
 	});
 }
 
@@ -99,4 +118,18 @@ void MainWidget::setup()
 		reload();
 	} else
 		qApp->quit();
+}
+
+static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+	if(QByteArray(context.category).startsWith("QtDataSync:")) {
+		auto window = qApp->property("__mw").value<MainWidget*>();
+		if(window) {
+			auto rMsg = qFormatLogMessage(type, context, msg);
+			window->report(type, rMsg);
+			return;
+		}
+	}
+
+	prevHandler(type, context, msg);
 }

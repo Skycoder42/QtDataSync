@@ -19,6 +19,9 @@ public:
 	explicit MainWidget(QWidget *parent = nullptr);
 	~MainWidget();
 
+public slots:
+	void report(QtMsgType type, const QString &message);
+
 protected:
 	void showEvent(QShowEvent *event) override;
 
@@ -26,7 +29,6 @@ private slots:
 	void on_addButton_clicked();
 	void on_deleteButton_clicked();
 
-	void report(bool success, const QString &message);
 	void update(SampleData *data);
 	void reload();
 

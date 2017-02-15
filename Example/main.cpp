@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 	QJsonSerializer::registerListConverters<SampleData*>();
 
 	MainWidget w;
+	a.setProperty("__mw", QVariant::fromValue(&w));
 	w.show();
 
 	return a.exec();
