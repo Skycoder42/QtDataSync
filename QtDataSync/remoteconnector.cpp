@@ -6,32 +6,31 @@
 using namespace QtDataSync;
 
 RemoteConnector::RemoteConnector(QObject *parent) :
-	QObject(parent)
+	QObject(parent),
+	_defaults()
 {}
 
-void RemoteConnector::initialize(const QDir &storageDir)
+void RemoteConnector::initialize(Defaults *defaults)
 {
-	_storageDir = storageDir;
+	_defaults = defaults;
 }
 
-void RemoteConnector::finalize(const QDir &) {}
+void RemoteConnector::finalize() {}
 
 void RemoteConnector::resetDeviceId()
 {
-	auto settings = Defaults::settings(_storageDir, this);
-	settings->remove(QStringLiteral("RemoteConnector/deviceId"));
-	settings->deleteLater();
+	_defaults->settings()->remove(QStringLiteral("RemoteConnector/deviceId"));
 }
 
-QDir RemoteConnector::storageDir() const
+Defaults *RemoteConnector::defaults() const
 {
-	return _storageDir;
+	return _defaults;
 }
 
 QByteArray RemoteConnector::loadDeviceId()
 {
 	static const QString key(QStringLiteral("RemoteConnector/deviceId"));
-	auto settings = Defaults::settings(_storageDir, this);
+	auto settings = _defaults->settings();
 	if(settings->contains(key))
 		return settings->value(key).toByteArray();
 	else {
@@ -39,5 +38,4 @@ QByteArray RemoteConnector::loadDeviceId()
 		settings->setValue(key, id.toByteArray());
 		return id.toByteArray();
 	}
-	settings->deleteLater();
 }

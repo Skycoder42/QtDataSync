@@ -4,6 +4,7 @@
 #include <QJsonValue>
 #include <QObject>
 #include "datamerger.h"
+#include "defaults.h"
 #include "stateholder.h"
 
 namespace QtDataSync {
@@ -28,8 +29,8 @@ public:
 
 	explicit ChangeController(DataMerger *merger, QObject *parent = nullptr);
 
-	void initialize(const QDir &storageDir);
-	void finalize(const QDir &storageDir);
+	void initialize(Defaults *defaults);
+	void finalize();
 
 public slots:
 	void setInitialLocalStatus(const StateHolder::ChangeHash &changes);

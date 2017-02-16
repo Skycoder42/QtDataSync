@@ -7,12 +7,11 @@ DataMerger::DataMerger(QObject *parent) :
 	d(new DataMergerPrivate())
 {}
 
-DataMerger::~DataMerger()
-{}
+DataMerger::~DataMerger() {}
 
-void DataMerger::initialize(const QDir &) {}
+void DataMerger::initialize(Defaults *) {}
 
-void DataMerger::finalize(const QDir &) {}
+void DataMerger::finalize() {}
 
 DataMerger::SyncPolicy DataMerger::syncPolicy() const
 {

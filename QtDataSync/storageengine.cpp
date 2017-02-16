@@ -4,11 +4,11 @@
 #include <QThread>
 using namespace QtDataSync;
 
-#define LOG Defaults::loggingCategory(storageDir)
+#define LOG defaults->loggingCategory()
 
-StorageEngine::StorageEngine(const QDir &storageDir, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger) :
+StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger) :
 	QObject(),
-	storageDir(storageDir),
+	defaults(defaults),
 	serializer(serializer),
 	localStore(localStore),
 	stateHolder(stateHolder),
@@ -17,6 +17,7 @@ StorageEngine::StorageEngine(const QDir &storageDir, QJsonSerializer *serializer
 	requestCache(),
 	requestCounter(0)
 {
+	defaults->setParent(this);
 	serializer->setParent(this);
 	localStore->setParent(this);
 	stateHolder->setParent(this);
@@ -95,18 +96,18 @@ void StorageEngine::initialize()
 			this, &StorageEngine::operationFailed,
 			Qt::QueuedConnection);
 
-	localStore->initialize(storageDir);
-	stateHolder->initialize(storageDir);
-	changeController->initialize(storageDir);
-	remoteConnector->initialize(storageDir);
+	localStore->initialize(defaults);
+	stateHolder->initialize(defaults);
+	changeController->initialize(defaults);
+	remoteConnector->initialize(defaults);
 }
 
 void StorageEngine::finalize()
 {
-	remoteConnector->finalize(storageDir);
-	changeController->finalize(storageDir);
-	stateHolder->finalize(storageDir);
-	localStore->finalize(storageDir);
+	remoteConnector->finalize();
+	changeController->finalize();
+	stateHolder->finalize();
+	localStore->finalize();
 	thread()->quit();
 }
 

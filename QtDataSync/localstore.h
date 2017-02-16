@@ -1,6 +1,7 @@
 #ifndef LOCALSTORE_H
 #define LOCALSTORE_H
 
+#include "defaults.h"
 #include "qtdatasync_global.h"
 #include <QObject>
 #include <QString>
@@ -17,8 +18,8 @@ class QTDATASYNCSHARED_EXPORT LocalStore : public QObject
 public:
 	explicit LocalStore(QObject *parent = nullptr);
 
-	virtual void initialize(const QDir &storageDir);
-	virtual void finalize(const QDir &storageDir);
+	virtual void initialize(Defaults *defaults);
+	virtual void finalize();
 
 public slots:
 	virtual void count(quint64 id, const QByteArray &typeName) = 0;

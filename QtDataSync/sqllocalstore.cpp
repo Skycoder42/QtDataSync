@@ -8,7 +8,7 @@
 using namespace QtDataSync;
 
 #define TABLE_DIR(tName) \
-	auto tableDir = storageDir; \
+	auto tableDir = defaults->storageDir(); \
 	if(!tableDir.mkpath(tName) || !tableDir.cd(tName)) { \
 		emit requestFailed(id, QStringLiteral("Failed to create table directory %1").arg(tName)); \
 		return; \
@@ -23,20 +23,20 @@ using namespace QtDataSync;
 
 SqlLocalStore::SqlLocalStore(QObject *parent) :
 	LocalStore(parent),
-	storageDir(),
+	defaults(nullptr),
 	database()
 {}
 
-void SqlLocalStore::initialize(const QDir &storageDir)
+void SqlLocalStore::initialize(Defaults *defaults)
 {
-	this->storageDir = storageDir;
-	database = Defaults::aquireDatabase(storageDir);
+	this->defaults = defaults;
+	database = defaults->aquireDatabase();
 }
 
-void SqlLocalStore::finalize(const QDir &storageDir)
+void SqlLocalStore::finalize()
 {
 	database = QSqlDatabase();
-	Defaults::releaseDatabase(storageDir);
+	defaults->releaseDatabase();
 }
 
 void SqlLocalStore::count(quint64 id, const QByteArray &typeName)

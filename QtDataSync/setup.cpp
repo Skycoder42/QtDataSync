@@ -116,9 +116,9 @@ void Setup::create(const QString &name)
 	storageDir.mkpath(d->localDir);
 	storageDir.cd(d->localDir);
 
-	Defaults::registerSetup(storageDir, name);
+	auto defaults = new Defaults(name, storageDir);
 
-	auto engine = new StorageEngine(storageDir,
+	auto engine = new StorageEngine(defaults,
 									d->serializer.take(),
 									d->localStore.take(),
 									d->stateHolder.take(),
@@ -135,7 +135,6 @@ void Setup::create(const QString &name)
 		QMutexLocker _(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
 		thread->deleteLater();
-		Defaults::unregisterSetup(storageDir);
 	}, Qt::QueuedConnection);
 	thread->start();
 	SetupPrivate::engines.insert(name, {thread, engine});
@@ -147,7 +146,7 @@ Authenticator *Setup::loadAuthenticator(QObject *parent, const QString &name)
 	if(SetupPrivate::engines.contains(name)) {
 		auto &info = SetupPrivate::engines[name];
 		if(info.second)
-			return info.second->remoteConnector->createAuthenticator(info.second->storageDir, parent);
+			return info.second->remoteConnector->createAuthenticator(info.second->defaults, parent);
 	}
 
 	return nullptr;

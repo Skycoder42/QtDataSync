@@ -17,8 +17,8 @@ class SqlLocalStore : public LocalStore
 public:
 	explicit SqlLocalStore(QObject *parent = nullptr);
 
-	void initialize(const QDir &storageDir) override;
-	void finalize(const QDir &storageDir) override;
+	void initialize(Defaults *defaults) override;
+	void finalize() override;
 
 public slots:
 	void count(quint64 id, const QByteArray &typeName) override;
@@ -29,7 +29,7 @@ public slots:
 	void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
 
 private:
-	QDir storageDir;
+	Defaults *defaults;
 	QSqlDatabase database;
 
 	QString tableName(const QByteArray &typeName) const;

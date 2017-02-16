@@ -1,66 +1,79 @@
 #include "defaults.h"
+#include "defaults_p.h"
 #include "setup.h"
 #include <QStandardPaths>
 #include <QSqlError>
 #include <QDebug>
 using namespace QtDataSync;
 
-#define LOG Defaults::loggingCategory(storageDir)
+#define LOG d->logCat
 
-QHash<QString, quint64> Defaults::refCounter;
-const QString Defaults::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
-QHash<QString, QPair<QByteArray, QSharedPointer<QLoggingCategory>>> Defaults::sNames;
+const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
 
-void Defaults::registerSetup(const QDir &storageDir, const QString &name)
+Defaults::Defaults(const QString &setupName, const QDir &storageDir, QObject *parent) :
+	QObject(parent),
+	d(new DefaultsPrivate(setupName, storageDir))
 {
-	auto bName = "QtDataSync:" + name.toUtf8();
-	sNames.insert(storageDir.canonicalPath(), {
-					  bName,
-					  QSharedPointer<QLoggingCategory>::create(bName)
-				  });
+	d->settings = createSettings(this);
 }
 
-void Defaults::unregisterSetup(const QDir &storageDir)
+Defaults::~Defaults()
 {
-	sNames.remove(storageDir.canonicalPath());
+	if(d->dbRefCounter != 0)
+		qCWarning(LOG) << "Number of database references is not 0!";
 }
 
-QSettings *Defaults::settings(const QDir &storageDir, QObject *parent)
+const QLoggingCategory &Defaults::loggingCategory() const
 {
-	auto path = storageDir.absoluteFilePath(QStringLiteral("config.ini"));
+	return d->logCat;
+}
+
+QDir Defaults::storageDir() const
+{
+	return d->storageDir;
+}
+
+QSettings *Defaults::settings() const
+{
+	return d->settings;
+}
+
+QSettings *Defaults::createSettings(QObject *parent) const
+{
+	auto path = d->storageDir.absoluteFilePath(QStringLiteral("config.ini"));
 	return new QSettings(path, QSettings::IniFormat, parent);
 }
 
-QSqlDatabase Defaults::aquireDatabase(const QDir &storageDir)
+QSqlDatabase Defaults::aquireDatabase()
 {
-	auto dirPath = storageDir.canonicalPath();
-	if(refCounter[dirPath]++ == 0) {
-		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), DatabaseName);
-		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("./store.db")));
+	if(d->dbRefCounter++ == 0) {
+		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), DefaultsPrivate::DatabaseName);
+		database.setDatabaseName(d->storageDir.absoluteFilePath(QStringLiteral("./store.db")));
 		if(!database.open()) {
 			qCCritical(LOG) << "Failed to open database! All subsequent operations will fail! Database error:"
 							<< database.lastError().text();
 		}
 	}
 
-	return QSqlDatabase::database(DatabaseName);
+	return QSqlDatabase::database(DefaultsPrivate::DatabaseName);
 }
 
-void Defaults::releaseDatabase(const QDir &storageDir)
+void Defaults::releaseDatabase()
 {
-	if(--refCounter[storageDir.canonicalPath()] == 0) {
-		QSqlDatabase::database(DatabaseName).close();
-		QSqlDatabase::removeDatabase(DatabaseName);
+	if(--d->dbRefCounter == 0) {
+		QSqlDatabase::database(DefaultsPrivate::DatabaseName).close();
+		QSqlDatabase::removeDatabase(DefaultsPrivate::DatabaseName);
 	}
 }
 
-const QLoggingCategory &Defaults::loggingCategory(const QDir &storageDir)
+
+
+QtDataSync::DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir) :
+	storageDir(storageDir),
+	dbRefCounter(0),
+	catName("QtDataSync:" + setupName.toUtf8()),
+	logCat(catName),
+	settings(nullptr)
 {
-	auto catPtr = sNames.value(storageDir.canonicalPath());
-	if(catPtr.second)
-		return *(catPtr.second);
-	else {
-		static const QLoggingCategory cCat("QtDataSync_unkown");
-		return cCat;
-	}
+
 }

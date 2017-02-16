@@ -2,29 +2,34 @@
 #define DEFAULTS_H
 
 #include "qtdatasync_global.h"
+#include <QObject>
 #include <QDir>
 #include <QSettings>
-#include <QSqlDatabase>
 #include <QLoggingCategory>
+class QSqlDatabase;
 
 namespace QtDataSync {
 
-class QTDATASYNCSHARED_EXPORT Defaults
+class DefaultsPrivate;
+class QTDATASYNCSHARED_EXPORT Defaults : public QObject
 {
+	Q_OBJECT
+
 public:
-	static void registerSetup(const QDir &storageDir, const QString &name);
-	static void unregisterSetup(const QDir &storageDir);
+	Defaults(const QString &setupName, const QDir &storageDir, QObject *parent = nullptr);
+	~Defaults();
 
-	static QSettings *settings(const QDir &storageDir, QObject *parent = nullptr);
-	static QSqlDatabase aquireDatabase(const QDir &storageDir);
-	static void releaseDatabase(const QDir &storageDir);
+	const QLoggingCategory &loggingCategory() const;
 
-	static const QLoggingCategory &loggingCategory(const QDir &storageDir);
+	QDir storageDir() const;
+	QSettings *settings() const;
+	QSettings *createSettings(QObject *parent = nullptr) const;
+
+	QSqlDatabase aquireDatabase();
+	void releaseDatabase();
 
 private:
-	static const QString DatabaseName;
-	static QHash<QString, quint64> refCounter;
-	static QHash<QString, QPair<QByteArray, QSharedPointer<QLoggingCategory>>> sNames;
+	QScopedPointer<DefaultsPrivate> d;
 };
 
 }

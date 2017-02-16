@@ -15,15 +15,15 @@ class SqlStateHolder : public StateHolder
 public:
 	explicit SqlStateHolder(QObject *parent = nullptr);
 
-	void initialize(const QDir &storageDir) override;
-	void finalize(const QDir &storageDir) override;
+	void initialize(Defaults *defaults) override;
+	void finalize() override;
 
 	ChangeHash listLocalChanges() override;
 	void markLocalChanged(const ObjectKey &key, ChangeState changed) override;
 
 private:
+	Defaults *defaults;
 	QSqlDatabase database;
-	QDir storageDir;
 };
 
 }

@@ -4,11 +4,11 @@
 #include "wsremoteconnector.h"
 using namespace QtDataSync;
 
-WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, const QDir &storageDir, QObject *parent) :
+WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, Defaults *defaults, QObject *parent) :
 	Authenticator(parent),
 	d(new WsAuthenticatorPrivate(connector))
 {
-	d->settings = Defaults::settings(storageDir, this);
+	d->settings = defaults->createSettings(this);
 
 	connect(d->connector, &WsRemoteConnector::remoteStateChanged,
 			this, &WsAuthenticator::updateConnected,

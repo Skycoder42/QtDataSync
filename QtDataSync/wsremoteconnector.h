@@ -30,10 +30,10 @@ public:
 
 	explicit WsRemoteConnector(QObject *parent = nullptr);
 
-	void initialize(const QDir &storageDir) override;
-	void finalize(const QDir &storageDir) override;
+	void initialize(Defaults *defaults) override;
+	void finalize() override;
 
-	Authenticator *createAuthenticator(const QDir &storageDir, QObject *parent) override;
+	Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) override;
 
 public slots:
 	void reconnect();
@@ -56,7 +56,6 @@ private slots:
 
 private:
 	QWebSocket *socket;
-	QDir storageDir;
 	QSettings *settings;
 
 	SocketState state;

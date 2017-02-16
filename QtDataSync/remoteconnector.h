@@ -1,6 +1,7 @@
 #ifndef REMOTECONNECTOR_H
 #define REMOTECONNECTOR_H
 
+#include "defaults.h"
 #include "qtdatasync_global.h"
 #include "stateholder.h"
 #include <QJsonValue>
@@ -18,10 +19,10 @@ class QTDATASYNCSHARED_EXPORT RemoteConnector : public QObject
 public:
 	explicit RemoteConnector(QObject *parent = nullptr);
 
-	virtual void initialize(const QDir &storageDir);
-	virtual void finalize(const QDir &storageDir);
+	virtual void initialize(Defaults *defaults);
+	virtual void finalize();
 
-	virtual Authenticator *createAuthenticator(const QDir &storageDir, QObject *parent) = 0;
+	virtual Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) = 0;
 
 public slots:
 	virtual void download(const ObjectKey &key, const QByteArray &keyProperty) = 0;
@@ -38,11 +39,11 @@ signals:
 	void operationFailed(const QString &error);
 
 protected:
-	QDir storageDir() const;
+	Defaults *defaults() const;
 	virtual QByteArray loadDeviceId();
 
 private:
-	QDir _storageDir;
+	Defaults *_defaults;
 };
 
 }

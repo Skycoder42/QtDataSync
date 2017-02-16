@@ -33,7 +33,8 @@ HEADERS += qtdatasync_global.h \
 	datamerger_p.h \
     wsauthenticator.h \
     wsauthenticator_p.h \
-    defaults.h
+    defaults.h \
+    defaults_p.h
 
 SOURCES += \
 	setup.cpp \

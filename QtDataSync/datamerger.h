@@ -4,6 +4,7 @@
 #include "qtdatasync_global.h"
 #include <QJsonObject>
 #include <QObject>
+#include "defaults.h"
 #include "stateholder.h"
 
 namespace QtDataSync {
@@ -36,8 +37,8 @@ public:
 	explicit DataMerger(QObject *parent = nullptr);
 	~DataMerger();
 
-	virtual void initialize(const QDir &storageDir);
-	virtual void finalize(const QDir &storageDir);
+	virtual void initialize(Defaults *defaults);
+	virtual void finalize();
 
 	SyncPolicy syncPolicy() const;
 	MergePolicy mergePolicy() const;

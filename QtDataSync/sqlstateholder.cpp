@@ -7,18 +7,18 @@
 
 using namespace QtDataSync;
 
-#define LOG Defaults::loggingCategory(storageDir)
+#define LOG defaults->loggingCategory()
 
 SqlStateHolder::SqlStateHolder(QObject *parent) :
 	StateHolder(parent),
-	database(),
-	storageDir()
+	defaults(nullptr),
+	database()
 {}
 
-void SqlStateHolder::initialize(const QDir &storageDir)
+void SqlStateHolder::initialize(Defaults *defaults)
 {
-	this->storageDir = storageDir;
-	database = Defaults::aquireDatabase(storageDir);
+	this->defaults = defaults;
+	database = defaults->aquireDatabase();
 
 	//create table
 	if(!database.tables().contains(QStringLiteral("SyncState"))) {
@@ -36,10 +36,10 @@ void SqlStateHolder::initialize(const QDir &storageDir)
 	}
 }
 
-void SqlStateHolder::finalize(const QDir &storageDir)
+void SqlStateHolder::finalize()
 {
 	database = QSqlDatabase();
-	Defaults::releaseDatabase(storageDir);
+	defaults->releaseDatabase();
 }
 
 StateHolder::ChangeHash SqlStateHolder::listLocalChanges()

@@ -7,7 +7,7 @@
 #include <QJsonObject>
 using namespace QtDataSync;
 
-#define LOG Defaults::loggingCategory(storageDir)
+#define LOG defaults()->loggingCategory()
 
 const QString WsRemoteConnector::keyRemoteUrl(QStringLiteral("RemoteConnector/remoteUrl"));
 const QString WsRemoteConnector::keyHeadersGroup(QStringLiteral("RemoteConnector/headers"));
@@ -21,22 +21,21 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	state(Disconnected)
 {}
 
-void WsRemoteConnector::initialize(const QDir &storageDir)
+void WsRemoteConnector::initialize(Defaults *defaults)
 {
-	this->storageDir = storageDir;
-	RemoteConnector::initialize(storageDir);
-	settings = Defaults::settings(storageDir, this);
+	RemoteConnector::initialize(defaults);
+	settings = defaults->createSettings(this);
 	reconnect();
 }
 
-void WsRemoteConnector::finalize(const QDir &storageDir)
+void WsRemoteConnector::finalize()
 {
-	RemoteConnector::finalize(storageDir);
+	RemoteConnector::finalize();
 }
 
-Authenticator *WsRemoteConnector::createAuthenticator(const QDir &storageDir, QObject *parent)
+Authenticator *WsRemoteConnector::createAuthenticator(Defaults *defaults, QObject *parent)
 {
-	return new WsAuthenticator(this, storageDir, parent);
+	return new WsAuthenticator(this, defaults, parent);
 }
 
 void WsRemoteConnector::reconnect()

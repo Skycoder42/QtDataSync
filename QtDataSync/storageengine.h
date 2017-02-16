@@ -3,6 +3,7 @@
 
 #include "changecontroller.h"
 #include "datamerger.h"
+#include "defaults.h"
 #include "localstore.h"
 #include "remoteconnector.h"
 #include "stateholder.h"
@@ -30,7 +31,7 @@ public:
 	};
 	Q_ENUM(TaskType)
 
-	explicit StorageEngine(const QDir &storageDir,
+	explicit StorageEngine(Defaults *defaults,
 						   QJsonSerializer *serializer,
 						   LocalStore *localStore,
 						   StateHolder *stateHolder,
@@ -71,7 +72,7 @@ private:
 		RequestInfo(QFutureInterface<QVariant> futureInterface, int convertMetaTypeId = QMetaType::UnknownType);
 	};
 
-	const QDir storageDir;
+	Defaults *defaults;
 	QJsonSerializer *serializer;
 	LocalStore *localStore;
 	StateHolder *stateHolder;

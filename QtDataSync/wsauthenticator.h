@@ -2,6 +2,7 @@
 #define WSAUTHENTICATOR_H
 
 #include "authenticator.h"
+#include "defaults.h"
 #include "qtdatasync_global.h"
 #include <QObject>
 #include <QUrl>
@@ -24,7 +25,7 @@ class WsAuthenticator : public Authenticator
 
 public:
 	explicit WsAuthenticator(WsRemoteConnector *connector,
-							 const QDir &storageDir,
+							 QtDataSync::Defaults *defaults,
 							 QObject *parent = nullptr);
 	~WsAuthenticator();
 
