@@ -163,10 +163,9 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	}
 
 	auto obj = doc.object();
-	if(obj["command"] == QStringLiteral("identity")) {
-		auto identity = obj["data"].toString().toUtf8();
-		settings->setValue(keyUserIdentity, identity);
-	}
+	auto data = obj["data"];
+	if(obj["command"] == QStringLiteral("identified"))
+		identified(data.toString());
 }
 
 void WsRemoteConnector::error()
@@ -197,4 +196,10 @@ void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue 
 
 	QJsonDocument doc(message);
 	socket->sendBinaryMessage(doc.toJson(QJsonDocument::Compact));
+}
+
+void WsRemoteConnector::identified(const QString &data)
+{
+	settings->setValue(keyUserIdentity, data.toUtf8());
+	qCDebug(LOG) << "Identification successful";
 }

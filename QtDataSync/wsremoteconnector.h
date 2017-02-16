@@ -59,6 +59,8 @@ private:
 	QSettings *settings;
 
 	SocketState state;
+
+	void identified(const QString &data);
 };
 
 }

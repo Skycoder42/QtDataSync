@@ -89,7 +89,7 @@ void Client::createIdentity(const QJsonObject &data)
 				<< clientId.toByteArray().constData()
 				<< "for"
 				<< socketAddress;
-		sendCommand("identity", clientId.toString());
+		sendCommand("identified", clientId.toString());
 		emit connected(deviceId, true);
 	} else {
 		close();
@@ -110,9 +110,10 @@ void Client::identify(const QJsonObject &data)
 		return;
 	}
 
-	if(database->identify(clientId))
+	if(database->identify(clientId)) {
+		sendCommand("identified", clientId.toString());
 		emit connected(deviceId, false);
-	else
+	} else
 		close();
 }
 
