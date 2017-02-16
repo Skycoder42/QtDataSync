@@ -1,15 +1,18 @@
 #include "client.h"
+#include "app.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUuid>
+#include <QtConcurrent>
 
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
 	database(database),
 	socket(websocket),
 	clientId(),
-	deviceId()
+	deviceId(),
+	socketAddress(socket->peerAddress())
 {
 	socket->setParent(this);
 
@@ -30,25 +33,27 @@ QUuid Client::userId() const
 
 void Client::binaryMessageReceived(const QByteArray &message)
 {
-	QJsonParseError error;
-	auto doc = QJsonDocument::fromJson(message, &error);
-	if(error.error != QJsonParseError::NoError) {
-		qWarning() << "Invalid data received. Parser error:"
-				   << error.errorString();
-		return;
-	}
+	QtConcurrent::run(qApp->threadPool(), [=](){
+		QJsonParseError error;
+		auto doc = QJsonDocument::fromJson(message, &error);
+		if(error.error != QJsonParseError::NoError) {
+			qWarning() << "Invalid data received. Parser error:"
+					   << error.errorString();
+			return;
+		}
 
-	auto obj = doc.object();
-	auto data = obj["data"];
-	if(obj["command"] == QStringLiteral("createIdentity"))
-		createIdentity(data.toObject());
-	else if(obj["command"] == QStringLiteral("identify"))
-		identify(data.toObject());
-	else {
-		qDebug() << "Unknown command"
-				 << obj["command"].toString();
-		socket->close();
-	}
+		auto obj = doc.object();
+		auto data = obj["data"];
+		if(obj["command"] == QStringLiteral("createIdentity"))
+			createIdentity(data.toObject());
+		else if(obj["command"] == QStringLiteral("identify"))
+			identify(data.toObject());
+		else {
+			qDebug() << "Unknown command"
+					 << obj["command"].toString();
+			close();
+		}
+	});
 }
 
 void Client::error()
@@ -73,26 +78,21 @@ void Client::createIdentity(const QJsonObject &data)
 {
 	deviceId = QUuid(data["deviceId"].toString());
 	if(deviceId.isNull()) {
-		socket->close();
+		close();
 		return;
 	}
 
-	database->createIdentity(this, "createIdentityResult");
-}
-
-void Client::createIdentityResult(QUuid identity)
-{
+	auto identity = database->createIdentity();
 	if(!identity.isNull()) {
 		clientId = identity;
 		qInfo() << "Created new Identity"
 				<< clientId.toByteArray().constData()
 				<< "for"
-				<< socket->peerAddress();
+				<< socketAddress;
 		sendCommand("identity", clientId.toString());
-
 		emit connected(deviceId, true);
 	} else {
-		socket->close();
+		close();
 		return;
 	}
 }
@@ -101,24 +101,24 @@ void Client::identify(const QJsonObject &data)
 {
 	deviceId = QUuid(data["deviceId"].toString());
 	if(deviceId.isNull()) {
-		socket->close();
+		close();
 		return;
 	}
 	clientId = QUuid(data["userId"].toString());
 	if(clientId.isNull()) {
-		socket->close();
+		close();
 		return;
 	}
 
-	database->identify(clientId, this, "identifyResult");
-}
-
-void Client::identifyResult(bool ok)
-{
-	if(ok)
+	if(database->identify(clientId))
 		emit connected(deviceId, false);
 	else
-		socket->close();
+		close();
+}
+
+void Client::close()
+{
+	QMetaObject::invokeMethod(socket, "close");
 }
 
 void Client::sendCommand(const QByteArray &command, const QJsonValue &data)
@@ -128,5 +128,10 @@ void Client::sendCommand(const QByteArray &command, const QJsonValue &data)
 	message["data"] = data;
 
 	QJsonDocument doc(message);
-	socket->sendBinaryMessage(doc.toJson(QJsonDocument::Compact));
+	QMetaObject::invokeMethod(this, "doSend", Q_ARG(QByteArray, doc.toJson(QJsonDocument::Compact)));
+}
+
+void Client::doSend(const QByteArray &message)
+{
+	socket->sendBinaryMessage(message);
 }

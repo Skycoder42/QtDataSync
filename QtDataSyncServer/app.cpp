@@ -6,6 +6,7 @@
 App::App(int &argc, char **argv) :
 	QtBackgroundProcess::App(argc, argv),
 	config(nullptr),
+	mainPool(nullptr),
 	connector(nullptr),
 	database(nullptr)
 {}
@@ -13,6 +14,11 @@ App::App(int &argc, char **argv) :
 QSettings *App::configuration() const
 {
 	return config;
+}
+
+QThreadPool *App::threadPool() const
+{
+	return mainPool;
 }
 
 QString App::absolutePath(const QString &path) const
@@ -42,19 +48,28 @@ int App::startupApp(const QCommandLineParser &parser)
 {
 	config = new QSettings(parser.value("config-file"), QSettings::IniFormat, this);
 
+	mainPool = new QThreadPool(this);
+	auto threadCount = config->value("threads", QThread::idealThreadCount()).toInt();
+	mainPool->setMaxThreadCount(threadCount);
+
 	database = new DatabaseController(this);
 	connector = new ClientConnector(database, this);
 	if(!connector->setupWss())
-			return EXIT_FAILURE;
+		return EXIT_FAILURE;
 	if(!connector->listen())
 		return EXIT_FAILURE;
+
+	connect(this, &App::aboutToQuit,
+			this, &App::quitting,
+			Qt::DirectConnection);
 
 	return EXIT_SUCCESS;
 }
 
-bool App::requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &exitCode)
+void App::quitting()
 {
-	return true;
+	mainPool->clear();
+	mainPool->waitForDone();
 }
 
 int main(int argc, char *argv[])

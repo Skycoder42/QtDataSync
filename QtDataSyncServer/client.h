@@ -31,12 +31,14 @@ private:
 	QUuid clientId;
 	QUuid deviceId;
 
-	void createIdentity(const QJsonObject &data);
-	Q_INVOKABLE void createIdentityResult(QUuid identity);
-	void identify(const QJsonObject &data);
-	Q_INVOKABLE void identifyResult(bool ok);
+	QHostAddress socketAddress;
 
+	void createIdentity(const QJsonObject &data);
+	void identify(const QJsonObject &data);
+
+	void close();
 	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
+	Q_INVOKABLE void doSend(const QByteArray &message);
 };
 
 #endif // CLIENT_H

@@ -6,7 +6,6 @@
 #include <QSqlDatabase>
 #include <QThreadPool>
 #include <QThreadStorage>
-#include <functional>
 
 class DatabaseController : public QObject
 {
@@ -14,10 +13,9 @@ class DatabaseController : public QObject
 
 public:
 	explicit DatabaseController(QObject *parent = nullptr);
-	~DatabaseController();
 
-	void createIdentity(QObject *object, const QByteArray &method);//void(QUuid)
-	void identify(const QUuid &identity, QObject *object, const QByteArray &method);//void(bool)
+	QUuid createIdentity();
+	bool identify(const QUuid &identity);
 
 private:
 	class DatabaseWrapper
@@ -32,7 +30,6 @@ private:
 	};
 
 	bool multiThreaded;
-	QThreadPool *pool;
 	QThreadStorage<DatabaseWrapper> threadStore;
 
 	void initDatabase();
