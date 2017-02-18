@@ -65,7 +65,7 @@ private:
 	QJsonObject keyObject(const ObjectKey &key) const;
 
 	void identified(const QString &data);
-	void saved(const QJsonObject &result);
+	void completed(const QJsonObject &result);
 };
 
 }

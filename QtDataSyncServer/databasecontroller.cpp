@@ -124,7 +124,60 @@ bool DatabaseController::save(const QUuid &userId, const QUuid &deviceId, const 
 		return false;
 	}
 
-	//notify all connected devices
+	//TODO notify all connected devices
+
+	if(db.commit())
+		return true;
+	else {
+		qCritical() << "Failed to commit transaction with error:"
+					<< qPrintable(db.lastError().text());
+		return false;
+	}
+}
+
+bool DatabaseController::remove(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key)
+{
+	auto db = threadStore.localData().database();
+	if(!db.transaction()) {
+		qCritical() << "Failed to create transaction with error:"
+					<< qPrintable(db.lastError().text());
+		return false;
+	}
+
+	// insert/update the data
+	QSqlQuery removeQuery(db);
+	removeQuery.prepare(QStringLiteral("INSERT INTO data (userid, type, key, data) VALUES(?, ?, ?, NULL) "
+									   "ON CONFLICT (userid, type, key) DO UPDATE "
+									   "SET data = NULL "
+									   "RETURNING index"));
+	removeQuery.addBindValue(userId);
+	removeQuery.addBindValue(type);
+	removeQuery.addBindValue(key);
+	if(!removeQuery.exec() || !removeQuery.first()) {
+		qCritical() << "Failed to insert/update data with error:"
+					<< qPrintable(removeQuery.lastError().text());
+		db.rollback();
+		return false;
+	}
+	auto index = removeQuery.value(0).toULongLong();
+
+	//update the change state
+	QSqlQuery updateStateQuery(db);
+	updateStateQuery.prepare(QStringLiteral("INSERT INTO states (dataindex, deviceid) "
+											"SELECT ?, id FROM devices "
+											"WHERE userid = ? AND deviceid != ? "
+											"ON CONFLICT DO NOTHING"));
+	updateStateQuery.addBindValue(index);
+	updateStateQuery.addBindValue(userId);
+	updateStateQuery.addBindValue(deviceId);
+	if(!updateStateQuery.exec()) {
+		qCritical() << "Failed to update device states with error:"
+					<< qPrintable(updateStateQuery.lastError().text());
+		db.rollback();
+		return false;
+	}
+
+	//TODO notify all connected devices
 
 	if(db.commit())
 		return true;
@@ -187,6 +240,28 @@ void DatabaseController::initDatabase()
 			qCritical() << "Failed to create states table with error:"
 						<< qPrintable(createStates.lastError().text());
 			return;
+		}
+		QSqlQuery createTriggerFn(db);
+		if(!createTriggerFn.exec(QStringLiteral("CREATE FUNCTION data_cleanup() RETURNS trigger AS $$"
+												"BEGIN"
+												"  BEGIN"
+												"    DELETE FROM data WHERE index = OLD.dataindex AND data IS NULL;"
+												"  EXCEPTION WHEN OTHERS THEN"
+												"    NULL;"
+												"  END;"
+												"  IF (TG_OP = 'DELETE') THEN"
+												"     RETURN OLD;"
+												"  ELSE"
+												"     RETURN NEW;"
+												"  END IF;"
+												"END;"
+												"$$ LANGUAGE plpgsql;"
+												"CREATE TRIGGER data_cleanup_trigger AFTER UPDATE OR DELETE ON states"
+												"  FOR EACH ROW"
+												"  EXECUTE PROCEDURE data_cleanup();"))) {
+			qWarning() << "Failed to create states triggers! You will have to run manual database cleanups to remove unused data."
+					   << "Database error:"
+					   << qPrintable(createTriggerFn.lastError().text());
 		}
 	}
 }

@@ -36,6 +36,7 @@ private:
 	void createIdentity(const QJsonObject &data);
 	void identify(const QJsonObject &data);
 	void save(const QJsonObject &data);
+	void remove(const QJsonObject &data);
 
 	void close();
 	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);

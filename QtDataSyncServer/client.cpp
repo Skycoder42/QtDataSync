@@ -124,22 +124,38 @@ void Client::save(const QJsonObject &data)
 	auto type = data["type"].toString();
 	auto key = data["key"].toString();
 	auto value = data["value"].toObject();
+
+	QJsonObject reply;
 	if(type.isEmpty() || key.isEmpty()) {
-		QJsonObject reply;
 		reply["success"] = false;
 		reply["error"] = "Invalid type or key!";
-		sendCommand("saved", reply);
-	} else {
-		QJsonObject reply;
-		if(database->save(clientId, deviceId, type, key, value)) {
-			reply["success"] = true;
-			reply["error"] = QJsonValue::Null;
-		} else  {
-			reply["success"] = false;
-			reply["error"] = "Failed to save data on server database";
-		}
-		sendCommand("saved", reply);
+	} else if(database->save(clientId, deviceId, type, key, value)) {
+		reply["success"] = true;
+		reply["error"] = QJsonValue::Null;
+	} else  {
+		reply["success"] = false;
+		reply["error"] = "Failed to save data on server database";
 	}
+	sendCommand("completed", reply);
+}
+
+void Client::remove(const QJsonObject &data)
+{
+	auto type = data["type"].toString();
+	auto key = data["key"].toString();
+
+	QJsonObject reply;
+	if(type.isEmpty() || key.isEmpty()) {
+		reply["success"] = false;
+		reply["error"] = "Invalid type or key!";
+	} else if(database->remove(clientId, deviceId, type, key)) {
+		reply["success"] = true;
+		reply["error"] = QJsonValue::Null;
+	} else  {
+		reply["success"] = false;
+		reply["error"] = "Failed to save data on server database";
+	}
+	sendCommand("completed", reply);
 }
 
 void Client::close()
