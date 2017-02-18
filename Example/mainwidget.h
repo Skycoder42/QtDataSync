@@ -22,9 +22,6 @@ public:
 public slots:
 	void report(QtMsgType type, const QString &message);
 
-protected:
-	void showEvent(QShowEvent *event) override;
-
 private slots:
 	void on_addButton_clicked();
 	void on_deleteButton_clicked();

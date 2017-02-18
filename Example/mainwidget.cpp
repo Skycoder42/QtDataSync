@@ -17,17 +17,12 @@ MainWidget::MainWidget(QWidget *parent) :
 			this, &MainWidget::reload);
 
 	prevHandler = qInstallMessageHandler(filterLogger);
+	QMetaObject::invokeMethod(this, "setup", Qt::QueuedConnection);
 }
 
 MainWidget::~MainWidget()
 {
 	delete ui;
-}
-
-void MainWidget::showEvent(QShowEvent *event)
-{
-	QWidget::showEvent(event);
-	QMetaObject::invokeMethod(this, "setup", Qt::QueuedConnection);
 }
 
 void MainWidget::on_addButton_clicked()

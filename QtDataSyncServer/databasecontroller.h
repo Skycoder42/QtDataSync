@@ -35,6 +35,9 @@ private:
 	QThreadStorage<DatabaseWrapper> threadStore;
 
 	void initDatabase();
+	bool markStateUnchanged(QSqlDatabase &database, const QUuid &userId, const QUuid &deviceId, quint64 index);
+	bool updateDeviceStates(QSqlDatabase &database, const QUuid &userId, const QUuid &deviceId, quint64 index);
+	void tryDeleteData(QSqlDatabase &database, quint64 index);
 
 	QString jsonToString(const QJsonObject &object) const;
 };

@@ -50,6 +50,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			identify(data.toObject());
 		else if(obj["command"] == QStringLiteral("save"))
 			save(data.toObject());
+		else if(obj["command"] == QStringLiteral("remove"))
+			remove(data.toObject());
 		else {
 			qDebug() << "Unknown command"
 					 << obj["command"].toString();

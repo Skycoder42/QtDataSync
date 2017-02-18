@@ -109,17 +109,7 @@ bool DatabaseController::save(const QUuid &userId, const QUuid &deviceId, const 
 	auto index = saveQuery.value(0).toULongLong();
 
 	//update the change state
-	QSqlQuery updateStateQuery(db);
-	updateStateQuery.prepare(QStringLiteral("INSERT INTO states (dataindex, deviceid) "
-											"SELECT ?, id FROM devices "
-											"WHERE userid = ? AND deviceid != ? "
-											"ON CONFLICT DO NOTHING"));
-	updateStateQuery.addBindValue(index);
-	updateStateQuery.addBindValue(userId);
-	updateStateQuery.addBindValue(deviceId);
-	if(!updateStateQuery.exec()) {
-		qCritical() << "Failed to update device states with error:"
-					<< qPrintable(updateStateQuery.lastError().text());
+	if(!updateDeviceStates(db, userId, deviceId, index)) {
 		db.rollback();
 		return false;
 	}
@@ -162,25 +152,17 @@ bool DatabaseController::remove(const QUuid &userId, const QUuid &deviceId, cons
 	auto index = removeQuery.value(0).toULongLong();
 
 	//update the change state
-	QSqlQuery updateStateQuery(db);
-	updateStateQuery.prepare(QStringLiteral("INSERT INTO states (dataindex, deviceid) "
-											"SELECT ?, id FROM devices "
-											"WHERE userid = ? AND deviceid != ? "
-											"ON CONFLICT DO NOTHING"));
-	updateStateQuery.addBindValue(index);
-	updateStateQuery.addBindValue(userId);
-	updateStateQuery.addBindValue(deviceId);
-	if(!updateStateQuery.exec()) {
-		qCritical() << "Failed to update device states with error:"
-					<< qPrintable(updateStateQuery.lastError().text());
+	if(!updateDeviceStates(db, userId, deviceId, index)) {
 		db.rollback();
 		return false;
 	}
 
 	//TODO notify all connected devices
 
-	if(db.commit())
+	if(db.commit()){
+		tryDeleteData(db, index);//try to delete AFTER commiting
 		return true;
+	}
 	else {
 		qCritical() << "Failed to commit transaction with error:"
 					<< qPrintable(db.lastError().text());
@@ -241,29 +223,51 @@ void DatabaseController::initDatabase()
 						<< qPrintable(createStates.lastError().text());
 			return;
 		}
-		QSqlQuery createTriggerFn(db);
-		if(!createTriggerFn.exec(QStringLiteral("CREATE FUNCTION data_cleanup() RETURNS trigger AS $$"
-												"BEGIN"
-												"  BEGIN"
-												"    DELETE FROM data WHERE index = OLD.dataindex AND data IS NULL;"
-												"  EXCEPTION WHEN OTHERS THEN"
-												"    NULL;"
-												"  END;"
-												"  IF (TG_OP = 'DELETE') THEN"
-												"     RETURN OLD;"
-												"  ELSE"
-												"     RETURN NEW;"
-												"  END IF;"
-												"END;"
-												"$$ LANGUAGE plpgsql;"
-												"CREATE TRIGGER data_cleanup_trigger AFTER UPDATE OR DELETE ON states"
-												"  FOR EACH ROW"
-												"  EXECUTE PROCEDURE data_cleanup();"))) {
-			qWarning() << "Failed to create states triggers! You will have to run manual database cleanups to remove unused data."
-					   << "Database error:"
-					   << qPrintable(createTriggerFn.lastError().text());
-		}
 	}
+}
+
+bool DatabaseController::markStateUnchanged(QSqlDatabase &database, const QUuid &userId, const QUuid &deviceId, quint64 index)
+{
+	QSqlQuery markUnchangedQuery(database);
+	markUnchangedQuery.prepare(QStringLiteral("DELETE FROM states WHERE dataindex = ? AND deviceid = ("
+											  "	SELECT id FROM devices WHERE deviceid = ? AND userid = ?"
+											  ")"));
+	markUnchangedQuery.addBindValue(index);
+	markUnchangedQuery.addBindValue(deviceId);
+	markUnchangedQuery.addBindValue(userId);
+	if(!markUnchangedQuery.exec()) {
+		qCritical() << "Failed to mark state unchanged with error:"
+					<< qPrintable(markUnchangedQuery.lastError().text());
+		return false;
+	} else
+		return true;
+}
+
+bool DatabaseController::updateDeviceStates(QSqlDatabase &database, const QUuid &userId, const QUuid &deviceId, quint64 index)
+{
+	QSqlQuery updateStateQuery(database);
+	updateStateQuery.prepare(QStringLiteral("INSERT INTO states (dataindex, deviceid) "
+											"SELECT ?, id FROM devices "
+											"WHERE userid = ? AND deviceid != ? "
+											"ON CONFLICT DO NOTHING"));
+	updateStateQuery.addBindValue(index);
+	updateStateQuery.addBindValue(userId);
+	updateStateQuery.addBindValue(deviceId);
+	if(!updateStateQuery.exec()) {
+		qCritical() << "Failed to update device states with error:"
+					<< qPrintable(updateStateQuery.lastError().text());
+		return false;
+	}
+
+	return markStateUnchanged(database, userId, deviceId, index);
+}
+
+void DatabaseController::tryDeleteData(QSqlDatabase &database, quint64 index)
+{
+	QSqlQuery tryDeleteQuery(database);
+	tryDeleteQuery.prepare("DELETE FROM data WHERE index = ?");
+	tryDeleteQuery.addBindValue(index);
+	tryDeleteQuery.exec();//ignore errors -> if error, data still used -> OK
 }
 
 QString DatabaseController::jsonToString(const QJsonObject &object) const
