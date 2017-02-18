@@ -14,8 +14,9 @@ class DatabaseController : public QObject
 public:
 	explicit DatabaseController(QObject *parent = nullptr);
 
-	QUuid createIdentity();
-	bool identify(const QUuid &identity);
+	QUuid createIdentity(const QUuid &deviceId);
+	bool identify(const QUuid &identity, const QUuid &deviceId);
+	bool save(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key, const QJsonObject &object);
 
 private:
 	class DatabaseWrapper
@@ -33,6 +34,8 @@ private:
 	QThreadStorage<DatabaseWrapper> threadStore;
 
 	void initDatabase();
+
+	QString jsonToString(const QJsonObject &object) const;
 };
 
 #endif // DATABASECONTROLLER_H

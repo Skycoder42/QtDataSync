@@ -48,6 +48,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			createIdentity(data.toObject());
 		else if(obj["command"] == QStringLiteral("identify"))
 			identify(data.toObject());
+		else if(obj["command"] == QStringLiteral("save"))
+			save(data.toObject());
 		else {
 			qDebug() << "Unknown command"
 					 << obj["command"].toString();
@@ -82,7 +84,7 @@ void Client::createIdentity(const QJsonObject &data)
 		return;
 	}
 
-	auto identity = database->createIdentity();
+	auto identity = database->createIdentity(deviceId);
 	if(!identity.isNull()) {
 		clientId = identity;
 		qInfo() << "Created new Identity"
@@ -110,11 +112,34 @@ void Client::identify(const QJsonObject &data)
 		return;
 	}
 
-	if(database->identify(clientId)) {
+	if(database->identify(clientId, deviceId)) {
 		sendCommand("identified", clientId.toString());
 		emit connected(deviceId, false);
 	} else
 		close();
+}
+
+void Client::save(const QJsonObject &data)
+{
+	auto type = data["type"].toString();
+	auto key = data["key"].toString();
+	auto value = data["value"].toObject();
+	if(type.isEmpty() || key.isEmpty()) {
+		QJsonObject reply;
+		reply["success"] = false;
+		reply["error"] = "Invalid type or key!";
+		sendCommand("saved", reply);
+	} else {
+		QJsonObject reply;
+		if(database->save(clientId, deviceId, type, key, value)) {
+			reply["success"] = true;
+			reply["error"] = QJsonValue::Null;
+		} else  {
+			reply["success"] = false;
+			reply["error"] = "Failed to save data on server database";
+		}
+		sendCommand("saved", reply);
+	}
 }
 
 void Client::close()

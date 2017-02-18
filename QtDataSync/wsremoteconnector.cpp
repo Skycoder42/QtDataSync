@@ -97,6 +97,12 @@ void WsRemoteConnector::reconnect()
 	}
 }
 
+void WsRemoteConnector::reload()
+{
+	qCDebug(LOG) << Q_FUNC_INFO;
+	emit remoteStateChanged(true, {});
+}
+
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
 {
 	qCDebug(LOG) << Q_FUNC_INFO << key;
@@ -105,8 +111,17 @@ void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProp
 
 void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty)
 {
-	qCDebug(LOG) << Q_FUNC_INFO << key;
-	emit operationDone();
+	if(state != Idle)
+		emit operationFailed("Remote connector state does not allow uploads");
+	else {
+		state = Operating;
+		QJsonObject data;
+		data["type"] = QString::fromLatin1(key.first);
+		data["key"] = key.second;
+		data["keyProperty"] = QString::fromLatin1(keyProperty);
+		data["value"] = object;
+		sendCommand("save", data);
+	}
 }
 
 void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProperty)
@@ -147,6 +162,14 @@ void WsRemoteConnector::connected()
 
 void WsRemoteConnector::disconnected()
 {
+	if(state != Closing){
+		qCWarning(LOG) << "Unexpected disconnect from server with exit code"
+					   << socket->closeCode()
+					   << ":"
+					   << socket->closeReason();
+	}
+	if(state == Operating)
+		emit operationFailed("Connection closed");
 	state = Disconnected;
 	socket->deleteLater();
 	socket = nullptr;
@@ -166,6 +189,12 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	auto data = obj["data"];
 	if(obj["command"] == QStringLiteral("identified"))
 		identified(data.toString());
+	else if(obj["command"] == QStringLiteral("saved"))
+		saved(data.toObject());
+	else {
+		qCWarning(LOG) << "Unkown command received:"
+					   << obj["command"].toString();
+	}
 }
 
 void WsRemoteConnector::error()
@@ -202,4 +231,15 @@ void WsRemoteConnector::identified(const QString &data)
 {
 	settings->setValue(keyUserIdentity, data.toUtf8());
 	qCDebug(LOG) << "Identification successful";
+	state = Idle;
+	reload();
+}
+
+void WsRemoteConnector::saved(const QJsonObject &result)
+{
+	if(result["success"].toBool())
+		emit operationDone();
+	else
+		emit operationFailed(result["error"].toString());
+	state = Idle;
 }

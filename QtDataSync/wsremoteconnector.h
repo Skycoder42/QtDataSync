@@ -17,8 +17,9 @@ public:
 		Disconnected,
 		Connecting,
 		Identifying,
-		Reloading,
 		Idle,
+		Reloading,
+		Operating,
 		Closing
 	};
 	Q_ENUM(SocketState)
@@ -37,6 +38,7 @@ public:
 
 public slots:
 	void reconnect();
+	void reload();
 
 	void download(const ObjectKey &key, const QByteArray &keyProperty) override;
 	void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
@@ -60,7 +62,10 @@ private:
 
 	SocketState state;
 
+	QJsonObject keyObject(const ObjectKey &key) const;
+
 	void identified(const QString &data);
+	void saved(const QJsonObject &result);
 };
 
 }
