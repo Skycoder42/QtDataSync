@@ -105,8 +105,16 @@ void WsRemoteConnector::reload()
 
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
 {
-	qCDebug(LOG) << Q_FUNC_INFO << key;
-	emit operationDone(QJsonObject());
+	if(state != Idle)
+		emit operationFailed("Remote connector state does not allow donwloads");
+	else {
+		state = Operating;
+		QJsonObject data;
+		data["type"] = QString::fromLatin1(key.first);
+		data["key"] = key.second;
+		data["keyProperty"] = QString::fromLatin1(keyProperty);
+		sendCommand("load", data);
+	}
 }
 
 void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty)

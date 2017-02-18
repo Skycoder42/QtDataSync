@@ -48,6 +48,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			createIdentity(data.toObject());
 		else if(obj["command"] == QStringLiteral("identify"))
 			identify(data.toObject());
+		else if(obj["command"] == QStringLiteral("load"))
+			load(data.toObject());
 		else if(obj["command"] == QStringLiteral("save"))
 			save(data.toObject());
 		else if(obj["command"] == QStringLiteral("remove"))
@@ -121,6 +123,31 @@ void Client::identify(const QJsonObject &data)
 		emit connected(deviceId, false);
 	} else
 		close();
+}
+
+void Client::load(const QJsonObject &data)
+{
+	auto type = data["type"].toString();
+	auto key = data["key"].toString();
+
+	QJsonObject reply;
+	if(type.isEmpty() || key.isEmpty()) {
+		reply["success"] = false;
+		reply["data"] = QJsonValue::Null;
+		reply["error"] = "Invalid type or key!";
+	} else {
+		auto replyData = database->load(clientId, type, key);
+		if(!replyData.isNull()) {
+			reply["success"] = true;
+			reply["data"] = replyData;
+			reply["error"] = QJsonValue::Null;
+		} else  {
+			reply["success"] = false;
+			reply["data"] = QJsonValue::Null;
+			reply["error"] = "Failed to load data from server database";
+		}
+	}
+	sendCommand("completed", reply);
 }
 
 void Client::save(const QJsonObject &data)

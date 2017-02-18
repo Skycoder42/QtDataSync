@@ -16,6 +16,7 @@ public:
 
 	QUuid createIdentity(const QUuid &deviceId);
 	bool identify(const QUuid &identity, const QUuid &deviceId);
+	QJsonValue load(const QUuid &userId, const QString &type, const QString &key);
 	bool save(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key, const QJsonObject &object);
 	bool remove(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
 	bool markUnchanged(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
@@ -41,6 +42,7 @@ private:
 	void tryDeleteData(QSqlDatabase &database, quint64 index);
 
 	QString jsonToString(const QJsonObject &object) const;
+	QJsonObject stringToJson(const QString &data) const;
 };
 
 #endif // DATABASECONTROLLER_H

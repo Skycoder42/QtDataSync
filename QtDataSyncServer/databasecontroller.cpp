@@ -81,6 +81,27 @@ bool DatabaseController::identify(const QUuid &identity, const QUuid &deviceId)
 		return false;
 }
 
+QJsonValue DatabaseController::load(const QUuid &userId, const QString &type, const QString &key)
+{
+	auto db = threadStore.localData().database();
+
+	QSqlQuery loadQuery(db);
+	loadQuery.prepare(QStringLiteral("SELECT data FROM data WHERE userid = ? AND type = ? AND key = ?"));
+	loadQuery.addBindValue(userId);
+	loadQuery.addBindValue(type);
+	loadQuery.addBindValue(key);
+	if(!loadQuery.exec()) {
+		qCritical() << "Failed to load data with error:"
+					<< qPrintable(loadQuery.lastError().text());
+		return QJsonValue::Null;
+	}
+
+	if(loadQuery.first())
+		return stringToJson(loadQuery.value(0).toString());
+	else
+		return QJsonValue::Null;
+}
+
 bool DatabaseController::save(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key, const QJsonObject &object)
 {
 	auto db = threadStore.localData().database();
@@ -317,7 +338,12 @@ void DatabaseController::tryDeleteData(QSqlDatabase &database, quint64 index)
 
 QString DatabaseController::jsonToString(const QJsonObject &object) const
 {
-	return QJsonDocument(object).toJson(QJsonDocument::Compact);
+	return QString::fromUtf8(QJsonDocument(object).toJson(QJsonDocument::Compact));
+}
+
+QJsonObject DatabaseController::stringToJson(const QString &data) const
+{
+	return QJsonDocument::fromJson(data.toUtf8()).object();
 }
 
 
