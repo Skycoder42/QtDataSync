@@ -170,6 +170,51 @@ bool DatabaseController::remove(const QUuid &userId, const QUuid &deviceId, cons
 	}
 }
 
+bool DatabaseController::markUnchanged(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key)
+{
+	auto db = threadStore.localData().database();
+	if(!db.transaction()) {
+		qCritical() << "Failed to create transaction with error:"
+					<< qPrintable(db.lastError().text());
+		return false;
+	}
+
+	//get the data index
+	QSqlQuery dataIndexQuery(db);
+	dataIndexQuery.prepare(QStringLiteral("SELECT index FROM data WHERE userid = ? AND type = ? AND key = ?"));
+	dataIndexQuery.addBindValue(userId);
+	dataIndexQuery.addBindValue(type);
+	dataIndexQuery.addBindValue(key);
+	if(!dataIndexQuery.exec()) {
+		qCritical() << "Failed to get data index with error:"
+					<< qPrintable(dataIndexQuery.lastError().text());
+		db.rollback();
+		return false;
+	}
+
+	if(!dataIndexQuery.first()) {//nothing to be deleted -> implicit success
+		db.rollback();//nothing has been changed
+		return true;
+	}
+
+	//mark as unchanged
+	auto index = dataIndexQuery.value(0).toULongLong();
+	if(!markStateUnchanged(db, userId, deviceId, index)) {
+		db.rollback();
+		return false;
+	}
+
+	if(db.commit()){
+		tryDeleteData(db, index);//try to delete AFTER commiting
+		return true;
+	}
+	else {
+		qCritical() << "Failed to commit transaction with error:"
+					<< qPrintable(db.lastError().text());
+		return false;
+	}
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();

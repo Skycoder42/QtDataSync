@@ -140,8 +140,16 @@ void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProper
 
 void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &keyProperty)
 {
-	qCDebug(LOG) << Q_FUNC_INFO << key;
-	emit operationDone();
+	if(state != Idle)
+		emit operationFailed("Remote connector state does not allow marking as unchanged");
+	else {
+		state = Operating;
+		QJsonObject data;
+		data["type"] = QString::fromLatin1(key.first);
+		data["key"] = key.second;
+		data["keyProperty"] = QString::fromLatin1(keyProperty);
+		sendCommand("markUnchanged", data);
+	}
 
 }
 

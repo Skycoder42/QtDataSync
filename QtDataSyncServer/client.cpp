@@ -52,6 +52,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			save(data.toObject());
 		else if(obj["command"] == QStringLiteral("remove"))
 			remove(data.toObject());
+		else if(obj["command"] == QStringLiteral("markUnchanged"))
+			markUnchanged(data.toObject());
 		else {
 			qDebug() << "Unknown command"
 					 << obj["command"].toString();
@@ -155,7 +157,26 @@ void Client::remove(const QJsonObject &data)
 		reply["error"] = QJsonValue::Null;
 	} else  {
 		reply["success"] = false;
-		reply["error"] = "Failed to save data on server database";
+		reply["error"] = "Failed to remove data from server database";
+	}
+	sendCommand("completed", reply);
+}
+
+void Client::markUnchanged(const QJsonObject &data)
+{
+	auto type = data["type"].toString();
+	auto key = data["key"].toString();
+
+	QJsonObject reply;
+	if(type.isEmpty() || key.isEmpty()) {
+		reply["success"] = false;
+		reply["error"] = "Invalid type or key!";
+	} else if(database->markUnchanged(clientId, deviceId, type, key)) {
+		reply["success"] = true;
+		reply["error"] = QJsonValue::Null;
+	} else  {
+		reply["success"] = false;
+		reply["error"] = "Failed to mark as unchanged on server database";
 	}
 	sendCommand("completed", reply);
 }
