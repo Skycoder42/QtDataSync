@@ -90,47 +90,23 @@ bool DatabaseController::save(const QUuid &userId, const QUuid &deviceId, const 
 		return false;
 	}
 
-	//check if key exists
-	QSqlQuery getIdQuery(db);
-	getIdQuery.prepare(QStringLiteral("SELECT index FROM data WHERE userid = ? AND type = ? AND key = ?"));
-	getIdQuery.addBindValue(userId);
-	getIdQuery.addBindValue(type);
-	getIdQuery.addBindValue(key);
-	if(!getIdQuery.exec()) {
-		qCritical() << "Failed to check if data exists with error:"
-					<< qPrintable(getIdQuery.lastError().text());
+	// insert/update the data
+	QSqlQuery saveQuery(db);
+	saveQuery.prepare(QStringLiteral("INSERT INTO data (userid, type, key, data) VALUES(?, ?, ?, ?) "
+									 "ON CONFLICT (userid, type, key) DO UPDATE "
+									 "SET data = EXCLUDED.data "
+									 "RETURNING index"));
+	saveQuery.addBindValue(userId);
+	saveQuery.addBindValue(type);
+	saveQuery.addBindValue(key);
+	saveQuery.addBindValue(jsonToString(object));
+	if(!saveQuery.exec() || !saveQuery.first()) {
+		qCritical() << "Failed to insert/update data with error:"
+					<< qPrintable(saveQuery.lastError().text());
 		db.rollback();
 		return false;
 	}
-
-	quint64 index = 0;
-	if(getIdQuery.first()) {// if exists -> update
-		index = getIdQuery.value(0).toULongLong();
-		QSqlQuery updateQuery(db);
-		updateQuery.prepare(QStringLiteral("UPDATE data SET data = ? WHERE index = ?"));
-		updateQuery.addBindValue(jsonToString(object));
-		updateQuery.addBindValue(index);
-		if(!updateQuery.exec()) {
-			qCritical() << "Failed to update data with error:"
-						<< qPrintable(updateQuery.lastError().text());
-			db.rollback();
-			return false;
-		}
-	} else {// if not exists -> insert
-		QSqlQuery insertQuery(db);
-		insertQuery.prepare(QStringLiteral("INSERT INTO data (userid, type, key, data) VALUES(?, ?, ?, ?) RETURNING index"));
-		insertQuery.addBindValue(userId);
-		insertQuery.addBindValue(type);
-		insertQuery.addBindValue(key);
-		insertQuery.addBindValue(jsonToString(object));
-		if(!insertQuery.exec() || !insertQuery.first()) {
-			qCritical() << "Failed to insert data with error:"
-						<< qPrintable(insertQuery.lastError().text());
-			db.rollback();
-			return false;
-		}
-		index = insertQuery.value(0).toULongLong();
-	}
+	auto index = saveQuery.value(0).toULongLong();
 
 	//update the change state
 	QSqlQuery updateStateQuery(db);
