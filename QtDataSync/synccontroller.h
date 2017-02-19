@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include <QObject>
+#include <functional>
 
 namespace QtDataSync {
 
@@ -31,6 +32,7 @@ public:
 
 public slots:
 	void triggerSync();
+	void triggerSyncWithResult(std::function<void(SyncState)> resultFn);
 
 signals:
 	void syncStateChanged(SyncState syncState);

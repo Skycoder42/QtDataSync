@@ -29,3 +29,15 @@ void SyncController::triggerSync()
 {
 	QMetaObject::invokeMethod(d->engine, "triggerSync");
 }
+
+void SyncController::triggerSyncWithResult(std::function<void (SyncState)> resultFn)
+{
+	auto receiver = new QObject(this);//dummy to disconnect after one call
+	connect(this, &SyncController::syncStateChanged, receiver, [=](SyncState state){
+		if(state == Loading || state == Syncing)
+			return;
+		resultFn(state);
+		receiver->deleteLater();
+	});
+	triggerSync();
+}
