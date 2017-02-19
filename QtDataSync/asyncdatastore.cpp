@@ -13,6 +13,9 @@ AsyncDataStore::AsyncDataStore(const QString &setupName, QObject *parent) :
 {
 	d->engine = SetupPrivate::engine(setupName);
 	Q_ASSERT_X(d->engine, Q_FUNC_INFO, "AsyncDataStore requires a valid setup!");
+	connect(d->engine, &StorageEngine::notifyChanged,
+			this, &AsyncDataStore::dataChanged,
+			Qt::QueuedConnection);
 }
 
 AsyncDataStore::~AsyncDataStore() {}

@@ -117,9 +117,11 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 {
 	auto info = requestCache.take(id);
 
-	if(info.isChangeControllerRequest)
+	if(info.isChangeControllerRequest) {
 		changeController->nextStage(true, result);
-	else {
+		if(!info.notifyKey.first.isNull())
+			emit notifyChanged(QMetaType::type(info.notifyKey.first), info.notifyKey.second, !info.notifyChanged);
+	} else {
 		if(!result.isUndefined()) {
 			try {
 				auto obj = serializer->deserialize(result, info.convertMetaTypeId);
@@ -221,6 +223,8 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 		localStore->load(id, operation.key, userProperty.name());
 		break;
 	case ChangeController::Save:
+		info.notifyKey = operation.key;
+		info.notifyChanged = true;
 		info.changeAction = true;
 		info.changeKey = operation.key;
 		info.changeState = StateHolder::Unchanged;
@@ -228,6 +232,8 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 		localStore->save(id, operation.key, operation.writeObject, userProperty.name());
 		break;
 	case ChangeController::Remove:
+		info.notifyKey = operation.key;
+		info.notifyChanged = false;
 		info.changeAction = true;
 		info.changeKey = operation.key;
 		info.changeState = StateHolder::Unchanged;

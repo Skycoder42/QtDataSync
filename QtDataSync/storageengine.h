@@ -41,6 +41,9 @@ public:
 public slots:
 	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value = {});
 
+signals:
+	void notifyChanged(int metaTypeId, const QString &key, bool wasDeleted);
+
 private slots:
 	void initialize();
 	void finalize();
@@ -58,6 +61,8 @@ private:
 	struct RequestInfo {
 		//change controller
 		bool isChangeControllerRequest;
+		ObjectKey notifyKey;
+		bool notifyChanged;
 
 		//store requests
 		QFutureInterface<QVariant> futureInterface;

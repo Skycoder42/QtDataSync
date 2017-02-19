@@ -79,6 +79,22 @@ void MainWidget::report(QtMsgType type, const QString &message)
 	new QListWidgetItem(icon, message, ui->reportListWidget);
 }
 
+void MainWidget::dataChanged(int metaTypeId, const QString &key, bool wasDeleted)
+{
+	if(wasDeleted) {
+		auto item = items.take(key.toInt());
+		if(item)
+			delete item;
+	} else {
+		store->load(metaTypeId, key).toGeneric<SampleData*>().onResult([this, key](SampleData* data){
+			report(QtInfoMsg, QStringLiteral("Data with id %1 changed").arg(key));
+			update(data);
+		}, [this](QException &exception) {
+			report(QtCriticalMsg, QString::fromLatin1(exception.what()));
+		});
+	}
+}
+
 void MainWidget::update(SampleData *data)
 {
 	auto item = items.value(data->id);
@@ -110,6 +126,8 @@ void MainWidget::setup()
 {
 	if(SetupDialog::setup(this)) {
 		store = new QtDataSync::AsyncDataStore(this);
+		connect(store, &QtDataSync::AsyncDataStore::dataChanged,
+				this, &MainWidget::dataChanged);
 		reload();
 	} else
 		qApp->quit();

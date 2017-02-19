@@ -23,6 +23,8 @@ public slots:
 	void report(QtMsgType type, const QString &message);
 
 private slots:
+	void dataChanged(int metaTypeId, const QString &key, bool wasDeleted);
+
 	void on_addButton_clicked();
 	void on_deleteButton_clicked();
 

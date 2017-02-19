@@ -206,8 +206,6 @@ bool DatabaseController::remove(const QUuid &userId, const QUuid &deviceId, cons
 		return false;
 	}
 
-	//TODO notify all connected devices
-
 	if(db.commit()) {
 		emit notifyChanged(userId, deviceId, type, key, false);
 		tryDeleteData(db, index);//try to delete AFTER commiting

@@ -9,12 +9,18 @@
 namespace QtDataSync {
 class AsyncDataStore;
 
+template <typename T>
+class GenericTask;
+
 class QTDATASYNCSHARED_EXPORT Task : public QFuture<QVariant>
 {
 	friend class AsyncDataStore;
 
 public:
 	Task &onResult(const std::function<void(QVariant)> &onSuccess, const std::function<void(QException &)> &onExcept = {});
+
+	template <typename T>
+	GenericTask<T> toGeneric() const;
 
 protected:
 	Task(AsyncDataStore *store, QFutureInterface<QVariant> d);
@@ -27,6 +33,7 @@ template <typename T>
 class QTDATASYNCSHARED_EXPORT GenericTask : public Task
 {
 	friend class AsyncDataStore;
+	friend class Task;
 
 public:
 	GenericTask<T> &onResult(const std::function<void(T)> &onSuccess, const std::function<void(QException &)> &onExcept = {});
@@ -41,6 +48,7 @@ template <>
 class QTDATASYNCSHARED_EXPORT GenericTask<void> : public Task
 {
 	friend class AsyncDataStore;
+	friend class Task;
 
 public:
 	GenericTask<void> &onResult(const std::function<void()> &onSuccess, const std::function<void(QException &)> &onExcept = {});
@@ -52,6 +60,12 @@ private:
 };
 
 // ------------- Generic Implementation -------------
+
+template<typename T>
+GenericTask<T> Task::toGeneric() const
+{
+	return GenericTask<T>(_store, d);
+}
 
 template<typename T>
 GenericTask<T>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d) :

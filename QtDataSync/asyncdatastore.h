@@ -41,7 +41,8 @@ public:
 	template<typename T>
 	GenericTask<void> remove(const QString &key);
 
-	//TODO "data changed" signal
+signals:
+	void dataChanged(int metaTypeId, const QString &key, bool wasDeleted);
 
 private:
 	QScopedPointer<AsyncDataStorePrivate> d;
