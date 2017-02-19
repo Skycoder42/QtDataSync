@@ -280,7 +280,7 @@ void DatabaseController::initDatabase()
 	if(!db.tables().contains("devices")) {
 		QSqlQuery createDevices(db);
 		if(!createDevices.exec(QStringLiteral("CREATE TABLE devices ( "
-											  "		id			SERIAL PRIMARY KEY NOT NULL, "
+											  "		id			BIGSERIAL PRIMARY KEY NOT NULL, "
 											  "		deviceid	UUID NOT NULL, "
 											  "		userid		UUID NOT NULL REFERENCES users(identity), "
 											  "		CONSTRAINT device_id UNIQUE (deviceid, userid)"
@@ -293,7 +293,7 @@ void DatabaseController::initDatabase()
 	if(!db.tables().contains("data")) {
 		QSqlQuery createData(db);
 		if(!createData.exec(QStringLiteral("CREATE TABLE data ( "
-										   "	index	SERIAL PRIMARY KEY NOT NULL, "
+										   "	index	BIGSERIAL PRIMARY KEY NOT NULL, "
 										   "	userid	UUID NOT NULL REFERENCES users(identity), "
 										   "	type	TEXT NOT NULL, "
 										   "	key		TEXT NOT NULL, "
@@ -308,8 +308,8 @@ void DatabaseController::initDatabase()
 	if(!db.tables().contains("states")) {
 		QSqlQuery createStates(db);
 		if(!createStates.exec(QStringLiteral("CREATE TABLE states ( "
-											 "	dataindex	INTEGER NOT NULL REFERENCES data(index), "
-											 "	deviceid	INTEGER NOT NULL REFERENCES devices(id), "
+											 "	dataindex	BIGINT NOT NULL REFERENCES data(index), "
+											 "	deviceid	BIGINT NOT NULL REFERENCES devices(id), "
 											 "	PRIMARY KEY (dataindex, deviceid)"
 											 ")"))) {
 			qCritical() << "Failed to create states table with error:"
