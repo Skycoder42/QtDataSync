@@ -57,10 +57,13 @@ private slots:
 	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
 
 private:
+	static const QVector<int> timeouts;
+
 	QWebSocket *socket;
 	QSettings *settings;
 
 	SocketState state;
+	int retryIndex;
 
 	QJsonObject keyObject(const ObjectKey &key) const;
 

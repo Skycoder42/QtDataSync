@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QTimer>
 using namespace QtDataSync;
 
 #define LOG defaults()->loggingCategory()
@@ -13,12 +14,14 @@ const QString WsRemoteConnector::keyRemoteUrl(QStringLiteral("RemoteConnector/re
 const QString WsRemoteConnector::keyHeadersGroup(QStringLiteral("RemoteConnector/headers"));
 const QString WsRemoteConnector::keyVerifyPeer(QStringLiteral("RemoteConnector/verifyPeer"));
 const QString WsRemoteConnector::keyUserIdentity(QStringLiteral("RemoteConnector/userIdentity"));
+const QVector<int> WsRemoteConnector::timeouts = {5 * 1000, 10 * 1000, 30 * 1000, 60 * 1000, 5 * 60 * 1000, 10 * 60 * 1000};
 
 WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	RemoteConnector(parent),
 	socket(nullptr),
 	settings(nullptr),
-	state(Disconnected)
+	state(Disconnected),
+	retryIndex(0)
 {}
 
 void WsRemoteConnector::initialize(Defaults *defaults)
@@ -186,11 +189,25 @@ void WsRemoteConnector::connected()
 
 void WsRemoteConnector::disconnected()
 {
-	if(state != Closing){
-		qCWarning(LOG) << "Unexpected disconnect from server with exit code"
-					   << socket->closeCode()
-					   << ":"
-					   << socket->closeReason();
+	if(state != Closing) {
+		auto retryTimeout = 0;
+		if(retryIndex >= timeouts.size())
+			retryTimeout = timeouts.last();
+		else
+			retryTimeout = timeouts[retryIndex++];
+		if(state != Connecting) {
+			qCWarning(LOG) << "Unexpected disconnect from server with exit code"
+						   << socket->closeCode()
+						   << ":"
+						   << socket->closeReason()
+						   << ". Retrying in"
+						   << retryTimeout / 1000
+						   << "seconds";
+		}
+		QTimer::singleShot(retryTimeout, this, [=](){
+			if(state == Disconnected)
+				reconnect();
+		});
 	}
 	if(state == Operating)
 		emit operationFailed("Connection closed");
@@ -225,7 +242,6 @@ void WsRemoteConnector::error()
 {
 	qCWarning(LOG) << "Socket error"
 				   << socket->errorString();
-	state = Closing;
 	socket->close();
 }
 
@@ -235,10 +251,9 @@ void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 		qCWarning(LOG) << "SSL errors"
 					   << error.errorString();
 	}
-	if(settings->value(keyVerifyPeer, true).toBool()) {
-		state = Closing;
+
+	if(settings->value(keyVerifyPeer, true).toBool())
 		socket->close();
-	}
 }
 
 void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue &data)
