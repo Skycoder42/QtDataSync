@@ -358,7 +358,7 @@ bool DatabaseController::updateDeviceStates(QSqlDatabase &database, const QUuid 
 void DatabaseController::tryDeleteData(QSqlDatabase &database, quint64 index)
 {
 	QSqlQuery tryDeleteQuery(database);
-	tryDeleteQuery.prepare("DELETE FROM data WHERE index = ?");
+	tryDeleteQuery.prepare("DELETE FROM data WHERE index = ? AND data IS NULL");
 	tryDeleteQuery.addBindValue(index);
 	tryDeleteQuery.exec();//ignore errors -> if error, data still used -> OK
 }
