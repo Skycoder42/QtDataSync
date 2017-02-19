@@ -90,7 +90,7 @@ void MainWidget::dataChanged(int metaTypeId, const QString &key, bool wasDeleted
 			report(QtInfoMsg, QStringLiteral("Data with id %1 changed").arg(key));
 			update(data);
 		}, [this](QException &exception) {
-			report(QtCriticalMsg, QString::fromLatin1(exception.what()));
+			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 	}
 }
@@ -118,7 +118,7 @@ void MainWidget::reload()
 		foreach (auto d, data)
 			update(d);
 	}, [this](QException &exception) {
-		report(QtCriticalMsg, QString::fromLatin1(exception.what()));
+		report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 	});
 }
 

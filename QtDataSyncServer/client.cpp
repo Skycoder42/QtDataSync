@@ -262,7 +262,7 @@ void Client::close()
 void Client::sendCommand(const QByteArray &command, const QJsonValue &data)
 {
 	QJsonObject message;
-	message["command"] = QString::fromLatin1(command);
+	message["command"] = QString::fromUtf8(command);
 	message["data"] = data;
 
 	QJsonDocument doc(message);

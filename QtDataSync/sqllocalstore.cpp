@@ -162,7 +162,7 @@ void SqlLocalStore::save(quint64 id, const ObjectKey &key, const QJsonObject &ob
 		file.reset(new QFile(tableDir.absoluteFilePath(existQuery.value(0).toString() + QStringLiteral(".dat"))));
 		file->open(QIODevice::WriteOnly);
 	} else {
-		auto fileName = QString::fromLatin1(QUuid::createUuid().toRfc4122().toHex());
+		auto fileName = QString::fromUtf8(QUuid::createUuid().toRfc4122().toHex());
 		fileName = tableDir.absoluteFilePath(QStringLiteral("%1XXXXXX.dat")).arg(fileName);
 		auto tFile = new QTemporaryFile(fileName);
 		tFile->setAutoRemove(false);
@@ -224,7 +224,7 @@ void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 
 QString SqlLocalStore::tableName(const QByteArray &typeName) const
 {
-	return QString::fromLatin1('_' + QByteArray(typeName).toHex());
+	return QString::fromUtf8('_' + QByteArray(typeName).toHex());
 }
 
 bool SqlLocalStore::testTableExists(const QString &tableName) const

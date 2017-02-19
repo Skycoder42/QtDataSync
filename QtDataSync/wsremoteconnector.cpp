@@ -116,9 +116,9 @@ void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProp
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromLatin1(key.first);
+		data["type"] = QString::fromUtf8(key.first);
 		data["key"] = key.second;
-		data["keyProperty"] = QString::fromLatin1(keyProperty);
+		data["keyProperty"] = QString::fromUtf8(keyProperty);
 		sendCommand("load", data);
 	}
 }
@@ -130,9 +130,9 @@ void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, 
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromLatin1(key.first);
+		data["type"] = QString::fromUtf8(key.first);
 		data["key"] = key.second;
-		data["keyProperty"] = QString::fromLatin1(keyProperty);
+		data["keyProperty"] = QString::fromUtf8(keyProperty);
 		data["value"] = object;
 		sendCommand("save", data);
 	}
@@ -145,9 +145,9 @@ void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProper
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromLatin1(key.first);
+		data["type"] = QString::fromUtf8(key.first);
 		data["key"] = key.second;
-		data["keyProperty"] = QString::fromLatin1(keyProperty);
+		data["keyProperty"] = QString::fromUtf8(keyProperty);
 		sendCommand("remove", data);
 	}
 }
@@ -159,9 +159,9 @@ void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &ke
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromLatin1(key.first);
+		data["type"] = QString::fromUtf8(key.first);
 		data["key"] = key.second;
-		data["keyProperty"] = QString::fromLatin1(keyProperty);
+		data["keyProperty"] = QString::fromUtf8(keyProperty);
 		sendCommand("markUnchanged", data);
 	}
 
@@ -270,7 +270,7 @@ void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue &data)
 {
 	QJsonObject message;
-	message["command"] = QString::fromLatin1(command);
+	message["command"] = QString::fromUtf8(command);
 	message["data"] = data;
 
 	QJsonDocument doc(message);
@@ -295,7 +295,7 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 		foreach(auto value, data["data"].toArray()) {
 			auto obj = value.toObject();
 			ObjectKey key;
-			key.first = obj["type"].toString().toLatin1();
+			key.first = obj["type"].toString().toUtf8();
 			key.second = obj["key"].toString();
 			changeState.insert(key, obj["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
 		}
@@ -314,7 +314,7 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 void WsRemoteConnector::notifyChanged(const QJsonObject &data)
 {
 	ObjectKey key;
-	key.first = data["type"].toString().toLatin1();
+	key.first = data["type"].toString().toUtf8();
 	key.second = data["key"].toString();
 	emit remoteDataChanged(key, data["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
 }
