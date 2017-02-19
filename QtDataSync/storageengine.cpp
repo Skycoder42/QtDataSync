@@ -15,13 +15,19 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 	remoteConnector(remoteConnector),
 	changeController(new ChangeController(dataMerger, this)),
 	requestCache(),
-	requestCounter(0)
+	requestCounter(0),
+	currentSyncState(SyncController::Loading)
 {
 	defaults->setParent(this);
 	serializer->setParent(this);
 	localStore->setParent(this);
 	stateHolder->setParent(this);
 	remoteConnector->setParent(this);
+}
+
+SyncController::SyncState StorageEngine::syncState() const
+{
+	return currentSyncState;
 }
 
 void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
@@ -79,6 +85,8 @@ void StorageEngine::initialize()
 	//changeController
 	connect(changeController, &ChangeController::loadLocalStatus,
 			this, &StorageEngine::loadLocalStatus);
+	connect(changeController, &ChangeController::updateSyncState,
+			this, &StorageEngine::updateSyncState);
 	connect(remoteConnector, &RemoteConnector::remoteStateLoaded,
 			changeController, &ChangeController::setRemoteStatus);
 	connect(remoteConnector, &RemoteConnector::remoteDataChanged,
@@ -170,6 +178,14 @@ void StorageEngine::loadLocalStatus()
 {
 	auto state = stateHolder->listLocalChanges();
 	changeController->setInitialLocalStatus(state);
+}
+
+void StorageEngine::updateSyncState(SyncController::SyncState state)
+{
+	if(state != currentSyncState) {
+		currentSyncState = state;
+		emit syncStateChanged(state);
+	}
 }
 
 void StorageEngine::beginRemoteOperation(const ChangeController::ChangeOperation &operation)

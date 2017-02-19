@@ -34,7 +34,9 @@ HEADERS += qtdatasync_global.h \
     wsauthenticator.h \
     wsauthenticator_p.h \
     defaults.h \
-    defaults_p.h
+    defaults_p.h \
+    synccontroller.h \
+    synccontroller_p.h
 
 SOURCES += \
 	setup.cpp \
@@ -52,7 +54,8 @@ SOURCES += \
 	datamerger.cpp \
 	changecontroller.cpp \
     wsauthenticator.cpp \
-    defaults.cpp
+    defaults.cpp \
+    synccontroller.cpp
 
 unix {
 	target.path = /usr/lib

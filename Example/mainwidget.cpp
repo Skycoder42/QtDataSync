@@ -10,7 +10,8 @@ static void filterLogger(QtMsgType type, const QMessageLogContext &context, cons
 MainWidget::MainWidget(QWidget *parent) :
 	QWidget(parent),
 	ui(new Ui::MainWidget),
-	store(nullptr)
+	store(nullptr),
+	sync(nullptr)
 {
 	ui->setupUi(this);
 	connect(ui->reloadButton, &QPushButton::clicked,
@@ -128,6 +129,14 @@ void MainWidget::setup()
 		store = new QtDataSync::AsyncDataStore(this);
 		connect(store, &QtDataSync::AsyncDataStore::dataChanged,
 				this, &MainWidget::dataChanged);
+
+		sync = new QtDataSync::SyncController(this);
+		connect(sync, &QtDataSync::SyncController::syncStateChanged,
+				this, [](QtDataSync::SyncController::SyncState state) {
+			qDebug() << state;
+		});
+		qDebug() << sync->syncState();
+
 		reload();
 	} else
 		qApp->quit();

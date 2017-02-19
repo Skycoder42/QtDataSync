@@ -13,6 +13,7 @@ ChangeController::ChangeController(DataMerger *merger, QObject *parent) :
 	remoteReady(false),
 	localState(),
 	remoteState(),
+	failedKeys(),
 	currentMode(DoNothing),
 	currentKey(),
 	currentState(DoneState)
@@ -61,6 +62,9 @@ void ChangeController::setRemoteStatus(bool canUpdate, const StateHolder::Change
 	}
 	remoteReady = canUpdate;
 	newChanges();
+
+	if(!canUpdate)
+		emit updateSyncState(SyncController::Disconnected);
 }
 
 void ChangeController::updateRemoteStatus(const ObjectKey &key, StateHolder::ChangeState state)
@@ -73,8 +77,10 @@ void ChangeController::updateRemoteStatus(const ObjectKey &key, StateHolder::Cha
 
 void ChangeController::nextStage(bool success, const QJsonValue &result)
 {
-	if(!success)
+	if(!success) {
+		failedKeys.insert(currentKey);
 		currentState = merger->repeatFailed() ? CancelState : DoneState;
+	}
 
 	//in case of done --> go to the next one!
 	if(currentState == DoneState) {
@@ -89,10 +95,11 @@ void ChangeController::nextStage(bool success, const QJsonValue &result)
 	   currentState == CancelState)
 		generateNextAction();
 
+	emit updateSyncState(SyncController::Syncing);
 	switch (currentMode) {
-	case DoNothing:
-		// for now, all changes are synced!
-		break;
+	case DoNothing://nothing to do -> finished
+		emit updateSyncState(failedKeys.size() > 0 ? SyncController::SyncedWithErrors : SyncController::Synced);
+		return;
 	case DownloadRemote:
 		actionDownloadRemote(result);
 		break;
@@ -123,8 +130,10 @@ void ChangeController::newChanges()
 		emit loadLocalStatus();
 	} else if(remoteReady && localReady) {
 		currentState = CancelState;//whatever is currently done is aborted -> prepare for next stage
-		if(currentMode == DoNothing)//only if not already syncing!
+		if(currentMode == DoNothing) {//only if not already syncing!
+			emit updateSyncState(SyncController::Syncing);
 			nextStage(true);
+		}
 	}
 }
 
@@ -143,6 +152,7 @@ void ChangeController::generateNextAction()
 
 		auto local = localState.value(currentKey, StateHolder::Unchanged);
 		auto remote = remoteState.value(currentKey, StateHolder::Unchanged);
+		failedKeys.remove(currentKey);
 
 		switch (UNITE_STATE(local, remote)) {
 		case UNITE_STATE(StateHolder::Unchanged, StateHolder::Unchanged)://u:u -> do nothing

@@ -6,6 +6,7 @@
 #include "datamerger.h"
 #include "defaults.h"
 #include "stateholder.h"
+#include "synccontroller.h"
 
 namespace QtDataSync {
 
@@ -43,6 +44,7 @@ public slots:
 
 signals:
 	void loadLocalStatus();
+	void updateSyncState(SyncController::SyncState state);
 
 	void beginRemoteOperation(const ChangeOperation &operation);
 	void beginLocalOperation(const ChangeOperation &operation);
@@ -79,11 +81,11 @@ private:
 
 	StateHolder::ChangeHash localState;
 	StateHolder::ChangeHash remoteState;
+	QSet<ObjectKey> failedKeys;
 
 	ActionMode currentMode;
 	ObjectKey currentKey;
 	ActionState currentState;
-
 	QJsonObject currentObject;
 
 	void newChanges();

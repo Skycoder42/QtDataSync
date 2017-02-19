@@ -20,6 +20,8 @@ class StorageEngine : public QObject
 	Q_OBJECT
 	friend class Setup;
 
+	Q_PROPERTY(SyncController::SyncState syncState READ syncState NOTIFY syncStateChanged)
+
 public:
 	enum TaskType {
 		Count,
@@ -38,11 +40,14 @@ public:
 						   RemoteConnector *remoteConnector,
 						   DataMerger *dataMerger);
 
+	SyncController::SyncState syncState() const;
+
 public slots:
 	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value = {});
 
 signals:
 	void notifyChanged(int metaTypeId, const QString &key, bool wasDeleted);
+	void syncStateChanged(SyncController::SyncState syncState);
 
 private slots:
 	void initialize();
@@ -54,6 +59,7 @@ private slots:
 	void operationFailed(const QString &errorString);
 
 	void loadLocalStatus();
+	void updateSyncState(SyncController::SyncState state);
 	void beginRemoteOperation(const ChangeController::ChangeOperation &operation);
 	void beginLocalOperation(const ChangeController::ChangeOperation &operation);
 
@@ -86,6 +92,8 @@ private:
 
 	QHash<quint64, RequestInfo> requestCache;
 	quint64 requestCounter;
+
+	SyncController::SyncState currentSyncState;
 
 	void count(QFutureInterface<QVariant> futureInterface, int metaTypeId);
 	void keys(QFutureInterface<QVariant> futureInterface, int metaTypeId);

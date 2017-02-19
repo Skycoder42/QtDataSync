@@ -6,6 +6,7 @@
 #include <QTreeWidget>
 #include <QWidget>
 #include <asyncdatastore.h>
+#include <synccontroller.h>
 
 namespace Ui {
 class MainWidget;
@@ -37,6 +38,7 @@ private:
 	Ui::MainWidget *ui;
 
 	QtDataSync::AsyncDataStore *store;
+	QtDataSync::SyncController *sync;
 	QHash<int, QTreeWidgetItem*> items;
 };
 
