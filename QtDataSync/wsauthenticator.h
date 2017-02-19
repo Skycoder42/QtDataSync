@@ -13,7 +13,7 @@ namespace QtDataSync {
 class WsRemoteConnector;
 
 class WsAuthenticatorPrivate;
-class WsAuthenticator : public Authenticator
+class QTDATASYNCSHARED_EXPORT WsAuthenticator : public Authenticator
 {
 	Q_OBJECT
 
