@@ -102,8 +102,11 @@ void WsRemoteConnector::reconnect()
 
 void WsRemoteConnector::reload()
 {
-	qCDebug(LOG) << Q_FUNC_INFO;
-	emit remoteStateChanged(true, {});
+	if(state == Idle) {
+		state = Reloading;
+		sendCommand("loadChanges", QJsonValue::Null);
+	} else
+		retry(false);
 }
 
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
@@ -172,6 +175,9 @@ void WsRemoteConnector::resetDeviceId()
 
 void WsRemoteConnector::connected()
 {
+	//reset retry
+	retryIndex = 0;
+
 	state = Identifying;
 	//check if a client ID exists
 	auto id = settings->value(keyUserIdentity).toByteArray();
@@ -189,28 +195,26 @@ void WsRemoteConnector::connected()
 
 void WsRemoteConnector::disconnected()
 {
+	if(state == Operating)
+		emit operationFailed("Connection closed");
+
 	if(state != Closing) {
-		auto retryTimeout = 0;
-		if(retryIndex >= timeouts.size())
-			retryTimeout = timeouts.last();
-		else
-			retryTimeout = timeouts[retryIndex++];
-		if(state != Connecting) {
+		auto delta = retry(false);
+		if(state == Connecting) {
+			qCWarning(LOG) << "Unable to connect to server. Retrying in"
+						   << delta / 1000
+						   << "seconds";
+		} else {
 			qCWarning(LOG) << "Unexpected disconnect from server with exit code"
 						   << socket->closeCode()
 						   << ":"
 						   << socket->closeReason()
 						   << ". Retrying in"
-						   << retryTimeout / 1000
+						   << delta / 1000
 						   << "seconds";
 		}
-		QTimer::singleShot(retryTimeout, this, [=](){
-			if(state == Disconnected)
-				reconnect();
-		});
 	}
-	if(state == Operating)
-		emit operationFailed("Connection closed");
+
 	state = Disconnected;
 	socket->deleteLater();
 	socket = nullptr;
@@ -230,6 +234,8 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	auto data = obj["data"];
 	if(obj["command"] == QStringLiteral("identified"))
 		identified(data.toString());
+	else if(obj["command"] == QStringLiteral("changeState"))
+		changeState(data.toObject());
 	else if(obj["command"] == QStringLiteral("completed"))
 		completed(data.toObject());
 	else {
@@ -274,11 +280,56 @@ void WsRemoteConnector::identified(const QString &data)
 	reload();
 }
 
+void WsRemoteConnector::changeState(const QJsonObject &result)
+{
+	if(result["success"].toBool()) {
+		//reset retry
+		retryIndex = 0;
+
+		StateHolder::ChangeHash state;
+		foreach(auto value, result["data"].toArray()) {
+			auto obj = value.toObject();
+			ObjectKey key;
+			key.first = obj["type"].toString().toLatin1();
+			key.second = obj["key"].toString();
+			state.insert(key, obj["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
+		}
+		qCDebug(LOG) << state;
+		emit remoteStateChanged(true, state);
+	} else {
+		auto delta = retry(true);
+		qCWarning(LOG) << "Failed to load state with error:"
+					   << result["error"].toString()
+					   << ". Retrying in"
+					   << delta / 1000
+					   << "seconds";
+	}
+	state = Idle;
+}
+
 void WsRemoteConnector::completed(const QJsonObject &result)
 {
 	if(result["success"].toBool())
-		emit operationDone();
+		emit operationDone(result["data"]);
 	else
 		emit operationFailed(result["error"].toString());
 	state = Idle;
+}
+
+int WsRemoteConnector::retry(bool reloadOnly)
+{
+	auto retryTimeout = 0;
+	if(retryIndex >= timeouts.size())
+		retryTimeout = timeouts.last();
+	else
+		retryTimeout = timeouts[retryIndex++];
+
+	QTimer::singleShot(retryTimeout, this, [=](){
+		if(reloadOnly)
+			reload();
+		else if(state == Disconnected)
+			reconnect();
+	});
+
+	return retryTimeout;
 }

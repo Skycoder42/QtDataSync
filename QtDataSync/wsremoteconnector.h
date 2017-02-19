@@ -3,6 +3,7 @@
 
 #include "remoteconnector.h"
 
+#include <QJsonArray>
 #include <QObject>
 #include <QSettings>
 #include <QWebSocket>
@@ -68,7 +69,10 @@ private:
 	QJsonObject keyObject(const ObjectKey &key) const;
 
 	void identified(const QString &data);
+	void changeState(const QJsonObject &result);
 	void completed(const QJsonObject &result);
+
+	int retry(bool reloadOnly);
 };
 
 }

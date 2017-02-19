@@ -81,6 +81,35 @@ bool DatabaseController::identify(const QUuid &identity, const QUuid &deviceId)
 		return false;
 }
 
+QJsonValue DatabaseController::loadChanges(const QUuid &userId, const QUuid &deviceId)
+{
+	auto db = threadStore.localData().database();
+
+	QSqlQuery changesQuery(db);
+	changesQuery.prepare(QStringLiteral("SELECT data.type, data.key, NOT data.data IS NULL AS changed FROM data "
+										"INNER JOIN states ON states.dataindex = data.index "
+										"WHERE states.deviceid = ("
+										"	SELECT id FROM devices WHERE deviceid = ? AND userid = ?"
+										")"));
+	changesQuery.addBindValue(deviceId);
+	changesQuery.addBindValue(userId);
+	if(!changesQuery.exec()) {
+		qCritical() << "Failed to load state with error:"
+					<< qPrintable(changesQuery.lastError().text());
+		return QJsonValue::Null;
+	}
+
+	QJsonArray result;
+	while(changesQuery.next()) {
+		QJsonObject changeState;
+		changeState["type"] = changesQuery.value(0).toString();
+		changeState["key"] = changesQuery.value(1).toString();
+		changeState["changed"] = changesQuery.value(2).toBool();
+		result.append(changeState);
+	}
+	return result;
+}
+
 QJsonValue DatabaseController::load(const QUuid &userId, const QString &type, const QString &key)
 {
 	auto db = threadStore.localData().database();

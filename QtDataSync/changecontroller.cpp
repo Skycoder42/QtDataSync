@@ -38,12 +38,12 @@ void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &chan
 
 void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::ChangeState &state)
 {
-	if(key == currentKey)
-		currentState = CancelState;//cancel whatever is currently done for that key
-
-	if(state == StateHolder::Unchanged)
-		localState.remove(key);//unchange does not trigger sync
-	else {
+	if(state == StateHolder::Unchanged) {
+		if(key != currentKey) //ignore currentKey -> unchanged as a result of a change operation
+			localState.remove(key);//unchange does not trigger sync
+	} else {
+		if(key == currentKey)
+			currentState = CancelState;//cancel whatever is currently done for that key
 		localState.insert(key, state);
 		newChanges();
 	}
@@ -62,7 +62,7 @@ void ChangeController::updateRemoteStatus(bool canUpdate, const StateHolder::Cha
 
 void ChangeController::nextStage(bool success, const QJsonValue &result)
 {
-	if(!success)//the value is skipped for now -> done by forcing "done" state
+	if(!success)
 		currentState = merger->repeatFailed() ? CancelState : DoneState;
 
 	//in case of done --> go to the next one!
@@ -107,8 +107,9 @@ void ChangeController::newChanges()
 	if(remoteReady && !localReady) {//load local on demand
 		emit loadLocalStatus();
 	} else if(remoteReady && localReady) {
+		currentState = CancelState;//whatever is currently done is aborted -> prepare for next stage
 		if(currentMode == DoNothing)//only if not already syncing!
-			nextStage(false);//false to provoke state reset
+			nextStage(true);
 	}
 }
 

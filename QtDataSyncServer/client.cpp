@@ -48,6 +48,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			createIdentity(data.toObject());
 		else if(obj["command"] == QStringLiteral("identify"))
 			identify(data.toObject());
+		else if(obj["command"] == QStringLiteral("loadChanges"))
+			loadChanges();
 		else if(obj["command"] == QStringLiteral("load"))
 			load(data.toObject());
 		else if(obj["command"] == QStringLiteral("save"))
@@ -123,6 +125,22 @@ void Client::identify(const QJsonObject &data)
 		emit connected(deviceId, false);
 	} else
 		close();
+}
+
+void Client::loadChanges()
+{
+	auto changes = database->loadChanges(clientId, deviceId);
+	QJsonObject reply;
+	if(!changes.isNull()) {
+		reply["success"] = true;
+		reply["data"] = changes;
+		reply["error"] = QJsonValue::Null;
+	} else  {
+		reply["success"] = false;
+		reply["data"] = QJsonValue::Null;
+		reply["error"] = "Failed to load state from server database";
+	}
+	sendCommand("changeState", reply);
 }
 
 void Client::load(const QJsonObject &data)
