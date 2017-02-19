@@ -15,10 +15,15 @@ class Client : public QObject
 public:
 	explicit Client(DatabaseController *database, QWebSocket *websocket, QObject *parent = nullptr);
 
-	QUuid userId() const;
+	QUuid deviceId() const;
+
+public slots:
+	void notifyChanged(const QString &type,
+					   const QString &key,
+					   bool changed);
 
 signals:
-	void connected(const QUuid &deviceId, bool addClient);
+	void connected(const QUuid &userId, bool addClient);
 
 private slots:
 	void binaryMessageReceived(const QByteArray &message);
@@ -29,8 +34,8 @@ private slots:
 private:
 	DatabaseController *database;
 	QWebSocket *socket;
-	QUuid clientId;
-	QUuid deviceId;
+	QUuid userId;
+	QUuid devId;
 
 	QHostAddress socketAddress;
 	QAtomicInt runCount;

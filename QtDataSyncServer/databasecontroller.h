@@ -6,6 +6,7 @@
 #include <QSqlDatabase>
 #include <QThreadPool>
 #include <QThreadStorage>
+#include <QUuid>
 
 class DatabaseController : public QObject
 {
@@ -21,6 +22,13 @@ public:
 	bool save(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key, const QJsonObject &object);
 	bool remove(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
 	bool markUnchanged(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
+
+signals:
+	void notifyChanged(const QUuid &userId,
+					   const QUuid &excludedDeviceId,
+					   const QString &type,
+					   const QString &key,
+					   bool changed);
 
 private:
 	class DatabaseWrapper

@@ -33,7 +33,8 @@ public slots:
 	virtual void resetDeviceId();
 
 signals:
-	void remoteStateChanged(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
+	void remoteStateLoaded(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
+	void remoteDataChanged(const ObjectKey &key, StateHolder::ChangeState state);
 
 	void operationDone(const QJsonValue &result = QJsonValue::Undefined);
 	void operationFailed(const QString &error);

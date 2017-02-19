@@ -10,8 +10,8 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	QObject(parent),
 	database(database),
 	socket(websocket),
-	clientId(),
-	deviceId(),
+	userId(),
+	devId(),
 	socketAddress(socket->peerAddress()),
 	runCount(0)
 {
@@ -27,9 +27,18 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 			this, &Client::sslErrors);
 }
 
-QUuid Client::userId() const
+QUuid Client::deviceId() const
 {
-	return clientId;
+	return devId;
+}
+
+void Client::notifyChanged(const QString &type, const QString &key, bool changed)
+{
+	QJsonObject data;
+	data["type"] = type;
+	data["key"] = key;
+	data["changed"] = changed;
+	sendCommand("notifyChanged", data);
 }
 
 void Client::binaryMessageReceived(const QByteArray &message)
@@ -105,21 +114,21 @@ void Client::closeClient()
 
 void Client::createIdentity(const QJsonObject &data)
 {
-	deviceId = QUuid(data["deviceId"].toString());
-	if(deviceId.isNull()) {
+	devId = QUuid(data["deviceId"].toString());
+	if(devId.isNull()) {
 		close();
 		return;
 	}
 
-	auto identity = database->createIdentity(deviceId);
+	auto identity = database->createIdentity(devId);
 	if(!identity.isNull()) {
-		clientId = identity;
-		qInfo() << "Created new Identity"
-				<< clientId.toByteArray().constData()
+		userId = identity;
+		qInfo() << "Created new identity"
+				<< userId.toByteArray().constData()
 				<< "for"
 				<< socketAddress;
-		sendCommand("identified", clientId.toString());
-		emit connected(deviceId, true);
+		sendCommand("identified", userId.toString());
+		emit connected(userId, true);
 	} else {
 		close();
 		return;
@@ -128,27 +137,27 @@ void Client::createIdentity(const QJsonObject &data)
 
 void Client::identify(const QJsonObject &data)
 {
-	deviceId = QUuid(data["deviceId"].toString());
-	if(deviceId.isNull()) {
+	devId = QUuid(data["deviceId"].toString());
+	if(devId.isNull()) {
 		close();
 		return;
 	}
-	clientId = QUuid(data["userId"].toString());
-	if(clientId.isNull()) {
+	userId = QUuid(data["userId"].toString());
+	if(userId.isNull()) {
 		close();
 		return;
 	}
 
-	if(database->identify(clientId, deviceId)) {
-		sendCommand("identified", clientId.toString());
-		emit connected(deviceId, false);
+	if(database->identify(userId, devId)) {
+		sendCommand("identified", userId.toString());
+		emit connected(userId, false);
 	} else
 		close();
 }
 
 void Client::loadChanges()
 {
-	auto changes = database->loadChanges(clientId, deviceId);
+	auto changes = database->loadChanges(userId, devId);
 	QJsonObject reply;
 	if(!changes.isNull()) {
 		reply["success"] = true;
@@ -173,7 +182,7 @@ void Client::load(const QJsonObject &data)
 		reply["data"] = QJsonValue::Null;
 		reply["error"] = "Invalid type or key!";
 	} else {
-		auto replyData = database->load(clientId, type, key);
+		auto replyData = database->load(userId, type, key);
 		if(!replyData.isNull()) {
 			reply["success"] = true;
 			reply["data"] = replyData;
@@ -197,7 +206,7 @@ void Client::save(const QJsonObject &data)
 	if(type.isEmpty() || key.isEmpty()) {
 		reply["success"] = false;
 		reply["error"] = "Invalid type or key!";
-	} else if(database->save(clientId, deviceId, type, key, value)) {
+	} else if(database->save(userId, devId, type, key, value)) {
 		reply["success"] = true;
 		reply["error"] = QJsonValue::Null;
 	} else  {
@@ -216,7 +225,7 @@ void Client::remove(const QJsonObject &data)
 	if(type.isEmpty() || key.isEmpty()) {
 		reply["success"] = false;
 		reply["error"] = "Invalid type or key!";
-	} else if(database->remove(clientId, deviceId, type, key)) {
+	} else if(database->remove(userId, devId, type, key)) {
 		reply["success"] = true;
 		reply["error"] = QJsonValue::Null;
 	} else  {
@@ -235,7 +244,7 @@ void Client::markUnchanged(const QJsonObject &data)
 	if(type.isEmpty() || key.isEmpty()) {
 		reply["success"] = false;
 		reply["error"] = "Invalid type or key!";
-	} else if(database->markUnchanged(clientId, deviceId, type, key)) {
+	} else if(database->markUnchanged(userId, devId, type, key)) {
 		reply["success"] = true;
 		reply["error"] = QJsonValue::Null;
 	} else  {

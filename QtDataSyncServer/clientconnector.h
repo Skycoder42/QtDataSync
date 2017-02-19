@@ -16,6 +16,13 @@ public:
 	bool setupWss();
 	bool listen();
 
+public slots:
+	void notifyChanged(const QUuid &userId,
+					   const QUuid &excludedDeviceId,
+					   const QString &type,
+					   const QString &key,
+					   bool changed);
+
 private slots:
 	void newConnection();
 	void serverError();
@@ -25,7 +32,7 @@ private:
 	DatabaseController *database;
 	QWebSocketServer *server;
 
-	QHash<QUuid, Client*> clients;
+	QMultiHash<QUuid, Client*> clients;
 };
 
 #endif // CLIENTCONNECTOR_H

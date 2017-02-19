@@ -218,6 +218,9 @@ void WsRemoteConnector::disconnected()
 	state = Disconnected;
 	socket->deleteLater();
 	socket = nullptr;
+
+	//always "disable" remote for the state changer
+	emit remoteStateLoaded(false, {});
 }
 
 void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
@@ -236,6 +239,8 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 		identified(data.toString());
 	else if(obj["command"] == QStringLiteral("changeState"))
 		changeState(data.toObject());
+	else if(obj["command"] == QStringLiteral("notifyChanged"))
+		notifyChanged(data.toObject());
 	else if(obj["command"] == QStringLiteral("completed"))
 		completed(data.toObject());
 	else {
@@ -280,31 +285,38 @@ void WsRemoteConnector::identified(const QString &data)
 	reload();
 }
 
-void WsRemoteConnector::changeState(const QJsonObject &result)
+void WsRemoteConnector::changeState(const QJsonObject &data)
 {
-	if(result["success"].toBool()) {
+	if(data["success"].toBool()) {
 		//reset retry
 		retryIndex = 0;
 
-		StateHolder::ChangeHash state;
-		foreach(auto value, result["data"].toArray()) {
+		StateHolder::ChangeHash changeState;
+		foreach(auto value, data["data"].toArray()) {
 			auto obj = value.toObject();
 			ObjectKey key;
 			key.first = obj["type"].toString().toLatin1();
 			key.second = obj["key"].toString();
-			state.insert(key, obj["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
+			changeState.insert(key, obj["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
 		}
-		qCDebug(LOG) << state;
-		emit remoteStateChanged(true, state);
+		emit remoteStateLoaded(true, changeState);
 	} else {
 		auto delta = retry(true);
 		qCWarning(LOG) << "Failed to load state with error:"
-					   << result["error"].toString()
+					   << data["error"].toString()
 					   << ". Retrying in"
 					   << delta / 1000
 					   << "seconds";
 	}
 	state = Idle;
+}
+
+void WsRemoteConnector::notifyChanged(const QJsonObject &data)
+{
+	ObjectKey key;
+	key.first = data["type"].toString().toLatin1();
+	key.second = data["key"].toString();
+	emit remoteDataChanged(key, data["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
 }
 
 void WsRemoteConnector::completed(const QJsonObject &result)

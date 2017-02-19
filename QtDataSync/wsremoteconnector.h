@@ -69,7 +69,8 @@ private:
 	QJsonObject keyObject(const ObjectKey &key) const;
 
 	void identified(const QString &data);
-	void changeState(const QJsonObject &result);
+	void changeState(const QJsonObject &data);
+	void notifyChanged(const QJsonObject &data);
 	void completed(const QJsonObject &result);
 
 	int retry(bool reloadOnly);

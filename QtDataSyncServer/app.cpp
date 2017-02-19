@@ -59,6 +59,10 @@ int App::startupApp(const QCommandLineParser &parser)
 	if(!connector->listen())
 		return EXIT_FAILURE;
 
+	connect(database, &DatabaseController::notifyChanged,
+			connector, &ClientConnector::notifyChanged,
+			Qt::QueuedConnection);
+
 	connect(this, &App::aboutToQuit,
 			this, &App::quitting,
 			Qt::DirectConnection);

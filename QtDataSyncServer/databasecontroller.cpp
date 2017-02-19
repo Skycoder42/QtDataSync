@@ -164,11 +164,10 @@ bool DatabaseController::save(const QUuid &userId, const QUuid &deviceId, const 
 		return false;
 	}
 
-	//TODO notify all connected devices
-
-	if(db.commit())
+	if(db.commit()) {
+		emit notifyChanged(userId, deviceId, type, key, true);
 		return true;
-	else {
+	} else {
 		qCritical() << "Failed to commit transaction with error:"
 					<< qPrintable(db.lastError().text());
 		return false;
@@ -209,7 +208,8 @@ bool DatabaseController::remove(const QUuid &userId, const QUuid &deviceId, cons
 
 	//TODO notify all connected devices
 
-	if(db.commit()){
+	if(db.commit()) {
+		emit notifyChanged(userId, deviceId, type, key, false);
 		tryDeleteData(db, index);//try to delete AFTER commiting
 		return true;
 	}

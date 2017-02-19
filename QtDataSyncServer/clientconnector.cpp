@@ -68,17 +68,24 @@ bool ClientConnector::listen()
 	}
 }
 
+void ClientConnector::notifyChanged(const QUuid &userId, const QUuid &excludedDeviceId, const QString &type, const QString &key, bool changed)
+{
+	auto devices = clients.values(userId);
+	foreach (auto device, devices) {
+		if(device->deviceId() != excludedDeviceId)
+			device->notifyChanged(type, key, changed);
+	}
+}
+
 void ClientConnector::newConnection()
 {
 	while (server->hasPendingConnections()) {
 		auto socket = server->nextPendingConnection();
 		auto client = new Client(database, socket, this);
-		connect(client, &Client::connected, this, [=](QUuid devId){
-			clients.insert(devId, client);
-			qDebug() << "connected" << devId;
+		connect(client, &Client::connected, this, [=](QUuid userId){
+			clients.insert(userId, client);
 			connect(client, &Client::destroyed, this, [=](){
-				clients.remove(devId);
-				qDebug() << "disconnected" << devId;
+				clients.remove(userId, client);
 			});
 		});
 	}

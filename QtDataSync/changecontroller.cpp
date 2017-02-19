@@ -3,9 +3,11 @@
 using namespace QtDataSync;
 
 #define UNITE_STATE(x, y) (x | (y << 16))
+#define LOG defaults->loggingCategory()
 
 ChangeController::ChangeController(DataMerger *merger, QObject *parent) :
 	QObject(parent),
+	defaults(nullptr),
 	merger(merger),
 	localReady(false),
 	remoteReady(false),
@@ -20,6 +22,7 @@ ChangeController::ChangeController(DataMerger *merger, QObject *parent) :
 
 void ChangeController::initialize(Defaults *defaults)
 {
+	this->defaults = defaults;
 	merger->initialize(defaults);
 }
 
@@ -49,7 +52,7 @@ void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::Chan
 	}
 }
 
-void ChangeController::updateRemoteStatus(bool canUpdate, const StateHolder::ChangeHash &changes)
+void ChangeController::setRemoteStatus(bool canUpdate, const StateHolder::ChangeHash &changes)
 {
 	for(auto it = changes.constBegin(); it != changes.constEnd(); it++){
 		if(it.key() == currentKey)
@@ -60,6 +63,14 @@ void ChangeController::updateRemoteStatus(bool canUpdate, const StateHolder::Cha
 	newChanges();
 }
 
+void ChangeController::updateRemoteStatus(const ObjectKey &key, StateHolder::ChangeState state)
+{
+	if(key == currentKey)
+		currentState = CancelState;//cancel whatever is currently done for that key
+	remoteState.insert(key, state);
+	newChanges();
+}
+
 void ChangeController::nextStage(bool success, const QJsonValue &result)
 {
 	if(!success)
@@ -67,6 +78,10 @@ void ChangeController::nextStage(bool success, const QJsonValue &result)
 
 	//in case of done --> go to the next one!
 	if(currentState == DoneState) {
+		qCInfo(LOG) << "Updated"
+					<< currentKey.first
+					<< "->"
+					<< currentKey.second;
 		localState.remove(currentKey);
 		remoteState.remove(currentKey);
 	}
@@ -126,8 +141,8 @@ void ChangeController::generateNextAction()
 		else
 			break;
 
-		auto local = localState.value(currentKey);
-		auto remote = remoteState.value(currentKey);
+		auto local = localState.value(currentKey, StateHolder::Unchanged);
+		auto remote = remoteState.value(currentKey, StateHolder::Unchanged);
 
 		switch (UNITE_STATE(local, remote)) {
 		case UNITE_STATE(StateHolder::Unchanged, StateHolder::Unchanged)://u:u -> do nothing
@@ -221,6 +236,15 @@ void ChangeController::generateNextAction()
 	default:
 		Q_UNREACHABLE();
 		break;
+	}
+
+	if(currentMode != DoNothing) {
+		qCInfo(LOG) << "Beginning operation of type"
+					<< currentMode
+					<< "for"
+					<< currentKey.first
+					<< "->"
+					<< currentKey.second;
 	}
 }
 
