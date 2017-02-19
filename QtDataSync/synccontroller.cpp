@@ -27,5 +27,5 @@ SyncController::SyncState SyncController::syncState() const
 
 void SyncController::triggerSync()
 {
-	Q_UNIMPLEMENTED();
+	QMetaObject::invokeMethod(d->engine, "triggerSync");
 }

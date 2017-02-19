@@ -25,6 +25,8 @@ public:
 	virtual Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) = 0;
 
 public slots:
+	virtual void reloadRemoteState() = 0;
+
 	virtual void download(const ObjectKey &key, const QByteArray &keyProperty) = 0;
 	virtual void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;//auto unchanged
 	virtual void remove(const ObjectKey &key, const QByteArray &keyProperty) = 0;//auto unchanged

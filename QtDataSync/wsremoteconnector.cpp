@@ -100,13 +100,23 @@ void WsRemoteConnector::reconnect()
 	}
 }
 
-void WsRemoteConnector::reload()
+void WsRemoteConnector::reloadRemoteState()
 {
-	if(state == Idle) {
+	switch (state) {
+	case Disconnected:
+		reconnect();
+		break;
+	case Idle:
 		state = Reloading;
 		sendCommand("loadChanges", QJsonValue::Null);
-	} else
-		retry(false);
+		break;
+		break;
+	case Operating:
+		retry();
+		break;
+	default:
+		break;
+	}
 }
 
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
@@ -199,7 +209,7 @@ void WsRemoteConnector::disconnected()
 		emit operationFailed("Connection closed");
 
 	if(state != Closing) {
-		auto delta = retry(false);
+		auto delta = retry();
 		if(state == Connecting) {
 			qCWarning(LOG) << "Unable to connect to server. Retrying in"
 						   << delta / 1000
@@ -282,7 +292,7 @@ void WsRemoteConnector::identified(const QString &data)
 	settings->setValue(keyUserIdentity, data.toUtf8());
 	qCDebug(LOG) << "Identification successful";
 	state = Idle;
-	reload();
+	reloadRemoteState();
 }
 
 void WsRemoteConnector::changeState(const QJsonObject &data)
@@ -301,7 +311,7 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 		}
 		emit remoteStateLoaded(true, changeState);
 	} else {
-		auto delta = retry(true);
+		auto delta = retry();
 		qCWarning(LOG) << "Failed to load state with error:"
 					   << data["error"].toString()
 					   << ". Retrying in"
@@ -328,7 +338,7 @@ void WsRemoteConnector::completed(const QJsonObject &result)
 	state = Idle;
 }
 
-int WsRemoteConnector::retry(bool reloadOnly)
+int WsRemoteConnector::retry()
 {
 	auto retryTimeout = 0;
 	if(retryIndex >= timeouts.size())
@@ -336,12 +346,7 @@ int WsRemoteConnector::retry(bool reloadOnly)
 	else
 		retryTimeout = timeouts[retryIndex++];
 
-	QTimer::singleShot(retryTimeout, this, [=](){
-		if(reloadOnly)
-			reload();
-		else if(state == Disconnected)
-			reconnect();
-	});
+	QTimer::singleShot(retryTimeout, this, &WsRemoteConnector::reloadRemoteState);
 
 	return retryTimeout;
 }

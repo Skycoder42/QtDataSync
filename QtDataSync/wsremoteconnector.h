@@ -39,7 +39,7 @@ public:
 
 public slots:
 	void reconnect();
-	void reload();
+	void reloadRemoteState() override;
 
 	void download(const ObjectKey &key, const QByteArray &keyProperty) override;
 	void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
@@ -73,7 +73,7 @@ private:
 	void notifyChanged(const QJsonObject &data);
 	void completed(const QJsonObject &result);
 
-	int retry(bool reloadOnly);
+	int retry();
 };
 
 }

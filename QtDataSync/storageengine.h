@@ -44,6 +44,7 @@ public:
 
 public slots:
 	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value = {});
+	void triggerSync();
 
 signals:
 	void notifyChanged(int metaTypeId, const QString &key, bool wasDeleted);

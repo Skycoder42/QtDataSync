@@ -30,7 +30,6 @@ private slots:
 	void on_deleteButton_clicked();
 
 	void update(SampleData *data);
-	void reload();
 
 	void setup();
 

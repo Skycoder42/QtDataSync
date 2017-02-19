@@ -14,8 +14,6 @@ MainWidget::MainWidget(QWidget *parent) :
 	sync(nullptr)
 {
 	ui->setupUi(this);
-	connect(ui->reloadButton, &QPushButton::clicked,
-			this, &MainWidget::reload);
 
 	prevHandler = qInstallMessageHandler(filterLogger);
 	QMetaObject::invokeMethod(this, "setup", Qt::QueuedConnection);
@@ -109,20 +107,6 @@ void MainWidget::update(SampleData *data)
 	item->setText(2, data->description);
 }
 
-void MainWidget::reload()
-{
-	items.clear();
-	ui->dataTreeWidget->clear();
-
-	store->loadAll<SampleData*>().onResult([this](QList<SampleData*> data){
-		report(QtInfoMsg, "All Data loaded from store!");
-		foreach (auto d, data)
-			update(d);
-	}, [this](QException &exception) {
-		report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-	});
-}
-
 void MainWidget::setup()
 {
 	if(SetupDialog::setup(this)) {
@@ -136,8 +120,16 @@ void MainWidget::setup()
 			qDebug() << state;
 		});
 		qDebug() << sync->syncState();
+		connect(ui->reloadButton, &QPushButton::clicked,
+				sync, &QtDataSync::SyncController::triggerSync);
 
-		reload();
+		store->loadAll<SampleData*>().onResult([this](QList<SampleData*> data){
+			report(QtInfoMsg, "All Data loaded from store!");
+			foreach (auto d, data)
+				update(d);
+		}, [this](QException &exception) {
+			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
+		});
 	} else
 		qApp->quit();
 }

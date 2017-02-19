@@ -72,6 +72,12 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, Storag
 	}
 }
 
+void StorageEngine::triggerSync()
+{
+	remoteConnector->reloadRemoteState();
+	loadLocalStatus();
+}
+
 void StorageEngine::initialize()
 {
 	//localStore
