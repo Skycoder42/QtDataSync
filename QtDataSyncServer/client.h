@@ -24,6 +24,7 @@ private slots:
 	void binaryMessageReceived(const QByteArray &message);
 	void error();
 	void sslErrors(const QList<QSslError> &errors);
+	void closeClient();
 
 private:
 	DatabaseController *database;
@@ -32,6 +33,7 @@ private:
 	QUuid deviceId;
 
 	QHostAddress socketAddress;
+	QAtomicInt runCount;
 
 	void createIdentity(const QJsonObject &data);
 	void identify(const QJsonObject &data);

@@ -12,12 +12,13 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	socket(websocket),
 	clientId(),
 	deviceId(),
-	socketAddress(socket->peerAddress())
+	socketAddress(socket->peerAddress()),
+	runCount(0)
 {
 	socket->setParent(this);
 
 	connect(socket, &QWebSocket::disconnected,
-			this, &Client::deleteLater);
+			this, &Client::closeClient);
 	connect(socket, &QWebSocket::binaryMessageReceived,
 			this, &Client::binaryMessageReceived);
 	connect(socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
@@ -33,12 +34,14 @@ QUuid Client::userId() const
 
 void Client::binaryMessageReceived(const QByteArray &message)
 {
+	runCount++;
 	QtConcurrent::run(qApp->threadPool(), [=](){
 		QJsonParseError error;
 		auto doc = QJsonDocument::fromJson(message, &error);
 		if(error.error != QJsonParseError::NoError) {
 			qWarning() << "Invalid data received. Parser error:"
 					   << error.errorString();
+			runCount--;
 			return;
 		}
 
@@ -63,6 +66,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 					 << obj["command"].toString();
 			close();
 		}
+
+		runCount--;
 	});
 }
 
@@ -82,6 +87,20 @@ void Client::sslErrors(const QList<QSslError> &errors)
 				   << error.errorString();
 	}
 	socket->close();
+}
+
+void Client::closeClient()
+{
+	if(runCount == 0)//save close -> delete only if no parallel stuff anymore
+		this->deleteLater();
+	else {
+		auto destroyTimer = new QTimer(this);
+		connect(destroyTimer, &QTimer::timeout, this, [=](){
+			if(runCount == 0)
+				this->deleteLater();
+		});
+		destroyTimer->start(500);
+	}
 }
 
 void Client::createIdentity(const QJsonObject &data)
