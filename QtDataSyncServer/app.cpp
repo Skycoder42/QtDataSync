@@ -9,7 +9,12 @@ App::App(int &argc, char **argv) :
 	mainPool(nullptr),
 	connector(nullptr),
 	database(nullptr)
-{}
+{
+	QCoreApplication::setApplicationName(QStringLiteral(TARGET));
+	QCoreApplication::setApplicationVersion(QStringLiteral(VERSION));
+	QCoreApplication::setOrganizationName(QStringLiteral(COMPANY));
+	QCoreApplication::setOrganizationDomain(QStringLiteral("de.skycoder42"));
+}
 
 QSettings *App::configuration() const
 {
