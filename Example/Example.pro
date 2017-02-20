@@ -7,16 +7,16 @@ TARGET = Example
 DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS  += mainwidget.h \
-    sampledata.h \
-    setupdialog.h
+	sampledata.h \
+	setupdialog.h
 
 SOURCES += main.cpp\
 		mainwidget.cpp \
-    sampledata.cpp \
-    setupdialog.cpp
+	sampledata.cpp \
+	setupdialog.cpp
 
 FORMS    += mainwidget.ui \
-    setupdialog.ui
+	setupdialog.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtDataSync/release/ -lQt5DataSync
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtDataSync/debug/ -lQt5DataSync

@@ -2,7 +2,8 @@ TEMPLATE = subdirs
 
 CONFIG += ordered
 SUBDIRS += \
-    QtDataSync \
-    Tests \
-    QtDataSyncServer \
-    Example
+	QtDataSync \
+	Tests
+
+!android: SUBDIRS += QtDataSyncServer \
+	Example

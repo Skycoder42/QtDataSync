@@ -1,10 +1,12 @@
 #include "defaults.h"
+#include "exception.h"
 #include "setup.h"
 #include "setup_p.h"
 #include "sqllocalstore.h"
 #include "sqlstateholder.h"
 #include "wsremoteconnector.h"
 #include <QCoreApplication>
+#include <QLockFile>
 #include <QStandardPaths>
 using namespace QtDataSync;
 
@@ -105,16 +107,16 @@ Setup &Setup::setDataMerger(DataMerger *dataMerger)
 void Setup::create(const QString &name)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
-	if(SetupPrivate::engines.contains(name)) {
-		qCritical() << "Failed to create setup! A setup with the name"
-					<< name
-					<< "already exists!";
-		return;
-	}
+	if(SetupPrivate::engines.contains(name))
+		throw Exception(QStringLiteral("Failed to create setup! A setup with the name %1 already exists!").arg(name));
 
 	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 	storageDir.mkpath(d->localDir);
 	storageDir.cd(d->localDir);
+
+	auto lockFile = new QLockFile(storageDir.absoluteFilePath(QStringLiteral(".lock")));
+	if(!lockFile->tryLock())
+		throw Exception("Failed to lock the storage directory! Is it already locked by another process?");
 
 	auto defaults = new Defaults(name, storageDir);
 
@@ -131,6 +133,10 @@ void Setup::create(const QString &name)
 					 engine, &StorageEngine::initialize);
 	QObject::connect(thread, &QThread::finished,
 					 engine, &StorageEngine::deleteLater);
+	QObject::connect(engine, &StorageEngine::destroyed, qApp, [=](){
+		lockFile->unlock();
+		delete lockFile;
+	}, Qt::DirectConnection);
 	QObject::connect(thread, &QThread::finished, thread, [=](){
 		QMutexLocker _(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
