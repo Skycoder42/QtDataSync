@@ -133,8 +133,6 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 
 	if(info.isChangeControllerRequest) {
 		changeController->nextStage(true, result);
-		if(!info.notifyKey.first.isNull())
-			emit notifyChanged(QMetaType::type(info.notifyKey.first), info.notifyKey.second, !info.notifyChanged);
 	} else {
 		if(!result.isUndefined()) {
 			try {
@@ -153,6 +151,9 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 		stateHolder->markLocalChanged(info.changeKey, info.changeState);
 		changeController->updateLocalStatus(info.changeKey, info.changeState);
 	}
+
+	if(!info.notifyKey.first.isNull())
+		emit notifyChanged(QMetaType::type(info.notifyKey.first), info.notifyKey.second, !info.notifyChanged);
 }
 
 void StorageEngine::requestFailed(quint64 id, const QString &errorString)
@@ -308,8 +309,10 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 		auto json = serializer->serialize(value).toObject();
 		auto id = requestCounter++;
 		RequestInfo info(futureInterface, metaTypeId);
+		info.notifyKey = {QMetaType::typeName(metaTypeId), json[keyProperty].toVariant().toString()};
+		info.notifyChanged = true;
 		info.changeAction = true;
-		info.changeKey = {QMetaType::typeName(metaTypeId), json[keyProperty].toVariant().toString()};
+		info.changeKey = info.notifyKey;
 		info.changeState = StateHolder::Changed;
 		requestCache.insert(id, info);
 		localStore->save(id, info.changeKey, json, keyProperty);
@@ -322,8 +325,10 @@ void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, int metaT
 {
 	auto id = requestCounter++;
 	RequestInfo info(futureInterface, metaTypeId);
+	info.notifyKey = {QMetaType::typeName(metaTypeId), value};
+	info.notifyChanged = false;
 	info.changeAction = true;
-	info.changeKey = {QMetaType::typeName(metaTypeId), value};
+	info.changeKey = info.notifyKey;
 	info.changeState = StateHolder::Deleted;
 	requestCache.insert(id, info);
 	localStore->remove(id, info.changeKey, keyProperty);

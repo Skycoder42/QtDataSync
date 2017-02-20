@@ -53,7 +53,8 @@ HEADERS += qtdatasync_global.h \
 	defaults.h \
 	defaults_p.h \
 	synccontroller.h \
-	synccontroller_p.h
+	synccontroller_p.h \
+	cachingdatastore.h
 
 SOURCES += \
 	setup.cpp \
@@ -72,7 +73,8 @@ SOURCES += \
 	changecontroller.cpp \
 	wsauthenticator.cpp \
 	defaults.cpp \
-	synccontroller.cpp
+	synccontroller.cpp \
+    cachingdatastore.cpp
 
 unix {
 	target.path = /usr/lib

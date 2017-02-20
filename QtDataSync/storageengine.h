@@ -68,12 +68,14 @@ private:
 	struct RequestInfo {
 		//change controller
 		bool isChangeControllerRequest;
-		ObjectKey notifyKey;
-		bool notifyChanged;
 
 		//store requests
 		QFutureInterface<QVariant> futureInterface;
 		int convertMetaTypeId;
+
+		//change notifying
+		ObjectKey notifyKey;
+		bool notifyChanged;
 
 		//changing operations
 		bool changeAction;

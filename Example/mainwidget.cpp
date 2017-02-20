@@ -30,7 +30,6 @@ void MainWidget::on_addButton_clicked()
 	data->id = ui->idSpinBox->value();
 	data->title = ui->titleLineEdit->text();
 	data->description = ui->detailsLineEdit->text();
-	update(data);
 
 	store->save<SampleData*>(data).onResult([this, data](){
 		report(QtInfoMsg, QStringLiteral("Data with id %1 saved!").arg(data->id));
@@ -46,8 +45,6 @@ void MainWidget::on_deleteButton_clicked()
 	auto item = ui->dataTreeWidget->currentItem();
 	if(item) {
 		auto id = items.key(item);
-		items.remove(id);
-		delete item;
 		store->remove<SampleData*>(QString::number(id)).onResult([this, id](){
 			report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
 		}, [this](QException &exception) {
