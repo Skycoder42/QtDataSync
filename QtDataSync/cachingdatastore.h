@@ -67,9 +67,9 @@ CachingDataStore<T>::CachingDataStore(const QString &setupName, QObject *parent,
 		foreach(auto data, dataList) {
 			QString key;
 			if(flags.testFlag(QMetaType::PointerToQObject))
-				key = userProp.read(reinterpret_cast<QObject*>(data));
+				key = userProp.read(reinterpret_cast<QObject*>(data)).toString();
 			else
-				key = userProp.readOnGadget(reinterpret_cast<void*>(data));
+				key = userProp.readOnGadget(reinterpret_cast<void*>(data)).toString();
 			_data.insert(key, data);
 		}
 
@@ -118,9 +118,9 @@ void CachingDataStore<T>::save(const T &value)
 	auto userProp = metaObject->userProperty();
 	QString key;
 	if(flags.testFlag(QMetaType::PointerToQObject))
-		key = userProp.read(reinterpret_cast<QObject*>(value));
+		key = userProp.read(reinterpret_cast<QObject*>(value)).toString();
 	else
-		key = userProp.readOnGadget(reinterpret_cast<void*>(value));
+		key = userProp.readOnGadget(reinterpret_cast<void*>(value)).toString();
 	_data.insert(key, value);
 
 	_store->save(value);
