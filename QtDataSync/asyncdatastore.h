@@ -28,6 +28,7 @@ public:
 	Task save(int metaTypeId, const QVariant &value);
 	Task remove(int metaTypeId, const QString &key);
 
+	//WARNING -> DOES NOT TAKE OWNERSHIP OF QOBJECTS
 	template<typename T>
 	GenericTask<int> count();
 	template<typename T>

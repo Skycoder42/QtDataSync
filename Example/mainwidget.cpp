@@ -2,6 +2,7 @@
 #include "sampledata.h"
 #include "setupdialog.h"
 #include "ui_mainwidget.h"
+#include <cachingdatastore.h>
 #include <setup.h>
 
 static QtMessageHandler prevHandler;
@@ -127,6 +128,11 @@ void MainWidget::setup()
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
+
+		//generics test
+		QtDataSync::CachingDataStore<SampleData*, int> store(nullptr, true);
+		store.count();
+		store.keys();
 	} else
 		qApp->quit();
 }

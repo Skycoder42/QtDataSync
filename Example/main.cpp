@@ -1,5 +1,6 @@
 #include "mainwidget.h"
 #include <QApplication>
+#include <cachingdatastore.h>
 #include <QtJsonSerializer/QJsonSerializer>
 
 int main(int argc, char *argv[])
