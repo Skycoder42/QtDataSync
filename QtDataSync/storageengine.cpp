@@ -30,7 +30,7 @@ SyncController::SyncState StorageEngine::syncState() const
 	return currentSyncState;
 }
 
-void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
+void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, QThread *targetThread, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
 {
 	try {
 		auto flags = QMetaType::typeFlags(metaTypeId);
@@ -42,26 +42,26 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, Storag
 
 		auto userProp = metaObject->userProperty();
 		if(!userProp.isValid())
-			throw Exception(QStringLiteral("To save a datatype, it requires a user property"));
+			throw Exception(QStringLiteral("To store a datatype, it requires a user property"));
 
 		switch (taskType) {
 		case Count:
-			count(futureInterface, metaTypeId);
+			count(futureInterface, targetThread, metaTypeId);
 			break;
 		case Keys:
-			keys(futureInterface, metaTypeId);
+			keys(futureInterface, targetThread, metaTypeId);
 			break;
 		case LoadAll:
-			loadAll(futureInterface, metaTypeId, value.toInt());
+			loadAll(futureInterface, targetThread, metaTypeId, value.toInt());
 			break;
 		case Load:
-			load(futureInterface, metaTypeId, userProp.name(), value.toString());
+			load(futureInterface, targetThread, metaTypeId, userProp.name(), value.toString());
 			break;
 		case Save:
-			save(futureInterface, metaTypeId, userProp.name(), value);
+			save(futureInterface, targetThread, metaTypeId, userProp.name(), value);
 			break;
 		case Remove:
-			remove(futureInterface, metaTypeId, userProp.name(), value.toString());
+			remove(futureInterface, targetThread, metaTypeId, userProp.name(), value.toString());
 			break;
 		default:
 			break;
@@ -137,6 +137,8 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 		if(!result.isUndefined()) {
 			try {
 				auto obj = serializer->deserialize(result, info.convertMetaTypeId);
+				if(info.targetThread)
+					tryMoveToThread(obj, info.targetThread);
 				info.futureInterface.reportResult(obj);
 			} catch(SerializerException &e) {
 				info.futureInterface.reportException(Exception(e.qWhat()));
@@ -272,35 +274,35 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 	}
 }
 
-void StorageEngine::count(QFutureInterface<QVariant> futureInterface, int metaTypeId)
+void StorageEngine::count(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId)
 {
 	auto id = requestCounter++;
-	requestCache.insert(id, {futureInterface, QMetaType::Int});
+	requestCache.insert(id, {futureInterface, targetThread, QMetaType::Int});
 	localStore->count(id, QMetaType::typeName(metaTypeId));
 }
 
-void StorageEngine::keys(QFutureInterface<QVariant> futureInterface, int metaTypeId)
+void StorageEngine::keys(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId)
 {
 	auto id = requestCounter++;
-	requestCache.insert(id, {futureInterface, QMetaType::QStringList});
+	requestCache.insert(id, {futureInterface, targetThread, QMetaType::QStringList});
 	localStore->keys(id, QMetaType::typeName(metaTypeId));
 }
 
-void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId)
+void StorageEngine::loadAll(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int dataMetaTypeId, int listMetaTypeId)
 {
 	auto id = requestCounter++;
-	requestCache.insert(id, {futureInterface, listMetaTypeId});
+	requestCache.insert(id, {futureInterface, targetThread, listMetaTypeId});
 	localStore->loadAll(id, QMetaType::typeName(dataMetaTypeId));
 }
 
-void StorageEngine::load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value)
+void StorageEngine::load(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, const QString &value)
 {
 	auto id = requestCounter++;
-	requestCache.insert(id, {futureInterface, metaTypeId});
+	requestCache.insert(id, {futureInterface, targetThread, metaTypeId});
 	localStore->load(id, {QMetaType::typeName(metaTypeId), value}, keyProperty);
 }
 
-void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, QVariant value)
+void StorageEngine::save(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, QVariant value)
 {
 	if(!value.convert(metaTypeId))
 		throw Exception(QStringLiteral("Failed to convert value to %1").arg(QMetaType::typeName(metaTypeId)));
@@ -308,7 +310,7 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 	try {
 		auto json = serializer->serialize(value).toObject();
 		auto id = requestCounter++;
-		RequestInfo info(futureInterface, metaTypeId);
+		RequestInfo info(futureInterface, targetThread, metaTypeId);
 		info.notifyKey = {QMetaType::typeName(metaTypeId), json[keyProperty].toVariant().toString()};
 		info.notifyChanged = true;
 		info.changeAction = true;
@@ -321,10 +323,10 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, int metaTyp
 	}
 }
 
-void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value)
+void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, const QString &value)
 {
 	auto id = requestCounter++;
-	RequestInfo info(futureInterface, metaTypeId);
+	RequestInfo info(futureInterface, targetThread, metaTypeId);
 	info.notifyKey = {QMetaType::typeName(metaTypeId), value};
 	info.notifyChanged = false;
 	info.changeAction = true;
@@ -334,20 +336,34 @@ void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, int metaT
 	localStore->remove(id, info.changeKey, keyProperty);
 }
 
+void StorageEngine::tryMoveToThread(QVariant object, QThread *thread) const
+{
+	if(object.canConvert(QVariant::List) && object.convert(QVariant::List)) {
+		foreach(auto obj, object.toList())
+			tryMoveToThread(obj, thread);
+	} else {
+		auto obj = object.value<QObject*>();
+		if(obj)
+			obj->moveToThread(thread);
+	}
+}
+
 
 
 StorageEngine::RequestInfo::RequestInfo(bool isChangeControllerRequest) :
 	isChangeControllerRequest(isChangeControllerRequest),
 	futureInterface(),
+	targetThread(nullptr),
 	convertMetaTypeId(QMetaType::UnknownType),
 	changeAction(false),
 	changeKey(),
 	changeState(StateHolder::Unchanged)
 {}
 
-StorageEngine::RequestInfo::RequestInfo(QFutureInterface<QVariant> futureInterface, int convertMetaTypeId) :
+StorageEngine::RequestInfo::RequestInfo(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int convertMetaTypeId) :
 	isChangeControllerRequest(false),
 	futureInterface(futureInterface),
+	targetThread(targetThread),
 	convertMetaTypeId(convertMetaTypeId),
 	changeAction(false),
 	changeKey(),

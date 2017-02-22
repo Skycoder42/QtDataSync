@@ -43,7 +43,11 @@ public:
 	SyncController::SyncState syncState() const;
 
 public slots:
-	void beginTask(QFutureInterface<QVariant> futureInterface, QtDataSync::StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value = {});
+	void beginTask(QFutureInterface<QVariant> futureInterface,
+				   QThread *targetThread,
+				   QtDataSync::StorageEngine::TaskType taskType,
+				   int metaTypeId,
+				   const QVariant &value = {});
 	void triggerSync();
 
 signals:
@@ -71,6 +75,7 @@ private:
 
 		//store requests
 		QFutureInterface<QVariant> futureInterface;
+		QThread *targetThread;
 		int convertMetaTypeId;
 
 		//change notifying
@@ -83,7 +88,9 @@ private:
 		StateHolder::ChangeState changeState;
 
 		RequestInfo(bool isChangeControllerRequest = false);
-		RequestInfo(QFutureInterface<QVariant> futureInterface, int convertMetaTypeId = QMetaType::UnknownType);
+		RequestInfo(QFutureInterface<QVariant> futureInterface,
+					QThread *targetThread,
+					int convertMetaTypeId = QMetaType::UnknownType);
 	};
 
 	Defaults *defaults;
@@ -98,12 +105,14 @@ private:
 
 	SyncController::SyncState currentSyncState;
 
-	void count(QFutureInterface<QVariant> futureInterface, int metaTypeId);
-	void keys(QFutureInterface<QVariant> futureInterface, int metaTypeId);
-	void loadAll(QFutureInterface<QVariant> futureInterface, int dataMetaTypeId, int listMetaTypeId);
-	void load(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value);
-	void save(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, QVariant value);
-	void remove(QFutureInterface<QVariant> futureInterface, int metaTypeId, const QByteArray &keyProperty, const QString &value);
+	void count(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId);
+	void keys(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId);
+	void loadAll(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int dataMetaTypeId, int listMetaTypeId);
+	void load(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, const QString &value);
+	void save(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, QVariant value);
+	void remove(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, const QString &value);
+
+	void tryMoveToThread(QVariant object, QThread *thread) const;
 };
 
 }

@@ -56,6 +56,7 @@ QFutureInterface<QVariant> AsyncDataStore::internalCount(int metaTypeId)
 	interface.reportStarted();
 	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QThread*, thread()),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Count),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, {}));
@@ -68,6 +69,7 @@ QFutureInterface<QVariant> AsyncDataStore::internalKeys(int metaTypeId)
 	interface.reportStarted();
 	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QThread*, thread()),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Keys),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, {}));
@@ -80,6 +82,7 @@ QFutureInterface<QVariant> AsyncDataStore::internalLoadAll(int dataMetaTypeId, i
 	interface.reportStarted();
 	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QThread*, thread()),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::LoadAll),
 							  Q_ARG(int, dataMetaTypeId),
 							  Q_ARG(QVariant, listMetaTypeId));
@@ -92,6 +95,7 @@ QFutureInterface<QVariant> AsyncDataStore::internalLoad(int metaTypeId, const QS
 	interface.reportStarted();
 	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QThread*, thread()),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Load),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, key));
@@ -104,6 +108,7 @@ QFutureInterface<QVariant> AsyncDataStore::internalSave(int metaTypeId, const QV
 	interface.reportStarted();
 	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QThread*, thread()),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Save),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, value));
@@ -116,6 +121,7 @@ QFutureInterface<QVariant> AsyncDataStore::internalRemove(int metaTypeId, const 
 	interface.reportStarted();
 	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QThread*, thread()),
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Remove),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, key));

@@ -203,6 +203,7 @@ SetupPrivate::SetupPrivate() :
 static void initCleanupHandlers()
 {
 	qRegisterMetaType<QFutureInterface<QVariant>>("QFutureInterface<QVariant>");
+	qRegisterMetaType<QThread*>();
 	qRegisterMetaType<StorageEngine::TaskType>();
 	qAddPostRoutine(SetupPrivate::cleanupHandler);
 }

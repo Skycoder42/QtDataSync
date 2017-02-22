@@ -129,10 +129,9 @@ void MainWidget::setup()
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 
-		//generics test
+		//caching test
 		QtDataSync::CachingDataStore<SampleData*, int> store(nullptr, true);
-		store.count();
-		store.keys();
+		qDebug() << "caching store test:" << store.keys();
 	} else
 		qApp->quit();
 }
