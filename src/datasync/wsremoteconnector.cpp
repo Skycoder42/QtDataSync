@@ -123,13 +123,13 @@ void WsRemoteConnector::reloadRemoteState()
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
 {
 	if(state != Idle)
-		emit operationFailed("Remote connector state does not allow donwloads");
+		emit operationFailed(QStringLiteral("Remote connector state does not allow downloads"));
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromUtf8(key.first);
-		data["key"] = key.second;
-		data["keyProperty"] = QString::fromUtf8(keyProperty);
+		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
+		data[QStringLiteral("key")] = key.second;
+		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		sendCommand("load", data);
 	}
 }
@@ -137,14 +137,14 @@ void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProp
 void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty)
 {
 	if(state != Idle)
-		emit operationFailed("Remote connector state does not allow uploads");
+		emit operationFailed(QStringLiteral("Remote connector state does not allow uploads"));
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromUtf8(key.first);
-		data["key"] = key.second;
-		data["keyProperty"] = QString::fromUtf8(keyProperty);
-		data["value"] = object;
+		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
+		data[QStringLiteral("key")] = key.second;
+		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
+		data[QStringLiteral("value")] = object;
 		sendCommand("save", data);
 	}
 }
@@ -152,13 +152,13 @@ void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, 
 void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProperty)
 {
 	if(state != Idle)
-		emit operationFailed("Remote connector state does not allow removals");
+		emit operationFailed(QStringLiteral("Remote connector state does not allow removals"));
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromUtf8(key.first);
-		data["key"] = key.second;
-		data["keyProperty"] = QString::fromUtf8(keyProperty);
+		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
+		data[QStringLiteral("key")] = key.second;
+		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		sendCommand("remove", data);
 	}
 }
@@ -166,13 +166,13 @@ void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProper
 void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &keyProperty)
 {
 	if(state != Idle)
-		emit operationFailed("Remote connector state does not allow marking as unchanged");
+		emit operationFailed(QStringLiteral("Remote connector state does not allow marking as unchanged"));
 	else {
 		state = Operating;
 		QJsonObject data;
-		data["type"] = QString::fromUtf8(key.first);
-		data["key"] = key.second;
-		data["keyProperty"] = QString::fromUtf8(keyProperty);
+		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
+		data[QStringLiteral("key")] = key.second;
+		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		sendCommand("markUnchanged", data);
 	}
 
@@ -194,12 +194,12 @@ void WsRemoteConnector::connected()
 	auto id = settings->value(keyUserIdentity).toByteArray();
 	if(id.isNull()) {
 		QJsonObject data;
-		data["deviceId"] = QString::fromUtf8(loadDeviceId());
+		data[QStringLiteral("deviceId")] = QString::fromUtf8(loadDeviceId());
 		sendCommand("createIdentity", data);
 	} else {
 		QJsonObject data;
-		data["userId"] = QString::fromUtf8(id);
-		data["deviceId"] = QString::fromUtf8(loadDeviceId());
+		data[QStringLiteral("userId")] = QString::fromUtf8(id);
+		data[QStringLiteral("deviceId")] = QString::fromUtf8(loadDeviceId());
 		sendCommand("identify", data);
 	}
 }
@@ -207,7 +207,7 @@ void WsRemoteConnector::connected()
 void WsRemoteConnector::disconnected()
 {
 	if(state == Operating)
-		emit operationFailed("Connection closed");
+		emit operationFailed(QStringLiteral("Connection closed"));
 
 	if(state != Closing) {
 		auto delta = retry();
@@ -245,18 +245,18 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	}
 
 	auto obj = doc.object();
-	auto data = obj["data"];
-	if(obj["command"] == QStringLiteral("identified"))
+	auto data = obj[QStringLiteral("data")];
+	if(obj[QStringLiteral("command")] == QStringLiteral("identified"))
 		identified(data.toString());
-	else if(obj["command"] == QStringLiteral("changeState"))
+	else if(obj[QStringLiteral("command")] == QStringLiteral("changeState"))
 		changeState(data.toObject());
-	else if(obj["command"] == QStringLiteral("notifyChanged"))
+	else if(obj[QStringLiteral("command")] == QStringLiteral("notifyChanged"))
 		notifyChanged(data.toObject());
-	else if(obj["command"] == QStringLiteral("completed"))
+	else if(obj[QStringLiteral("command")] == QStringLiteral("completed"))
 		completed(data.toObject());
 	else {
 		qCWarning(LOG) << "Unkown command received:"
-					   << obj["command"].toString();
+					   << obj[QStringLiteral("command")].toString();
 	}
 }
 
@@ -281,8 +281,8 @@ void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue &data)
 {
 	QJsonObject message;
-	message["command"] = QString::fromUtf8(command);
-	message["data"] = data;
+	message[QStringLiteral("command")] = QString::fromUtf8(command);
+	message[QStringLiteral("data")] = data;
 
 	QJsonDocument doc(message);
 	socket->sendBinaryMessage(doc.toJson(QJsonDocument::Compact));
@@ -298,23 +298,23 @@ void WsRemoteConnector::identified(const QString &data)
 
 void WsRemoteConnector::changeState(const QJsonObject &data)
 {
-	if(data["success"].toBool()) {
+	if(data[QStringLiteral("success")].toBool()) {
 		//reset retry
 		retryIndex = 0;
 
 		StateHolder::ChangeHash changeState;
-		foreach(auto value, data["data"].toArray()) {
+		foreach(auto value, data[QLatin1String("data")].toArray()) {
 			auto obj = value.toObject();
 			ObjectKey key;
-			key.first = obj["type"].toString().toUtf8();
-			key.second = obj["key"].toString();
-			changeState.insert(key, obj["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
+			key.first = obj[QStringLiteral("type")].toString().toUtf8();
+			key.second = obj[QStringLiteral("key")].toString();
+			changeState.insert(key, obj[QStringLiteral("changed")].toBool() ? StateHolder::Changed : StateHolder::Deleted);
 		}
 		emit remoteStateLoaded(true, changeState);
 	} else {
 		auto delta = retry();
 		qCWarning(LOG) << "Failed to load state with error:"
-					   << data["error"].toString()
+					   << data[QStringLiteral("error")].toString()
 					   << ". Retrying in"
 					   << delta / 1000
 					   << "seconds";
@@ -325,17 +325,17 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 void WsRemoteConnector::notifyChanged(const QJsonObject &data)
 {
 	ObjectKey key;
-	key.first = data["type"].toString().toUtf8();
-	key.second = data["key"].toString();
-	emit remoteDataChanged(key, data["changed"].toBool() ? StateHolder::Changed : StateHolder::Deleted);
+	key.first = data[QStringLiteral("type")].toString().toUtf8();
+	key.second = data[QStringLiteral("key")].toString();
+	emit remoteDataChanged(key, data[QStringLiteral("changed")].toBool() ? StateHolder::Changed : StateHolder::Deleted);
 }
 
 void WsRemoteConnector::completed(const QJsonObject &result)
 {
-	if(result["success"].toBool())
-		emit operationDone(result["data"]);
+	if(result[QStringLiteral("success")].toBool())
+		emit operationDone(result[QStringLiteral("data")]);
 	else
-		emit operationFailed(result["error"].toString());
+		emit operationFailed(result[QStringLiteral("error")].toString());
 	state = Idle;
 }
 

@@ -1,12 +1,13 @@
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
 
-#include <QException>
+#include "qdatasync_global.h"
 
-//TODO refactor
+#include <QtCore/QException>
+
 namespace QtDataSync {
 
-class Exception : public QException
+class Q_DATASYNC_EXPORT Exception : public QException
 {
 public:
 	Exception(const QString &what);
@@ -14,7 +15,6 @@ public:
 	Exception(const char *what);
 
 public:
-	QString qWhat() const;
 	const char *what() const noexcept final;
 
 	void raise() const final;

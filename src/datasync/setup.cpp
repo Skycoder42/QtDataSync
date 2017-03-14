@@ -1,5 +1,5 @@
 #include "defaults.h"
-#include "exception.h"
+#include "exception_p.h"
 #include "setup.h"
 #include "setup_p.h"
 #include "sqllocalstore_p.h"

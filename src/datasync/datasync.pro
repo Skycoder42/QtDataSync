@@ -12,7 +12,6 @@ HEADERS += \
 	datamerger_p.h \
 	defaults.h \
 	defaults_p.h \
-	exception.h \
 	localstore.h \
 	remoteconnector.h \
 	setup.h \
@@ -27,7 +26,8 @@ HEADERS += \
 	sqllocalstore_p.h \
 	sqlstateholder_p.h \
 	storageengine_p.h \
-	wsremoteconnector_p.h
+	wsremoteconnector_p.h \
+    exception_p.h
 
 SOURCES += \
 	asyncdatastore.cpp \

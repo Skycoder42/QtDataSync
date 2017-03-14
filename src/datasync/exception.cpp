@@ -1,4 +1,4 @@
-#include "exception.h"
+#include "exception_p.h"
 using namespace QtDataSync;
 
 Exception::Exception(const QString &what) :
@@ -15,11 +15,6 @@ Exception::Exception(const char *what) :
 	QException(),
 	_what(what)
 {}
-
-QString Exception::qWhat() const
-{
-	return QString::fromUtf8(_what);
-}
 
 const char *Exception::what() const noexcept
 {

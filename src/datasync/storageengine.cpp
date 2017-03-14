@@ -1,4 +1,4 @@
-#include "exception.h"
+#include "exception_p.h"
 #include "storageengine_p.h"
 #include "defaults.h"
 
@@ -307,12 +307,12 @@ void StorageEngine::load(QFutureInterface<QVariant> futureInterface, QThread *ta
 void StorageEngine::save(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, QVariant value)
 {
 	if(!value.convert(metaTypeId))
-		throw Exception(QStringLiteral("Failed to convert value to %1").arg(QMetaType::typeName(metaTypeId)));
+		throw Exception(QStringLiteral("Failed to convert value to %1").arg(QString::fromUtf8(QMetaType::typeName(metaTypeId))));
 
 	auto json = serializer->serialize(value).toObject();
 	auto id = requestCounter++;
 	RequestInfo info(futureInterface, targetThread, metaTypeId);
-	info.notifyKey = {QMetaType::typeName(metaTypeId), json[keyProperty].toVariant().toString()};
+	info.notifyKey = {QMetaType::typeName(metaTypeId), json[QString::fromUtf8(keyProperty)].toVariant().toString()};
 	info.notifyChanged = true;
 	info.changeAction = true;
 	info.changeKey = info.notifyKey;
