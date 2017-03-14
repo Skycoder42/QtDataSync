@@ -2,10 +2,12 @@
 #define AUTHENTICATOR_H
 
 #include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/task.h"
 
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
 
+#include <functional>
 #include <type_traits>
 
 namespace QtDataSync {
@@ -19,10 +21,9 @@ class Q_DATASYNC_EXPORT Authenticator : public QObject
 public:
 	explicit Authenticator(QObject *parent = nullptr);
 
-public Q_SLOTS:
-	void resetDeviceId();
-
 protected:
+	GenericTask<void> resetIdentity(const QVariant &extraData = {});
+
 	virtual RemoteConnector *connector() = 0;
 };
 

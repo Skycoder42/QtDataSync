@@ -88,3 +88,15 @@ void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeS
 						<< updateQuery.lastError().text();
 	}
 }
+
+void SqlStateHolder::resetAllChanges(const QList<ObjectKey> &changeKeys)
+{
+	//TODO implement
+	Q_UNIMPLEMENTED();
+}
+
+void SqlStateHolder::clearAllChanges()
+{
+	//TODO implement
+	Q_UNIMPLEMENTED();
+}

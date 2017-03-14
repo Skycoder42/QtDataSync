@@ -18,9 +18,12 @@ void RemoteConnector::initialize(Defaults *defaults)
 
 void RemoteConnector::finalize() {}
 
-void RemoteConnector::resetDeviceId()
+void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, const QVariant &extraData)
 {
+	//TODO clear local store
 	_defaults->settings()->remove(QStringLiteral("RemoteConnector/deviceId"));
+	resetUserData(extraData);
+	futureInterface.reportFinished();
 }
 
 Defaults *RemoteConnector::defaults() const

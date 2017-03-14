@@ -23,32 +23,32 @@ AsyncDataStore::~AsyncDataStore() {}
 
 GenericTask<int> AsyncDataStore::count(int metaTypeId)
 {
-	return {this, internalCount(metaTypeId)};
+	return internalCount(metaTypeId);
 }
 
 GenericTask<QStringList> AsyncDataStore::keys(int metaTypeId)
 {
-	return {this, internalKeys(metaTypeId)};
+	return internalKeys(metaTypeId);
 }
 
 Task AsyncDataStore::loadAll(int dataMetaTypeId, int listMetaTypeId)
 {
-	return {this, internalLoadAll(dataMetaTypeId, listMetaTypeId)};
+	return internalLoadAll(dataMetaTypeId, listMetaTypeId);
 }
 
 Task AsyncDataStore::load(int metaTypeId, const QString &key)
 {
-	return {this, internalLoad(metaTypeId, key)};
+	return internalLoad(metaTypeId, key);
 }
 
 Task AsyncDataStore::save(int metaTypeId, const QVariant &value)
 {
-	return {this, internalSave(metaTypeId, value)};
+	return internalSave(metaTypeId, value);
 }
 
 Task AsyncDataStore::remove(int metaTypeId, const QString &key)
 {
-	return {this, internalRemove(metaTypeId, key)};
+	return internalRemove(metaTypeId, key);
 }
 
 QFutureInterface<QVariant> AsyncDataStore::internalCount(int metaTypeId)

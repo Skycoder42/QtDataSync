@@ -7,7 +7,11 @@ Authenticator::Authenticator(QObject *parent) :
 	QObject(parent)
 {}
 
-void Authenticator::resetDeviceId()
+GenericTask<void> Authenticator::resetIdentity(const QVariant &extraData)
 {
-	QMetaObject::invokeMethod(connector(), "resetDeviceId");
+	QFutureInterface<QVariant> futureInterface;
+	QMetaObject::invokeMethod(connector(), "resetUserId", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, futureInterface),
+							  Q_ARG(QVariant, extraData));
+	return futureInterface;
 }

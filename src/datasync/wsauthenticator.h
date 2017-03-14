@@ -21,7 +21,7 @@ class Q_DATASYNC_EXPORT WsAuthenticator : public Authenticator
 	Q_PROPERTY(QUrl remoteUrl READ remoteUrl WRITE setRemoteUrl)
 	Q_PROPERTY(QHash<QByteArray, QByteArray> customHeaders READ customHeaders WRITE setCustomHeaders)
 	Q_PROPERTY(bool validateServerCertificate READ validateServerCertificate WRITE setValidateServerCertificate)
-	Q_PROPERTY(QByteArray userIdentity READ userIdentity WRITE setUserIdentity RESET resetUserIdentity)//TODO move elsewhere .-.
+	Q_PROPERTY(QByteArray userIdentity READ userIdentity WRITE setUserIdentity RESET resetUserIdentity)
 	Q_PROPERTY(bool connected READ isConnected NOTIFY connectedChanged)
 
 public:
@@ -42,8 +42,8 @@ public Q_SLOTS:
 	void setRemoteUrl(QUrl remoteUrl);
 	void setCustomHeaders(QHash<QByteArray, QByteArray> customHeaders);
 	void setValidateServerCertificate(bool validateServerCertificate);
-	void setUserIdentity(QByteArray userIdentity);
-	void resetUserIdentity();
+	GenericTask<void> setUserIdentity(QByteArray userIdentity, bool clearLocalStore = true);
+	GenericTask<void> resetUserIdentity(bool clearLocalStore = true);
 
 Q_SIGNALS:
 	void connectedChanged(bool connected);

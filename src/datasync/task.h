@@ -25,10 +25,7 @@ public:
 	GenericTask<T> toGeneric() const;
 
 protected:
-	Task(AsyncDataStore *store, QFutureInterface<QVariant> d);
-
-private:
-	QPointer<AsyncDataStore> _store;
+	Task(QFutureInterface<QVariant> d);
 };
 
 template <typename T>
@@ -38,12 +35,11 @@ class GenericTask : public Task
 	friend class Task;
 
 public:
+	GenericTask(QFutureInterface<QVariant> d);
+
 	GenericTask<T> &onResult(const std::function<void(T)> &onSuccess, const std::function<void(QException &)> &onExcept = {});
 
 	T result() const;
-
-private:
-	GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d);
 };
 
 template <>
@@ -53,11 +49,11 @@ class Q_DATASYNC_EXPORT GenericTask<void> : public Task
 	friend class Task;
 
 public:
+	GenericTask(QFutureInterface<QVariant> d);
+
 	GenericTask<void> &onResult(const std::function<void()> &onSuccess, const std::function<void(QException &)> &onExcept = {});
 
 private:
-	GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d);
-
 	using QFuture<QVariant>::result;
 };
 
@@ -66,12 +62,12 @@ private:
 template<typename T>
 GenericTask<T> Task::toGeneric() const
 {
-	return GenericTask<T>(_store, d);
+	return GenericTask<T>(d);
 }
 
 template<typename T>
-GenericTask<T>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d) :
-	Task(store, d)
+GenericTask<T>::GenericTask(QFutureInterface<QVariant> d) :
+	Task(d)
 {}
 
 template<typename T>

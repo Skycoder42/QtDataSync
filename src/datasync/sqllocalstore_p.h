@@ -28,6 +28,8 @@ public Q_SLOTS:
 	void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
 	void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
 	void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
+	void loadAllKeys() override;
+	void resetStore() override;
 
 private:
 	Defaults *defaults;

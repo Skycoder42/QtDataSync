@@ -51,7 +51,8 @@ public Q_SLOTS:
 
 	void localResyncCompleted();
 
-	void resetDeviceId() override;
+protected:
+	void resetUserData(const QVariant &extraData) override;
 
 private Q_SLOTS:
 	void connected();

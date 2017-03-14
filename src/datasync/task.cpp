@@ -2,17 +2,17 @@
 #include "asyncdatastore.h"
 
 #include <QtCore/QFutureWatcher>
+#include <QtCore/qcoreapplication.h>
 
 using namespace QtDataSync;
 
-Task::Task(AsyncDataStore *store, QFutureInterface<QVariant> d) :
-	QFuture(&d),
-	_store(store)
+Task::Task(QFutureInterface<QVariant> d) :
+	QFuture(&d)
 {}
 
 Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std::function<void (QException &)> &onExcept)
 {
-	auto watcher = new QFutureWatcher<QVariant>(_store);
+	auto watcher = new QFutureWatcher<QVariant>(qApp);
 	QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, [=](){
 		try {
 			watcher->result();
@@ -34,8 +34,8 @@ Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std:
 	return *this;
 }
 
-GenericTask<void>::GenericTask(AsyncDataStore *store, QFutureInterface<QVariant> d) :
-	Task(store, d)
+GenericTask<void>::GenericTask(QFutureInterface<QVariant> d) :
+	Task(d)
 {}
 
 GenericTask<void> &GenericTask<void>::onResult(const std::function<void ()> &onSuccess, const std::function<void (QException &)> &onExcept)

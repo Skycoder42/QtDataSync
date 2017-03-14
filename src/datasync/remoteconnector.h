@@ -8,6 +8,7 @@
 #include <QtCore/qjsonvalue.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qobject.h>
+#include <QtCore/qfutureinterface.h>
 
 namespace QtDataSync {
 
@@ -33,9 +34,9 @@ public Q_SLOTS:
 	virtual void remove(const ObjectKey &key, const QByteArray &keyProperty) = 0;//auto unchanged
 	virtual void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) = 0;
 
-	virtual void localResyncCompleted() = 0;
+	virtual void localResyncCompleted() = 0;//TODO call from engine
 
-	virtual void resetDeviceId();
+	void resetUserId(QFutureInterface<QVariant> futureInterface, const QVariant &extraData);
 
 Q_SIGNALS:
 	void remoteStateLoaded(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
@@ -46,11 +47,13 @@ Q_SIGNALS:
 	void operationDone(const QJsonValue &result = QJsonValue::Undefined);
 	void operationFailed(const QString &error);
 
-	void requestLocalResync();
+	void requestLocalResync();//TODO use in engine
 
 protected:
 	Defaults *defaults() const;
+
 	virtual QByteArray loadDeviceId();
+	virtual void resetUserData(const QVariant &extraData) = 0;
 
 private:
 	Defaults *_defaults;//TODO d ptr

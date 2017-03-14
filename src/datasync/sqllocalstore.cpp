@@ -223,6 +223,18 @@ void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
+void SqlLocalStore::loadAllKeys()
+{
+	//TODO implement
+	Q_UNIMPLEMENTED();
+}
+
+void SqlLocalStore::resetStore()
+{
+	//TODO implement
+	Q_UNIMPLEMENTED();
+}
+
 QString SqlLocalStore::tableName(const QByteArray &typeName) const
 {
 	return QString::fromUtf8('_' + QByteArray(typeName).toHex());

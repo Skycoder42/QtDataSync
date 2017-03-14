@@ -195,9 +195,12 @@ void WsRemoteConnector::localResyncCompleted()
 	//ignore other cases, probably connection reset
 }
 
-void WsRemoteConnector::resetDeviceId()
+void WsRemoteConnector::resetUserData(const QVariant &extraData)
 {
-	RemoteConnector::resetDeviceId();
+	if(extraData.isValid())
+		settings->setValue(keyUserIdentity, extraData);
+	else
+		settings->remove(keyUserIdentity);
 	reconnect();
 }
 

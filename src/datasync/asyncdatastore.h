@@ -60,37 +60,37 @@ private:
 template<typename T>
 GenericTask<int> AsyncDataStore::count()
 {
-	return {this, internalCount(qMetaTypeId<T>())};
+	return internalCount(qMetaTypeId<T>());
 }
 
 template<typename T>
 GenericTask<QStringList> AsyncDataStore::keys()
 {
-	return {this, internalKeys(qMetaTypeId<T>())};
+	return internalKeys(qMetaTypeId<T>());
 }
 
 template<typename T>
 GenericTask<QList<T>> AsyncDataStore::loadAll()
 {
-	return {this, internalLoadAll(qMetaTypeId<T>(), qMetaTypeId<QList<T>>())};
+	return internalLoadAll(qMetaTypeId<T>(), qMetaTypeId<QList<T>>());
 }
 
 template<typename T>
 GenericTask<T> AsyncDataStore::load(const QString &key)
 {
-	return {this, internalLoad(qMetaTypeId<T>(), key)};
+	return internalLoad(qMetaTypeId<T>(), key);
 }
 
 template<typename T>
 GenericTask<void> AsyncDataStore::save(const T &value)
 {
-	return {this, internalSave(qMetaTypeId<T>(), QVariant::fromValue(value))};
+	return internalSave(qMetaTypeId<T>(), QVariant::fromValue(value));
 }
 
 template<typename T>
 GenericTask<void> AsyncDataStore::remove(const QString &key)
 {
-	return {this, internalRemove(qMetaTypeId<T>(), key)};
+	return internalRemove(qMetaTypeId<T>(), key);
 }
 
 }
