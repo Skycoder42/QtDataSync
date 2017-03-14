@@ -31,6 +31,9 @@ public:
 
 	virtual ChangeHash listLocalChanges() = 0;
 	virtual void markLocalChanged(const ObjectKey &key, ChangeState changed) = 0;
+
+	virtual void resetAllChanges(const QList<ObjectKey> &changeKeys) = 0;
+	virtual void clearAllChanges() = 0;
 };
 
 }

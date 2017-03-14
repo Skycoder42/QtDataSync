@@ -21,7 +21,7 @@ class Q_DATASYNC_EXPORT WsAuthenticator : public Authenticator
 	Q_PROPERTY(QUrl remoteUrl READ remoteUrl WRITE setRemoteUrl)
 	Q_PROPERTY(QHash<QByteArray, QByteArray> customHeaders READ customHeaders WRITE setCustomHeaders)
 	Q_PROPERTY(bool validateServerCertificate READ validateServerCertificate WRITE setValidateServerCertificate)
-	Q_PROPERTY(QByteArray userIdentity READ userIdentity WRITE setUserIdentity RESET resetUserIdentity)
+	Q_PROPERTY(QByteArray userIdentity READ userIdentity WRITE setUserIdentity RESET resetUserIdentity)//TODO move elsewhere .-.
 	Q_PROPERTY(bool connected READ isConnected NOTIFY connectedChanged)
 
 public:

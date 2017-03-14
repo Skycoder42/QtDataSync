@@ -111,9 +111,14 @@ void WsRemoteConnector::reloadRemoteState()
 		reconnect();
 		break;
 	case Idle:
-		state = Reloading;
-		sendCommand("loadChanges", QJsonValue::Null);//TODO resync as parameter?
-		break;
+		if(needResync) {
+			needResync = false;
+			state = WaitLocalResync;
+			emit requestLocalResync();
+		} else {
+			state = Reloading;
+			sendCommand("loadChanges", false);
+		}
 		break;
 	case Operating:
 		retry();
@@ -179,6 +184,15 @@ void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &ke
 		sendCommand("markUnchanged", data);
 	}
 
+}
+
+void WsRemoteConnector::localResyncCompleted()
+{
+	if(state == WaitLocalResync) {
+		state = Reloading;
+		sendCommand("loadChanges", true);
+	}
+	//ignore other cases, probably connection reset
 }
 
 void WsRemoteConnector::resetDeviceId()

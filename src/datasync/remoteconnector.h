@@ -33,6 +33,8 @@ public Q_SLOTS:
 	virtual void remove(const ObjectKey &key, const QByteArray &keyProperty) = 0;//auto unchanged
 	virtual void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) = 0;
 
+	virtual void localResyncCompleted() = 0;
+
 	virtual void resetDeviceId();
 
 Q_SIGNALS:
@@ -43,6 +45,8 @@ Q_SIGNALS:
 
 	void operationDone(const QJsonValue &result = QJsonValue::Undefined);
 	void operationFailed(const QString &error);
+
+	void requestLocalResync();
 
 protected:
 	Defaults *defaults() const;
