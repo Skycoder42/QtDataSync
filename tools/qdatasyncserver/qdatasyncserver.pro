@@ -35,7 +35,9 @@ SOURCES += \
 	databasecontroller.cpp
 
 DISTFILES += \
-	setup.conf
+	setup.conf \
+    docker_setup.conf \
+    docker-compose.yaml
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "Qt Rest API Builder"

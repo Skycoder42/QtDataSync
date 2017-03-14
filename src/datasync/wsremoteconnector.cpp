@@ -87,9 +87,10 @@ void WsRemoteConnector::reconnect()
 				Qt::QueuedConnection);
 
 		QNetworkRequest request(remoteUrl);
+		request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+		request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
 		request.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
 		request.setAttribute(QNetworkRequest::HTTP2AllowedAttribute, true);
-		request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
 
 		settings->beginGroup(keyHeadersGroup);
 		auto keys = settings->childKeys();
