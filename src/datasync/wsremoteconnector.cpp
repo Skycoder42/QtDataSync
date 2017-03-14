@@ -110,7 +110,7 @@ void WsRemoteConnector::reloadRemoteState()
 		break;
 	case Idle:
 		state = Reloading;
-		sendCommand("loadChanges", QJsonValue::Null);
+		sendCommand("loadChanges", QJsonValue::Null);//TODO resync as parameter?
 		break;
 		break;
 	case Operating:

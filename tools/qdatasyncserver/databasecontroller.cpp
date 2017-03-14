@@ -11,7 +11,7 @@ DatabaseController::DatabaseController(QObject *parent) :
 	QtConcurrent::run(this, &DatabaseController::initDatabase);
 }
 
-QUuid DatabaseController::createIdentity(const QUuid &deviceId)
+QUuid DatabaseController::createIdentity(const QUuid &deviceId, bool &resync)
 {
 	auto db = threadStore.localData().database();
 	if(!db.transaction()) {
@@ -21,6 +21,7 @@ QUuid DatabaseController::createIdentity(const QUuid &deviceId)
 	}
 
 	auto identity = QUuid::createUuid();
+	resync = true;//always true for create
 
 	QSqlQuery createIdentityQuery(db);
 	createIdentityQuery.prepare(QStringLiteral("INSERT INTO users (identity) VALUES(?)"));
@@ -52,7 +53,7 @@ QUuid DatabaseController::createIdentity(const QUuid &deviceId)
 	}
 }
 
-bool DatabaseController::identify(const QUuid &identity, const QUuid &deviceId)
+bool DatabaseController::identify(const QUuid &identity, const QUuid &deviceId, bool &resync)
 {
 	auto db = threadStore.localData().database();
 
@@ -75,8 +76,21 @@ bool DatabaseController::identify(const QUuid &identity, const QUuid &deviceId)
 			qCritical() << "Failed to add (new) device with error:"
 						<< qPrintable(createDeviceQuery.lastError().text());
 			return false;
-		} else
-			return true;
+		} else {
+			QSqlQuery getResyncQuery(db);
+			getResyncQuery.prepare(QStringLiteral("SELECT resync FROM devices WHERE deviceid = ? AND userid = ?"));
+			getResyncQuery.addBindValue(deviceId);
+			getResyncQuery.addBindValue(identity);
+
+			if(!getResyncQuery.exec() || !getResyncQuery.first()) {
+				qCritical() << "Failed to resync status with error:"
+							<< qPrintable(getResyncQuery.lastError().text());
+				return false;
+			} else {
+				resync = getResyncQuery.value(0).toBool();
+				return true;
+			}
+		}
 	} else
 		return false;
 }
@@ -283,6 +297,7 @@ void DatabaseController::initDatabase()
 											  "		id			BIGSERIAL PRIMARY KEY NOT NULL, "
 											  "		deviceid	UUID NOT NULL, "
 											  "		userid		UUID NOT NULL REFERENCES users(identity), "
+											  "		resync		BOOLEAN NOT NULL DEFAULT true"
 											  "		CONSTRAINT device_id UNIQUE (deviceid, userid)"
 											  ")"))) {
 			qCritical() << "Failed to create devices table with error:"

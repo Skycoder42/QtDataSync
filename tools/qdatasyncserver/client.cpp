@@ -120,14 +120,16 @@ void Client::createIdentity(const QJsonObject &data)
 		return;
 	}
 
-	auto identity = database->createIdentity(devId);
+	auto resync = false;
+	auto identity = database->createIdentity(devId, resync);
 	if(!identity.isNull()) {
+		qDebug() << "resync" << resync;
 		userId = identity;
 		qInfo() << "Created new identity"
 				<< userId.toByteArray().constData()
 				<< "for"
 				<< socketAddress;
-		sendCommand("identified", userId.toString());
+		sendCommand("identified", userId.toString());//TODO return newDevice = true
 		emit connected(userId, true);
 	} else {
 		close();
@@ -148,8 +150,10 @@ void Client::identify(const QJsonObject &data)
 		return;
 	}
 
-	if(database->identify(userId, devId)) {
-		sendCommand("identified", userId.toString());
+	auto resync = false;
+	if(database->identify(userId, devId, resync)) {
+		qDebug() << "resync" << resync;
+		sendCommand("identified", userId.toString());//TODO return newDevice = ?
 		emit connected(userId, false);
 	} else
 		close();
