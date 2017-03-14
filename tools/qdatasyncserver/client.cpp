@@ -123,17 +123,19 @@ void Client::createIdentity(const QJsonObject &data)
 	auto resync = false;
 	auto identity = database->createIdentity(devId, resync);
 	if(!identity.isNull()) {
-		qDebug() << "resync" << resync;
 		userId = identity;
 		qInfo() << "Created new identity"
 				<< userId.toByteArray().constData()
 				<< "for"
 				<< socketAddress;
-		sendCommand("identified", userId.toString());//TODO return newDevice = true
+		QJsonObject reply;
+		reply[QStringLiteral("userId")] = userId.toString();
+		reply[QStringLiteral("resync")] = resync;
+		sendCommand("identified", reply);
 		emit connected(userId, true);
-	} else {
+	}  else {
+		sendCommand("identifyFailed");
 		close();
-		return;
 	}
 }
 
@@ -152,11 +154,17 @@ void Client::identify(const QJsonObject &data)
 
 	auto resync = false;
 	if(database->identify(userId, devId, resync)) {
-		qDebug() << "resync" << resync;
-		sendCommand("identified", userId.toString());//TODO return newDevice = ?
+		QJsonObject reply;
+		reply[QStringLiteral("userId")] = userId.toString();
+		reply[QStringLiteral("resync")] = resync;
+		sendCommand("identified", reply);
 		emit connected(userId, false);
-	} else
+	} else {
+		qWarning() << "Invalid user data from"
+				   << socketAddress;
+		sendCommand("identifyFailed");
 		close();
+	}
 }
 
 void Client::loadChanges()

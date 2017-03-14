@@ -15,6 +15,7 @@ class Q_DATASYNC_EXPORT SyncController : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(SyncState syncState READ syncState NOTIFY syncStateChanged)
+	Q_PROPERTY(QString authenticationError READ authenticationError NOTIFY authenticationErrorChanged)
 
 public:
 	enum SyncState {
@@ -31,6 +32,7 @@ public:
 	~SyncController();
 
 	SyncState syncState() const;
+	QString authenticationError() const;
 
 public Q_SLOTS:
 	void triggerSync();
@@ -38,6 +40,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void syncStateChanged(SyncState syncState);
+	void authenticationErrorChanged(const QString &authenticationError);
 
 private:
 	QScopedPointer<SyncControllerPrivate> d;

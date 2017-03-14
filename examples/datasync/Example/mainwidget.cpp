@@ -117,7 +117,16 @@ void MainWidget::setup()
 				this, [](QtDataSync::SyncController::SyncState state) {
 			qDebug() << state;
 		});
+		connect(sync, &QtDataSync::SyncController::authenticationErrorChanged,
+				this, [](QString error) {
+			if(error.isEmpty())
+				qDebug() << "auth error cleared";
+			else
+				qDebug() << "auth error:" << error;
+		});
 		qDebug() << sync->syncState();
+		if(!sync->authenticationError().isEmpty())
+			qDebug() << "auth error:" << sync->authenticationError();
 		connect(ui->reloadButton, &QPushButton::clicked,
 				sync, &QtDataSync::SyncController::triggerSync);
 

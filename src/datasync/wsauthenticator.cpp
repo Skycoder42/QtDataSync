@@ -82,6 +82,12 @@ void WsAuthenticator::setUserIdentity(QByteArray userIdentity)
 	d->settings->sync();
 }
 
+void WsAuthenticator::resetUserIdentity()
+{
+	d->settings->remove(WsRemoteConnector::keyUserIdentity);
+	d->settings->sync();
+}
+
 RemoteConnector *WsAuthenticator::connector()
 {
 	return d->connector;

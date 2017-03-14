@@ -38,6 +38,8 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void remoteStateLoaded(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
 	void remoteDataChanged(const ObjectKey &key, StateHolder::ChangeState state);
+	void authenticationFailed(const QString &reason);
+	void clearAuthenticationError();
 
 	void operationDone(const QJsonValue &result = QJsonValue::Undefined);
 	void operationFailed(const QString &error);

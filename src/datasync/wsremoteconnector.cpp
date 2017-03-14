@@ -22,7 +22,8 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	socket(nullptr),
 	settings(nullptr),
 	state(Disconnected),
-	retryIndex(0)
+	retryIndex(0),
+	needResync(false)
 {}
 
 void WsRemoteConnector::initialize(Defaults *defaults)
@@ -55,6 +56,7 @@ void WsRemoteConnector::reconnect()
 				Qt::QueuedConnection);
 		socket->close();
 	} else {
+		emit clearAuthenticationError();
 		state = Connecting;
 		settings->sync();
 
@@ -248,7 +250,9 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	auto obj = doc.object();
 	auto data = obj[QStringLiteral("data")];
 	if(obj[QStringLiteral("command")] == QStringLiteral("identified"))
-		identified(data.toString());
+		identified(data.toObject());
+	else if(obj[QStringLiteral("command")] == QStringLiteral("identifyFailed"))
+		identifyFailed();
 	else if(obj[QStringLiteral("command")] == QStringLiteral("changeState"))
 		changeState(data.toObject());
 	else if(obj[QStringLiteral("command")] == QStringLiteral("notifyChanged"))
@@ -289,12 +293,22 @@ void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue 
 	socket->sendBinaryMessage(doc.toJson(QJsonDocument::Compact));
 }
 
-void WsRemoteConnector::identified(const QString &data)
+void WsRemoteConnector::identified(const QJsonObject &data)
 {
-	settings->setValue(keyUserIdentity, data.toUtf8());
+	auto userId = data[QStringLiteral("userId")].toString();
+	needResync = data[QStringLiteral("resync")].toBool();
+	settings->setValue(keyUserIdentity, userId.toUtf8());
 	qCDebug(LOG) << "Identification successful";
 	state = Idle;
 	reloadRemoteState();
+}
+
+void WsRemoteConnector::identifyFailed()
+{
+	state = Disconnected;
+	//always "disable" remote for the state changer
+	emit remoteStateLoaded(false, {});
+	emit authenticationFailed(QStringLiteral("User does not exist!"));
 }
 
 void WsRemoteConnector::changeState(const QJsonObject &data)

@@ -23,6 +23,7 @@ class Q_DATASYNC_EXPORT StorageEngine : public QObject
 	friend class Setup;
 
 	Q_PROPERTY(SyncController::SyncState syncState READ syncState NOTIFY syncStateChanged)
+	Q_PROPERTY(QString authenticationError READ authenticationError NOTIFY authenticationErrorChanged)
 
 public:
 	enum TaskType {
@@ -43,6 +44,7 @@ public:
 						   DataMerger *dataMerger);
 
 	SyncController::SyncState syncState() const;
+	QString authenticationError() const;
 
 public Q_SLOTS:
 	void beginTask(QFutureInterface<QVariant> futureInterface,
@@ -55,6 +57,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void notifyChanged(int metaTypeId, const QString &key, bool wasDeleted);
 	void syncStateChanged(SyncController::SyncState syncState);
+	void authenticationErrorChanged(const QString &authenticationError);
 
 private Q_SLOTS:
 	void initialize();
@@ -64,6 +67,8 @@ private Q_SLOTS:
 	void requestFailed(quint64 id, const QString &errorString);
 	void operationDone(const QJsonValue &result);
 	void operationFailed(const QString &errorString);
+	void authError(const QString &reason);
+	void clearAuthError();
 
 	void loadLocalStatus();
 	void updateSyncState(SyncController::SyncState state);
@@ -106,6 +111,7 @@ private:
 	quint64 requestCounter;
 
 	SyncController::SyncState currentSyncState;
+	QString currentAuthError;
 
 	void count(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId);
 	void keys(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId);

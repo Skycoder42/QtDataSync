@@ -18,7 +18,8 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 	changeController(new ChangeController(dataMerger, this)),
 	requestCache(),
 	requestCounter(0),
-	currentSyncState(SyncController::Loading)
+	currentSyncState(SyncController::Loading),
+	currentAuthError()
 {
 	defaults->setParent(this);
 	serializer->setParent(this);
@@ -30,6 +31,11 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 SyncController::SyncState StorageEngine::syncState() const
 {
 	return currentSyncState;
+}
+
+QString StorageEngine::authenticationError() const
+{
+	return currentAuthError;
 }
 
 void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, QThread *targetThread, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
@@ -113,6 +119,12 @@ void StorageEngine::initialize()
 	connect(remoteConnector, &RemoteConnector::operationFailed,
 			this, &StorageEngine::operationFailed,
 			Qt::QueuedConnection);
+	connect(remoteConnector, &RemoteConnector::authenticationFailed,
+			this, &StorageEngine::authError,
+			Qt::QueuedConnection);
+	connect(remoteConnector, &RemoteConnector::clearAuthenticationError,
+			this, &StorageEngine::clearAuthError,
+			Qt::QueuedConnection);
 
 	localStore->initialize(defaults);
 	stateHolder->initialize(defaults);
@@ -183,6 +195,20 @@ void StorageEngine::operationFailed(const QString &errorString)
 	qCWarning(LOG) << "Network operation failed with error:"
 				   << errorString;
 	changeController->nextStage(false);
+}
+
+void StorageEngine::authError(const QString &reason)
+{
+	currentAuthError = reason;
+	emit authenticationErrorChanged(reason);
+}
+
+void StorageEngine::clearAuthError()
+{
+	if(!currentAuthError.isNull()) {
+		currentAuthError.clear();
+		emit authenticationErrorChanged({});
+	}
 }
 
 void StorageEngine::loadLocalStatus()
