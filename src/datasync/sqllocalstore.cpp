@@ -73,15 +73,35 @@ void SqlLocalStore::finalize()
 
 QList<ObjectKey> SqlLocalStore::loadAllKeys()
 {
-	//TODO implement
-	Q_UNIMPLEMENTED();
-	return {};
+	QSqlQuery loadQuery(database);
+	loadQuery.prepare(QStringLiteral("SELECT Type, Key FROM DataIndex"));
+	if(!loadQuery.exec()) {
+		qCCritical(LOG) << "Failed to load all keys with error:"
+						<< loadQuery.lastError().text();
+		return {};
+	}
+
+	QList<ObjectKey> resList;
+	while(loadQuery.next())
+		resList.append({loadQuery.value(0).toByteArray(), loadQuery.value(1).toString()});
+
+	return resList;
 }
 
 void SqlLocalStore::resetStore()
 {
-	//TODO implement
-	Q_UNIMPLEMENTED();
+	auto storageDir = defaults->storageDir();
+	if(storageDir.cd(QStringLiteral("store"))) {
+		if(!storageDir.removeRecursively())
+			qCCritical(LOG) << "Failed to remove local storage directory!";
+	}
+
+	QSqlQuery resetQuery(database);
+	resetQuery.prepare(QStringLiteral("DELETE FROM DataIndex"));
+	if(!resetQuery.exec()) {
+		qCCritical(LOG) << "Failed to remove data keys from database with error:"
+						<< resetQuery.lastError().text();
+	}
 }
 
 void SqlLocalStore::count(quint64 id, const QByteArray &typeName)
@@ -244,7 +264,7 @@ void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 
 QDir SqlLocalStore::typeDirectory(quint64 id, const QByteArray &typeName)
 {
-	auto tName = QString::fromUtf8('_' + QByteArray(typeName).toHex());
+	auto tName = QString::fromUtf8("store/_" + QByteArray(typeName).toHex());
 	auto tableDir = defaults->storageDir();
 	if(!tableDir.mkpath(tName) || !tableDir.cd(tName)) {
 		emit requestFailed(id, QStringLiteral("Failed to create table directory \"%1\" for type \"%2\"")
