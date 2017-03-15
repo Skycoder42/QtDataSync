@@ -89,17 +89,20 @@ void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeS
 	}
 }
 
-void SqlStateHolder::resetAllChanges(const QList<ObjectKey> &changeKeys)
+StateHolder::ChangeHash SqlStateHolder::resetAllChanges(const QList<ObjectKey> &changeKeys)
 {
 	clearAllChanges();
 
 	if(!database.transaction()) {
 		qCCritical(LOG) << "Failed to start database transaction with error:"
 						<< database.lastError().text();
-		return;
+		return {};
 	}
 
+	ChangeHash stateHash;
 	foreach (auto key, changeKeys) {
+		stateHash.insert(key, Changed);
+
 		QSqlQuery keyQuery(database);
 		keyQuery.prepare(QStringLiteral("INSERT INTO SyncState (Type, Key, Changed) VALUES(?, ?, ?)"));
 		keyQuery.addBindValue(key.first);
@@ -110,14 +113,16 @@ void SqlStateHolder::resetAllChanges(const QList<ObjectKey> &changeKeys)
 			qCCritical(LOG) << "Failed to reset sync state with error:"
 							<< keyQuery.lastError().text();
 			database.rollback();
-			return;
+			return {};
 		}
 	}
 
 	if(!database.commit()) {
 		qCCritical(LOG) << "Failed to commit transaction with error:"
 						<< database.lastError().text();
-	}
+		return {};
+	} else
+		return stateHash;
 }
 
 void SqlStateHolder::clearAllChanges()

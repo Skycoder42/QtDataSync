@@ -21,7 +21,7 @@ public:
 
 	ChangeHash listLocalChanges() override;
 	void markLocalChanged(const ObjectKey &key, ChangeState changed) override;
-	void resetAllChanges(const QList<ObjectKey> &changeKeys) override;
+	ChangeHash resetAllChanges(const QList<ObjectKey> &changeKeys) override;
 	void clearAllChanges() override;
 
 private:
