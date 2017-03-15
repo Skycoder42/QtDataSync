@@ -34,6 +34,7 @@ void ChangeController::finalize()
 
 void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &changes)
 {
+	localState.clear();
 	for(auto it = changes.constBegin(); it != changes.constEnd(); it++)
 		localState.insert(it.key(), it.value());
 	localReady = true;

@@ -310,8 +310,12 @@ void StorageEngine::performLocalReset(bool clearStore)
 	if(clearStore) {
 		localStore->resetStore();
 		stateHolder->clearAllChanges();
-	} else
+		changeController->setInitialLocalStatus({});
+	} else {
 		stateHolder->resetAllChanges(localStore->loadAllKeys());
+		auto state = stateHolder->listLocalChanges();
+		changeController->setInitialLocalStatus(state);
+	}
 }
 
 void StorageEngine::count(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId)
