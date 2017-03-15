@@ -54,18 +54,31 @@ void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::Chan
 	}
 }
 
-void ChangeController::setRemoteStatus(bool canUpdate, const StateHolder::ChangeHash &changes)
+void ChangeController::setRemoteStatus(RemoteConnector::RemoteState state, const StateHolder::ChangeHash &changes)
 {
 	for(auto it = changes.constBegin(); it != changes.constEnd(); it++){
 		if(it.key() == currentKey)
 			currentState = CancelState;//cancel whatever is currently done for that key
 		remoteState.insert(it.key(), it.value());
 	}
-	remoteReady = canUpdate;
-	newChanges();
 
-	if(!canUpdate)
+	switch (state) {
+	case RemoteConnector::RemoteDisconnected:
 		emit updateSyncState(SyncController::Disconnected);
+		remoteReady = false;
+		break;
+	case RemoteConnector::RemoteLoadingState:
+		emit updateSyncState(SyncController::Loading);
+		remoteReady = false;
+		break;
+	case RemoteConnector::RemoteReady:
+		remoteReady = true;
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+	newChanges();
 }
 
 void ChangeController::updateRemoteStatus(const ObjectKey &key, StateHolder::ChangeState state)

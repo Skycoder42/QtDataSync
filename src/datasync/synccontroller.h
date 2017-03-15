@@ -19,10 +19,10 @@ class Q_DATASYNC_EXPORT SyncController : public QObject
 
 public:
 	enum SyncState {
-		Loading,
+		Loading,//loading the remote state
 		Disconnected,
-		Syncing,
-		Synced,
+		Syncing,//remote and local state loaded, comparing them and syncing changes
+		Synced,//finished syncing
 		SyncedWithErrors
 	};
 	Q_ENUM(SyncState)

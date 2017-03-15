@@ -19,6 +19,13 @@ class Q_DATASYNC_EXPORT RemoteConnector : public QObject
 	Q_OBJECT
 
 public:
+	enum RemoteState {
+		RemoteDisconnected,
+		RemoteLoadingState,
+		RemoteReady
+	};
+	Q_ENUM(RemoteState)
+
 	explicit RemoteConnector(QObject *parent = nullptr);
 
 	virtual void initialize(Defaults *defaults);
@@ -40,7 +47,7 @@ public Q_SLOTS:
 					 bool resetLocalStore);
 
 Q_SIGNALS:
-	void remoteStateLoaded(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
+	void remoteStateLoaded(RemoteConnector::RemoteState state, const StateHolder::ChangeHash &remoteChanges);
 	void remoteDataChanged(const ObjectKey &key, StateHolder::ChangeState state);
 	void authenticationFailed(const QString &reason);
 	void clearAuthenticationError();

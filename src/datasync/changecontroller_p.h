@@ -6,6 +6,7 @@
 #include "defaults.h"
 #include "stateholder.h"
 #include "synccontroller.h"
+#include "remoteconnector.h"
 
 #include <QtCore/QJsonValue>
 #include <QtCore/QObject>
@@ -40,7 +41,7 @@ public Q_SLOTS:
 	void setInitialLocalStatus(const StateHolder::ChangeHash &changes);
 	void updateLocalStatus(const ObjectKey &key, QtDataSync::StateHolder::ChangeState &state);
 
-	void setRemoteStatus(bool canUpdate, const StateHolder::ChangeHash &changes);
+	void setRemoteStatus(RemoteConnector::RemoteState state, const StateHolder::ChangeHash &changes);
 	void updateRemoteStatus(const ObjectKey &key, StateHolder::ChangeState state);
 
 	void nextStage(bool success, const QJsonValue &result = QJsonValue::Undefined);

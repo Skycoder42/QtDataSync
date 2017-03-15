@@ -63,6 +63,7 @@ void WsRemoteConnector::reconnect()
 		auto remoteUrl = settings->value(keyRemoteUrl).toUrl();
 		if(!remoteUrl.isValid()) {
 			state = Disconnected;
+			remoteStateLoaded(RemoteDisconnected, {});
 			return;
 		}
 
@@ -111,7 +112,7 @@ void WsRemoteConnector::reloadRemoteState()
 		reconnect();
 		break;
 	case Idle:
-		remoteStateLoaded(false, {});//TODO extra info -> switch to loading instead of disconnected state
+		remoteStateLoaded(RemoteLoadingState, {});
 		if(needResync)
 			emit performLocalReset(false);//direct connected, thus "inline"
 		state = Reloading;
@@ -246,7 +247,7 @@ void WsRemoteConnector::disconnected()
 	socket = nullptr;
 
 	//always "disable" remote for the state changer
-	emit remoteStateLoaded(false, {});
+	emit remoteStateLoaded(RemoteDisconnected, {});
 }
 
 void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
@@ -317,10 +318,9 @@ void WsRemoteConnector::identified(const QJsonObject &data)
 
 void WsRemoteConnector::identifyFailed()
 {
-	state = Disconnected;
-	//always "disable" remote for the state changer
-	emit remoteStateLoaded(false, {});
+	state = Closing;
 	emit authenticationFailed(QStringLiteral("User does not exist!"));
+	socket->close();//TODO ok?
 }
 
 void WsRemoteConnector::changeState(const QJsonObject &data)
@@ -337,7 +337,7 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 			key.second = obj[QStringLiteral("key")].toString();
 			changeState.insert(key, obj[QStringLiteral("changed")].toBool() ? StateHolder::Changed : StateHolder::Deleted);
 		}
-		emit remoteStateLoaded(true, changeState);
+		emit remoteStateLoaded(RemoteReady, changeState);
 	} else {
 		auto delta = retry();
 		qCWarning(LOG) << "Failed to load state with error:"
