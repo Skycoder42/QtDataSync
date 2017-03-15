@@ -22,7 +22,7 @@ public:
 	explicit Authenticator(QObject *parent = nullptr);
 
 protected:
-	GenericTask<void> resetIdentity(const QVariant &extraData = {});
+	GenericTask<void> resetIdentity(const QVariant &extraData = {}, bool resetLocalStore = true);
 
 	virtual RemoteConnector *connector() = 0;
 };

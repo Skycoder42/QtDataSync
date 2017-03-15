@@ -21,7 +21,6 @@ public:
 		Connecting,
 		Identifying,
 		Idle,
-		WaitLocalResync,
 		Reloading,
 		Operating,
 		Closing
@@ -48,8 +47,6 @@ public Q_SLOTS:
 	void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
 	void remove(const ObjectKey &key, const QByteArray &keyProperty) override;
 	void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) override;
-
-	void localResyncCompleted();
 
 protected:
 	void resetUserData(const QVariant &extraData) override;

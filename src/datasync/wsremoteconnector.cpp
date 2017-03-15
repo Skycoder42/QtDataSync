@@ -111,14 +111,10 @@ void WsRemoteConnector::reloadRemoteState()
 		reconnect();
 		break;
 	case Idle:
-		if(needResync) {
-			needResync = false;
-			state = WaitLocalResync;
-			emit requestLocalResync();
-		} else {
-			state = Reloading;
-			sendCommand("loadChanges", false);
-		}
+		if(needResync)
+			emit performLocalReset(false);//direct connected, thus "inline"
+		state = Reloading;
+		sendCommand("loadChanges", needResync);
 		break;
 	case Operating:
 		retry();
@@ -186,15 +182,6 @@ void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &ke
 
 }
 
-void WsRemoteConnector::localResyncCompleted()
-{
-	if(state == WaitLocalResync) {
-		state = Reloading;
-		sendCommand("loadChanges", true);
-	}
-	//ignore other cases, probably connection reset
-}
-
 void WsRemoteConnector::resetUserData(const QVariant &extraData)
 {
 	if(extraData.isValid())
@@ -214,12 +201,12 @@ void WsRemoteConnector::connected()
 	auto id = settings->value(keyUserIdentity).toByteArray();
 	if(id.isNull()) {
 		QJsonObject data;
-		data[QStringLiteral("deviceId")] = QString::fromUtf8(loadDeviceId());
+		data[QStringLiteral("deviceId")] = QString::fromUtf8(getDeviceId());
 		sendCommand("createIdentity", data);
 	} else {
 		QJsonObject data;
 		data[QStringLiteral("userId")] = QString::fromUtf8(id);
-		data[QStringLiteral("deviceId")] = QString::fromUtf8(loadDeviceId());
+		data[QStringLiteral("deviceId")] = QString::fromUtf8(getDeviceId());
 		sendCommand("identify", data);
 	}
 }
@@ -313,7 +300,7 @@ void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue 
 void WsRemoteConnector::identified(const QJsonObject &data)
 {
 	auto userId = data[QStringLiteral("userId")].toString();
-	needResync = data[QStringLiteral("resync")].toBool();
+	needResync = needResync || data[QStringLiteral("resync")].toBool();
 	settings->setValue(keyUserIdentity, userId.toUtf8());
 	qCDebug(LOG) << "Identification successful";
 	state = Idle;
@@ -331,8 +318,9 @@ void WsRemoteConnector::identifyFailed()
 void WsRemoteConnector::changeState(const QJsonObject &data)
 {
 	if(data[QStringLiteral("success")].toBool()) {
-		//reset retry
+		//reset retry & need resync
 		retryIndex = 0;
+		needResync = false;
 
 		StateHolder::ChangeHash changeState;
 		foreach(auto value, data[QLatin1String("data")].toArray()) {

@@ -125,6 +125,9 @@ void StorageEngine::initialize()
 	connect(remoteConnector, &RemoteConnector::clearAuthenticationError,
 			this, &StorageEngine::clearAuthError,
 			Qt::QueuedConnection);
+	connect(remoteConnector, &RemoteConnector::performLocalReset,
+			this, &StorageEngine::performLocalReset,
+			Qt::DirectConnection);//explicitly direct connected -> blocking
 
 	localStore->initialize(defaults);
 	stateHolder->initialize(defaults);
@@ -300,6 +303,15 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 	default:
 		Q_UNREACHABLE();
 	}
+}
+
+void StorageEngine::performLocalReset(bool clearStore)
+{
+	if(clearStore) {
+		localStore->resetStore();
+		stateHolder->clearAllChanges();
+	} else
+		stateHolder->resetAllChanges(localStore->loadAllKeys());
 }
 
 void StorageEngine::count(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId)

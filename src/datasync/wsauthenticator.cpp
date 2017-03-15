@@ -76,14 +76,14 @@ void WsAuthenticator::setValidateServerCertificate(bool validateServerCertificat
 	d->settings->sync();
 }
 
-GenericTask<void> WsAuthenticator::setUserIdentity(QByteArray userIdentity, bool clearLocalStore)//TODO use
+GenericTask<void> WsAuthenticator::setUserIdentity(QByteArray userIdentity, bool clearLocalStore)
 {
-	return resetIdentity(userIdentity);
+	return resetIdentity(userIdentity, clearLocalStore);
 }
 
-GenericTask<void> WsAuthenticator::resetUserIdentity(bool clearLocalStore)//TODO use
+GenericTask<void> WsAuthenticator::resetUserIdentity(bool clearLocalStore)
 {
-	return resetIdentity();
+	return resetIdentity(clearLocalStore);
 }
 
 RemoteConnector *WsAuthenticator::connector()

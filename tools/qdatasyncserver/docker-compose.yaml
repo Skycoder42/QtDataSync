@@ -5,7 +5,7 @@ services:
     container_name: datasync_example_server
     image: postgres:latest
     ports:
-     - "15432/tcp:5432/tcp"
+      - "15432/tcp:5432/tcp"
     environment:
       POSTGRES_USER: qtdatasync
       POSTGRES_PASSWORD: baum42
@@ -15,8 +15,10 @@ services:
   datasync_pgAdmin:
     container_name: datasync_example_pgAdmin
     image: thajeztah/pgadmin4:latest
+    depends_on:
+      - datasync_example_server
     ports:
-     - "5050/tcp:5050/tcp"
+      - "5050/tcp:5050/tcp"
     volumes:
       - datasync_example_pgAdmin_data:/var/lib/datasync_example_pgAdmin/data
 volumes:

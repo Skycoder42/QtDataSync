@@ -75,6 +75,8 @@ private Q_SLOTS:
 	void beginRemoteOperation(const ChangeController::ChangeOperation &operation);
 	void beginLocalOperation(const ChangeController::ChangeOperation &operation);
 
+	void performLocalReset(bool clearStore);
+
 private:
 	struct Q_DATASYNC_EXPORT RequestInfo {
 		//change controller

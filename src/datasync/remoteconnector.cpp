@@ -18,9 +18,10 @@ void RemoteConnector::initialize(Defaults *defaults)
 
 void RemoteConnector::finalize() {}
 
-void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, const QVariant &extraData)
+void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, const QVariant &extraData, bool resetLocalStore)
 {
-	//TODO clear local store
+	if(resetLocalStore)//resync is always done, only clear explicitly needed
+		emit performLocalReset(true);//direct connected thus "inline"
 	_defaults->settings()->remove(QStringLiteral("RemoteConnector/deviceId"));
 	resetUserData(extraData);
 	futureInterface.reportFinished();
@@ -31,7 +32,7 @@ Defaults *RemoteConnector::defaults() const
 	return _defaults;
 }
 
-QByteArray RemoteConnector::loadDeviceId()
+QByteArray RemoteConnector::getDeviceId() const
 {
 	static const QString key(QStringLiteral("RemoteConnector/deviceId"));
 	auto settings = _defaults->settings();

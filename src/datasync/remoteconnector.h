@@ -34,9 +34,9 @@ public Q_SLOTS:
 	virtual void remove(const ObjectKey &key, const QByteArray &keyProperty) = 0;//auto unchanged
 	virtual void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) = 0;
 
-	virtual void localResyncCompleted() = 0;//TODO call from engine
-
-	void resetUserId(QFutureInterface<QVariant> futureInterface, const QVariant &extraData);
+	void resetUserId(QFutureInterface<QVariant> futureInterface,
+					 const QVariant &extraData,
+					 bool resetLocalStore);
 
 Q_SIGNALS:
 	void remoteStateLoaded(bool canUpdate, const StateHolder::ChangeHash &remoteChanges);
@@ -47,12 +47,12 @@ Q_SIGNALS:
 	void operationDone(const QJsonValue &result = QJsonValue::Undefined);
 	void operationFailed(const QString &error);
 
-	void requestLocalResync();//TODO use in engine
+	void performLocalReset(bool clearStore);
 
 protected:
 	Defaults *defaults() const;
 
-	virtual QByteArray loadDeviceId();
+	QByteArray getDeviceId() const;
 	virtual void resetUserData(const QVariant &extraData) = 0;
 
 private:
