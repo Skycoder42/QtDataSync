@@ -111,10 +111,12 @@ void WsRemoteConnector::reloadRemoteState()
 		reconnect();
 		break;
 	case Idle:
+		remoteStateLoaded(false, {});//TODO extra info -> switch to loading instead of disconnected state
 		if(needResync)
 			emit performLocalReset(false);//direct connected, thus "inline"
 		state = Reloading;
 		sendCommand("loadChanges", needResync);
+		needResync = false;//TODO timeout -> ok so? or only after success?
 		break;
 	case Operating:
 		retry();
@@ -122,6 +124,12 @@ void WsRemoteConnector::reloadRemoteState()
 	default:
 		break;
 	}
+}
+
+void WsRemoteConnector::requestResync()
+{
+	needResync = true;
+	reloadRemoteState();
 }
 
 void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProperty)
@@ -320,7 +328,6 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 	if(data[QStringLiteral("success")].toBool()) {
 		//reset retry & need resync
 		retryIndex = 0;
-		needResync = false;
 
 		StateHolder::ChangeHash changeState;
 		foreach(auto value, data[QLatin1String("data")].toArray()) {

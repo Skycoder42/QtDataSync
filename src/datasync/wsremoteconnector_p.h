@@ -42,6 +42,7 @@ public:
 public Q_SLOTS:
 	void reconnect();
 	void reloadRemoteState() override;
+	void requestResync() override;
 
 	void download(const ObjectKey &key, const QByteArray &keyProperty) override;
 	void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;

@@ -41,6 +41,23 @@ void SyncController::triggerSync()
 
 void SyncController::triggerSyncWithResult(std::function<void (SyncState)> resultFn)
 {
+	setupTriggerResult(resultFn);
+	triggerSync();
+}
+
+void SyncController::triggerResync()
+{
+	QMetaObject::invokeMethod(d->engine, "triggerResync");
+}
+
+void SyncController::triggerResyncWithResult(std::function<void (SyncController::SyncState)> resultFn)
+{
+	setupTriggerResult(resultFn);
+	triggerResync();
+}
+
+void SyncController::setupTriggerResult(std::function<void (SyncController::SyncState)> resultFn)
+{
 	auto receiver = new QObject(this);//dummy to disconnect after one call
 	connect(this, &SyncController::syncStateChanged, receiver, [=](SyncState state){
 		if(state == Loading || state == Syncing)
@@ -48,5 +65,4 @@ void SyncController::triggerSyncWithResult(std::function<void (SyncState)> resul
 		resultFn(state);
 		receiver->deleteLater();
 	});
-	triggerSync();
 }

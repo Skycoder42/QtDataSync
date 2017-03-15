@@ -179,6 +179,8 @@ void MainWidget::setup()
 			qDebug() << "auth error:" << sync->authenticationError();
 		connect(ui->reloadButton, &QPushButton::clicked,
 				sync, &QtDataSync::SyncController::triggerSync);
+		connect(ui->resyncButton, &QPushButton::clicked,
+				sync, &QtDataSync::SyncController::triggerResync);
 
 		store->loadAll<SampleData*>().onResult([this](QList<SampleData*> data){
 			report(QtInfoMsg, "All Data loaded from store!");

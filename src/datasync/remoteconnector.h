@@ -28,6 +28,7 @@ public:
 
 public Q_SLOTS:
 	virtual void reloadRemoteState() = 0;
+	virtual void requestResync() = 0;
 
 	virtual void download(const ObjectKey &key, const QByteArray &keyProperty) = 0;
 	virtual void upload(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;//auto unchanged

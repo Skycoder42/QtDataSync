@@ -53,6 +53,7 @@ public Q_SLOTS:
 				   int metaTypeId,
 				   const QVariant &value = {});
 	void triggerSync();
+	void triggerResync();
 
 Q_SIGNALS:
 	void notifyChanged(int metaTypeId, const QString &key, bool wasDeleted);

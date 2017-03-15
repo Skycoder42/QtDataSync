@@ -86,6 +86,11 @@ void StorageEngine::triggerSync()
 	loadLocalStatus();
 }
 
+void StorageEngine::triggerResync()
+{
+	remoteConnector->requestResync();
+}
+
 void StorageEngine::initialize()
 {
 	//localStore

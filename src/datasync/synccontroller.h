@@ -37,6 +37,8 @@ public:
 public Q_SLOTS:
 	void triggerSync();
 	void triggerSyncWithResult(std::function<void(SyncState)> resultFn);
+	void triggerResync();
+	void triggerResyncWithResult(std::function<void(SyncState)> resultFn);
 
 Q_SIGNALS:
 	void syncStateChanged(SyncState syncState);
@@ -44,6 +46,8 @@ Q_SIGNALS:
 
 private:
 	QScopedPointer<SyncControllerPrivate> d;
+
+	void setupTriggerResult(std::function<void(SyncState)> resultFn);
 };
 
 }
