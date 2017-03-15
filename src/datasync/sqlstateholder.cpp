@@ -91,12 +91,41 @@ void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeS
 
 void SqlStateHolder::resetAllChanges(const QList<ObjectKey> &changeKeys)
 {
-	//TODO implement
-	Q_UNIMPLEMENTED();
+	clearAllChanges();
+
+	if(!database.transaction()) {
+		qCCritical(LOG) << "Failed to start database transaction with error:"
+						<< database.lastError().text();
+		return;
+	}
+
+	foreach (auto key, changeKeys) {
+		QSqlQuery keyQuery(database);
+		keyQuery.prepare(QStringLiteral("INSERT INTO SyncState (Type, Key, Changed) VALUES(?, ?, ?)"));
+		keyQuery.addBindValue(key.first);
+		keyQuery.addBindValue(key.second);
+		keyQuery.addBindValue((int)Changed);
+
+		if(!keyQuery.exec()) {
+			qCCritical(LOG) << "Failed to reset sync state with error:"
+							<< keyQuery.lastError().text();
+			database.rollback();
+			return;
+		}
+	}
+
+	if(!database.commit()) {
+		qCCritical(LOG) << "Failed to commit transaction with error:"
+						<< database.lastError().text();
+	}
 }
 
 void SqlStateHolder::clearAllChanges()
 {
-	//TODO implement
-	Q_UNIMPLEMENTED();
+	QSqlQuery resetQuery(database);
+	resetQuery.prepare(QStringLiteral("DELETE FROM SyncState"));
+	if(!resetQuery.exec()) {
+		qCCritical(LOG) << "Failed to remove sync state from database with error:"
+						<< resetQuery.lastError().text();
+	}
 }
