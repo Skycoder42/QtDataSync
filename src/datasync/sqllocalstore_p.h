@@ -21,6 +21,9 @@ public:
 	void initialize(Defaults *defaults) override;
 	void finalize() override;
 
+	QList<ObjectKey> loadAllKeys() override;
+	void resetStore() override;
+
 public Q_SLOTS:
 	void count(quint64 id, const QByteArray &typeName) override;
 	void keys(quint64 id, const QByteArray &typeName) override;
@@ -28,15 +31,13 @@ public Q_SLOTS:
 	void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
 	void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
 	void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
-	void loadAllKeys() override;
-	void resetStore() override;
 
 private:
 	Defaults *defaults;
 	QSqlDatabase database;
 
-	QString tableName(const QByteArray &typeName) const;
-	bool testTableExists(const QString &tableName) const;
+	QDir typeDirectory(quint64 id, const QByteArray &typeName);
+	bool testTableExists(const QString &typeDirectory) const;
 };
 
 }

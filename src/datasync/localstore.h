@@ -22,6 +22,9 @@ public:
 	virtual void initialize(Defaults *defaults);
 	virtual void finalize();
 
+	virtual QList<ObjectKey> loadAllKeys() = 0;
+	virtual void resetStore() = 0;
+
 public Q_SLOTS:
 	virtual void count(quint64 id, const QByteArray &typeName) = 0;
 	virtual void keys(quint64 id, const QByteArray &typeName) = 0;
@@ -29,9 +32,6 @@ public Q_SLOTS:
 	virtual void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) = 0;
 	virtual void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;
 	virtual void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) = 0;
-
-	virtual void loadAllKeys() = 0;
-	virtual void resetStore() = 0;
 
 Q_SIGNALS:
 	void requestCompleted(quint64 id, const QJsonValue &result);

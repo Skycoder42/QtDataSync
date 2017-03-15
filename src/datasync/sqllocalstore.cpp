@@ -8,12 +8,12 @@
 
 using namespace QtDataSync;
 
-#define TABLE_DIR(tName) \
-	auto tableDir = defaults->storageDir(); \
-	if(!tableDir.mkpath(tName) || !tableDir.cd(tName)) { \
-		emit requestFailed(id, QStringLiteral("Failed to create table directory %1").arg(tName)); \
-		return; \
-	}
+#define LOG defaults->loggingCategory()
+
+#define TYPE_DIR(id, typeName) \
+	auto tableDir = typeDirectory(id, typeName); \
+	if(!tableDir.exists()) \
+		return;
 
 #define EXEC_QUERY(query) do {\
 	if(!query.exec()) { \
@@ -32,6 +32,37 @@ void SqlLocalStore::initialize(Defaults *defaults)
 {
 	this->defaults = defaults;
 	database = defaults->aquireDatabase();
+
+	//create table
+	if(!database.tables().contains(QStringLiteral("DataIndex"))) {
+		QSqlQuery createQuery(database);
+		createQuery.prepare(QStringLiteral("CREATE TABLE DataIndex ("
+												"Type	TEXT NOT NULL,"
+												"Key	TEXT NOT NULL,"
+												"File	TEXT NOT NULL,"
+												"PRIMARY KEY(Type, Key)"
+										   ");"));
+		if(!createQuery.exec()) {
+			qCCritical(LOG) << "Failed to create DataIndex table with error:"
+							<< createQuery.lastError().text();
+		}
+	}
+
+	//create index
+	QSqlQuery testIndexQuery(database);
+	testIndexQuery.prepare(QStringLiteral("SELECT * FROM sqlite_master WHERE name = ?"));
+	testIndexQuery.addBindValue(QStringLiteral("index_DataIndex_Type"));
+	if(!testIndexQuery.exec()) {
+		qCCritical(LOG) << "Failed to check if index for DataIndex exists with error:"
+						<< testIndexQuery.lastError().text();
+	} else if(!testIndexQuery.first()) {
+		QSqlQuery indexQuery(database);
+		indexQuery.prepare(QStringLiteral("CREATE INDEX index_DataIndex_Type ON DataIndex (Type)"));
+		if(!indexQuery.exec()) {
+			qCCritical(LOG) << "Failed to create index for DataIndex with error:"
+							<< indexQuery.lastError().text();
+		}
+	}
 }
 
 void SqlLocalStore::finalize()
@@ -40,120 +71,108 @@ void SqlLocalStore::finalize()
 	defaults->releaseDatabase();
 }
 
+QList<ObjectKey> SqlLocalStore::loadAllKeys()
+{
+	//TODO implement
+	Q_UNIMPLEMENTED();
+	return {};
+}
+
+void SqlLocalStore::resetStore()
+{
+	//TODO implement
+	Q_UNIMPLEMENTED();
+}
+
 void SqlLocalStore::count(quint64 id, const QByteArray &typeName)
 {
-	auto tName = tableName(typeName);
+	QSqlQuery countQuery(database);
+	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM DataIndex WHERE Type = ?"));
+	countQuery.addBindValue(typeName);
+	EXEC_QUERY(countQuery);
 
-	if(testTableExists(tName)) {
-		QSqlQuery countQuery(database);
-		countQuery.prepare(QStringLiteral("SELECT Count(*) FROM %1").arg(tName));
-		EXEC_QUERY(countQuery);
-
-		if(countQuery.first()) {
-			emit requestCompleted(id, countQuery.value(0).toInt());
-			return;
-		}
-	}
-
-	emit requestCompleted(id, 0);
+	if(countQuery.first())
+		emit requestCompleted(id, countQuery.value(0).toInt());
+	else
+		emit requestCompleted(id, 0);
 }
 
 void SqlLocalStore::keys(quint64 id, const QByteArray &typeName)
 {
-	auto tName = tableName(typeName);
+	QSqlQuery keysQuery(database);
+	keysQuery.prepare(QStringLiteral("SELECT Key FROM DataIndex WHERE Type = ?"));
+	keysQuery.addBindValue(typeName);
+	EXEC_QUERY(keysQuery);
 
-	if(testTableExists(tName)) {
-		QSqlQuery keysQuery(database);
-		keysQuery.prepare(QStringLiteral("SELECT Key FROM %1").arg(tName));
-		EXEC_QUERY(keysQuery);
+	QJsonArray resList;
+	while(keysQuery.next())
+		resList.append(keysQuery.value(0).toString());
 
-		QJsonArray resList;
-		while(keysQuery.next())
-			resList.append(keysQuery.value(0).toString());
-
-		emit requestCompleted(id, resList);
-	} else
-		emit requestCompleted(id, QJsonArray());
+	emit requestCompleted(id, resList);
 }
 
 void SqlLocalStore::loadAll(quint64 id, const QByteArray &typeName)
 {
-	auto tName = tableName(typeName);
-	TABLE_DIR(tName)
+	TYPE_DIR(id, typeName)
 
-	if(testTableExists(tName)) {
-		QSqlQuery loadQuery(database);
-		loadQuery.prepare(QStringLiteral("SELECT File FROM %1").arg(tName));
-		EXEC_QUERY(loadQuery);
+	QSqlQuery loadQuery(database);
+	loadQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ?"));
+	loadQuery.addBindValue(typeName);
+	EXEC_QUERY(loadQuery);
 
-		QJsonArray array;
-		while(loadQuery.next()) {
-			QFile file(tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat")));
-			file.open(QIODevice::ReadOnly);
-			auto doc = QJsonDocument::fromBinaryData(file.readAll());
-			file.close();
+	QJsonArray array;
+	while(loadQuery.next()) {
+		QFile file(tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat")));
+		file.open(QIODevice::ReadOnly);
+		auto doc = QJsonDocument::fromBinaryData(file.readAll());
+		file.close();
 
-			if(doc.isNull() || file.error() != QFile::NoError) {
-				emit requestFailed(id, QStringLiteral("Failed to read data from file \"%1\" with error: %2")
-								   .arg(file.fileName())
-								   .arg(file.errorString()));
-				return;
-			} else
-				array.append(doc.object());
-		}
+		if(doc.isNull() || file.error() != QFile::NoError) {
+			emit requestFailed(id, QStringLiteral("Failed to read data from file \"%1\" with error: %2")
+							   .arg(file.fileName())
+							   .arg(file.errorString()));
+			return;
+		} else
+			array.append(doc.object());
+	}
 
-		emit requestCompleted(id, array);
-	} else
-		emit requestCompleted(id, QJsonArray());
+	emit requestCompleted(id, array);
 }
 
 void SqlLocalStore::load(quint64 id, const ObjectKey &key, const QByteArray &)
 {
-	auto tName = tableName(key.first);
-	TABLE_DIR(tName)
+	TYPE_DIR(id, key.first)
 
-	if(testTableExists(tName)) {
-		QSqlQuery loadQuery(database);
-		loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
-		loadQuery.addBindValue(key.second);
-		EXEC_QUERY(loadQuery);
+	QSqlQuery loadQuery(database);
+	loadQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Key = ?"));
+	loadQuery.addBindValue(key.first);
+	loadQuery.addBindValue(key.second);
+	EXEC_QUERY(loadQuery);
 
-		if(loadQuery.first()) {
-			QFile file(tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat")));
-			file.open(QIODevice::ReadOnly);
-			auto doc = QJsonDocument::fromBinaryData(file.readAll());
-			file.close();
+	if(loadQuery.first()) {
+		QFile file(tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat")));
+		file.open(QIODevice::ReadOnly);
+		auto doc = QJsonDocument::fromBinaryData(file.readAll());
+		file.close();
 
-			if(doc.isNull() || file.error() != QFile::NoError) {
-				emit requestFailed(id, QStringLiteral("Failed to read data from file \"%1\" with error: %2")
-								   .arg(file.fileName())
-								   .arg(file.errorString()));
-			} else
-				emit requestCompleted(id, doc.object());
-			return;
-		}
-	}
-
-	emit requestCompleted(id, QJsonValue::Null);
+		if(doc.isNull() || file.error() != QFile::NoError) {
+			emit requestFailed(id, QStringLiteral("Failed to read data from file \"%1\" with error: %2")
+							   .arg(file.fileName())
+							   .arg(file.errorString()));
+		} else
+			emit requestCompleted(id, doc.object());
+	} else
+		emit requestCompleted(id, QJsonValue::Null);
 }
 
 void SqlLocalStore::save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &)
 {
-	auto tName = tableName(key.first);
-	TABLE_DIR(tName)
-
-	//create table
-	QSqlQuery createQuery(database);
-	createQuery.prepare(QStringLiteral("CREATE TABLE IF NOT EXISTS %1 ("
-							"Key	TEXT NOT NULL,"
-							"File	TEXT NOT NULL,"
-							"PRIMARY KEY(Key)"
-						");").arg(tName));
-	EXEC_QUERY(createQuery);
+	TYPE_DIR(id, key.first)
 
 	//check if the file exists
 	QSqlQuery existQuery(database);
-	existQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
+	existQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Key = ?"));
+	existQuery.addBindValue(key.first);
 	existQuery.addBindValue(key.second);
 	EXEC_QUERY(existQuery);
 
@@ -186,7 +205,8 @@ void SqlLocalStore::save(quint64 id, const ObjectKey &key, const QJsonObject &ob
 	//save key in database
 	if(needUpdate) {
 		QSqlQuery insertQuery(database);
-		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (Key, File) VALUES(?, ?)").arg(tName));
+		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO DataIndex (Type, Key, File) VALUES(?, ?, ?)"));
+		insertQuery.addBindValue(key.first);
 		insertQuery.addBindValue(key.second);
 		insertQuery.addBindValue(tableDir.relativeFilePath(QFileInfo(file->fileName()).completeBaseName()));
 		EXEC_QUERY(insertQuery);
@@ -197,47 +217,42 @@ void SqlLocalStore::save(quint64 id, const ObjectKey &key, const QJsonObject &ob
 
 void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 {
-	auto tName = tableName(key.first);
-	TABLE_DIR(tName)
+	TYPE_DIR(id, key.first)
 
-	if(testTableExists(tName)) {
-		QSqlQuery loadQuery(database);
-		loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(tName));
-		loadQuery.addBindValue(key.second);
-		EXEC_QUERY(loadQuery);
+	QSqlQuery loadQuery(database);
+	loadQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Key = ?"));
+	loadQuery.addBindValue(key.first);
+	loadQuery.addBindValue(key.second);
+	EXEC_QUERY(loadQuery);
 
-		if(loadQuery.first()) {
-			auto fileName = tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat"));
-			if(!QFile::remove(fileName)) {
-				emit requestFailed(id, QStringLiteral("Failed to delete file %1").arg(fileName));
-				return;
-			}
-
-			QSqlQuery removeQuery(database);
-			removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(tName));
-			removeQuery.addBindValue(key.second);
-			EXEC_QUERY(removeQuery);
+	if(loadQuery.first()) {
+		auto fileName = tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat"));
+		if(!QFile::remove(fileName)) {
+			emit requestFailed(id, QStringLiteral("Failed to delete file %1").arg(fileName));
+			return;
 		}
+
+		QSqlQuery removeQuery(database);
+		removeQuery.prepare(QStringLiteral("DELETE FROM DataIndex WHERE Type = ? AND Key = ?"));
+		removeQuery.addBindValue(key.first);
+		removeQuery.addBindValue(key.second);
+		EXEC_QUERY(removeQuery);
 	}
 
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
-void SqlLocalStore::loadAllKeys()
+QDir SqlLocalStore::typeDirectory(quint64 id, const QByteArray &typeName)
 {
-	//TODO implement
-	Q_UNIMPLEMENTED();
-}
-
-void SqlLocalStore::resetStore()
-{
-	//TODO implement
-	Q_UNIMPLEMENTED();
-}
-
-QString SqlLocalStore::tableName(const QByteArray &typeName) const
-{
-	return QString::fromUtf8('_' + QByteArray(typeName).toHex());
+	auto tName = QString::fromUtf8('_' + QByteArray(typeName).toHex());
+	auto tableDir = defaults->storageDir();
+	if(!tableDir.mkpath(tName) || !tableDir.cd(tName)) {
+		emit requestFailed(id, QStringLiteral("Failed to create table directory \"%1\" for type \"%2\"")
+						   .arg(tName)
+						   .arg(QString::fromUtf8(typeName)));
+		return QDir();
+	} else
+		return tableDir;
 }
 
 bool SqlLocalStore::testTableExists(const QString &tableName) const
