@@ -19,6 +19,7 @@ public:
 Q_SIGNALS:
 	void storeLoaded();
 	void dataChanged(const QString &key, bool wasDeleted);
+	void dataResetted();
 };
 
 template <typename TType, typename TKey = QString>
@@ -42,6 +43,7 @@ private:
 	QHash<TKey, TType> _data;
 
 	void evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted);
+	void evalDataResetted();
 };
 
 template <typename TType, typename TKey>
@@ -66,6 +68,7 @@ private:
 	QHash<TKey, TType*> _data;
 
 	void evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted);
+	void evalDataResetted();
 };
 
 // ------------- Generic Implementation -------------
@@ -100,6 +103,8 @@ CachingDataStore<TType, TKey>::CachingDataStore(const QString &setupName, QObjec
 
 	connect(_store, &AsyncDataStore::dataChanged,
 			this, &CachingDataStore::evalDataChanged);
+	connect(_store, &AsyncDataStore::dataResetted,
+			this, &CachingDataStore::evalDataResetted);
 }
 
 template <typename TType, typename TKey>
@@ -164,6 +169,13 @@ void CachingDataStore<TType, TKey>::evalDataChanged(int metaTypeId, const QStrin
 	}
 }
 
+template <typename TType, typename TKey>
+void CachingDataStore<TType, TKey>::evalDataResetted()
+{
+	_data.clear();
+	emit dataResetted();
+}
+
 // ------------- Generic Implementation specialisation -------------
 
 template <typename TType, typename TKey>
@@ -193,6 +205,8 @@ CachingDataStore<TType*, TKey>::CachingDataStore(const QString &setupName, QObje
 
 	connect(_store, &AsyncDataStore::dataChanged,
 			this, &CachingDataStore::evalDataChanged);
+	connect(_store, &AsyncDataStore::dataResetted,
+			this, &CachingDataStore::evalDataResetted);
 }
 
 template <typename TType, typename TKey>
@@ -259,6 +273,13 @@ void CachingDataStore<TType*, TKey>::evalDataChanged(int metaTypeId, const QStri
 			});
 		}
 	}
+}
+
+template <typename TType, typename TKey>
+void CachingDataStore<TType*, TKey>::evalDataResetted()
+{
+	_data.clear();
+	emit dataResetted();
 }
 
 }

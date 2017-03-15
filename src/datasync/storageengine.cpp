@@ -311,6 +311,7 @@ void StorageEngine::performLocalReset(bool clearStore)
 		localStore->resetStore();
 		stateHolder->clearAllChanges();
 		changeController->setInitialLocalStatus({});
+		emit notifyResetted();
 	} else {
 		auto state = stateHolder->resetAllChanges(localStore->loadAllKeys());
 		changeController->setInitialLocalStatus(state);

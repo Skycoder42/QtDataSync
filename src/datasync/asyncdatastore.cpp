@@ -17,6 +17,9 @@ AsyncDataStore::AsyncDataStore(const QString &setupName, QObject *parent) :
 	connect(d->engine, &StorageEngine::notifyChanged,
 			this, &AsyncDataStore::dataChanged,
 			Qt::QueuedConnection);
+	connect(d->engine, &StorageEngine::notifyResetted,
+			this, &AsyncDataStore::dataResetted,
+			Qt::QueuedConnection);
 }
 
 AsyncDataStore::~AsyncDataStore() {}

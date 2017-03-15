@@ -15,7 +15,6 @@ Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std:
 	auto watcher = new QFutureWatcher<QVariant>(qApp);
 	QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, [=](){
 		try {
-			watcher->result();
 			auto res = watcher->result();
 			if(onSuccess)
 				onSuccess(res);

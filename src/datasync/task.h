@@ -35,7 +35,7 @@ class GenericTask : public Task
 	friend class Task;
 
 public:
-	GenericTask(QFutureInterface<QVariant> d);
+	GenericTask(QFutureInterface<QVariant> d = {});
 
 	GenericTask<T> &onResult(const std::function<void(T)> &onSuccess, const std::function<void(QException &)> &onExcept = {});
 
@@ -49,7 +49,7 @@ class Q_DATASYNC_EXPORT GenericTask<void> : public Task
 	friend class Task;
 
 public:
-	GenericTask(QFutureInterface<QVariant> d);
+	GenericTask(QFutureInterface<QVariant> d = {});
 
 	GenericTask<void> &onResult(const std::function<void()> &onSuccess, const std::function<void(QException &)> &onExcept = {});
 

@@ -45,6 +45,7 @@ public:
 
 Q_SIGNALS:
 	void dataChanged(int metaTypeId, const QString &key, bool wasDeleted);
+	void dataResetted();
 
 private:
 	QScopedPointer<AsyncDataStorePrivate> d;

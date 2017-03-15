@@ -25,9 +25,12 @@ public slots:
 
 private slots:
 	void dataChanged(int metaTypeId, const QString &key, bool wasDeleted);
+	void dataResetted();
 
 	void on_addButton_clicked();
 	void on_deleteButton_clicked();
+	void on_changeUserButton_clicked();
+	void on_dataTreeWidget_itemSelectionChanged();
 
 	void update(SampleData *data);
 

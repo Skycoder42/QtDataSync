@@ -64,7 +64,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0,0,0,0">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0,0,0,0,0">
      <item>
       <widget class="QSpinBox" name="idSpinBox"/>
      </item>
@@ -107,6 +107,13 @@
       <widget class="QPushButton" name="reloadButton">
        <property name="text">
         <string>Reload</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="changeUserButton">
+       <property name="text">
+        <string>Change User</string>
        </property>
       </widget>
      </item>

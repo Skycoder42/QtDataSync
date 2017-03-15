@@ -25,6 +25,7 @@ void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, co
 	_defaults->settings()->remove(QStringLiteral("RemoteConnector/deviceId"));
 	resetUserData(extraData);
 	reloadRemoteState();
+	futureInterface.reportResult(QVariant());
 	futureInterface.reportFinished();
 }
 

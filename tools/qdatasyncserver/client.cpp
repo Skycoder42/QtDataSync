@@ -61,7 +61,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 		else if(obj["command"] == QStringLiteral("identify"))
 			identify(data.toObject());
 		else if(obj["command"] == QStringLiteral("loadChanges"))
-			loadChanges();
+			loadChanges(data.toBool());
 		else if(obj["command"] == QStringLiteral("load"))
 			load(data.toObject());
 		else if(obj["command"] == QStringLiteral("save"))
@@ -167,9 +167,9 @@ void Client::identify(const QJsonObject &data)
 	}
 }
 
-void Client::loadChanges()
+void Client::loadChanges(bool resync)
 {
-	auto changes = database->loadChanges(userId, devId);
+	auto changes = database->loadChanges(userId, devId, resync);
 	QJsonObject reply;
 	if(!changes.isNull()) {
 		reply["success"] = true;

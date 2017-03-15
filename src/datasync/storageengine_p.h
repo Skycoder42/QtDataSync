@@ -56,6 +56,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void notifyChanged(int metaTypeId, const QString &key, bool wasDeleted);
+	void notifyResetted();
 	void syncStateChanged(SyncController::SyncState syncState);
 	void authenticationErrorChanged(const QString &authenticationError);
 

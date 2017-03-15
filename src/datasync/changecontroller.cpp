@@ -182,6 +182,7 @@ void ChangeController::generateNextAction()
 				Q_UNREACHABLE();
 				break;
 			}
+			break;
 		case UNITE_STATE(StateHolder::Changed, StateHolder::Deleted)://c:d -> POLICY
 			switch (merger->syncPolicy()) {
 			case QtDataSync::DataMerger::PreferLocal://[c]:d -> upload
@@ -196,6 +197,7 @@ void ChangeController::generateNextAction()
 				Q_UNREACHABLE();
 				break;
 			}
+			break;
 		case UNITE_STATE(StateHolder::Deleted, StateHolder::Unchanged)://d:u -> delete remote
 			currentMode = DeleteRemote;
 			break;
@@ -213,6 +215,7 @@ void ChangeController::generateNextAction()
 				Q_UNREACHABLE();
 				break;
 			}
+			break;
 		case UNITE_STATE(StateHolder::Deleted, StateHolder::Deleted)://d:d -> mark unchanged
 			currentMode = MarkAsUnchanged;
 			break;

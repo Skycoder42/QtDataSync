@@ -17,7 +17,7 @@ public:
 
 	QUuid createIdentity(const QUuid &deviceId, bool &resync);
 	bool identify(const QUuid &identity, const QUuid &deviceId, bool &resync);
-	QJsonValue loadChanges(const QUuid &userId, const QUuid &deviceId);
+	QJsonValue loadChanges(const QUuid &userId, const QUuid &deviceId, bool resync);
 	QJsonValue load(const QUuid &userId, const QString &type, const QString &key);
 	bool save(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key, const QJsonObject &object);
 	bool remove(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);

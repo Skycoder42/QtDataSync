@@ -95,9 +95,54 @@ bool DatabaseController::identify(const QUuid &identity, const QUuid &deviceId, 
 		return false;
 }
 
-QJsonValue DatabaseController::loadChanges(const QUuid &userId, const QUuid &deviceId)
+QJsonValue DatabaseController::loadChanges(const QUuid &userId, const QUuid &deviceId, bool resync)
 {
 	auto db = threadStore.localData().database();
+
+	if(resync) {
+		if(!db.transaction()) {
+			qCritical() << "Failed to create transaction with error:"
+						<< qPrintable(db.lastError().text());
+			return false;
+		}
+
+		QSqlQuery deleteStateQuery(db);
+		deleteStateQuery.prepare(QStringLiteral("DELETE FROM states "
+												  "WHERE states.deviceid = ("
+												  "	SELECT id FROM devices WHERE deviceid = ? AND userid = ?"
+												  ")"));
+		deleteStateQuery.addBindValue(deviceId);
+		deleteStateQuery.addBindValue(userId);
+		if(!deleteStateQuery.exec()) {
+			qCritical() << "Failed to delete old state with error:"
+						<< qPrintable(deleteStateQuery.lastError().text());
+			return QJsonValue::Null;
+		}
+
+		QSqlQuery updateStateQuery(db);
+		updateStateQuery.prepare(QStringLiteral("INSERT INTO states (dataindex, deviceid) "
+												"  SELECT data.index, devices.id FROM data "
+												"  INNER JOIN devices ON devices.userid = data.userid "
+												"  WHERE devices.deviceid = ? AND data.userid = ? AND NOT data.data IS NULL"));
+		updateStateQuery.addBindValue(deviceId);
+		updateStateQuery.addBindValue(userId);
+		if(!updateStateQuery.exec()) {
+			qCritical() << "Failed to set new state with error:"
+						<< qPrintable(updateStateQuery.lastError().text());
+			return QJsonValue::Null;
+		}
+
+		QSqlQuery resetResyncQuery(db);
+		resetResyncQuery.prepare(QStringLiteral("UPDATE devices SET resync = false "
+												"WHERE deviceid = ? AND userid = ?"));
+		resetResyncQuery.addBindValue(deviceId);
+		resetResyncQuery.addBindValue(userId);
+		if(!resetResyncQuery.exec()) {
+			qCritical() << "Failed to unset resync flag with error:"
+						<< qPrintable(resetResyncQuery.lastError().text());
+			return QJsonValue::Null;
+		}
+	}
 
 	QSqlQuery changesQuery(db);
 	changesQuery.prepare(QStringLiteral("SELECT data.type, data.key, NOT data.data IS NULL AS changed FROM data "
@@ -121,7 +166,13 @@ QJsonValue DatabaseController::loadChanges(const QUuid &userId, const QUuid &dev
 		changeState["changed"] = changesQuery.value(2).toBool();
 		result.append(changeState);
 	}
-	return result;
+
+	if(resync && !db.commit()) {
+		qCritical() << "Failed to commit transaction with error:"
+					<< qPrintable(db.lastError().text());
+		return QJsonValue::Null;
+	} else
+		return result;
 }
 
 QJsonValue DatabaseController::load(const QUuid &userId, const QString &type, const QString &key)
@@ -297,7 +348,7 @@ void DatabaseController::initDatabase()
 											  "		id			BIGSERIAL PRIMARY KEY NOT NULL, "
 											  "		deviceid	UUID NOT NULL, "
 											  "		userid		UUID NOT NULL REFERENCES users(identity), "
-											  "		resync		BOOLEAN NOT NULL DEFAULT true"
+											  "		resync		BOOLEAN NOT NULL DEFAULT true, "
 											  "		CONSTRAINT device_id UNIQUE (deviceid, userid)"
 											  ")"))) {
 			qCritical() << "Failed to create devices table with error:"
@@ -355,8 +406,8 @@ bool DatabaseController::updateDeviceStates(QSqlDatabase &database, const QUuid 
 {
 	QSqlQuery updateStateQuery(database);
 	updateStateQuery.prepare(QStringLiteral("INSERT INTO states (dataindex, deviceid) "
-											"SELECT ?, id FROM devices "
-											"WHERE userid = ? AND deviceid != ? "
+											"  SELECT ?, id FROM devices "
+											"  WHERE userid = ? AND deviceid != ? "
 											"ON CONFLICT DO NOTHING"));
 	updateStateQuery.addBindValue(index);
 	updateStateQuery.addBindValue(userId);
@@ -406,14 +457,14 @@ DatabaseController::DatabaseWrapper::DatabaseWrapper() :
 		qCritical() << "Failed to open database with error:"
 					<< qPrintable(db.lastError().text());
 	} else
-		qInfo() << "DB connected for thread" << QThread::currentThreadId();
+		qDebug() << "DB connected for thread" << QThread::currentThreadId();
 }
 
 DatabaseController::DatabaseWrapper::~DatabaseWrapper()
 {
 	QSqlDatabase::database(dbName).close();
 	QSqlDatabase::removeDatabase(dbName);
-	qInfo() << "DB disconnected for thread" << QThread::currentThreadId();
+	qDebug() << "DB disconnected for thread" << QThread::currentThreadId();
 }
 
 QSqlDatabase DatabaseController::DatabaseWrapper::database() const

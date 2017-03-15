@@ -42,7 +42,7 @@ private:
 
 	void createIdentity(const QJsonObject &data);
 	void identify(const QJsonObject &data);
-	void loadChanges();
+	void loadChanges(bool resync);
 	void load(const QJsonObject &data);
 	void save(const QJsonObject &data);
 	void remove(const QJsonObject &data);

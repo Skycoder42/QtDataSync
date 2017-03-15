@@ -2,8 +2,10 @@
 #include "sampledata.h"
 #include "setupdialog.h"
 #include "ui_mainwidget.h"
+#include <QInputDialog>
 #include <cachingdatastore.h>
 #include <setup.h>
+#include <wsauthenticator.h>
 
 static QtMessageHandler prevHandler;
 static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg);
@@ -54,6 +56,45 @@ void MainWidget::on_deleteButton_clicked()
 	}
 }
 
+void MainWidget::on_changeUserButton_clicked()
+{
+	auto auth = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(this);
+	auto user = auth->userIdentity();
+	auto ok = false;
+	auto str = QInputDialog::getText(this,
+									 QStringLiteral("Change User"),
+									 QStringLiteral("Enter the new ID or leave emtpy to generate one:"),
+									 QLineEdit::Normal,
+									 QString::fromUtf8(user),
+									 &ok);
+	if(ok) {
+		user = str.toUtf8();
+		QtDataSync::GenericTask<void> task;
+		if(user.isEmpty())
+			task = auth->resetUserIdentity();
+		else
+			task = auth->setUserIdentity(user);
+		task.onResult([=](){
+			qDebug() << "Changed userId to" << auth->userIdentity();
+			auth->deleteLater();
+		});
+	}
+}
+
+void MainWidget::on_dataTreeWidget_itemSelectionChanged()
+{
+	auto item = ui->dataTreeWidget->currentItem();
+	if(item) {
+		ui->idSpinBox->setValue(item->text(0).toInt());
+		ui->titleLineEdit->setText(item->text(1));
+		ui->detailsLineEdit->setText(item->text(2));
+	} else {
+		ui->idSpinBox->clear();
+		ui->titleLineEdit->clear();
+		ui->detailsLineEdit->clear();
+	}
+}
+
 void MainWidget::report(QtMsgType type, const QString &message)
 {
 	QIcon icon;
@@ -92,6 +133,13 @@ void MainWidget::dataChanged(int metaTypeId, const QString &key, bool wasDeleted
 	}
 }
 
+void MainWidget::dataResetted()
+{
+	items.clear();
+	ui->dataTreeWidget->clear();
+	report(QtInfoMsg, QStringLiteral("Data resetted"));
+}
+
 void MainWidget::update(SampleData *data)
 {
 	auto item = items.value(data->id);
@@ -111,6 +159,8 @@ void MainWidget::setup()
 		store = new QtDataSync::AsyncDataStore(this);
 		connect(store, &QtDataSync::AsyncDataStore::dataChanged,
 				this, &MainWidget::dataChanged);
+		connect(store, &QtDataSync::AsyncDataStore::dataResetted,
+				this, &MainWidget::dataResetted);
 
 		sync = new QtDataSync::SyncController(this);
 		connect(sync, &QtDataSync::SyncController::syncStateChanged,
