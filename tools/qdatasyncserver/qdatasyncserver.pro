@@ -18,6 +18,7 @@ DEFINES += "COMPANY=\\\"$$COMPANY\\\""
 DEFINES += "BUNDLE_PREFIX=\\\"$$BUNDLE_PREFIX\\\""
 
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_ASCII_CAST_WARNINGS
 
 load(qt_tool)
 load(resources)
@@ -36,8 +37,8 @@ SOURCES += \
 
 DISTFILES += \
 	setup.conf \
-    docker_setup.conf \
-    docker-compose.yaml
+	docker_setup.conf \
+	docker-compose.yaml
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "Qt Rest API Builder"
@@ -53,5 +54,3 @@ unix:!mac {
 	LIBS += -L$$[QT_INSTALL_LIBS] -licui18n
 	LIBS += -L$$[QT_INSTALL_LIBS] -licuuc
 }
-
-#TODO add setup.conf to qt dir install

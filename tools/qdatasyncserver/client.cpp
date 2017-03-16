@@ -35,9 +35,9 @@ QUuid Client::deviceId() const
 void Client::notifyChanged(const QString &type, const QString &key, bool changed)
 {
 	QJsonObject data;
-	data["type"] = type;
-	data["key"] = key;
-	data["changed"] = changed;
+	data[QStringLiteral("type")] = type;
+	data[QStringLiteral("key")] = key;
+	data[QStringLiteral("changed")] = changed;
 	sendCommand("notifyChanged", data);
 }
 
@@ -55,26 +55,26 @@ void Client::binaryMessageReceived(const QByteArray &message)
 		}
 
 		auto obj = doc.object();
-		auto data = obj["data"];
-		if(obj["command"] == QStringLiteral("createIdentity"))
+		auto data = obj[QStringLiteral("data")];
+		if(obj[QStringLiteral("command")] == QStringLiteral("createIdentity"))
 			createIdentity(data.toObject());
-		else if(obj["command"] == QStringLiteral("identify"))
+		else if(obj[QStringLiteral("command")] == QStringLiteral("identify"))
 			identify(data.toObject());
-		else if(obj["command"] == QStringLiteral("loadChanges"))
+		else if(obj[QStringLiteral("command")] == QStringLiteral("loadChanges"))
 			loadChanges(data.toBool());
-		else if(obj["command"] == QStringLiteral("load"))
+		else if(obj[QStringLiteral("command")] == QStringLiteral("load"))
 			load(data.toObject());
-		else if(obj["command"] == QStringLiteral("save"))
+		else if(obj[QStringLiteral("command")] == QStringLiteral("save"))
 			save(data.toObject());
-		else if(obj["command"] == QStringLiteral("remove"))
+		else if(obj[QStringLiteral("command")] == QStringLiteral("remove"))
 			remove(data.toObject());
-		else if(obj["command"] == QStringLiteral("markUnchanged"))
+		else if(obj[QStringLiteral("command")] == QStringLiteral("markUnchanged"))
 			markUnchanged(data.toObject());
-		else if(obj["command"] == QStringLiteral("deleteOldDevice"))
+		else if(obj[QStringLiteral("command")] == QStringLiteral("deleteOldDevice"))
 			deleteOldDevice();
 		else {
 			qDebug() << "Unknown command"
-					 << obj["command"].toString();
+					 << obj[QStringLiteral("command")].toString();
 			close();
 		}
 
@@ -116,7 +116,7 @@ void Client::closeClient()
 
 void Client::createIdentity(const QJsonObject &data)
 {
-	devId = QUuid(data["deviceId"].toString());
+	devId = QUuid(data[QStringLiteral("deviceId")].toString());
 	if(devId.isNull()) {
 		close();
 		return;
@@ -143,12 +143,12 @@ void Client::createIdentity(const QJsonObject &data)
 
 void Client::identify(const QJsonObject &data)
 {
-	devId = QUuid(data["deviceId"].toString());
+	devId = QUuid(data[QStringLiteral("deviceId")].toString());
 	if(devId.isNull()) {
 		close();
 		return;
 	}
-	userId = QUuid(data["userId"].toString());
+	userId = QUuid(data[QStringLiteral("userId")].toString());
 	if(userId.isNull()) {
 		close();
 		return;
@@ -174,37 +174,37 @@ void Client::loadChanges(bool resync)
 	auto changes = database->loadChanges(userId, devId, resync);
 	QJsonObject reply;
 	if(!changes.isNull()) {
-		reply["success"] = true;
-		reply["data"] = changes;
-		reply["error"] = QJsonValue::Null;
+		reply[QStringLiteral("success")] = true;
+		reply[QStringLiteral("data")] = changes;
+		reply[QStringLiteral("error")] = QJsonValue::Null;
 	} else  {
-		reply["success"] = false;
-		reply["data"] = QJsonValue::Null;
-		reply["error"] = "Failed to load state from server database";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("data")] = QJsonValue::Null;
+		reply[QStringLiteral("error")] = QStringLiteral("Failed to load state from server database");
 	}
 	sendCommand("changeState", reply);
 }
 
 void Client::load(const QJsonObject &data)
 {
-	auto type = data["type"].toString();
-	auto key = data["key"].toString();
+	auto type = data[QStringLiteral("type")].toString();
+	auto key = data[QStringLiteral("key")].toString();
 
 	QJsonObject reply;
 	if(type.isEmpty() || key.isEmpty()) {
-		reply["success"] = false;
-		reply["data"] = QJsonValue::Null;
-		reply["error"] = "Invalid type or key!";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("data")] = QJsonValue::Null;
+		reply[QStringLiteral("error")] = QStringLiteral("Invalid type or key!");
 	} else {
 		auto replyData = database->load(userId, type, key);
 		if(!replyData.isNull()) {
-			reply["success"] = true;
-			reply["data"] = replyData;
-			reply["error"] = QJsonValue::Null;
+			reply[QStringLiteral("success")] = true;
+			reply[QStringLiteral("data")] = replyData;
+			reply[QStringLiteral("error")] = QJsonValue::Null;
 		} else  {
-			reply["success"] = false;
-			reply["data"] = QJsonValue::Null;
-			reply["error"] = "Failed to load data from server database";
+			reply[QStringLiteral("success")] = false;
+			reply[QStringLiteral("data")] = QJsonValue::Null;
+			reply[QStringLiteral("error")] = QStringLiteral("Failed to load data from server database");
 		}
 	}
 	sendCommand("completed", reply);
@@ -212,58 +212,58 @@ void Client::load(const QJsonObject &data)
 
 void Client::save(const QJsonObject &data)
 {
-	auto type = data["type"].toString();
-	auto key = data["key"].toString();
-	auto value = data["value"].toObject();
+	auto type = data[QStringLiteral("type")].toString();
+	auto key = data[QStringLiteral("key")].toString();
+	auto value = data[QStringLiteral("value")].toObject();
 
 	QJsonObject reply;
 	if(type.isEmpty() || key.isEmpty()) {
-		reply["success"] = false;
-		reply["error"] = "Invalid type or key!";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("error")] = QStringLiteral("Invalid type or key!");
 	} else if(database->save(userId, devId, type, key, value)) {
-		reply["success"] = true;
-		reply["error"] = QJsonValue::Null;
+		reply[QStringLiteral("success")] = true;
+		reply[QStringLiteral("error")] = QJsonValue::Null;
 	} else  {
-		reply["success"] = false;
-		reply["error"] = "Failed to save data on server database";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("error")] = QStringLiteral("Failed to save data on server database");
 	}
 	sendCommand("completed", reply);
 }
 
 void Client::remove(const QJsonObject &data)
 {
-	auto type = data["type"].toString();
-	auto key = data["key"].toString();
+	auto type = data[QStringLiteral("type")].toString();
+	auto key = data[QStringLiteral("key")].toString();
 
 	QJsonObject reply;
 	if(type.isEmpty() || key.isEmpty()) {
-		reply["success"] = false;
-		reply["error"] = "Invalid type or key!";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("error")] = QStringLiteral("Invalid type or key!");
 	} else if(database->remove(userId, devId, type, key)) {
-		reply["success"] = true;
-		reply["error"] = QJsonValue::Null;
+		reply[QStringLiteral("success")] = true;
+		reply[QStringLiteral("error")] = QJsonValue::Null;
 	} else  {
-		reply["success"] = false;
-		reply["error"] = "Failed to remove data from server database";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("error")] = QStringLiteral("Failed to remove data from server database");
 	}
 	sendCommand("completed", reply);
 }
 
 void Client::markUnchanged(const QJsonObject &data)
 {
-	auto type = data["type"].toString();
-	auto key = data["key"].toString();
+	auto type = data[QStringLiteral("type")].toString();
+	auto key = data[QStringLiteral("key")].toString();
 
 	QJsonObject reply;
 	if(type.isEmpty() || key.isEmpty()) {
-		reply["success"] = false;
-		reply["error"] = "Invalid type or key!";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("error")] = QStringLiteral("Invalid type or key!");
 	} else if(database->markUnchanged(userId, devId, type, key)) {
-		reply["success"] = true;
-		reply["error"] = QJsonValue::Null;
+		reply[QStringLiteral("success")] = true;
+		reply[QStringLiteral("error")] = QJsonValue::Null;
 	} else  {
-		reply["success"] = false;
-		reply["error"] = "Failed to mark as unchanged on server database";
+		reply[QStringLiteral("success")] = false;
+		reply[QStringLiteral("error")] = QStringLiteral("Failed to mark as unchanged on server database");
 	}
 	sendCommand("completed", reply);
 }
@@ -281,8 +281,8 @@ void Client::close()
 void Client::sendCommand(const QByteArray &command, const QJsonValue &data)
 {
 	QJsonObject message;
-	message["command"] = QString::fromUtf8(command);
-	message["data"] = data;
+	message[QStringLiteral("command")] = QString::fromUtf8(command);
+	message[QStringLiteral("data")] = data;
 
 	QJsonDocument doc(message);
 	QMetaObject::invokeMethod(this, "doSend", Q_ARG(QByteArray, doc.toJson(QJsonDocument::Compact)));

@@ -10,8 +10,8 @@ ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) 
 	server(nullptr),
 	clients()
 {
-	auto name = qApp->configuration()->value("server/name", QCoreApplication::applicationName()).toString();
-	auto mode = qApp->configuration()->value("server/wss", false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+	auto name = qApp->configuration()->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toString();
+	auto mode = qApp->configuration()->value(QStringLiteral("server/wss"), false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
 
 	server = new QWebSocketServer(name, mode, this);
 	connect(server, &QWebSocketServer::newConnection,
@@ -27,7 +27,7 @@ bool ClientConnector::setupWss()
 	if(server->secureMode() != QWebSocketServer::SecureMode)
 		return true;
 
-	auto filePath = qApp->configuration()->value("server/wss/pfx").toString();
+	auto filePath = qApp->configuration()->value(QStringLiteral("server/wss/pfx")).toString();
 	filePath = qApp->absolutePath(filePath);
 
 	QSslKey privateKey;
@@ -42,7 +42,7 @@ bool ClientConnector::setupWss()
 								  &privateKey,
 								  &localCert,
 								  &caCerts,
-								  qApp->configuration()->value("server/wss/pass").toString().toUtf8())) {
+								  qApp->configuration()->value(QStringLiteral("server/wss/pass")).toString().toUtf8())) {
 		auto conf = server->sslConfiguration();
 		conf.setLocalCertificate(localCert);
 		conf.setPrivateKey(privateKey);
@@ -56,8 +56,8 @@ bool ClientConnector::setupWss()
 
 bool ClientConnector::listen()
 {
-	auto host = qApp->configuration()->value("server/host", QHostAddress(QHostAddress::Any).toString()).toString();
-	auto port = (quint16)qApp->configuration()->value("server/port", 0).toUInt();
+	auto host = qApp->configuration()->value(QStringLiteral("server/host"), QHostAddress(QHostAddress::Any).toString()).toString();
+	auto port = (quint16)qApp->configuration()->value(QStringLiteral("server/port"), 0).toUInt();
 	if(server->listen(QHostAddress(host), port)) {
 		qInfo() << "Listening on port" << server->serverPort();
 		return true;

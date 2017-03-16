@@ -77,17 +77,19 @@ bool DatabaseController::identify(const QUuid &identity, const QUuid &deviceId, 
 						<< qPrintable(createDeviceQuery.lastError().text());
 			return false;
 		} else {
-			QSqlQuery getResyncQuery(db);
-			getResyncQuery.prepare(QStringLiteral("SELECT resync FROM devices WHERE deviceid = ? AND userid = ?"));
-			getResyncQuery.addBindValue(deviceId);
-			getResyncQuery.addBindValue(identity);
+			QSqlQuery updateLoginQuery(db);
+			updateLoginQuery.prepare(QStringLiteral("UPDATE devices SET lastlogin = ? WHERE deviceid = ? AND userid = ? "
+												  "RETURNING resync"));
+			updateLoginQuery.addBindValue(QStringLiteral("today"));
+			updateLoginQuery.addBindValue(deviceId);
+			updateLoginQuery.addBindValue(identity);
 
-			if(!getResyncQuery.exec() || !getResyncQuery.first()) {
+			if(!updateLoginQuery.exec() || !updateLoginQuery.first()) {
 				qCritical() << "Failed to resync status with error:"
-							<< qPrintable(getResyncQuery.lastError().text());
+							<< qPrintable(updateLoginQuery.lastError().text());
 				return false;
 			} else {
-				resync = getResyncQuery.value(0).toBool();
+				resync = updateLoginQuery.value(0).toBool();
 				return true;
 			}
 		}
@@ -161,9 +163,9 @@ QJsonValue DatabaseController::loadChanges(const QUuid &userId, const QUuid &dev
 	QJsonArray result;
 	while(changesQuery.next()) {
 		QJsonObject changeState;
-		changeState["type"] = changesQuery.value(0).toString();
-		changeState["key"] = changesQuery.value(1).toString();
-		changeState["changed"] = changesQuery.value(2).toBool();
+		changeState[QStringLiteral("type")] = changesQuery.value(0).toString();
+		changeState[QStringLiteral("key")] = changesQuery.value(1).toString();
+		changeState[QStringLiteral("changed")] = changesQuery.value(2).toBool();
 		result.append(changeState);
 	}
 
@@ -371,7 +373,7 @@ void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();
 
-	if(!db.tables().contains("users")) {
+	if(!db.tables().contains(QStringLiteral("users"))) {
 		QSqlQuery createUsers(db);
 		if(!createUsers.exec(QStringLiteral("CREATE TABLE users ( "
 											"	identity	UUID PRIMARY KEY NOT NULL UNIQUE "
@@ -381,13 +383,14 @@ void DatabaseController::initDatabase()
 			return;
 		}
 	}
-	if(!db.tables().contains("devices")) {
+	if(!db.tables().contains(QStringLiteral("devices"))) {
 		QSqlQuery createDevices(db);
 		if(!createDevices.exec(QStringLiteral("CREATE TABLE devices ( "
 											  "		id			BIGSERIAL PRIMARY KEY NOT NULL, "
 											  "		deviceid	UUID NOT NULL, "
 											  "		userid		UUID NOT NULL REFERENCES users(identity), "
 											  "		resync		BOOLEAN NOT NULL DEFAULT true, "
+											  "		lastlogin	DATE NOT NULL DEFAULT 'today', "
 											  "		CONSTRAINT device_id UNIQUE (deviceid, userid)"
 											  ")"))) {
 			qCritical() << "Failed to create devices table with error:"
@@ -395,7 +398,7 @@ void DatabaseController::initDatabase()
 			return;
 		}
 	}
-	if(!db.tables().contains("data")) {
+	if(!db.tables().contains(QStringLiteral("data"))) {
 		QSqlQuery createData(db);
 		if(!createData.exec(QStringLiteral("CREATE TABLE data ( "
 										   "	index	BIGSERIAL PRIMARY KEY NOT NULL, "
@@ -410,7 +413,7 @@ void DatabaseController::initDatabase()
 			return;
 		}
 	}
-	if(!db.tables().contains("states")) {
+	if(!db.tables().contains(QStringLiteral("states"))) {
 		QSqlQuery createStates(db);
 		if(!createStates.exec(QStringLiteral("CREATE TABLE states ( "
 											 "	dataindex	BIGINT NOT NULL REFERENCES data(index), "
@@ -463,7 +466,7 @@ bool DatabaseController::updateDeviceStates(QSqlDatabase &database, const QUuid 
 void DatabaseController::tryDeleteData(QSqlDatabase &database, quint64 index)
 {
 	QSqlQuery tryDeleteQuery(database);
-	tryDeleteQuery.prepare("DELETE FROM data WHERE index = ? AND data IS NULL");
+	tryDeleteQuery.prepare(QStringLiteral("DELETE FROM data WHERE index = ? AND data IS NULL"));
 	tryDeleteQuery.addBindValue(index);
 	tryDeleteQuery.exec();//ignore errors -> if error, data still used -> OK
 }
@@ -484,13 +487,13 @@ DatabaseController::DatabaseWrapper::DatabaseWrapper() :
 	dbName(QUuid::createUuid().toString())
 {
 	auto config = qApp->configuration();
-	auto db = QSqlDatabase::addDatabase(config->value("database/driver", "QPSQL").toString(), dbName);
-	db.setDatabaseName(config->value("database/name", "QtDataSync").toString());
-	db.setHostName(config->value("database/host").toString());
-	db.setPort(config->value("database/port").toInt());
-	db.setUserName(config->value("database/username").toString());
-	db.setPassword(config->value("database/password").toString());
-	db.setConnectOptions(config->value("database/options").toString());
+	auto db = QSqlDatabase::addDatabase(config->value(QStringLiteral("database/driver"), QStringLiteral("QPSQL")).toString(), dbName);
+	db.setDatabaseName(config->value(QStringLiteral("database/name"), QStringLiteral("QtDataSync")).toString());
+	db.setHostName(config->value(QStringLiteral("database/host")).toString());
+	db.setPort(config->value(QStringLiteral("database/port")).toInt());
+	db.setUserName(config->value(QStringLiteral("database/username")).toString());
+	db.setPassword(config->value(QStringLiteral("database/password")).toString());
+	db.setConnectOptions(config->value(QStringLiteral("database/options")).toString());
 
 	if(!db.open()) {
 		qCritical() << "Failed to open database with error:"
