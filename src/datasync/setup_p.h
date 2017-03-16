@@ -36,6 +36,7 @@ private:
 	QScopedPointer<StateHolder> stateHolder;
 	QScopedPointer<RemoteConnector> remoteConnector;
 	QScopedPointer<DataMerger> dataMerger;
+	QHash<QByteArray, QVariant> properties;
 
 	SetupPrivate();
 };

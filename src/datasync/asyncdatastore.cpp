@@ -54,6 +54,11 @@ Task AsyncDataStore::remove(int metaTypeId, const QString &key)
 	return internalRemove(metaTypeId, key);
 }
 
+Task AsyncDataStore::search(int dataMetaTypeId, int listMetaTypeId, const QString &searchQuery)
+{
+	return internalSearch(dataMetaTypeId, listMetaTypeId, searchQuery);
+}
+
 QFutureInterface<QVariant> AsyncDataStore::internalCount(int metaTypeId)
 {
 	QFutureInterface<QVariant> interface;
@@ -129,5 +134,19 @@ QFutureInterface<QVariant> AsyncDataStore::internalRemove(int metaTypeId, const 
 							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Remove),
 							  Q_ARG(int, metaTypeId),
 							  Q_ARG(QVariant, key));
+	return interface;
+}
+
+QFutureInterface<QVariant> AsyncDataStore::internalSearch(int dataMetaTypeId, int listMetaTypeId, const QString &query)
+{
+	auto data = QVariant::fromValue<QPair<int, QString>>({listMetaTypeId, query});
+	QFutureInterface<QVariant> interface;
+	interface.reportStarted();
+	QMetaObject::invokeMethod(d->engine, "beginTask", Qt::QueuedConnection,
+							  Q_ARG(QFutureInterface<QVariant>, interface),
+							  Q_ARG(QThread*, thread()),
+							  Q_ARG(QtDataSync::StorageEngine::TaskType, StorageEngine::Search),
+							  Q_ARG(int, dataMetaTypeId),
+							  Q_ARG(QVariant, data));
 	return interface;
 }

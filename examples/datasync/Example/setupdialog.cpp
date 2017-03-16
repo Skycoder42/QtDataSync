@@ -15,10 +15,14 @@ bool SetupDialog::setup(QWidget *parent)
 	dialog.ui->remoteURLLineEdit->setText(settings.value(QStringLiteral("remoteUrl"),
 														 dialog.ui->remoteURLLineEdit->text())
 										  .toString());
+	dialog.ui->regexSearchCheckBox->setChecked(settings.value(QStringLiteral("useRegex"),
+															  dialog.ui->regexSearchCheckBox->isChecked())
+											   .toBool());
 
 	if(dialog.exec() == QDialog::Accepted) {
 		QtDataSync::Setup()
 				.setLocalDir(dialog.ui->storageDirComboBox->currentText())
+				.setProperty("useRegex", dialog.ui->regexSearchCheckBox->isChecked())
 				.create();
 
 		auto auth = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(&dialog);
@@ -33,6 +37,7 @@ bool SetupDialog::setup(QWidget *parent)
 			items.append(dialog.ui->storageDirComboBox->currentText());
 		settings.setValue(QStringLiteral("localDirs"), items);
 		settings.setValue(QStringLiteral("remoteUrl"), dialog.ui->remoteURLLineEdit->text());
+		settings.setValue(QStringLiteral("useRegex"), dialog.ui->regexSearchCheckBox->isChecked());
 
 		return true;
 	} else

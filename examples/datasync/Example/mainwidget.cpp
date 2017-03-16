@@ -27,74 +27,6 @@ MainWidget::~MainWidget()
 	delete ui;
 }
 
-void MainWidget::on_addButton_clicked()
-{
-	auto data = new SampleData(this);
-	data->id = ui->idSpinBox->value();
-	data->title = ui->titleLineEdit->text();
-	data->description = ui->detailsLineEdit->text();
-
-	store->save<SampleData*>(data).onResult([this, data](){
-		report(QtInfoMsg, QStringLiteral("Data with id %1 saved!").arg(data->id));
-		data->deleteLater();
-	}, [this, data](QException &exception) {
-		report(QtCriticalMsg, exception.what());
-		data->deleteLater();
-	});
-}
-
-void MainWidget::on_deleteButton_clicked()
-{
-	auto item = ui->dataTreeWidget->currentItem();
-	if(item) {
-		auto id = items.key(item);
-		store->remove<SampleData*>(QString::number(id)).onResult([this, id](){
-			report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
-		}, [this](QException &exception) {
-			report(QtCriticalMsg, exception.what());
-		});
-	}
-}
-
-void MainWidget::on_changeUserButton_clicked()
-{
-	auto auth = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(this);
-	auto user = auth->userIdentity();
-	auto ok = false;
-	auto str = QInputDialog::getText(this,
-									 QStringLiteral("Change User"),
-									 QStringLiteral("Enter the new ID or leave emtpy to generate one:"),
-									 QLineEdit::Normal,
-									 QString::fromUtf8(user),
-									 &ok);
-	if(ok) {
-		user = str.toUtf8();
-		QtDataSync::GenericTask<void> task;
-		if(user.isEmpty())
-			task = auth->resetUserIdentity();
-		else
-			task = auth->setUserIdentity(user);
-		task.onResult([=](){
-			qDebug() << "Changed userId to" << auth->userIdentity();
-			auth->deleteLater();
-		});
-	}
-}
-
-void MainWidget::on_dataTreeWidget_itemSelectionChanged()
-{
-	auto item = ui->dataTreeWidget->currentItem();
-	if(item) {
-		ui->idSpinBox->setValue(item->text(0).toInt());
-		ui->titleLineEdit->setText(item->text(1));
-		ui->detailsLineEdit->setText(item->text(2));
-	} else {
-		ui->idSpinBox->clear();
-		ui->titleLineEdit->clear();
-		ui->detailsLineEdit->clear();
-	}
-}
-
 void MainWidget::report(QtMsgType type, const QString &message)
 {
 	QIcon icon;
@@ -206,8 +138,8 @@ void MainWidget::setup()
 		});
 
 		//caching test
-		QtDataSync::CachingDataStore<SampleData*, int> store(nullptr, true);
-		qDebug() << "caching store test:" << store.keys();
+		QtDataSync::CachingDataStore<SampleData*, int> cacheStore(nullptr, true);
+		qDebug() << "caching store test:" << cacheStore.keys();
 	} else
 		qApp->quit();
 }
@@ -224,4 +156,97 @@ static void filterLogger(QtMsgType type, const QMessageLogContext &context, cons
 	}
 
 	prevHandler(type, context, msg);
+}
+
+void MainWidget::on_addButton_clicked()
+{
+	auto data = new SampleData(this);
+	data->id = ui->idSpinBox->value();
+	data->title = ui->titleLineEdit->text();
+	data->description = ui->detailsLineEdit->text();
+
+	store->save<SampleData*>(data).onResult([this, data](){
+		report(QtInfoMsg, QStringLiteral("Data with id %1 saved!").arg(data->id));
+		data->deleteLater();
+	}, [this, data](QException &exception) {
+		report(QtCriticalMsg, exception.what());
+		data->deleteLater();
+	});
+}
+
+void MainWidget::on_deleteButton_clicked()
+{
+	auto item = ui->dataTreeWidget->currentItem();
+	if(item) {
+		auto id = items.key(item);
+		store->remove<SampleData*>(QString::number(id)).onResult([this, id](){
+			report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
+		}, [this](QException &exception) {
+			report(QtCriticalMsg, exception.what());
+		});
+	}
+}
+
+void MainWidget::on_changeUserButton_clicked()
+{
+	auto auth = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(this);
+	auto user = auth->userIdentity();
+	auto ok = false;
+	auto str = QInputDialog::getText(this,
+									 QStringLiteral("Change User"),
+									 QStringLiteral("Enter the new ID or leave emtpy to generate one:"),
+									 QLineEdit::Normal,
+									 QString::fromUtf8(user),
+									 &ok);
+	if(ok) {
+		user = str.toUtf8();
+		QtDataSync::GenericTask<void> task;
+		if(user.isEmpty())
+			task = auth->resetUserIdentity();
+		else
+			task = auth->setUserIdentity(user);
+		task.onResult([=](){
+			qDebug() << "Changed userId to" << auth->userIdentity();
+			auth->deleteLater();
+		});
+	}
+}
+
+void MainWidget::on_dataTreeWidget_itemSelectionChanged()
+{
+	auto item = ui->dataTreeWidget->currentItem();
+	if(item) {
+		ui->idSpinBox->setValue(item->text(0).toInt());
+		ui->titleLineEdit->setText(item->text(1));
+		ui->detailsLineEdit->setText(item->text(2));
+	} else {
+		ui->idSpinBox->clear();
+		ui->titleLineEdit->clear();
+		ui->detailsLineEdit->clear();
+	}
+}
+
+void MainWidget::on_searchEdit_returnPressed()
+{
+	items.clear();
+	ui->dataTreeWidget->clear();
+
+	auto query = ui->searchEdit->text();
+	if(query.isEmpty()) {
+		store->loadAll<SampleData*>().onResult([this](QList<SampleData*> data){
+			report(QtInfoMsg, "All Data loaded from store!");
+			foreach (auto d, data)
+				update(d);
+		}, [this](QException &exception) {
+			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
+		});
+	} else {
+		store->search<SampleData*>(query).onResult([this](QList<SampleData*> data){
+			report(QtInfoMsg, "Searched data in store!");
+			foreach (auto d, data)
+				update(d);
+		}, [this](QException &exception) {
+			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
+		});
+	}
 }

@@ -262,6 +262,44 @@ void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 	emit requestCompleted(id, QJsonValue::Undefined);
 }
 
+void SqlLocalStore::search(quint64 id, const QByteArray &typeName, const QString &searchQuery)
+{
+	TYPE_DIR(id, typeName)
+
+	QSqlQuery findQuery(database);
+	if(defaults->property("useRegex").toBool()) {
+		emit requestFailed(id, QStringLiteral("Regex search is currently not supported!"));
+		return;
+	} else {
+		auto query = searchQuery;
+		query.replace(QLatin1Char('*'), QLatin1Char('%'));
+		query.replace(QLatin1Char('?'), QLatin1Char('_'));
+		findQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Key LIKE ?"));
+		findQuery.addBindValue(typeName);
+		findQuery.addBindValue(query);
+	}
+
+	EXEC_QUERY(findQuery);
+
+	QJsonArray array;
+	while(findQuery.next()) {
+		QFile file(tableDir.absoluteFilePath(findQuery.value(0).toString() + QStringLiteral(".dat")));
+		file.open(QIODevice::ReadOnly);
+		auto doc = QJsonDocument::fromBinaryData(file.readAll());
+		file.close();
+
+		if(doc.isNull() || file.error() != QFile::NoError) {
+			emit requestFailed(id, QStringLiteral("Failed to read data from file \"%1\" with error: %2")
+							   .arg(file.fileName())
+							   .arg(file.errorString()));
+			return;
+		} else
+			array.append(doc.object());
+	}
+
+	emit requestCompleted(id, array);
+}
+
 QDir SqlLocalStore::typeDirectory(quint64 id, const QByteArray &typeName)
 {
 	auto tName = QString::fromUtf8("store/_" + QByteArray(typeName).toHex());

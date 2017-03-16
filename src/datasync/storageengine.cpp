@@ -71,6 +71,9 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, QThrea
 		case Remove:
 			remove(futureInterface, targetThread, metaTypeId, userProp.name(), value.toString());
 			break;
+		case Search:
+			search(futureInterface, targetThread, metaTypeId, value.value<QPair<int, QString>>());
+			break;
 		default:
 			break;
 		}
@@ -381,6 +384,13 @@ void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, QThread *
 	info.changeState = StateHolder::Deleted;
 	requestCache.insert(id, info);
 	localStore->remove(id, info.changeKey, keyProperty);
+}
+
+void StorageEngine::search(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int dataMetaTypeId, QPair<int, QString> data)
+{
+	auto id = requestCounter++;
+	requestCache.insert(id, {futureInterface, targetThread, data.first});
+	localStore->search(id, QMetaType::typeName(dataMetaTypeId), data.second);
 }
 
 void StorageEngine::tryMoveToThread(QVariant object, QThread *thread) const

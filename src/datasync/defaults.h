@@ -18,7 +18,10 @@ class Q_DATASYNC_EXPORT Defaults : public QObject
 	Q_OBJECT
 
 public:
-	Defaults(const QString &setupName, const QDir &storageDir, QObject *parent = nullptr);
+	Defaults(const QString &setupName,
+			 const QDir &storageDir,
+			 const QHash<QByteArray, QVariant> &properties,
+			 QObject *parent = nullptr);
 	~Defaults();
 
 	const QLoggingCategory &loggingCategory() const;

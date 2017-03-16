@@ -35,6 +35,7 @@ private slots:
 	void on_deleteButton_clicked();
 	void on_changeUserButton_clicked();
 	void on_dataTreeWidget_itemSelectionChanged();
+	void on_searchEdit_returnPressed();
 
 private:
 	Ui::MainWidget *ui;

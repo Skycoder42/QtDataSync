@@ -28,6 +28,7 @@ public:
 	Task load(int metaTypeId, const QString &key);
 	Task save(int metaTypeId, const QVariant &value);
 	Task remove(int metaTypeId, const QString &key);
+	Task search(int dataMetaTypeId, int listMetaTypeId, const QString &query);
 
 	//WARNING -> DOES NOT TAKE OWNERSHIP OF QOBJECTS
 	template<typename T>
@@ -42,6 +43,8 @@ public:
 	GenericTask<void> save(const T &value);
 	template<typename T>
 	GenericTask<void> remove(const QString &key);
+	template<typename T>
+	GenericTask<QList<T>> search(const QString &query);
 
 Q_SIGNALS:
 	void dataChanged(int metaTypeId, const QString &key, bool wasDeleted);
@@ -56,6 +59,7 @@ private:
 	QFutureInterface<QVariant> internalLoad(int metaTypeId, const QString &key);
 	QFutureInterface<QVariant> internalSave(int metaTypeId, const QVariant &value);
 	QFutureInterface<QVariant> internalRemove(int metaTypeId, const QString &key);
+	QFutureInterface<QVariant> internalSearch(int dataMetaTypeId, int listMetaTypeId, const QString &query);
 };
 
 template<typename T>
@@ -92,6 +96,12 @@ template<typename T>
 GenericTask<void> AsyncDataStore::remove(const QString &key)
 {
 	return internalRemove(qMetaTypeId<T>(), key);
+}
+
+template<typename T>
+GenericTask<QList<T>> AsyncDataStore::search(const QString &query)
+{
+	return internalSearch(qMetaTypeId<T>(), qMetaTypeId<QList<T>>(), query);
 }
 
 }

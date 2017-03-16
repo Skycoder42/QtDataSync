@@ -31,6 +31,7 @@ public Q_SLOTS:
 	void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
 	void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) override;
 	void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) override;
+	void search(quint64 id, const QByteArray &typeName, const QString &searchQuery) override;
 
 private:
 	Defaults *defaults;

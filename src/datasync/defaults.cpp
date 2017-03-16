@@ -13,10 +13,12 @@ using namespace QtDataSync;
 
 const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
 
-Defaults::Defaults(const QString &setupName, const QDir &storageDir, QObject *parent) :
+Defaults::Defaults(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, QObject *parent) :
 	QObject(parent),
 	d(new DefaultsPrivate(setupName, storageDir))
 {
+	for(auto it = properties.constBegin(); it != properties.constEnd(); it++)
+		setProperty(it.key().constData(), it.value());
 	d->settings = createSettings(this);
 }
 

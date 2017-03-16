@@ -32,7 +32,8 @@ public:
 		LoadAll,
 		Load,
 		Save,
-		Remove
+		Remove,
+		Search
 	};
 	Q_ENUM(TaskType)
 
@@ -124,6 +125,7 @@ private:
 	void load(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, const QString &value);
 	void save(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, QVariant value);
 	void remove(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, const QString &value);
+	void search(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int dataMetaTypeId, QPair<int, QString> data);
 
 	void tryMoveToThread(QVariant object, QThread *thread) const;
 };

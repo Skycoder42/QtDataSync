@@ -10,6 +10,7 @@ Authenticator::Authenticator(QObject *parent) :
 GenericTask<void> Authenticator::resetIdentity(const QVariant &extraData, bool resetLocalStore)
 {
 	QFutureInterface<QVariant> futureInterface;
+	futureInterface.reportStarted();
 	QMetaObject::invokeMethod(connector(), "resetUserId", Qt::QueuedConnection,
 							  Q_ARG(QFutureInterface<QVariant>, futureInterface),
 							  Q_ARG(QVariant, extraData),

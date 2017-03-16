@@ -70,6 +70,11 @@ DataMerger *Setup::dataMerger() const
 	return d->dataMerger.data();
 }
 
+QVariant Setup::property(const QByteArray &key) const
+{
+	return d->properties.value(key);
+}
+
 Setup &Setup::setLocalDir(QString localDir)
 {
 	d->localDir = localDir;
@@ -106,6 +111,12 @@ Setup &Setup::setDataMerger(DataMerger *dataMerger)
 	return *this;
 }
 
+Setup &Setup::setProperty(const QByteArray &key, const QVariant &data)
+{
+	d->properties.insert(key, data);
+	return *this;
+}
+
 void Setup::create(const QString &name)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
@@ -124,7 +135,7 @@ void Setup::create(const QString &name)
 	if(!lockFile->tryLock())
 		throw Exception("Failed to lock the storage directory! Is it already locked by another process?");
 
-	auto defaults = new Defaults(name, storageDir);
+	auto defaults = new Defaults(name, storageDir, d->properties);
 
 	auto engine = new StorageEngine(defaults,
 									d->serializer.take(),
@@ -201,7 +212,8 @@ SetupPrivate::SetupPrivate() :
 	localStore(new SqlLocalStore()),
 	stateHolder(new SqlStateHolder()),
 	remoteConnector(new WsRemoteConnector()),
-	dataMerger(new DataMerger())
+	dataMerger(new DataMerger()),
+	properties()
 {}
 
 // ------------- Application hooks -------------

@@ -32,6 +32,7 @@ public Q_SLOTS:
 	virtual void load(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) = 0;
 	virtual void save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) = 0;
 	virtual void remove(quint64 id, const ObjectKey &key, const QByteArray &keyProperty) = 0;
+	virtual void search(quint64 id, const QByteArray &typeName, const QString &searchQuery) = 0;
 
 Q_SIGNALS:
 	void requestCompleted(quint64 id, const QJsonValue &result);

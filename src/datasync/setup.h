@@ -38,6 +38,7 @@ public:
 	StateHolder *stateHolder() const;
 	RemoteConnector *remoteConnector() const;
 	DataMerger *dataMerger() const;
+	QVariant property(const QByteArray &key) const;
 
 	Setup &setLocalDir(QString localDir);
 	Setup &setSerializer(QJsonSerializer *serializer);
@@ -45,6 +46,8 @@ public:
 	Setup &setStateHolder(StateHolder *stateHolder);
 	Setup &setRemoteConnector(RemoteConnector *remoteConnector);
 	Setup &setDataMerger(DataMerger *dataMerger);
+	Setup &setProperty(const QByteArray &key, const QVariant &data);
+
 	void create(const QString &name = DefaultSetup);
 
 private:
