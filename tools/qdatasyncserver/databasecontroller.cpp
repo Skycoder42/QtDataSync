@@ -371,9 +371,46 @@ void DatabaseController::deleteOldDevice(const QUuid &userId, const QUuid &devic
 
 void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 {
-	Q_UNIMPLEMENTED();
-	QThread::msleep(3000);
-	emit cleanupOperationDone(42);
+	auto db = threadStore.localData().database();
+	if(!db.transaction()) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to create transaction with error: %1")
+								  .arg(db.lastError().text()));
+		return;
+	}
+
+	QSqlQuery statesCleanupQuery(db);
+	statesCleanupQuery.prepare(QStringLiteral("DELETE FROM states WHERE deviceid IN ( "
+											  "		SELECT id FROM devices WHERE (? - lastlogin) > ?"
+											  ")"));
+	statesCleanupQuery.addBindValue(QStringLiteral("today"));
+	statesCleanupQuery.addBindValue(offlineSinceDays);
+	if(!statesCleanupQuery.exec()) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to cleanup states with error: %1")
+								  .arg(statesCleanupQuery.lastError().text()));
+		return;
+	}
+
+	QSqlQuery deviceCleanupQuery(db);
+	deviceCleanupQuery.prepare(QStringLiteral("DELETE FROM devices WHERE (? - lastlogin) > ?"));
+	deviceCleanupQuery.addBindValue(QStringLiteral("today"));
+	deviceCleanupQuery.addBindValue(offlineSinceDays);
+	if(!deviceCleanupQuery.exec()) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to cleanup states with error: %1")
+								  .arg(deviceCleanupQuery.lastError().text()));
+		return;
+	}
+
+
+	if(db.commit())
+		emit cleanupOperationDone(deviceCleanupQuery.numRowsAffected());
+	else {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to commit transaction with error: %1")
+								  .arg(db.lastError().text()));
+	}
 }
 
 void DatabaseController::initDatabase()
