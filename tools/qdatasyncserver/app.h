@@ -35,11 +35,12 @@ private:
 	ClientConnector *connector;
 	DatabaseController *database;
 
-	QPointer<QtBackgroundProcess::Terminal> starter;
+	QPointer<QtBackgroundProcess::Terminal> currentTerminal;
 	QString lastError;
 	bool dbRdy;
 
 	void completeStart();
+	void completeCleanup();
 };
 
 #undef qApp

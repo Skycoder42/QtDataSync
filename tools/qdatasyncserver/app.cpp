@@ -9,7 +9,7 @@ App::App(int &argc, char **argv) :
 	mainPool(nullptr),
 	connector(nullptr),
 	database(nullptr),
-	starter(nullptr),
+	currentTerminal(nullptr),
 	lastError(),
 	dbRdy(false)
 {
@@ -102,7 +102,7 @@ int App::startupApp(const QCommandLineParser &parser)
 bool App::requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &exitCode)
 {
 	terminal->write("Stopping " + config->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toByteArray() + " [ ");
-	if(starter) {
+	if(currentTerminal) {
 		terminal->write("\033[1;31mfail\033[0m ]\n"
 						"App cannot be stop while starting!\n");
 		terminal->flush();
@@ -117,11 +117,29 @@ bool App::requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &exitC
 void App::terminalConnected(QtBackgroundProcess::Terminal *terminal)
 {
 	if(terminal->isStarter()) {
-		starter = terminal;
-		starter->write("Starting " + config->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toByteArray() + " [ .... ]");
-		starter->flush();
+		currentTerminal = terminal;
+		currentTerminal->write("Starting " + config->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toByteArray() + " [ .... ]");
+		currentTerminal->flush();
 		if(dbRdy)
 			completeStart();
+	} else if(terminal->parser()->positionalArguments().startsWith(QStringLiteral("cleanup"))) {
+		terminal->write("Starting cleanup rountines...\n");
+		if(currentTerminal) {
+			terminal->write("\033[1;31mError:\033[0m Another terminal is already performing a major operation!\n");
+			terminal->flush();
+			terminal->disconnectTerminal();
+			return;
+		}
+
+		currentTerminal = terminal;
+		auto params = terminal->parser()->positionalArguments();
+		params.removeFirst();
+		if(params.isEmpty()) {
+			terminal->write("\033[1;33mWarning:\033[0m No cleanup targets specified!\n");
+			completeCleanup();
+		} else {
+			//TODO operate on params
+		}
 	} else {
 		terminal->disconnectTerminal();
 	}
@@ -138,20 +156,32 @@ void App::dbDone(bool ok)
 	dbRdy = true;
 	if(!ok)
 		lastError = QStringLiteral("Failed to setup database. Check error log for details.\n");
-	if(starter)
+	if(currentTerminal)
 		completeStart();
 }
 
 void App::completeStart()
 {
 	if(lastError.isEmpty()) {
-		starter->write("\b\b\b\b\b\b\033[1;32mokay\033[0m ]\n");
-		starter->disconnectTerminal();
+		currentTerminal->write("\b\b\b\b\b\b\033[1;32mokay\033[0m ]\n");
+		currentTerminal->disconnectTerminal();
 	} else {
-		starter->write("\b\b\b\b\b\b\033[1;31mfail\033[0m ]\n");
-		starter->write(lastError.toUtf8());
-		starter->disconnectTerminal();
+		currentTerminal->write("\b\b\b\b\b\b\033[1;31mfail\033[0m ]\n");
+		currentTerminal->write(lastError.toUtf8());
+		currentTerminal->disconnectTerminal();
 		qApp->exit(EXIT_FAILURE);
+	}
+}
+
+void App::completeCleanup()
+{
+	if(lastError.isEmpty()) {
+		currentTerminal->write("\033[1;36mCleanup completed!\033[0m\n");
+		currentTerminal->disconnectTerminal();
+	} else {
+		currentTerminal->write("\033[1;31mCleanup failed!\033[0m\n");
+		currentTerminal->write(lastError.toUtf8());
+		currentTerminal->disconnectTerminal();
 	}
 }
 
