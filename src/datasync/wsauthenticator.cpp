@@ -83,7 +83,7 @@ GenericTask<void> WsAuthenticator::setUserIdentity(QByteArray userIdentity, bool
 
 GenericTask<void> WsAuthenticator::resetUserIdentity(bool clearLocalStore)
 {
-	return resetIdentity(clearLocalStore);
+	return resetIdentity(QVariant(), clearLocalStore);
 }
 
 RemoteConnector *WsAuthenticator::connector()

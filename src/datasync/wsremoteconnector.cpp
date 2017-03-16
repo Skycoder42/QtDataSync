@@ -203,6 +203,11 @@ void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &ke
 
 void WsRemoteConnector::resetUserData(const QVariant &extraData)
 {
+	if(socket) {
+		sendCommand("deleteOldDevice");
+		operationTimer->stop();//unimportant message, no timeout
+	}
+
 	if(extraData.isValid())
 		settings->setValue(keyUserIdentity, extraData);
 	else

@@ -47,6 +47,7 @@ private:
 	void save(const QJsonObject &data);
 	void remove(const QJsonObject &data);
 	void markUnchanged(const QJsonObject &data);
+	void deleteOldDevice();
 
 	void close();
 	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);

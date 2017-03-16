@@ -328,6 +328,45 @@ bool DatabaseController::markUnchanged(const QUuid &userId, const QUuid &deviceI
 	}
 }
 
+void DatabaseController::deleteOldDevice(const QUuid &userId, const QUuid &deviceId)
+{
+	auto db = threadStore.localData().database();
+	if(!db.transaction()) {
+		qCritical() << "Failed to create transaction with error:"
+					<< qPrintable(db.lastError().text());
+		return;
+	}
+
+	//delete all states
+	QSqlQuery deleteStatesQuery(db);
+	deleteStatesQuery.prepare(QStringLiteral("DELETE FROM states WHERE deviceid = ("
+											 "	SELECT id FROM devices WHERE deviceid = ? AND userid = ?"
+											 ")"));
+	deleteStatesQuery.addBindValue(deviceId);
+	deleteStatesQuery.addBindValue(userId);
+	if(!deleteStatesQuery.exec()) {
+		qCritical() << "Failed to update device states with error:"
+					<< qPrintable(deleteStatesQuery.lastError().text());
+		return;
+	}
+
+	//delete device
+	QSqlQuery deleteDeviceQuery(db);
+	deleteDeviceQuery.prepare(QStringLiteral("DELETE FROM devices WHERE deviceid = ? AND userid = ?"));
+	deleteDeviceQuery.addBindValue(deviceId);
+	deleteDeviceQuery.addBindValue(userId);
+	if(!deleteDeviceQuery.exec()) {
+		qCritical() << "Failed to update device states with error:"
+					<< qPrintable(deleteDeviceQuery.lastError().text());
+		return;
+	}
+
+	if(!db.commit()){
+		qCritical() << "Failed to commit transaction with error:"
+					<< qPrintable(db.lastError().text());
+	}
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();

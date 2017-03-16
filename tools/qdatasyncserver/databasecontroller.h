@@ -22,6 +22,7 @@ public:
 	bool save(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key, const QJsonObject &object);
 	bool remove(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
 	bool markUnchanged(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
+	void deleteOldDevice(const QUuid &userId, const QUuid &deviceId);
 
 signals:
 	void notifyChanged(const QUuid &userId,

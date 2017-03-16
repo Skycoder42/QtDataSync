@@ -70,6 +70,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			remove(data.toObject());
 		else if(obj["command"] == QStringLiteral("markUnchanged"))
 			markUnchanged(data.toObject());
+		else if(obj["command"] == QStringLiteral("deleteOldDevice"))
+			deleteOldDevice();
 		else {
 			qDebug() << "Unknown command"
 					 << obj["command"].toString();
@@ -264,6 +266,11 @@ void Client::markUnchanged(const QJsonObject &data)
 		reply["error"] = "Failed to mark as unchanged on server database";
 	}
 	sendCommand("completed", reply);
+}
+
+void Client::deleteOldDevice()
+{
+	database->deleteOldDevice(userId, devId);
 }
 
 void Client::close()
