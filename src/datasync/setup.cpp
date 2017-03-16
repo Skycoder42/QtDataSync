@@ -1,5 +1,5 @@
 #include "defaults.h"
-#include "exception_p.h"
+#include "exceptions.h"
 #include "setup.h"
 #include "setup_p.h"
 #include "sqllocalstore_p.h"
@@ -121,7 +121,7 @@ void Setup::create(const QString &name)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
 	if(SetupPrivate::engines.contains(name))
-		throw Exception(QStringLiteral("Failed to create setup! A setup with the name %1 already exists!").arg(name));
+		throw SetupExistsException(name);
 
 	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 	if(!storageDir.cd(d->localDir)) {
@@ -133,7 +133,7 @@ void Setup::create(const QString &name)
 
 	auto lockFile = new QLockFile(storageDir.absoluteFilePath(QStringLiteral(".lock")));
 	if(!lockFile->tryLock())
-		throw Exception("Failed to lock the storage directory! Is it already locked by another process?");
+		throw SetupLockedException(name);
 
 	auto defaults = new Defaults(name, storageDir, d->properties);
 

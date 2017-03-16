@@ -1,4 +1,4 @@
-#include "exception_p.h"
+#include "exceptions.h"
 #include "storageengine_p.h"
 #include "defaults.h"
 
@@ -46,11 +46,11 @@ void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, QThrea
 		if((!flags.testFlag(QMetaType::PointerToQObject) &&
 			!flags.testFlag(QMetaType::IsGadget)) ||
 		   !metaObject)
-			throw Exception("You can only store QObjects or Q_GADGETs with QtDataSync!");
+			throw DataSyncException("You can only store QObjects or Q_GADGETs with QtDataSync!");
 
 		auto userProp = metaObject->userProperty();
 		if(!userProp.isValid())
-			throw Exception(QStringLiteral("To store a datatype, it requires a user property"));
+			throw DataSyncException("To store a datatype, it requires a user property");
 
 		switch (taskType) {
 		case Count:
@@ -193,7 +193,7 @@ void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 						<< errorString;
 		changeController->nextStage(false);
 	} else {
-		info.futureInterface.reportException(Exception(errorString));
+		info.futureInterface.reportException(DataSyncException(errorString));
 		info.futureInterface.reportFinished();
 	}
 }
@@ -358,8 +358,11 @@ void StorageEngine::load(QFutureInterface<QVariant> futureInterface, QThread *ta
 
 void StorageEngine::save(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, QVariant value)
 {
-	if(!value.convert(metaTypeId))
-		throw Exception(QStringLiteral("Failed to convert value to %1").arg(QString::fromUtf8(QMetaType::typeName(metaTypeId))));
+	if(!value.convert(metaTypeId)) {
+		throw QJsonSerializationException(QStringLiteral("Failed to convert value to %1")
+										  .arg(QString::fromUtf8(QMetaType::typeName(metaTypeId)))
+										  .toUtf8());
+	}
 
 	auto json = serializer->serialize(value).toObject();
 	auto id = requestCounter++;

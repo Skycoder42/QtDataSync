@@ -27,7 +27,7 @@ HEADERS += \
 	sqlstateholder_p.h \
 	storageengine_p.h \
 	wsremoteconnector_p.h \
-    exception_p.h
+    exceptions.h
 
 SOURCES += \
 	asyncdatastore.cpp \
@@ -36,7 +36,6 @@ SOURCES += \
 	changecontroller.cpp \
 	datamerger.cpp \
 	defaults.cpp \
-	exception.cpp \
 	localstore.cpp \
 	remoteconnector.cpp \
 	setup.cpp \
@@ -47,7 +46,8 @@ SOURCES += \
 	synccontroller.cpp \
 	task.cpp \
 	wsauthenticator.cpp \
-	wsremoteconnector.cpp
+	wsremoteconnector.cpp \
+    exceptions.cpp
 
 OTHER_FILES += \
 	engine.qmodel
