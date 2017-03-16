@@ -113,8 +113,12 @@ void Setup::create(const QString &name)
 		throw Exception(QStringLiteral("Failed to create setup! A setup with the name %1 already exists!").arg(name));
 
 	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-	storageDir.mkpath(d->localDir);
-	storageDir.cd(d->localDir);
+	if(!storageDir.cd(d->localDir)) {
+		storageDir.mkpath(d->localDir);
+		storageDir.cd(d->localDir);
+		QFile::setPermissions(storageDir.absolutePath(),
+							  QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ExeUser);
+	}
 
 	auto lockFile = new QLockFile(storageDir.absoluteFilePath(QStringLiteral(".lock")));
 	if(!lockFile->tryLock())
