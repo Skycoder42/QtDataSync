@@ -266,19 +266,14 @@ void SqlLocalStore::search(quint64 id, const QByteArray &typeName, const QString
 {
 	TYPE_DIR(id, typeName)
 
-	QSqlQuery findQuery(database);
-	if(defaults->property("useRegex").toBool()) {
-		emit requestFailed(id, QStringLiteral("Regex search is currently not supported!"));
-		return;
-	} else {
-		auto query = searchQuery;
-		query.replace(QLatin1Char('*'), QLatin1Char('%'));
-		query.replace(QLatin1Char('?'), QLatin1Char('_'));
-		findQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Key LIKE ?"));
-		findQuery.addBindValue(typeName);
-		findQuery.addBindValue(query);
-	}
+	auto query = searchQuery;
+	query.replace(QLatin1Char('*'), QLatin1Char('%'));
+	query.replace(QLatin1Char('?'), QLatin1Char('_'));
 
+	QSqlQuery findQuery(database);
+	findQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Key LIKE ?"));
+	findQuery.addBindValue(typeName);
+	findQuery.addBindValue(query);
 	EXEC_QUERY(findQuery);
 
 	QJsonArray array;
