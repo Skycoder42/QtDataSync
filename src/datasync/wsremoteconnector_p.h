@@ -7,6 +7,8 @@
 #include <QtCore/QJsonArray>
 #include <QtCore/QObject>
 #include <QtCore/QSettings>
+#include <QtCore/QTimer>
+
 #include <QtWebSockets/QWebSocket>
 
 namespace QtDataSync {
@@ -51,6 +53,7 @@ public Q_SLOTS:
 
 protected:
 	void resetUserData(const QVariant &extraData) override;
+	void timerEvent(QTimerEvent *event) override;
 
 private Q_SLOTS:
 	void connected();
@@ -61,6 +64,8 @@ private Q_SLOTS:
 
 	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
 
+	void operationTimeout();
+
 private:
 	static const QVector<int> timeouts;
 
@@ -70,6 +75,9 @@ private:
 	SocketState state;
 	int retryIndex;
 	bool needResync;
+
+	QTimer *operationTimer;
+	int pingTimerId;
 
 	QJsonObject keyObject(const ObjectKey &key) const;
 

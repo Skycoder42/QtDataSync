@@ -6,6 +6,7 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QTimer>
+#include <QtCore/QTimerEvent>
 
 using namespace QtDataSync;
 
@@ -23,13 +24,22 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	settings(nullptr),
 	state(Disconnected),
 	retryIndex(0),
-	needResync(false)
+	needResync(false),
+	operationTimer(new QTimer(this)),
+	pingTimerId(-1)
 {}
 
 void WsRemoteConnector::initialize(Defaults *defaults)
 {
 	RemoteConnector::initialize(defaults);
 	settings = defaults->createSettings(this);
+
+	operationTimer->setInterval(30000);//30 secs timout
+	operationTimer->setSingleShot(true);
+	connect(operationTimer, &QTimer::timeout,
+			this, &WsRemoteConnector::operationTimeout);
+	pingTimerId = startTimer(3 * 60 * 1000, Qt::VeryCoarseTimer);//ping every 3 minutes to keep alive
+
 	reconnect();
 }
 
@@ -200,6 +210,16 @@ void WsRemoteConnector::resetUserData(const QVariant &extraData)
 	reconnect();
 }
 
+void WsRemoteConnector::timerEvent(QTimerEvent *event)
+{
+	if(event->timerId() == pingTimerId) {
+		event->accept();
+		if(socket)
+			socket->ping();
+	} else
+		RemoteConnector::timerEvent(event);
+}
+
 void WsRemoteConnector::connected()
 {
 	//reset retry
@@ -222,6 +242,8 @@ void WsRemoteConnector::connected()
 
 void WsRemoteConnector::disconnected()
 {
+	operationTimer->stop();//just to make shure
+
 	if(state == Operating)
 		emit operationFailed(QStringLiteral("Connection closed"));
 
@@ -252,6 +274,8 @@ void WsRemoteConnector::disconnected()
 
 void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 {
+	operationTimer->stop();
+
 	QJsonParseError error;
 	auto doc = QJsonDocument::fromJson(message, &error);
 	if(error.error != QJsonParseError::NoError) {
@@ -304,6 +328,13 @@ void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue 
 
 	QJsonDocument doc(message);
 	socket->sendBinaryMessage(doc.toJson(QJsonDocument::Compact));
+	operationTimer->start();
+}
+
+void WsRemoteConnector::operationTimeout()
+{
+	qCWarning(LOG) << "Network operation timed out! Try to reconnect to server.";
+	reconnect();
 }
 
 void WsRemoteConnector::identified(const QJsonObject &data)
