@@ -369,6 +369,13 @@ void DatabaseController::deleteOldDevice(const QUuid &userId, const QUuid &devic
 	}
 }
 
+void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
+{
+	Q_UNIMPLEMENTED();
+	QThread::msleep(3000);
+	emit cleanupOperationDone(42);
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();

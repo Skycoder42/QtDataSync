@@ -11,7 +11,8 @@ App::App(int &argc, char **argv) :
 	database(nullptr),
 	currentTerminal(nullptr),
 	lastError(),
-	dbRdy(false)
+	dbRdy(false),
+	cleanupStage(None)
 {
 	QCoreApplication::setApplicationName(QStringLiteral(TARGET));
 	QCoreApplication::setApplicationVersion(QStringLiteral(VERSION));
@@ -81,6 +82,9 @@ int App::startupApp(const QCommandLineParser &parser)
 	connect(database, &DatabaseController::databaseInitDone,
 			this, &App::dbDone,
 			Qt::QueuedConnection);
+	connect(database, &DatabaseController::cleanupOperationDone,
+			this, &App::cleanupOperationDone,
+			Qt::QueuedConnection);
 
 	connector = new ClientConnector(database, this);
 	if(!connector->setupWss()) {
@@ -99,7 +103,7 @@ int App::startupApp(const QCommandLineParser &parser)
 	return EXIT_SUCCESS;
 }
 
-bool App::requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &exitCode)
+bool App::requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &)
 {
 	terminal->write("Stopping " + config->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toByteArray() + " [ ");
 	if(currentTerminal) {
@@ -124,22 +128,16 @@ void App::terminalConnected(QtBackgroundProcess::Terminal *terminal)
 			completeStart();
 	} else if(terminal->parser()->positionalArguments().startsWith(QStringLiteral("cleanup"))) {
 		terminal->write("Starting cleanup rountines...\n");
+		terminal->flush();
 		if(currentTerminal) {
 			terminal->write("\033[1;31mError:\033[0m Another terminal is already performing a major operation!\n");
 			terminal->flush();
 			terminal->disconnectTerminal();
 			return;
 		}
-
 		currentTerminal = terminal;
-		auto params = terminal->parser()->positionalArguments();
-		params.removeFirst();
-		if(params.isEmpty()) {
-			terminal->write("\033[1;33mWarning:\033[0m No cleanup targets specified!\n");
-			completeCleanup();
-		} else {
-			//TODO operate on params
-		}
+		cleanupStage = Devices;
+		startCleanup();
 	} else {
 		terminal->disconnectTerminal();
 	}
@@ -164,23 +162,113 @@ void App::completeStart()
 {
 	if(lastError.isEmpty()) {
 		currentTerminal->write("\b\b\b\b\b\b\033[1;32mokay\033[0m ]\n");
+		currentTerminal->flush();
 		currentTerminal->disconnectTerminal();
 	} else {
 		currentTerminal->write("\b\b\b\b\b\b\033[1;31mfail\033[0m ]\n");
 		currentTerminal->write(lastError.toUtf8());
+		currentTerminal->flush();
 		currentTerminal->disconnectTerminal();
 		qApp->exit(EXIT_FAILURE);
 	}
 }
 
+void App::startCleanup()
+{
+	auto params = currentTerminal->parser()->positionalArguments();
+	params.removeFirst();
+	if(params.isEmpty()) {
+		currentTerminal->write("\033[1;33mWarning:\033[0m No cleanup targets specified!\n");
+		currentTerminal->flush();
+		completeCleanup();
+	} else {
+		//devices
+		if(cleanupStage == Devices) {
+			auto devicesIndex = params.indexOf(QStringLiteral("devices"));
+			if(devicesIndex != -1) {
+				lastError = QStringLiteral("After the \"devices\" target the minimum offline days must follow! A number greater than 0 is required.\n");
+
+				if(++devicesIndex >= params.size()) {
+					completeCleanup();
+					return;
+				}
+				auto days = params.value(devicesIndex).toULongLong();
+				if(days == 0) {
+					completeCleanup();
+					return;
+				}
+				lastError.clear();
+
+				database->cleanupDevices(days);
+			} else
+				cleanupStage = Users;
+		}
+
+		//users
+		if(cleanupStage == Users) {
+			cleanupStage = Data;
+		}
+
+		//data
+		if(cleanupStage == Data) {
+			cleanupStage = Resync;
+		}
+
+		//resyc
+		if(cleanupStage == Resync) {
+			completeCleanup();
+		}
+	}
+}
+
+void App::cleanupOperationDone(int rowsAffected, const QString &error)
+{
+	if(error.isEmpty()) {
+		switch (cleanupStage) {
+		case None:
+			break;
+		case Devices:
+			currentTerminal->write("Removed devices: ");
+			cleanupStage = Users;
+			break;
+		case Users:
+			currentTerminal->write("Removed users: ");
+			cleanupStage = Data;
+			break;
+		case Data:
+			currentTerminal->write("Removed data zombies: ");
+			cleanupStage = Resync;
+			break;
+		case Resync:
+			currentTerminal->write("Resync flag set!\n");
+			cleanupStage = None;
+			break;
+		default:
+			Q_UNREACHABLE();
+			break;
+		}
+
+		if(cleanupStage != None) {
+			currentTerminal->write(QByteArray::number(rowsAffected) + '\n');
+			currentTerminal->flush();
+			startCleanup();
+		} else
+			completeCleanup();
+	} else {
+		lastError = error;
+		completeCleanup();
+	}
+}
+
 void App::completeCleanup()
 {
+	cleanupStage = None;//just to be shure
 	if(lastError.isEmpty()) {
 		currentTerminal->write("\033[1;36mCleanup completed!\033[0m\n");
 		currentTerminal->disconnectTerminal();
 	} else {
-		currentTerminal->write("\033[1;31mCleanup failed!\033[0m\n");
 		currentTerminal->write(lastError.toUtf8());
+		currentTerminal->write("\033[1;31mCleanup failed!\033[0m\n");
 		currentTerminal->disconnectTerminal();
 	}
 }

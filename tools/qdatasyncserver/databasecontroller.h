@@ -24,6 +24,8 @@ public:
 	bool markUnchanged(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
 	void deleteOldDevice(const QUuid &userId, const QUuid &deviceId);
 
+	void cleanupDevices(quint64 offlineSinceDays);
+
 signals:
 	void notifyChanged(const QUuid &userId,
 					   const QUuid &excludedDeviceId,
@@ -32,6 +34,7 @@ signals:
 					   bool changed);
 
 	void databaseInitDone(bool success);
+	void cleanupOperationDone(int rowsAffected, const QString &error = {});
 
 private:
 	class DatabaseWrapper

@@ -21,7 +21,7 @@ public:
 protected:
 	void setupParser(QCommandLineParser &parser, bool useShortOptions) override;
 	int startupApp(const QCommandLineParser &parser) override;
-	bool requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &exitCode) override;
+	bool requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &) override;
 
 private slots:
 	void terminalConnected(QtBackgroundProcess::Terminal *terminal);
@@ -30,6 +30,14 @@ private slots:
 	void dbDone(bool ok);
 
 private:
+	enum CleanupStage {
+		None,
+		Devices,
+		Users,
+		Data,
+		Resync
+	};
+
 	QSettings *config;
 	QThreadPool *mainPool;
 	ClientConnector *connector;
@@ -38,8 +46,12 @@ private:
 	QPointer<QtBackgroundProcess::Terminal> currentTerminal;
 	QString lastError;
 	bool dbRdy;
+	CleanupStage cleanupStage;
 
 	void completeStart();
+
+	void startCleanup();
+	void cleanupOperationDone(int rowsAffected, const QString &error);
 	void completeCleanup();
 };
 
