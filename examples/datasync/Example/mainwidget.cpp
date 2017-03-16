@@ -140,6 +140,19 @@ void MainWidget::dataResetted()
 	report(QtInfoMsg, QStringLiteral("Data resetted"));
 }
 
+void MainWidget::updateProgress(int count)
+{
+	if(count == 0) {
+		ui->progressBar->setValue(1);
+		ui->progressBar->setMaximum(1);
+	} else {
+		auto max = qMax(count, ui->progressBar->maximum());
+		auto value = max - count;
+		ui->progressBar->setMaximum(max);
+		ui->progressBar->setValue(value);
+	}
+}
+
 void MainWidget::update(SampleData *data)
 {
 	auto item = items.value(data->id);
@@ -167,6 +180,8 @@ void MainWidget::setup()
 				this, [](QtDataSync::SyncController::SyncState state) {
 			qDebug() << state;
 		});
+		connect(sync, &QtDataSync::SyncController::syncOperationsChanged,
+				this, &MainWidget::updateProgress);
 		connect(sync, &QtDataSync::SyncController::authenticationErrorChanged,
 				this, [](QString error) {
 			if(error.isEmpty())

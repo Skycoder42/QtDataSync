@@ -27,14 +27,14 @@ private slots:
 	void dataChanged(int metaTypeId, const QString &key, bool wasDeleted);
 	void dataResetted();
 
+	void updateProgress(int count);
+	void update(SampleData *data);
+	void setup();
+
 	void on_addButton_clicked();
 	void on_deleteButton_clicked();
 	void on_changeUserButton_clicked();
 	void on_dataTreeWidget_itemSelectionChanged();
-
-	void update(SampleData *data);
-
-	void setup();
 
 private:
 	Ui::MainWidget *ui;

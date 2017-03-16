@@ -42,6 +42,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void syncStateChanged(SyncState syncState);
+	void syncOperationsChanged(int remainingOperations);
 	void authenticationErrorChanged(const QString &authenticationError);
 
 private:

@@ -44,8 +44,11 @@ void ChangeController::setInitialLocalStatus(const StateHolder::ChangeHash &chan
 void ChangeController::updateLocalStatus(const ObjectKey &key, StateHolder::ChangeState &state)
 {
 	if(state == StateHolder::Unchanged) {
-		if(key != currentKey) //ignore currentKey -> unchanged as a result of a change operation
-			localState.remove(key);//unchange does not trigger sync
+		if(key != currentKey) {//ignore currentKey -> unchanged as a result of a change operation
+			//unchange does not trigger sync, but may change the progress
+			localState.remove(key);
+			updateProgress();
+		}
 	} else {
 		if(key == currentKey)
 			currentState = CancelState;//cancel whatever is currently done for that key
@@ -110,6 +113,8 @@ void ChangeController::nextStage(bool success, const QJsonValue &result)
 		generateNextAction();
 
 	emit updateSyncState(SyncController::Syncing);
+	updateProgress();
+
 	switch (currentMode) {
 	case DoNothing://nothing to do -> finished
 		emit updateSyncState(failedKeys.size() > 0 ? SyncController::SyncedWithErrors : SyncController::Synced);
@@ -149,6 +154,14 @@ void ChangeController::newChanges()
 			nextStage(true);
 		}
 	}
+	updateProgress();
+}
+
+void ChangeController::updateProgress()
+{
+	auto keySet = QSet<ObjectKey>::fromList(localState.keys());
+	keySet.unite(QSet<ObjectKey>::fromList(remoteState.keys()));
+	emit updateSyncProgress(keySet.size());
 }
 
 void ChangeController::generateNextAction()

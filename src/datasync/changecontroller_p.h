@@ -49,6 +49,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void loadLocalStatus();
 	void updateSyncState(SyncController::SyncState state);
+	void updateSyncProgress(quint32 remainingOperations);
 
 	void beginRemoteOperation(const ChangeOperation &operation);
 	void beginLocalOperation(const ChangeOperation &operation);
@@ -93,6 +94,7 @@ private:
 	QJsonObject currentObject;
 
 	void newChanges();
+	void updateProgress();
 
 	void generateNextAction();
 	void actionDownloadRemote(const QJsonValue &result);

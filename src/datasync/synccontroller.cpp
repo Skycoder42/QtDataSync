@@ -17,6 +17,9 @@ SyncController::SyncController(const QString &setupName, QObject *parent) :
 	connect(d->engine, &StorageEngine::syncStateChanged,
 			this, &SyncController::syncStateChanged,
 			Qt::QueuedConnection);
+	connect(d->engine, &StorageEngine::syncOperationsChanged,
+			this, &SyncController::syncOperationsChanged,
+			Qt::QueuedConnection);
 	connect(d->engine, &StorageEngine::authenticationErrorChanged,
 			this, &SyncController::authenticationErrorChanged,
 			Qt::QueuedConnection);
