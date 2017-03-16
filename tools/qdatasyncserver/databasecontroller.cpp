@@ -380,6 +380,7 @@ void DatabaseController::initDatabase()
 											")"))) {
 			qCritical() << "Failed to create users table with error:"
 						<< qPrintable(createUsers.lastError().text());
+			emit databaseInitDone(false);
 			return;
 		}
 	}
@@ -395,6 +396,7 @@ void DatabaseController::initDatabase()
 											  ")"))) {
 			qCritical() << "Failed to create devices table with error:"
 						<< qPrintable(createDevices.lastError().text());
+			emit databaseInitDone(false);
 			return;
 		}
 	}
@@ -410,6 +412,7 @@ void DatabaseController::initDatabase()
 										   ")"))) {
 			qCritical() << "Failed to create data table with error:"
 						<< qPrintable(createData.lastError().text());
+			emit databaseInitDone(false);
 			return;
 		}
 	}
@@ -422,9 +425,12 @@ void DatabaseController::initDatabase()
 											 ")"))) {
 			qCritical() << "Failed to create states table with error:"
 						<< qPrintable(createStates.lastError().text());
+			emit databaseInitDone(false);
 			return;
 		}
 	}
+
+	emit databaseInitDone(true);
 }
 
 bool DatabaseController::markStateUnchanged(QSqlDatabase &database, const QUuid &userId, const QUuid &deviceId, quint64 index)

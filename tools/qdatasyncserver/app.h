@@ -21,15 +21,25 @@ public:
 protected:
 	void setupParser(QCommandLineParser &parser, bool useShortOptions) override;
 	int startupApp(const QCommandLineParser &parser) override;
+	bool requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &exitCode) override;
 
 private slots:
+	void terminalConnected(QtBackgroundProcess::Terminal *terminal);
 	void quitting();
+
+	void dbDone(bool ok);
 
 private:
 	QSettings *config;
 	QThreadPool *mainPool;
 	ClientConnector *connector;
 	DatabaseController *database;
+
+	QPointer<QtBackgroundProcess::Terminal> starter;
+	QString lastError;
+	bool dbRdy;
+
+	void completeStart();
 };
 
 #undef qApp

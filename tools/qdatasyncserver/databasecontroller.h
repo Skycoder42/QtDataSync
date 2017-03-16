@@ -31,6 +31,8 @@ signals:
 					   const QString &key,
 					   bool changed);
 
+	void databaseInitDone(bool success);
+
 private:
 	class DatabaseWrapper
 	{
