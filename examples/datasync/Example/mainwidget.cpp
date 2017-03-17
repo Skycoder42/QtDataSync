@@ -179,8 +179,11 @@ void MainWidget::on_deleteButton_clicked()
 	auto item = ui->dataTreeWidget->currentItem();
 	if(item) {
 		auto id = items.key(item);
-		store->remove<SampleData*>(QString::number(id)).onResult([this, id](){
-			report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
+		store->remove<SampleData*>(QString::number(id)).onResult([this, id](bool success){
+			if(success)
+				report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
+			else
+				report(QtInfoMsg, QStringLiteral("No entry with id %1 found!").arg(id));
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, exception.what());
 		});

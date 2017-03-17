@@ -255,19 +255,23 @@ void LocalStoreTest::testRemove_data()
 	QTest::addColumn<DataSet>("data");
 	QTest::addColumn<int>("key");
 	QTest::addColumn<DataSet>("result");
+	QTest::addColumn<bool>("didRemove");
 	QTest::addColumn<bool>("shouldFail");
 
 	QTest::newRow("simpleData") << generateDataJson(11, 12)
 								<< 11
 								<< DataSet()
+								<< true
 								<< false;
 	QTest::newRow("missingData") << DataSet()
 								 << 77
 								 << DataSet()
+								 << false
 								 << false;
 	QTest::newRow("invalidData") << generateDataJson(0, 1)
 								 << 0
 								 << DataSet()
+								 << false
 								 << true;
 }
 
@@ -276,6 +280,7 @@ void LocalStoreTest::testRemove()
 	QFETCH(DataSet, data);
 	QFETCH(int, key);
 	QFETCH(DataSet, result);
+	QFETCH(bool, didRemove);
 	QFETCH(bool, shouldFail);
 
 	store->mutex.lock();
@@ -285,8 +290,9 @@ void LocalStoreTest::testRemove()
 
 	try {
 		auto task = async->remove<TestData>(key);
-		task.waitForFinished();
+		auto res = task.result();
 		QVERIFY(!shouldFail);
+		QCOMPARE(res, didRemove);
 
 		store->mutex.lock();
 		QCOMPARE(store->pseudoStore, result);

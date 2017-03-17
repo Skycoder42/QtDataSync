@@ -176,13 +176,16 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 		info.futureInterface.reportFinished();
 	}
 
+	if(info.isDeleteAction && !result.toBool())
+		return;
+
 	if(info.changeAction) {
 		stateHolder->markLocalChanged(info.changeKey, info.changeState);
 		changeController->updateLocalStatus(info.changeKey, info.changeState);
 	}
 
 	if(!info.notifyKey.first.isNull())
-		emit notifyChanged(QMetaType::type(info.notifyKey.first), info.notifyKey.second, !info.notifyChanged);
+		emit notifyChanged(QMetaType::type(info.notifyKey.first), info.notifyKey.second, info.isDeleteAction);
 }
 
 void StorageEngine::requestFailed(quint64 id, const QString &errorString)
@@ -290,7 +293,7 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 		break;
 	case ChangeController::Save:
 		info.notifyKey = operation.key;
-		info.notifyChanged = true;
+		info.isDeleteAction = false;
 		info.changeAction = true;
 		info.changeKey = operation.key;
 		info.changeState = StateHolder::Unchanged;
@@ -299,7 +302,7 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 		break;
 	case ChangeController::Remove:
 		info.notifyKey = operation.key;
-		info.notifyChanged = false;
+		info.isDeleteAction = true;
 		info.changeAction = true;
 		info.changeKey = operation.key;
 		info.changeState = StateHolder::Unchanged;
@@ -368,7 +371,7 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, QThread *ta
 	auto id = requestCounter++;
 	RequestInfo info(futureInterface, targetThread, metaTypeId);
 	info.notifyKey = {QMetaType::typeName(metaTypeId), json[QString::fromUtf8(keyProperty)].toVariant().toString()};
-	info.notifyChanged = true;
+	info.isDeleteAction = false;
 	info.changeAction = true;
 	info.changeKey = info.notifyKey;
 	info.changeState = StateHolder::Changed;
@@ -379,9 +382,9 @@ void StorageEngine::save(QFutureInterface<QVariant> futureInterface, QThread *ta
 void StorageEngine::remove(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId, const QByteArray &keyProperty, const QString &value)
 {
 	auto id = requestCounter++;
-	RequestInfo info(futureInterface, targetThread, metaTypeId);
+	RequestInfo info(futureInterface, targetThread, QMetaType::Bool);
 	info.notifyKey = {QMetaType::typeName(metaTypeId), value};
-	info.notifyChanged = false;
+	info.isDeleteAction = true;
 	info.changeAction = true;
 	info.changeKey = info.notifyKey;
 	info.changeState = StateHolder::Deleted;
@@ -415,6 +418,8 @@ StorageEngine::RequestInfo::RequestInfo(bool isChangeControllerRequest) :
 	futureInterface(),
 	targetThread(nullptr),
 	convertMetaTypeId(QMetaType::UnknownType),
+	notifyKey(),
+	isDeleteAction(false),
 	changeAction(false),
 	changeKey(),
 	changeState(StateHolder::Unchanged)
@@ -425,6 +430,8 @@ StorageEngine::RequestInfo::RequestInfo(QFutureInterface<QVariant> futureInterfa
 	futureInterface(futureInterface),
 	targetThread(targetThread),
 	convertMetaTypeId(convertMetaTypeId),
+	notifyKey(),
+	isDeleteAction(false),
 	changeAction(false),
 	changeKey(),
 	changeState(StateHolder::Unchanged)

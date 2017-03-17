@@ -123,10 +123,8 @@ void MockLocalStore::remove(quint64 id, const QtDataSync::ObjectKey &key, const 
 		return;
 	} else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
-	else {
-		pseudoStore.remove(key);
-		emit requestCompleted(id, QJsonValue::Undefined);
-	}
+	else
+		emit requestCompleted(id, pseudoStore.remove(key) > 0);
 }
 
 void MockLocalStore::search(quint64 id, const QByteArray &typeName, const QString &searchQuery)

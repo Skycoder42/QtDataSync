@@ -257,9 +257,10 @@ void SqlLocalStore::remove(quint64 id, const ObjectKey &key, const QByteArray &)
 		removeQuery.addBindValue(key.first);
 		removeQuery.addBindValue(key.second);
 		EXEC_QUERY(removeQuery);
-	}
 
-	emit requestCompleted(id, QJsonValue::Undefined);
+		emit requestCompleted(id, true);
+	} else
+		emit requestCompleted(id, false);
 }
 
 void SqlLocalStore::search(quint64 id, const QByteArray &typeName, const QString &searchQuery)

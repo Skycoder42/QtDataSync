@@ -46,9 +46,9 @@ public:
 	template<typename T>
 	GenericTask<void> save(const T &value);
 	template<typename T>
-	GenericTask<void> remove(const QString &key);
+	GenericTask<bool> remove(const QString &key);
 	template<typename T, typename K>
-	GenericTask<void> remove(const K &key);
+	GenericTask<bool> remove(const K &key);
 	template<typename T>
 	GenericTask<QList<T>> search(const QString &query);
 
@@ -105,13 +105,13 @@ GenericTask<void> AsyncDataStore::save(const T &value)
 }
 
 template<typename T>
-GenericTask<void> AsyncDataStore::remove(const QString &key)
+GenericTask<bool> AsyncDataStore::remove(const QString &key)
 {
 	return internalRemove(qMetaTypeId<T>(), key);
 }
 
 template<typename T, typename K>
-GenericTask<void> AsyncDataStore::remove(const K &key)
+GenericTask<bool> AsyncDataStore::remove(const K &key)
 {
 	return internalRemove(qMetaTypeId<T>(), QVariant::fromValue(key).toString());
 }

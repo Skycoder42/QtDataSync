@@ -94,7 +94,7 @@ private:
 
 		//change notifying
 		ObjectKey notifyKey;
-		bool notifyChanged;
+		bool isDeleteAction;
 
 		//changing operations
 		bool changeAction;
