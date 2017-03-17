@@ -24,6 +24,7 @@ public slots:
 					   bool changed);
 
 private slots:
+	void verifySecret(QWebSocketCorsAuthenticator *authenticator);
 	void newConnection();
 	void serverError();
 	void sslErrors(const QList<QSslError> &errors);
@@ -31,6 +32,7 @@ private slots:
 private:
 	DatabaseController *database;
 	QWebSocketServer *server;
+	QString secret;
 
 	QMultiHash<QUuid, Client*> clients;
 };

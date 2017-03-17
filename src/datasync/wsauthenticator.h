@@ -22,6 +22,7 @@ class Q_DATASYNC_EXPORT WsAuthenticator : public Authenticator
 	Q_PROPERTY(QHash<QByteArray, QByteArray> customHeaders READ customHeaders WRITE setCustomHeaders)
 	Q_PROPERTY(bool validateServerCertificate READ validateServerCertificate WRITE setValidateServerCertificate)
 	Q_PROPERTY(QByteArray userIdentity READ userIdentity WRITE setUserIdentity RESET resetUserIdentity)
+	Q_PROPERTY(QString serverSecret READ serverSecret WRITE setServerSecret)
 	Q_PROPERTY(bool connected READ isConnected NOTIFY connectedChanged)
 
 public:
@@ -34,6 +35,7 @@ public:
 	QHash<QByteArray, QByteArray> customHeaders() const;
 	bool validateServerCertificate() const;
 	QByteArray userIdentity() const;
+	QString serverSecret() const;
 	bool isConnected() const;
 
 public Q_SLOTS:
@@ -44,6 +46,7 @@ public Q_SLOTS:
 	void setValidateServerCertificate(bool validateServerCertificate);
 	GenericTask<void> setUserIdentity(QByteArray userIdentity, bool clearLocalStore = true);
 	GenericTask<void> resetUserIdentity(bool clearLocalStore = true);
+	void setServerSecret(QString serverSecret);
 
 Q_SIGNALS:
 	void connectedChanged(bool connected);

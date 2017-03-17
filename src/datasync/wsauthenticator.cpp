@@ -44,6 +44,11 @@ QByteArray WsAuthenticator::userIdentity() const
 	return d->settings->value(WsRemoteConnector::keyUserIdentity).toByteArray();
 }
 
+QString WsAuthenticator::serverSecret() const
+{
+	return d->settings->value(WsRemoteConnector::keySharedSecret).toString();
+}
+
 bool WsAuthenticator::isConnected() const
 {
 	return d->connected;
@@ -84,6 +89,12 @@ GenericTask<void> WsAuthenticator::setUserIdentity(QByteArray userIdentity, bool
 GenericTask<void> WsAuthenticator::resetUserIdentity(bool clearLocalStore)
 {
 	return resetIdentity(QVariant(), clearLocalStore);
+}
+
+void WsAuthenticator::setServerSecret(QString serverSecret)
+{
+	d->settings->setValue(WsRemoteConnector::keySharedSecret, serverSecret);
+	d->settings->sync();
 }
 
 RemoteConnector *WsAuthenticator::connector()

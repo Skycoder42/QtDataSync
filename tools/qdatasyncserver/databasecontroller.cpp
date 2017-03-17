@@ -610,9 +610,9 @@ DatabaseController::DatabaseWrapper::DatabaseWrapper() :
 {
 	auto config = qApp->configuration();
 	auto db = QSqlDatabase::addDatabase(config->value(QStringLiteral("database/driver"), QStringLiteral("QPSQL")).toString(), dbName);
-	db.setDatabaseName(config->value(QStringLiteral("database/name"), QStringLiteral("QtDataSync")).toString());
-	db.setHostName(config->value(QStringLiteral("database/host")).toString());
-	db.setPort(config->value(QStringLiteral("database/port")).toInt());
+	db.setDatabaseName(config->value(QStringLiteral("database/name"), QCoreApplication::applicationName()).toString());
+	db.setHostName(config->value(QStringLiteral("database/host"), QStringLiteral("localhost")).toString());
+	db.setPort(config->value(QStringLiteral("database/port"), 5432).toInt());
 	db.setUserName(config->value(QStringLiteral("database/username")).toString());
 	db.setPassword(config->value(QStringLiteral("database/password")).toString());
 	db.setConnectOptions(config->value(QStringLiteral("database/options")).toString());

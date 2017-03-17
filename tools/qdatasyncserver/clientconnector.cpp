@@ -2,16 +2,19 @@
 #include <QFile>
 #include <QSslKey>
 #include <QWebSocket>
+#include <QWebSocketCorsAuthenticator>
 #include "app.h"
 
 ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) :
 	QObject(parent),
 	database(database),
 	server(nullptr),
+	secret(),
 	clients()
 {
 	auto name = qApp->configuration()->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toString();
 	auto mode = qApp->configuration()->value(QStringLiteral("server/wss"), false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+	secret = qApp->configuration()->value(QStringLiteral("server/secret")).toString();
 
 	server = new QWebSocketServer(name, mode, this);
 	connect(server, &QWebSocketServer::newConnection,
@@ -20,6 +23,10 @@ ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) 
 			this, &ClientConnector::serverError);
 	connect(server, &QWebSocketServer::sslErrors,
 			this, &ClientConnector::sslErrors);
+	if(!secret.isEmpty()) {
+		connect(server, &QWebSocketServer::originAuthenticationRequired,
+				this, &ClientConnector::verifySecret);
+	}
 }
 
 bool ClientConnector::setupWss()
@@ -75,6 +82,11 @@ void ClientConnector::notifyChanged(const QUuid &userId, const QUuid &excludedDe
 		if(device->deviceId() != excludedDeviceId)
 			device->notifyChanged(type, key, changed);
 	}
+}
+
+void ClientConnector::verifySecret(QWebSocketCorsAuthenticator *authenticator)
+{
+	authenticator->setAllowed(authenticator->origin() == secret);
 }
 
 void ClientConnector::newConnection()

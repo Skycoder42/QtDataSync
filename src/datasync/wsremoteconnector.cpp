@@ -16,6 +16,7 @@ const QString WsRemoteConnector::keyRemoteUrl(QStringLiteral("RemoteConnector/re
 const QString WsRemoteConnector::keyHeadersGroup(QStringLiteral("RemoteConnector/headers"));
 const QString WsRemoteConnector::keyVerifyPeer(QStringLiteral("RemoteConnector/verifyPeer"));
 const QString WsRemoteConnector::keyUserIdentity(QStringLiteral("RemoteConnector/userIdentity"));
+const QString WsRemoteConnector::keySharedSecret(QStringLiteral("RemoteConnector/sharedSecret"));
 const QVector<int> WsRemoteConnector::timeouts = {5 * 1000, 10 * 1000, 30 * 1000, 60 * 1000, 5 * 60 * 1000, 10 * 60 * 1000};
 
 WsRemoteConnector::WsRemoteConnector(QObject *parent) :
@@ -77,7 +78,7 @@ void WsRemoteConnector::reconnect()
 			return;
 		}
 
-		socket = new QWebSocket(QStringLiteral("QtDataSync"),
+		socket = new QWebSocket(settings->value(keySharedSecret, QStringLiteral("QtDataSync")).toString(),
 								QWebSocketProtocol::VersionLatest,
 								this);
 

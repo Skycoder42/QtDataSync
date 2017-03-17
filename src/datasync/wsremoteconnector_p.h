@@ -33,6 +33,7 @@ public:
 	static const QString keyHeadersGroup;
 	static const QString keyVerifyPeer;
 	static const QString keyUserIdentity;
+	static const QString keySharedSecret;
 
 	explicit WsRemoteConnector(QObject *parent = nullptr);
 

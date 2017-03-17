@@ -23,6 +23,7 @@ bool SetupDialog::setup(QWidget *parent)
 
 		auto auth = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(&dialog);
 		auth->setRemoteUrl(dialog.ui->remoteURLLineEdit->text());
+		auth->setServerSecret(QStringLiteral("baum42"));
 		auth->setValidateServerCertificate(false);
 		auth->reconnect();
 
