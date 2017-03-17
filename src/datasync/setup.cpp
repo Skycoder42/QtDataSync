@@ -37,7 +37,7 @@ void Setup::removeSetup(const QString &name)
 Setup::Setup() :
 	d(new SetupPrivate())
 {
-	d->serializer->setAllowDefaultNull(true);
+	d->serializer->setAllowDefaultNull(true);//support null gadgets
 }
 
 Setup::~Setup(){}

@@ -20,6 +20,12 @@ private Q_SLOTS:
 	void testLoadAll();
 	void testLoad_data();
 	void testLoad();
+	void testSave_data();
+	void testSave();
+	void testRemove_data();
+	void testRemove();
+	void testSearch_data();
+	void testSearch();
 
 private:
 	MockLocalStore *store;
@@ -174,7 +180,7 @@ void LocalStoreTest::testLoad_data()
 								<< 42
 								<< generateData(42)
 								<< false;
-	QTest::newRow("missingData") << generateDataJson(0, 0)
+	QTest::newRow("missingData") << DataSet()
 								 << 5
 								 << TestData()
 								 << false;
@@ -201,6 +207,133 @@ void LocalStoreTest::testLoad()
 		auto res = task.result();
 		QVERIFY(!shouldFail);
 		QCOMPARE(res, result);
+	} catch(QException &e) {
+		QVERIFY2(shouldFail, e.what());
+	}
+}
+
+void LocalStoreTest::testSave_data()
+{
+	QTest::addColumn<TestData>("data");
+	QTest::addColumn<DataSet>("result");
+	QTest::addColumn<bool>("shouldFail");
+
+	QTest::newRow("simpleData") << generateData(42)
+								<< generateDataJson(42, 43)
+								<< false;
+	QTest::newRow("invalidData") << generateData(0)
+								 << generateDataJson(0, 1)
+								 << true;
+}
+
+void LocalStoreTest::testSave()
+{
+	QFETCH(TestData, data);
+	QFETCH(DataSet, result);
+	QFETCH(bool, shouldFail);
+
+	store->mutex.lock();
+	store->pseudoStore.clear();
+	store->failCount = shouldFail ? 1 : 0;
+	store->mutex.unlock();
+
+	try {
+		auto task = async->save<TestData>(data);
+		task.waitForFinished();
+		QVERIFY(!shouldFail);
+
+		store->mutex.lock();
+		QCOMPARE(store->pseudoStore, result);
+		store->mutex.unlock();
+	} catch(QException &e) {
+		QVERIFY2(shouldFail, e.what());
+	}
+}
+
+void LocalStoreTest::testRemove_data()
+{
+	QTest::addColumn<DataSet>("data");
+	QTest::addColumn<int>("key");
+	QTest::addColumn<DataSet>("result");
+	QTest::addColumn<bool>("shouldFail");
+
+	QTest::newRow("simpleData") << generateDataJson(11, 12)
+								<< 11
+								<< DataSet()
+								<< false;
+	QTest::newRow("missingData") << DataSet()
+								 << 77
+								 << DataSet()
+								 << false;
+	QTest::newRow("invalidData") << generateDataJson(0, 1)
+								 << 0
+								 << DataSet()
+								 << true;
+}
+
+void LocalStoreTest::testRemove()
+{
+	QFETCH(DataSet, data);
+	QFETCH(int, key);
+	QFETCH(DataSet, result);
+	QFETCH(bool, shouldFail);
+
+	store->mutex.lock();
+	store->pseudoStore = data;
+	store->failCount = shouldFail ? 1 : 0;
+	store->mutex.unlock();
+
+	try {
+		auto task = async->remove<TestData>(QString::number(key));//TODO variant
+		task.waitForFinished();
+		QVERIFY(!shouldFail);
+
+		store->mutex.lock();
+		QCOMPARE(store->pseudoStore, result);
+		store->mutex.unlock();
+	} catch(QException &e) {
+		QVERIFY2(shouldFail, e.what());
+	}
+}
+
+void LocalStoreTest::testSearch_data()
+{
+	QTest::addColumn<DataSet>("data");
+	QTest::addColumn<QString>("query");
+	QTest::addColumn<QList<TestData>>("result");
+	QTest::addColumn<bool>("shouldFail");
+
+	QTest::newRow("emptyData") << DataSet()
+							   << QStringLiteral("3")
+							   << QList<TestData>()
+							   << false;
+	QTest::newRow("simpleData") << generateDataJson(10, 40)
+								<< QStringLiteral("2")
+								<< (generateData(12, 13) + generateData(20, 30) + generateData(32, 33))
+								<< false;
+	QTest::newRow("invalidData") << DataSet()
+								 << QStringLiteral("baum")
+								 << QList<TestData>()
+								 << true;
+}
+
+void LocalStoreTest::testSearch()
+{
+	QFETCH(DataSet, data);
+	QFETCH(QString, query);
+	QFETCH(QList<TestData>, result);
+	QFETCH(bool, shouldFail);
+
+	store->mutex.lock();
+	store->pseudoStore = data;
+	store->failCount = shouldFail ? 1 : 0;
+	store->mutex.unlock();
+
+	try {
+		auto task = async->search<TestData>(query);
+		auto res = task.result();
+		QVERIFY(!shouldFail);
+		QLISTCOMPARE(res, result);
 	} catch(QException &e) {
 		QVERIFY2(shouldFail, e.what());
 	}
