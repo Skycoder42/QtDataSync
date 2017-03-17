@@ -413,6 +413,48 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 	}
 }
 
+void DatabaseController::cleanupUsers()
+{
+	auto db = threadStore.localData().database();
+	if(!db.transaction()) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to create transaction with error: %1")
+								  .arg(db.lastError().text()));
+		return;
+	}
+
+	QSqlQuery dataCleanupQuery(db);
+	if(!dataCleanupQuery.exec(QStringLiteral("DELETE FROM data WHERE userid IN ( "
+											 "	SELECT identity FROM users WHERE identity NOT IN ( "
+											 "		SELECT DISTINCT userid FROM devices "
+											 "	) "
+											 ")"))) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to cleanup data for deleted users with error: %1")
+								  .arg(dataCleanupQuery.lastError().text()));
+		return;
+	}
+
+	QSqlQuery userCleanupQuery(db);
+	if(!userCleanupQuery.exec(QStringLiteral("DELETE FROM users WHERE identity NOT IN ( "
+											 "	SELECT DISTINCT userid FROM devices "
+											 ")"))) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to delete users without devices with error: %1")
+								  .arg(userCleanupQuery.lastError().text()));
+		return;
+	}
+
+
+	if(db.commit())
+		emit cleanupOperationDone(userCleanupQuery.numRowsAffected());
+	else {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to commit transaction with error: %1")
+								  .arg(db.lastError().text()));
+	}
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();

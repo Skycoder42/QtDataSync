@@ -25,6 +25,7 @@ public:
 	void deleteOldDevice(const QUuid &userId, const QUuid &deviceId);
 
 	void cleanupDevices(quint64 offlineSinceDays);
+	void cleanupUsers();
 
 signals:
 	void notifyChanged(const QUuid &userId,

@@ -16,7 +16,7 @@ services:
     container_name: datasync_example_pgAdmin
     image: thajeztah/pgadmin4:latest
     depends_on:
-      - datasync_example_server
+      - datasync_server
     ports:
       - "5050/tcp:5050/tcp"
     volumes:

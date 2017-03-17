@@ -206,7 +206,10 @@ void App::startCleanup()
 
 		//users
 		if(cleanupStage == Users) {
-			cleanupStage = Data;
+			if(params.contains(QStringLiteral("users")))
+				database->cleanupUsers();
+			else
+				cleanupStage = Data;
 		}
 
 		//data
