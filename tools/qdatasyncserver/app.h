@@ -13,6 +13,8 @@ class App : public QtBackgroundProcess::App
 public:
 	explicit App(int &argc, char **argv);
 
+	void loadId();
+
 	QSettings *configuration() const;
 	QThreadPool *threadPool() const;
 	QString absolutePath(const QString &path) const;

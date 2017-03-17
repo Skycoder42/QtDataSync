@@ -23,6 +23,14 @@ App::App(int &argc, char **argv) :
 			this, &App::terminalConnected);
 }
 
+void App::loadId()
+{
+	QCommandLineParser parser;
+	setupParser(parser, true);
+	if(parser.parse(arguments()) && parser.isSet(QStringLiteral("id")))
+		setInstanceID(parser.value(QStringLiteral("id")));
+}
+
 QSettings *App::configuration() const
 {
 	return config;
@@ -54,6 +62,12 @@ void App::setupParser(QCommandLineParser &parser, bool useShortOptions)
 						 QStringLiteral("path"),
 						 path
 					 });
+	parser.addOption({
+						 QStringLiteral("id"),
+						 QStringLiteral("A custom <id> to run more than just one instance of the server. NOTE: all terminals "
+										"that want to connect to a master must specify the same id"),
+						 QStringLiteral("id")
+					 });
 
 	parser.addPositionalArgument(QStringLiteral("cleanup"),
 								 QStringLiteral("Perform a cleanup operation on the running server. Specify what to clean "
@@ -69,6 +83,7 @@ void App::setupParser(QCommandLineParser &parser, bool useShortOptions)
 int App::startupApp(const QCommandLineParser &parser)
 {
 	config = new QSettings(parser.value(QStringLiteral("config-file")), QSettings::IniFormat, this);
+	setApplicationName(config->value(QStringLiteral("name"), applicationName()).toString());
 
 	connect(this, &App::aboutToQuit,
 			this, &App::quitting,
@@ -105,7 +120,7 @@ int App::startupApp(const QCommandLineParser &parser)
 
 bool App::requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &)
 {
-	terminal->write("Stopping " + config->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toByteArray() + " [ ");
+	terminal->write("Stopping " + QCoreApplication::applicationName().toUtf8() + " [ ");
 	if(currentTerminal) {
 		terminal->write("\033[1;31mfail\033[0m ]\n"
 						"App cannot be stop while starting!\n");
@@ -122,7 +137,7 @@ void App::terminalConnected(QtBackgroundProcess::Terminal *terminal)
 {
 	if(terminal->isStarter()) {
 		currentTerminal = terminal;
-		currentTerminal->write("Starting " + config->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toByteArray() + " [ .... ]");
+		currentTerminal->write("Starting " + QCoreApplication::applicationName().toUtf8() + " [ .... ]");
 		currentTerminal->flush();
 		if(dbRdy)
 			completeStart();
@@ -285,5 +300,6 @@ void App::completeCleanup()
 int main(int argc, char *argv[])
 {
 	App a(argc, argv);
+	a.loadId();
 	return a.exec();
 }
