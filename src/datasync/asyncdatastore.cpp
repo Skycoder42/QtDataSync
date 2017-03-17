@@ -44,6 +44,11 @@ Task AsyncDataStore::load(int metaTypeId, const QString &key)
 	return internalLoad(metaTypeId, key);
 }
 
+Task AsyncDataStore::load(int metaTypeId, const QVariant &key)
+{
+	return internalLoad(metaTypeId, key.toString());
+}
+
 Task AsyncDataStore::save(int metaTypeId, const QVariant &value)
 {
 	return internalSave(metaTypeId, value);
@@ -52,6 +57,11 @@ Task AsyncDataStore::save(int metaTypeId, const QVariant &value)
 Task AsyncDataStore::remove(int metaTypeId, const QString &key)
 {
 	return internalRemove(metaTypeId, key);
+}
+
+Task AsyncDataStore::remove(int metaTypeId, const QVariant &key)
+{
+	return internalRemove(metaTypeId, key.toString());
 }
 
 Task AsyncDataStore::search(int dataMetaTypeId, int listMetaTypeId, const QString &searchQuery)

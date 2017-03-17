@@ -102,7 +102,7 @@ void StateHolderTest::testRemove_data()
 	QTest::newRow("removeNonExisting") << DataSet()
 									   << StateHolder::ChangeHash()
 									   << 13
-									   << StateHolder::ChangeHash({{generateKey(13),StateHolder::Deleted}});
+									   << StateHolder::ChangeHash();
 }
 
 void StateHolderTest::testRemove()
@@ -117,7 +117,7 @@ void StateHolderTest::testRemove()
 	holder->mutex.unlock();
 
 	try {
-		auto task = async->remove<TestData>(QString::number(key));//TODO variant
+		auto task = async->remove<TestData>(key);
 		task.waitForFinished();
 
 		holder->mutex.lock();

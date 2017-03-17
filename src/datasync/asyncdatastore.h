@@ -26,8 +26,10 @@ public:
 	GenericTask<QStringList> keys(int metaTypeId);
 	Task loadAll(int dataMetaTypeId, int listMetaTypeId);
 	Task load(int metaTypeId, const QString &key);
+	Task load(int metaTypeId, const QVariant &key);
 	Task save(int metaTypeId, const QVariant &value);
 	Task remove(int metaTypeId, const QString &key);
+	Task remove(int metaTypeId, const QVariant &key);
 	Task search(int dataMetaTypeId, int listMetaTypeId, const QString &query);
 
 	//WARNING -> DOES NOT TAKE OWNERSHIP OF QOBJECTS
@@ -39,10 +41,14 @@ public:
 	GenericTask<QList<T>> loadAll();
 	template<typename T>
 	GenericTask<T> load(const QString &key);
+	template<typename T, typename K>
+	GenericTask<T> load(const K &key);
 	template<typename T>
 	GenericTask<void> save(const T &value);
 	template<typename T>
 	GenericTask<void> remove(const QString &key);
+	template<typename T, typename K>
+	GenericTask<void> remove(const K &key);
 	template<typename T>
 	GenericTask<QList<T>> search(const QString &query);
 
@@ -86,6 +92,12 @@ GenericTask<T> AsyncDataStore::load(const QString &key)
 	return internalLoad(qMetaTypeId<T>(), key);
 }
 
+template<typename T, typename K>
+GenericTask<T> AsyncDataStore::load(const K &key)
+{
+	return internalLoad(qMetaTypeId<T>(), QVariant::fromValue(key).toString());
+}
+
 template<typename T>
 GenericTask<void> AsyncDataStore::save(const T &value)
 {
@@ -96,6 +108,12 @@ template<typename T>
 GenericTask<void> AsyncDataStore::remove(const QString &key)
 {
 	return internalRemove(qMetaTypeId<T>(), key);
+}
+
+template<typename T, typename K>
+GenericTask<void> AsyncDataStore::remove(const K &key)
+{
+	return internalRemove(qMetaTypeId<T>(), QVariant::fromValue(key).toString());
 }
 
 template<typename T>

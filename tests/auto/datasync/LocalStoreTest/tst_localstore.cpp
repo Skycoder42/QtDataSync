@@ -203,7 +203,7 @@ void LocalStoreTest::testLoad()
 	store->mutex.unlock();
 
 	try {
-		auto task = async->load<TestData>(QString::number(key));//TODO variant
+		auto task = async->load<TestData>(key);
 		auto res = task.result();
 		QVERIFY(!shouldFail);
 		QCOMPARE(res, result);
@@ -284,7 +284,7 @@ void LocalStoreTest::testRemove()
 	store->mutex.unlock();
 
 	try {
-		auto task = async->remove<TestData>(QString::number(key));//TODO variant
+		auto task = async->remove<TestData>(key);
 		task.waitForFinished();
 		QVERIFY(!shouldFail);
 
