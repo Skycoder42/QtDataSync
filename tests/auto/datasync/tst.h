@@ -13,6 +13,8 @@ void mockSetup(QtDataSync::Setup &setup);
 typedef QHash<QtDataSync::ObjectKey, QJsonObject> DataSet;
 
 QList<TestData> generateData(int from, int to);
+TestData generateData(int index);
+QStringList generateDataKeys(int from, int to);
 DataSet generateDataJson(int from, int to);
 QJsonArray dataListJson(const DataSet &data);
 

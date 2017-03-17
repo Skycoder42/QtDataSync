@@ -10,11 +10,24 @@ void mockSetup(QtDataSync::Setup &setup)
 	setup.setLocalStore(new MockLocalStore());
 }
 
+TestData generateData(int index)
+{
+	return {index, QString::number(index)};
+}
+
 QList<TestData> generateData(int from, int to)
 {
 	QList<TestData> list;
 	for(auto i = from; i < to; i++)
 		list.append({i, QString::number(i)});
+	return list;
+}
+
+QStringList generateDataKeys(int from, int to)
+{
+	QStringList list;
+	for(auto i = from; i < to; i++)
+		list.append(QString::number(i));
 	return list;
 }
 

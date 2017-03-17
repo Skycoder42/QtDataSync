@@ -11,7 +11,7 @@ class TestData
 	Q_PROPERTY(QString text MEMBER text)
 
 public:
-	TestData(int id = 0, QString text = {});
+	TestData(int id = -1, QString text = {});
 
 	bool operator ==(const TestData &other) const;
 
