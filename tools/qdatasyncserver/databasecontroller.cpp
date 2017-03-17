@@ -455,6 +455,22 @@ void DatabaseController::cleanupUsers()
 	}
 }
 
+void DatabaseController::cleanupData()
+{
+	auto db = threadStore.localData().database();
+	QSqlQuery dataCleanupQuery(db);
+	if(!dataCleanupQuery.exec(QStringLiteral("DELETE FROM data WHERE data.data IS NULL AND index NOT IN ( "
+											 "	SELECT DISTINCT dataindex FROM states "
+											 ")"))) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to delete stale data with error: %1")
+								  .arg(dataCleanupQuery.lastError().text()));
+		return;
+	}
+
+	emit cleanupOperationDone(dataCleanupQuery.numRowsAffected());
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();

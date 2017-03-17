@@ -214,7 +214,10 @@ void App::startCleanup()
 
 		//data
 		if(cleanupStage == Data) {
-			cleanupStage = Resync;
+			if(params.contains(QStringLiteral("data")))
+				database->cleanupData();
+			else
+				cleanupStage = Resync;
 		}
 
 		//resyc

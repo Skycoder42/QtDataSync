@@ -26,6 +26,7 @@ public:
 
 	void cleanupDevices(quint64 offlineSinceDays);
 	void cleanupUsers();
+	void cleanupData();
 
 signals:
 	void notifyChanged(const QUuid &userId,
