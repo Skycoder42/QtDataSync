@@ -1,3 +1,4 @@
+#include "mockstateholder.h"
 #include "tst.h"
 
 void tst_init()
@@ -7,12 +8,18 @@ void tst_init()
 
 void mockSetup(QtDataSync::Setup &setup)
 {
-	setup.setLocalStore(new MockLocalStore());
+	setup.setLocalStore(new MockLocalStore())
+		 .setStateHolder(new MockStateHolder());
 }
 
 TestData generateData(int index)
 {
 	return {index, QString::number(index)};
+}
+
+QtDataSync::ObjectKey generateKey(int index)
+{
+	return {"TestData", QString::number(index)};
 }
 
 QList<TestData> generateData(int from, int to)
@@ -38,7 +45,7 @@ DataSet generateDataJson(int from, int to)
 		QJsonObject data;
 		data["id"] = i;
 		data["text"] = QString::number(i);
-		hash.insert({"TestData", QString::number(i)}, data);
+		hash.insert(generateKey(i), data);
 	}
 	return hash;
 }

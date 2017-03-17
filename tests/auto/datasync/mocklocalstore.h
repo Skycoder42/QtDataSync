@@ -12,8 +12,6 @@ class MockLocalStore : public QtDataSync::LocalStore
 public:
 	explicit MockLocalStore(QObject *parent = nullptr);
 
-	void initialize(QtDataSync::Defaults *defaults) override;
-	void finalize() override;
 	QList<QtDataSync::ObjectKey> loadAllKeys() override;
 	void resetStore() override;
 

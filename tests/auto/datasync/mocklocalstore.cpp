@@ -10,23 +10,13 @@ MockLocalStore::MockLocalStore(QObject *parent) :
 	failCount(0)
 {}
 
-void MockLocalStore::initialize(QtDataSync::Defaults *)
-{
-	QMutexLocker _(&mutex);
-}
-
-void MockLocalStore::finalize()
-{
-	QMutexLocker _(&mutex);
-}
-
 QList<QtDataSync::ObjectKey> MockLocalStore::loadAllKeys()
 {
 	QMutexLocker _(&mutex);
 	if(!enabled)
 		return {};
-
-	return pseudoStore.keys();
+	else
+		return pseudoStore.keys();
 }
 
 void MockLocalStore::resetStore()
@@ -34,8 +24,8 @@ void MockLocalStore::resetStore()
 	QMutexLocker _(&mutex);
 	if(!enabled)
 		return;
-
-	pseudoStore.clear();
+	else
+		pseudoStore.clear();
 }
 
 void MockLocalStore::count(quint64 id, const QByteArray &typeName)
