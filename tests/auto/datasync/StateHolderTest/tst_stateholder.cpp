@@ -18,6 +18,7 @@ private Q_SLOTS:
 	void testRemove();
 
 private:
+	MockLocalStore *store;
 	MockStateHolder *holder;
 	AsyncDataStore *async;
 };
@@ -32,6 +33,7 @@ void StateHolderTest::initTestCase()
 
 	Setup setup;
 	mockSetup(setup);
+	store = static_cast<MockLocalStore*>(setup.localStore());
 	holder = static_cast<MockStateHolder*>(setup.stateHolder());
 	holder->enabled = true;
 	setup.create();
@@ -116,6 +118,12 @@ void StateHolderTest::testRemove()
 	holder->pseudoState = state;
 	holder->mutex.unlock();
 
+	//set local store -> required since delete checks if actually deleted
+	store->mutex.lock();
+	store->enabled = true;
+	store->pseudoStore = data;
+	store->mutex.unlock();
+
 	try {
 		auto task = async->remove<TestData>(key);
 		task.waitForFinished();
@@ -126,6 +134,12 @@ void StateHolderTest::testRemove()
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
+
+	//free local store
+	store->mutex.lock();
+	store->enabled = false;
+	store->pseudoStore.clear();
+	store->mutex.unlock();
 }
 
 QTEST_MAIN(StateHolderTest)
