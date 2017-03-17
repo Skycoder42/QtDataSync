@@ -222,7 +222,10 @@ void App::startCleanup()
 
 		//resyc
 		if(cleanupStage == Resync) {
-			completeCleanup();
+			if(params.contains(QStringLiteral("resync")))
+				database->cleanupResync();
+			else
+				completeCleanup();
 		}
 	}
 }
@@ -246,7 +249,7 @@ void App::cleanupOperationDone(int rowsAffected, const QString &error)
 			cleanupStage = Resync;
 			break;
 		case Resync:
-			currentTerminal->write("Resync flag set!\n");
+			currentTerminal->write("Resync flags set!\n");
 			cleanupStage = None;
 			break;
 		default:

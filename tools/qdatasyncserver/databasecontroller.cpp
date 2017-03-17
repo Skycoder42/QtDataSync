@@ -471,6 +471,20 @@ void DatabaseController::cleanupData()
 	emit cleanupOperationDone(dataCleanupQuery.numRowsAffected());
 }
 
+void DatabaseController::cleanupResync()
+{
+	auto db = threadStore.localData().database();
+	QSqlQuery reyncCleanupQuery(db);
+	if(!reyncCleanupQuery.exec(QStringLiteral("UPDATE devices SET resync = true"))) {
+		emit cleanupOperationDone(-1,
+								  QStringLiteral("Failed to set resync flag with error: %1")
+								  .arg(reyncCleanupQuery.lastError().text()));
+		return;
+	}
+
+	emit cleanupOperationDone(0);
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();
