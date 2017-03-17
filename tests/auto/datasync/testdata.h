@@ -3,16 +3,17 @@
 
 #include <QObject>
 
-class TestData : public QObject
+class TestData
 {
-	Q_OBJECT
+	Q_GADGET
 
 	Q_PROPERTY(int id MEMBER id USER true)
 	Q_PROPERTY(QString text MEMBER text)
 
 public:
-	Q_INVOKABLE TestData(QObject *parent = nullptr);
-	TestData(int id, QString text, QObject *parent = nullptr);
+	TestData(int id = 0, QString text = {});
+
+	bool operator ==(const TestData &other) const;
 
 	int id;
 	QString text;

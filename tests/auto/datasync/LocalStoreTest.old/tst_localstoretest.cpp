@@ -31,7 +31,7 @@ private:
 
 void LocalStoreTest::initTestCase()
 {
-	QJsonSerializer::registerListConverters<TestData*>();
+	QJsonSerializer::registerListConverters<TestData>();
 	QtDataSync::Setup().create();
 	authenticator = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(this);
 	authenticator->setRemoteUrl(QStringLiteral("ws://localhost:4242"));
@@ -50,63 +50,55 @@ void LocalStoreTest::cleanupTestCase()
 void LocalStoreTest::testSaveAndLoad_data()
 {
 	QTest::addColumn<QString>("key");
-	QTest::addColumn<TestData*>("data");
+	QTest::addColumn<TestData>("data");
 
 	QTest::newRow("data0") << QStringLiteral("420")
-						   << new TestData(420, "data0", this);
+						   << TestData(420, "data0");
 	QTest::newRow("data1") << QStringLiteral("421")
-						   << new TestData(421, "data1", this);
+						   << TestData(421, "data1");
 	QTest::newRow("data2") << QStringLiteral("422")
-						   << new TestData(422, "data2", this);
+						   << TestData(422, "data2");
 }
 
 void LocalStoreTest::testSaveAndLoad()
 {
 	QFETCH(QString, key);
-	QFETCH(TestData*, data);
+	QFETCH(TestData, data);
 
 	try {
 		auto saveFuture = store->save(data);
 		saveFuture.waitForFinished();
-		auto result = store->load<TestData*>(key).result();
-		QVERIFY(result);
-		QCOMPARE(result->id, data->id);
-		QCOMPARE(result->text, data->text);
-
-		result->deleteLater();
+		auto result = store->load<TestData>(key).result();
+		QCOMPARE(result.id, data.id);
+		QCOMPARE(result.text, data.text);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
-
-	data->deleteLater();
 }
 
 void LocalStoreTest::testLoadAll()
 {
 	try {
-		auto data = store->loadAll<TestData*>().result();
+		auto data = store->loadAll<TestData>().result();
 		QCOMPARE(data.size(), 3);
 
-		QList<TestData*> testList = {
-			new TestData(420, "data0", this),
-			new TestData(421, "data1", this),
-			new TestData(422, "data2", this)
+		QList<TestData> testList = {
+			TestData(420, "data0"),
+			TestData(421, "data1"),
+			TestData(422, "data2")
 		};
 
 		foreach(auto testData, data) {
 			auto ok = false;
 			foreach(auto realData, testList) {
-				if(testData->id == realData->id &&
-				   testData->text == realData->text) {
+				if(testData.id == realData.id &&
+				   testData.text == realData.text) {
 					ok = true;
 					break;
 				}
 			}
 			QVERIFY2(ok, "TestData not the same");
 		}
-
-		qDeleteAll(data);
-		qDeleteAll(testList);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -115,8 +107,8 @@ void LocalStoreTest::testLoadAll()
 void LocalStoreTest::testRemove()
 {
 	try {
-		store->remove<TestData*>("421").waitForFinished();
-		QCOMPARE(store->count<TestData*>().result(), 2);
+		store->remove<TestData>("421").waitForFinished();
+		QCOMPARE(store->count<TestData>().result(), 2);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -125,11 +117,11 @@ void LocalStoreTest::testRemove()
 void LocalStoreTest::testListKeys()
 {
 	try {
-		auto keys = store->keys<TestData*>().result();
+		auto keys = store->keys<TestData>().result();
 		QCOMPARE(keys.size(), 2);
 		foreach(auto key, keys)
-			store->remove<TestData*>(key).waitForFinished();
-		QCOMPARE(store->count<TestData*>().result(), 0);
+			store->remove<TestData>(key).waitForFinished();
+		QCOMPARE(store->count<TestData>().result(), 0);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
