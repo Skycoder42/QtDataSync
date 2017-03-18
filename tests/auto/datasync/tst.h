@@ -7,6 +7,8 @@
 #include "testdata.h"
 #include "mocklocalstore.h"
 #include "mockstateholder.h"
+#include "mockremoteconnector.h"
+#include "mockdatamerger.h"
 
 void tst_init();
 void mockSetup(QtDataSync::Setup &setup);
@@ -19,6 +21,7 @@ QtDataSync::ObjectKey generateKey(int index);
 QStringList generateDataKeys(int from, int to);
 DataSet generateDataJson(int from, int to);
 QJsonArray dataListJson(const DataSet &data);
+QtDataSync::StateHolder::ChangeHash generateChangeHash(int from, int to, QtDataSync::StateHolder::ChangeState state);
 
 template <typename T>
 bool qListCompare(QList<T> t1, QList<T> t2, const char *actual, const char *expected, const char *file, int line)

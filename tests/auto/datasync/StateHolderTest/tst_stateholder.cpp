@@ -55,13 +55,13 @@ void StateHolderTest::testSave_data()
 
 	QTest::newRow("create") << StateHolder::ChangeHash()
 							 << generateData(33)
-							 << StateHolder::ChangeHash({{generateKey(33),StateHolder::Changed}});
-	QTest::newRow("change") << StateHolder::ChangeHash({{generateKey(44),StateHolder::Changed}})
+							 << generateChangeHash(33, 34, StateHolder::Changed);
+	QTest::newRow("change") << generateChangeHash(44, 45, StateHolder::Changed)
 							 << generateData(44)
-							 << StateHolder::ChangeHash({{generateKey(44),StateHolder::Changed}});
-	QTest::newRow("changeRemoved") << StateHolder::ChangeHash({{generateKey(55),StateHolder::Deleted}})
+							 << generateChangeHash(44, 45, StateHolder::Changed);
+	QTest::newRow("changeRemoved") << generateChangeHash(55, 56, StateHolder::Deleted)
 								   << generateData(55)
-								   << StateHolder::ChangeHash({{generateKey(55),StateHolder::Changed}});
+								   << generateChangeHash(55, 56, StateHolder::Changed);
 }
 
 void StateHolderTest::testSave()
@@ -77,9 +77,12 @@ void StateHolderTest::testSave()
 	try {
 		auto task = async->save<TestData>(data);
 		task.waitForFinished();
+		QThread::msleep(250);//changes are saved after completing the task
 
 		holder->mutex.lock();
-		QCOMPARE(holder->pseudoState, result);
+		[&](){//catch return to still unlock
+			QCOMPARE(holder->pseudoState, result);
+		}();
 		holder->mutex.unlock();
 	} catch(QException &e) {
 		QFAIL(e.what());
@@ -96,11 +99,11 @@ void StateHolderTest::testRemove_data()
 	QTest::newRow("removeUnchanged") << generateDataJson(4, 5)
 									 << StateHolder::ChangeHash()
 									 << 4
-									 << StateHolder::ChangeHash({{generateKey(4),StateHolder::Deleted}});
+									 << generateChangeHash(4, 5, StateHolder::Deleted);
 	QTest::newRow("removeChanged") << generateDataJson(7, 8)
-								   << StateHolder::ChangeHash({{generateKey(7),StateHolder::Changed}})
+								   << generateChangeHash(7, 8, StateHolder::Changed)
 								   << 7
-								   << StateHolder::ChangeHash({{generateKey(7),StateHolder::Deleted}});
+								   << generateChangeHash(7, 8, StateHolder::Deleted);
 	QTest::newRow("removeNonExisting") << DataSet()
 									   << StateHolder::ChangeHash()
 									   << 13
@@ -127,9 +130,12 @@ void StateHolderTest::testRemove()
 	try {
 		auto task = async->remove<TestData>(key);
 		task.waitForFinished();
+		QThread::msleep(250);
 
 		holder->mutex.lock();
-		QCOMPARE(holder->pseudoState, result);
+		[&](){//catch return to still unlock
+			QCOMPARE(holder->pseudoState, result);
+		}();
 		holder->mutex.unlock();
 	} catch(QException &e) {
 		QFAIL(e.what());

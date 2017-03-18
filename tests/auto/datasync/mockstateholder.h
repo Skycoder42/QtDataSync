@@ -20,6 +20,7 @@ public:
 public:
 	QMutex mutex;
 	bool enabled;
+	bool dummyReset;
 	ChangeHash pseudoState;
 };
 

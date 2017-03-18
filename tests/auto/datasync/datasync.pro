@@ -3,4 +3,5 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	LocalStoreTest \
 	StateHolderTest \
-	SqlStoreTest
+	SqlStoreTest \
+    ChangeControllerTest

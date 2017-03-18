@@ -31,10 +31,9 @@ void MockLocalStore::resetStore()
 void MockLocalStore::count(quint64 id, const QByteArray &typeName)
 {
 	QMutexLocker _(&mutex);
-	if(!enabled) {
+	if(!enabled)
 		emit requestCompleted(id, 0);
-		return;
-	} else if(failCount > 0)
+	else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
 	else {
 		auto cnt = 0;
@@ -50,10 +49,9 @@ void MockLocalStore::count(quint64 id, const QByteArray &typeName)
 void MockLocalStore::keys(quint64 id, const QByteArray &typeName)
 {
 	QMutexLocker _(&mutex);
-	if(!enabled) {
+	if(!enabled)
 		emit requestCompleted(id, QJsonArray());
-		return;
-	} else if(failCount > 0)
+	else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
 	else {
 		QStringList keys;
@@ -69,10 +67,9 @@ void MockLocalStore::keys(quint64 id, const QByteArray &typeName)
 void MockLocalStore::loadAll(quint64 id, const QByteArray &typeName)
 {
 	QMutexLocker _(&mutex);
-	if(!enabled) {
+	if(!enabled)
 		emit requestCompleted(id, QJsonArray());
-		return;
-	} else if(failCount > 0)
+	else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
 	else {
 		QJsonArray data;
@@ -88,10 +85,9 @@ void MockLocalStore::loadAll(quint64 id, const QByteArray &typeName)
 void MockLocalStore::load(quint64 id, const QtDataSync::ObjectKey &key, const QByteArray &)
 {
 	QMutexLocker _(&mutex);
-	if(!enabled) {
+	if(!enabled)
 		emit requestCompleted(id, QJsonValue::Null);
-		return;
-	} else if(failCount > 0)
+	else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
 	else {
 		if(pseudoStore.contains(key))
@@ -104,10 +100,9 @@ void MockLocalStore::load(quint64 id, const QtDataSync::ObjectKey &key, const QB
 void MockLocalStore::save(quint64 id, const QtDataSync::ObjectKey &key, const QJsonObject &object, const QByteArray &)
 {
 	QMutexLocker _(&mutex);
-	if(!enabled) {
+	if(!enabled)
 		emit requestCompleted(id, QJsonValue::Undefined);
-		return;
-	} else if(failCount > 0)
+	else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
 	else {
 		pseudoStore.insert(key, object);
@@ -118,10 +113,9 @@ void MockLocalStore::save(quint64 id, const QtDataSync::ObjectKey &key, const QJ
 void MockLocalStore::remove(quint64 id, const QtDataSync::ObjectKey &key, const QByteArray &)
 {
 	QMutexLocker _(&mutex);
-	if(!enabled) {
+	if(!enabled)
 		emit requestCompleted(id, QJsonValue::Undefined);
-		return;
-	} else if(failCount > 0)
+	else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
 	else
 		emit requestCompleted(id, pseudoStore.remove(key) > 0);
@@ -130,10 +124,9 @@ void MockLocalStore::remove(quint64 id, const QtDataSync::ObjectKey &key, const 
 void MockLocalStore::search(quint64 id, const QByteArray &typeName, const QString &searchQuery)
 {
 	QMutexLocker _(&mutex);
-	if(!enabled) {
+	if(!enabled)
 		emit requestCompleted(id, QJsonArray());
-		return;
-	} else if(failCount > 0)
+	else if(failCount > 0)
 		emit requestFailed(id, QString::number(failCount--));
 	else {
 		QJsonArray data;

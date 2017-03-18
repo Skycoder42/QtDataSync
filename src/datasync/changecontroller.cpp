@@ -279,12 +279,12 @@ void ChangeController::generateNextAction()
 	}
 
 	if(currentMode != DoNothing) {
-		qCInfo(LOG) << "Beginning operation of type"
-					<< currentMode
-					<< "for"
-					<< currentKey.first
-					<< "->"
-					<< currentKey.second;
+		qCDebug(LOG) << "Beginning operation of type"
+					 << currentMode
+					 << "for"
+					 << currentKey.first
+					 << "with id"
+					 << currentKey.second;
 	}
 }
 

@@ -295,7 +295,9 @@ void LocalStoreTest::testRemove()
 		QCOMPARE(res, didRemove);
 
 		store->mutex.lock();
-		QCOMPARE(store->pseudoStore, result);
+		[&](){//catch return to still unlock
+			QCOMPARE(store->pseudoStore, result);
+		}();
 		store->mutex.unlock();
 	} catch(QException &e) {
 		QVERIFY2(shouldFail, e.what());
