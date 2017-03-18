@@ -20,6 +20,7 @@ TestData generateData(int index);
 QtDataSync::ObjectKey generateKey(int index);
 QStringList generateDataKeys(int from, int to);
 DataSet generateDataJson(int from, int to);
+QJsonObject generateDataJson(int index);
 QJsonArray dataListJson(const DataSet &data);
 QtDataSync::StateHolder::ChangeHash generateChangeHash(int from, int to, QtDataSync::StateHolder::ChangeState state);
 

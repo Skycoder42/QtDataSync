@@ -44,13 +44,17 @@ QStringList generateDataKeys(int from, int to)
 DataSet generateDataJson(int from, int to)
 {
 	DataSet hash;
-	for(auto i = from; i < to; i++) {
-		QJsonObject data;
-		data["id"] = i;
-		data["text"] = QString::number(i);
-		hash.insert(generateKey(i), data);
-	}
+	for(auto i = from; i < to; i++)
+		hash.insert(generateKey(i), generateDataJson(i));
 	return hash;
+}
+
+QJsonObject generateDataJson(int index)
+{
+	QJsonObject data;
+	data["id"] = index;
+	data["text"] = QString::number(index);
+	return data;
 }
 
 QJsonArray dataListJson(const DataSet &data)

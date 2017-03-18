@@ -16,15 +16,17 @@ private Q_SLOTS:
 
 	void testSaveAndLoad_data();
 	void testSaveAndLoad();
-
 	void testLoadAll();
 	void testSeach_data();
 	void testSeach();
+	void testRemove_data();
 	void testRemove();
-	void testListKeys();
+
+	void testLoadAllKeys();
+	void testResetStore();
 
 private:
-	QtDataSync::AsyncDataStore *async;
+	SqlLocalStore *store;
 };
 
 void SqlStoreTest::initTestCase()
@@ -35,110 +37,183 @@ void SqlStoreTest::initTestCase()
 
 	tst_init();
 
+	store = new SqlLocalStore();
+
+	//create setup to "init" both of them, but datasync itself is not used here
 	Setup setup;
 	mockSetup(setup);
-	setup.setLocalStore(new SqlLocalStore())
+	setup.setLocalStore(store)
 			.create();
 
-	async = new AsyncDataStore(this);
+	QThread::msleep(500);//wait for setup to complete, because of direct access
 }
 
 void SqlStoreTest::cleanupTestCase()
 {
-	delete async;
+	Setup::removeSetup(Setup::DefaultSetup);
 }
 
 void SqlStoreTest::testSaveAndLoad_data()
 {
-	QTest::addColumn<QString>("key");
-	QTest::addColumn<TestData>("data");
+	QTest::addColumn<ObjectKey>("key");
+	QTest::addColumn<QJsonObject>("data");
 
-	QTest::newRow("data0") << QStringLiteral("420")
-						   << generateData(420);
-	QTest::newRow("data1") << QStringLiteral("421")
-						   << generateData(421);
-	QTest::newRow("data2") << QStringLiteral("422")
-						   << generateData(422);
+	QTest::newRow("data0") << generateKey(420)
+						   << generateDataJson(420);
+	QTest::newRow("data1") << generateKey(421)
+						   << generateDataJson(421);
+	QTest::newRow("data2") << generateKey(422)
+						   << generateDataJson(422);
 }
 
 void SqlStoreTest::testSaveAndLoad()
 {
-	QFETCH(QString, key);
-	QFETCH(TestData, data);
+	QFETCH(ObjectKey, key);
+	QFETCH(QJsonObject, data);
 
-	try {
-		auto saveFuture = async->save<TestData>(data);
-		saveFuture.waitForFinished();
-		auto result = async->load<TestData>(key).result();
-		QCOMPARE(result, data);
-	} catch(QException &e) {
-		QFAIL(e.what());
-	}
+	QSignalSpy completedSpy(store, &SqlLocalStore::requestCompleted);
+	QSignalSpy failedSpy(store, &SqlLocalStore::requestFailed);
+
+	auto id = 1ull;
+	store->save(id, key, data, "id");
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+
+	id = 2ull;
+	failedSpy.clear();
+	completedSpy.clear();
+	store->load(id, key, "id");
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+	QCOMPARE(completedSpy[0][1].value<QJsonValue>().toObject(), data);
 }
 
 void SqlStoreTest::testLoadAll()
 {
-	auto testList = generateData(420, 423);
-	try {
-		auto data = async->loadAll<TestData>().result();
-		QLISTCOMPARE(data, testList);
-	} catch(QException &e) {
-		QFAIL(e.what());
-	}
+	QSignalSpy completedSpy(store, &SqlLocalStore::requestCompleted);
+	QSignalSpy failedSpy(store, &SqlLocalStore::requestFailed);
+
+	auto keyList = QJsonArray::fromStringList(generateDataKeys(420, 423));
+	auto dataList = dataListJson(generateDataJson(420, 423));
+
+	auto id = 1ull;
+	store->count(id, "TestData");
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+	QCOMPARE(completedSpy[0][1].value<QJsonValue>().toInt(), 3);
+
+	id = 2ull;
+	failedSpy.clear();
+	completedSpy.clear();
+	store->keys(id, "TestData");
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+	QLISTCOMPARE(completedSpy[0][1].value<QJsonValue>().toArray().toVariantList(),
+				 keyList.toVariantList());
+
+	id = 3ull;
+	failedSpy.clear();
+	completedSpy.clear();
+	store->loadAll(id, "TestData");
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+	QLISTCOMPARE(completedSpy[0][1].value<QJsonValue>().toArray().toVariantList(),
+				 dataList.toVariantList());
 }
 
 void SqlStoreTest::testSeach_data()
 {
 	QTest::addColumn<QString>("query");
-	QTest::addColumn<QList<TestData>>("data");
+	QTest::addColumn<QJsonArray>("data");
 
 	QTest::newRow("*") << QStringLiteral("*")
-					   << generateData(420, 423);
+					   << dataListJson(generateDataJson(420, 423));
 	QTest::newRow("422") << QStringLiteral("422")
-						 << generateData(422, 423);
+						 << dataListJson(generateDataJson(422, 423));
 	QTest::newRow("4_2*") << QStringLiteral("4_2*")
-						  << generateData(422, 423);
+						  << dataListJson(generateDataJson(422, 423));
 	QTest::newRow("4*2*") << QStringLiteral("4*2*")
-						  << generateData(420, 423);
-	QTest::newRow("baum") << QStringLiteral("baum")
-						  << QList<TestData>();
+						  << dataListJson(generateDataJson(420, 423));
+	QTest::newRow("2") << QStringLiteral("2")
+					   << QJsonArray();
 }
 
 void SqlStoreTest::testSeach()
 {
 	QFETCH(QString, query);
-	QFETCH(QList<TestData>, data);
+	QFETCH(QJsonArray, data);
 
-	try {
-		auto res = async->search<TestData>(query).result();
-		QLISTCOMPARE(res, data);
-	} catch(QException &e) {
-		QFAIL(e.what());
-	}
+	QSignalSpy completedSpy(store, &SqlLocalStore::requestCompleted);
+	QSignalSpy failedSpy(store, &SqlLocalStore::requestFailed);
+
+	auto id = 1ull;
+	store->search(id, "TestData", query);
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+	QLISTCOMPARE(completedSpy[0][1].value<QJsonValue>().toArray().toVariantList(),
+				 data.toVariantList());
+}
+
+void SqlStoreTest::testRemove_data()
+{
+	QTest::addColumn<ObjectKey>("key");
+	QTest::addColumn<bool>("changed");
+
+	QTest::newRow("data0") << generateKey(422)
+						   << true;
+	QTest::newRow("data_invalid") << generateKey(77)
+								  << false;
 }
 
 void SqlStoreTest::testRemove()
 {
-	try {
-		async->remove<TestData>(QStringLiteral("422")).waitForFinished();
-		QCOMPARE(async->count<TestData>().result(), 2);
-	} catch(QException &e) {
-		QFAIL(e.what());
-	}
+	QFETCH(ObjectKey, key);
+	QFETCH(bool, changed);
+
+	QSignalSpy completedSpy(store, &SqlLocalStore::requestCompleted);
+	QSignalSpy failedSpy(store, &SqlLocalStore::requestFailed);
+
+	auto id = 1ull;
+	store->remove(id, key, "id");
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+	QCOMPARE(completedSpy[0][1].value<QJsonValue>().toBool(), changed);
 }
 
-void SqlStoreTest::testListKeys()
+void SqlStoreTest::testLoadAllKeys()
 {
-	auto testList = generateDataKeys(420, 422);
-	try {
-		auto keys = async->keys<TestData>().result();
-		QLISTCOMPARE(keys, testList);
-		foreach(auto key, keys)
-			async->remove<TestData>(key).waitForFinished();
-		QCOMPARE(async->count<TestData>().result(), 0);
-	} catch(QException &e) {
-		QFAIL(e.what());
-	}
+	ObjectKey extra = {"Baum", QStringLiteral("42")};
+	store->save(1ull, extra, QJsonObject(), "");
+
+	QList<ObjectKey> testList;
+	testList.append(generateKey(420));
+	testList.append(generateKey(421));
+	testList.append(extra);
+
+	auto resList = store->loadAllKeys();
+	QLISTCOMPARE(resList, testList);
+}
+
+void SqlStoreTest::testResetStore()
+{
+	store->resetStore();
+
+	QSignalSpy completedSpy(store, &SqlLocalStore::requestCompleted);
+	QSignalSpy failedSpy(store, &SqlLocalStore::requestFailed);
+
+	auto id = 1ull;
+	store->count(id, "TestData");
+	QCOMPARE(failedSpy.size(), 0);
+	QCOMPARE(completedSpy.size(), 1);
+	QCOMPARE(completedSpy[0][0].toULongLong(), id);
+	QCOMPARE(completedSpy[0][1].value<QJsonValue>().toInt(), 0);
 }
 
 QTEST_MAIN(SqlStoreTest)
