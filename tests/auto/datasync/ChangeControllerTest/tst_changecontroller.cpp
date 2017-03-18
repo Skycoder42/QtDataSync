@@ -316,14 +316,27 @@ void ChangeControllerTest::testLiveChanges_data()
 	QTest::addColumn<TestData>("localChange");
 	QTest::addColumn<DataSet>("remoteData");
 	QTest::addColumn<StateHolder::ChangeHash>("remoteChange");
+	QTest::addColumn<bool>("error");
 
 	QTest::newRow("localChange") << generateData(13)
 								 << DataSet()
-								 << StateHolder::ChangeHash();
+								 << StateHolder::ChangeHash()
+								 << false;
 
 	QTest::newRow("remoteChange") << TestData()
 								  << generateDataJson(77, 78)
-								  << generateChangeHash(77, 78, StateHolder::Changed);
+								  << generateChangeHash(77, 78, StateHolder::Changed)
+								  << false;
+
+	QTest::newRow("localError") << generateData(5)
+								<< DataSet()
+								<< StateHolder::ChangeHash()
+								<< true;
+
+	QTest::newRow("remoteError") << TestData()
+								 << generateDataJson(77, 78)
+								 << generateChangeHash(77, 78, StateHolder::Changed)
+								 << true;
 }
 
 void ChangeControllerTest::testLiveChanges()
@@ -331,6 +344,7 @@ void ChangeControllerTest::testLiveChanges()
 	QFETCH(TestData, localChange);
 	QFETCH(DataSet, remoteData);
 	QFETCH(StateHolder::ChangeHash, remoteChange);
+	QFETCH(bool, error);
 
 	remote->mutex.lock();
 	remote->connected = true;
@@ -347,7 +361,7 @@ void ChangeControllerTest::testLiveChanges()
 	store->mutex.lock();
 	holder->mutex.lock();
 	[&](){
-		QCOMPARE(controller->syncState(), SyncController::Synced);
+		QVERIFY(controller->syncState() == SyncController::Synced);
 		QVERIFY(holder->pseudoState.isEmpty());
 		QVERIFY(remote->pseudoState.isEmpty());
 	}();
@@ -362,9 +376,16 @@ void ChangeControllerTest::testLiveChanges()
 		} catch(QException &e) {
 			QFAIL(e.what());
 		}
+
+		if(error) {
+			store->mutex.lock();
+			store->failCount = 1;
+			store->mutex.unlock();
+		}
 	}
 	if(remoteChange.size() == 1) {
 		remote->mutex.lock();
+		remote->failCount = error ? 1 : 0;
 		remote->pseudoStore = remoteData;
 		remote->pseudoState = remoteChange;
 		remote->emitList = remoteChange.keys();
@@ -376,8 +397,20 @@ void ChangeControllerTest::testLiveChanges()
 		syncStateSpy.wait(500);
 	QCOMPARE(syncStateSpy.count(), 2);
 	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Syncing));
-	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Synced));
-	QCOMPARE(controller->syncState(), SyncController::Synced);
+	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(error ? SyncController::SyncedWithErrors : SyncController::Synced));
+	QCOMPARE(controller->syncState(), error ? SyncController::SyncedWithErrors : SyncController::Synced);
+
+	//make shure to resync once again to get a clear state
+	if(error) {
+		syncStateSpy.clear();
+
+		controller->triggerSync();
+
+		for(auto i = 0; i < 10 && syncStateSpy.count() < 3; i++)
+			syncStateSpy.wait(500);
+		QCOMPARE(syncStateSpy.count(), 3);
+		QCOMPARE(controller->syncState(), SyncController::Synced);
+	}
 }
 
 void ChangeControllerTest::testTriggerSync()
