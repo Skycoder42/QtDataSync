@@ -18,6 +18,10 @@ private Q_SLOTS:
 	void testLiveChanges_data();
 	void testLiveChanges();
 
+	void testTriggerSync();
+	void testTriggerResync();
+	void testAuthError();
+
 private:
 	MockLocalStore *store;
 	MockStateHolder *holder;
@@ -374,6 +378,76 @@ void ChangeControllerTest::testLiveChanges()
 	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Syncing));
 	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Synced));
 	QCOMPARE(controller->syncState(), SyncController::Synced);
+}
+
+void ChangeControllerTest::testTriggerSync()
+{
+	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
+
+	controller->triggerSync();
+
+	for(auto i = 0; i < 10 && syncStateSpy.count() < 3; i++)
+		syncStateSpy.wait(500);
+	QCOMPARE(syncStateSpy.count(), 3);
+	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncStateSpy[2][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+}
+
+void ChangeControllerTest::testTriggerResync()
+{
+	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
+
+	controller->triggerResync();
+
+	for(auto i = 0; i < 10 && syncStateSpy.count() < 4; i++)
+		syncStateSpy.wait(500);
+	QCOMPARE(syncStateSpy.count(), 4);
+	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncStateSpy[2][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncStateSpy[3][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+}
+
+void ChangeControllerTest::testAuthError()
+{
+	QSignalSpy syncErrorSpy(controller, &SyncController::authenticationErrorChanged);
+	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
+
+	remote->mutex.lock();
+	remote->failCount = 1;
+	remote->mutex.unlock();
+
+	controller->triggerResync();
+
+	for(auto i = 0; i < 10 && syncStateSpy.count() < 3; i++)
+		syncStateSpy.wait(500);
+	QCOMPARE(syncStateSpy.count(), 3);
+	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncStateSpy[2][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(controller->syncState(), SyncController::Disconnected);
+
+	QVERIFY(syncErrorSpy.wait());
+	QVERIFY(!controller->authenticationError().isEmpty());
+
+	syncStateSpy.clear();
+	syncErrorSpy.clear();
+	controller->triggerResync();
+
+	for(auto i = 0; i < 10 && syncStateSpy.count() < 3; i++)
+		syncStateSpy.wait(500);
+	QCOMPARE(syncStateSpy.count(), 3);
+	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncStateSpy[2][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+
+	if(syncErrorSpy.isEmpty())
+		QVERIFY(syncErrorSpy.wait());
+	QVERIFY(controller->authenticationError().isEmpty());
 }
 
 DataSet ChangeControllerTest::generateSyncData(int param)

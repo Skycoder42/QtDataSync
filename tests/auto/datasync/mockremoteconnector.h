@@ -12,6 +12,7 @@ public:
 	explicit MockRemoteConnector(QObject *parent = nullptr);
 
 	QtDataSync::Authenticator *createAuthenticator(QtDataSync::Defaults *defaults, QObject *parent) override;
+	void initialize(QtDataSync::Defaults *defaults) override;
 
 	//WARNING!!! mutex must be unlocked
 	void updateConnected(bool resync);

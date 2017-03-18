@@ -45,6 +45,10 @@ Q_SIGNALS:
 	void syncOperationsChanged(int remainingOperations);
 	void authenticationErrorChanged(const QString &authenticationError);
 
+private Q_SLOTS:
+	void updateSyncState(SyncState syncState);
+	void updateAuthenticationError(const QString &authenticationError);
+
 private:
 	QScopedPointer<SyncControllerPrivate> d;
 
