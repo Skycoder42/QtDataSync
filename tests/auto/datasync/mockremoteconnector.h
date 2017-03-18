@@ -15,6 +15,7 @@ public:
 
 	//WARNING!!! mutex must be unlocked
 	void updateConnected(bool resync);
+	void doChangeEmit();
 
 public slots:
 	void reloadRemoteState() override;
@@ -35,6 +36,9 @@ public:
 	int reloadTimeout;
 	QHash<QtDataSync::ObjectKey, QJsonObject> pseudoStore;
 	QtDataSync::StateHolder::ChangeHash pseudoState;
+	QList<QtDataSync::ObjectKey> emitList;
+
+	Q_INVOKABLE void doChangeEmitImpl();
 };
 
 #endif // MOCKREMOTECONNECTOR_H

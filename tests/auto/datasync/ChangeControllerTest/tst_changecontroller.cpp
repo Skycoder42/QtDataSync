@@ -15,6 +15,9 @@ private Q_SLOTS:
 	void testSyncOperation_data();
 	void testSyncOperation();
 
+	void testLiveChanges_data();
+	void testLiveChanges();
+
 private:
 	MockLocalStore *store;
 	MockStateHolder *holder;
@@ -284,6 +287,7 @@ void ChangeControllerTest::testSyncOperation()
 	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Loading));
 	QCOMPARE(syncStateSpy[2][0], QVariant::fromValue(SyncController::Syncing));
 	QCOMPARE(syncStateSpy[3][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
 
 	remote->mutex.lock();
 	store->mutex.lock();
@@ -301,6 +305,75 @@ void ChangeControllerTest::testSyncOperation()
 	store->mutex.unlock();
 	remote->mutex.unlock();
 	remote->updateConnected(false);
+}
+
+void ChangeControllerTest::testLiveChanges_data()
+{
+	QTest::addColumn<TestData>("localChange");
+	QTest::addColumn<DataSet>("remoteData");
+	QTest::addColumn<StateHolder::ChangeHash>("remoteChange");
+
+	QTest::newRow("localChange") << generateData(13)
+								 << DataSet()
+								 << StateHolder::ChangeHash();
+
+	QTest::newRow("remoteChange") << TestData()
+								  << generateDataJson(77, 78)
+								  << generateChangeHash(77, 78, StateHolder::Changed);
+}
+
+void ChangeControllerTest::testLiveChanges()
+{
+	QFETCH(TestData, localChange);
+	QFETCH(DataSet, remoteData);
+	QFETCH(StateHolder::ChangeHash, remoteChange);
+
+	remote->mutex.lock();
+	remote->connected = true;
+	remote->mutex.unlock();
+	remote->updateConnected(false);
+	QThread::msleep(500);
+
+	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
+	syncStateSpy.wait(500);
+	syncStateSpy.clear();
+
+	//make shure both sides are stable
+	remote->mutex.lock();
+	store->mutex.lock();
+	holder->mutex.lock();
+	[&](){
+		QCOMPARE(controller->syncState(), SyncController::Synced);
+		QVERIFY(holder->pseudoState.isEmpty());
+		QVERIFY(remote->pseudoState.isEmpty());
+	}();
+	holder->mutex.unlock();
+	store->mutex.unlock();
+	remote->mutex.unlock();
+
+	if(localChange.id != -1) {//not default constructed
+		try {
+			auto task = async->save<TestData>(localChange);
+			task.waitForFinished();
+		} catch(QException &e) {
+			QFAIL(e.what());
+		}
+	}
+	if(remoteChange.size() == 1) {
+		remote->mutex.lock();
+		remote->pseudoStore = remoteData;
+		remote->pseudoState = remoteChange;
+		remote->emitList = remoteChange.keys();
+		remote->mutex.unlock();
+		remote->doChangeEmit();
+	}
+
+	for(auto i = 0; i < 10 && syncStateSpy.count() < 2; i++)
+		syncStateSpy.wait(500);
+	QCOMPARE(syncStateSpy.count(), 2);
+	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
 }
 
 DataSet ChangeControllerTest::generateSyncData(int param)

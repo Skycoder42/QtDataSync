@@ -8,7 +8,7 @@ MockRemoteConnector::MockRemoteConnector(QObject *parent) :
 	enabled(false),
 	connected(false),
 	failCount(0),
-	reloadTimeout(1000),
+	reloadTimeout(100),
 	pseudoStore(),
 	pseudoState()
 {}
@@ -21,6 +21,11 @@ QtDataSync::Authenticator *MockRemoteConnector::createAuthenticator(QtDataSync::
 void MockRemoteConnector::updateConnected(bool resync)
 {
 	QMetaObject::invokeMethod(this, resync ? "requestResync" : "reloadRemoteState", Qt::BlockingQueuedConnection);
+}
+
+void MockRemoteConnector::doChangeEmit()
+{
+	QMetaObject::invokeMethod(this, "doChangeEmitImpl", Qt::BlockingQueuedConnection);
 }
 
 void MockRemoteConnector::reloadRemoteState()
@@ -109,4 +114,12 @@ void MockRemoteConnector::markUnchanged(const QtDataSync::ObjectKey &key, const 
 void MockRemoteConnector::resetUserData(const QVariant &)
 {
 	QMutexLocker _(&mutex);
+}
+
+void MockRemoteConnector::doChangeEmitImpl()
+{
+	QMutexLocker _(&mutex);
+	foreach(auto v, emitList)
+		emit remoteDataChanged(v, pseudoState.value(v, StateHolder::Unchanged));
+	emitList.clear();
 }
