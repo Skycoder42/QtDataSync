@@ -18,11 +18,10 @@ private Q_SLOTS:
 	void testUpload_data();
 	void testUpload();
 	void testReloadAndResync();
-	//void testDownload();
-	//void testRemove();
-	//void testMarkUnchanged();
+	void testRemove_data();
+	void testRemove();
 
-	//void testSecondDevice();
+	void testSecondDevice();
 
 Q_SIGNALS:
 	void unlockSignal();
@@ -141,10 +140,20 @@ void WsRemoteConnectorTest::testUpload()
 {
 	QFETCH(TestData, data);
 
+	//IMPORTANT!!! clear pending notifies...
+	QCoreApplication::processEvents();
+
+	QSignalSpy syncSpy(controller, &SyncController::syncStateChanged);
+
 	try {
 		async->save<TestData>(data).waitForFinished();
-		QThread::msleep(200);
-		QVERIFY(async->keys<TestData>().result().isEmpty());//make shure local store is disabled
+
+		for(auto i = 0; i < 10 && syncSpy.count() < 2; i++)
+			syncSpy.wait(500);
+		QCOMPARE(syncSpy.count(), 2);
+		QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Syncing));
+		QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Synced));
+		QCOMPARE(controller->syncState(), SyncController::Synced);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -158,10 +167,7 @@ void WsRemoteConnectorTest::testReloadAndResync()
 	QSignalSpy unlockSpy(this, &WsRemoteConnectorTest::unlockSignal);
 
 	store->mutex.lock();
-	holder->mutex.lock();
 	store->enabled = true;
-	holder->enabled = true;
-	holder->mutex.unlock();
 	store->mutex.unlock();
 
 	controller->triggerSyncWithResult([&](SyncController::SyncState state){
@@ -183,12 +189,88 @@ void WsRemoteConnectorTest::testReloadAndResync()
 	});
 
 	QVERIFY(unlockSpy.wait());
+	store->mutex.lock();
+	[&](){
+		QLISTCOMPARE(store->pseudoStore.keys(), generateDataJson(310, 318).keys());
+	}();
+	store->mutex.unlock();
+}
+
+void WsRemoteConnectorTest::testRemove_data()
+{
+	QTest::addColumn<int>("index");
+
+	QTest::newRow("data0") << 310;
+	QTest::newRow("data1") << 311;
+	QTest::newRow("data2") << 312;
+}
+
+void WsRemoteConnectorTest::testRemove()
+{
+	QFETCH(int, index);
+
+	//IMPORTANT!!! clear pending notifies...
+	QCoreApplication::processEvents();
+
+	QSignalSpy syncSpy(controller, &SyncController::syncStateChanged);
+
+	store->mutex.lock();
+	[&](){
+		QVERIFY(store->pseudoStore.keys().contains(generateKey(index)));
+	}();
+	store->mutex.unlock();
+
 	try {
-		//resync however should load all
-		QCOMPARE(async->count<TestData>().result(), 8);
+		async->remove<TestData>(index).waitForFinished();
+
+		for(auto i = 0; i < 10 && syncSpy.count() < 2; i++)
+			syncSpy.wait(500);
+		QCOMPARE(syncSpy.count(), 2);
+		QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Syncing));
+		QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Synced));
+		QCOMPARE(controller->syncState(), SyncController::Synced);
+
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
+
+	store->mutex.lock();
+	[&](){
+		QVERIFY(!store->pseudoStore.keys().contains(generateKey(index)));
+	}();
+	store->mutex.unlock();
+}
+
+void WsRemoteConnectorTest::testSecondDevice()
+{
+	//IMPORTANT!!! clear pending notifies...
+	QCoreApplication::processEvents();
+
+	QSignalSpy syncSpy(controller, &SyncController::syncStateChanged);
+	QSignalSpy conSpy(auth, &WsAuthenticator::connectedChanged);
+
+	auth->setUserIdentity(auth->userIdentity());//reset device trick...
+	auth->reconnect();
+
+	QVERIFY(conSpy.wait());
+	QVERIFY(!auth->isConnected());
+	QVERIFY(conSpy.wait());
+	QVERIFY(auth->isConnected());
+	for(auto i = 0; i < 10 && syncSpy.count() < 4; i++)
+		syncSpy.wait(500);
+	qDebug() << syncSpy;
+	QCOMPARE(syncSpy.count(), 4);
+	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncSpy[2][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncSpy[3][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+
+	store->mutex.lock();
+	[&](){
+		QLISTCOMPARE(store->pseudoStore.keys(), generateDataJson(313, 318).keys());
+	}();
+	store->mutex.unlock();
 }
 
 QTEST_MAIN(WsRemoteConnectorTest)

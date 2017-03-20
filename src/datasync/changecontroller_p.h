@@ -38,7 +38,7 @@ public:
 	void finalize();
 
 public Q_SLOTS:
-	void setInitialLocalStatus(const StateHolder::ChangeHash &changes);
+	void setInitialLocalStatus(const StateHolder::ChangeHash &changes, bool triggerSync);
 	void updateLocalStatus(const ObjectKey &key, QtDataSync::StateHolder::ChangeState &state);
 
 	void setRemoteStatus(RemoteConnector::RemoteState state, const StateHolder::ChangeHash &changes);

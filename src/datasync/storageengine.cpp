@@ -230,7 +230,7 @@ void StorageEngine::clearAuthError()
 void StorageEngine::loadLocalStatus()
 {
 	auto state = stateHolder->listLocalChanges();
-	changeController->setInitialLocalStatus(state);
+	changeController->setInitialLocalStatus(state, true);
 }
 
 void StorageEngine::updateSyncState(SyncController::SyncState state)
@@ -323,11 +323,11 @@ void StorageEngine::performLocalReset(bool clearStore)
 	if(clearStore) {
 		localStore->resetStore();
 		stateHolder->clearAllChanges();
-		changeController->setInitialLocalStatus({});
+		changeController->setInitialLocalStatus({}, false);
 		emit notifyResetted();
 	} else {
 		auto state = stateHolder->resetAllChanges(localStore->loadAllKeys());
-		changeController->setInitialLocalStatus(state);
+		changeController->setInitialLocalStatus(state, true);
 	}
 }
 
