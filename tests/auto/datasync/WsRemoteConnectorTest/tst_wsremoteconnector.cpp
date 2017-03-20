@@ -54,6 +54,13 @@ void WsRemoteConnectorTest::initTestCase()
 	async = new AsyncDataStore(this);
 	controller = new SyncController(this);
 	auth = Setup::authenticatorForSetup<WsAuthenticator>(this);
+
+	//now start the server!
+	QProcess p;
+	p.start(QStringLiteral("../../../../bin/qdatasyncserver start -c %1/../../../../tools/qdatasyncserver/docker_setup.conf")
+			.arg(SRCDIR));
+	QVERIFY(p.waitForFinished());
+	QCOMPARE(p.exitCode(), EXIT_SUCCESS);
 }
 
 void WsRemoteConnectorTest::cleanupTestCase()
@@ -62,6 +69,12 @@ void WsRemoteConnectorTest::cleanupTestCase()
 	delete controller;
 	delete async;
 	Setup::removeSetup(Setup::DefaultSetup);
+
+	//and stop the server!
+	QProcess p;
+	p.start(QStringLiteral("../../../../bin/qdatasyncserver stop"));
+	QVERIFY(p.waitForFinished());
+	QCOMPARE(p.exitCode(), EXIT_SUCCESS);
 }
 
 void WsRemoteConnectorTest::testServerConnecting()
