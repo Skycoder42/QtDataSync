@@ -5,4 +5,5 @@ SUBDIRS += \
 	StateHolderTest \
 	SqlStoreTest \
     ChangeControllerTest \
-    CachingDataStoreTest
+    CachingDataStoreTest \
+    SqlStateHolderTest

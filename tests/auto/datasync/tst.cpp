@@ -1,6 +1,8 @@
 #include "tst.h"
 using namespace QtDataSync;
 
+static QScopedPointer<QTemporaryDir> tDir;
+
 void tst_init()
 {
 	QJsonSerializer::registerListConverters<TestData>();
@@ -9,10 +11,12 @@ void tst_init()
 
 void mockSetup(QtDataSync::Setup &setup)
 {
+	tDir.reset(new QTemporaryDir());
 	setup.setLocalStore(new MockLocalStore())
 		 .setStateHolder(new MockStateHolder())
 		 .setRemoteConnector(new MockRemoteConnector())
-		 .setDataMerger(new MockDataMerger());
+		 .setDataMerger(new MockDataMerger())
+		 .setLocalDir(tDir->path());
 }
 
 TestData generateData(int index)
