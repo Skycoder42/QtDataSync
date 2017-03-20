@@ -19,9 +19,7 @@ TEMPLATE = app
 DEFINES += QT_DEPRECATED_WARNINGS
 
 
-SOURCES += tst_wsremoteconnector.cpp \
-    mockremoteserver.cpp
+SOURCES += tst_wsremoteconnector.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
-HEADERS += \
-    mockremoteserver.h
+HEADERS +=

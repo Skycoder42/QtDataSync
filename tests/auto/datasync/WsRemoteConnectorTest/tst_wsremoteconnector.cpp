@@ -2,7 +2,6 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include "tst.h"
-#include "mockremoteserver.h"
 #include "QtDataSync/private/wsremoteconnector_p.h"
 
 using namespace QtDataSync;
@@ -18,7 +17,6 @@ private Q_SLOTS:
 	void testServerConnecting();
 
 private:
-	MockRemoteServer *server;
 	WsRemoteConnector *remote;
 	SyncController *controller;
 	WsAuthenticator *auth;
@@ -32,7 +30,6 @@ void WsRemoteConnectorTest::initTestCase()
 
 	tst_init();
 
-	server = new MockRemoteServer(this);
 	remote = new WsRemoteConnector();
 
 	//create setup to "init" both of them, but datasync itself is not used here
@@ -48,7 +45,6 @@ void WsRemoteConnectorTest::initTestCase()
 void WsRemoteConnectorTest::cleanupTestCase()
 {
 	Setup::removeSetup(Setup::DefaultSetup);
-	server->close();
 }
 
 void WsRemoteConnectorTest::testServerConnecting()
@@ -56,41 +52,42 @@ void WsRemoteConnectorTest::testServerConnecting()
 	QSignalSpy syncSpy(controller, &SyncController::syncStateChanged);
 	QSignalSpy conSpy(auth, &WsAuthenticator::connectedChanged);
 
-
 	QVERIFY(syncSpy.wait());
 	QCOMPARE(controller->syncState(), SyncController::Disconnected);
 	QVERIFY(!auth->isConnected());
 
-	auto port = server->setup();
-	QVERIFY(port != 0);
-
-	//prepare server
-	auto userId = QUuid::createUuid();
-	server->expected.append({
-								{"command", "createIdentity"}
-							});
-	server->reply.enqueue({
-							 {"command" , "identified"},
-							 {"data" , QJsonObject({
-								  {"userId", userId.toString()},
-								  {"resync", true}
-							  })}
-						 });
-
-	QUrl url(QStringLiteral("ws://localhost"));
-	url.setPort(port);
-	auth->setRemoteUrl(url);
-	auth->setServerSecret(server->secret);
+	//empty store -> will create a new id
+	auth->setRemoteUrl(QStringLiteral("ws://localhost:4242"));
+	auth->setServerSecret("baum42");
 	auth->reconnect();
 
 	QVERIFY(conSpy.wait());
 	QVERIFY(auth->isConnected());
-	for(auto i = 0; i < 10 && syncSpy.count() < 3; i++)
+	for(auto i = 0; i < 10 && syncSpy.count() < 4; i++)
 		syncSpy.wait(500);
-	QCOMPARE(syncSpy.count(), 3);
-	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Loading));
-	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Syncing));
-	QCOMPARE(syncSpy[2][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(syncSpy.count(), 4);
+	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncSpy[2][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncSpy[3][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+
+	//now reconnect, to test if "login" works as well
+	conSpy.clear();
+	syncSpy.clear();
+	auth->reconnect();
+
+	QVERIFY(conSpy.wait());
+	QVERIFY(!auth->isConnected());
+	QVERIFY(conSpy.wait());
+	QVERIFY(auth->isConnected());
+	for(auto i = 0; i < 10 && syncSpy.count() < 4; i++)
+		syncSpy.wait(500);
+	QCOMPARE(syncSpy.count(), 4);
+	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncSpy[2][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncSpy[3][0], QVariant::fromValue(SyncController::Synced));
 	QCOMPARE(controller->syncState(), SyncController::Synced);
 }
 
