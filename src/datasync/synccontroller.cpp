@@ -84,6 +84,6 @@ void SyncController::setupTriggerResult(std::function<void (SyncController::Sync
 		if(state == Loading || state == Syncing)
 			return;
 		resultFn(state);
-		receiver->deleteLater();
+		//receiver->deleteLater();
 	});
 }
