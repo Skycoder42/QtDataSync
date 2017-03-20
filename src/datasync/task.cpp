@@ -22,7 +22,7 @@ Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std:
 			if(onExcept)
 				onExcept(e);
 			else {
-				qCritical() << "Unhandelt exception in Task:"
+				qCritical() << "Unhandelt exception in Task. Exception was:"
 							<< e.what();
 			}
 		}

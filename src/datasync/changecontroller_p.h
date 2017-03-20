@@ -26,6 +26,31 @@ public:
 	};
 	Q_ENUM(Operation)
 
+	enum ActionMode {
+		DoNothing,
+		DownloadRemote,
+		DeleteLocal,
+		UploadLocal,
+		Merge,
+		DeleteRemote,
+		MarkAsUnchanged
+	};
+	Q_ENUM(ActionMode)
+
+	enum ActionState {
+		DoneState,
+		CancelState,
+		DownloadState,
+		SaveState,
+		RemoteMarkState,
+		RemoveLocalState,
+		UploadState,
+		LocalMarkState,
+		LoadState,
+		RemoveRemoteState
+	};
+	Q_ENUM(ActionState)
+
 	struct Q_DATASYNC_EXPORT ChangeOperation {
 		ObjectKey key;
 		Operation operation;
@@ -55,29 +80,6 @@ Q_SIGNALS:
 	void beginLocalOperation(const ChangeOperation &operation);
 
 private:
-	enum ActionMode {
-		DoNothing,
-		DownloadRemote,
-		DeleteLocal,
-		UploadLocal,
-		Merge,
-		DeleteRemote,
-		MarkAsUnchanged
-	};
-
-	enum ActionState {
-		DoneState,
-		CancelState,
-		DownloadState,
-		SaveState,
-		RemoteMarkState,
-		RemoveLocalState,
-		UploadState,
-		LocalMarkState,
-		LoadState,
-		RemoveRemoteState
-	};
-
 	Defaults *defaults;
 	DataMerger *merger;
 

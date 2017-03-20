@@ -102,10 +102,10 @@ void ChangeController::nextStage(bool success, const QJsonValue &result)
 
 	//in case of done --> go to the next one!
 	if(currentState == DoneState) {
-		qCInfo(LOG) << "Updated"
-					<< currentKey.first
-					<< "->"
-					<< currentKey.second;
+		qCDebug(LOG) << "Synced"
+					 << currentKey.first
+					 << "with id"
+					 << currentKey.second;
 		localState.remove(currentKey);
 		remoteState.remove(currentKey);
 	}
@@ -281,7 +281,7 @@ void ChangeController::generateNextAction()
 
 	if(currentMode != DoNothing) {
 		qCDebug(LOG) << "Beginning operation of type"
-					 << currentMode
+					 << QMetaEnum::fromType<ActionMode>().valueToKey(currentMode)
 					 << "for"
 					 << currentKey.first
 					 << "with id"
