@@ -17,7 +17,7 @@ App::App(int &argc, char **argv) :
 	QCoreApplication::setApplicationName(QStringLiteral(TARGET));
 	QCoreApplication::setApplicationVersion(QStringLiteral(VERSION));
 	QCoreApplication::setOrganizationName(QStringLiteral(COMPANY));
-	QCoreApplication::setOrganizationDomain(QStringLiteral("de.skycoder42"));
+	QCoreApplication::setOrganizationDomain(QStringLiteral(BUNDLE_PREFIX));
 
 	connect(this, &App::newTerminalConnected,
 			this, &App::terminalConnected);
@@ -52,7 +52,7 @@ void App::setupParser(QCommandLineParser &parser, bool useShortOptions)
 	QtBackgroundProcess::App::setupParser(parser, useShortOptions);
 
 #ifdef Q_OS_UNIX
-	auto path = QStringLiteral("/etc/QtDataSyncServer/setup.conf");
+	auto path = QStringLiteral("/etc/%1/setup.conf").arg(QStringLiteral(TARGET));
 #elif
 	auto path = QCoreApplication::applicationDirPath() + QStringLiteral("/setup.conf");
 #endif
