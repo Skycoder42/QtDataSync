@@ -3,16 +3,16 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 
 ## Features
 - Document-Store like access, using QObjects and Q_GADGET classes
-  - Asynchronous access, general access to all data, with futures and onResult handler
-  - Synchronous access with caching store per datatype
+	- Asynchronous access, general access to all data, with futures and onResult handler
+	- Synchronous access with caching store per datatype
 - Stable offline storage, to make shure apps work even without network
 - Remote synchronisation between devices
-  - Multi-user and multi-device system - data is synchronized per user on all his devices
+	- Multi-user and multi-device system - data is synchronized per user on all his devices
 - Includes server application as backend, websocket based
 - Controller class to control and monitor sync state
 - Works "out of the box", since all components are provided
-  - Can be used a simple local store only
-  - Includes a docker-compose file for a PostgreSQL server
+	- Can be used a simple local store only
+	- Includes a docker-compose file for a PostgreSQL server
 - Highly extensible
   
 ## Requirements
@@ -27,19 +27,19 @@ To actually run the server, it needs to connect to a SQL Database. A little more
 	2. Select `Add or remove components` and click on the `Settings` button
 	3. Go to `Repositories`, scroll to the bottom, select `User defined repositories` and press `Add`
 	4. In the right column (selected by default), type:
-		1. On Linux: https://install.skycoder42.de/qtmodules/linux_x64
-		2. On Windows: https://install.skycoder42.de/qtmodules/windows_x86
-		3. On Mac: https://install.skycoder42.de/qtmodules/mac_x64
+		- On Linux: https://install.skycoder42.de/qtmodules/linux_x64
+		- On Windows: https://install.skycoder42.de/qtmodules/windows_x86
+		- On Mac: https://install.skycoder42.de/qtmodules/mac_x64
 	5. Press `Ok`, make shure `Add or remove components` is still selected, and continue the install (`Next >`)
 	6. A new entry appears under all supported Qt Versions (e.g. `Qt > Qt 5.8 > Skycoder42 Qt modules`)
 	7. You can install either all of my modules, or select the one you need: `Qt Data Sync`
 	8. Continue the setup and thats it! you can now use the module for all of your installed Kits for that Qt Version
 3. Download the compiled modules from the release page. **Note:** You will have to add the correct ones yourself and may need to adjust some paths to fit your installation! In addition to that, you will have to download the modules this one depends on as well.
 4. Build it yourself! **Note:** This requires perl to be installed, as well as all dependencies. If you don't have/need cmake, you can ignore the related warnings. To automatically build and install to your Qt installation, run:
-	1. `qmake`
-	2. `make qmake_all`
-	3. `make`
-	4. `make install`
+	- `qmake`
+	- `make qmake_all`
+	- `make`
+	- `make install`
   
 ## Usage
 The datasync library is provided as a Qt module. Thus, all you have to do is add the module, and then, in your project, add `QT += datasync` to your `.pro` file!
