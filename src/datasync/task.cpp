@@ -10,9 +10,9 @@ Task::Task(QFutureInterface<QVariant> d) :
 	QFuture(&d)
 {}
 
-Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std::function<void (QException &)> &onExcept)
+Task &Task::onResult(const std::function<void (QVariant)> &onSuccess, const std::function<void (QException &)> &onExcept, QObject *parent)
 {
-	auto watcher = new QFutureWatcher<QVariant>(qApp);
+	auto watcher = new QFutureWatcher<QVariant>(parent ? parent : qApp);
 	QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, [=](){
 		try {
 			auto res = watcher->result();
@@ -37,11 +37,11 @@ GenericTask<void>::GenericTask(QFutureInterface<QVariant> d) :
 	Task(d)
 {}
 
-GenericTask<void> &GenericTask<void>::onResult(const std::function<void ()> &onSuccess, const std::function<void (QException &)> &onExcept)
+GenericTask<void> &GenericTask<void>::onResult(const std::function<void ()> &onSuccess, const std::function<void (QException &)> &onExcept, QObject *parent)
 {
 	Task::onResult([=](QVariant){
 		onSuccess();
-	}, onExcept);
+	}, onExcept, parent);
 
 	return *this;
 }

@@ -14,16 +14,20 @@ namespace QtDataSync {
 
 class RemoteConnector;
 
+//! The base class for all authenticator objects
 class Q_DATASYNC_EXPORT Authenticator : public QObject
 {
 	Q_OBJECT
 
 public:
+	//! Constructor
 	explicit Authenticator(QObject *parent = nullptr);
 
 protected:
+	//! Call this method to reset the users identity.
 	GenericTask<void> resetIdentity(const QVariant &extraData = {}, bool resetLocalStore = true);
 
+	//! Returns a reference to the connector this authenticator belongs to
 	virtual RemoteConnector *connector() = 0;
 };
 

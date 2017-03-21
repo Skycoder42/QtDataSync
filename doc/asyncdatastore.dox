@@ -1,0 +1,33 @@
+/*!
+@class QtDataSync::AsyncDataStore
+
+Async data access allows you to directly load data from the store or save it there. However,
+all operations on it are, as the name suggests, asynchronous. Check the CachingDataStore, if
+you want to work with a synchronous data source instead.
+
+@note If you want to use the AsyncDataStore::search functions, the query parameter depends on
+the kind of local store you are using. If you are using the default SQLite based one, this
+method accepts wildcard search queries, e.g. *new* to find all entries that contain the string
+"new"
+
+@attention For the store to work it needs a valid datasync instance to be running. This means
+Setup::create **must** be called before a async store is constructed for this setup!
+
+@warning If you are using the async stores generic methods, and you are working with QObject
+classes, please be aware that the store **never** takes ownership of those objects, neither for
+saving nor for loading. You as the caller of those methods are responsible for deleting the
+objects after the operations have been completed.
+
+@sa CachingDataStore
+*/
+
+/*!
+@fn QtDataSync::AsyncDataStore::dataChanged
+
+@param metaTypeId The QMetaTypeId of the type of the change dataset
+@param key The key of the changed dataset
+@param wasDeleted `false` if changed, `true` if deleted
+
+You can use this signal to detect changes on datasets. Use qMetaTypeId() to compare with the
+given metaTypeId to detect the type that has changed, and react accordingly
+*/

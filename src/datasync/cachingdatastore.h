@@ -9,33 +9,48 @@
 
 namespace QtDataSync {
 
+//! Base class for CachingDataStore, to provide signals
 class Q_DATASYNC_EXPORT CachingDataStoreBase : public QObject
 {
 	Q_OBJECT
 
 public:
+	//! Constructor
 	explicit CachingDataStoreBase(QObject *parent = nullptr);
 
 Q_SIGNALS:
+	//! Will be emitted once, after the initial data was loaded
 	void storeLoaded();
+	//! Will be emitted when a dataset in the store has changed
 	void dataChanged(const QString &key, bool wasDeleted);
+	//! Will be emitted when the store has be reset (cleared)
 	void dataResetted();
 };
 
+//! A class to access data synchronously
 template <typename TType, typename TKey = QString>
 class CachingDataStore : public CachingDataStoreBase
 {
 public:
+	//! Constructs a store for the default setup
 	explicit CachingDataStore(QObject *parent = nullptr, bool blockingConstruct = false);
+	//! Constructs a store for the given setup
 	explicit CachingDataStore(const QString &setupName, QObject *parent = nullptr, bool blockingConstruct = false);
 
+	//! Counts the number of datasets in the store
 	int count() const;
+	//! Returns all keys in the store
 	QList<TKey> keys() const;
+	//! Loads all existing datasets
 	QList<TType> loadAll() const;
+	//! Loads the dataset with the given key
 	TType load(const TKey &key) const;
+	//! Saves the given dataset
 	void save(const TType &value);
+	//! Removes the dataset with the given key
 	void remove(const TKey &key);
 
+	//! Shortcut to convert a string to the stores key typee
 	TKey toKey(const QString &key) const;
 
 private:
@@ -46,21 +61,31 @@ private:
 	void evalDataResetted();
 };
 
+//! CachingDataStore specialization for QObject* types
 template <typename TType, typename TKey>
 class CachingDataStore<TType*, TKey> : public CachingDataStoreBase
 {
 	static_assert(std::is_base_of<QObject, TType>::value, "TType must inherit QObject!");
 public:
+	//!@copydoc CachingDataStore::CachingDataStore(QObject *, bool)
 	explicit CachingDataStore(QObject *parent = nullptr, bool blockingConstruct = false);
+	//!@copydoc CachingDataStore::CachingDataStore(const QString &, QObject *, bool)
 	explicit CachingDataStore(const QString &setupName, QObject *parent = nullptr, bool blockingConstruct = false);
 
+	//!@copydoc CachingDataStore::count
 	int count() const;
+	//!@copydoc CachingDataStore::keys
 	QList<TKey> keys() const;
+	//!@copydoc CachingDataStore::loadAll
 	QList<TType*> loadAll() const;
+	//!@copydoc CachingDataStore::load
 	TType* load(const TKey &key) const;
+	//!@copydoc CachingDataStore::save
 	void save(TType *value);
+	//!@copydoc CachingDataStore::remove
 	void remove(const TKey &key);
 
+	//!@copydoc CachingDataStore::toKey
 	TKey toKey(const QString &key) const;
 
 private:
@@ -99,7 +124,7 @@ CachingDataStore<TType, TKey>::CachingDataStore(const QString &setupName, QObjec
 	if(blockingConstruct)
 		resHandler(_store->loadAll<TType>().result());
 	else
-		_store->loadAll<TType>().onResult(resHandler);
+		_store->loadAll<TType>().onResult(resHandler, {}, this);
 
 	connect(_store, &AsyncDataStore::dataChanged,
 			this, &CachingDataStore::evalDataChanged);
@@ -164,7 +189,7 @@ void CachingDataStore<TType, TKey>::evalDataChanged(int metaTypeId, const QStrin
 			_store->load<TType>(key).onResult([=](const TType &data){
 				_data.insert(rKey, data);
 				emit dataChanged(key, false);
-			});
+			}, {}, this);
 		}
 	}
 }
@@ -201,7 +226,7 @@ CachingDataStore<TType*, TKey>::CachingDataStore(const QString &setupName, QObje
 	if(blockingConstruct)
 		resHandler(_store->loadAll<TType*>().result());
 	else
-		_store->loadAll<TType*>().onResult(resHandler);
+		_store->loadAll<TType*>().onResult(resHandler, {}, this);
 
 	connect(_store, &AsyncDataStore::dataChanged,
 			this, &CachingDataStore::evalDataChanged);
@@ -270,7 +295,7 @@ void CachingDataStore<TType*, TKey>::evalDataChanged(int metaTypeId, const QStri
 				data->setParent(this);
 				_data.insert(rKey, data);
 				emit dataChanged(key, false);
-			});
+			}, {}, this);
 		}
 	}
 }

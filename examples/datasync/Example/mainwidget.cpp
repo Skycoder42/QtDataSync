@@ -61,7 +61,7 @@ void MainWidget::dataChanged(int metaTypeId, const QString &key, bool wasDeleted
 			update(data);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		});
+		}, this);
 	}
 }
 
@@ -135,7 +135,7 @@ void MainWidget::setup()
 				update(d);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		});
+		}, this);
 
 		//caching test
 		QtDataSync::CachingDataStore<SampleData*, int> cacheStore(nullptr, true);
@@ -171,7 +171,7 @@ void MainWidget::on_addButton_clicked()
 	}, [this, data](QException &exception) {
 		report(QtCriticalMsg, exception.what());
 		data->deleteLater();
-	});
+	}, this);
 }
 
 void MainWidget::on_deleteButton_clicked()
@@ -186,7 +186,7 @@ void MainWidget::on_deleteButton_clicked()
 				report(QtInfoMsg, QStringLiteral("No entry with id %1 found!").arg(id));
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, exception.what());
-		});
+		}, this);
 	}
 }
 
@@ -211,7 +211,7 @@ void MainWidget::on_changeUserButton_clicked()
 		task.onResult([=](){
 			qDebug() << "Changed userId to" << auth->userIdentity();
 			auth->deleteLater();
-		});
+		}, {}, this);
 	}
 }
 
@@ -242,7 +242,7 @@ void MainWidget::on_searchEdit_returnPressed()
 				update(d);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		});
+		}, this);
 	} else {
 		store->search<SampleData*>(query).onResult([this](QList<SampleData*> data){
 			report(QtInfoMsg, "Searched data in store!");
@@ -250,6 +250,6 @@ void MainWidget::on_searchEdit_returnPressed()
 				update(d);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		});
+		}, this);
 	}
 }

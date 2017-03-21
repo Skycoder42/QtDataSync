@@ -14,7 +14,7 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 	- Can be used a simple local store only
 	- Includes a docker-compose file for a PostgreSQL server
 - Highly extensible
-  
+
 ## Requirements
 In order to use the library, you will have to install [QJsonSerializer](https://github.com/Skycoder42/QJsonSerializer). If you want to use the server, [QtBackgroundProcess](https://github.com/Skycoder42/QtBackgroundProcess) needs to be available as well. **Hint:** If you install the module using the repository method as described in "Download/Installation" (or install it from AUR), those dependencies will be resolved automatically.
 
@@ -40,7 +40,7 @@ To actually run the server, it needs to connect to a SQL Database. A little more
 	- `make qmake_all`
 	- `make`
 	- `make install`
-  
+
 ## Usage
 The datasync library is provided as a Qt module. Thus, all you have to do is add the module, and then, in your project, add `QT += datasync` to your `.pro` file!
 
@@ -89,7 +89,7 @@ public:
 
 You can for example load all existing datasets for this type by using:
 ```cpp
-auto store = new QtDataSync::AsyncStore(this); //If not specified, the store will use the "default setup"
+auto store = new QtDataSync::AsyncDataStore(this); //If not specified, the store will use the "default setup"
 
 store->loadAll<Data>().onResult([](const QList<Data> &data){
 	qDebug() << data.size();

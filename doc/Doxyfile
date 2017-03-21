@@ -44,7 +44,7 @@ PROJECT_NUMBER         = 1.0.0
 # for a project that appears at the top of each page and should give viewer a
 # quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "Project desciption here"
+PROJECT_BRIEF          = "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices"
 
 # With the PROJECT_LOGO tag one can specify a logo or an icon that is included
 # in the documentation. The maximum height of the logo should not exceed 55
@@ -383,7 +383,7 @@ DISTRIBUTE_GROUP_DOC   = YES
 
 # If one adds a struct or class to a group and this option is enabled, then also
 # any nested class or struct is added to the same group. By default this option
-# is disabled and one has to add nested compounds explicitly via \ngroup.
+# is disabled and one has to add nested compounds explicitly via \ingroup.
 # The default value is: NO.
 
 GROUP_NESTED_COMPOUNDS = NO
@@ -923,7 +923,20 @@ EXCLUDE_PATTERNS       = moc_* \
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories use the pattern */test/*
 
-EXCLUDE_SYMBOLS        =
+EXCLUDE_SYMBOLS        = QAbstractAspect \
+						 QBasicAtomicInteger \
+						 QBasicAtomicPointer \
+						 QComponent \
+						 QEntity \
+						 QFutureWatcherBase \
+						 QGeometry \
+						 QGeometryRenderer \
+						 QMaterial \
+						 QNode \
+						 QNodeCreatedChangeBase \
+						 QPaintEngineEx \
+						 QQmlExtensionInterface \
+						 QTechniqueFilter
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include
