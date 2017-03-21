@@ -14,9 +14,6 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
   - Can be used a simple local store only
   - Includes a docker-compose file for a PostgreSQL server
 - Highly extensible
-  - Custom local storage - for the offline local storage (default is implemented using SQLite and file storage)
-  - Custom sync control - handle priorities for conflicts and implement custom merge algorithms
-  - Custom remote connector - to synchronize to any backend (default uses websockets and the included server application)
   
 ## Requirements
 In order to use the library, you will have to install [QJsonSerializer](https://github.com/Skycoder42/QJsonSerializer). If you want to use the server, [QtBackgroundProcess](https://github.com/Skycoder42/QtBackgroundProcess) needs to be available as well. **Hint:** If you install the module using the repository method as described in "Download/Installation" (or install it from AUR), those dependencies will be resolved automatically.
@@ -30,19 +27,19 @@ To actually run the server, it needs to connect to a SQL Database. A little more
   2. Select `Add or remove components` and click on the `Settings` button
   3. Go to `Repositories`, scroll to the bottom, select `User defined repositories` and press `Add`
   4. In the right column (selected by default), type:
-	- On Linux: https://install.skycoder42.de/qtmodules/linux_x64
-	- On Windows: https://install.skycoder42.de/qtmodules/windows_x86
-	- On Mac: https://install.skycoder42.de/qtmodules/mac_x64
+	1. On Linux: https://install.skycoder42.de/qtmodules/linux_x64
+	2. On Windows: https://install.skycoder42.de/qtmodules/windows_x86
+	3. On Mac: https://install.skycoder42.de/qtmodules/mac_x64
   5. Press `Ok`, make shure `Add or remove components` is still selected, and continue the install (`Next >`)
   6. A new entry appears under all supported Qt Versions (e.g. `Qt > Qt 5.8 > Skycoder42 Qt modules`)
   7. You can install either all of my modules, or select the one you need: `Qt Data Sync`
   8. Continue the setup and thats it! you can now use the module for all of your installed Kits for that Qt Version
 3. Download the compiled modules from the release page. **Note:** You will have to add the correct ones yourself and may need to adjust some paths to fit your installation! In addition to that, you will have to download the modules this one depends on as well.
 4. Build it yourself! **Note:** This requires perl to be installed, as well as all dependencies. If you don't have/need cmake, you can ignore the related warnings. To automatically build and install to your Qt installation, run:
-  - `qmake`
-  - `make qmake_all`
-  - `make`
-  - `make install`
+  1. `qmake`
+  2. `make qmake_all`
+  3. `make`
+  4. `make install`
   
 ## Usage
 The datasync library is provided as a Qt module. Thus, all you have to do is add the module, and then, in your project, add `QT += datasync` to your `.pro` file!
@@ -125,7 +122,23 @@ qdatasyncserver on port 4242.
 To actually start the server, use `qdatasyncserver start -c <path_to_config>`. This will start the server in the background and print out `ok` if starting worked. If it fails, check the logfile for details. You can find it's location by running `qdatasyncserver --help`. Look for the description of the `-L` option.
 
 #### Adding the remote to your app to enable sync
+The last step is to tell you application which remote to use. To do so, the WsAuthenticator is used. Assuming you are running the server with the `docker_setup.conf`, the following setup will connect the server. Please note that the authenticator is always "a part" of the remote connector. The following example only works for the default one, that connects to qdatasyncserver:
+```cpp
+//create the setup first. Once thats done you can get the authenticator
+auto authenticator = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(this);
+authenticator->setRemoteUrl("ws://localhost:4242");
+authenticator->setServerSecret("baum42");
+authenticator->reconnect();//required, to tell the connector to apply the changes!
+```
 
 ### Extending/Using custom store elements
+If you want provide for example a custom remote connector, because you use your own server implementation, you can do so by implementing the RemoteConnector class. The classes you can provide custom implementations for are:
+- **LocalStore:** Responsible for local data storage. The default implementation uses SQLite and file storage
+- **StateHolder:** Responsible for storing the local change state, which is used to perform the synchronisation. The default implementation uses the same database as the storage
+- **RemoteConnector:** Responsible for connecting with a server, to synchronize data with. This includes loading the servers sync state, as well as performing the data exchange
+- **DataMerger:** Specifies how to react on conflicts of any kind. Allows you to implement custom merging mechanisms
+
+All these components can be set per datasync instance by using the Setup. Check the documentation for details on how to implement those.
 
 ## Documentation
+The documentation is available on [github pages](https://skycoder42.github.io/QtDataSync/). It was created using [doxygen](http://www.doxygen.org/). The HTML-documentation and Qt-Help files are shipped together with the module for both the custom repository and the package on the release page. Please note that doxygen docs do not perfectly integrate with QtCreator/QtAssistant.
