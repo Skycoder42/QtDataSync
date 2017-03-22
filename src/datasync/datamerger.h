@@ -11,46 +11,57 @@
 namespace QtDataSync {
 
 class DataMergerPrivate;
+//! The class responsible for deciding what happens on sync conflicts
 class Q_DATASYNC_EXPORT DataMerger : public QObject
 {
 	Q_OBJECT
 
+	//! Specifies the policy regarding the handling of changed/deleted conflicts
 	Q_PROPERTY(SyncPolicy syncPolicy READ syncPolicy WRITE setSyncPolicy)
+	//! Specifies the policy regarding the handling of changed/changed conflicts
 	Q_PROPERTY(MergePolicy mergePolicy READ mergePolicy WRITE setMergePolicy)
-	Q_PROPERTY(bool repeatFailed READ repeatFailed WRITE setRepeatFailed)
 
 public:
+	//! The policy for changed/deleted conflicts
 	enum SyncPolicy {
-		PreferUpdated,
-		PreferDeleted,
-		PreferLocal,
-		PreferRemote
+		PreferUpdated,//!< Always keep the changed data
+		PreferDeleted,//!< Always delete the data
+		PreferLocal,//!< Prefer whatever was done locally
+		PreferRemote//!< Prefer whatever state is on the remote server
 	};
 	Q_ENUM(SyncPolicy)
 
+	//! The policy for changed/changed conflicts
 	enum MergePolicy {
-		KeepLocal,
-		KeepRemote,
-		Merge
+		KeepLocal,//!< Prefer the local change
+		KeepRemote,//!< Prefer the change state on the remote server
+		Merge//!< Call merge() to merge the data
 	};
 	Q_ENUM(MergePolicy)
 
+	//! Constructor
 	explicit DataMerger(QObject *parent = nullptr);
+	//! Destructor
 	~DataMerger();
 
+	//! Called from the egine to initialize the merger
 	virtual void initialize(Defaults *defaults);
+	//! Called from the egine to finalize the merger
 	virtual void finalize();
 
+	//! @readAcFn{DataMerger::syncPolicy}
 	SyncPolicy syncPolicy() const;
+	//! @readAcFn{DataMerger::mergePolicy}
 	MergePolicy mergePolicy() const;
-	bool repeatFailed() const;
 
+	//! Called, if the merge policy is Merge and data needs to be merged
 	virtual QJsonObject merge(QJsonObject local, QJsonObject remote);
 
 public Q_SLOTS:
+	//! @writeAcFn{DataMerger::syncPolicy}
 	void setSyncPolicy(SyncPolicy syncPolicy);
+	//! @writeAcFn{DataMerger::mergePolicy}
 	void setMergePolicy(MergePolicy mergePolicy);
-	void setRepeatFailed(bool repeatFailed);
 
 private:
 	QScopedPointer<DataMergerPrivate> d;

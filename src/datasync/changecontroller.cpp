@@ -97,7 +97,7 @@ void ChangeController::nextStage(bool success, const QJsonValue &result)
 {
 	if(!success) {
 		failedKeys.insert(currentKey);
-		currentState = merger->repeatFailed() ? CancelState : DoneState;
+		currentState = DoneState;
 	}
 
 	//in case of done --> go to the next one!

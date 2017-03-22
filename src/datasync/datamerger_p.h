@@ -11,7 +11,6 @@ class Q_DATASYNC_EXPORT DataMergerPrivate
 public:
 	DataMerger::SyncPolicy syncPolicy;
 	DataMerger::MergePolicy mergePolicy;
-	bool repeatFailed;
 
 	DataMergerPrivate();
 };

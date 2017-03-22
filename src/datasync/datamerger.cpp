@@ -24,11 +24,6 @@ DataMerger::MergePolicy DataMerger::mergePolicy() const
 	return d->mergePolicy;
 }
 
-bool DataMerger::repeatFailed() const
-{
-	return d->repeatFailed;
-}
-
 QJsonObject DataMerger::merge(QJsonObject local, QJsonObject)
 {
 	return local;
@@ -44,15 +39,8 @@ void DataMerger::setMergePolicy(DataMerger::MergePolicy mergePolicy)
 	d->mergePolicy = mergePolicy;
 }
 
-void DataMerger::setRepeatFailed(bool repeatFailed)
-{
-	d->repeatFailed = repeatFailed;
-}
-
-
 
 DataMergerPrivate::DataMergerPrivate() :
 	syncPolicy(DataMerger::PreferUpdated),
-	mergePolicy(DataMerger::KeepLocal),
-	repeatFailed(false)
+	mergePolicy(DataMerger::KeepLocal)
 {}

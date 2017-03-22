@@ -61,7 +61,14 @@ private:
 	void evalDataResetted();
 };
 
-//! CachingDataStore specialization for QObject* types
+/*!
+@brief CachingDataStore specialization for QObject* types
+@details The main difference of the QObject specialization is the fact, that all QObject
+instances are owned by the store. This means saving will reparent objects to the store, and
+remove will delete them etc.
+
+@copydetails QtDataSync::CachingDataStore
+*/
 template <typename TType, typename TKey>
 class CachingDataStore<TType*, TKey> : public CachingDataStoreBase
 {
