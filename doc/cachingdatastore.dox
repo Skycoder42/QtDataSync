@@ -28,4 +28,13 @@ By default, the store cannot be used after construction. You have to wait until 
 been emitted. In case you can't use the signal, you can set blockingConstruct to `true`. This
 will make the constructor blocking, and it waits for the store to be loaded. If you do a blocking
 construct, the store can be used immediatly after construction.
+
+@sa CachingDataStore::storeLoaded
+*/
+
+/*!
+@fn QtDataSync::CachingDataStore::CachingDataStore(const QString &, QObject *, bool)
+
+@param setupName The name of the datasync instance to operate on
+@copydetails QtDataSync::CachingDataStore::CachingDataStore(QObject *, bool)
 */
