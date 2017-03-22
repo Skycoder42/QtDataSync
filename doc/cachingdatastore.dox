@@ -17,3 +17,15 @@ on the caching store, but will take a while until it's actually passed on to the
 
 @sa AsyncDataStore
 */
+
+/*!
+@fn QtDataSync::CachingDataStore::CachingDataStore(QObject *, bool)
+
+@param parent The parent object
+@param blockingConstruct Specify, whether the constructor should be blocking or not
+
+By default, the store cannot be used after construction. You have to wait until storeLoaded has
+been emitted. In case you can't use the signal, you can set blockingConstruct to `true`. This
+will make the constructor blocking, and it waits for the store to be loaded. If you do a blocking
+construct, the store can be used immediatly after construction.
+*/

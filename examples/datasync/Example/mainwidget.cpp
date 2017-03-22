@@ -56,12 +56,12 @@ void MainWidget::dataChanged(int metaTypeId, const QString &key, bool wasDeleted
 		if(item)
 			delete item;
 	} else {
-		store->load(metaTypeId, key).toGeneric<SampleData*>().onResult([this, key](SampleData* data){
+		store->load(metaTypeId, key).toGeneric<SampleData*>().onResult(this, [this, key](SampleData* data){
 			report(QtInfoMsg, QStringLiteral("Data with id %1 changed").arg(key));
 			update(data);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		}, this);
+		});
 	}
 }
 
@@ -129,13 +129,13 @@ void MainWidget::setup()
 		connect(ui->resyncButton, &QPushButton::clicked,
 				sync, &QtDataSync::SyncController::triggerResync);
 
-		store->loadAll<SampleData*>().onResult([this](QList<SampleData*> data){
+		store->loadAll<SampleData*>().onResult(this, [this](QList<SampleData*> data){
 			report(QtInfoMsg, "All Data loaded from store!");
 			foreach (auto d, data)
 				update(d);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		}, this);
+		});
 
 		//caching test
 		QtDataSync::CachingDataStore<SampleData*, int> cacheStore(nullptr, true);
@@ -165,13 +165,13 @@ void MainWidget::on_addButton_clicked()
 	data->title = ui->titleLineEdit->text();
 	data->description = ui->detailsLineEdit->text();
 
-	store->save<SampleData*>(data).onResult([this, data](){
+	store->save<SampleData*>(data).onResult(this, [this, data](){
 		report(QtInfoMsg, QStringLiteral("Data with id %1 saved!").arg(data->id));
 		data->deleteLater();
 	}, [this, data](QException &exception) {
 		report(QtCriticalMsg, exception.what());
 		data->deleteLater();
-	}, this);
+	});
 }
 
 void MainWidget::on_deleteButton_clicked()
@@ -179,14 +179,14 @@ void MainWidget::on_deleteButton_clicked()
 	auto item = ui->dataTreeWidget->currentItem();
 	if(item) {
 		auto id = items.key(item);
-		store->remove<SampleData*>(QString::number(id)).onResult([this, id](bool success){
+		store->remove<SampleData*>(QString::number(id)).onResult(this, [this, id](bool success){
 			if(success)
 				report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
 			else
 				report(QtInfoMsg, QStringLiteral("No entry with id %1 found!").arg(id));
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, exception.what());
-		}, this);
+		});
 	}
 }
 
@@ -208,10 +208,10 @@ void MainWidget::on_changeUserButton_clicked()
 			task = auth->resetUserIdentity();
 		else
 			task = auth->setUserIdentity(user);
-		task.onResult([=](){
+		task.onResult(this, [auth](){
 			qDebug() << "Changed userId to" << auth->userIdentity();
 			auth->deleteLater();
-		}, {}, this);
+		});
 	}
 }
 
@@ -236,20 +236,20 @@ void MainWidget::on_searchEdit_returnPressed()
 
 	auto query = ui->searchEdit->text();
 	if(query.isEmpty()) {
-		store->loadAll<SampleData*>().onResult([this](QList<SampleData*> data){
+		store->loadAll<SampleData*>().onResult(this, [this](QList<SampleData*> data){
 			report(QtInfoMsg, "All Data loaded from store!");
 			foreach (auto d, data)
 				update(d);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		}, this);
+		});
 	} else {
-		store->search<SampleData*>(query).onResult([this](QList<SampleData*> data){
+		store->search<SampleData*>(query).onResult(this, [this](QList<SampleData*> data){
 			report(QtInfoMsg, "Searched data in store!");
 			foreach (auto d, data)
 				update(d);
 		}, [this](QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		}, this);
+		});
 	}
 }

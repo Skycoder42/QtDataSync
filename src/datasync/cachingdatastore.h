@@ -124,7 +124,7 @@ CachingDataStore<TType, TKey>::CachingDataStore(const QString &setupName, QObjec
 	if(blockingConstruct)
 		resHandler(_store->loadAll<TType>().result());
 	else
-		_store->loadAll<TType>().onResult(resHandler, {}, this);
+		_store->loadAll<TType>().onResult(this, resHandler);
 
 	connect(_store, &AsyncDataStore::dataChanged,
 			this, &CachingDataStore::evalDataChanged);
@@ -186,10 +186,10 @@ void CachingDataStore<TType, TKey>::evalDataChanged(int metaTypeId, const QStrin
 			_data.remove(rKey);
 			emit dataChanged(key, true);
 		} else {
-			_store->load<TType>(key).onResult([=](const TType &data){
+			_store->load<TType>(key).onResult(this, [=](const TType &data){
 				_data.insert(rKey, data);
 				emit dataChanged(key, false);
-			}, {}, this);
+			});
 		}
 	}
 }
@@ -226,7 +226,7 @@ CachingDataStore<TType*, TKey>::CachingDataStore(const QString &setupName, QObje
 	if(blockingConstruct)
 		resHandler(_store->loadAll<TType*>().result());
 	else
-		_store->loadAll<TType*>().onResult(resHandler, {}, this);
+		_store->loadAll<TType*>().onResult(this, resHandler);
 
 	connect(_store, &AsyncDataStore::dataChanged,
 			this, &CachingDataStore::evalDataChanged);
@@ -291,11 +291,11 @@ void CachingDataStore<TType*, TKey>::evalDataChanged(int metaTypeId, const QStri
 			data->deleteLater();
 			emit dataChanged(key, true);
 		} else {
-			_store->load<TType*>(key).onResult([=](TType* data){
+			_store->load<TType*>(key).onResult(this, [=](TType* data){
 				data->setParent(this);
 				_data.insert(rKey, data);
 				emit dataChanged(key, false);
-			}, {}, this);
+			});
 		}
 	}
 }
