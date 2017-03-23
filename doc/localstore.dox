@@ -74,7 +74,7 @@ can simply check the value of that property as the key. You do not have to use t
 but you can.
 
 The result of this operation must be reported by calling requestCompleted() with the given id
-and the result as second parameter. The result must be a json objects, passed via the json
+and the result as second parameter. The result must be a json object, passed via the json
 value.
 
 If your operation fails, emit requestFailed() with the given id and an error message.

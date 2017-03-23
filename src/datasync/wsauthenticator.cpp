@@ -11,7 +11,7 @@ WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, Defaults *default
 {
 	d->settings = defaults->createSettings(this);
 
-	connect(d->connector, &WsRemoteConnector::remoteStateLoaded,
+	connect(d->connector, &WsRemoteConnector::remoteStateChanged,
 			this, &WsAuthenticator::updateConnected,
 			Qt::QueuedConnection);
 }

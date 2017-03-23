@@ -111,7 +111,7 @@ void StorageEngine::initialize()
 			this, &StorageEngine::updateSyncState);
 	connect(changeController, &ChangeController::updateSyncProgress,
 			this, &StorageEngine::syncOperationsChanged);
-	connect(remoteConnector, &RemoteConnector::remoteStateLoaded,
+	connect(remoteConnector, &RemoteConnector::remoteStateChanged,
 			changeController, &ChangeController::setRemoteStatus);
 	connect(remoteConnector, &RemoteConnector::remoteDataChanged,
 			changeController, &ChangeController::updateRemoteStatus);

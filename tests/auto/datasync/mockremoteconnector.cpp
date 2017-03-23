@@ -38,16 +38,16 @@ void MockRemoteConnector::reloadRemoteState()
 	QMutexLocker _(&mutex);
 
 	if(connected) {
-		emit remoteStateLoaded(RemoteLoadingState, {});
+		emit remoteStateChanged(RemoteLoadingState);
 		QTimer::singleShot(reloadTimeout, this, [=](){
 			QMutexLocker _(&mutex);
 			if(!enabled)
-				emit remoteStateLoaded(RemoteReady, {});
+				emit remoteStateChanged(RemoteReady);
 			else if(failCount > 0) {
-				emit remoteStateLoaded(RemoteDisconnected, {});
+				emit remoteStateChanged(RemoteDisconnected);
 				emit authenticationFailed(QString::number(--failCount));
 			}  else {
-				emit remoteStateLoaded(RemoteReady, pseudoState);
+				emit remoteStateChanged(RemoteReady, pseudoState);
 				emit clearAuthenticationError();
 			}
 		});
@@ -58,19 +58,19 @@ void MockRemoteConnector::requestResync()
 {
 	QMutexLocker _(&mutex);
 
-	emit remoteStateLoaded(RemoteDisconnected, {});
+	emit remoteStateChanged(RemoteDisconnected);
 	if(connected) {
 		emit performLocalReset(false);
-		emit remoteStateLoaded(RemoteLoadingState, {});
+		emit remoteStateChanged(RemoteLoadingState);
 		QTimer::singleShot(reloadTimeout, this, [=](){
 			QMutexLocker _(&mutex);
 			if(!enabled)
-				emit remoteStateLoaded(RemoteReady, {});
+				emit remoteStateChanged(RemoteReady);
 			else if(failCount > 0) {
-				emit remoteStateLoaded(RemoteDisconnected, {});
+				emit remoteStateChanged(RemoteDisconnected);
 				emit authenticationFailed(QString::number(--failCount));
 			} else {
-				emit remoteStateLoaded(RemoteReady, pseudoState);
+				emit remoteStateChanged(RemoteReady, pseudoState);
 				emit clearAuthenticationError();
 			}
 		});
