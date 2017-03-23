@@ -44,9 +44,9 @@ public:
 	//! Destructor
 	~DataMerger();
 
-	//! Called from the egine to initialize the merger
+	//! Called from the engine to initialize the merger
 	virtual void initialize(Defaults *defaults);
-	//! Called from the egine to finalize the merger
+	//! Called from the engine to finalize the merger
 	virtual void finalize();
 
 	//! @readAcFn{DataMerger::syncPolicy}
