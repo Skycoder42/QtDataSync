@@ -59,7 +59,7 @@ void MainWidget::dataChanged(int metaTypeId, const QString &key, bool wasDeleted
 		store->load(metaTypeId, key).toGeneric<SampleData*>().onResult(this, [this, key](SampleData* data){
 			report(QtInfoMsg, QStringLiteral("Data with id %1 changed").arg(key));
 			update(data);
-		}, [this](QException &exception) {
+		}, [this](const QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 	}
@@ -133,7 +133,7 @@ void MainWidget::setup()
 			report(QtInfoMsg, "All Data loaded from store!");
 			foreach (auto d, data)
 				update(d);
-		}, [this](QException &exception) {
+		}, [this](const QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 
@@ -154,7 +154,7 @@ void MainWidget::on_addButton_clicked()
 	store->save<SampleData*>(data).onResult(this, [this, data](){
 		report(QtInfoMsg, QStringLiteral("Data with id %1 saved!").arg(data->id));
 		data->deleteLater();
-	}, [this, data](QException &exception) {
+	}, [this, data](const QException &exception) {
 		report(QtCriticalMsg, exception.what());
 		data->deleteLater();
 	});
@@ -170,7 +170,7 @@ void MainWidget::on_deleteButton_clicked()
 				report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
 			else
 				report(QtInfoMsg, QStringLiteral("No entry with id %1 found!").arg(id));
-		}, [this](QException &exception) {
+		}, [this](const QException &exception) {
 			report(QtCriticalMsg, exception.what());
 		});
 	}
@@ -226,7 +226,7 @@ void MainWidget::on_searchEdit_returnPressed()
 			report(QtInfoMsg, "All Data loaded from store!");
 			foreach (auto d, data)
 				update(d);
-		}, [this](QException &exception) {
+		}, [this](const QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 	} else {
@@ -234,7 +234,7 @@ void MainWidget::on_searchEdit_returnPressed()
 			report(QtInfoMsg, "Searched data in store!");
 			foreach (auto d, data)
 				update(d);
-		}, [this](QException &exception) {
+		}, [this](const QException &exception) {
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 	}
