@@ -26,9 +26,9 @@ public:
 	//! Called from the engine to finalize the store
 	virtual void finalize();
 
-	//! Synchronously load all keys that exist in the local store
+	//! Load all keys for all types that exist in the local store
 	virtual QList<ObjectKey> loadAllKeys() = 0;
-	//! Synchronously reset the whole store
+	//! Reset the whole store by deleting all data
 	virtual void resetStore() = 0;
 
 public Q_SLOTS:

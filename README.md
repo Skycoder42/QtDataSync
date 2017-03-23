@@ -138,7 +138,7 @@ If you want provide for example a custom remote connector, because you use your 
 - **RemoteConnector:** Responsible for connecting with a server, to synchronize data with. This includes loading the servers sync state, as well as performing the data exchange
 - **DataMerger:** Specifies how to react on conflicts of any kind. Allows you to implement custom merging mechanisms
 
-All these components can be set per datasync instance by using the Setup. Check the documentation for details on how to implement those.
+All these components can be set per datasync instance by using the Setup. Check the documentation for details on how to implement those. Please note that all these classes are created on the main thread and then moved to the datasync thread.
 
 ## Documentation
 The documentation is available on [github pages](https://skycoder42.github.io/QtDataSync/). It was created using [doxygen](http://www.doxygen.org/). The HTML-documentation and Qt-Help files are shipped together with the module for both the custom repository and the package on the release page. Please note that doxygen docs do not perfectly integrate with QtCreator/QtAssistant.

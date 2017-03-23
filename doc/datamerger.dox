@@ -16,6 +16,11 @@ setup.create();
 If you want to merge data on changed/changed conflicts, instead of blindly choosing one, you
 can extend this class and reimplement the merge() method.
 
+@attention The merger is constructed on the main thread, and then later moved to the datasync
+instance thread. The initialize() function is the first to be called after changing the thread.
+You should do nothing in the constructor, and all the initialization inside of that function,
+to ensure a fast and smooth usage.
+
 @sa DataMerger::syncPolicy, DataMerger::mergePolicy, DataMerger::merge, Setup::setDataMerger,
 Setup::dataMerger
 */
