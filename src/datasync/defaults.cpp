@@ -76,8 +76,8 @@ void Defaults::releaseDatabase()
 QtDataSync::DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir) :
 	storageDir(storageDir),
 	dbRefCounter(0),
-	catName("QtDataSync:" + setupName.toUtf8()),
-	logCat(catName),
+	catName("qtdatasync." + setupName.toUtf8()),
+	logCat(catName, QtWarningMsg),
 	settings(nullptr)
 {
 

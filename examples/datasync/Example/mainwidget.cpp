@@ -144,20 +144,6 @@ void MainWidget::setup()
 		qApp->quit();
 }
 
-static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-	if(QByteArray(context.category).startsWith("QtDataSync:")) {
-		auto window = qApp->property("__mw").value<MainWidget*>();
-		if(window) {
-			auto rMsg = qFormatLogMessage(type, context, msg);
-			window->report(type, rMsg);
-			return;
-		}
-	}
-
-	prevHandler(type, context, msg);
-}
-
 void MainWidget::on_addButton_clicked()
 {
 	auto data = new SampleData(this);
@@ -252,4 +238,18 @@ void MainWidget::on_searchEdit_returnPressed()
 			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 	}
+}
+
+static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+	if(QByteArray(context.category).startsWith("qtdatasync.")) {
+		auto window = qApp->property("__mw").value<MainWidget*>();
+		if(window) {
+			auto rMsg = qFormatLogMessage(type, context, msg);
+			window->report(type, rMsg);
+			return;
+		}
+	}
+
+	prevHandler(type, context, msg);
 }
