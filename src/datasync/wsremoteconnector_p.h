@@ -53,7 +53,7 @@ public Q_SLOTS:
 	void markUnchanged(const ObjectKey &key, const QByteArray &keyProperty) override;
 
 protected:
-	void resetUserData(const QVariant &extraData) override;
+	void resetUserData(const QVariant &extraData, const QByteArray &) override;
 	void timerEvent(QTimerEvent *event) override;
 
 private Q_SLOTS:

@@ -84,7 +84,7 @@ protected:
 	//! Generates or loads an unique device id
 	QByteArray getDeviceId() const;
 	//! Is called to reset the user data and update them
-	virtual void resetUserData(const QVariant &extraData) = 0;
+	virtual void resetUserData(const QVariant &extraData, const QByteArray &oldDeviceId) = 0;
 
 private:
 	Defaults *_defaults;//TODO d ptr

@@ -22,8 +22,9 @@ void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, co
 {
 	if(resetLocalStore)//resync is always done, only clear explicitly needed
 		emit performLocalReset(true);//direct connected thus "inline"
+	auto oldId = _defaults->settings()->value(QStringLiteral("RemoteConnector/deviceId")).toByteArray();
 	_defaults->settings()->remove(QStringLiteral("RemoteConnector/deviceId"));
-	resetUserData(extraData);
+	resetUserData(extraData, oldId);
 	reloadRemoteState();
 	futureInterface.reportResult(QVariant());
 	futureInterface.reportFinished();

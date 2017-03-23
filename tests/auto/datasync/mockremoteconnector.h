@@ -27,7 +27,7 @@ public slots:
 	void markUnchanged(const QtDataSync::ObjectKey &key, const QByteArray &keyProperty) override;
 
 protected:
-	void resetUserData(const QVariant &extraData) override;
+	void resetUserData(const QVariant &extraData, const QByteArray &) override;
 
 public:
 	QMutex mutex;

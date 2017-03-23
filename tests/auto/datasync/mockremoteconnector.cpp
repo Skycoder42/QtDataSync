@@ -133,7 +133,7 @@ void MockRemoteConnector::markUnchanged(const QtDataSync::ObjectKey &key, const 
 	}
 }
 
-void MockRemoteConnector::resetUserData(const QVariant &)
+void MockRemoteConnector::resetUserData(const QVariant &, const QByteArray &)
 {
 	QMutexLocker _(&mutex);
 }

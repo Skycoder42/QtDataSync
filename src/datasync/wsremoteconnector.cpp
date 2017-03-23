@@ -202,7 +202,7 @@ void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &ke
 
 }
 
-void WsRemoteConnector::resetUserData(const QVariant &extraData)
+void WsRemoteConnector::resetUserData(const QVariant &extraData, const QByteArray &)
 {
 	if(socket) {
 		sendCommand("deleteOldDevice");
