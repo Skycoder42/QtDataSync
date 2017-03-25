@@ -82,7 +82,7 @@ template<typename T>
 T *Setup::authenticatorForSetup(QObject *parent, const QString &name)
 {
 	static_assert(std::is_base_of<Authenticator, T>::value, "T must inherit QtDataSync::Authenticator!");
-	return static_cast<T*>(loadAuthenticator(parent, name));
+	return dynamic_cast<T*>(loadAuthenticator(parent, name));
 }
 
 }

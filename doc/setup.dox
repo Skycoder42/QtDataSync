@@ -45,4 +45,62 @@ another setup with the same name until the previous one has been deleted.
 If you wait for the method to finish, the cleanup timeout will be used to terminate if the
 instance does not finish in time. This is **not** the case if you don't wait. Please note that
 waiting is blocking, and thus not recommended to use for GUI apps.
+
+@sa Setup::setCleanupTimeout
+*/
+
+/*!
+@fn QtDataSync::Setup::authenticatorForSetup
+
+@tparam T The authenticator type of the returned authenticator
+@param parent The parent object for the authenticator
+@param name The name of the instance to create the authenticator for
+
+You can use this method to get the authenticator for your remote connector. You will own the
+returned authenticator. However, an authenticator only stays valid as long as the datasync
+instance is not removed.
+
+@warning The generic parameter T is determined by the type of setup you use. If it does not
+match, `nullptr` is returned. If you are using the default setup, the authenticators type is
+WsAuthenticator.
+
+@code{.cpp}
+auto auth = Setup::authenticatorForSetup<WsAuthenticator>(this);
+@endcode
+
+@sa Authenticator, WsAuthenticator, RemoteConnector::createAuthenticator
+*/
+
+/*!
+@fn QtDataSync::Setup::setProperty
+
+@param key The property key
+@param data The property value
+
+Those properties will be set on the Defaults object that is passed to all the implementations
+initialize functions. You can read it there by using Defaults::property.
+
+@sa Defaults::property
+*/
+
+/*!
+@fn QtDataSync::Setup::create
+
+@param name The unique name of the setup to be created
+@throws SetupExistsException If a datasync instance with the same name already exists
+@throws SetupLockedException If the local directory is already locked by another instance
+
+This method creates and starts a new datasync instance from the configuration of the setup. It
+will automatically launch the new thread and initialize it. This is done asynchronously, but
+you don't need to wait for it. After this method returned, you can use the instance as you
+please, with i.e. AsyncDataStore, SyncController, etc.
+
+@attention If you get a SetupLockedException, it's propably because two instances of your
+application have started, and try to use the same local storage directory. You can either
+make your application a single instance app (See
+[QSingleInstance](https://github.com/Skycoder42/QSingleInstance)) or use different local dirs
+per instance.
+
+@warning After this method, you **must not** access any other of the setups methods. Consider
+it deleted. Not following this will propably crash your application.
 */
