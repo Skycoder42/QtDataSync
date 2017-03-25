@@ -11,8 +11,10 @@
 #	define Q_DATASYNC_EXPORT Q_DECL_IMPORT
 #endif
 
+//! The datasync main namespace
 namespace QtDataSync {
 
+//! A typedef for an objects key, consisting of type name and key
 typedef QPair<QByteArray, QString> ObjectKey;
 
 }

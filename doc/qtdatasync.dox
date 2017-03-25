@@ -1,0 +1,20 @@
+/*!
+@namespace QtDataSync
+
+The following classes are "user classes". They are what you need to work with datasync:
+- Setup
+- SyncController
+- AsyncDataStore
+- CachingDataStore
+- GenericTask (and Task)
+- WsAuthenticator (for the default remote connector)
+
+The other classes are "developer classes". They are interfaces, base classes and utilities you
+need if you want to extend datasync:
+- LocalStore
+- StateHolder
+- DataMerger
+- RemoteConnector
+- Authenticator
+- Defaults
+*/

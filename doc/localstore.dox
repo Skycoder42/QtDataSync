@@ -3,7 +3,7 @@
 
 It is used by the datasync engine as a persistent offline data store. You should make shure
 your implementation only uses offline resources, that are available any time. The default
-implementation uses an SQLite database and local file storage.
+implementation uses a SQLite database and local file storage.
 
 If you implement the methods, you should do it synchronously. Since the datasync instance
 engine, as well as this store, run on their own thread, you won't block the ui. I haven't
