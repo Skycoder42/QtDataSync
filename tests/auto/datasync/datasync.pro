@@ -7,4 +7,5 @@ SUBDIRS += \
     ChangeControllerTest \
     CachingDataStoreTest \
     SqlStateHolderTest \
-    WsRemoteConnectorTest
+    WsRemoteConnectorTest \
+    SetupTest

@@ -1,0 +1,48 @@
+/*!
+@class QtDataSync::Setup
+
+The Setup class is what you need for configuration. Before you can use datasync, you always
+have to create at least one instance by using this setup. For most applications, it's
+sufficient to simply use the default constructed setup. However, if you want to use custom
+implementations or change the way specific components behave, the setup is where to do so.
+To use the default setup, simply call `QtDataSync::Setup().create();`
+
+@note Before creating the setup, all the instance are still living on the main thread and
+have **not** been initialized. The will be moved and later inizialized with create()
+
+@sa Setup::create, Setup::removeSetup
+*/
+
+/*!
+@fn QtDataSync::Setup::setCleanupTimeout
+
+@param timeout The new timeout to be used.
+
+When shutting down the application, the datasync instances, which are running on a different
+thread, have to shut down as well. Upon destructions, all instances are told to stop, and then
+the main thread will block until they are done or a timout is reached. the cleanup timout is
+the maximum time to wait for each thread to finish. The default value is -1, which means the
+is no timeout. The app will wait infinitely.
+
+@attention Typically, you won't notice the delay the instances need. They finish fast, and
+since all windows etc have already been destroyed at that time, the user won't notice anything.
+Only use a timeout if absolutely neccessary, since a terminated thread (and thats what happens
+after a timeout) results in undefined states, and may even corrupt the stored data.
+
+@sa Setup::removeSetup, qAddPostRoutine()
+*/
+
+/*!
+@fn QtDataSync::Setup::removeSetup
+
+@param name The name of the setup to be removed
+@param waitForFinished If set to `true`, the method will wait until finished
+
+Removing a setup stops the instances and delets it. This happens asynchronously and gracefully
+in the background. All setup functions will work as expected. However, you cannot register
+another setup with the same name until the previous one has been deleted.
+
+If you wait for the method to finish, the cleanup timeout will be used to terminate if the
+instance does not finish in time. This is **not** the case if you don't wait. Please note that
+waiting is blocking, and thus not recommended to use for GUI apps.
+*/

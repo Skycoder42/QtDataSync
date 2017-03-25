@@ -11,7 +11,7 @@
 #include "mockdatamerger.h"
 
 void tst_init();
-void mockSetup(QtDataSync::Setup &setup);
+void mockSetup(QtDataSync::Setup &setup, bool autoRem = true);
 
 typedef QHash<QtDataSync::ObjectKey, QJsonObject> DataSet;
 

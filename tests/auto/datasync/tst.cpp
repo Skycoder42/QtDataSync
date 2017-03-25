@@ -9,9 +9,10 @@ void tst_init()
 	qRegisterMetaType<QtDataSync::SyncController::SyncState>("SyncState");
 }
 
-void mockSetup(QtDataSync::Setup &setup)
+void mockSetup(QtDataSync::Setup &setup, bool autoRem)
 {
 	tDir.reset(new QTemporaryDir());
+	tDir->setAutoRemove(autoRem);
 	setup.setLocalStore(new MockLocalStore())
 		 .setStateHolder(new MockStateHolder())
 		 .setRemoteConnector(new MockRemoteConnector())

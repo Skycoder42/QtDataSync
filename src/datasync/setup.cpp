@@ -22,7 +22,7 @@ void Setup::setCleanupTimeout(unsigned long timeout)
 	SetupPrivate::timeout = timeout;
 }
 
-void Setup::removeSetup(const QString &name)
+void Setup::removeSetup(const QString &name, bool waitForFinished)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
 	if(SetupPrivate::engines.contains(name)) {
@@ -30,6 +30,15 @@ void Setup::removeSetup(const QString &name)
 		if(info.second) {
 			QMetaObject::invokeMethod(info.second, "finalize", Qt::QueuedConnection);
 			info.second = nullptr;
+		}
+
+		if(waitForFinished) {
+			if(!info.first->wait(SetupPrivate::timeout)) {
+				info.first->terminate();
+				info.first->wait(100);
+			}
+			info.first->deleteLater();
+			QCoreApplication::processEvents();//required to perform queue events
 		}
 	}
 }
@@ -153,6 +162,8 @@ void Setup::create(const QString &name)
 	QObject::connect(thread, &QThread::finished,
 					 engine, &StorageEngine::deleteLater);
 	QObject::connect(engine, &StorageEngine::destroyed, qApp, [=](){
+		auto t = storageDir.path();
+		qDebug() << t;
 		lockFile->unlock();
 		delete lockFile;
 	}, Qt::DirectConnection);
