@@ -1,0 +1,1768 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<tagfile>
+  <compound kind="class">
+    <name>QtDataSync::AsyncDataStore</name>
+    <filename>class_qt_data_sync_1_1_async_data_store.html</filename>
+    <base>QObject</base>
+    <member kind="signal">
+      <type>void</type>
+      <name>dataChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a2f54bca99ceb7c47c32ceadce44639d2</anchor>
+      <arglist>(int metaTypeId, const QString &amp;key, bool wasDeleted)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>dataResetted</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a5e8c0a34af0fa5068edc1bf95e72e7ec</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>AsyncDataStore</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a00d6495c0039a02c553cb90a2c06ab4a</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>AsyncDataStore</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>aa8e2522aaa7ae798b0b28dabdef79056</anchor>
+      <arglist>(const QString &amp;setupName, QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>~AsyncDataStore</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a06219211628752f4ee56a626b91ccc20</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; int &gt;</type>
+      <name>count</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a925e800721b5392adda6b5d535f69e1f</anchor>
+      <arglist>(int metaTypeId)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; QStringList &gt;</type>
+      <name>keys</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a8b8f1d5e3d89473ac257fd1ce4489aca</anchor>
+      <arglist>(int metaTypeId)</arglist>
+    </member>
+    <member kind="function">
+      <type>Task</type>
+      <name>loadAll</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a1c8d1b87f7d3e08d7f27197bb52f2bbe</anchor>
+      <arglist>(int dataMetaTypeId, int listMetaTypeId)</arglist>
+    </member>
+    <member kind="function">
+      <type>Task</type>
+      <name>load</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a31c5c53361cbf4639b35523a796b7177</anchor>
+      <arglist>(int metaTypeId, const QString &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>Task</type>
+      <name>load</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a583d3b2d90b97379ad38a3db35bdc7d4</anchor>
+      <arglist>(int metaTypeId, const QVariant &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>Task</type>
+      <name>save</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>aa278def2cf784a18981190fbf2037942</anchor>
+      <arglist>(int metaTypeId, const QVariant &amp;value)</arglist>
+    </member>
+    <member kind="function">
+      <type>Task</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a96362861598db35dca2fe54cc2fa1c87</anchor>
+      <arglist>(int metaTypeId, const QString &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>Task</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a49b0afb961428a70e7d9f804c53ebe6a</anchor>
+      <arglist>(int metaTypeId, const QVariant &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>Task</type>
+      <name>search</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a2ac1f0e282794b4a44bb7cc7b17d58ed</anchor>
+      <arglist>(int dataMetaTypeId, int listMetaTypeId, const QString &amp;query)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; int &gt;</type>
+      <name>count</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a00c2954d4e1f020b7d6362e68a3770d4</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; QStringList &gt;</type>
+      <name>keys</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>aa52be89d45f89e7c80a20fc3e9d8da65</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; QList&lt; T &gt; &gt;</type>
+      <name>loadAll</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a23c0b86dd6c5102368340c5fae0ce757</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; T &gt;</type>
+      <name>load</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a53137bf13e32a2978cc206b2f44a9ba9</anchor>
+      <arglist>(const QString &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; T &gt;</type>
+      <name>load</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a9a872616c949df9d3cd0e73536767fea</anchor>
+      <arglist>(const K &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; void &gt;</type>
+      <name>save</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>ac5e2661b71a5e6d87692950b845b7b23</anchor>
+      <arglist>(const T &amp;value)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; bool &gt;</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a90bb5494b3bad0d6c531369515d8f646</anchor>
+      <arglist>(const QString &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; bool &gt;</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a3997c3d70592e402e318fcbb6ad6ce5b</anchor>
+      <arglist>(const K &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; QList&lt; T &gt; &gt;</type>
+      <name>search</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a8ac2ebfa4ddb810e32884f591946e289</anchor>
+      <arglist>(const QString &amp;query)</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::Authenticator</name>
+    <filename>class_qt_data_sync_1_1_authenticator.html</filename>
+    <base>QObject</base>
+    <member kind="function">
+      <type></type>
+      <name>Authenticator</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>a0285b6393d1ab342a8d06e26290e7a0d</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>GenericTask&lt; void &gt;</type>
+      <name>resetIdentity</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>ae68958b352a21f9dd4b53764e6356588</anchor>
+      <arglist>(const QVariant &amp;extraData={}, bool resetLocalStore=true)</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="pure">
+      <type>virtual RemoteConnector *</type>
+      <name>connector</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>a9ceb1b35e77a02737587564049ba7ae4</anchor>
+      <arglist>()=0</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::CachingDataStore</name>
+    <filename>class_qt_data_sync_1_1_caching_data_store.html</filename>
+    <templarg>TType</templarg>
+    <templarg>TKey</templarg>
+    <base>QtDataSync::CachingDataStoreBase</base>
+    <member kind="function">
+      <type></type>
+      <name>CachingDataStore</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>ac1425f303dfdf2bdbcf2254a5f07e617</anchor>
+      <arglist>(QObject *parent=nullptr, bool blockingConstruct=false)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>CachingDataStore</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>ae5a773b8ff5337b01bd97885082edbdc</anchor>
+      <arglist>(const QString &amp;setupName, QObject *parent=nullptr, bool blockingConstruct=false)</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>count</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>afb3e2e3fb9cdd7024dd2c1b285fb4543</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QList&lt; TKey &gt;</type>
+      <name>keys</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>a89f4763bfd9dc9404c9a06a29a6d5550</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QList&lt; TType &gt;</type>
+      <name>loadAll</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>aea8620c19c99ef88c5bd2eac0b593dfe</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>TType</type>
+      <name>load</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>a9c0132d3061f1ac9302fe62758fa6a03</anchor>
+      <arglist>(const TKey &amp;key) const</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>save</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>a56bb7a4f519317154e321d7f3e18d5b7</anchor>
+      <arglist>(const TType &amp;value)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>ab5ac865e569e7a291d751ae428a49a27</anchor>
+      <arglist>(const TKey &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>TKey</type>
+      <name>toKey</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>abbeaa9d26f9a992ecb297c61c5ae59fe</anchor>
+      <arglist>(const QString &amp;key) const</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::CachingDataStore&lt; TType *, TKey &gt;</name>
+    <filename>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</filename>
+    <templarg></templarg>
+    <templarg></templarg>
+    <base>QtDataSync::CachingDataStoreBase</base>
+    <member kind="function">
+      <type></type>
+      <name>CachingDataStore</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>ad11c4e9adb6ae52ec88c2f8aef407467</anchor>
+      <arglist>(QObject *parent=nullptr, bool blockingConstruct=false)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>CachingDataStore</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a98d68d835baf31d58a940740c9e99c9b</anchor>
+      <arglist>(const QString &amp;setupName, QObject *parent=nullptr, bool blockingConstruct=false)</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>count</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a6a8b38ceea258acd85774e36e610423d</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QList&lt; TKey &gt;</type>
+      <name>keys</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a73527fc5fc93b84acc9348a2f3badb98</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QList&lt; TType * &gt;</type>
+      <name>loadAll</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a674e9ecb1111f30eef3bfbc5e98bcb7a</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>TType *</type>
+      <name>load</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a416dad27592dbbb54c21dd679a451777</anchor>
+      <arglist>(const TKey &amp;key) const</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>save</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a657f4f21bbeed1231a353ca9e364694c</anchor>
+      <arglist>(TType *value)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a2a1c920ec9cef16d7100459a74ecbc44</anchor>
+      <arglist>(const TKey &amp;key)</arglist>
+    </member>
+    <member kind="function">
+      <type>TKey</type>
+      <name>toKey</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>a3e8c69ef61b59a04e063c74661f0107d</anchor>
+      <arglist>(const QString &amp;key) const</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::CachingDataStoreBase</name>
+    <filename>class_qt_data_sync_1_1_caching_data_store_base.html</filename>
+    <base>QObject</base>
+    <member kind="signal">
+      <type>void</type>
+      <name>storeLoaded</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_base.html</anchorfile>
+      <anchor>a980e7c5cb8d054742221815414e1bf1e</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>dataChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_base.html</anchorfile>
+      <anchor>ac6b9214f6bcc8027eaa5920dc0c2d64a</anchor>
+      <arglist>(const QString &amp;key, bool wasDeleted)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>dataResetted</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_base.html</anchorfile>
+      <anchor>a0d7209af4181a23dcc7eb948249f129b</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>CachingDataStoreBase</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_base.html</anchorfile>
+      <anchor>af30bbd49b0e620375c3e227b23c315de</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::DataMerger</name>
+    <filename>class_qt_data_sync_1_1_data_merger.html</filename>
+    <base>QObject</base>
+    <member kind="enumeration">
+      <type></type>
+      <name>SyncPolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferUpdated</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0ca7f69fbe997893810e0a55907033d2af7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferDeleted</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0ca3ed2791a8fa6799443b73d452091a75e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferLocal</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0ca88e228193495b7a9f5350a500c43f1fe</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferRemote</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0cac53bb5c8dc84e03a51584c04dae84458</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumeration">
+      <type></type>
+      <name>MergePolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a9e15dea9fe10c2f76ba43941f97f0a8b</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>KeepLocal</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a9e15dea9fe10c2f76ba43941f97f0a8ba6eb702166c46b57e6becb40734f63589</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>KeepRemote</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a9e15dea9fe10c2f76ba43941f97f0a8ba4135a9029ed0d9cc39cc9cab7c96336d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Merge</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a9e15dea9fe10c2f76ba43941f97f0a8bad040e88c3fe95013c1e0bb7eb35338f8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferUpdated</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0ca7f69fbe997893810e0a55907033d2af7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferDeleted</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0ca3ed2791a8fa6799443b73d452091a75e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferLocal</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0ca88e228193495b7a9f5350a500c43f1fe</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>PreferRemote</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab91bd94e1d261c06ac0d56feb7174f0cac53bb5c8dc84e03a51584c04dae84458</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>KeepLocal</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a9e15dea9fe10c2f76ba43941f97f0a8ba6eb702166c46b57e6becb40734f63589</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>KeepRemote</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a9e15dea9fe10c2f76ba43941f97f0a8ba4135a9029ed0d9cc39cc9cab7c96336d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Merge</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a9e15dea9fe10c2f76ba43941f97f0a8bad040e88c3fe95013c1e0bb7eb35338f8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setSyncPolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ab63bc6f8d7c3e017edb0233db1a31091</anchor>
+      <arglist>(SyncPolicy syncPolicy)</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setMergePolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>ae27100e5e5bc3febc96202a6ea610732</anchor>
+      <arglist>(MergePolicy mergePolicy)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>DataMerger</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a010920bdd65a66e8b218144f9cfcd47c</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>~DataMerger</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>aaf089ecdf095a33d201f29afc08f9aee</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>initialize</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a38d5903d59789e9b2c1dd82b5f4944a8</anchor>
+      <arglist>(Defaults *defaults)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>finalize</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a585a06039a5ab4d3b448e17a1d25df74</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>SyncPolicy</type>
+      <name>syncPolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a81cb97bcb57cbf6db12de7937f041683</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>MergePolicy</type>
+      <name>mergePolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a35f8ac5e9c9cd122675035d51fe97b09</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual QJsonObject</type>
+      <name>merge</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a820efd14cd44d6c464a3cef709d601a0</anchor>
+      <arglist>(QJsonObject local, QJsonObject remote)</arglist>
+    </member>
+    <member kind="property">
+      <type>SyncPolicy</type>
+      <name>syncPolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>a0dc4627679825189c6cdecc3c560fc6a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="property">
+      <type>MergePolicy</type>
+      <name>mergePolicy</name>
+      <anchorfile>class_qt_data_sync_1_1_data_merger.html</anchorfile>
+      <anchor>aee9bba30afc0e8e47104a84bb89a9a3c</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::DataSyncException</name>
+    <filename>class_qt_data_sync_1_1_data_sync_exception.html</filename>
+    <base>QException</base>
+    <member kind="function">
+      <type></type>
+      <name>DataSyncException</name>
+      <anchorfile>class_qt_data_sync_1_1_data_sync_exception.html</anchorfile>
+      <anchor>adbe9d5fee5988aab8dc9b19c40189604</anchor>
+      <arglist>(const QString &amp;what)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>DataSyncException</name>
+      <anchorfile>class_qt_data_sync_1_1_data_sync_exception.html</anchorfile>
+      <anchor>a5074f824357cef65d809ff62439a1257</anchor>
+      <arglist>(const char *what)</arglist>
+    </member>
+    <member kind="function">
+      <type>const char *</type>
+      <name>what</name>
+      <anchorfile>class_qt_data_sync_1_1_data_sync_exception.html</anchorfile>
+      <anchor>ae18d22355c9b6587e4a44c4364de846d</anchor>
+      <arglist>() const noexcept final</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>raise</name>
+      <anchorfile>class_qt_data_sync_1_1_data_sync_exception.html</anchorfile>
+      <anchor>a5beefcfc9f87090afc2e3073df1aa199</anchor>
+      <arglist>() const final</arglist>
+    </member>
+    <member kind="function">
+      <type>QException *</type>
+      <name>clone</name>
+      <anchorfile>class_qt_data_sync_1_1_data_sync_exception.html</anchorfile>
+      <anchor>ad32bc63a33f7c0d84f66384027844f6f</anchor>
+      <arglist>() const final</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::Defaults</name>
+    <filename>class_qt_data_sync_1_1_defaults.html</filename>
+    <base>QObject</base>
+    <member kind="function">
+      <type></type>
+      <name>Defaults</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>ae26fb2ed7263787003149b4a2100c86c</anchor>
+      <arglist>(const QString &amp;setupName, const QDir &amp;storageDir, const QHash&lt; QByteArray, QVariant &gt; &amp;properties, QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function">
+      <type>const QLoggingCategory &amp;</type>
+      <name>loggingCategory</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>abe5b4ee72683838e84a0f799ae6681ef</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QDir</type>
+      <name>storageDir</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>aa6c1c91ce3f0c9467d0310f34913e374</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QSettings *</type>
+      <name>settings</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>a77fd580ab17a8e1bf89a5522da74ac00</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QSettings *</type>
+      <name>createSettings</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>ad9d79e989aeaad8df33fa505a490701f</anchor>
+      <arglist>(QObject *parent=nullptr) const</arglist>
+    </member>
+    <member kind="function">
+      <type>QSqlDatabase</type>
+      <name>aquireDatabase</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>afc52c232489b7bd375c11472e1ca0c13</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>releaseDatabase</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>a2204aa905b5c1ab9e0da056ab57e05cb</anchor>
+      <arglist>()</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::GenericTask</name>
+    <filename>class_qt_data_sync_1_1_generic_task.html</filename>
+    <templarg>T</templarg>
+    <base>QtDataSync::Task</base>
+    <member kind="function">
+      <type></type>
+      <name>GenericTask</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_task.html</anchorfile>
+      <anchor>ae33765d5e81592366a6bca8e60ee8418</anchor>
+      <arglist>(QFutureInterface&lt; QVariant &gt; d={})</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; T &gt; &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_task.html</anchorfile>
+      <anchor>ae44643784144eb23b7351e81679765fb</anchor>
+      <arglist>(QObject *parent, const std::function&lt; void(T)&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; T &gt; &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_task.html</anchorfile>
+      <anchor>a03081de11aa3e405e5f5383cda6cc03a</anchor>
+      <arglist>(const std::function&lt; void(T)&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
+      <name>result</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_task.html</anchorfile>
+      <anchor>a29e372462ae3ebd44ab2309856930f1d</anchor>
+      <arglist>() const</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::GenericTask&lt; void &gt;</name>
+    <filename>class_qt_data_sync_1_1_generic_task_3_01void_01_4.html</filename>
+    <base>QtDataSync::Task</base>
+    <member kind="function">
+      <type></type>
+      <name>GenericTask</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_task_3_01void_01_4.html</anchorfile>
+      <anchor>a4a7581a149e0f105ea302e1d627a545b</anchor>
+      <arglist>(QFutureInterface&lt; QVariant &gt; d={})</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; void &gt; &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_task_3_01void_01_4.html</anchorfile>
+      <anchor>a1375166eeadfd0d52a9e333c16c8cf58</anchor>
+      <arglist>(QObject *parent, const std::function&lt; void()&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; void &gt; &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_task_3_01void_01_4.html</anchorfile>
+      <anchor>a41941c54f3ecc1ff5d6efb60dc501e1f</anchor>
+      <arglist>(const std::function&lt; void()&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::LocalStore</name>
+    <filename>class_qt_data_sync_1_1_local_store.html</filename>
+    <base>QObject</base>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>count</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>aee6d469cfe740f4d8e1d7697200e53ad</anchor>
+      <arglist>(quint64 id, const QByteArray &amp;typeName)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>keys</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a11961df16919f556d9d7994fc29c332d</anchor>
+      <arglist>(quint64 id, const QByteArray &amp;typeName)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>loadAll</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a2816102c44c50ec882474a7fceb58d6a</anchor>
+      <arglist>(quint64 id, const QByteArray &amp;typeName)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>load</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a35153b233942faef2498ee7c45c320fe</anchor>
+      <arglist>(quint64 id, const ObjectKey &amp;key, const QByteArray &amp;keyProperty)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>save</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>ad30b83e99cfa8a3a89316d7598095687</anchor>
+      <arglist>(quint64 id, const ObjectKey &amp;key, const QJsonObject &amp;object, const QByteArray &amp;keyProperty)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a5e2bd4c2be965fde057425be17666653</anchor>
+      <arglist>(quint64 id, const ObjectKey &amp;key, const QByteArray &amp;keyProperty)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>search</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a798136f51aec292f346677ead29d8f30</anchor>
+      <arglist>(quint64 id, const QByteArray &amp;typeName, const QString &amp;searchQuery)=0</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>requestCompleted</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a3516b13d49880d2f36006f60eccc372c</anchor>
+      <arglist>(quint64 id, const QJsonValue &amp;result)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>requestFailed</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a2d860e6361c44b9409e8a3b34f7abd68</anchor>
+      <arglist>(quint64 id, const QString &amp;errorString)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>LocalStore</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a0f2a3daf1dd28d132f4badabab537d4a</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>initialize</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a225c68341a0ef7e8327d96519515c1e3</anchor>
+      <arglist>(Defaults *defaults)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>finalize</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a2ec8dad3394437818d8a9523dec0afd9</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual QList&lt; ObjectKey &gt;</type>
+      <name>loadAllKeys</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>ad60eb4c8469d7d4978495a65a4b32bc4</anchor>
+      <arglist>()=0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual void</type>
+      <name>resetStore</name>
+      <anchorfile>class_qt_data_sync_1_1_local_store.html</anchorfile>
+      <anchor>a37628347dca23191809ec2a10984e7b5</anchor>
+      <arglist>()=0</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::RemoteConnector</name>
+    <filename>class_qt_data_sync_1_1_remote_connector.html</filename>
+    <base>QObject</base>
+    <member kind="enumeration">
+      <type></type>
+      <name>RemoteState</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>RemoteDisconnected</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a6a47d3f967ad7f68931cfc56e5534bba</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>RemoteLoadingState</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a3bba428a35ca83baab47f459b66e32dd</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>RemoteReady</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a59b54f89d10b278f7cb8717112f090ec</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>RemoteDisconnected</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a6a47d3f967ad7f68931cfc56e5534bba</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>RemoteLoadingState</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a3bba428a35ca83baab47f459b66e32dd</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>RemoteReady</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a59b54f89d10b278f7cb8717112f090ec</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>reloadRemoteState</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>aa2e35b53f89d32c0de28d51048151eb1</anchor>
+      <arglist>()=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>requestResync</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a4eac3fa1b69df4ebbac42e8d1605abfd</anchor>
+      <arglist>()=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>download</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>aa3e20bf2d9889e19c1c234bba8212cc6</anchor>
+      <arglist>(const ObjectKey &amp;key, const QByteArray &amp;keyProperty)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>upload</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ad8da40775a1ae148e86444175fe52725</anchor>
+      <arglist>(const ObjectKey &amp;key, const QJsonObject &amp;object, const QByteArray &amp;keyProperty)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>remove</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a95273c1e69316bdcde449c2ffd41d458</anchor>
+      <arglist>(const ObjectKey &amp;key, const QByteArray &amp;keyProperty)=0</arglist>
+    </member>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>markUnchanged</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a1b104e733a49613a24ba94b1b9a0c4ce</anchor>
+      <arglist>(const ObjectKey &amp;key, const QByteArray &amp;keyProperty)=0</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>resetUserId</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ae9be2dc1c065254653f9aa78a9ff6eaa</anchor>
+      <arglist>(QFutureInterface&lt; QVariant &gt; futureInterface, const QVariant &amp;extraData, bool resetLocalStore)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>remoteStateChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>afe345a17622575df73502e45669a0daf</anchor>
+      <arglist>(RemoteConnector::RemoteState state, const StateHolder::ChangeHash &amp;remoteChanges={})</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>remoteDataChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a6a7d0304591d016eca56a6d6252c5390</anchor>
+      <arglist>(const ObjectKey &amp;key, StateHolder::ChangeState state)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>authenticationFailed</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ae8681ed6cec8727f3db464afe6b785e6</anchor>
+      <arglist>(const QString &amp;reason)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>clearAuthenticationError</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ac6a64d833e0144189e544b734176a8fa</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>operationDone</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a44627659641c88535d44bb615077b39c</anchor>
+      <arglist>(const QJsonValue &amp;result=QJsonValue::Undefined)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>operationFailed</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>af2c91e9b495489232fdd7952403d60c4</anchor>
+      <arglist>(const QString &amp;error)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>performLocalReset</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ad54ef9dc809e11caeb4b64942d024631</anchor>
+      <arglist>(bool clearStore)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>RemoteConnector</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ad0fe0a90d7c3ecb9ca875cae551f92b8</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>initialize</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>aa0f54ed1416ec76104a7a7917f5658a3</anchor>
+      <arglist>(Defaults *defaults)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>finalize</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ac6b58fc434014f1d816e7cb79c82ed2b</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual Authenticator *</type>
+      <name>createAuthenticator</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a935f33edd15660d94c62b613479ccb32</anchor>
+      <arglist>(Defaults *defaults, QObject *parent)=0</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>Defaults *</type>
+      <name>defaults</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a14f598e34ef4d8d702b3b224189ad318</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>QByteArray</type>
+      <name>getDeviceId</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>ae6fcf3a41acfb9fc4f19de04363531f7</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="pure">
+      <type>virtual void</type>
+      <name>resetUserData</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a12b995ed3715eadf330b8a2618db8049</anchor>
+      <arglist>(const QVariant &amp;extraData, const QByteArray &amp;oldDeviceId)=0</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::Setup</name>
+    <filename>class_qt_data_sync_1_1_setup.html</filename>
+    <member kind="function">
+      <type></type>
+      <name>Setup</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a0921e54e5a0200af117192e4c0c845b7</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>~Setup</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a89f03a5baa81da62c886e8c887b2d7b2</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>QString</type>
+      <name>localDir</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a94769770bdae519613c46aa781fab3fa</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QJsonSerializer *</type>
+      <name>serializer</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a8aa8a9dedfa6f9f5aff3c63a40443e52</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>LocalStore *</type>
+      <name>localStore</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>ae14db0bc2dbcdd16be0995425dc54f75</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>StateHolder *</type>
+      <name>stateHolder</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a35c21b365c85e09e779d62215e8391db</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>RemoteConnector *</type>
+      <name>remoteConnector</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a22983c887cc586dc04ead7f53333b122</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>DataMerger *</type>
+      <name>dataMerger</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>ac3a95d031111a009b84e57afa0410a18</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QVariant</type>
+      <name>property</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>ad47a6300e29085f2ec69ec8c7aa89c3a</anchor>
+      <arglist>(const QByteArray &amp;key) const</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setLocalDir</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a7ab1fcea61e97d1d3fd03acc9d733f8b</anchor>
+      <arglist>(QString localDir)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setSerializer</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a827b19ffea9e8f91dc6e040c327dbfbb</anchor>
+      <arglist>(QJsonSerializer *serializer)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setLocalStore</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a5c1660f14dff384c010f2551f35874d6</anchor>
+      <arglist>(LocalStore *localStore)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setStateHolder</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a420f2021906269625a431f9d417784f3</anchor>
+      <arglist>(StateHolder *stateHolder)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setRemoteConnector</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a4be2df29b03483f3eeb6a531b61fea02</anchor>
+      <arglist>(RemoteConnector *remoteConnector)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setDataMerger</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a098d2bf92aeb228bc267ae894aae33d3</anchor>
+      <arglist>(DataMerger *dataMerger)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setProperty</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a73d0aeb7889ac906c4fdef2acda14a78</anchor>
+      <arglist>(const QByteArray &amp;key, const QVariant &amp;data)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>create</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a5ddf88aec2c428a6df10e039954ab26a</anchor>
+      <arglist>(const QString &amp;name=DefaultSetup)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>setCleanupTimeout</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a8ca465c823c2b7c4dde56f4c0e6791fd</anchor>
+      <arglist>(unsigned long timeout)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>removeSetup</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a9d7f72084faea17d67e793e3bdcb51d3</anchor>
+      <arglist>(const QString &amp;name, bool waitForFinished=false)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static T *</type>
+      <name>authenticatorForSetup</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a4c5dcbec665734303d83782f7854f4b7</anchor>
+      <arglist>(QObject *parent=nullptr, const QString &amp;name=DefaultSetup)</arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const QString</type>
+      <name>DefaultSetup</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>aaafaa3a98220a9ff0d53f45049fb7c21</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::SetupException</name>
+    <filename>class_qt_data_sync_1_1_setup_exception.html</filename>
+    <base>QException</base>
+    <member kind="function">
+      <type>const char *</type>
+      <name>what</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_exception.html</anchorfile>
+      <anchor>a7011f511272f669eb6c387898900857e</anchor>
+      <arglist>() const noexcept final</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type></type>
+      <name>SetupException</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_exception.html</anchorfile>
+      <anchor>af9444a5b060224172388f838c7607565</anchor>
+      <arglist>(const QString &amp;message, const QString &amp;setupName)</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type></type>
+      <name>SetupException</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_exception.html</anchorfile>
+      <anchor>a8ad6b9015050879d5187d27e79b37943</anchor>
+      <arglist>(const SetupException *cloneFrom)</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::SetupExistsException</name>
+    <filename>class_qt_data_sync_1_1_setup_exists_exception.html</filename>
+    <base>QtDataSync::SetupException</base>
+    <member kind="function">
+      <type></type>
+      <name>SetupExistsException</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_exists_exception.html</anchorfile>
+      <anchor>a0c88c2dd44044cde04052118c5e7132e</anchor>
+      <arglist>(const QString &amp;setupName)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>raise</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_exists_exception.html</anchorfile>
+      <anchor>a9df5cfb66dc160441f71a0186815f509</anchor>
+      <arglist>() const final</arglist>
+    </member>
+    <member kind="function">
+      <type>QException *</type>
+      <name>clone</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_exists_exception.html</anchorfile>
+      <anchor>a1e1418ac8c170f82f8038e49676ce62c</anchor>
+      <arglist>() const final</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::SetupLockedException</name>
+    <filename>class_qt_data_sync_1_1_setup_locked_exception.html</filename>
+    <base>QtDataSync::SetupException</base>
+    <member kind="function">
+      <type></type>
+      <name>SetupLockedException</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_locked_exception.html</anchorfile>
+      <anchor>a1cd3012e72f57e1d05606707fc0fed9c</anchor>
+      <arglist>(const QString &amp;setupName)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>raise</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_locked_exception.html</anchorfile>
+      <anchor>a12d2e376f0ecd375d88064a8a22c9d40</anchor>
+      <arglist>() const final</arglist>
+    </member>
+    <member kind="function">
+      <type>QException *</type>
+      <name>clone</name>
+      <anchorfile>class_qt_data_sync_1_1_setup_locked_exception.html</anchorfile>
+      <anchor>ae61468e851b90d9b62c4e0874896e659</anchor>
+      <arglist>() const final</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::StateHolder</name>
+    <filename>class_qt_data_sync_1_1_state_holder.html</filename>
+    <base>QObject</base>
+    <member kind="enumeration">
+      <type></type>
+      <name>ChangeState</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a3ac1a05a93bb0c3b88bb3f2e04df4b11</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Unchanged</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a3ac1a05a93bb0c3b88bb3f2e04df4b11aad712bda2454a5b0692c3479cce6a04a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Changed</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a3ac1a05a93bb0c3b88bb3f2e04df4b11abca3cf573c55666e9c9491ea38097ae5</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Deleted</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a3ac1a05a93bb0c3b88bb3f2e04df4b11a85fe4675fcf2587a2c292a2ceee52657</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="typedef">
+      <type>QHash&lt; ObjectKey, ChangeState &gt;</type>
+      <name>ChangeHash</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>aebe37948ec01f88ce82b0c14f4a38897</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Unchanged</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a3ac1a05a93bb0c3b88bb3f2e04df4b11aad712bda2454a5b0692c3479cce6a04a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Changed</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a3ac1a05a93bb0c3b88bb3f2e04df4b11abca3cf573c55666e9c9491ea38097ae5</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Deleted</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a3ac1a05a93bb0c3b88bb3f2e04df4b11a85fe4675fcf2587a2c292a2ceee52657</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>StateHolder</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a7226b3cdea8a5d1d27595e5c939d506a</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>initialize</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a67b2a75c13596bf9b0ff2f9035c6f14f</anchor>
+      <arglist>(Defaults *defaults)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>finalize</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a93824cef37bf238a307dc94485902d1c</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual ChangeHash</type>
+      <name>listLocalChanges</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a270daa90763a8c8131e9d49a2b4123f7</anchor>
+      <arglist>()=0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual void</type>
+      <name>markLocalChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a18ff3def2a7ed5afaea5419de17e92ef</anchor>
+      <arglist>(const ObjectKey &amp;key, ChangeState changed)=0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual ChangeHash</type>
+      <name>resetAllChanges</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>af9bc1aae6b6730476f08dacae78bfdf8</anchor>
+      <arglist>(const QList&lt; ObjectKey &gt; &amp;changeKeys)=0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual void</type>
+      <name>clearAllChanges</name>
+      <anchorfile>class_qt_data_sync_1_1_state_holder.html</anchorfile>
+      <anchor>a233d8529aab91e260b9eb2dc83660d5d</anchor>
+      <arglist>()=0</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::SyncController</name>
+    <filename>class_qt_data_sync_1_1_sync_controller.html</filename>
+    <base>QObject</base>
+    <member kind="enumeration">
+      <type></type>
+      <name>SyncState</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Loading</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3afabf8c195df6802b52626155a0bd7b4c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Disconnected</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3a01e5283335c290bc0620fdff97b7b639</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Syncing</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3a310578a2db004c56fbd2e0cb11777b00</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Synced</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3ac48c9a1220214cd3bfa2344a97693bcb</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>SyncedWithErrors</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3ab7c1205994c9ecea584f060e23c2dfbc</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Loading</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3afabf8c195df6802b52626155a0bd7b4c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Disconnected</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3a01e5283335c290bc0620fdff97b7b639</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Syncing</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3a310578a2db004c56fbd2e0cb11777b00</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>Synced</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3ac48c9a1220214cd3bfa2344a97693bcb</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>SyncedWithErrors</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>af5fc5102475cdfa66405035c4ce6cfd3ab7c1205994c9ecea584f060e23c2dfbc</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>triggerSync</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a0f665658f06f52ff71e039f6159de2fa</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>triggerSyncWithResult</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a130ac1495992369655766ce81c9ccc26</anchor>
+      <arglist>(std::function&lt; void(SyncState)&gt; resultFn)</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>triggerResync</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a4cf0f88a421ce681d6d6c24772372736</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>triggerResyncWithResult</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a88fdcdb76b878ef6a4114e6470ecbfac</anchor>
+      <arglist>(std::function&lt; void(SyncState)&gt; resultFn)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>syncStateChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a10c6a1841dc69053df82072e5c3d3d04</anchor>
+      <arglist>(SyncState syncState)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>syncOperationsChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a2e9e24650057ba15064fcbb4fcdd0020</anchor>
+      <arglist>(int remainingOperations)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>authenticationErrorChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a69de1f502ab0a41cc4db2223bebca646</anchor>
+      <arglist>(const QString &amp;authenticationError)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>SyncController</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a3726f7f274e1ad8f1a88a573c8f9eefb</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>SyncController</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>ac942d5cf0f710218720d68a83a839080</anchor>
+      <arglist>(const QString &amp;setupName, QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>~SyncController</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a58e5aad6e00749326c2e4a34866b7df0</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>SyncState</type>
+      <name>syncState</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a800cec3c4f5c3ac58600f0011271a1a0</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QString</type>
+      <name>authenticationError</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>afc55e46f755975dbd84f8f3f2e1c9338</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="property">
+      <type>SyncState</type>
+      <name>syncState</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>aa8ea8b1342be92b312a8cdbfee99cbf4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="property">
+      <type>QString</type>
+      <name>authenticationError</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a9ed23e30b0a99f775aa2360c926c17b7</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::Task</name>
+    <filename>class_qt_data_sync_1_1_task.html</filename>
+    <base>QFuture&lt; QVariant &gt;</base>
+    <member kind="function">
+      <type>Task &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_task.html</anchorfile>
+      <anchor>a7686bd23952851c548808f5a545aa1e7</anchor>
+      <arglist>(QObject *parent, const std::function&lt; void(QVariant)&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+    <member kind="function">
+      <type>Task &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_task.html</anchorfile>
+      <anchor>a0f5c36ee9bb2b7c5e44b5b52eec841ef</anchor>
+      <arglist>(const std::function&lt; void(QVariant)&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; T &gt;</type>
+      <name>toGeneric</name>
+      <anchorfile>class_qt_data_sync_1_1_task.html</anchorfile>
+      <anchor>a2e9c918dfd9f8a29dd9e6c8099f16be6</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type></type>
+      <name>Task</name>
+      <anchorfile>class_qt_data_sync_1_1_task.html</anchorfile>
+      <anchor>a77e50cc6b9d9ccd8bebf0afaa787f05f</anchor>
+      <arglist>(QFutureInterface&lt; QVariant &gt; d)</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::WsAuthenticator</name>
+    <filename>class_qt_data_sync_1_1_ws_authenticator.html</filename>
+    <base>QtDataSync::Authenticator</base>
+    <member kind="slot">
+      <type>void</type>
+      <name>reconnect</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a7816b45ef1cbdce32b66d9971974dd26</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setRemoteUrl</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>ac615ad9207c6a1d442eecdd2973cd15e</anchor>
+      <arglist>(QUrl remoteUrl)</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setCustomHeaders</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a9d7f384d39510ce7d7eb6212e6ec3b35</anchor>
+      <arglist>(QHash&lt; QByteArray, QByteArray &gt; customHeaders)</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setValidateServerCertificate</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a750f0912f3c7c13ed238706fcc497de2</anchor>
+      <arglist>(bool validateServerCertificate)</arglist>
+    </member>
+    <member kind="slot">
+      <type>GenericTask&lt; void &gt;</type>
+      <name>setUserIdentity</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a0476864e44a03d7552bae5039b98ea43</anchor>
+      <arglist>(QByteArray userIdentity, bool clearLocalStore=true)</arglist>
+    </member>
+    <member kind="slot">
+      <type>GenericTask&lt; void &gt;</type>
+      <name>resetUserIdentity</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a89421c105efac8b73faa36a83a4c9072</anchor>
+      <arglist>(bool clearLocalStore=true)</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setServerSecret</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a1107b9eda844284c67dff49d7bdfc90f</anchor>
+      <arglist>(QString serverSecret)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>connectedChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a5e120ca51e4e93d056ab9a53963a409b</anchor>
+      <arglist>(bool connected)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>WsAuthenticator</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a3a6273d388078bad966ece35f8d8d93a</anchor>
+      <arglist>(WsRemoteConnector *connector, QtDataSync::Defaults *defaults, QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>~WsAuthenticator</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>ae4ae918958b753ce6230b515ee262f25</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>QUrl</type>
+      <name>remoteUrl</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>afe07ec340ac495627986e5d39c79e0f0</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QHash&lt; QByteArray, QByteArray &gt;</type>
+      <name>customHeaders</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>ab9d254df5a5d735f6d2c6a58ab220ea9</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>validateServerCertificate</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>af709dd48f3556bf38bfde57cf02e85f3</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QByteArray</type>
+      <name>userIdentity</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a33b5e834e91da64a873cbd6b5f2c9f2b</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>QString</type>
+      <name>serverSecret</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a6147368aea35db8578a437aefb0530ac</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>isConnected</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>ada64f1aaeceffbc72ea4bdde5f385065</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>RemoteConnector *</type>
+      <name>connector</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a841fe12d2e1840445043315f6ade56a8</anchor>
+      <arglist>() override</arglist>
+    </member>
+    <member kind="property">
+      <type>QUrl</type>
+      <name>remoteUrl</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>af042685cc0e56efcb7514ad9f5bf1578</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="property">
+      <type>QHash&lt; QByteArray, QByteArray &gt;</type>
+      <name>customHeaders</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a38d5b115dbdeb0e557f15a9fbb1464d6</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="property">
+      <type>bool</type>
+      <name>validateServerCertificate</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a4c6b5e924a39445b71953b5b49a598f9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="property">
+      <type>QByteArray</type>
+      <name>userIdentity</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a82df63121dc762dfb15b1444d6f67c34</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="property">
+      <type>QString</type>
+      <name>serverSecret</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a96290386827ef22368eb95ede5014f0b</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="property">
+      <type>bool</type>
+      <name>connected</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a7b8c14e79d93e81950faf69ba089e40b</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="namespace">
+    <name>QtDataSync</name>
+    <filename>namespace_qt_data_sync.html</filename>
+    <class kind="class">QtDataSync::AsyncDataStore</class>
+    <class kind="class">QtDataSync::Authenticator</class>
+    <class kind="class">QtDataSync::CachingDataStore</class>
+    <class kind="class">QtDataSync::CachingDataStore&lt; TType *, TKey &gt;</class>
+    <class kind="class">QtDataSync::CachingDataStoreBase</class>
+    <class kind="class">QtDataSync::DataMerger</class>
+    <class kind="class">QtDataSync::DataSyncException</class>
+    <class kind="class">QtDataSync::Defaults</class>
+    <class kind="class">QtDataSync::GenericTask</class>
+    <class kind="class">QtDataSync::GenericTask&lt; void &gt;</class>
+    <class kind="class">QtDataSync::LocalStore</class>
+    <class kind="class">QtDataSync::RemoteConnector</class>
+    <class kind="class">QtDataSync::Setup</class>
+    <class kind="class">QtDataSync::SetupException</class>
+    <class kind="class">QtDataSync::SetupExistsException</class>
+    <class kind="class">QtDataSync::SetupLockedException</class>
+    <class kind="class">QtDataSync::StateHolder</class>
+    <class kind="class">QtDataSync::SyncController</class>
+    <class kind="class">QtDataSync::Task</class>
+    <class kind="class">QtDataSync::WsAuthenticator</class>
+    <member kind="typedef">
+      <type>QPair&lt; QByteArray, QString &gt;</type>
+      <name>ObjectKey</name>
+      <anchorfile>namespace_qt_data_sync.html</anchorfile>
+      <anchor>a8f128054330e7727ee07bcf24093d233</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="page">
+    <name>qdatasyncserver</name>
+    <title>qdatasyncserver Documentation</title>
+    <filename>qdatasyncserver</filename>
+    <docanchor file="qdatasyncserver" title="Requirements and installation">qdatasyncserver_install</docanchor>
+    <docanchor file="qdatasyncserver" title="PostgreSQL">qdatasyncserver_install_postgre</docanchor>
+    <docanchor file="qdatasyncserver" title="qdatasyncserver">qdatasyncserver_install_qdatasyncserver</docanchor>
+    <docanchor file="qdatasyncserver" title="Docker Image">qdatasyncserver_install_docker</docanchor>
+    <docanchor file="qdatasyncserver" title="Command line usage">qdatasyncserver_cli</docanchor>
+    <docanchor file="qdatasyncserver" title="Multiple instances">qdatasyncserver_cli_instance</docanchor>
+    <docanchor file="qdatasyncserver" title="The Configuration file">qdatasyncserver_config</docanchor>
+    <docanchor file="qdatasyncserver" title="Section general">qdatasyncserver_config_general</docanchor>
+    <docanchor file="qdatasyncserver" title="Section database">qdatasyncserver_config_db</docanchor>
+    <docanchor file="qdatasyncserver" title="Section network">qdatasyncserver_config_network</docanchor>
+    <docanchor file="qdatasyncserver" title="Database cleanup">qdatasyncserver_cleanup</docanchor>
+  </compound>
+  <compound kind="page">
+    <name>index</name>
+    <title></title>
+    <filename>index</filename>
+    <docanchor file="index" title="Features">qtdatasync_readme_label_0</docanchor>
+    <docanchor file="index" title="Requirements">qtdatasync_readme_label_1</docanchor>
+    <docanchor file="index" title="Download/Installation">qtdatasync_readme_label_2</docanchor>
+    <docanchor file="index" title="Usage">qtdatasync_readme_label_3</docanchor>
+    <docanchor file="index" title="Example">qtdatasync_readme_label_4</docanchor>
+    <docanchor file="index" title="Initialize QtDataSync">qtdatasync_readme_label_5</docanchor>
+    <docanchor file="index" title="Using AsyncDataStore">qtdatasync_readme_label_6</docanchor>
+    <docanchor file="index" title="Using CachingDataStore">qtdatasync_readme_label_7</docanchor>
+    <docanchor file="index" title="Setting up the remote server (qdatasyncserver)">qtdatasync_readme_label_8</docanchor>
+    <docanchor file="index" title="Setting up PostgreSQL">qtdatasync_readme_label_9</docanchor>
+    <docanchor file="index" title="Setting up qdatasyncserver">qtdatasync_readme_label_10</docanchor>
+    <docanchor file="index" title="Adding the remote to your app to enable sync">qtdatasync_readme_label_11</docanchor>
+    <docanchor file="index" title="Extending/Using custom store elements">qtdatasync_readme_label_12</docanchor>
+    <docanchor file="index" title="Documentation">qtdatasync_readme_label_13</docanchor>
+  </compound>
+</tagfile>
