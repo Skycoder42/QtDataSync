@@ -246,6 +246,7 @@ this signal is emitted automatically, so you don't need to do it yourself.
 @fn QtDataSync::RemoteConnector::resetUserData
 
 @param extraData Additional data, as passed on from the authenticator.
+@param oldDeviceId The old device id, i.e. the value of getDeviceId() before it was resetted
 
 This method gets called from resetUserId(), after the local store has already been cleaned.
 You have to clear all user data, i.e. credentials inside this method. If you passed for example
