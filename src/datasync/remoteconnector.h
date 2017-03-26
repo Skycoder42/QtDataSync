@@ -14,6 +14,7 @@ namespace QtDataSync {
 
 class Authenticator;
 
+class RemoteConnectorPrivate;
 //! The class responsible for data exchange with a remote server
 class Q_DATASYNC_EXPORT RemoteConnector : public QObject
 {
@@ -30,6 +31,7 @@ public:
 
 	//! Constructor
 	explicit RemoteConnector(QObject *parent = nullptr);
+	~RemoteConnector();
 
 	//! Called from the engine to initialize the connector
 	virtual void initialize(Defaults *defaults);
@@ -87,7 +89,7 @@ protected:
 	virtual void resetUserData(const QVariant &extraData, const QByteArray &oldDeviceId) = 0;
 
 private:
-	Defaults *_defaults;//TODO d ptr
+	QScopedPointer<RemoteConnectorPrivate> d;
 };
 
 }

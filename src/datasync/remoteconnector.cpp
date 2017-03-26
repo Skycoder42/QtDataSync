@@ -4,16 +4,27 @@
 #include <QtCore/QSettings>
 #include <QtCore/QUuid>
 
+namespace QtDataSync {
+class RemoteConnectorPrivate {
+public:
+	RemoteConnectorPrivate();
+
+	Defaults *defaults;
+};
+}
+
 using namespace QtDataSync;
 
 RemoteConnector::RemoteConnector(QObject *parent) :
 	QObject(parent),
-	_defaults()
+	d(new RemoteConnectorPrivate())
 {}
+
+RemoteConnector::~RemoteConnector() {}
 
 void RemoteConnector::initialize(Defaults *defaults)
 {
-	_defaults = defaults;
+	d->defaults = defaults;
 }
 
 void RemoteConnector::finalize() {}
@@ -22,8 +33,8 @@ void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, co
 {
 	if(resetLocalStore)//resync is always done, only clear explicitly needed
 		emit performLocalReset(true);//direct connected thus "inline"
-	auto oldId = _defaults->settings()->value(QStringLiteral("RemoteConnector/deviceId")).toByteArray();
-	_defaults->settings()->remove(QStringLiteral("RemoteConnector/deviceId"));
+	auto oldId = d->defaults->settings()->value(QStringLiteral("RemoteConnector/deviceId")).toByteArray();
+	d->defaults->settings()->remove(QStringLiteral("RemoteConnector/deviceId"));
 	resetUserData(extraData, oldId);
 	reloadRemoteState();
 	futureInterface.reportResult(QVariant());
@@ -32,13 +43,13 @@ void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, co
 
 Defaults *RemoteConnector::defaults() const
 {
-	return _defaults;
+	return d->defaults;
 }
 
 QByteArray RemoteConnector::getDeviceId() const
 {
 	static const QString key(QStringLiteral("RemoteConnector/deviceId"));
-	auto settings = _defaults->settings();
+	auto settings = d->defaults->settings();
 	if(settings->contains(key))
 		return settings->value(key).toByteArray();
 	else {
@@ -47,3 +58,8 @@ QByteArray RemoteConnector::getDeviceId() const
 		return id.toByteArray();
 	}
 }
+
+
+RemoteConnectorPrivate::RemoteConnectorPrivate() :
+	defaults(nullptr)
+{}
