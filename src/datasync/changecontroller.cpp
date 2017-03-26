@@ -1,5 +1,7 @@
 #include "changecontroller_p.h"
 
+#include <QtCore/QMetaEnum>
+
 using namespace QtDataSync;
 
 #define UNITE_STATE(x, y) (x | (y << 16))

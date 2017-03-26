@@ -53,7 +53,7 @@ void App::setupParser(QCommandLineParser &parser, bool useShortOptions)
 
 #ifdef Q_OS_UNIX
 	auto path = QStringLiteral("/etc/%1/setup.conf").arg(QStringLiteral(TARGET));
-#elif
+#else
 	auto path = QCoreApplication::applicationDirPath() + QStringLiteral("/setup.conf");
 #endif
 	parser.addOption({

@@ -2,6 +2,9 @@
 #include "sqllocalstore_p.h"
 
 #include <QtCore/QJsonArray>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QUuid>
+#include <QtCore/QTemporaryFile>
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
