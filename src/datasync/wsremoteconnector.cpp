@@ -128,7 +128,7 @@ void WsRemoteConnector::reloadRemoteState()
 			emit performLocalReset(false);//direct connected, thus "inline"
 		state = Reloading;
 		sendCommand("loadChanges", needResync);
-		needResync = false;//TODO timeout -> ok so? or only after success?
+		needResync = false;
 		break;
 	case Operating:
 		retry();
@@ -357,7 +357,7 @@ void WsRemoteConnector::identifyFailed()
 {
 	state = Closing;
 	emit authenticationFailed(QStringLiteral("User does not exist!"));
-	socket->close();//TODO ok?
+	socket->close();
 }
 
 void WsRemoteConnector::changeState(const QJsonObject &data)
