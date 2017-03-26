@@ -6,6 +6,7 @@
 #include "QtDataSync/setup.h"
 
 #include <QtCore/qobject.h>
+#include <functional>
 
 namespace QtDataSync {
 

@@ -5,6 +5,7 @@
 
 #include <QtCore/qfuture.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qexception.h>
 
 #include <functional>
 
