@@ -25,7 +25,7 @@ it will work fine. Have a look at the deployment pages for details:
 
 ### Docker Image {#qdatasyncserver_install_docker}
 qdatasyncserver is available as docker image as well. This way you can skip all the setup stuff! Have
-a look at [TODO link here](error404) on dockerhub!
+a look at [qdatasyncserver](https://hub.docker.com/r/skycoder42/qdatasyncserver/) on dockerhub!
 
 # Command line usage {#qdatasyncserver_cli}
 The CLI is rather simple, you call `qdatasyncserver start` to start the server
