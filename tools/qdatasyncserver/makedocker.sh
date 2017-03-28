@@ -32,5 +32,6 @@ mkdir bin
 cp ../../../bin/qdatasyncserver ./bin/
 
 # run dockerbuild
-sudo docker build -t skycoder42/qdatasyncserver .
-sudo docker run skycoder42/qdatasyncserver
+sudo docker build -t skycoder42/qdatasyncserver . 
+sudo docker run --name qdatasyncserver skycoder42/qdatasyncserver
+sudo docker rm qdatasyncserver
