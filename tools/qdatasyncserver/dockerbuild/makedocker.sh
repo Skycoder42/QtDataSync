@@ -8,6 +8,7 @@ rm -R dockerbuild
 mkdir dockerbuild
 cd dockerbuild
 cp "$1/Dockerfile" ./
+cp "$1/setup.conf" ./
 
 # deployment
 # copy libs
@@ -30,8 +31,9 @@ cp $3/sqldrivers/libqsqlpsql.so ./plugins/sqldrivers/
 # copy binary
 mkdir bin
 cp ../../../bin/qdatasyncserver ./bin/
+cp "$1/qt.conf" ./bin/
+cp "$1/env_start.sh" ./bin/
 
 # run dockerbuild
 sudo docker build -t skycoder42/qdatasyncserver . 
-sudo docker run --name qdatasyncserver skycoder42/qdatasyncserver
-sudo docker rm qdatasyncserver
+sudo docker run --rm -it --name qdatasyncserver skycoder42/qdatasyncserver

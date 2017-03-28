@@ -1,0 +1,38 @@
+version: '2'
+# storage engines for the microservices of the conference sentiment analysis (csa) application
+services:
+  postgresql:
+    container_name: datasync_server_postgresql
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: qtdatasync
+      POSTGRES_PASSWORD: baum42
+      POSTGRES_DB: QtDataSync
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - datasync_server_postgresql_data:/var/lib/postgresql/data/pgdata
+  pgAdmin:
+    container_name: datasync_server_pgAdmin
+    image: thajeztah/pgadmin4:latest
+    depends_on:
+      - postgresql
+    ports:
+      - "5050/tcp:5050/tcp"
+    volumes:
+      - datasync_server_pgAdmin_data:/pgadmin
+  datasync:
+    container_name: datasync_server
+    image: skycoder42/qdatasyncserver:latest
+    depends_on:
+      - postgresql
+    ports:
+      - "8080/tcp:80/tcp"
+    environment:
+      DATASYNC_SECRET: baum42
+      DATABASE_HOST: datasync_server_postgresql
+      DATABASE_USER: qtdatasync
+      DATABASE_PASSWORD: baum42
+      DATABASE_NAME: QtDataSync
+volumes:
+  datasync_server_postgresql_data:
+  datasync_server_pgAdmin_data:
