@@ -4,9 +4,9 @@
 # $2 $$QT_INSTALL_PLUGINS
 # $pwd: $$OUT_PWD
 
-rm -R dockerbuild
-mkdir dockerbuild
-cd dockerbuild
+rm -R docker
+mkdir docker
+cd docker
 cp "$1/Dockerfile" ./
 cp "$1/setup.conf" ./
 
