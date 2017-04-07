@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_WSAUTHENTICATOR_H
 #define QTDATASYNC_WSAUTHENTICATOR_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/authenticator.h"
 #include "QtDataSync/defaults.h"
 

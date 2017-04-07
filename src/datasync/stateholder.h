@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_STATEHOLDER_H
 #define QTDATASYNC_STATEHOLDER_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
 
 #include <QtCore/qdir.h>

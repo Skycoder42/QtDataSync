@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_EXCEPTIONS_H
 #define QTDATASYNC_EXCEPTIONS_H
 
-#include "qdatasync_global.h"
+#include "qtdatasync_global.h"
 
 #include <QtCore/qexception.h>
 

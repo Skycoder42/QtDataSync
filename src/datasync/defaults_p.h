@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_DEFAULTS_P_H
 #define QTDATASYNC_DEFAULTS_P_H
 
-#include "qdatasync_global.h"
+#include "qtdatasync_global.h"
 #include "defaults.h"
 
 #include <QtSql/QSqlDatabase>

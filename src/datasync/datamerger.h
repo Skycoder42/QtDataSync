@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_DATAMERGER_H
 #define QTDATASYNC_DATAMERGER_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
 #include "QtDataSync/stateholder.h"
 

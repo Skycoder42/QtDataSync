@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_ASYNCDATASTORE_P_H
 #define QTDATASYNC_ASYNCDATASTORE_P_H
 
-#include "qdatasync_global.h"
+#include "qtdatasync_global.h"
 #include "asyncdatastore.h"
 #include "storageengine_p.h"
 

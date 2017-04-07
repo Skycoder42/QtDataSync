@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_WSAUTHENTICATOR_P_H
 #define QTDATASYNC_WSAUTHENTICATOR_P_H
 
-#include "qdatasync_global.h"
+#include "qtdatasync_global.h"
 #include "wsauthenticator.h"
 #include "wsremoteconnector_p.h"
 

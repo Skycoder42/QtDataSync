@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_STORAGEENGINE_P_H
 #define QTDATASYNC_STORAGEENGINE_P_H
 
-#include "qdatasync_global.h"
+#include "qtdatasync_global.h"
 #include "changecontroller_p.h"
 #include "datamerger.h"
 #include "defaults.h"

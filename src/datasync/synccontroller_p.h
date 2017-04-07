@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_SYNCCONTROLLER_P_H
 #define QTDATASYNC_SYNCCONTROLLER_P_H
 
-#include "qdatasync_global.h"
+#include "qtdatasync_global.h"
 #include "synccontroller.h"
 #include "storageengine_p.h"
 

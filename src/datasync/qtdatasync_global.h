@@ -1,5 +1,5 @@
-#ifndef QTDATASYNC_QDATASYNC_H
-#define QTDATASYNC_QDATASYNC_H
+#ifndef QTDATASYNC_GLOBAL_H
+#define QTDATASYNC_GLOBAL_H
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qpair.h>
@@ -21,4 +21,4 @@ typedef QPair<QByteArray, QString> ObjectKey;
 
 Q_DECLARE_METATYPE(QtDataSync::ObjectKey)
 
-#endif // QTDATASYNC_QDATASYNC_H
+#endif // QTDATASYNC_GLOBAL_H

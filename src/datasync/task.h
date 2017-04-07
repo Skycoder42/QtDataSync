@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_TASK_H
 #define QTDATASYNC_TASK_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 
 #include <QtCore/qfuture.h>
 #include <QtCore/qpointer.h>

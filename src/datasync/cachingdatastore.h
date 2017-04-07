@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_CACHINGDATASTORE_H
 #define QTDATASYNC_CACHINGDATASTORE_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/asyncdatastore.h"
 #include "QtDataSync/setup.h"
 

@@ -3,7 +3,6 @@ TARGET = QtDataSync
 QT = core jsonserializer sql websockets
 
 HEADERS += \
-	qdatasync_global.h \
 	asyncdatastore.h \
 	asyncdatastore_p.h \
 	authenticator.h \
@@ -27,7 +26,8 @@ HEADERS += \
 	sqlstateholder_p.h \
 	storageengine_p.h \
 	wsremoteconnector_p.h \
-	exceptions.h
+	exceptions.h \
+    qtdatasync_global.h
 
 SOURCES += \
 	asyncdatastore.cpp \

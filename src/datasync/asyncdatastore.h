@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_ASYNCDATASTORE_H
 #define QTDATASYNC_ASYNCDATASTORE_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/task.h"
 
 #include <QtCore/qobject.h>

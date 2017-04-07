@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_DEFAULTS_H
 #define QTDATASYNC_DEFAULTS_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 
 #include <QtCore/qobject.h>
 #include <QtCore/qdir.h>

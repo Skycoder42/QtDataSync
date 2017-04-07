@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_AUTHENTICATOR_H
 #define QTDATASYNC_AUTHENTICATOR_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/task.h"
 
 #include <QtCore/qobject.h>

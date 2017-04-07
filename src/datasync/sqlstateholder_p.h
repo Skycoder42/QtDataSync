@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_SQLSTATEHOLDER_P_H
 #define QTDATASYNC_SQLSTATEHOLDER_P_H
 
-#include "qdatasync_global.h"
+#include "qtdatasync_global.h"
 #include "stateholder.h"
 
 #include <QtCore/QObject>

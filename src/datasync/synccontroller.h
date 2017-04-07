@@ -1,7 +1,7 @@
 #ifndef QTDATASYNC_SYNCCONTROLLER_H
 #define QTDATASYNC_SYNCCONTROLLER_H
 
-#include "QtDataSync/qdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 
 #include <QtCore/qobject.h>
 
