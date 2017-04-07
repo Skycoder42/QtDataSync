@@ -23,7 +23,7 @@ Q_SIGNALS:
 	//! Will be emitted once, after the initial data was loaded
 	void storeLoaded();
 	//! Will be emitted when a dataset in the store has changed
-	void dataChanged(const QString &key, bool wasDeleted);
+	void dataChanged(const QString &key, const QVariant &value);
 	//! Will be emitted when the store has be reset (cleared)
 	void dataResetted();
 };
@@ -42,6 +42,8 @@ public:
 	int count() const;
 	//! Returns all keys in the store
 	QList<TKey> keys() const;
+	//! Checks if a dataset with the given key exists
+	bool contains(const TKey &key) const;
 	//! Loads all existing datasets
 	QList<TType> loadAll() const;
 	//! Loads the dataset with the given key
@@ -84,6 +86,8 @@ public:
 	int count() const;
 	//!@copydoc CachingDataStore::keys
 	QList<TKey> keys() const;
+	//!@copydoc CachingDataStore::contains
+	bool contains(const TKey &key) const;
 	//!@copydoc CachingDataStore::loadAll
 	QList<TType*> loadAll() const;
 	//!@copydoc CachingDataStore::load
@@ -152,6 +156,12 @@ QList<TKey> CachingDataStore<TType, TKey>::keys() const
 	return _data.keys();
 }
 
+template<typename TType, typename TKey>
+bool CachingDataStore<TType, TKey>::contains(const TKey &key) const
+{
+	return _data.contains(key);
+}
+
 template <typename TType, typename TKey>
 QList<TType> CachingDataStore<TType, TKey>::loadAll() const
 {
@@ -192,11 +202,11 @@ void CachingDataStore<TType, TKey>::evalDataChanged(int metaTypeId, const QStrin
 		auto rKey = toKey(key);
 		if(wasDeleted) {
 			_data.remove(rKey);
-			emit dataChanged(key, true);
+			emit dataChanged(key, QVariant());
 		} else {
 			_store->load<TType>(key).onResult(this, [=](const TType &data){
 				_data.insert(rKey, data);
-				emit dataChanged(key, false);
+				emit dataChanged(key, QVariant::fromValue(data));
 			});
 		}
 	}
@@ -254,6 +264,12 @@ QList<TKey> CachingDataStore<TType*, TKey>::keys() const
 	return _data.keys();
 }
 
+template<typename TType, typename TKey>
+bool CachingDataStore<TType *, TKey>::contains(const TKey &key) const
+{
+	return _data.contains(key);
+}
+
 template <typename TType, typename TKey>
 QList<TType*> CachingDataStore<TType*, TKey>::loadAll() const
 {
@@ -297,12 +313,12 @@ void CachingDataStore<TType*, TKey>::evalDataChanged(int metaTypeId, const QStri
 		if(wasDeleted) {
 			auto data = _data.take(rKey);
 			data->deleteLater();
-			emit dataChanged(key, true);
+			emit dataChanged(key, QVariant());
 		} else {
 			_store->load<TType*>(key).onResult(this, [=](TType* data){
 				data->setParent(this);
 				_data.insert(rKey, data);
-				emit dataChanged(key, false);
+				emit dataChanged(key, QVariant::fromValue(data));
 			});
 		}
 	}

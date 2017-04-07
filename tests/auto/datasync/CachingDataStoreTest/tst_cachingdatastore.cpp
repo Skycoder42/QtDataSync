@@ -66,24 +66,26 @@ void CachingDataStoreTest::testLoad()
 
 		//add
 		QCOMPARE(caching->load(42), TestData());//not there
+		QVERIFY(!caching->contains(42));
 		async->save<TestData>(generateData(42));
 		QCOMPARE(caching->load(42), TestData());//still not there
 
 		QVERIFY(changedSpy.wait());
 		QCOMPARE(changedSpy.size(), 1);
 		QCOMPARE(changedSpy[0][0].toString(), QStringLiteral("42"));
-		QVERIFY(!changedSpy[0][1].toBool());
+		QCOMPARE(changedSpy[0][1].value<TestData>(), generateData(42));
 
 		QCOMPARE(caching->load(42), generateData(42));
 		QCOMPARE(caching->count(), 1);
 		QCOMPARE(caching->keys(), QList<int>({42}));
+		QVERIFY(caching->contains(42));
 
 		//delete
 		async->remove<TestData>(42);
 		QVERIFY(changedSpy.wait());
 		QCOMPARE(changedSpy.size(), 2);
 		QCOMPARE(changedSpy[1][0].toString(), QStringLiteral("42"));
-		QVERIFY(changedSpy[1][1].toBool());
+		QVERIFY(!changedSpy[1][1].isValid());
 
 		QCOMPARE(caching->load(42), TestData());
 		QCOMPARE(caching->count(), 0);
@@ -109,7 +111,7 @@ void CachingDataStoreTest::testSave()
 		QVERIFY(changedSpy.wait());
 		QCOMPARE(changedSpy.size(), 1);
 		QCOMPARE(changedSpy[0][0].toString(), QStringLiteral("42"));
-		QVERIFY(!changedSpy[0][1].toBool());
+		QCOMPARE(changedSpy[0][1].value<TestData>(), generateData(42));
 
 		QCOMPARE(async->load<TestData>(42).result(), generateData(42));
 	} catch(QException &e) {
@@ -133,7 +135,7 @@ void CachingDataStoreTest::testDelete()
 		QVERIFY(changedSpy.wait());
 		QCOMPARE(changedSpy.size(), 1);
 		QCOMPARE(changedSpy[0][0].toString(), QStringLiteral("42"));
-		QVERIFY(changedSpy[0][1].toBool());
+		QVERIFY(!changedSpy[0][1].isValid());
 
 		QCOMPARE(async->load<TestData>(42).result(), TestData());
 	} catch(QException &e) {
