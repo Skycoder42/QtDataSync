@@ -17,3 +17,5 @@ SOURCES += \
     $$PWD/mockdatamerger.cpp
 
 INCLUDEPATH += $$PWD
+
+mac: QMAKE_LFLAGS += '-Wl,-rpath,\'$$OUT_PWD/../../../../lib\''

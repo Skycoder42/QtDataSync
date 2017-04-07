@@ -32,7 +32,7 @@ private:
 
 void SqlStoreTest::initTestCase()
 {
-#ifdef Q_OS_UNIX
+#ifdef Q_OS_LINUX
 	Q_ASSERT(qgetenv("LD_PRELOAD").contains("Qt5DataSync"));
 #endif
 
