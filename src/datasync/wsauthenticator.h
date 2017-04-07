@@ -19,6 +19,8 @@ class Q_DATASYNC_EXPORT WsAuthenticator : public Authenticator
 {
 	Q_OBJECT
 
+	//! Enable or disable the remote connection without loosing connection data
+	Q_PROPERTY(bool remoteEnabled READ isRemoteEnabled WRITE setRemoteEnabled)
 	//! The websocket url of the remote server
 	Q_PROPERTY(QUrl remoteUrl READ remoteUrl WRITE setRemoteUrl)
 	//! A hash with custom additional http headers for the initial request
@@ -40,6 +42,8 @@ public:
 	//! Destructor
 	~WsAuthenticator();
 
+	//! @readAcFn{WsAuthenticator::remoteEnabled}
+	bool isRemoteEnabled() const;
 	//! @readAcFn{WsAuthenticator::remoteUrl}
 	QUrl remoteUrl() const;
 	//! @readAcFn{WsAuthenticator::customHeaders}
@@ -57,6 +61,8 @@ public Q_SLOTS:
 	//! Tells the connector to reconnect to the server with updated data
 	void reconnect();
 
+	//! @writeAcFn{WsAuthenticator::remoteEnabled}
+	void setRemoteEnabled(bool remoteEnabled);
 	//! @writeAcFn{WsAuthenticator::remoteUrl}
 	void setRemoteUrl(QUrl remoteUrl);
 	//! @writeAcFn{WsAuthenticator::customHeaders}

@@ -12,6 +12,7 @@ using namespace QtDataSync;
 
 #define LOG defaults()->loggingCategory()
 
+const QString WsRemoteConnector::keyRemoteEnabled(QStringLiteral("RemoteConnector/remoteEnabled"));
 const QString WsRemoteConnector::keyRemoteUrl(QStringLiteral("RemoteConnector/remoteUrl"));
 const QString WsRemoteConnector::keyHeadersGroup(QStringLiteral("RemoteConnector/headers"));
 const QString WsRemoteConnector::keyVerifyPeer(QStringLiteral("RemoteConnector/verifyPeer"));
@@ -72,7 +73,7 @@ void WsRemoteConnector::reconnect()
 		settings->sync();
 
 		auto remoteUrl = settings->value(keyRemoteUrl).toUrl();
-		if(!remoteUrl.isValid()) {
+		if(!remoteUrl.isValid() || !settings->value(keyRemoteEnabled, true).toBool()) {
 			state = Disconnected;
 			remoteStateChanged(RemoteDisconnected);
 			return;

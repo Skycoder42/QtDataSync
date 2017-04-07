@@ -29,6 +29,7 @@ public:
 	};
 	Q_ENUM(SocketState)
 
+	static const QString keyRemoteEnabled;
 	static const QString keyRemoteUrl;
 	static const QString keyHeadersGroup;
 	static const QString keyVerifyPeer;
