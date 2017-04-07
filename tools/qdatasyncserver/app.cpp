@@ -103,11 +103,11 @@ int App::startupApp(const QCommandLineParser &parser)
 
 	connector = new ClientConnector(database, this);
 	if(!connector->setupWss()) {
-		lastError = QStringLiteral("Failed to set up secure websocket server. Check error log for details.\n");
+		lastError = QStringLiteral("Failed to set up secure websocket server. Check error log for details.");
 		return EXIT_SUCCESS;
 	}
 	if(!connector->listen()) {
-		lastError = QStringLiteral("Failed start websocket server. Check error log for details.\n");
+		lastError = QStringLiteral("Failed start websocket server. Check error log for details.");
 		return EXIT_SUCCESS;
 	}
 
@@ -122,13 +122,11 @@ bool App::requestAppShutdown(QtBackgroundProcess::Terminal *terminal, int &)
 {
 	terminal->write("Stopping " + QCoreApplication::applicationName().toUtf8() + " [ ");
 	if(currentTerminal) {
-		terminal->write("\033[1;31mfail\033[0m ]\n"
-						"App cannot be stop while starting!\n");
-		terminal->flush();
+		terminal->writeLine("\033[1;31mfail\033[0m ]", false);
+		terminal->writeLine("App cannot be stop while starting!");
 		return false;
 	} else {
-		terminal->write("\033[1;32mokay\033[0m ]\n");
-		terminal->flush();
+		terminal->writeLine("\033[1;32mokay\033[0m ]");
 		return true;
 	}
 }
@@ -142,11 +140,9 @@ void App::terminalConnected(QtBackgroundProcess::Terminal *terminal)
 		if(dbRdy)
 			completeStart();
 	} else if(terminal->parser()->positionalArguments().startsWith(QStringLiteral("cleanup"))) {
-		terminal->write("Starting cleanup rountines...\n");
-		terminal->flush();
+		terminal->writeLine("Starting cleanup rountines...");
 		if(currentTerminal) {
-			terminal->write("\033[1;31mError:\033[0m Another terminal is already performing a major operation!\n");
-			terminal->flush();
+			terminal->writeLine("\033[1;31mError:\033[0m Another terminal is already performing a major operation!");
 			terminal->disconnectTerminal();
 			return;
 		}
@@ -168,7 +164,7 @@ void App::dbDone(bool ok)
 {
 	dbRdy = true;
 	if(!ok)
-		lastError = QStringLiteral("Failed to setup database. Check error log for details.\n");
+		lastError = QStringLiteral("Failed to setup database. Check error log for details.");
 	if(currentTerminal)
 		completeStart();
 }
@@ -176,13 +172,11 @@ void App::dbDone(bool ok)
 void App::completeStart()
 {
 	if(lastError.isEmpty()) {
-		currentTerminal->write("\b\b\b\b\b\b\033[1;32mokay\033[0m ]\n");
-		currentTerminal->flush();
+		currentTerminal->writeLine("\b\b\b\b\b\b\033[1;32mokay\033[0m ]");
 		currentTerminal->disconnectTerminal();
 	} else {
-		currentTerminal->write("\b\b\b\b\b\b\033[1;31mfail\033[0m ]\n");
-		currentTerminal->write(lastError.toUtf8());
-		currentTerminal->flush();
+		currentTerminal->writeLine("\b\b\b\b\b\b\033[1;31mfail\033[0m ]", false);
+		currentTerminal->writeLine(lastError.toUtf8());
 		currentTerminal->disconnectTerminal();
 		qApp->exit(EXIT_FAILURE);
 	}
@@ -193,15 +187,14 @@ void App::startCleanup()
 	auto params = currentTerminal->parser()->positionalArguments();
 	params.removeFirst();
 	if(params.isEmpty()) {
-		currentTerminal->write("\033[1;33mWarning:\033[0m No cleanup targets specified!\n");
-		currentTerminal->flush();
+		currentTerminal->writeLine("\033[1;33mWarning:\033[0m No cleanup targets specified!");
 		completeCleanup();
 	} else {
 		//devices
 		if(cleanupStage == Devices) {
 			auto devicesIndex = params.indexOf(QStringLiteral("devices"));
 			if(devicesIndex != -1) {
-				lastError = QStringLiteral("After the \"devices\" target the minimum offline days must follow! A number greater than 0 is required.\n");
+				lastError = QStringLiteral("After the \"devices\" target the minimum offline days must follow! A number greater than 0 is required.");
 
 				if(++devicesIndex >= params.size()) {
 					completeCleanup();
@@ -264,7 +257,7 @@ void App::cleanupOperationDone(int rowsAffected, const QString &error)
 			cleanupStage = Resync;
 			break;
 		case Resync:
-			currentTerminal->write("Resync flags set!\n");
+			currentTerminal->writeLine("Resync flags set!");
 			cleanupStage = None;
 			break;
 		default:
@@ -273,8 +266,7 @@ void App::cleanupOperationDone(int rowsAffected, const QString &error)
 		}
 
 		if(cleanupStage != None) {
-			currentTerminal->write(QByteArray::number(rowsAffected) + '\n');
-			currentTerminal->flush();
+			currentTerminal->writeLine(QByteArray::number(rowsAffected));
 			startCleanup();
 		} else
 			completeCleanup();
@@ -288,11 +280,11 @@ void App::completeCleanup()
 {
 	cleanupStage = None;//just to be shure
 	if(lastError.isEmpty()) {
-		currentTerminal->write("\033[1;36mCleanup completed!\033[0m\n");
+		currentTerminal->writeLine("\033[1;36mCleanup completed!\033[0m");
 		currentTerminal->disconnectTerminal();
 	} else {
-		currentTerminal->write(lastError.toUtf8());
-		currentTerminal->write("\033[1;31mCleanup failed!\033[0m\n");
+		currentTerminal->writeLine(lastError.toUtf8());
+		currentTerminal->writeLine("\033[1;31mCleanup failed!\033[0m");
 		currentTerminal->disconnectTerminal();
 	}
 }
