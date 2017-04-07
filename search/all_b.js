@@ -2,7 +2,7 @@ var searchData=
 [
   ['keeplocal',['KeepLocal',['../class_qt_data_sync_1_1_data_merger.html#a9e15dea9fe10c2f76ba43941f97f0a8ba6eb702166c46b57e6becb40734f63589',1,'QtDataSync::DataMerger']]],
   ['keepmousegrab',['keepMouseGrab',['https://doc.qt.io/qt-5/qquickitem.html#keepMouseGrab',0,'QQuickItem']]],
-  ['keepobjectname',['keepObjectName',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#a558f4f3c1a6765727cbd277e09a58e75',0,'QJsonSerializer::keepObjectName()'],['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#afd4632ae8b3725d2c3d1568edd08a8f5',0,'QJsonSerializer::keepObjectName() const']]],
+  ['keepobjectname',['keepObjectName',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#a6c0d933bd43f30870c9379fb04f65f00',0,'QJsonSerializer::keepObjectName()'],['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#afd4632ae8b3725d2c3d1568edd08a8f5',0,'QJsonSerializer::keepObjectName() const']]],
   ['keeppositiononinsert',['keepPositionOnInsert',['https://doc.qt.io/qt-5/qtextcursor.html#keepPositionOnInsert',0,'QTextCursor']]],
   ['keepremote',['KeepRemote',['../class_qt_data_sync_1_1_data_merger.html#a9e15dea9fe10c2f76ba43941f97f0a8ba4135a9029ed0d9cc39cc9cab7c96336d',1,'QtDataSync::DataMerger']]],
   ['keeptouchgrab',['keepTouchGrab',['https://doc.qt.io/qt-5/qquickitem.html#keepTouchGrab',0,'QQuickItem']]],

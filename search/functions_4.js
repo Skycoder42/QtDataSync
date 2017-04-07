@@ -100,6 +100,7 @@ var searchData=
   ['entityresolver',['entityResolver',['https://doc.qt.io/qt-5/qxmlstreamreader.html#entityResolver',0,'QXmlStreamReader::entityResolver()'],['https://doc.qt.io/qt-5/qxmlreader.html#entityResolver',0,'QXmlReader::entityResolver()'],['https://doc.qt.io/qt-5/qxmlsimplereader.html#entityResolver',0,'QXmlSimpleReader::entityResolver()']]],
   ['entryinfolist',['entryInfoList',['https://doc.qt.io/qt-5/qdir.html#entryInfoList-1',0,'QDir::entryInfoList(Filters filters, SortFlags sort) const'],['https://doc.qt.io/qt-5/qdir.html#entryInfoList',0,'QDir::entryInfoList(const QStringList &amp;nameFilters, Filters filters, SortFlags sort) const']]],
   ['entrylist',['entryList',['https://doc.qt.io/qt-5/qdir.html#entryList-1',0,'QDir::entryList(Filters filters, SortFlags sort) const'],['https://doc.qt.io/qt-5/qdir.html#entryList',0,'QDir::entryList(const QStringList &amp;nameFilters, Filters filters, SortFlags sort) const']]],
+  ['enumasstring',['enumAsString',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#a3c26e7a387e04a367813e10cb6b716f2',0,'QJsonSerializer']]],
   ['enumerator',['enumerator',['https://doc.qt.io/qt-5/qmetaproperty.html#enumerator',0,'QMetaProperty::enumerator()'],['https://doc.qt.io/qt-5/qmetaobject.html#enumerator',0,'QMetaObject::enumerator()']]],
   ['enumeratorcount',['enumeratorCount',['https://doc.qt.io/qt-5/qmetaobject.html#enumeratorCount',0,'QMetaObject']]],
   ['enumeratoroffset',['enumeratorOffset',['https://doc.qt.io/qt-5/qmetaobject.html#enumeratorOffset',0,'QMetaObject']]],

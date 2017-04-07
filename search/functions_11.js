@@ -126,7 +126,7 @@ var searchData=
   ['registerfield',['registerField',['https://doc.qt.io/qt-5/qwizardpage.html#registerField',0,'QWizardPage']]],
   ['registerformat',['registerFormat',['https://doc.qt.io/qt-5/qsettings.html#registerFormat',0,'QSettings']]],
   ['registerhandler',['registerHandler',['https://doc.qt.io/qt-5/qabstracttextdocumentlayout.html#registerHandler',0,'QAbstractTextDocumentLayout']]],
-  ['registerlistconverters',['registerListConverters',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#a03673ad82a01fd456679bffa30416c00',0,'QJsonSerializer']]],
+  ['registerlistconverters',['registerListConverters',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#a98b3e1ea1e844e2f3806dbf3566d9972',0,'QJsonSerializer']]],
   ['registerndefmessagehandler',['registerNdefMessageHandler',['https://doc.qt.io/qt-5/qnearfieldmanager.html#registerNdefMessageHandler',0,'QNearFieldManager::registerNdefMessageHandler(QObject *object, const char *method)'],['https://doc.qt.io/qt-5/qnearfieldmanager.html#registerNdefMessageHandler-1',0,'QNearFieldManager::registerNdefMessageHandler(QNdefRecord::TypeNameFormat typeNameFormat, const QByteArray &amp;type, QObject *object, const char *method)'],['https://doc.qt.io/qt-5/qnearfieldmanager.html#registerNdefMessageHandler-2',0,'QNearFieldManager::registerNdefMessageHandler(const QNdefFilter &amp;filter, QObject *object, const char *method)']]],
   ['registerobject',['registerObject',['https://doc.qt.io/qt-5/qwebchannel.html#registerObject',0,'QWebChannel']]],
   ['registerobjects',['registerObjects',['https://doc.qt.io/qt-5/qwebchannel.html#registerObjects',0,'QWebChannel']]],

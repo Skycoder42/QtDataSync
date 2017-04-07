@@ -227,6 +227,13 @@
       <arglist>() const</arglist>
     </member>
     <member kind="function">
+      <type>bool</type>
+      <name>contains</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
+      <anchor>a2e00237f8ba76fac3ce25a3515ed4db9</anchor>
+      <arglist>(const TKey &amp;key) const</arglist>
+    </member>
+    <member kind="function">
       <type>QList&lt; TType &gt;</type>
       <name>loadAll</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
@@ -297,6 +304,13 @@
       <arglist>() const</arglist>
     </member>
     <member kind="function">
+      <type>bool</type>
+      <name>contains</name>
+      <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
+      <anchor>aa1ad05f5324d22ffce95d83b5d8bd507</anchor>
+      <arglist>(const TKey &amp;key) const</arglist>
+    </member>
+    <member kind="function">
       <type>QList&lt; TType * &gt;</type>
       <name>loadAll</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
@@ -347,8 +361,8 @@
       <type>void</type>
       <name>dataChanged</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_store_base.html</anchorfile>
-      <anchor>ac6b9214f6bcc8027eaa5920dc0c2d64a</anchor>
-      <arglist>(const QString &amp;key, bool wasDeleted)</arglist>
+      <anchor>a49ae5b7f96844eab1faebe2ed28cec5e</anchor>
+      <arglist>(const QString &amp;key, const QVariant &amp;value)</arglist>
     </member>
     <member kind="signal">
       <type>void</type>
@@ -1546,6 +1560,13 @@
     </member>
     <member kind="slot">
       <type>void</type>
+      <name>setRemoteEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a0de9800e633288c38c089a91975295b7</anchor>
+      <arglist>(bool remoteEnabled)</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
       <name>setRemoteUrl</name>
       <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
       <anchor>ac615ad9207c6a1d442eecdd2973cd15e</anchor>
@@ -1608,6 +1629,13 @@
       <arglist>()</arglist>
     </member>
     <member kind="function">
+      <type>bool</type>
+      <name>isRemoteEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a9b53b7d7a035ae5cc999732ed3f9196e</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
       <type>QUrl</type>
       <name>remoteUrl</name>
       <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
@@ -1655,6 +1683,13 @@
       <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
       <anchor>a841fe12d2e1840445043315f6ade56a8</anchor>
       <arglist>() override</arglist>
+    </member>
+    <member kind="property">
+      <type>bool</type>
+      <name>remoteEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>ac722009048eba930588437b41e0ff2af</anchor>
+      <arglist></arglist>
     </member>
     <member kind="property">
       <type>QUrl</type>
@@ -1753,16 +1788,17 @@
     <docanchor file="index" title="Features">qtdatasync_readme_label_0</docanchor>
     <docanchor file="index" title="Requirements">qtdatasync_readme_label_1</docanchor>
     <docanchor file="index" title="Download/Installation">qtdatasync_readme_label_2</docanchor>
-    <docanchor file="index" title="Usage">qtdatasync_readme_label_3</docanchor>
-    <docanchor file="index" title="Example">qtdatasync_readme_label_4</docanchor>
-    <docanchor file="index" title="Initialize QtDataSync">qtdatasync_readme_label_5</docanchor>
-    <docanchor file="index" title="Using AsyncDataStore">qtdatasync_readme_label_6</docanchor>
-    <docanchor file="index" title="Using CachingDataStore">qtdatasync_readme_label_7</docanchor>
-    <docanchor file="index" title="Setting up the remote server (qdatasyncserver)">qtdatasync_readme_label_8</docanchor>
-    <docanchor file="index" title="Setting up PostgreSQL">qtdatasync_readme_label_9</docanchor>
-    <docanchor file="index" title="Setting up qdatasyncserver">qtdatasync_readme_label_10</docanchor>
-    <docanchor file="index" title="Adding the remote to your app to enable sync">qtdatasync_readme_label_11</docanchor>
-    <docanchor file="index" title="Extending/Using custom store elements">qtdatasync_readme_label_12</docanchor>
-    <docanchor file="index" title="Documentation">qtdatasync_readme_label_13</docanchor>
+    <docanchor file="index" title="Docker">qtdatasync_readme_label_3</docanchor>
+    <docanchor file="index" title="Usage">qtdatasync_readme_label_4</docanchor>
+    <docanchor file="index" title="Example">qtdatasync_readme_label_5</docanchor>
+    <docanchor file="index" title="Initialize QtDataSync">qtdatasync_readme_label_6</docanchor>
+    <docanchor file="index" title="Using AsyncDataStore">qtdatasync_readme_label_7</docanchor>
+    <docanchor file="index" title="Using CachingDataStore">qtdatasync_readme_label_8</docanchor>
+    <docanchor file="index" title="Setting up the remote server (qdatasyncserver)">qtdatasync_readme_label_9</docanchor>
+    <docanchor file="index" title="Setting up PostgreSQL">qtdatasync_readme_label_10</docanchor>
+    <docanchor file="index" title="Setting up qdatasyncserver">qtdatasync_readme_label_11</docanchor>
+    <docanchor file="index" title="Adding the remote to your app to enable sync">qtdatasync_readme_label_12</docanchor>
+    <docanchor file="index" title="Extending/Using custom store elements">qtdatasync_readme_label_13</docanchor>
+    <docanchor file="index" title="Documentation">qtdatasync_readme_label_14</docanchor>
   </compound>
 </tagfile>

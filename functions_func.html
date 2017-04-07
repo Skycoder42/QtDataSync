@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">1.0.0</span>
+   &#160;<span id="projectnumber">1.1.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -117,8 +117,12 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_authenticator.html#a9ceb1b35e77a02737587564049ba7ae4">QtDataSync::Authenticator</a>
 , <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a841fe12d2e1840445043315f6ade56a8">QtDataSync::WsAuthenticator</a>
 </li>
+<li>contains()
+: <a class="el" href="class_qt_data_sync_1_1_caching_data_store.html#a2e00237f8ba76fac3ce25a3515ed4db9">QtDataSync::CachingDataStore&lt; TType, TKey &gt;</a>
+, <a class="el" href="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#aa1ad05f5324d22ffce95d83b5d8bd507">QtDataSync::CachingDataStore&lt; TType *, TKey &gt;</a>
+</li>
 <li>count()
-: <a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a925e800721b5392adda6b5d535f69e1f">QtDataSync::AsyncDataStore</a>
+: <a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a00c2954d4e1f020b7d6362e68a3770d4">QtDataSync::AsyncDataStore</a>
 , <a class="el" href="class_qt_data_sync_1_1_caching_data_store.html#afb3e2e3fb9cdd7024dd2c1b285fb4543">QtDataSync::CachingDataStore&lt; TType, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a6a8b38ceea258acd85774e36e610423d">QtDataSync::CachingDataStore&lt; TType *, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_local_store.html#aee6d469cfe740f4d8e1d7697200e53ad">QtDataSync::LocalStore</a>
@@ -141,7 +145,7 @@ $(function() {
 <h3><a id="index_d"></a>- d -</h3><ul>
 <li>dataChanged()
 : <a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a2f54bca99ceb7c47c32ceadce44639d2">QtDataSync::AsyncDataStore</a>
-, <a class="el" href="class_qt_data_sync_1_1_caching_data_store_base.html#ac6b9214f6bcc8027eaa5920dc0c2d64a">QtDataSync::CachingDataStoreBase</a>
+, <a class="el" href="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e">QtDataSync::CachingDataStoreBase</a>
 </li>
 <li>DataMerger()
 : <a class="el" href="class_qt_data_sync_1_1_data_merger.html#a010920bdd65a66e8b218144f9cfcd47c">QtDataSync::DataMerger</a>
@@ -198,6 +202,9 @@ $(function() {
 </li>
 <li>isConnected()
 : <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#ada64f1aaeceffbc72ea4bdde5f385065">QtDataSync::WsAuthenticator</a>
+</li>
+<li>isRemoteEnabled()
+: <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e">QtDataSync::WsAuthenticator</a>
 </li>
 </ul>
 
@@ -401,6 +408,9 @@ $(function() {
 <li>setRemoteConnector()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a4be2df29b03483f3eeb6a531b61fea02">QtDataSync::Setup</a>
 </li>
+<li>setRemoteEnabled()
+: <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7">QtDataSync::WsAuthenticator</a>
+</li>
 <li>setRemoteUrl()
 : <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#ac615ad9207c6a1d442eecdd2973cd15e">QtDataSync::WsAuthenticator</a>
 </li>
@@ -541,7 +551,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Mar 26 2017 14:00:26 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 7 2017 15:32:55 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

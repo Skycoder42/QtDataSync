@@ -1,32 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <QtHelpProject version="1.0">
-  <namespace>de.skycoder42.qtdatasync.100</namespace>
+  <namespace>de.skycoder42.qtdatasync.110</namespace>
   <virtualFolder>doc_qtdatasync</virtualFolder>
-  <customFilter name="DataSync 1.0.0">
+  <customFilter name="DataSync 1.1.0">
     <filterAttribute>qtdatasync</filterAttribute>
-    <filterAttribute>1.0.0</filterAttribute>
+    <filterAttribute>1.1.0</filterAttribute>
   </customFilter>
   <filterSection>
     <filterAttribute>doxygen</filterAttribute>
     <toc>
-      <section title="QtDataSync 1.0.0" ref="index.html">
+      <section title="QtDataSync 1.1.0" ref="index.html">
         <section title="Features" ref="index.html#qtdatasync_readme_label_0" />
         <section title="Requirements" ref="index.html#qtdatasync_readme_label_1" />
-        <section title="Download/Installation" ref="index.html#qtdatasync_readme_label_2" />
-        <section title="Usage" ref="index.html#qtdatasync_readme_label_3">
-          <section title="Example" ref="index.html#qtdatasync_readme_label_4">
-            <section title="Initialize QtDataSync" ref="index.html#qtdatasync_readme_label_5" />
-            <section title="Using AsyncDataStore" ref="index.html#qtdatasync_readme_label_6" />
-            <section title="Using CachingDataStore" ref="index.html#qtdatasync_readme_label_7" />
-            <section title="Setting up the remote server (qdatasyncserver)" ref="index.html#qtdatasync_readme_label_8">
-              <section title="Setting up PostgreSQL" ref="index.html#qtdatasync_readme_label_9" />
-              <section title="Setting up qdatasyncserver" ref="index.html#qtdatasync_readme_label_10" />
-            </section>
-            <section title="Adding the remote to your app to enable sync" ref="index.html#qtdatasync_readme_label_11" />
-          </section>
-          <section title="Extending/Using custom store elements" ref="index.html#qtdatasync_readme_label_12" />
+        <section title="Download/Installation" ref="index.html#qtdatasync_readme_label_2">
+          <section title="Docker" ref="index.html#qtdatasync_readme_label_3" />
         </section>
-        <section title="Documentation" ref="index.html#qtdatasync_readme_label_13" />
+        <section title="Usage" ref="index.html#qtdatasync_readme_label_4">
+          <section title="Example" ref="index.html#qtdatasync_readme_label_5">
+            <section title="Initialize QtDataSync" ref="index.html#qtdatasync_readme_label_6" />
+            <section title="Using AsyncDataStore" ref="index.html#qtdatasync_readme_label_7" />
+            <section title="Using CachingDataStore" ref="index.html#qtdatasync_readme_label_8" />
+            <section title="Setting up the remote server (qdatasyncserver)" ref="index.html#qtdatasync_readme_label_9">
+              <section title="Setting up PostgreSQL" ref="index.html#qtdatasync_readme_label_10" />
+              <section title="Setting up qdatasyncserver" ref="index.html#qtdatasync_readme_label_11" />
+            </section>
+            <section title="Adding the remote to your app to enable sync" ref="index.html#qtdatasync_readme_label_12" />
+          </section>
+          <section title="Extending/Using custom store elements" ref="index.html#qtdatasync_readme_label_13" />
+        </section>
+        <section title="Documentation" ref="index.html#qtdatasync_readme_label_14" />
         <section title="qdatasyncserver Documentation" ref="qdatasyncserver.html">
           <section title="Requirements and installation" ref="qdatasyncserver.html#qdatasyncserver_install">
             <section title="PostgreSQL" ref="qdatasyncserver.html#qdatasyncserver_install_postgre" />
@@ -89,6 +91,7 @@
               <section title="CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store.html">
                 <section title="CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store.html#ac1425f303dfdf2bdbcf2254a5f07e617" />
                 <section title="CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store.html#ae5a773b8ff5337b01bd97885082edbdc" />
+                <section title="contains" ref="class_qt_data_sync_1_1_caching_data_store.html#a2e00237f8ba76fac3ce25a3515ed4db9" />
                 <section title="count" ref="class_qt_data_sync_1_1_caching_data_store.html#afb3e2e3fb9cdd7024dd2c1b285fb4543" />
                 <section title="keys" ref="class_qt_data_sync_1_1_caching_data_store.html#a89f4763bfd9dc9404c9a06a29a6d5550" />
                 <section title="load" ref="class_qt_data_sync_1_1_caching_data_store.html#a9c0132d3061f1ac9302fe62758fa6a03" />
@@ -100,6 +103,7 @@
               <section title="CachingDataStore&lt; TType *, TKey &gt;" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html">
                 <section title="CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#ad11c4e9adb6ae52ec88c2f8aef407467" />
                 <section title="CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a98d68d835baf31d58a940740c9e99c9b" />
+                <section title="contains" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#aa1ad05f5324d22ffce95d83b5d8bd507" />
                 <section title="count" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a6a8b38ceea258acd85774e36e610423d" />
                 <section title="keys" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a73527fc5fc93b84acc9348a2f3badb98" />
                 <section title="load" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a416dad27592dbbb54c21dd679a451777" />
@@ -110,7 +114,7 @@
               </section>
               <section title="CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html">
                 <section title="CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html#af30bbd49b0e620375c3e227b23c315de" />
-                <section title="dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#ac6b9214f6bcc8027eaa5920dc0c2d64a" />
+                <section title="dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
                 <section title="dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
                 <section title="storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
               </section>
@@ -301,11 +305,13 @@
                 <section title="connector" ref="class_qt_data_sync_1_1_ws_authenticator.html#a841fe12d2e1840445043315f6ade56a8" />
                 <section title="customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#ab9d254df5a5d735f6d2c6a58ab220ea9" />
                 <section title="isConnected" ref="class_qt_data_sync_1_1_ws_authenticator.html#ada64f1aaeceffbc72ea4bdde5f385065" />
+                <section title="isRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e" />
                 <section title="reconnect" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7816b45ef1cbdce32b66d9971974dd26" />
                 <section title="remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#afe07ec340ac495627986e5d39c79e0f0" />
                 <section title="resetUserIdentity" ref="class_qt_data_sync_1_1_ws_authenticator.html#a89421c105efac8b73faa36a83a4c9072" />
                 <section title="serverSecret" ref="class_qt_data_sync_1_1_ws_authenticator.html#a6147368aea35db8578a437aefb0530ac" />
                 <section title="setCustomHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9d7f384d39510ce7d7eb6212e6ec3b35" />
+                <section title="setRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7" />
                 <section title="setRemoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac615ad9207c6a1d442eecdd2973cd15e" />
                 <section title="setServerSecret" ref="class_qt_data_sync_1_1_ws_authenticator.html#a1107b9eda844284c67dff49d7bdfc90f" />
                 <section title="setUserIdentity" ref="class_qt_data_sync_1_1_ws_authenticator.html#a0476864e44a03d7552bae5039b98ea43" />
@@ -314,6 +320,7 @@
                 <section title="validateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#af709dd48f3556bf38bfde57cf02e85f3" />
                 <section title="connected" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7b8c14e79d93e81950faf69ba089e40b" />
                 <section title="customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a38d5b115dbdeb0e557f15a9fbb1464d6" />
+                <section title="remoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac722009048eba930588437b41e0ff2af" />
                 <section title="remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#af042685cc0e56efcb7514ad9f5bf1578" />
                 <section title="serverSecret" ref="class_qt_data_sync_1_1_ws_authenticator.html#a96290386827ef22368eb95ede5014f0b" />
                 <section title="userIdentity" ref="class_qt_data_sync_1_1_ws_authenticator.html#a82df63121dc762dfb15b1444d6f67c34" />
@@ -402,7 +409,7 @@
             <section title="exceptions.h" ref="exceptions_8h_source.html" />
             <section title="localstore.cpp" ref="localstore_8cpp_source.html" />
             <section title="localstore.h" ref="localstore_8h_source.html" />
-            <section title="qdatasync_global.h" ref="qdatasync__global_8h_source.html" />
+            <section title="qtdatasync_global.h" ref="qtdatasync__global_8h_source.html" />
             <section title="remoteconnector.cpp" ref="remoteconnector_8cpp_source.html" />
             <section title="remoteconnector.h" ref="remoteconnector_8h_source.html" />
             <section title="setup.cpp" ref="setup_8cpp_source.html" />
@@ -573,6 +580,7 @@
       <keyword name="CachingDataStore" id="QtDataSync::CachingDataStore::CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store.html#ae5a773b8ff5337b01bd97885082edbdc" />
       <keyword name="count" id="QtDataSync::CachingDataStore::count" ref="class_qt_data_sync_1_1_caching_data_store.html#afb3e2e3fb9cdd7024dd2c1b285fb4543" />
       <keyword name="keys" id="QtDataSync::CachingDataStore::keys" ref="class_qt_data_sync_1_1_caching_data_store.html#a89f4763bfd9dc9404c9a06a29a6d5550" />
+      <keyword name="contains" id="QtDataSync::CachingDataStore::contains" ref="class_qt_data_sync_1_1_caching_data_store.html#a2e00237f8ba76fac3ce25a3515ed4db9" />
       <keyword name="loadAll" id="QtDataSync::CachingDataStore::loadAll" ref="class_qt_data_sync_1_1_caching_data_store.html#aea8620c19c99ef88c5bd2eac0b593dfe" />
       <keyword name="load" id="QtDataSync::CachingDataStore::load" ref="class_qt_data_sync_1_1_caching_data_store.html#a9c0132d3061f1ac9302fe62758fa6a03" />
       <keyword name="save" id="QtDataSync::CachingDataStore::save" ref="class_qt_data_sync_1_1_caching_data_store.html#a56bb7a4f519317154e321d7f3e18d5b7" />
@@ -615,7 +623,7 @@
       <keyword name="inherits" id="QObject::inherits" ref="qobject.html#inherits" />
       <keyword name="deleteLater" id="QObject::deleteLater" ref="qobject.html#deleteLater" />
       <keyword name="storeLoaded" id="QtDataSync::CachingDataStoreBase::storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
-      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#ac6b9214f6bcc8027eaa5920dc0c2d64a" />
+      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
       <keyword name="dataResetted" id="QtDataSync::CachingDataStoreBase::dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
       <keyword name="tr" id="QObject::tr" ref="qobject.html#tr" />
       <keyword name="trUtf8" id="QObject::trUtf8" ref="qobject.html#trUtf8" />
@@ -643,6 +651,7 @@
       <keyword name="CachingDataStore" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a98d68d835baf31d58a940740c9e99c9b" />
       <keyword name="count" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::count" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a6a8b38ceea258acd85774e36e610423d" />
       <keyword name="keys" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::keys" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a73527fc5fc93b84acc9348a2f3badb98" />
+      <keyword name="contains" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::contains" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#aa1ad05f5324d22ffce95d83b5d8bd507" />
       <keyword name="loadAll" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::loadAll" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a674e9ecb1111f30eef3bfbc5e98bcb7a" />
       <keyword name="load" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::load" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a416dad27592dbbb54c21dd679a451777" />
       <keyword name="save" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::save" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a657f4f21bbeed1231a353ca9e364694c" />
@@ -685,7 +694,7 @@
       <keyword name="inherits" id="QObject::inherits" ref="qobject.html#inherits" />
       <keyword name="deleteLater" id="QObject::deleteLater" ref="qobject.html#deleteLater" />
       <keyword name="storeLoaded" id="QtDataSync::CachingDataStoreBase::storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
-      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#ac6b9214f6bcc8027eaa5920dc0c2d64a" />
+      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
       <keyword name="dataResetted" id="QtDataSync::CachingDataStoreBase::dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
       <keyword name="tr" id="QObject::tr" ref="qobject.html#tr" />
       <keyword name="trUtf8" id="QObject::trUtf8" ref="qobject.html#trUtf8" />
@@ -710,7 +719,7 @@
       <keyword name="objectName" id="QObject::objectName" ref="qobject.html#objectName-prop" />
       <keyword name="QtDataSync::CachingDataStoreBase" id="QtDataSync::CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html" />
       <keyword name="storeLoaded" id="QtDataSync::CachingDataStoreBase::storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
-      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#ac6b9214f6bcc8027eaa5920dc0c2d64a" />
+      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
       <keyword name="dataResetted" id="QtDataSync::CachingDataStoreBase::dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
       <keyword name="CachingDataStoreBase" id="QtDataSync::CachingDataStoreBase::CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html#af30bbd49b0e620375c3e227b23c315de" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
@@ -1360,6 +1369,7 @@
       <keyword name="ConstIterator" id="QFuture&lt; QVariant &gt;::ConstIterator" ref="qfuture.html#ConstIterator-typedef" />
       <keyword name="QtDataSync::WsAuthenticator" id="QtDataSync::WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html" />
       <keyword name="reconnect" id="QtDataSync::WsAuthenticator::reconnect" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7816b45ef1cbdce32b66d9971974dd26" />
+      <keyword name="setRemoteEnabled" id="QtDataSync::WsAuthenticator::setRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7" />
       <keyword name="setRemoteUrl" id="QtDataSync::WsAuthenticator::setRemoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac615ad9207c6a1d442eecdd2973cd15e" />
       <keyword name="setCustomHeaders" id="QtDataSync::WsAuthenticator::setCustomHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9d7f384d39510ce7d7eb6212e6ec3b35" />
       <keyword name="setValidateServerCertificate" id="QtDataSync::WsAuthenticator::setValidateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#a750f0912f3c7c13ed238706fcc497de2" />
@@ -1369,6 +1379,7 @@
       <keyword name="connectedChanged" id="QtDataSync::WsAuthenticator::connectedChanged" ref="class_qt_data_sync_1_1_ws_authenticator.html#a5e120ca51e4e93d056ab9a53963a409b" />
       <keyword name="WsAuthenticator" id="QtDataSync::WsAuthenticator::WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html#a3a6273d388078bad966ece35f8d8d93a" />
       <keyword name="~WsAuthenticator" id="QtDataSync::WsAuthenticator::~WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html#ae4ae918958b753ce6230b515ee262f25" />
+      <keyword name="isRemoteEnabled" id="QtDataSync::WsAuthenticator::isRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e" />
       <keyword name="remoteUrl" id="QtDataSync::WsAuthenticator::remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#afe07ec340ac495627986e5d39c79e0f0" />
       <keyword name="customHeaders" id="QtDataSync::WsAuthenticator::customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#ab9d254df5a5d735f6d2c6a58ab220ea9" />
       <keyword name="validateServerCertificate" id="QtDataSync::WsAuthenticator::validateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#af709dd48f3556bf38bfde57cf02e85f3" />
@@ -1422,6 +1433,7 @@
       <keyword name="customEvent" id="QObject::customEvent" ref="qobject.html#customEvent" />
       <keyword name="connectNotify" id="QObject::connectNotify" ref="qobject.html#connectNotify" />
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="qobject.html#disconnectNotify" />
+      <keyword name="remoteEnabled" id="QtDataSync::WsAuthenticator::remoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac722009048eba930588437b41e0ff2af" />
       <keyword name="remoteUrl" id="QtDataSync::WsAuthenticator::remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#af042685cc0e56efcb7514ad9f5bf1578" />
       <keyword name="customHeaders" id="QtDataSync::WsAuthenticator::customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a38d5b115dbdeb0e557f15a9fbb1464d6" />
       <keyword name="validateServerCertificate" id="QtDataSync::WsAuthenticator::validateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#a4c6b5e924a39445b71953b5b49a598f9" />
@@ -1482,7 +1494,7 @@
       <file>exceptions_8h_source.html</file>
       <file>localstore_8cpp_source.html</file>
       <file>localstore_8h_source.html</file>
-      <file>qdatasync__global_8h_source.html</file>
+      <file>qtdatasync__global_8h_source.html</file>
       <file>_r_e_a_d_m_e_8md_source.html</file>
       <file>remoteconnector_8cpp_source.html</file>
       <file>remoteconnector_8h_source.html</file>
