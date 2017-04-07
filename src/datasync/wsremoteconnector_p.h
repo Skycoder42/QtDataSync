@@ -38,7 +38,7 @@ public:
 
 	explicit WsRemoteConnector(QObject *parent = nullptr);
 
-	void initialize(Defaults *defaults) override;
+	void initialize(Defaults *defaults, Encryptor *cryptor) override;
 	void finalize() override;
 
 	Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) override;
@@ -73,6 +73,7 @@ private:
 
 	QWebSocket *socket;
 	QSettings *settings;
+	Encryptor *cryptor;
 
 	SocketState state;
 	int retryIndex;

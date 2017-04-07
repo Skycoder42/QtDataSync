@@ -31,10 +31,11 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	pingTimerId(-1)
 {}
 
-void WsRemoteConnector::initialize(Defaults *defaults)
+void WsRemoteConnector::initialize(Defaults *defaults, Encryptor *cryptor)
 {
-	RemoteConnector::initialize(defaults);
+	RemoteConnector::initialize(defaults, cryptor);
 	settings = defaults->createSettings(this);
+	this->cryptor = cryptor;
 
 	operationTimer->setInterval(30000);//30 secs timout
 	operationTimer->setSingleShot(true);

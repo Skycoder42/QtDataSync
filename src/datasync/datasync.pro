@@ -27,7 +27,8 @@ HEADERS += \
 	storageengine_p.h \
 	wsremoteconnector_p.h \
 	exceptions.h \
-    qtdatasync_global.h
+    qtdatasync_global.h \
+    encryptor.h
 
 SOURCES += \
 	asyncdatastore.cpp \
@@ -47,7 +48,8 @@ SOURCES += \
 	task.cpp \
 	wsauthenticator.cpp \
 	wsremoteconnector.cpp \
-	exceptions.cpp
+	exceptions.cpp \
+    encryptor.cpp
 
 OTHER_FILES += \
 	engine.qmodel

@@ -5,6 +5,8 @@
 #include "QtDataSync/defaults.h"
 #include "QtDataSync/stateholder.h"
 
+#include "encryptor.h"
+
 #include <QtCore/qjsonvalue.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qobject.h>
@@ -34,7 +36,9 @@ public:
 	~RemoteConnector();
 
 	//! Called from the engine to initialize the connector
-	virtual void initialize(Defaults *defaults);
+	virtual void initialize(Defaults *defaults, Encryptor *cryptor);
+	//! Called from the engine to initialize the connector
+	Q_DECL_DEPRECATED virtual void initialize(Defaults *defaults);
 	//! Called from the engine to finalize the connector
 	virtual void finalize();
 
