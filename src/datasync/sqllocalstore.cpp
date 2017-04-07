@@ -184,8 +184,11 @@ void SqlLocalStore::load(quint64 id, const ObjectKey &key, const QByteArray &)
 							   .arg(file.errorString()));
 		} else
 			emit requestCompleted(id, doc.object());
-	} else
-		emit requestCompleted(id, QJsonValue::Null);
+	} else {
+		emit requestFailed(id, QStringLiteral("No data entry of type %1 with id %2 exists!")
+						   .arg(QString::fromUtf8(key.first))
+						   .arg(key.second));
+	}
 }
 
 void SqlLocalStore::save(quint64 id, const ObjectKey &key, const QJsonObject &object, const QByteArray &)

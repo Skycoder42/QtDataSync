@@ -53,7 +53,7 @@ public:
 	//! Removes the dataset with the given key
 	void remove(const TKey &key);
 
-	//! Shortcut to convert a string to the stores key typee
+	//! Shortcut to convert a string to the store key type
 	TKey toKey(const QString &key) const;
 
 private:

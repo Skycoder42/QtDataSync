@@ -77,7 +77,8 @@ The result of this operation must be reported by calling requestCompleted() with
 and the result as second parameter. The result must be a json object, passed via the json
 value.
 
-If your operation fails, emit requestFailed() with the given id and an error message.
+If your operation fails, emit requestFailed() with the given id and an error message. If an element
+does not exist in the store, you should report an error, and not return a default value!
 
 @sa LocalStore::requestCompleted, LocalStore::requestFailed
 */

@@ -183,7 +183,7 @@ void LocalStoreTest::testLoad_data()
 	QTest::newRow("missingData") << DataSet()
 								 << 5
 								 << TestData()
-								 << false;
+								 << true;
 	QTest::newRow("invalidData") << generateDataJson(0, 1)
 								 << 0
 								 << generateData(0)

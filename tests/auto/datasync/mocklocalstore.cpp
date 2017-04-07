@@ -93,7 +93,7 @@ void MockLocalStore::load(quint64 id, const QtDataSync::ObjectKey &key, const QB
 		if(pseudoStore.contains(key))
 			emit requestCompleted(id, pseudoStore.value(key));
 		else
-			emit requestCompleted(id, QJsonValue::Null);
+			emit requestFailed(id, key.second);
 	}
 }
 

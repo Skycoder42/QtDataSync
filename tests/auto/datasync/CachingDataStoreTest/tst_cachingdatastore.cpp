@@ -137,7 +137,7 @@ void CachingDataStoreTest::testDelete()
 		QCOMPARE(changedSpy[0][0].toString(), QStringLiteral("42"));
 		QVERIFY(!changedSpy[0][1].isValid());
 
-		QCOMPARE(async->load<TestData>(42).result(), TestData());
+		QVERIFY_EXCEPTION_THROWN(async->load<TestData>(42).result(), DataSyncException);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

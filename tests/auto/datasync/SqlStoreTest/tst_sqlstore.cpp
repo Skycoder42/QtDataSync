@@ -17,8 +17,9 @@ private Q_SLOTS:
 	void testSaveAndLoad_data();
 	void testSaveAndLoad();
 	void testLoadAll();
-	void testSeach_data();
-	void testSeach();
+	void testLoadInvalid();
+	void testSearch_data();
+	void testSearch();
 	void testRemove_data();
 	void testRemove();
 
@@ -123,10 +124,23 @@ void SqlStoreTest::testLoadAll()
 	QCOMPARE(completedSpy.size(), 1);
 	QCOMPARE(completedSpy[0][0].toULongLong(), id);
 	QLISTCOMPARE(completedSpy[0][1].value<QJsonValue>().toArray().toVariantList(),
-				 dataList.toVariantList());
+			dataList.toVariantList());
 }
 
-void SqlStoreTest::testSeach_data()
+void SqlStoreTest::testLoadInvalid()
+{
+	QSignalSpy completedSpy(store, &SqlLocalStore::requestCompleted);
+	QSignalSpy failedSpy(store, &SqlLocalStore::requestFailed);
+
+	failedSpy.clear();
+	completedSpy.clear();
+	store->load(1ull, generateKey(4711), "id");
+	QCOMPARE(completedSpy.size(), 0);
+	QCOMPARE(failedSpy.size(), 1);
+	QCOMPARE(failedSpy[0][0].toULongLong(), 1ull);
+}
+
+void SqlStoreTest::testSearch_data()
 {
 	QTest::addColumn<QString>("query");
 	QTest::addColumn<QJsonArray>("data");
@@ -143,7 +157,7 @@ void SqlStoreTest::testSeach_data()
 					   << QJsonArray();
 }
 
-void SqlStoreTest::testSeach()
+void SqlStoreTest::testSearch()
 {
 	QFETCH(QString, query);
 	QFETCH(QJsonArray, data);
