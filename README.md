@@ -41,6 +41,9 @@ To actually run the server, it needs to connect to a SQL Database. A little more
 	- `make`
 	- `make install`
 
+### Docker
+The `qdatasyncserver` is also available as docker-image, [`skycoder42/qdatasyncserver`](https://hub.docker.com/r/skycoder42/qdatasyncserver/). The versions are equal, i.e. QtDataSync version 1.1.0 will work with the server Version 1.1.0 as well.
+
 ## Usage
 The datasync library is provided as a Qt module. Thus, all you have to do is add the module, and then, in your project, add `QT += datasync` to your `.pro` file!
 
