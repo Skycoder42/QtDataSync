@@ -1,5 +1,5 @@
-#ifndef DATAMERGER_H
-#define DATAMERGER_H
+#ifndef QTDATASYNC_DATAMERGER_H
+#define QTDATASYNC_DATAMERGER_H
 
 #include "QtDataSync/qdatasync_global.h"
 #include "QtDataSync/defaults.h"
@@ -69,4 +69,4 @@ private:
 
 }
 
-#endif // DATAMERGER_H
+#endif // QTDATASYNC_DATAMERGER_H

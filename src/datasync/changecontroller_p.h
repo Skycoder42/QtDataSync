@@ -1,5 +1,5 @@
-#ifndef CHANGECONTROLLER_P_H
-#define CHANGECONTROLLER_P_H
+#ifndef QTDATASYNC_CHANGECONTROLLER_P_H
+#define QTDATASYNC_CHANGECONTROLLER_P_H
 
 #include "qdatasync_global.h"
 #include "datamerger.h"
@@ -111,4 +111,4 @@ private:
 
 Q_DECLARE_METATYPE(QtDataSync::ChangeController::ChangeOperation)
 
-#endif // CHANGECONTROLLER_P_H
+#endif // QTDATASYNC_CHANGECONTROLLER_P_H

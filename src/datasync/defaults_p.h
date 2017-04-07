@@ -1,5 +1,5 @@
-#ifndef DEFAULTS_P_H
-#define DEFAULTS_P_H
+#ifndef QTDATASYNC_DEFAULTS_P_H
+#define QTDATASYNC_DEFAULTS_P_H
 
 #include "qdatasync_global.h"
 #include "defaults.h"
@@ -24,4 +24,4 @@ public:
 
 }
 
-#endif // DEFAULTS_P_H
+#endif // QTDATASYNC_DEFAULTS_P_H

@@ -1,5 +1,5 @@
-#ifndef ASYNCDATASTORE_P_H
-#define ASYNCDATASTORE_P_H
+#ifndef QTDATASYNC_ASYNCDATASTORE_P_H
+#define QTDATASYNC_ASYNCDATASTORE_P_H
 
 #include "qdatasync_global.h"
 #include "asyncdatastore.h"
@@ -15,4 +15,4 @@ public:
 
 }
 
-#endif // ASYNCDATASTORE_P_H
+#endif // QTDATASYNC_ASYNCDATASTORE_P_H

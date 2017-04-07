@@ -1,5 +1,5 @@
-#ifndef WSREMOTECONNECTOR_P_H
-#define WSREMOTECONNECTOR_P_H
+#ifndef QTDATASYNC_WSREMOTECONNECTOR_P_H
+#define QTDATASYNC_WSREMOTECONNECTOR_P_H
 
 #include "qdatasync_global.h"
 #include "remoteconnector.h"
@@ -93,4 +93,4 @@ private:
 
 }
 
-#endif // WSREMOTECONNECTOR_P_H
+#endif // QTDATASYNC_WSREMOTECONNECTOR_P_H

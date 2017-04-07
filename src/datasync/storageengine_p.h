@@ -1,5 +1,5 @@
-#ifndef STORAGEENGINE_P_H
-#define STORAGEENGINE_P_H
+#ifndef QTDATASYNC_STORAGEENGINE_P_H
+#define QTDATASYNC_STORAGEENGINE_P_H
 
 #include "qdatasync_global.h"
 #include "changecontroller_p.h"
@@ -133,4 +133,4 @@ private:
 
 }
 
-#endif // STORAGEENGINE_P_H
+#endif // QTDATASYNC_STORAGEENGINE_P_H

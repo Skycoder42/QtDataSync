@@ -1,5 +1,5 @@
-#ifndef CACHINGDATASTORE_H
-#define CACHINGDATASTORE_H
+#ifndef QTDATASYNC_CACHINGDATASTORE_H
+#define QTDATASYNC_CACHINGDATASTORE_H
 
 #include "QtDataSync/qdatasync_global.h"
 #include "QtDataSync/asyncdatastore.h"
@@ -317,4 +317,4 @@ void CachingDataStore<TType*, TKey>::evalDataResetted()
 
 }
 
-#endif // CACHINGDATASTORE_H
+#endif // QTDATASYNC_CACHINGDATASTORE_H

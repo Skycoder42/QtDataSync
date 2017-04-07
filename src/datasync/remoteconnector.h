@@ -1,5 +1,5 @@
-#ifndef REMOTECONNECTOR_H
-#define REMOTECONNECTOR_H
+#ifndef QTDATASYNC_REMOTECONNECTOR_H
+#define QTDATASYNC_REMOTECONNECTOR_H
 
 #include "QtDataSync/qdatasync_global.h"
 #include "QtDataSync/defaults.h"
@@ -94,4 +94,4 @@ private:
 
 }
 
-#endif // REMOTECONNECTOR_H
+#endif // QTDATASYNC_REMOTECONNECTOR_H

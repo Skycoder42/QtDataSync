@@ -1,5 +1,5 @@
-#ifndef LOCALSTORE_H
-#define LOCALSTORE_H
+#ifndef QTDATASYNC_LOCALSTORE_H
+#define QTDATASYNC_LOCALSTORE_H
 
 #include "QtDataSync/qdatasync_global.h"
 #include "QtDataSync/defaults.h"
@@ -56,4 +56,4 @@ Q_SIGNALS:
 
 }
 
-#endif // LOCALSTORE_H
+#endif // QTDATASYNC_LOCALSTORE_H

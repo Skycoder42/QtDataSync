@@ -1,5 +1,5 @@
-#ifndef WSAUTHENTICATOR_H
-#define WSAUTHENTICATOR_H
+#ifndef QTDATASYNC_WSAUTHENTICATOR_H
+#define QTDATASYNC_WSAUTHENTICATOR_H
 
 #include "QtDataSync/qdatasync_global.h"
 #include "QtDataSync/authenticator.h"
@@ -86,4 +86,4 @@ private:
 
 }
 
-#endif // WSAUTHENTICATOR_H
+#endif // QTDATASYNC_WSAUTHENTICATOR_H

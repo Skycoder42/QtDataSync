@@ -1,5 +1,5 @@
-#ifndef SETUP_H
-#define SETUP_H
+#ifndef QTDATASYNC_SETUP_H
+#define QTDATASYNC_SETUP_H
 
 #include "QtDataSync/qdatasync_global.h"
 
@@ -87,4 +87,4 @@ T *Setup::authenticatorForSetup(QObject *parent, const QString &name)
 
 }
 
-#endif // SETUP_H
+#endif // QTDATASYNC_SETUP_H

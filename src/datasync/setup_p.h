@@ -1,5 +1,5 @@
-#ifndef SETUP_P_H
-#define SETUP_P_H
+#ifndef QTDATASYNC_SETUP_P_H
+#define QTDATASYNC_SETUP_P_H
 
 #include "qdatasync_global.h"
 #include "datamerger.h"
@@ -43,4 +43,4 @@ private:
 
 }
 
-#endif // SETUP_P_H
+#endif // QTDATASYNC_SETUP_P_H

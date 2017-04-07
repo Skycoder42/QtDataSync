@@ -1,5 +1,5 @@
-#ifndef EXCEPTIONS_H
-#define EXCEPTIONS_H
+#ifndef QTDATASYNC_EXCEPTIONS_H
+#define QTDATASYNC_EXCEPTIONS_H
 
 #include "qdatasync_global.h"
 
@@ -83,4 +83,4 @@ private:
 
 }
 
-#endif // EXCEPTIONS_H
+#endif // QTDATASYNC_EXCEPTIONS_H

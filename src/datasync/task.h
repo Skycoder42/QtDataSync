@@ -1,5 +1,5 @@
-#ifndef TASK_H
-#define TASK_H
+#ifndef QTDATASYNC_TASK_H
+#define QTDATASYNC_TASK_H
 
 #include "QtDataSync/qdatasync_global.h"
 
@@ -125,4 +125,4 @@ T GenericTask<T>::result() const
 
 }
 
-#endif // TASK_H
+#endif // QTDATASYNC_TASK_H

@@ -1,5 +1,5 @@
-#ifndef STATEHOLDER_H
-#define STATEHOLDER_H
+#ifndef QTDATASYNC_STATEHOLDER_H
+#define QTDATASYNC_STATEHOLDER_H
 
 #include "QtDataSync/qdatasync_global.h"
 #include "QtDataSync/defaults.h"
@@ -50,4 +50,4 @@ public:
 
 Q_DECLARE_METATYPE(QtDataSync::StateHolder::ChangeHash)
 
-#endif // STATEHOLDER_H
+#endif // QTDATASYNC_STATEHOLDER_H

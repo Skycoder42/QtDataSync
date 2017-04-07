@@ -1,5 +1,5 @@
-#ifndef ASYNCDATASTORE_H
-#define ASYNCDATASTORE_H
+#ifndef QTDATASYNC_ASYNCDATASTORE_H
+#define QTDATASYNC_ASYNCDATASTORE_H
 
 #include "QtDataSync/qdatasync_global.h"
 #include "QtDataSync/task.h"
@@ -147,4 +147,4 @@ GenericTask<QList<T>> AsyncDataStore::search(const QString &query)
 
 }
 
-#endif // ASYNCDATASTORE_H
+#endif // QTDATASYNC_ASYNCDATASTORE_H

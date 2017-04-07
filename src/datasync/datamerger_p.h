@@ -1,5 +1,5 @@
-#ifndef DATAMERGER_P_H
-#define DATAMERGER_P_H
+#ifndef QTDATASYNC_DATAMERGER_P_H
+#define QTDATASYNC_DATAMERGER_P_H
 
 #include "qdatasync_global.h"
 #include "datamerger.h"
@@ -17,4 +17,4 @@ public:
 
 }
 
-#endif // DATAMERGER_P_H
+#endif // QTDATASYNC_DATAMERGER_P_H

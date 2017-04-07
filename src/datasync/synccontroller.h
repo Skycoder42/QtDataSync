@@ -1,5 +1,5 @@
-#ifndef SYNCCONTROLLER_H
-#define SYNCCONTROLLER_H
+#ifndef QTDATASYNC_SYNCCONTROLLER_H
+#define QTDATASYNC_SYNCCONTROLLER_H
 
 #include "QtDataSync/qdatasync_global.h"
 
@@ -73,4 +73,4 @@ private:
 
 }
 
-#endif // SYNCCONTROLLER_H
+#endif // QTDATASYNC_SYNCCONTROLLER_H

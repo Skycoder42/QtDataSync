@@ -1,5 +1,5 @@
-#ifndef SQLSTATEHOLDER_P_H
-#define SQLSTATEHOLDER_P_H
+#ifndef QTDATASYNC_SQLSTATEHOLDER_P_H
+#define QTDATASYNC_SQLSTATEHOLDER_P_H
 
 #include "qdatasync_global.h"
 #include "stateholder.h"
@@ -31,4 +31,4 @@ private:
 
 }
 
-#endif // SQLSTATEHOLDER_P_H
+#endif // QTDATASYNC_SQLSTATEHOLDER_P_H

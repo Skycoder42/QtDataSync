@@ -1,5 +1,5 @@
-#ifndef SQLLOCALSTORE_P_H
-#define SQLLOCALSTORE_P_H
+#ifndef QTDATASYNC_SQLLOCALSTORE_P_H
+#define QTDATASYNC_SQLLOCALSTORE_P_H
 
 #include "localstore.h"
 
@@ -43,4 +43,4 @@ private:
 
 }
 
-#endif // SQLLOCALSTORE_P_H
+#endif // QTDATASYNC_SQLLOCALSTORE_P_H
