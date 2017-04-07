@@ -12,4 +12,4 @@ echo "port=$DATABASE_PORT" >> $DATASYNC_CONFIG
 echo "username=$DATABASE_USER" >> $DATASYNC_CONFIG
 echo "password=$DATABASE_PASSWORD" >> $DATASYNC_CONFIG
 
-exec /opt/qdatasyncserver/bin/qdatasyncserver '__qbckgrndprcss$start#master~' -c "$DATASYNC_DIR/setup.conf" --keep-console -L "" -l4
+exec /opt/qdatasyncserver/bin/qdatasyncserver '__qbckgrndprcss$start#master~' -c "$DATASYNC_DIR/setup.conf" --no-daemon -L ""
