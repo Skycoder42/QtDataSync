@@ -1,5 +1,4 @@
 version: '2'
-# storage engines for the microservices of the conference sentiment analysis (csa) application
 services:
   datasync_server:
     container_name: datasync_example_server
