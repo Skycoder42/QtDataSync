@@ -54,7 +54,7 @@ public:
 	void remove(const TKey &key);
 
 	//! Shortcut to convert a string to the store key type
-	TKey toKey(const QString &key) const;
+	static TKey toKey(const QString &key);
 
 private:
 	AsyncDataStore *_store;
@@ -98,7 +98,7 @@ public:
 	void remove(const TKey &key);
 
 	//!@copydoc CachingDataStore::toKey
-	TKey toKey(const QString &key) const;
+	static TKey toKey(const QString &key);
 
 private:
 	AsyncDataStore *_store;
@@ -190,7 +190,7 @@ void CachingDataStore<TType, TKey>::remove(const TKey &key)
 }
 
 template<typename TType, typename TKey>
-TKey CachingDataStore<TType, TKey>::toKey(const QString &key) const
+TKey CachingDataStore<TType, TKey>::toKey(const QString &key)
 {
 	return QVariant(key).value<TKey>();
 }
@@ -314,7 +314,7 @@ void CachingDataStore<TType*, TKey>::remove(const TKey &key)
 }
 
 template<typename TType, typename TKey>
-TKey CachingDataStore<TType*, TKey>::toKey(const QString &key) const
+TKey CachingDataStore<TType*, TKey>::toKey(const QString &key)
 {
 	return QVariant(key).value<TKey>();
 }
