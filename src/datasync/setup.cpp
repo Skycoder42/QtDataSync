@@ -163,7 +163,6 @@ void Setup::create(const QString &name)
 					 engine, &StorageEngine::deleteLater);
 	QObject::connect(engine, &StorageEngine::destroyed, qApp, [=](){
 		auto t = storageDir.path();
-		qDebug() << t;
 		lockFile->unlock();
 		delete lockFile;
 	}, Qt::DirectConnection);
