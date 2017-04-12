@@ -20,7 +20,7 @@ WsAuthenticator::~WsAuthenticator() {}
 
 bool WsAuthenticator::isRemoteEnabled() const
 {
-	return d->settings->value(WsRemoteConnector::keyRemoteEnabled).toBool();
+	return d->settings->value(WsRemoteConnector::keyRemoteEnabled, true).toBool();
 }
 
 QUrl WsAuthenticator::remoteUrl() const
