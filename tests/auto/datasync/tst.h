@@ -5,6 +5,7 @@
 #include <QtTest>
 
 #include "testdata.h"
+#include "testobject.h"
 #include "mocklocalstore.h"
 #include "mockstateholder.h"
 #include "mockremoteconnector.h"

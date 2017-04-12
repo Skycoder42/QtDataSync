@@ -6,7 +6,8 @@ HEADERS += \
     $$PWD/tst.h \
     $$PWD/mockstateholder.h \
     $$PWD/mockremoteconnector.h \
-    $$PWD/mockdatamerger.h
+    $$PWD/mockdatamerger.h \
+    $$PWD/testobject.h
 
 SOURCES += \
 	$$PWD/testdata.cpp \
@@ -14,7 +15,8 @@ SOURCES += \
     $$PWD/tst.cpp \
     $$PWD/mockstateholder.cpp \
     $$PWD/mockremoteconnector.cpp \
-    $$PWD/mockdatamerger.cpp
+    $$PWD/mockdatamerger.cpp \
+    $$PWD/testobject.cpp
 
 INCLUDEPATH += $$PWD
 

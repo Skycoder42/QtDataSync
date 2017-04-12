@@ -112,10 +112,10 @@ public:
 
 private:
 	T _data;
-	bool _updated;
-	QSharedPointer<QMutex> _mutex;
+	mutable bool _updated;
+	mutable QSharedPointer<QMutex> _mutex;
 
-	T interalGet();
+	T interalGet() const;
 };
 
 // ------------- Generic Implementation -------------
@@ -196,7 +196,7 @@ T UpdateTask<T>::result() const
 }
 
 template<typename T>
-T UpdateTask<T>::interalGet()
+T UpdateTask<T>::interalGet() const
 {
 	_mutex->lock();
 	if(!_updated) {
