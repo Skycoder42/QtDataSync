@@ -73,6 +73,13 @@ public:
 	template<typename T>
 	GenericTask<QList<T>> search(const QString &query);
 
+	//! Loads the dataset with the given key for the given type into the existing object by updating it's properties
+	template<typename T>
+	UpdateTask<T> loadInto(const QString &key, const T &object);
+	//! @copybrief AsyncDataStore::loadInto(const QString &, const T &)
+	template<typename T, typename K>
+	UpdateTask<T> loadInto(const K &key, const T &object);
+
 Q_SIGNALS:
 	//! Will be emitted when a dataset in the store has changed
 	void dataChanged(int metaTypeId, const QString &key, bool wasDeleted);
@@ -143,6 +150,18 @@ template<typename T>
 GenericTask<QList<T>> AsyncDataStore::search(const QString &query)
 {
 	return internalSearch(qMetaTypeId<T>(), qMetaTypeId<QList<T>>(), query);
+}
+
+template<typename T>
+UpdateTask<T> AsyncDataStore::loadInto(const QString &key, const T &object)
+{
+	return {object, internalLoad(qMetaTypeId<T>(), key)};
+}
+
+template<typename T, typename K>
+UpdateTask<T> AsyncDataStore::loadInto(const K &key, const T &object)
+{
+	return {object, internalLoad(qMetaTypeId<T>(), QVariant::fromValue(key).toString())};
 }
 
 }

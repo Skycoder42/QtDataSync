@@ -312,14 +312,32 @@ void CachingDataStore<TType*, TKey>::evalDataChanged(int metaTypeId, const QStri
 		auto rKey = toKey(key);
 		if(wasDeleted) {
 			auto data = _data.take(rKey);
-			data->deleteLater();
 			emit dataChanged(key, QVariant());
+			data->deleteLater();
 		} else {
-			_store->load<TType*>(key).onResult(this, [=](TType* data){
-				data->setParent(this);
-				_data.insert(rKey, data);
-				emit dataChanged(key, QVariant::fromValue(data));
-			});
+			if(_data.contains(rKey)) {
+				_store->loadInto<TType*>(key, _data.value(rKey)).onResult(this, [=](TType* data) {
+					auto oldData = _data.value(rKey, nullptr);
+					if(oldData == data)
+						emit dataChanged(key, QVariant::fromValue(data));
+					else {
+						data->setParent(this);
+						_data.insert(rKey, data);
+						emit dataChanged(key, QVariant::fromValue(data));
+						if(oldData)
+							oldData->deleteLater();
+					}
+				});
+			} else {
+				_store->load<TType*>(key).onResult(this, [=](TType* data) {
+					auto oldData = _data.take(rKey);
+					data->setParent(this);
+					_data.insert(rKey, data);
+					emit dataChanged(key, QVariant::fromValue(data));
+					if(oldData)
+						oldData->deleteLater();
+				});
+			}
 		}
 	}
 }
@@ -327,8 +345,11 @@ void CachingDataStore<TType*, TKey>::evalDataChanged(int metaTypeId, const QStri
 template <typename TType, typename TKey>
 void CachingDataStore<TType*, TKey>::evalDataResetted()
 {
+	auto data = _data;
 	_data.clear();
 	emit dataResetted();
+	foreach(auto d, data)
+		d->deleteLater();
 }
 
 }
