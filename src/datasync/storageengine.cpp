@@ -3,6 +3,7 @@
 #include "defaults.h"
 
 #include <QtCore/QThread>
+#include <QtCore/QDateTime>
 
 using namespace QtDataSync;
 
@@ -22,6 +23,8 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 	currentSyncState(SyncController::Loading),
 	currentAuthError()
 {
+	qsrand(QDateTime::currentMSecsSinceEpoch());
+
 	defaults->setParent(this);
 	serializer->setParent(this);
 	localStore->setParent(this);

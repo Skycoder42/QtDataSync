@@ -2,6 +2,8 @@ TARGET = QtDataSync
 
 QT = core jsonserializer sql websockets
 
+include(../3rdparty/vendor/vendor.pri)
+
 HEADERS += \
 	asyncdatastore.h \
 	asyncdatastore_p.h \
@@ -27,8 +29,9 @@ HEADERS += \
 	storageengine_p.h \
 	wsremoteconnector_p.h \
 	exceptions.h \
-    qtdatasync_global.h \
-    encryptor.h
+	qtdatasync_global.h \
+	encryptor.h \
+    qtinyaesencryptor_p.h
 
 SOURCES += \
 	asyncdatastore.cpp \
@@ -49,7 +52,8 @@ SOURCES += \
 	wsauthenticator.cpp \
 	wsremoteconnector.cpp \
 	exceptions.cpp \
-    encryptor.cpp
+	encryptor.cpp \
+    qtinyaesencryptor.cpp
 
 OTHER_FILES += \
 	engine.qmodel
