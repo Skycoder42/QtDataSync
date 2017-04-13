@@ -8,6 +8,7 @@
 #include "localstore.h"
 #include "remoteconnector.h"
 #include "stateholder.h"
+#include "encryptor.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QFuture>
@@ -42,7 +43,8 @@ public:
 						   LocalStore *localStore,
 						   StateHolder *stateHolder,
 						   RemoteConnector *remoteConnector,
-						   DataMerger *dataMerger);
+						   DataMerger *dataMerger,
+						   Encryptor *encryptor);
 
 	SyncController::SyncState syncState() const;
 	QString authenticationError() const;
@@ -112,6 +114,7 @@ private:
 	LocalStore *localStore;
 	StateHolder *stateHolder;
 	RemoteConnector *remoteConnector;
+	Encryptor *encryptor;
 	ChangeController *changeController;
 
 	QHash<quint64, RequestInfo> requestCache;

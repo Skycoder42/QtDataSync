@@ -14,6 +14,7 @@ class StateHolder;
 class Authenticator;
 class RemoteConnector;
 class DataMerger;
+class Encryptor;
 
 class SetupPrivate;
 //! The class to setup and create datasync instances
@@ -51,6 +52,8 @@ public:
 	RemoteConnector *remoteConnector() const;
 	//! Returns the setups data merger implementation
 	DataMerger *dataMerger() const;
+	//! Returns the setups encryptor implementation
+	Encryptor *encryptor() const;
 	//! Returns the additional property with the given key
 	QVariant property(const QByteArray &key) const;
 
@@ -66,6 +69,10 @@ public:
 	Setup &setRemoteConnector(RemoteConnector *remoteConnector);
 	//! Sets the setups data merger implementation
 	Setup &setDataMerger(DataMerger *dataMerger);
+	//! Sets the setups encryptor implementation
+	Setup &setEncryptor(Encryptor *encryptor);
+	//! Removes the setups encryptor implementation (data is not encrypted anymore)
+	Setup &unsetEncryptor();
 	//! Sets the additional property with the given key to data
 	Setup &setProperty(const QByteArray &key, const QVariant &data);
 

@@ -18,7 +18,7 @@ QtDataSync::Authenticator *MockRemoteConnector::createAuthenticator(QtDataSync::
 	return nullptr;
 }
 
-void MockRemoteConnector::initialize(Defaults *)
+void MockRemoteConnector::initialize(Defaults *, Encryptor *)
 {
 	reloadRemoteState();
 }

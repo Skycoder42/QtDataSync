@@ -24,11 +24,15 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	RemoteConnector(parent),
 	socket(nullptr),
 	settings(nullptr),
+	cryptor(nullptr),
 	state(Disconnected),
 	retryIndex(0),
 	needResync(false),
 	operationTimer(new QTimer(this)),
-	pingTimerId(-1)
+	pingTimerId(-1),
+	decryptReply(false),
+	currentKey(),
+	currentKeyProperty()
 {}
 
 void WsRemoteConnector::initialize(Defaults *defaults, Encryptor *cryptor)
@@ -157,6 +161,13 @@ void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProp
 		data[QStringLiteral("key")] = key.second;
 		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		sendCommand("load", data);
+
+		//if cryptor is valid, expect the reply to be encrypted
+		if(cryptor) {
+			currentKey = key;
+			currentKeyProperty = keyProperty;
+			decryptReply = true;
+		}
 	}
 }
 
@@ -170,8 +181,18 @@ void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, 
 		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
 		data[QStringLiteral("key")] = key.second;
 		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
-		data[QStringLiteral("value")] = object;
-		sendCommand("save", data);
+		if(cryptor) {
+			try {
+				data[QStringLiteral("value")] = cryptor->encrypt(key, object, keyProperty);
+				sendCommand("save", data);
+			} catch(QException &e) {
+				emit operationFailed(QString::fromUtf8(e.what()));
+				state = Idle;
+			}
+		} else {
+			data[QStringLiteral("value")] = object;
+			sendCommand("save", data);
+		}
 	}
 }
 
@@ -398,9 +419,21 @@ void WsRemoteConnector::notifyChanged(const QJsonObject &data)
 
 void WsRemoteConnector::completed(const QJsonObject &result)
 {
-	if(result[QStringLiteral("success")].toBool())
-		emit operationDone(result[QStringLiteral("data")]);
-	else
+	if(result[QStringLiteral("success")].toBool()) {
+		if(decryptReply) {
+			try {
+				auto data = cryptor->decrypt(currentKey, result[QStringLiteral("data")], currentKeyProperty);
+				emit operationDone(data);
+			} catch(QException &e) {
+				emit operationFailed(QString::fromUtf8(e.what()));
+			}
+			currentKey = {};
+			currentKeyProperty.clear();
+			decryptReply = false;
+		} else
+			emit operationDone(result[QStringLiteral("data")]);
+
+	} else
 		emit operationFailed(result[QStringLiteral("error")].toString());
 	state = Idle;
 }

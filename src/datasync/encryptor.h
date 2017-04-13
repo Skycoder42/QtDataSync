@@ -11,6 +11,7 @@ namespace QtDataSync {
 class Encryptor : public QObject
 {
 	Q_OBJECT
+
 public:
 	//! Constructor
 	explicit Encryptor(QObject *parent = nullptr);
@@ -21,9 +22,9 @@ public:
 	virtual void finalize();
 
 	//! Encrypts the given dataset
-	virtual QByteArray encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const = 0;
+	virtual QJsonValue encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const = 0;
 	//! Encrypts the given dataset
-	virtual QJsonObject decrypt(const ObjectKey &key, const QByteArray &data, const QByteArray &keyProperty) const = 0;
+	virtual QJsonObject decrypt(const ObjectKey &key, const QJsonValue &data, const QByteArray &keyProperty) const = 0;
 };
 
 }

@@ -82,6 +82,10 @@ private:
 	QTimer *operationTimer;
 	int pingTimerId;
 
+	bool decryptReply;
+	ObjectKey currentKey;
+	QByteArray currentKeyProperty;
+
 	QJsonObject keyObject(const ObjectKey &key) const;
 
 	void identified(const QJsonObject &data);

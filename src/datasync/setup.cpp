@@ -81,6 +81,11 @@ DataMerger *Setup::dataMerger() const
 	return d->dataMerger.data();
 }
 
+Encryptor *Setup::encryptor() const
+{
+	return d->encryptor.data();
+}
+
 QVariant Setup::property(const QByteArray &key) const
 {
 	return d->properties.value(key);
@@ -122,6 +127,18 @@ Setup &Setup::setDataMerger(DataMerger *dataMerger)
 	return *this;
 }
 
+Setup &Setup::setEncryptor(Encryptor *encryptor)
+{
+	d->encryptor.reset(encryptor);
+	return *this;
+}
+
+Setup &Setup::unsetEncryptor()
+{
+	d->encryptor.reset();
+	return *this;
+}
+
 Setup &Setup::setProperty(const QByteArray &key, const QVariant &data)
 {
 	d->properties.insert(key, data);
@@ -153,7 +170,8 @@ void Setup::create(const QString &name)
 									d->localStore.take(),
 									d->stateHolder.take(),
 									d->remoteConnector.take(),
-									d->dataMerger.take());
+									d->dataMerger.take(),
+									d->encryptor.take());
 
 	auto thread = new QThread();
 	engine->moveToThread(thread);
@@ -225,6 +243,7 @@ SetupPrivate::SetupPrivate() :
 	stateHolder(new SqlStateHolder()),
 	remoteConnector(new WsRemoteConnector()),
 	dataMerger(new DataMerger()),
+	encryptor(nullptr),
 	properties()
 {}
 

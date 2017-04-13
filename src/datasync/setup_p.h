@@ -7,6 +7,7 @@
 #include "remoteconnector.h"
 #include "setup.h"
 #include "stateholder.h"
+#include "encryptor.h"
 #include "storageengine_p.h"
 
 #include <QtCore/QMutex>
@@ -36,6 +37,7 @@ private:
 	QScopedPointer<StateHolder> stateHolder;
 	QScopedPointer<RemoteConnector> remoteConnector;
 	QScopedPointer<DataMerger> dataMerger;
+	QScopedPointer<Encryptor> encryptor;
 	QHash<QByteArray, QVariant> properties;
 
 	SetupPrivate();

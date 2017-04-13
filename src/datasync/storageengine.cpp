@@ -8,13 +8,14 @@ using namespace QtDataSync;
 
 #define LOG defaults->loggingCategory()
 
-StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger) :
+StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger, Encryptor *encryptor) :
 	QObject(),
 	defaults(defaults),
 	serializer(serializer),
 	localStore(localStore),
 	stateHolder(stateHolder),
 	remoteConnector(remoteConnector),
+	encryptor(encryptor),
 	changeController(new ChangeController(dataMerger, this)),
 	requestCache(),
 	requestCounter(0),
@@ -26,6 +27,8 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 	localStore->setParent(this);
 	stateHolder->setParent(this);
 	remoteConnector->setParent(this);
+	if(encryptor)
+		encryptor->setParent(this);
 }
 
 SyncController::SyncState StorageEngine::syncState() const
@@ -142,7 +145,7 @@ void StorageEngine::initialize()
 	localStore->initialize(defaults);
 	stateHolder->initialize(defaults);
 	changeController->initialize(defaults);
-	remoteConnector->initialize(defaults);
+	remoteConnector->initialize(defaults, encryptor);
 }
 
 void StorageEngine::finalize()

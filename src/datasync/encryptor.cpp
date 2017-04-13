@@ -1,7 +1,7 @@
 #include "encryptor.h"
 using namespace QtDataSync;
 
-Encryptor::Encryptor() :
+Encryptor::Encryptor(QObject *parent) :
 	QObject(parent)
 {}
 
