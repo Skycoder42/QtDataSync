@@ -16,7 +16,7 @@ void QTinyAesEncryptor::initialize(Defaults *defaults)
 {
 	_defaults = defaults;
 	_key = _defaults->settings()->value(QStringLiteral("encryption/key")).toByteArray();
-	if(_key.isNull()) {
+	if(_key.isEmpty()) {
 		for(quint32 i = 0; i < QTinyAes::KEYSIZE; i++)
 			_key += (char)qrand();
 		_defaults->settings()->setValue(QStringLiteral("encryption/key"), _key);

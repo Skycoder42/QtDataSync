@@ -2,7 +2,7 @@
   "name": "",
   "description": "",
   "dependencies": [
-    "de.skycoder42.qtinyaes@1.0.3",
+    "de.skycoder42.qtinyaes@1.0.4",
     "de.skycoder42.kokke.tiny-aes128-c@1.0.1"
   ],
   "license": "NONE",

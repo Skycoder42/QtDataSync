@@ -148,6 +148,8 @@ void StorageEngine::initialize()
 	localStore->initialize(defaults);
 	stateHolder->initialize(defaults);
 	changeController->initialize(defaults);
+	if(encryptor)
+		encryptor->initialize(defaults);
 	remoteConnector->initialize(defaults, encryptor);
 }
 
