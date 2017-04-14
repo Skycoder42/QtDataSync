@@ -23,8 +23,6 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 	currentSyncState(SyncController::Loading),
 	currentAuthError()
 {
-	qsrand(QDateTime::currentMSecsSinceEpoch());
-
 	defaults->setParent(this);
 	serializer->setParent(this);
 	localStore->setParent(this);
@@ -102,6 +100,8 @@ void StorageEngine::triggerResync()
 
 void StorageEngine::initialize()
 {
+	qsrand(QDateTime::currentMSecsSinceEpoch());
+
 	//localStore
 	connect(localStore, &LocalStore::requestCompleted,
 			this, &StorageEngine::requestCompleted,
