@@ -5,6 +5,7 @@
 #include "sqllocalstore_p.h"
 #include "sqlstateholder_p.h"
 #include "wsremoteconnector_p.h"
+#include "qtinyaesencryptor_p.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLockFile>
@@ -243,7 +244,7 @@ SetupPrivate::SetupPrivate() :
 	stateHolder(new SqlStateHolder()),
 	remoteConnector(new WsRemoteConnector()),
 	dataMerger(new DataMerger()),
-	encryptor(nullptr),
+	encryptor(new QTinyAesEncryptor()),
 	properties()
 {}
 
