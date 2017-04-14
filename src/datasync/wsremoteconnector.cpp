@@ -159,7 +159,6 @@ void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProp
 		QJsonObject data;
 		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
 		data[QStringLiteral("key")] = key.second;
-		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		sendCommand("load", data);
 
 		//if cryptor is valid, expect the reply to be encrypted
@@ -180,7 +179,6 @@ void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, 
 		QJsonObject data;
 		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
 		data[QStringLiteral("key")] = key.second;
-		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		if(cryptor) {
 			try {
 				data[QStringLiteral("value")] = cryptor->encrypt(key, object, keyProperty);
@@ -196,7 +194,7 @@ void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, 
 	}
 }
 
-void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProperty)
+void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &)
 {
 	if(state != Idle)
 		emit operationFailed(QStringLiteral("Remote connector state does not allow removals"));
@@ -205,12 +203,11 @@ void WsRemoteConnector::remove(const ObjectKey &key, const QByteArray &keyProper
 		QJsonObject data;
 		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
 		data[QStringLiteral("key")] = key.second;
-		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		sendCommand("remove", data);
 	}
 }
 
-void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &keyProperty)
+void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &)
 {
 	if(state != Idle)
 		emit operationFailed(QStringLiteral("Remote connector state does not allow marking as unchanged"));
@@ -219,7 +216,6 @@ void WsRemoteConnector::markUnchanged(const ObjectKey &key, const QByteArray &ke
 		QJsonObject data;
 		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
 		data[QStringLiteral("key")] = key.second;
-		data[QStringLiteral("keyProperty")] = QString::fromUtf8(keyProperty);
 		sendCommand("markUnchanged", data);
 	}
 
