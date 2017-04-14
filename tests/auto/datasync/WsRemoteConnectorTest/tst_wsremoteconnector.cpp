@@ -271,7 +271,6 @@ void WsRemoteConnectorTest::testSecondDevice()
 	QVERIFY(auth->isConnected());
 	for(auto i = 0; i < 10 && syncSpy.count() < 4; i++)
 		syncSpy.wait(500);
-	qDebug() << syncSpy;
 	QCOMPARE(syncSpy.count(), 4);
 	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
 	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Loading));

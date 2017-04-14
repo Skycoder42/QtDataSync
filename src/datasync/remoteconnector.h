@@ -37,8 +37,6 @@ public:
 
 	//! Called from the engine to initialize the connector
 	virtual void initialize(Defaults *defaults, Encryptor *cryptor);
-	//! Called from the engine to initialize the connector
-	Q_DECL_DEPRECATED virtual void initialize(Defaults *defaults);
 	//! Called from the engine to finalize the connector
 	virtual void finalize();
 

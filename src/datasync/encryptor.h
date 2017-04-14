@@ -21,6 +21,11 @@ public:
 	//! Called from the engine to finalize the encryptor
 	virtual void finalize();
 
+	//! Returns the current encryption key
+	virtual QByteArray key() const = 0;
+	//! Sets the encryption key
+	virtual void setKey(const QByteArray &key) = 0;
+
 	//! Encrypts the given dataset
 	virtual QJsonValue encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const = 0;
 	//! Encrypts the given dataset

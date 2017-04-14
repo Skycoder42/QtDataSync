@@ -24,14 +24,8 @@ RemoteConnector::~RemoteConnector() {}
 
 void RemoteConnector::initialize(Defaults *defaults, Encryptor *)
 {
-	QT_WARNING_PUSH
-	QT_WARNING_DISABLE_DEPRECATED
-	initialize(defaults);
-	QT_WARNING_POP
 	d->defaults = defaults;
 }
-
-void RemoteConnector::initialize(Defaults *) {}
 
 void RemoteConnector::finalize() {}
 
