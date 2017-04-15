@@ -8,6 +8,9 @@ class LocalStoreTest : public QObject
 {
 	Q_OBJECT
 
+Q_SIGNALS:
+	void unlock();
+
 private Q_SLOTS:
 	void initTestCase();
 	void cleanupTestCase();
@@ -26,6 +29,8 @@ private Q_SLOTS:
 	void testRemove();
 	void testSearch_data();
 	void testSearch();
+	void testIterate_data();
+	void testIterate();
 
 	void testLoadInto_data();
 	void testLoadInto();
@@ -347,6 +352,69 @@ void LocalStoreTest::testSearch()
 		QLISTCOMPARE(res, result);
 	} catch(QException &e) {
 		QVERIFY2(shouldFail, e.what());
+	}
+}
+
+void LocalStoreTest::testIterate_data()
+{
+	QTest::addColumn<DataSet>("data");
+	QTest::addColumn<QList<TestData>>("result");
+	QTest::addColumn<bool>("shouldFail");
+
+	QTest::newRow("emptyData") << DataSet()
+							   << QList<TestData>()
+							   << false;
+	QTest::newRow("simpleData") << generateDataJson(5, 55)
+								<< generateData(5, 55)
+								<< false;
+	QTest::newRow("invalidData") << generateDataJson(10, 20)
+								 << QList<TestData>()
+								 << true;
+}
+
+void LocalStoreTest::testIterate()
+{
+	QFETCH(DataSet, data);
+	QFETCH(QList<TestData>, result);
+	QFETCH(bool, shouldFail);
+
+	store->mutex.lock();
+	store->pseudoStore = data;
+	store->failCount = shouldFail ? 1 : 0;
+	store->mutex.unlock();
+
+	QSignalSpy spy(this, &LocalStoreTest::unlock);
+
+	async->iterate<TestData>([=, &result](TestData data){
+		auto ok = false;
+
+		[&](){
+			QVERIFY(!shouldFail);
+			QVERIFY(!result.isEmpty());
+			for(auto i = 0; i < result.size(); i++) {
+				if(data.id == result[i].id) {
+					QCOMPARE(data, result[i]);
+					result.takeAt(i);
+					ok = true;
+					break;
+				}
+			}
+		}();
+
+		if(!ok || result.isEmpty())
+			emit unlock();
+
+		return ok;
+	}, [=](const QException &e){
+		QVERIFY2(shouldFail, e.what());
+		emit unlock();
+	});
+
+	if(data.isEmpty())
+		QVERIFY(!spy.wait());
+	else {
+		QVERIFY(spy.wait());
+		QVERIFY(result.isEmpty());
 	}
 }
 

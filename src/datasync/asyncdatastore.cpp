@@ -71,9 +71,9 @@ Task AsyncDataStore::search(int dataMetaTypeId, int listMetaTypeId, const QStrin
 
 void AsyncDataStore::iterate(int metaTypeId, const std::function<bool(QVariant)> &iterator, const std::function<void(const QException &)> &onExcept)
 {
-	keys(metaTypeId).onResult([=](QStringList keys) {
+	keys(metaTypeId).onResult(this, [=](QStringList keys) {
 		if(!keys.isEmpty()) {
-			load(metaTypeId, keys[0]).onResult([=](QVariant result) {
+			load(metaTypeId, keys[0]).onResult(this, [=](QVariant result) {
 				internalIterate(metaTypeId, keys, 0, result, iterator, onExcept);
 			}, onExcept);
 		}
@@ -176,7 +176,7 @@ void AsyncDataStore::internalIterate(int metaTypeId, const QStringList &keys, in
 {
 	if(iterator(res)) {
 		if(++index < keys.size()) {
-			load(metaTypeId, keys[index]).onResult([=](QVariant result) {
+			load(metaTypeId, keys[index]).onResult(this, [=](QVariant result) {
 				internalIterate(metaTypeId, keys, index, result, iterator, onExcept);
 			}, onExcept);
 		}
