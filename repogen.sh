@@ -4,4 +4,4 @@
 # $2 Version
 
 myDir=$(dirname "$0")
-"$myDir/../QtModules/repogen.py" "$1" DataSync "qt.58.skycoder42.jsonserializer>=2.0.0, qt.58.skycoder42.backgroundprocess>=1.5.0" "qdatasyncserver" "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices." "$2" "$myDir/LICENSE" BSD-3-Clause
+"$myDir/../QtModules/repogen.py" "$1" DataSync "qt.58.skycoder42.jsonserializer,qt.58.skycoder42.backgroundprocess" "qdatasyncserver" "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices." "$2" "$myDir/LICENSE" BSD-3-Clause
