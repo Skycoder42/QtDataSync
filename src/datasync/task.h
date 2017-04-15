@@ -89,6 +89,7 @@ private:
 };
 
 template <typename T>
+//! Generic Task that updates an existing dataset instead of creating a new one (objects only)
 class UpdateTask : public Task
 {
 	static_assert(std::is_base_of<QObject, typename std::remove_pointer<T>::type>::value, "T must inherit QObject");
@@ -96,7 +97,7 @@ class UpdateTask : public Task
 	friend class AsyncDataStore;
 
 public:
-	//! Constructor with future interface
+	//! Constructor with future interface and the dataset to be updated
 	UpdateTask(T data, QFutureInterface<QVariant> d = {});
 
 	//! @copydoc Task::onResult(QObject *, const std::function<void(QVariant)> &, const std::function<void(const QException &)> &)

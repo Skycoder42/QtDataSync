@@ -85,12 +85,16 @@ the object. Since the object already contains the key (as the keyProperty proper
 can simply check the value of that property as the key. You do not have to use this property,
 but you can. One example would be a document store.
 
+@attention If cryptor() is valid, you should use the encryptor to decrypt the received data.
+Of course that is only if your implementation encrypts data as well.
+
 The result of this operation must be reported by calling operationDone(). The result
 parameter must be the downloaded json object, passed via the json value.
 
 If your operation fails, emit operationFailed() with an error message.
 
-@sa RemoteConnector::operationDone, RemoteConnector::operationFailed
+@sa RemoteConnector::operationDone, RemoteConnector::operationFailed,
+RemoteConnector::cryptor, Encryptor::encrypt
 */
 
 /*!
@@ -105,6 +109,9 @@ the object. Since the object already contains the key (as the keyProperty proper
 can simply save the object only, and use the key property for indexing etc. One example would
 be a document store.
 
+@attention If cryptor() is valid, you should use the encryptor to encrypt the `object` before
+sending it to the server
+
 The result of this operation must be reported by calling operationDone(). The result
 parameter is ignored, you can set it to QJsonValue::Undefined.
 
@@ -115,7 +122,7 @@ client. The server should implicitly do the same as for a markUnchanged() operat
 uploading.
 
 @sa RemoteConnector::operationDone, RemoteConnector::operationFailed,
-RemoteConnector::markUnchanged
+RemoteConnector::markUnchanged, RemoteConnector::cryptor, Encryptor::encrypt
 */
 
 /*!

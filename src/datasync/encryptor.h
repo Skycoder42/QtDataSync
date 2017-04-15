@@ -8,6 +8,7 @@
 
 namespace QtDataSync {
 
+//! The class responsible for en/decrypting user data before exchaning it with the remote
 class Encryptor : public QObject
 {
 	Q_OBJECT
@@ -28,7 +29,7 @@ public:
 
 	//! Encrypts the given dataset
 	virtual QJsonValue encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const = 0;
-	//! Encrypts the given dataset
+	//! Decrypts the given dataset
 	virtual QJsonObject decrypt(const ObjectKey &key, const QJsonValue &data, const QByteArray &keyProperty) const = 0;
 };
 

@@ -15,7 +15,7 @@ RemoteConnector::createAuthenticator
 
 @param extraData Additional data that is passed to the remote connector, e.g. a password
 @param resetLocalStore Specifies, whether the local store should be reset or not
-@returns A task to wait on for the completition of the reset.
+@returns A task to wait on for the completition of the reset
 
 If you need to perform an operation that will change the currently logged in user, reset his
 device identity or somthing similiar, that changes his "identity", use this method. Use the
@@ -28,4 +28,38 @@ automatically synced with the new identity. If you want to migrate a user or his
 use this approach.
 
 @sa RemoteConnector::resetUserId, RemoteConnector::resetUserData
+*/
+
+/*!
+@fn QtDataSync::Authenticator::exportUserDataImpl
+
+@param device The device to write the exported data to
+
+This method should export all of a users "identity" data. This includes all the keys, ids and
+more that are needed to properly synchronize and identify. it's internally called by
+exportUserData().
+
+It must be possible to login the user on a different device by exporting data with this method
+and importing it with importUserData(). No additional information should be required. (The only
+exption beeing a "password". It's up to your implemetation If you want to export passwords too,
+or require the user to provide it)
+
+@sa Authenticator::exportUserData, Authenticator::importUserDataImpl
+*/
+
+/*!
+@fn QtDataSync::Authenticator::importUserDataImpl
+
+@param device The device to read the data to import from
+@returns A task to wait on for the completition of the import
+
+This method should import all of a users "identity" data from the given device, that was
+previously exported by exportUserData(). it's internally called by importUserData().
+
+It must be possible to login the user on a different device by exporting data  and importing it
+on the device with this methods. No additional information should be required. (The only
+exption beeing a "password". It's up to your implemetation If you want to export passwords too,
+or require the user to provide it)
+
+@sa Authenticator::importUserData, Authenticator::exportUserDataImpl
 */

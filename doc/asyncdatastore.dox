@@ -29,6 +29,26 @@ objects after the operations have been completed.
 */
 
 /*!
+@fn QtDataSync::AsyncDataStore::iterate(const std::function<bool(T)> &, const std::function<void(const QException &)> &)
+
+@param iterator The iterator to be called for each dataset loaded
+@param onExcept A handler to be called if reading fails at some point
+
+Inernally, the store will load one dataset after another, and call iterator with the result.
+You can return `true` to continue iterating, or `false` to cancel prematurely. The exception
+handler is passed to to the Tasks internally used.
+
+@sa Task
+*/
+
+/*!
+@fn QtDataSync::AsyncDataStore::iterate(int, const std::function<bool(QVariant)> &, const std::function<void(const QException &)> &)
+
+@param metaTypeId The type of datasets to iterate over
+@copydetails AsyncDataStore::iterate(const std::function<bool(T)> &, const std::function<void(const QException &)> &)
+*/
+
+/*!
 @fn QtDataSync::AsyncDataStore::dataChanged
 
 @param metaTypeId The QMetaTypeId of the type of the change dataset

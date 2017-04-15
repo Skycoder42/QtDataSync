@@ -39,3 +39,15 @@ the future has finished, the handlers will *not* be called anymore.
 @param parent The parent object to bind the handlers to
 @copydetails Task::onResult(const std::function<void(QVariant)> &, const std::function<void(const QException &)> &)
 */
+
+/*!
+@class QtDataSync::UpdateTask
+
+Instead of creating a new object for the loaded data, this class will be given an existing
+instance of the target object type. The result and onResult methods do not return a new object,
+instead they update the existing object to the result of the task. This way pointer classes
+can be easily updated, without having to exchange the references everywhere. The task is used
+by AsyncDataStore::loadInto.
+
+@sa AsyncDataStore::loadInto
+*/

@@ -37,7 +37,9 @@ protected:
 	//! Call this method to reset the users identity.
 	GenericTask<void> resetIdentity(const QVariant &extraData = {}, bool resetLocalStore = true);
 
+	//! Implements the user data export
 	virtual void exportUserDataImpl(QIODevice *device) const = 0;
+	//! Implements the user data import
 	virtual GenericTask<void> importUserDataImpl(QIODevice *device) = 0;
 
 	//! Returns a reference to the connector this authenticator belongs to
