@@ -69,6 +69,17 @@ Task AsyncDataStore::search(int dataMetaTypeId, int listMetaTypeId, const QStrin
 	return internalSearch(dataMetaTypeId, listMetaTypeId, searchQuery);
 }
 
+void AsyncDataStore::iterate(int metaTypeId, const std::function<bool(QVariant)> &iterator, const std::function<void(const QException &)> &onExcept)
+{
+	keys(metaTypeId).onResult([=](QStringList keys) {
+		if(!keys.isEmpty()) {
+			load(metaTypeId, keys[0]).onResult([=](QVariant result) {
+				internalIterate(metaTypeId, keys, 0, result, iterator, onExcept);
+			}, onExcept);
+		}
+	}, onExcept);
+}
+
 QFutureInterface<QVariant> AsyncDataStore::internalCount(int metaTypeId)
 {
 	QFutureInterface<QVariant> interface;
@@ -159,4 +170,15 @@ QFutureInterface<QVariant> AsyncDataStore::internalSearch(int dataMetaTypeId, in
 							  Q_ARG(int, dataMetaTypeId),
 							  Q_ARG(QVariant, data));
 	return interface;
+}
+
+void AsyncDataStore::internalIterate(int metaTypeId, const QStringList &keys, int index, QVariant res, const std::function<bool (QVariant)> &iterator, const std::function<void (const QException &)> &onExcept)
+{
+	if(iterator(res)) {
+		if(++index < keys.size()) {
+			load(metaTypeId, keys[index]).onResult([=](QVariant result) {
+				internalIterate(metaTypeId, keys, index, result, iterator, onExcept);
+			}, onExcept);
+		}
+	}
 }

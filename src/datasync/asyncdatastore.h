@@ -7,6 +7,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qfuture.h>
 #include <QtCore/qmetaobject.h>
+#include <functional>
 
 namespace QtDataSync {
 
@@ -44,6 +45,10 @@ public:
 	Task remove(int metaTypeId, const QVariant &key);
 	//! @copybrief AsyncDataStore::search(const QString &)
 	Task search(int dataMetaTypeId, int listMetaTypeId, const QString &query);
+	//! @copybrief AsyncDataStore::iterate(const std::function<bool(T)> &, const std::function<void(const QException &)> &)
+	void iterate(int metaTypeId,
+				 const std::function<bool(QVariant)> &iterator,
+				 const std::function<void(const QException &)> &onExcept);
 
 	//! Counts the number of datasets for the given type
 	template<typename T>
@@ -72,6 +77,10 @@ public:
 	//! Searches the store for datasets of the given type where the key matches the query
 	template<typename T>
 	GenericTask<QList<T>> search(const QString &query);
+	//! Asynchronously iterates over all existing datasets of the given types
+	template<typename T>
+	void iterate(const std::function<bool(T)> &iterator,
+				 const std::function<void(const QException &)> &onExcept);
 
 	//! Loads the dataset with the given key for the given type into the existing object by updating it's properties
 	template<typename T>
@@ -96,6 +105,13 @@ private:
 	QFutureInterface<QVariant> internalSave(int metaTypeId, const QVariant &value);
 	QFutureInterface<QVariant> internalRemove(int metaTypeId, const QString &key);
 	QFutureInterface<QVariant> internalSearch(int dataMetaTypeId, int listMetaTypeId, const QString &query);
+
+	void internalIterate(int metaTypeId,
+						 const QStringList &keys,
+						 int index,
+						 QVariant res,
+						 const std::function<bool(QVariant)> &iterator,
+						 const std::function<void(const QException &)> &onExcept);
 };
 
 template<typename T>
@@ -150,6 +166,14 @@ template<typename T>
 GenericTask<QList<T>> AsyncDataStore::search(const QString &query)
 {
 	return internalSearch(qMetaTypeId<T>(), qMetaTypeId<QList<T>>(), query);
+}
+
+template<typename T>
+void AsyncDataStore::iterate(const std::function<bool(T)> &iterator, const std::function<void(const QException &)> &onExcept)
+{
+	return iterate(qMetaTypeId<T>(), [iterator](QVariant variant) {
+		return iterator(variant.template value<T>());
+	}, onExcept);
 }
 
 template<typename T>

@@ -231,7 +231,7 @@ void StorageEngine::clearAuthError()
 {
 	if(!currentAuthError.isNull()) {
 		currentAuthError.clear();
-		emit authenticationErrorChanged(currentAuthError);
+		emit authenticationErrorChanged({});
 	}
 }
 
