@@ -6,7 +6,7 @@ The following classes are "user classes". They are what you need to work with da
 - SyncController
 - AsyncDataStore
 - CachingDataStore
-- GenericTask (and Task)
+- GenericTask (and Task, UpdateTask)
 - WsAuthenticator (for the default remote connector)
 
 The other classes are "developer classes". They are interfaces, base classes and utilities you
@@ -14,6 +14,7 @@ need if you want to extend datasync:
 - LocalStore
 - StateHolder
 - DataMerger
+- Encryptor
 - RemoteConnector
 - Authenticator
 - Defaults
