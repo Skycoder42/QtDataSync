@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['invaliddataexception',['InvalidDataException',['../class_qt_data_sync_1_1_invalid_data_exception.html',1,'QtDataSync']]],
   ['invokeinfo',['InvokeInfo',['https://doc.qt.io/qt-5/qscxmlexecutablecontent-invokeinfo.html',0,'QScxmlExecutableContent']]],
   ['ipaging',['IPaging',['https://doc.qt.io/qt-5/class_qt_rest_client_1_1_i_paging.html',0,'QtRestClient']]],
   ['itemchangedata',['ItemChangeData',['https://doc.qt.io/qt-5/qquickitem-itemchangedata.html',0,'QQuickItem']]],

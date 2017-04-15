@@ -103,6 +103,13 @@
       <arglist>(int dataMetaTypeId, int listMetaTypeId, const QString &amp;query)</arglist>
     </member>
     <member kind="function">
+      <type>void</type>
+      <name>iterate</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>ab6b88b7d99b3bf149b286c8354a90aae</anchor>
+      <arglist>(int metaTypeId, const std::function&lt; bool(QVariant)&gt; &amp;iterator, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept)</arglist>
+    </member>
+    <member kind="function">
       <type>GenericTask&lt; int &gt;</type>
       <name>count</name>
       <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
@@ -165,6 +172,27 @@
       <anchor>a8ac2ebfa4ddb810e32884f591946e289</anchor>
       <arglist>(const QString &amp;query)</arglist>
     </member>
+    <member kind="function">
+      <type>void</type>
+      <name>iterate</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a357654518058d89e16716c2801c7db77</anchor>
+      <arglist>(const std::function&lt; bool(T)&gt; &amp;iterator, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept)</arglist>
+    </member>
+    <member kind="function">
+      <type>UpdateTask&lt; T &gt;</type>
+      <name>loadInto</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>a43e7a0f62c201b4f6b5ab5f4b896824f</anchor>
+      <arglist>(const QString &amp;key, const T &amp;object)</arglist>
+    </member>
+    <member kind="function">
+      <type>UpdateTask&lt; T &gt;</type>
+      <name>loadInto</name>
+      <anchorfile>class_qt_data_sync_1_1_async_data_store.html</anchorfile>
+      <anchor>abae7e96b69956b3f48e7c3a22d56329c</anchor>
+      <arglist>(const K &amp;key, const T &amp;object)</arglist>
+    </member>
   </compound>
   <compound kind="class">
     <name>QtDataSync::Authenticator</name>
@@ -177,12 +205,54 @@
       <anchor>a0285b6393d1ab342a8d06e26290e7a0d</anchor>
       <arglist>(QObject *parent=nullptr)</arglist>
     </member>
+    <member kind="function">
+      <type>void</type>
+      <name>exportUserData</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>a9916b6f6cae7e7bd224ed67463574c55</anchor>
+      <arglist>(QIODevice *device) const</arglist>
+    </member>
+    <member kind="function">
+      <type>QByteArray</type>
+      <name>exportUserData</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>af8647da30ee6f0040f03c78466c9d57b</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; void &gt;</type>
+      <name>importUserData</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>a2b718c736d7fe8ee049c3c6536aa5405</anchor>
+      <arglist>(QIODevice *device)</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; void &gt;</type>
+      <name>importUserData</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>ad263131492f6b91c1c93ab64a52f5788</anchor>
+      <arglist>(QByteArray data)</arglist>
+    </member>
     <member kind="function" protection="protected">
       <type>GenericTask&lt; void &gt;</type>
       <name>resetIdentity</name>
       <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
       <anchor>ae68958b352a21f9dd4b53764e6356588</anchor>
       <arglist>(const QVariant &amp;extraData={}, bool resetLocalStore=true)</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="pure">
+      <type>virtual void</type>
+      <name>exportUserDataImpl</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>af36a071d230e6dbfc5ea92739cdd0909</anchor>
+      <arglist>(QIODevice *device) const =0</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="pure">
+      <type>virtual GenericTask&lt; void &gt;</type>
+      <name>importUserDataImpl</name>
+      <anchorfile>class_qt_data_sync_1_1_authenticator.html</anchorfile>
+      <anchor>a19c88023ab077df56ae1b8da7f654bd8</anchor>
+      <arglist>(QIODevice *device)=0</arglist>
     </member>
     <member kind="function" protection="protected" virtualness="pure">
       <type>virtual RemoteConnector *</type>
@@ -261,12 +331,12 @@
       <anchor>ab5ac865e569e7a291d751ae428a49a27</anchor>
       <arglist>(const TKey &amp;key)</arglist>
     </member>
-    <member kind="function">
-      <type>TKey</type>
+    <member kind="function" static="yes">
+      <type>static TKey</type>
       <name>toKey</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_store.html</anchorfile>
-      <anchor>abbeaa9d26f9a992ecb297c61c5ae59fe</anchor>
-      <arglist>(const QString &amp;key) const</arglist>
+      <anchor>a985d636c97a6048e9fe45f5afa84288a</anchor>
+      <arglist>(const QString &amp;key)</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -338,12 +408,12 @@
       <anchor>a2a1c920ec9cef16d7100459a74ecbc44</anchor>
       <arglist>(const TKey &amp;key)</arglist>
     </member>
-    <member kind="function">
-      <type>TKey</type>
+    <member kind="function" static="yes">
+      <type>static TKey</type>
       <name>toKey</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
-      <anchor>a3e8c69ef61b59a04e063c74661f0107d</anchor>
-      <arglist>(const QString &amp;key) const</arglist>
+      <anchor>a40c8ce6b0354160b052ba3d016d7e53b</anchor>
+      <arglist>(const QString &amp;key)</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -654,6 +724,60 @@
     </member>
   </compound>
   <compound kind="class">
+    <name>QtDataSync::Encryptor</name>
+    <filename>class_qt_data_sync_1_1_encryptor.html</filename>
+    <base>QObject</base>
+    <member kind="function">
+      <type></type>
+      <name>Encryptor</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>a272e26a79ac97156a396afddb1767991</anchor>
+      <arglist>(QObject *parent=nullptr)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>initialize</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>a3fcc14363cf56972a12ed849af762605</anchor>
+      <arglist>(Defaults *defaults)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>finalize</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>af4fa51e6d73fc2c63b1368352be7b7fe</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual QByteArray</type>
+      <name>key</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>a2d67b863e2a93b993689ea0d068f7f19</anchor>
+      <arglist>() const =0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual void</type>
+      <name>setKey</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>ade8df7572f25f4bb9dc526cbaf1d9ed3</anchor>
+      <arglist>(const QByteArray &amp;key)=0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual QJsonValue</type>
+      <name>encrypt</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>ad7547f51fccc43618fd588cabd9e9f2f</anchor>
+      <arglist>(const ObjectKey &amp;key, const QJsonObject &amp;object, const QByteArray &amp;keyProperty) const =0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual QJsonObject</type>
+      <name>decrypt</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>ae49b258e051814ed18c92613adb1e0c9</anchor>
+      <arglist>(const ObjectKey &amp;key, const QJsonValue &amp;data, const QByteArray &amp;keyProperty) const =0</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
     <name>QtDataSync::GenericTask</name>
     <filename>class_qt_data_sync_1_1_generic_task.html</filename>
     <templarg>T</templarg>
@@ -711,6 +835,39 @@
       <anchorfile>class_qt_data_sync_1_1_generic_task_3_01void_01_4.html</anchorfile>
       <anchor>a41941c54f3ecc1ff5d6efb60dc501e1f</anchor>
       <arglist>(const std::function&lt; void()&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>QtDataSync::InvalidDataException</name>
+    <filename>class_qt_data_sync_1_1_invalid_data_exception.html</filename>
+    <base>QException</base>
+    <member kind="function">
+      <type></type>
+      <name>InvalidDataException</name>
+      <anchorfile>class_qt_data_sync_1_1_invalid_data_exception.html</anchorfile>
+      <anchor>af4ae33274d747d3513670f5d283497b1</anchor>
+      <arglist>(const QString &amp;what)</arglist>
+    </member>
+    <member kind="function">
+      <type>const char *</type>
+      <name>what</name>
+      <anchorfile>class_qt_data_sync_1_1_invalid_data_exception.html</anchorfile>
+      <anchor>afe0d5f16ae2f105b57d2980aadf4d261</anchor>
+      <arglist>() const noexcept final</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>raise</name>
+      <anchorfile>class_qt_data_sync_1_1_invalid_data_exception.html</anchorfile>
+      <anchor>aaaa16a919e7e4184669ba912e5071089</anchor>
+      <arglist>() const final</arglist>
+    </member>
+    <member kind="function">
+      <type>QException *</type>
+      <name>clone</name>
+      <anchorfile>class_qt_data_sync_1_1_invalid_data_exception.html</anchorfile>
+      <anchor>a18b669732061e4bfce73b122fb91c660</anchor>
+      <arglist>() const final</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -972,8 +1129,8 @@
       <type>virtual void</type>
       <name>initialize</name>
       <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
-      <anchor>aa0f54ed1416ec76104a7a7917f5658a3</anchor>
-      <arglist>(Defaults *defaults)</arglist>
+      <anchor>a3ce294ce77e422647f5e0f032db4cbc8</anchor>
+      <arglist>(Defaults *defaults, Encryptor *cryptor)</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
@@ -981,6 +1138,13 @@
       <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
       <anchor>ac6b58fc434014f1d816e7cb79c82ed2b</anchor>
       <arglist>()</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual Encryptor *</type>
+      <name>cryptor</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a47e47369c5e3e5379bff90d438ee47b3</anchor>
+      <arglist>() const</arglist>
     </member>
     <member kind="function" virtualness="pure">
       <type>virtual Authenticator *</type>
@@ -1071,6 +1235,13 @@
       <arglist>() const</arglist>
     </member>
     <member kind="function">
+      <type>Encryptor *</type>
+      <name>encryptor</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a58dbf8669d56e76e2a9205507190a7b8</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
       <type>QVariant</type>
       <name>property</name>
       <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
@@ -1118,6 +1289,20 @@
       <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
       <anchor>a098d2bf92aeb228bc267ae894aae33d3</anchor>
       <arglist>(DataMerger *dataMerger)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setEncryptor</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>ad2c1195ebadcbd6e0d1b1b0810208a06</anchor>
+      <arglist>(Encryptor *encryptor)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>unsetEncryptor</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>af57c388b83ed2bd7c192bc3f16f73716</anchor>
+      <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>Setup &amp;</type>
@@ -1548,6 +1733,40 @@
     </member>
   </compound>
   <compound kind="class">
+    <name>QtDataSync::UpdateTask</name>
+    <filename>class_qt_data_sync_1_1_update_task.html</filename>
+    <templarg>T</templarg>
+    <base>QtDataSync::Task</base>
+    <member kind="function">
+      <type></type>
+      <name>UpdateTask</name>
+      <anchorfile>class_qt_data_sync_1_1_update_task.html</anchorfile>
+      <anchor>a81147e9fd853bac756a6e6df38de2027</anchor>
+      <arglist>(T data, QFutureInterface&lt; QVariant &gt; d={})</arglist>
+    </member>
+    <member kind="function">
+      <type>UpdateTask&lt; T &gt; &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_update_task.html</anchorfile>
+      <anchor>a87734db965f1049e95e5b00b4f05a63d</anchor>
+      <arglist>(QObject *parent, const std::function&lt; void(T)&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+    <member kind="function">
+      <type>UpdateTask&lt; T &gt; &amp;</type>
+      <name>onResult</name>
+      <anchorfile>class_qt_data_sync_1_1_update_task.html</anchorfile>
+      <anchor>aedac17bf0a2fb6f1277f777760f51a82</anchor>
+      <arglist>(const std::function&lt; void(T)&gt; &amp;onSuccess, const std::function&lt; void(const QException &amp;)&gt; &amp;onExcept={})</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
+      <name>result</name>
+      <anchorfile>class_qt_data_sync_1_1_update_task.html</anchorfile>
+      <anchor>a48f7697639ede93e782e658a507b98da</anchor>
+      <arglist>() const</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
     <name>QtDataSync::WsAuthenticator</name>
     <filename>class_qt_data_sync_1_1_ws_authenticator.html</filename>
     <base>QtDataSync::Authenticator</base>
@@ -1627,6 +1846,20 @@
       <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
       <anchor>ae4ae918958b753ce6230b515ee262f25</anchor>
       <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>exportUserDataImpl</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a1cc2305077ddcf2188ce1b2310826384</anchor>
+      <arglist>(QIODevice *device) const override</arglist>
+    </member>
+    <member kind="function">
+      <type>GenericTask&lt; void &gt;</type>
+      <name>importUserDataImpl</name>
+      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
+      <anchor>a9b84c9394105047cca4ab271483fc2b2</anchor>
+      <arglist>(QIODevice *device) override</arglist>
     </member>
     <member kind="function">
       <type>bool</type>
@@ -1745,8 +1978,10 @@
     <class kind="class">QtDataSync::DataMerger</class>
     <class kind="class">QtDataSync::DataSyncException</class>
     <class kind="class">QtDataSync::Defaults</class>
+    <class kind="class">QtDataSync::Encryptor</class>
     <class kind="class">QtDataSync::GenericTask</class>
     <class kind="class">QtDataSync::GenericTask&lt; void &gt;</class>
+    <class kind="class">QtDataSync::InvalidDataException</class>
     <class kind="class">QtDataSync::LocalStore</class>
     <class kind="class">QtDataSync::RemoteConnector</class>
     <class kind="class">QtDataSync::Setup</class>
@@ -1756,6 +1991,7 @@
     <class kind="class">QtDataSync::StateHolder</class>
     <class kind="class">QtDataSync::SyncController</class>
     <class kind="class">QtDataSync::Task</class>
+    <class kind="class">QtDataSync::UpdateTask</class>
     <class kind="class">QtDataSync::WsAuthenticator</class>
     <member kind="typedef">
       <type>QPair&lt; QByteArray, QString &gt;</type>

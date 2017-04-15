@@ -7,5 +7,6 @@ var searchData=
   ['updatecontroller',['UpdateController',['https://doc.qt.io/qt-5/class_qt_auto_updater_1_1_update_controller.html',0,'QtAutoUpdater']]],
   ['updateinfo',['UpdateInfo',['https://doc.qt.io/qt-5/struct_qt_auto_updater_1_1_updater_1_1_update_info.html',0,'QtAutoUpdater::Updater']]],
   ['updatepaintnodedata',['UpdatePaintNodeData',['https://doc.qt.io/qt-5/qquickitem-updatepaintnodedata.html',0,'QQuickItem']]],
-  ['updater',['Updater',['https://doc.qt.io/qt-5/class_qt_auto_updater_1_1_updater.html',0,'QtAutoUpdater']]]
+  ['updater',['Updater',['https://doc.qt.io/qt-5/class_qt_auto_updater_1_1_updater.html',0,'QtAutoUpdater']]],
+  ['updatetask',['UpdateTask',['../class_qt_data_sync_1_1_update_task.html',1,'QtDataSync']]]
 ];

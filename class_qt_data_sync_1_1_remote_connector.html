@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">2.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -161,14 +161,18 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#ad0fe0a90d7c3ecb9ca875cae551f92b8">RemoteConnector</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html">QObject</a> *<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#parent">parent</a>=nullptr)</td></tr>
 <tr class="memdesc:ad0fe0a90d7c3ecb9ca875cae551f92b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
 <tr class="separator:ad0fe0a90d7c3ecb9ca875cae551f92b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0f54ed1416ec76104a7a7917f5658a3"><td class="memItemLeft" align="right" valign="top"><a id="aa0f54ed1416ec76104a7a7917f5658a3"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#aa0f54ed1416ec76104a7a7917f5658a3">initialize</a> (<a class="el" href="class_qt_data_sync_1_1_defaults.html">Defaults</a> *<a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a14f598e34ef4d8d702b3b224189ad318">defaults</a>)</td></tr>
-<tr class="memdesc:aa0f54ed1416ec76104a7a7917f5658a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called from the engine to initialize the connector. <br /></td></tr>
-<tr class="separator:aa0f54ed1416ec76104a7a7917f5658a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ce294ce77e422647f5e0f032db4cbc8"><td class="memItemLeft" align="right" valign="top"><a id="a3ce294ce77e422647f5e0f032db4cbc8"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a3ce294ce77e422647f5e0f032db4cbc8">initialize</a> (<a class="el" href="class_qt_data_sync_1_1_defaults.html">Defaults</a> *<a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a14f598e34ef4d8d702b3b224189ad318">defaults</a>, <a class="el" href="class_qt_data_sync_1_1_encryptor.html">Encryptor</a> *<a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3">cryptor</a>)</td></tr>
+<tr class="memdesc:a3ce294ce77e422647f5e0f032db4cbc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called from the engine to initialize the connector. <br /></td></tr>
+<tr class="separator:a3ce294ce77e422647f5e0f032db4cbc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6b58fc434014f1d816e7cb79c82ed2b"><td class="memItemLeft" align="right" valign="top"><a id="ac6b58fc434014f1d816e7cb79c82ed2b"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#ac6b58fc434014f1d816e7cb79c82ed2b">finalize</a> ()</td></tr>
 <tr class="memdesc:ac6b58fc434014f1d816e7cb79c82ed2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called from the engine to finalize the connector. <br /></td></tr>
 <tr class="separator:ac6b58fc434014f1d816e7cb79c82ed2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47e47369c5e3e5379bff90d438ee47b3"><td class="memItemLeft" align="right" valign="top"><a id="a47e47369c5e3e5379bff90d438ee47b3"></a>
+virtual <a class="el" href="class_qt_data_sync_1_1_encryptor.html">Encryptor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3">cryptor</a> () const</td></tr>
+<tr class="memdesc:a47e47369c5e3e5379bff90d438ee47b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the encryptor this connector uses (can be nullptr) <br /></td></tr>
+<tr class="separator:a47e47369c5e3e5379bff90d438ee47b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a935f33edd15660d94c62b613479ccb32"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="class_qt_data_sync_1_1_authenticator.html">Authenticator</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a935f33edd15660d94c62b613479ccb32">createAuthenticator</a> (<a class="el" href="class_qt_data_sync_1_1_defaults.html">Defaults</a> *<a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a14f598e34ef4d8d702b3b224189ad318">defaults</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html">QObject</a> *<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#parent">parent</a>)=0</td></tr>
 <tr class="memdesc:a935f33edd15660d94c62b613479ccb32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to create an authenticator for this connector.  <a href="#a935f33edd15660d94c62b613479ccb32">More...</a><br /></td></tr>
 <tr class="separator:a935f33edd15660d94c62b613479ccb32"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -366,10 +370,10 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 <div class="textblock"><p>The class responsible for data exchange with a remote server. </p>
 <p>The remote connector is the part of datasync that communicates with a remote server to exchange data between local and remote, as well as loading the remotes state and receiving updates on state changes.</p>
 <p>If you want to use a custom server implementation, all you need to do is implement this interface. Please read this documentation carefully, in order implement it correctly! If you are unsure about methods, you can check the WsRemoteConnector implementation on github. It's the default implementation that connects to a qdatasyncserver via websockets.</p>
-<dl class="section attention"><dt>Attention</dt><dd>The remote connector is constructed on the main thread, and then later moved to the datasync instance thread. The <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#aa0f54ed1416ec76104a7a7917f5658a3" title="Called from the engine to initialize the connector. ">initialize()</a> function is the first to be called after changing the thread. You should do nothing in the constructor, and all the initialization inside of that function, to ensure a fast and smooth usage.</dd></dl>
+<dl class="section attention"><dt>Attention</dt><dd>The remote connector is constructed on the main thread, and then later moved to the datasync instance thread. The <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a3ce294ce77e422647f5e0f032db4cbc8" title="Called from the engine to initialize the connector. ">initialize()</a> function is the first to be called after changing the thread. You should do nothing in the constructor, and all the initialization inside of that function, to ensure a fast and smooth usage.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_setup.html#a4be2df29b03483f3eeb6a531b61fea02" title="Sets the setups remote connector implementation. ">Setup::setRemoteConnector</a>, <a class="el" href="class_qt_data_sync_1_1_setup.html#a22983c887cc586dc04ead7f53333b122" title="Returns the setups remote connector implementation. ">Setup::remoteConnector</a>, <a class="el" href="class_qt_data_sync_1_1_authenticator.html" title="The base class for all authenticator objects. ">Authenticator</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="remoteconnector_8h_source.html#l00019">19</a> of file <a class="el" href="remoteconnector_8h_source.html">remoteconnector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="remoteconnector_8h_source.html#l00021">21</a> of file <a class="el" href="remoteconnector_8h_source.html">remoteconnector.h</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a3559486872598c62e9cf7dafe0d393a2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3559486872598c62e9cf7dafe0d393a2">&#9670;&nbsp;</a></span>RemoteState</h2>
@@ -393,7 +397,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="remoteconnector_8h_source.html#l00025">25</a> of file <a class="el" href="remoteconnector_8h_source.html">remoteconnector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="remoteconnector_8h_source.html#l00027">27</a> of file <a class="el" href="remoteconnector_8h_source.html">remoteconnector.h</a>.</p>
 
 </div>
 </div>
@@ -556,9 +560,10 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
   </dd>
 </dl>
 <p>The key property can be used if your server does not save "key-value" pairs, but instead only the object. Since the object already contains the key (as the keyProperty property), you can simply check the value of that property as the key. You do not have to use this property, but you can. One example would be a document store.</p>
+<dl class="section attention"><dt>Attention</dt><dd>If <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" title="Returns the encryptor this connector uses (can be nullptr) ">cryptor()</a> is valid, you should use the encryptor to decrypt the received data. Of course that is only if your implementation encrypts data as well.</dd></dl>
 <p>The result of this operation must be reported by calling <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">operationDone()</a>. The result parameter must be the downloaded json object, passed via the json value.</p>
 <p>If your operation fails, emit <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">operationFailed()</a> with an error message.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">RemoteConnector::operationDone</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">RemoteConnector::operationFailed</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">RemoteConnector::operationDone</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">RemoteConnector::operationFailed</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" title="Returns the encryptor this connector uses (can be nullptr) ">RemoteConnector::cryptor</a>, <a class="el" href="class_qt_data_sync_1_1_encryptor.html#ad7547f51fccc43618fd588cabd9e9f2f" title="Encrypts the given dataset. ">Encryptor::encrypt</a> </dd></dl>
 
 </div>
 </div>
@@ -674,7 +679,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 
 <p>Is called if the remote state should be reloaded. </p>
 <p>Typically, you should receive changes from your remote implicitly when connected, or periodically check for changes. However, a user may decide to "sync know". For this and other internal use cases, this method is called. You should simply check your remote for changes of their state.</p>
-<dl class="section note"><dt>Note</dt><dd>This method is <em>not</em> called after initializing the connector. If your connector can connect to a remote after starting, you should automatically check for changes from the <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#aa0f54ed1416ec76104a7a7917f5658a3" title="Called from the engine to initialize the connector. ">initialize()</a> method.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This method is <em>not</em> called after initializing the connector. If your connector can connect to a remote after starting, you should automatically check for changes from the <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a3ce294ce77e422647f5e0f032db4cbc8" title="Called from the engine to initialize the connector. ">initialize()</a> method.</dd></dl>
 <p>Use <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#afe345a17622575df73502e45669a0daf" title="Must be emitted every time the connectors state has changed. ">remoteStateChanged()</a> to update the connectors state while checking for changes.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#afe345a17622575df73502e45669a0daf" title="Must be emitted every time the connectors state has changed. ">RemoteConnector::remoteStateChanged</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a4eac3fa1b69df4ebbac42e8d1605abfd" title="Is called to start a resync operation. ">RemoteConnector::requestResync</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a6a7d0304591d016eca56a6d6252c5390" title="Can be emitted to notify datasync that a dataset on the remote server changed it&#39;s state...">RemoteConnector::remoteDataChanged</a>, <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a0f665658f06f52ff71e039f6159de2fa" title="Tells the datasync instance to start synchronizing. ">SyncController::triggerSync</a> </dd></dl>
 
@@ -948,7 +953,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 <p>Is internally used to reset the current user identity. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a12b995ed3715eadf330b8a2618db8049" title="Is called to reset the user data and update them. ">RemoteConnector::resetUserData</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="remoteconnector_8cpp_source.html#l00032">32</a> of file <a class="el" href="remoteconnector_8cpp_source.html">remoteconnector.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="remoteconnector_8cpp_source.html#l00039">39</a> of file <a class="el" href="remoteconnector_8cpp_source.html">remoteconnector.cpp</a>.</p>
 
 </div>
 </div>
@@ -1002,10 +1007,11 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
   </dd>
 </dl>
 <p>The key property can be used if your store does not save "key-value" pairs, but instead only the object. Since the object already contains the key (as the keyProperty property), you can simply save the object only, and use the key property for indexing etc. One example would be a document store.</p>
+<dl class="section attention"><dt>Attention</dt><dd>If <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" title="Returns the encryptor this connector uses (can be nullptr) ">cryptor()</a> is valid, you should use the encryptor to encrypt the <code>object</code> before sending it to the server</dd></dl>
 <p>The result of this operation must be reported by calling <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">operationDone()</a>. The result parameter is ignored, you can set it to QJsonValue::Undefined.</p>
 <p>If your operation fails, emit <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">operationFailed()</a> with an error message.</p>
 <dl class="section note"><dt>Note</dt><dd>Performing an upload operation must implicitly mark this dataset as unchanged for this client. The server should implicitly do the same as for a <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a1b104e733a49613a24ba94b1b9a0c4ce" title="Start a &quot;mark as unchanged&quot; operation for the given type and key. ">markUnchanged()</a> operation after uploading.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">RemoteConnector::operationDone</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">RemoteConnector::operationFailed</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a1b104e733a49613a24ba94b1b9a0c4ce" title="Start a &quot;mark as unchanged&quot; operation for the given type and key. ">RemoteConnector::markUnchanged</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">RemoteConnector::operationDone</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">RemoteConnector::operationFailed</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a1b104e733a49613a24ba94b1b9a0c4ce" title="Start a &quot;mark as unchanged&quot; operation for the given type and key. ">RemoteConnector::markUnchanged</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" title="Returns the encryptor this connector uses (can be nullptr) ">RemoteConnector::cryptor</a>, <a class="el" href="class_qt_data_sync_1_1_encryptor.html#ad7547f51fccc43618fd588cabd9e9f2f" title="Encrypts the given dataset. ">Encryptor::encrypt</a> </dd></dl>
 
 </div>
 </div>
@@ -1017,7 +1023,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 7 2017 15:32:55 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

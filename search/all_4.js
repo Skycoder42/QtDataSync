@@ -60,6 +60,7 @@ var searchData=
   ['decomposition',['decomposition',['https://doc.qt.io/qt-5/qchar.html#decomposition',0,'QChar::decomposition() const'],['https://doc.qt.io/qt-5/qchar.html#decomposition-1',0,'QChar::decomposition(uint ucs4)']]],
   ['decompositiontag',['decompositionTag',['https://doc.qt.io/qt-5/qchar.html#decompositionTag',0,'QChar::decompositionTag() const'],['https://doc.qt.io/qt-5/qchar.html#decompositionTag-1',0,'QChar::decompositionTag(uint ucs4)']]],
   ['decreaseaction',['decreaseAction',['https://doc.qt.io/qt-5/qaccessibleactioninterface.html#decreaseAction',0,'QAccessibleActionInterface']]],
+  ['decrypt',['decrypt',['../class_qt_data_sync_1_1_encryptor.html#ae49b258e051814ed18c92613adb1e0c9',1,'QtDataSync::Encryptor']]],
   ['default',['default',['https://doc.qt.io/qt-5/qpushbutton.html#default-prop',0,'QPushButton']]],
   ['defaultaction',['defaultAction',['https://doc.qt.io/qt-5/qmenu.html#defaultAction',0,'QMenu::defaultAction()'],['https://doc.qt.io/qt-5/qtoolbutton.html#defaultAction',0,'QToolButton::defaultAction()'],['https://doc.qt.io/qt-5/qdrag.html#defaultAction',0,'QDrag::defaultAction()']]],
   ['defaultalignment',['defaultAlignment',['https://doc.qt.io/qt-5/qheaderview.html#defaultAlignment-prop',0,'QHeaderView::defaultAlignment()'],['https://doc.qt.io/qt-5/qheaderview.html#defaultAlignment-prop',0,'QHeaderView::defaultAlignment() const']]],

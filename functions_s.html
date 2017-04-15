@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">2.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -92,6 +92,12 @@ $(function() {
 <li>setDataMerger()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a098d2bf92aeb228bc267ae894aae33d3">QtDataSync::Setup</a>
 </li>
+<li>setEncryptor()
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#ad2c1195ebadcbd6e0d1b1b0810208a06">QtDataSync::Setup</a>
+</li>
+<li>setKey()
+: <a class="el" href="class_qt_data_sync_1_1_encryptor.html#ade8df7572f25f4bb9dc526cbaf1d9ed3">QtDataSync::Encryptor</a>
+</li>
 <li>setLocalDir()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a7ab1fcea61e97d1d3fd03acc9d733f8b">QtDataSync::Setup</a>
 </li>
@@ -132,7 +138,7 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a0921e54e5a0200af117192e4c0c845b7">QtDataSync::Setup</a>
 </li>
 <li>SetupException()
-: <a class="el" href="class_qt_data_sync_1_1_setup_exception.html#af9444a5b060224172388f838c7607565">QtDataSync::SetupException</a>
+: <a class="el" href="class_qt_data_sync_1_1_setup_exception.html#a8ad6b9015050879d5187d27e79b37943">QtDataSync::SetupException</a>
 </li>
 <li>SetupExistsException()
 : <a class="el" href="class_qt_data_sync_1_1_setup_exists_exception.html#a0c88c2dd44044cde04052118c5e7132e">QtDataSync::SetupExistsException</a>
@@ -173,17 +179,11 @@ $(function() {
 <li>syncOperationsChanged()
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a2e9e24650057ba15064fcbb4fcdd0020">QtDataSync::SyncController</a>
 </li>
-<li>syncPolicy
-: <a class="el" href="class_qt_data_sync_1_1_data_merger.html#a0dc4627679825189c6cdecc3c560fc6a">QtDataSync::DataMerger</a>
-</li>
 <li>SyncPolicy
 : <a class="el" href="class_qt_data_sync_1_1_data_merger.html#ab91bd94e1d261c06ac0d56feb7174f0c">QtDataSync::DataMerger</a>
 </li>
 <li>syncPolicy()
 : <a class="el" href="class_qt_data_sync_1_1_data_merger.html#a81cb97bcb57cbf6db12de7937f041683">QtDataSync::DataMerger</a>
-</li>
-<li>syncState()
-: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a800cec3c4f5c3ac58600f0011271a1a0">QtDataSync::SyncController</a>
 </li>
 <li>SyncState
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#af5fc5102475cdfa66405035c4ce6cfd3">QtDataSync::SyncController</a>
@@ -198,7 +198,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 7 2017 15:32:55 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

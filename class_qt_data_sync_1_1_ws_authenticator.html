@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">2.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -149,6 +149,12 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#ae4ae918958b753ce6230b515ee262f25">~WsAuthenticator</a> ()</td></tr>
 <tr class="memdesc:ae4ae918958b753ce6230b515ee262f25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor. <br /></td></tr>
 <tr class="separator:ae4ae918958b753ce6230b515ee262f25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cc2305077ddcf2188ce1b2310826384"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a1cc2305077ddcf2188ce1b2310826384">exportUserDataImpl</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qiodevice.html">QIODevice</a> *device) const override</td></tr>
+<tr class="memdesc:a1cc2305077ddcf2188ce1b2310826384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements the user data export.  <a href="#a1cc2305077ddcf2188ce1b2310826384">More...</a><br /></td></tr>
+<tr class="separator:a1cc2305077ddcf2188ce1b2310826384"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b84c9394105047cca4ab271483fc2b2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_generic_task.html">GenericTask</a>&lt; void &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a9b84c9394105047cca4ab271483fc2b2">importUserDataImpl</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qiodevice.html">QIODevice</a> *device) override</td></tr>
+<tr class="memdesc:a9b84c9394105047cca4ab271483fc2b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements the user data import.  <a href="#a9b84c9394105047cca4ab271483fc2b2">More...</a><br /></td></tr>
+<tr class="separator:a9b84c9394105047cca4ab271483fc2b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b53b7d7a035ae5cc999732ed3f9196e"><td class="memItemLeft" align="right" valign="top"><a id="a9b53b7d7a035ae5cc999732ed3f9196e"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e">isRemoteEnabled</a> () const</td></tr>
 <tr class="memdesc:a9b53b7d7a035ae5cc999732ed3f9196e"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#ac722009048eba930588437b41e0ff2af" title="Enable or disable the remote connection without loosing connection data. ">WsAuthenticator::remoteEnabled</a>. <br /></td></tr>
@@ -182,6 +188,22 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_authenticator.html#a0285b6393d1ab342a8d06e26290e7a0d">Authenticator</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html">QObject</a> *<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#parent">parent</a>=nullptr)</td></tr>
 <tr class="memdesc:a0285b6393d1ab342a8d06e26290e7a0d inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
 <tr class="separator:a0285b6393d1ab342a8d06e26290e7a0d inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9916b6f6cae7e7bd224ed67463574c55 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memItemLeft" align="right" valign="top"><a id="a9916b6f6cae7e7bd224ed67463574c55"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_authenticator.html#a9916b6f6cae7e7bd224ed67463574c55">exportUserData</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qiodevice.html">QIODevice</a> *device) const</td></tr>
+<tr class="memdesc:a9916b6f6cae7e7bd224ed67463574c55 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="mdescLeft">&#160;</td><td class="mdescRight">Export all user-related remote data to the given device. <br /></td></tr>
+<tr class="separator:a9916b6f6cae7e7bd224ed67463574c55 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8647da30ee6f0040f03c78466c9d57b inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memItemLeft" align="right" valign="top"><a id="af8647da30ee6f0040f03c78466c9d57b"></a>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_authenticator.html#af8647da30ee6f0040f03c78466c9d57b">exportUserData</a> () const</td></tr>
+<tr class="memdesc:af8647da30ee6f0040f03c78466c9d57b inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="mdescLeft">&#160;</td><td class="mdescRight">Export all user-related remote data. <br /></td></tr>
+<tr class="separator:af8647da30ee6f0040f03c78466c9d57b inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b718c736d7fe8ee049c3c6536aa5405 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memItemLeft" align="right" valign="top"><a id="a2b718c736d7fe8ee049c3c6536aa5405"></a>
+<a class="el" href="class_qt_data_sync_1_1_generic_task.html">GenericTask</a>&lt; void &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_authenticator.html#a2b718c736d7fe8ee049c3c6536aa5405">importUserData</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qiodevice.html">QIODevice</a> *device)</td></tr>
+<tr class="memdesc:a2b718c736d7fe8ee049c3c6536aa5405 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="mdescLeft">&#160;</td><td class="mdescRight">Import user-related remote data from the given device. <br /></td></tr>
+<tr class="separator:a2b718c736d7fe8ee049c3c6536aa5405 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad263131492f6b91c1c93ab64a52f5788 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memItemLeft" align="right" valign="top"><a id="ad263131492f6b91c1c93ab64a52f5788"></a>
+<a class="el" href="class_qt_data_sync_1_1_generic_task.html">GenericTask</a>&lt; void &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_authenticator.html#ad263131492f6b91c1c93ab64a52f5788">importUserData</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> data)</td></tr>
+<tr class="memdesc:ad263131492f6b91c1c93ab64a52f5788 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="mdescLeft">&#160;</td><td class="mdescRight">Import user-related remote data. <br /></td></tr>
+<tr class="separator:ad263131492f6b91c1c93ab64a52f5788 inherit pub_methods_class_qt_data_sync_1_1_authenticator"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_qobject"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_qobject')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="target="_blank" https://doc.qt.io/qt-5/qobject.html">QObject</a></td></tr>
 <tr class="memitem:QObject inherit pub_methods_qobject"><td class="memItemLeft" align="right" valign="top"><a id="QObject"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#QObject">QObject</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html">QObject</a> *<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#parent">parent</a>)</td></tr>
@@ -399,7 +421,91 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_setup.html#a4c5dcbec665734303d83782f7854f4b7" title="Creates a new authenticator for the remote connector of the given setup. ">Setup::authenticatorForSetup</a> </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="wsauthenticator_8h_source.html#l00018">18</a> of file <a class="el" href="wsauthenticator_8h_source.html">wsauthenticator.h</a>.</p>
-</div><h2 class="groupheader">Property Documentation</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a1cc2305077ddcf2188ce1b2310826384"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cc2305077ddcf2188ce1b2310826384">&#9670;&nbsp;</a></span>exportUserDataImpl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void WsAuthenticator::exportUserDataImpl </td>
+          <td>(</td>
+          <td class="paramtype"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qiodevice.html">QIODevice</a> *&#160;</td>
+          <td class="paramname"><em>device</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements the user data export. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">device</td><td>The device to write the exported data to</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>This method should export all of a users "identity" data. This includes all the keys, ids and more that are needed to properly synchronize and identify. it's internally called by <a class="el" href="class_qt_data_sync_1_1_authenticator.html#a9916b6f6cae7e7bd224ed67463574c55" title="Export all user-related remote data to the given device. ">exportUserData()</a>.</p>
+<p>It must be possible to login the user on a different device by exporting data with this method and importing it with <a class="el" href="class_qt_data_sync_1_1_authenticator.html#a2b718c736d7fe8ee049c3c6536aa5405" title="Import user-related remote data from the given device. ">importUserData()</a>. No additional information should be required. (The only exption beeing a "password". It's up to your implemetation If you want to export passwords too, or require the user to provide it)</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_authenticator.html#a9916b6f6cae7e7bd224ed67463574c55" title="Export all user-related remote data to the given device. ">Authenticator::exportUserData</a>, <a class="el" href="class_qt_data_sync_1_1_authenticator.html#a19c88023ab077df56ae1b8da7f654bd8" title="Implements the user data import. ">Authenticator::importUserDataImpl</a> </dd></dl>
+
+<p>Implements <a class="el" href="class_qt_data_sync_1_1_authenticator.html#af36a071d230e6dbfc5ea92739cdd0909">QtDataSync::Authenticator</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="wsauthenticator_8cpp_source.html#l00023">23</a> of file <a class="el" href="wsauthenticator_8cpp_source.html">wsauthenticator.cpp</a>.</p>
+
+</div>
+</div>
+<a id="a9b84c9394105047cca4ab271483fc2b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b84c9394105047cca4ab271483fc2b2">&#9670;&nbsp;</a></span>importUserDataImpl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_qt_data_sync_1_1_generic_task.html">GenericTask</a>&lt; void &gt; WsAuthenticator::importUserDataImpl </td>
+          <td>(</td>
+          <td class="paramtype"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qiodevice.html">QIODevice</a> *&#160;</td>
+          <td class="paramname"><em>device</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements the user data import. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">device</td><td>The device to read the data to import from </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A task to wait on for the completition of the import</dd></dl>
+<p>This method should import all of a users "identity" data from the given device, that was previously exported by <a class="el" href="class_qt_data_sync_1_1_authenticator.html#a9916b6f6cae7e7bd224ed67463574c55" title="Export all user-related remote data to the given device. ">exportUserData()</a>. it's internally called by <a class="el" href="class_qt_data_sync_1_1_authenticator.html#a2b718c736d7fe8ee049c3c6536aa5405" title="Import user-related remote data from the given device. ">importUserData()</a>.</p>
+<p>It must be possible to login the user on a different device by exporting data and importing it on the device with this methods. No additional information should be required. (The only exption beeing a "password". It's up to your implemetation If you want to export passwords too, or require the user to provide it)</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_authenticator.html#a2b718c736d7fe8ee049c3c6536aa5405" title="Import user-related remote data from the given device. ">Authenticator::importUserData</a>, <a class="el" href="class_qt_data_sync_1_1_authenticator.html#af36a071d230e6dbfc5ea92739cdd0909" title="Implements the user data export. ">Authenticator::exportUserDataImpl</a> </dd></dl>
+
+<p>Implements <a class="el" href="class_qt_data_sync_1_1_authenticator.html#a19c88023ab077df56ae1b8da7f654bd8">QtDataSync::Authenticator</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="wsauthenticator_8cpp_source.html#l00032">32</a> of file <a class="el" href="wsauthenticator_8cpp_source.html">wsauthenticator.cpp</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Property Documentation</h2>
 <a id="a7b8c14e79d93e81950faf69ba089e40b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7b8c14e79d93e81950faf69ba089e40b">&#9670;&nbsp;</a></span>connected</h2>
 
@@ -683,7 +789,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 7 2017 15:32:55 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

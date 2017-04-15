@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <QtHelpProject version="1.0">
-  <namespace>de.skycoder42.qtdatasync.110</namespace>
+  <namespace>de.skycoder42.qtdatasync.200</namespace>
   <virtualFolder>doc_qtdatasync</virtualFolder>
-  <customFilter name="DataSync 1.1.0">
+  <customFilter name="DataSync 2.0.0">
     <filterAttribute>qtdatasync</filterAttribute>
-    <filterAttribute>1.1.0</filterAttribute>
+    <filterAttribute>2.0.0</filterAttribute>
   </customFilter>
   <filterSection>
     <filterAttribute>doxygen</filterAttribute>
     <toc>
-      <section title="QtDataSync 1.1.0" ref="index.html">
+      <section title="QtDataSync 2.0.0" ref="index.html">
         <section title="Features" ref="index.html#qtdatasync_readme_label_0" />
         <section title="Requirements" ref="index.html#qtdatasync_readme_label_1" />
         <section title="Download/Installation" ref="index.html#qtdatasync_readme_label_2">
@@ -66,6 +66,8 @@
                 <section title="count" ref="class_qt_data_sync_1_1_async_data_store.html#a00c2954d4e1f020b7d6362e68a3770d4" />
                 <section title="dataChanged" ref="class_qt_data_sync_1_1_async_data_store.html#a2f54bca99ceb7c47c32ceadce44639d2" />
                 <section title="dataResetted" ref="class_qt_data_sync_1_1_async_data_store.html#a5e8c0a34af0fa5068edc1bf95e72e7ec" />
+                <section title="iterate" ref="class_qt_data_sync_1_1_async_data_store.html#ab6b88b7d99b3bf149b286c8354a90aae" />
+                <section title="iterate" ref="class_qt_data_sync_1_1_async_data_store.html#a357654518058d89e16716c2801c7db77" />
                 <section title="keys" ref="class_qt_data_sync_1_1_async_data_store.html#a8b8f1d5e3d89473ac257fd1ce4489aca" />
                 <section title="keys" ref="class_qt_data_sync_1_1_async_data_store.html#aa52be89d45f89e7c80a20fc3e9d8da65" />
                 <section title="load" ref="class_qt_data_sync_1_1_async_data_store.html#a31c5c53361cbf4639b35523a796b7177" />
@@ -74,6 +76,8 @@
                 <section title="load" ref="class_qt_data_sync_1_1_async_data_store.html#a9a872616c949df9d3cd0e73536767fea" />
                 <section title="loadAll" ref="class_qt_data_sync_1_1_async_data_store.html#a1c8d1b87f7d3e08d7f27197bb52f2bbe" />
                 <section title="loadAll" ref="class_qt_data_sync_1_1_async_data_store.html#a23c0b86dd6c5102368340c5fae0ce757" />
+                <section title="loadInto" ref="class_qt_data_sync_1_1_async_data_store.html#a43e7a0f62c201b4f6b5ab5f4b896824f" />
+                <section title="loadInto" ref="class_qt_data_sync_1_1_async_data_store.html#abae7e96b69956b3f48e7c3a22d56329c" />
                 <section title="remove" ref="class_qt_data_sync_1_1_async_data_store.html#a96362861598db35dca2fe54cc2fa1c87" />
                 <section title="remove" ref="class_qt_data_sync_1_1_async_data_store.html#a49b0afb961428a70e7d9f804c53ebe6a" />
                 <section title="remove" ref="class_qt_data_sync_1_1_async_data_store.html#a90bb5494b3bad0d6c531369515d8f646" />
@@ -86,6 +90,12 @@
               <section title="Authenticator" ref="class_qt_data_sync_1_1_authenticator.html">
                 <section title="Authenticator" ref="class_qt_data_sync_1_1_authenticator.html#a0285b6393d1ab342a8d06e26290e7a0d" />
                 <section title="connector" ref="class_qt_data_sync_1_1_authenticator.html#a9ceb1b35e77a02737587564049ba7ae4" />
+                <section title="exportUserData" ref="class_qt_data_sync_1_1_authenticator.html#a9916b6f6cae7e7bd224ed67463574c55" />
+                <section title="exportUserData" ref="class_qt_data_sync_1_1_authenticator.html#af8647da30ee6f0040f03c78466c9d57b" />
+                <section title="exportUserDataImpl" ref="class_qt_data_sync_1_1_authenticator.html#af36a071d230e6dbfc5ea92739cdd0909" />
+                <section title="importUserData" ref="class_qt_data_sync_1_1_authenticator.html#a2b718c736d7fe8ee049c3c6536aa5405" />
+                <section title="importUserData" ref="class_qt_data_sync_1_1_authenticator.html#ad263131492f6b91c1c93ab64a52f5788" />
+                <section title="importUserDataImpl" ref="class_qt_data_sync_1_1_authenticator.html#a19c88023ab077df56ae1b8da7f654bd8" />
                 <section title="resetIdentity" ref="class_qt_data_sync_1_1_authenticator.html#ae68958b352a21f9dd4b53764e6356588" />
               </section>
               <section title="CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store.html">
@@ -98,7 +108,6 @@
                 <section title="loadAll" ref="class_qt_data_sync_1_1_caching_data_store.html#aea8620c19c99ef88c5bd2eac0b593dfe" />
                 <section title="remove" ref="class_qt_data_sync_1_1_caching_data_store.html#ab5ac865e569e7a291d751ae428a49a27" />
                 <section title="save" ref="class_qt_data_sync_1_1_caching_data_store.html#a56bb7a4f519317154e321d7f3e18d5b7" />
-                <section title="toKey" ref="class_qt_data_sync_1_1_caching_data_store.html#abbeaa9d26f9a992ecb297c61c5ae59fe" />
               </section>
               <section title="CachingDataStore&lt; TType *, TKey &gt;" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html">
                 <section title="CachingDataStore" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#ad11c4e9adb6ae52ec88c2f8aef407467" />
@@ -110,7 +119,6 @@
                 <section title="loadAll" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a674e9ecb1111f30eef3bfbc5e98bcb7a" />
                 <section title="remove" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a2a1c920ec9cef16d7100459a74ecbc44" />
                 <section title="save" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a657f4f21bbeed1231a353ca9e364694c" />
-                <section title="toKey" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a3e8c69ef61b59a04e063c74661f0107d" />
               </section>
               <section title="CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html">
                 <section title="CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html#af30bbd49b0e620375c3e227b23c315de" />
@@ -159,6 +167,15 @@
                 <section title="settings" ref="class_qt_data_sync_1_1_defaults.html#a77fd580ab17a8e1bf89a5522da74ac00" />
                 <section title="storageDir" ref="class_qt_data_sync_1_1_defaults.html#aa6c1c91ce3f0c9467d0310f34913e374" />
               </section>
+              <section title="Encryptor" ref="class_qt_data_sync_1_1_encryptor.html">
+                <section title="Encryptor" ref="class_qt_data_sync_1_1_encryptor.html#a272e26a79ac97156a396afddb1767991" />
+                <section title="decrypt" ref="class_qt_data_sync_1_1_encryptor.html#ae49b258e051814ed18c92613adb1e0c9" />
+                <section title="encrypt" ref="class_qt_data_sync_1_1_encryptor.html#ad7547f51fccc43618fd588cabd9e9f2f" />
+                <section title="finalize" ref="class_qt_data_sync_1_1_encryptor.html#af4fa51e6d73fc2c63b1368352be7b7fe" />
+                <section title="initialize" ref="class_qt_data_sync_1_1_encryptor.html#a3fcc14363cf56972a12ed849af762605" />
+                <section title="key" ref="class_qt_data_sync_1_1_encryptor.html#a2d67b863e2a93b993689ea0d068f7f19" />
+                <section title="setKey" ref="class_qt_data_sync_1_1_encryptor.html#ade8df7572f25f4bb9dc526cbaf1d9ed3" />
+              </section>
               <section title="GenericTask" ref="class_qt_data_sync_1_1_generic_task.html">
                 <section title="GenericTask" ref="class_qt_data_sync_1_1_generic_task.html#ae33765d5e81592366a6bca8e60ee8418" />
                 <section title="onResult" ref="class_qt_data_sync_1_1_generic_task.html#ae44643784144eb23b7351e81679765fb" />
@@ -173,6 +190,12 @@
                 <section title="onResult" ref="class_qt_data_sync_1_1_generic_task_3_01void_01_4.html#a41941c54f3ecc1ff5d6efb60dc501e1f" />
                 <section title="AsyncDataStore" ref="class_qt_data_sync_1_1_generic_task_3_01void_01_4.html#aaa18099438c890aa310b7b3a8812bc04" />
                 <section title="Task" ref="class_qt_data_sync_1_1_generic_task_3_01void_01_4.html#aaa7728226b6ce66782e8816b1658dd9a" />
+              </section>
+              <section title="InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html">
+                <section title="InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html#af4ae33274d747d3513670f5d283497b1" />
+                <section title="clone" ref="class_qt_data_sync_1_1_invalid_data_exception.html#a18b669732061e4bfce73b122fb91c660" />
+                <section title="raise" ref="class_qt_data_sync_1_1_invalid_data_exception.html#aaaa16a919e7e4184669ba912e5071089" />
+                <section title="what" ref="class_qt_data_sync_1_1_invalid_data_exception.html#afe0d5f16ae2f105b57d2980aadf4d261" />
               </section>
               <section title="LocalStore" ref="class_qt_data_sync_1_1_local_store.html">
                 <section title="LocalStore" ref="class_qt_data_sync_1_1_local_store.html#a0f2a3daf1dd28d132f4badabab537d4a" />
@@ -201,11 +224,12 @@
                 <section title="authenticationFailed" ref="class_qt_data_sync_1_1_remote_connector.html#ae8681ed6cec8727f3db464afe6b785e6" />
                 <section title="clearAuthenticationError" ref="class_qt_data_sync_1_1_remote_connector.html#ac6a64d833e0144189e544b734176a8fa" />
                 <section title="createAuthenticator" ref="class_qt_data_sync_1_1_remote_connector.html#a935f33edd15660d94c62b613479ccb32" />
+                <section title="cryptor" ref="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" />
                 <section title="defaults" ref="class_qt_data_sync_1_1_remote_connector.html#a14f598e34ef4d8d702b3b224189ad318" />
                 <section title="download" ref="class_qt_data_sync_1_1_remote_connector.html#aa3e20bf2d9889e19c1c234bba8212cc6" />
                 <section title="finalize" ref="class_qt_data_sync_1_1_remote_connector.html#ac6b58fc434014f1d816e7cb79c82ed2b" />
                 <section title="getDeviceId" ref="class_qt_data_sync_1_1_remote_connector.html#ae6fcf3a41acfb9fc4f19de04363531f7" />
-                <section title="initialize" ref="class_qt_data_sync_1_1_remote_connector.html#aa0f54ed1416ec76104a7a7917f5658a3" />
+                <section title="initialize" ref="class_qt_data_sync_1_1_remote_connector.html#a3ce294ce77e422647f5e0f032db4cbc8" />
                 <section title="markUnchanged" ref="class_qt_data_sync_1_1_remote_connector.html#a1b104e733a49613a24ba94b1b9a0c4ce" />
                 <section title="operationDone" ref="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" />
                 <section title="operationFailed" ref="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" />
@@ -224,12 +248,14 @@
                 <section title="~Setup" ref="class_qt_data_sync_1_1_setup.html#a89f03a5baa81da62c886e8c887b2d7b2" />
                 <section title="create" ref="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a" />
                 <section title="dataMerger" ref="class_qt_data_sync_1_1_setup.html#ac3a95d031111a009b84e57afa0410a18" />
+                <section title="encryptor" ref="class_qt_data_sync_1_1_setup.html#a58dbf8669d56e76e2a9205507190a7b8" />
                 <section title="localDir" ref="class_qt_data_sync_1_1_setup.html#a94769770bdae519613c46aa781fab3fa" />
                 <section title="localStore" ref="class_qt_data_sync_1_1_setup.html#ae14db0bc2dbcdd16be0995425dc54f75" />
                 <section title="property" ref="class_qt_data_sync_1_1_setup.html#ad47a6300e29085f2ec69ec8c7aa89c3a" />
                 <section title="remoteConnector" ref="class_qt_data_sync_1_1_setup.html#a22983c887cc586dc04ead7f53333b122" />
                 <section title="serializer" ref="class_qt_data_sync_1_1_setup.html#a8aa8a9dedfa6f9f5aff3c63a40443e52" />
                 <section title="setDataMerger" ref="class_qt_data_sync_1_1_setup.html#a098d2bf92aeb228bc267ae894aae33d3" />
+                <section title="setEncryptor" ref="class_qt_data_sync_1_1_setup.html#ad2c1195ebadcbd6e0d1b1b0810208a06" />
                 <section title="setLocalDir" ref="class_qt_data_sync_1_1_setup.html#a7ab1fcea61e97d1d3fd03acc9d733f8b" />
                 <section title="setLocalStore" ref="class_qt_data_sync_1_1_setup.html#a5c1660f14dff384c010f2551f35874d6" />
                 <section title="setProperty" ref="class_qt_data_sync_1_1_setup.html#a73d0aeb7889ac906c4fdef2acda14a78" />
@@ -237,6 +263,7 @@
                 <section title="setSerializer" ref="class_qt_data_sync_1_1_setup.html#a827b19ffea9e8f91dc6e040c327dbfbb" />
                 <section title="setStateHolder" ref="class_qt_data_sync_1_1_setup.html#a420f2021906269625a431f9d417784f3" />
                 <section title="stateHolder" ref="class_qt_data_sync_1_1_setup.html#a35c21b365c85e09e779d62215e8391db" />
+                <section title="unsetEncryptor" ref="class_qt_data_sync_1_1_setup.html#af57c388b83ed2bd7c192bc3f16f73716" />
               </section>
               <section title="SetupException" ref="class_qt_data_sync_1_1_setup_exception.html">
                 <section title="SetupException" ref="class_qt_data_sync_1_1_setup_exception.html#af9444a5b060224172388f838c7607565" />
@@ -298,12 +325,21 @@
                 <section title="toGeneric" ref="class_qt_data_sync_1_1_task.html#a2e9c918dfd9f8a29dd9e6c8099f16be6" />
                 <section title="AsyncDataStore" ref="class_qt_data_sync_1_1_task.html#aaa18099438c890aa310b7b3a8812bc04" />
               </section>
+              <section title="UpdateTask" ref="class_qt_data_sync_1_1_update_task.html">
+                <section title="UpdateTask" ref="class_qt_data_sync_1_1_update_task.html#a81147e9fd853bac756a6e6df38de2027" />
+                <section title="onResult" ref="class_qt_data_sync_1_1_update_task.html#a87734db965f1049e95e5b00b4f05a63d" />
+                <section title="onResult" ref="class_qt_data_sync_1_1_update_task.html#aedac17bf0a2fb6f1277f777760f51a82" />
+                <section title="result" ref="class_qt_data_sync_1_1_update_task.html#a48f7697639ede93e782e658a507b98da" />
+                <section title="AsyncDataStore" ref="class_qt_data_sync_1_1_update_task.html#aaa18099438c890aa310b7b3a8812bc04" />
+              </section>
               <section title="WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html">
                 <section title="WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html#a3a6273d388078bad966ece35f8d8d93a" />
                 <section title="~WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html#ae4ae918958b753ce6230b515ee262f25" />
                 <section title="connectedChanged" ref="class_qt_data_sync_1_1_ws_authenticator.html#a5e120ca51e4e93d056ab9a53963a409b" />
                 <section title="connector" ref="class_qt_data_sync_1_1_ws_authenticator.html#a841fe12d2e1840445043315f6ade56a8" />
                 <section title="customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#ab9d254df5a5d735f6d2c6a58ab220ea9" />
+                <section title="exportUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a1cc2305077ddcf2188ce1b2310826384" />
+                <section title="importUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b84c9394105047cca4ab271483fc2b2" />
                 <section title="isConnected" ref="class_qt_data_sync_1_1_ws_authenticator.html#ada64f1aaeceffbc72ea4bdde5f385065" />
                 <section title="isRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e" />
                 <section title="reconnect" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7816b45ef1cbdce32b66d9971974dd26" />
@@ -332,6 +368,7 @@
           <section title="Class Hierarchy" ref="hierarchy.html">
             <section title="QException" ref="qexception.html">
               <section title="QtDataSync::DataSyncException" ref="class_qt_data_sync_1_1_data_sync_exception.html" />
+              <section title="QtDataSync::InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html" />
               <section title="QtDataSync::SetupException" ref="class_qt_data_sync_1_1_setup_exception.html">
                 <section title="QtDataSync::SetupExistsException" ref="class_qt_data_sync_1_1_setup_exists_exception.html" />
                 <section title="QtDataSync::SetupLockedException" ref="class_qt_data_sync_1_1_setup_locked_exception.html" />
@@ -341,6 +378,7 @@
               <section title="QtDataSync::Task" ref="class_qt_data_sync_1_1_task.html">
                 <section title="QtDataSync::GenericTask&lt; T &gt;" ref="class_qt_data_sync_1_1_generic_task.html" />
                 <section title="QtDataSync::GenericTask&lt; void &gt;" ref="class_qt_data_sync_1_1_generic_task_3_01void_01_4.html" />
+                <section title="QtDataSync::UpdateTask&lt; T &gt;" ref="class_qt_data_sync_1_1_update_task.html" />
               </section>
             </section>
             <section title="QObject" ref="qobject.html">
@@ -354,6 +392,7 @@
               </section>
               <section title="QtDataSync::DataMerger" ref="class_qt_data_sync_1_1_data_merger.html" />
               <section title="QtDataSync::Defaults" ref="class_qt_data_sync_1_1_defaults.html" />
+              <section title="QtDataSync::Encryptor" ref="class_qt_data_sync_1_1_encryptor.html" />
               <section title="QtDataSync::LocalStore" ref="class_qt_data_sync_1_1_local_store.html" />
               <section title="QtDataSync::RemoteConnector" ref="class_qt_data_sync_1_1_remote_connector.html" />
               <section title="QtDataSync::StateHolder" ref="class_qt_data_sync_1_1_state_holder.html" />
@@ -367,6 +406,7 @@
               <section title="a" ref="functions.html" />
               <section title="c" ref="functions_c.html" />
               <section title="d" ref="functions_d.html" />
+              <section title="e" ref="functions_e.html" />
               <section title="f" ref="functions_f.html" />
               <section title="g" ref="functions_g.html" />
               <section title="i" ref="functions_i.html" />
@@ -383,7 +423,27 @@
               <section title="w" ref="functions_w.html" />
               <section title="~" ref="functions_0x7e.html" />
             </section>
-            <section title="Functions" ref="functions_func.html" />
+            <section title="Functions" ref="functions_func.html">
+              <section title="a" ref="functions_func.html" />
+              <section title="c" ref="functions_func_c.html" />
+              <section title="d" ref="functions_func_d.html" />
+              <section title="e" ref="functions_func_e.html" />
+              <section title="f" ref="functions_func_f.html" />
+              <section title="g" ref="functions_func_g.html" />
+              <section title="i" ref="functions_func_i.html" />
+              <section title="k" ref="functions_func_k.html" />
+              <section title="l" ref="functions_func_l.html" />
+              <section title="m" ref="functions_func_m.html" />
+              <section title="o" ref="functions_func_o.html" />
+              <section title="p" ref="functions_func_p.html" />
+              <section title="r" ref="functions_func_r.html" />
+              <section title="s" ref="functions_func_s.html" />
+              <section title="t" ref="functions_func_t.html" />
+              <section title="u" ref="functions_func_u.html" />
+              <section title="v" ref="functions_func_v.html" />
+              <section title="w" ref="functions_func_w.html" />
+              <section title="~" ref="functions_func_0x7e.html" />
+            </section>
             <section title="Variables" ref="functions_vars.html" />
             <section title="Typedefs" ref="functions_type.html" />
             <section title="Enumerations" ref="functions_enum.html" />
@@ -405,11 +465,14 @@
             <section title="defaults.cpp" ref="defaults_8cpp_source.html" />
             <section title="defaults.h" ref="defaults_8h_source.html" />
             <section title="doxme.py" ref="doxme_8py_source.html" />
+            <section title="encryptor.cpp" ref="encryptor_8cpp_source.html" />
+            <section title="encryptor.h" ref="encryptor_8h_source.html" />
             <section title="exceptions.cpp" ref="exceptions_8cpp_source.html" />
             <section title="exceptions.h" ref="exceptions_8h_source.html" />
             <section title="localstore.cpp" ref="localstore_8cpp_source.html" />
             <section title="localstore.h" ref="localstore_8h_source.html" />
             <section title="qtdatasync_global.h" ref="qtdatasync__global_8h_source.html" />
+            <section title="qtinyaesencryptor.cpp" ref="qtinyaesencryptor_8cpp_source.html" />
             <section title="remoteconnector.cpp" ref="remoteconnector_8cpp_source.html" />
             <section title="remoteconnector.h" ref="remoteconnector_8h_source.html" />
             <section title="setup.cpp" ref="setup_8cpp_source.html" />
@@ -450,6 +513,7 @@
       <keyword name="remove" id="QtDataSync::AsyncDataStore::remove" ref="class_qt_data_sync_1_1_async_data_store.html#a96362861598db35dca2fe54cc2fa1c87" />
       <keyword name="remove" id="QtDataSync::AsyncDataStore::remove" ref="class_qt_data_sync_1_1_async_data_store.html#a49b0afb961428a70e7d9f804c53ebe6a" />
       <keyword name="search" id="QtDataSync::AsyncDataStore::search" ref="class_qt_data_sync_1_1_async_data_store.html#a2ac1f0e282794b4a44bb7cc7b17d58ed" />
+      <keyword name="iterate" id="QtDataSync::AsyncDataStore::iterate" ref="class_qt_data_sync_1_1_async_data_store.html#ab6b88b7d99b3bf149b286c8354a90aae" />
       <keyword name="count" id="QtDataSync::AsyncDataStore::count" ref="class_qt_data_sync_1_1_async_data_store.html#a00c2954d4e1f020b7d6362e68a3770d4" />
       <keyword name="keys" id="QtDataSync::AsyncDataStore::keys" ref="class_qt_data_sync_1_1_async_data_store.html#aa52be89d45f89e7c80a20fc3e9d8da65" />
       <keyword name="loadAll" id="QtDataSync::AsyncDataStore::loadAll" ref="class_qt_data_sync_1_1_async_data_store.html#a23c0b86dd6c5102368340c5fae0ce757" />
@@ -459,6 +523,9 @@
       <keyword name="remove" id="QtDataSync::AsyncDataStore::remove" ref="class_qt_data_sync_1_1_async_data_store.html#a90bb5494b3bad0d6c531369515d8f646" />
       <keyword name="remove" id="QtDataSync::AsyncDataStore::remove" ref="class_qt_data_sync_1_1_async_data_store.html#a3997c3d70592e402e318fcbb6ad6ce5b" />
       <keyword name="search" id="QtDataSync::AsyncDataStore::search" ref="class_qt_data_sync_1_1_async_data_store.html#a8ac2ebfa4ddb810e32884f591946e289" />
+      <keyword name="iterate" id="QtDataSync::AsyncDataStore::iterate" ref="class_qt_data_sync_1_1_async_data_store.html#a357654518058d89e16716c2801c7db77" />
+      <keyword name="loadInto" id="QtDataSync::AsyncDataStore::loadInto" ref="class_qt_data_sync_1_1_async_data_store.html#a43e7a0f62c201b4f6b5ab5f4b896824f" />
+      <keyword name="loadInto" id="QtDataSync::AsyncDataStore::loadInto" ref="class_qt_data_sync_1_1_async_data_store.html#abae7e96b69956b3f48e7c3a22d56329c" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
       <keyword name="event" id="QObject::event" ref="qobject.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="qobject.html#eventFilter" />
@@ -517,6 +584,10 @@
       <keyword name="objectName" id="QObject::objectName" ref="qobject.html#objectName-prop" />
       <keyword name="QtDataSync::Authenticator" id="QtDataSync::Authenticator" ref="class_qt_data_sync_1_1_authenticator.html" />
       <keyword name="Authenticator" id="QtDataSync::Authenticator::Authenticator" ref="class_qt_data_sync_1_1_authenticator.html#a0285b6393d1ab342a8d06e26290e7a0d" />
+      <keyword name="exportUserData" id="QtDataSync::Authenticator::exportUserData" ref="class_qt_data_sync_1_1_authenticator.html#a9916b6f6cae7e7bd224ed67463574c55" />
+      <keyword name="exportUserData" id="QtDataSync::Authenticator::exportUserData" ref="class_qt_data_sync_1_1_authenticator.html#af8647da30ee6f0040f03c78466c9d57b" />
+      <keyword name="importUserData" id="QtDataSync::Authenticator::importUserData" ref="class_qt_data_sync_1_1_authenticator.html#a2b718c736d7fe8ee049c3c6536aa5405" />
+      <keyword name="importUserData" id="QtDataSync::Authenticator::importUserData" ref="class_qt_data_sync_1_1_authenticator.html#ad263131492f6b91c1c93ab64a52f5788" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
       <keyword name="event" id="QObject::event" ref="qobject.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="qobject.html#eventFilter" />
@@ -553,6 +624,8 @@
       <keyword name="inherits" id="QObject::inherits" ref="qobject.html#inherits" />
       <keyword name="deleteLater" id="QObject::deleteLater" ref="qobject.html#deleteLater" />
       <keyword name="resetIdentity" id="QtDataSync::Authenticator::resetIdentity" ref="class_qt_data_sync_1_1_authenticator.html#ae68958b352a21f9dd4b53764e6356588" />
+      <keyword name="exportUserDataImpl" id="QtDataSync::Authenticator::exportUserDataImpl" ref="class_qt_data_sync_1_1_authenticator.html#af36a071d230e6dbfc5ea92739cdd0909" />
+      <keyword name="importUserDataImpl" id="QtDataSync::Authenticator::importUserDataImpl" ref="class_qt_data_sync_1_1_authenticator.html#a19c88023ab077df56ae1b8da7f654bd8" />
       <keyword name="connector" id="QtDataSync::Authenticator::connector" ref="class_qt_data_sync_1_1_authenticator.html#a9ceb1b35e77a02737587564049ba7ae4" />
       <keyword name="sender" id="QObject::sender" ref="qobject.html#sender" />
       <keyword name="senderSignalIndex" id="QObject::senderSignalIndex" ref="qobject.html#senderSignalIndex" />
@@ -585,7 +658,6 @@
       <keyword name="load" id="QtDataSync::CachingDataStore::load" ref="class_qt_data_sync_1_1_caching_data_store.html#a9c0132d3061f1ac9302fe62758fa6a03" />
       <keyword name="save" id="QtDataSync::CachingDataStore::save" ref="class_qt_data_sync_1_1_caching_data_store.html#a56bb7a4f519317154e321d7f3e18d5b7" />
       <keyword name="remove" id="QtDataSync::CachingDataStore::remove" ref="class_qt_data_sync_1_1_caching_data_store.html#ab5ac865e569e7a291d751ae428a49a27" />
-      <keyword name="toKey" id="QtDataSync::CachingDataStore::toKey" ref="class_qt_data_sync_1_1_caching_data_store.html#abbeaa9d26f9a992ecb297c61c5ae59fe" />
       <keyword name="CachingDataStoreBase" id="QtDataSync::CachingDataStoreBase::CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html#af30bbd49b0e620375c3e227b23c315de" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
       <keyword name="event" id="QObject::event" ref="qobject.html#event" />
@@ -622,9 +694,7 @@
       <keyword name="parent" id="QObject::parent" ref="qobject.html#parent" />
       <keyword name="inherits" id="QObject::inherits" ref="qobject.html#inherits" />
       <keyword name="deleteLater" id="QObject::deleteLater" ref="qobject.html#deleteLater" />
-      <keyword name="storeLoaded" id="QtDataSync::CachingDataStoreBase::storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
-      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
-      <keyword name="dataResetted" id="QtDataSync::CachingDataStoreBase::dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
+      <keyword name="toKey" id="QtDataSync::CachingDataStore::toKey" ref="class_qt_data_sync_1_1_caching_data_store.html#a985d636c97a6048e9fe45f5afa84288a" />
       <keyword name="tr" id="QObject::tr" ref="qobject.html#tr" />
       <keyword name="trUtf8" id="QObject::trUtf8" ref="qobject.html#trUtf8" />
       <keyword name="connect" id="QObject::connect" ref="qobject.html#connect" />
@@ -636,6 +706,9 @@
       <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-1" />
       <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-4" />
       <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-5" />
+      <keyword name="storeLoaded" id="QtDataSync::CachingDataStoreBase::storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
+      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
+      <keyword name="dataResetted" id="QtDataSync::CachingDataStoreBase::dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
       <keyword name="sender" id="QObject::sender" ref="qobject.html#sender" />
       <keyword name="senderSignalIndex" id="QObject::senderSignalIndex" ref="qobject.html#senderSignalIndex" />
       <keyword name="receivers" id="QObject::receivers" ref="qobject.html#receivers" />
@@ -656,7 +729,6 @@
       <keyword name="load" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::load" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a416dad27592dbbb54c21dd679a451777" />
       <keyword name="save" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::save" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a657f4f21bbeed1231a353ca9e364694c" />
       <keyword name="remove" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::remove" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a2a1c920ec9cef16d7100459a74ecbc44" />
-      <keyword name="toKey" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::toKey" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a3e8c69ef61b59a04e063c74661f0107d" />
       <keyword name="CachingDataStoreBase" id="QtDataSync::CachingDataStoreBase::CachingDataStoreBase" ref="class_qt_data_sync_1_1_caching_data_store_base.html#af30bbd49b0e620375c3e227b23c315de" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
       <keyword name="event" id="QObject::event" ref="qobject.html#event" />
@@ -693,9 +765,7 @@
       <keyword name="parent" id="QObject::parent" ref="qobject.html#parent" />
       <keyword name="inherits" id="QObject::inherits" ref="qobject.html#inherits" />
       <keyword name="deleteLater" id="QObject::deleteLater" ref="qobject.html#deleteLater" />
-      <keyword name="storeLoaded" id="QtDataSync::CachingDataStoreBase::storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
-      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
-      <keyword name="dataResetted" id="QtDataSync::CachingDataStoreBase::dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
+      <keyword name="toKey" id="QtDataSync::CachingDataStore&lt; TType *, TKey &gt;::toKey" ref="class_qt_data_sync_1_1_caching_data_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a40c8ce6b0354160b052ba3d016d7e53b" />
       <keyword name="tr" id="QObject::tr" ref="qobject.html#tr" />
       <keyword name="trUtf8" id="QObject::trUtf8" ref="qobject.html#trUtf8" />
       <keyword name="connect" id="QObject::connect" ref="qobject.html#connect" />
@@ -707,6 +777,9 @@
       <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-1" />
       <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-4" />
       <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-5" />
+      <keyword name="storeLoaded" id="QtDataSync::CachingDataStoreBase::storeLoaded" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e" />
+      <keyword name="dataChanged" id="QtDataSync::CachingDataStoreBase::dataChanged" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a49ae5b7f96844eab1faebe2ed28cec5e" />
+      <keyword name="dataResetted" id="QtDataSync::CachingDataStoreBase::dataResetted" ref="class_qt_data_sync_1_1_caching_data_store_base.html#a0d7209af4181a23dcc7eb948249f129b" />
       <keyword name="sender" id="QObject::sender" ref="qobject.html#sender" />
       <keyword name="senderSignalIndex" id="QObject::senderSignalIndex" ref="qobject.html#senderSignalIndex" />
       <keyword name="receivers" id="QObject::receivers" ref="qobject.html#receivers" />
@@ -923,6 +996,70 @@
       <keyword name="connectNotify" id="QObject::connectNotify" ref="qobject.html#connectNotify" />
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="qobject.html#disconnectNotify" />
       <keyword name="objectName" id="QObject::objectName" ref="qobject.html#objectName-prop" />
+      <keyword name="QtDataSync::Encryptor" id="QtDataSync::Encryptor" ref="class_qt_data_sync_1_1_encryptor.html" />
+      <keyword name="Encryptor" id="QtDataSync::Encryptor::Encryptor" ref="class_qt_data_sync_1_1_encryptor.html#a272e26a79ac97156a396afddb1767991" />
+      <keyword name="initialize" id="QtDataSync::Encryptor::initialize" ref="class_qt_data_sync_1_1_encryptor.html#a3fcc14363cf56972a12ed849af762605" />
+      <keyword name="finalize" id="QtDataSync::Encryptor::finalize" ref="class_qt_data_sync_1_1_encryptor.html#af4fa51e6d73fc2c63b1368352be7b7fe" />
+      <keyword name="key" id="QtDataSync::Encryptor::key" ref="class_qt_data_sync_1_1_encryptor.html#a2d67b863e2a93b993689ea0d068f7f19" />
+      <keyword name="setKey" id="QtDataSync::Encryptor::setKey" ref="class_qt_data_sync_1_1_encryptor.html#ade8df7572f25f4bb9dc526cbaf1d9ed3" />
+      <keyword name="encrypt" id="QtDataSync::Encryptor::encrypt" ref="class_qt_data_sync_1_1_encryptor.html#ad7547f51fccc43618fd588cabd9e9f2f" />
+      <keyword name="decrypt" id="QtDataSync::Encryptor::decrypt" ref="class_qt_data_sync_1_1_encryptor.html#ae49b258e051814ed18c92613adb1e0c9" />
+      <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
+      <keyword name="event" id="QObject::event" ref="qobject.html#event" />
+      <keyword name="eventFilter" id="QObject::eventFilter" ref="qobject.html#eventFilter" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="qobject.html#metaObject" />
+      <keyword name="objectName" id="QObject::objectName" ref="qobject.html#objectName-prop" />
+      <keyword name="setObjectName" id="QObject::setObjectName" ref="qobject.html#objectName-prop" />
+      <keyword name="isWidgetType" id="QObject::isWidgetType" ref="qobject.html#isWidgetType" />
+      <keyword name="isWindowType" id="QObject::isWindowType" ref="qobject.html#isWindowType" />
+      <keyword name="signalsBlocked" id="QObject::signalsBlocked" ref="qobject.html#signalsBlocked" />
+      <keyword name="blockSignals" id="QObject::blockSignals" ref="qobject.html#blockSignals" />
+      <keyword name="thread" id="QObject::thread" ref="qobject.html#thread" />
+      <keyword name="moveToThread" id="QObject::moveToThread" ref="qobject.html#moveToThread" />
+      <keyword name="startTimer" id="QObject::startTimer" ref="qobject.html#startTimer" />
+      <keyword name="killTimer" id="QObject::killTimer" ref="qobject.html#killTimer" />
+      <keyword name="findChild" id="QObject::findChild" ref="qobject.html#findChild" />
+      <keyword name="findChildren" id="QObject::findChildren" ref="qobject.html#findChildren" />
+      <keyword name="findChildren" id="QObject::findChildren" ref="qobject.html#findChildren-1" />
+      <keyword name="findChildren" id="QObject::findChildren" ref="qobject.html#findChildren-2" />
+      <keyword name="children" id="QObject::children" ref="qobject.html#children" />
+      <keyword name="setParent" id="QObject::setParent" ref="qobject.html#setParent" />
+      <keyword name="installEventFilter" id="QObject::installEventFilter" ref="qobject.html#installEventFilter" />
+      <keyword name="removeEventFilter" id="QObject::removeEventFilter" ref="qobject.html#removeEventFilter" />
+      <keyword name="connect" id="QObject::connect" ref="qobject.html#connect-2" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-2" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-3" />
+      <keyword name="dumpObjectTree" id="QObject::dumpObjectTree" ref="qobject.html#dumpObjectTree" />
+      <keyword name="dumpObjectInfo" id="QObject::dumpObjectInfo" ref="qobject.html#dumpObjectInfo" />
+      <keyword name="setProperty" id="QObject::setProperty" ref="qobject.html#setProperty" />
+      <keyword name="property" id="QObject::property" ref="qobject.html#property" />
+      <keyword name="dynamicPropertyNames" id="QObject::dynamicPropertyNames" ref="qobject.html#dynamicPropertyNames" />
+      <keyword name="destroyed" id="QObject::destroyed" ref="qobject.html#destroyed" />
+      <keyword name="objectNameChanged" id="QObject::objectNameChanged" ref="qobject.html#objectNameChanged" />
+      <keyword name="parent" id="QObject::parent" ref="qobject.html#parent" />
+      <keyword name="inherits" id="QObject::inherits" ref="qobject.html#inherits" />
+      <keyword name="deleteLater" id="QObject::deleteLater" ref="qobject.html#deleteLater" />
+      <keyword name="tr" id="QObject::tr" ref="qobject.html#tr" />
+      <keyword name="trUtf8" id="QObject::trUtf8" ref="qobject.html#trUtf8" />
+      <keyword name="connect" id="QObject::connect" ref="qobject.html#connect" />
+      <keyword name="connect" id="QObject::connect" ref="qobject.html#connect-1" />
+      <keyword name="connect" id="QObject::connect" ref="qobject.html#connect-3" />
+      <keyword name="connect" id="QObject::connect" ref="qobject.html#connect-4" />
+      <keyword name="connect" id="QObject::connect" ref="qobject.html#connect-5" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-1" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-4" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="qobject.html#disconnect-5" />
+      <keyword name="sender" id="QObject::sender" ref="qobject.html#sender" />
+      <keyword name="senderSignalIndex" id="QObject::senderSignalIndex" ref="qobject.html#senderSignalIndex" />
+      <keyword name="receivers" id="QObject::receivers" ref="qobject.html#receivers" />
+      <keyword name="isSignalConnected" id="QObject::isSignalConnected" ref="qobject.html#isSignalConnected" />
+      <keyword name="timerEvent" id="QObject::timerEvent" ref="qobject.html#timerEvent" />
+      <keyword name="childEvent" id="QObject::childEvent" ref="qobject.html#childEvent" />
+      <keyword name="customEvent" id="QObject::customEvent" ref="qobject.html#customEvent" />
+      <keyword name="connectNotify" id="QObject::connectNotify" ref="qobject.html#connectNotify" />
+      <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="qobject.html#disconnectNotify" />
+      <keyword name="objectName" id="QObject::objectName" ref="qobject.html#objectName-prop" />
       <keyword name="QtDataSync::GenericTask" id="QtDataSync::GenericTask" ref="class_qt_data_sync_1_1_generic_task.html" />
       <keyword name="GenericTask" id="QtDataSync::GenericTask::GenericTask" ref="class_qt_data_sync_1_1_generic_task.html#ae33765d5e81592366a6bca8e60ee8418" />
       <keyword name="onResult" id="QtDataSync::GenericTask::onResult" ref="class_qt_data_sync_1_1_generic_task.html#ae44643784144eb23b7351e81679765fb" />
@@ -996,6 +1133,11 @@
       <keyword name="constEnd" id="QFuture&lt; QVariant &gt;::constEnd" ref="qfuture.html#constEnd" />
       <keyword name="ConstIterator" id="QFuture&lt; QVariant &gt;::ConstIterator" ref="qfuture.html#ConstIterator-typedef" />
       <keyword name="Task" id="QtDataSync::Task::Task" ref="class_qt_data_sync_1_1_task.html#a77e50cc6b9d9ccd8bebf0afaa787f05f" />
+      <keyword name="QtDataSync::InvalidDataException" id="QtDataSync::InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html" />
+      <keyword name="InvalidDataException" id="QtDataSync::InvalidDataException::InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html#af4ae33274d747d3513670f5d283497b1" />
+      <keyword name="what" id="QtDataSync::InvalidDataException::what" ref="class_qt_data_sync_1_1_invalid_data_exception.html#afe0d5f16ae2f105b57d2980aadf4d261" />
+      <keyword name="raise" id="QtDataSync::InvalidDataException::raise" ref="class_qt_data_sync_1_1_invalid_data_exception.html#aaaa16a919e7e4184669ba912e5071089" />
+      <keyword name="clone" id="QtDataSync::InvalidDataException::clone" ref="class_qt_data_sync_1_1_invalid_data_exception.html#a18b669732061e4bfce73b122fb91c660" />
       <keyword name="QtDataSync::LocalStore" id="QtDataSync::LocalStore" ref="class_qt_data_sync_1_1_local_store.html" />
       <keyword name="count" id="QtDataSync::LocalStore::count" ref="class_qt_data_sync_1_1_local_store.html#aee6d469cfe740f4d8e1d7697200e53ad" />
       <keyword name="keys" id="QtDataSync::LocalStore::keys" ref="class_qt_data_sync_1_1_local_store.html#a11961df16919f556d9d7994fc29c332d" />
@@ -1083,8 +1225,9 @@
       <keyword name="operationFailed" id="QtDataSync::RemoteConnector::operationFailed" ref="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" />
       <keyword name="performLocalReset" id="QtDataSync::RemoteConnector::performLocalReset" ref="class_qt_data_sync_1_1_remote_connector.html#ad54ef9dc809e11caeb4b64942d024631" />
       <keyword name="RemoteConnector" id="QtDataSync::RemoteConnector::RemoteConnector" ref="class_qt_data_sync_1_1_remote_connector.html#ad0fe0a90d7c3ecb9ca875cae551f92b8" />
-      <keyword name="initialize" id="QtDataSync::RemoteConnector::initialize" ref="class_qt_data_sync_1_1_remote_connector.html#aa0f54ed1416ec76104a7a7917f5658a3" />
+      <keyword name="initialize" id="QtDataSync::RemoteConnector::initialize" ref="class_qt_data_sync_1_1_remote_connector.html#a3ce294ce77e422647f5e0f032db4cbc8" />
       <keyword name="finalize" id="QtDataSync::RemoteConnector::finalize" ref="class_qt_data_sync_1_1_remote_connector.html#ac6b58fc434014f1d816e7cb79c82ed2b" />
+      <keyword name="cryptor" id="QtDataSync::RemoteConnector::cryptor" ref="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" />
       <keyword name="createAuthenticator" id="QtDataSync::RemoteConnector::createAuthenticator" ref="class_qt_data_sync_1_1_remote_connector.html#a935f33edd15660d94c62b613479ccb32" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
       <keyword name="event" id="QObject::event" ref="qobject.html#event" />
@@ -1157,6 +1300,7 @@
       <keyword name="stateHolder" id="QtDataSync::Setup::stateHolder" ref="class_qt_data_sync_1_1_setup.html#a35c21b365c85e09e779d62215e8391db" />
       <keyword name="remoteConnector" id="QtDataSync::Setup::remoteConnector" ref="class_qt_data_sync_1_1_setup.html#a22983c887cc586dc04ead7f53333b122" />
       <keyword name="dataMerger" id="QtDataSync::Setup::dataMerger" ref="class_qt_data_sync_1_1_setup.html#ac3a95d031111a009b84e57afa0410a18" />
+      <keyword name="encryptor" id="QtDataSync::Setup::encryptor" ref="class_qt_data_sync_1_1_setup.html#a58dbf8669d56e76e2a9205507190a7b8" />
       <keyword name="property" id="QtDataSync::Setup::property" ref="class_qt_data_sync_1_1_setup.html#ad47a6300e29085f2ec69ec8c7aa89c3a" />
       <keyword name="setLocalDir" id="QtDataSync::Setup::setLocalDir" ref="class_qt_data_sync_1_1_setup.html#a7ab1fcea61e97d1d3fd03acc9d733f8b" />
       <keyword name="setSerializer" id="QtDataSync::Setup::setSerializer" ref="class_qt_data_sync_1_1_setup.html#a827b19ffea9e8f91dc6e040c327dbfbb" />
@@ -1164,6 +1308,8 @@
       <keyword name="setStateHolder" id="QtDataSync::Setup::setStateHolder" ref="class_qt_data_sync_1_1_setup.html#a420f2021906269625a431f9d417784f3" />
       <keyword name="setRemoteConnector" id="QtDataSync::Setup::setRemoteConnector" ref="class_qt_data_sync_1_1_setup.html#a4be2df29b03483f3eeb6a531b61fea02" />
       <keyword name="setDataMerger" id="QtDataSync::Setup::setDataMerger" ref="class_qt_data_sync_1_1_setup.html#a098d2bf92aeb228bc267ae894aae33d3" />
+      <keyword name="setEncryptor" id="QtDataSync::Setup::setEncryptor" ref="class_qt_data_sync_1_1_setup.html#ad2c1195ebadcbd6e0d1b1b0810208a06" />
+      <keyword name="unsetEncryptor" id="QtDataSync::Setup::unsetEncryptor" ref="class_qt_data_sync_1_1_setup.html#af57c388b83ed2bd7c192bc3f16f73716" />
       <keyword name="setProperty" id="QtDataSync::Setup::setProperty" ref="class_qt_data_sync_1_1_setup.html#a73d0aeb7889ac906c4fdef2acda14a78" />
       <keyword name="create" id="QtDataSync::Setup::create" ref="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a" />
       <keyword name="setCleanupTimeout" id="QtDataSync::Setup::setCleanupTimeout" ref="class_qt_data_sync_1_1_setup.html#a8ca465c823c2b7c4dde56f4c0e6791fd" />
@@ -1367,6 +1513,43 @@
       <keyword name="constEnd" id="QFuture&lt; QVariant &gt;::constEnd" ref="qfuture.html#constEnd" />
       <keyword name="Task" id="QtDataSync::Task::Task" ref="class_qt_data_sync_1_1_task.html#a77e50cc6b9d9ccd8bebf0afaa787f05f" />
       <keyword name="ConstIterator" id="QFuture&lt; QVariant &gt;::ConstIterator" ref="qfuture.html#ConstIterator-typedef" />
+      <keyword name="QtDataSync::UpdateTask" id="QtDataSync::UpdateTask" ref="class_qt_data_sync_1_1_update_task.html" />
+      <keyword name="UpdateTask" id="QtDataSync::UpdateTask::UpdateTask" ref="class_qt_data_sync_1_1_update_task.html#a81147e9fd853bac756a6e6df38de2027" />
+      <keyword name="onResult" id="QtDataSync::UpdateTask::onResult" ref="class_qt_data_sync_1_1_update_task.html#a87734db965f1049e95e5b00b4f05a63d" />
+      <keyword name="onResult" id="QtDataSync::UpdateTask::onResult" ref="class_qt_data_sync_1_1_update_task.html#aedac17bf0a2fb6f1277f777760f51a82" />
+      <keyword name="result" id="QtDataSync::UpdateTask::result" ref="class_qt_data_sync_1_1_update_task.html#a48f7697639ede93e782e658a507b98da" />
+      <keyword name="onResult" id="QtDataSync::Task::onResult" ref="class_qt_data_sync_1_1_task.html#a7686bd23952851c548808f5a545aa1e7" />
+      <keyword name="onResult" id="QtDataSync::Task::onResult" ref="class_qt_data_sync_1_1_task.html#a0f5c36ee9bb2b7c5e44b5b52eec841ef" />
+      <keyword name="toGeneric" id="QtDataSync::Task::toGeneric" ref="class_qt_data_sync_1_1_task.html#a2e9c918dfd9f8a29dd9e6c8099f16be6" />
+      <keyword name="operator==" id="QFuture&lt; QVariant &gt;::operator==" ref="qfuture.html#operator-eq-eq" />
+      <keyword name="operator!=" id="QFuture&lt; QVariant &gt;::operator!=" ref="qfuture.html#operator-not-eq" />
+      <keyword name="cancel" id="QFuture&lt; QVariant &gt;::cancel" ref="qfuture.html#cancel" />
+      <keyword name="isCanceled" id="QFuture&lt; QVariant &gt;::isCanceled" ref="qfuture.html#isCanceled" />
+      <keyword name="setPaused" id="QFuture&lt; QVariant &gt;::setPaused" ref="qfuture.html#setPaused" />
+      <keyword name="isPaused" id="QFuture&lt; QVariant &gt;::isPaused" ref="qfuture.html#isPaused" />
+      <keyword name="pause" id="QFuture&lt; QVariant &gt;::pause" ref="qfuture.html#pause" />
+      <keyword name="resume" id="QFuture&lt; QVariant &gt;::resume" ref="qfuture.html#resume" />
+      <keyword name="togglePaused" id="QFuture&lt; QVariant &gt;::togglePaused" ref="qfuture.html#togglePaused" />
+      <keyword name="isStarted" id="QFuture&lt; QVariant &gt;::isStarted" ref="qfuture.html#isStarted" />
+      <keyword name="isFinished" id="QFuture&lt; QVariant &gt;::isFinished" ref="qfuture.html#isFinished" />
+      <keyword name="isRunning" id="QFuture&lt; QVariant &gt;::isRunning" ref="qfuture.html#isRunning" />
+      <keyword name="resultCount" id="QFuture&lt; QVariant &gt;::resultCount" ref="qfuture.html#resultCount" />
+      <keyword name="progressValue" id="QFuture&lt; QVariant &gt;::progressValue" ref="qfuture.html#progressValue" />
+      <keyword name="progressMinimum" id="QFuture&lt; QVariant &gt;::progressMinimum" ref="qfuture.html#progressMinimum" />
+      <keyword name="progressMaximum" id="QFuture&lt; QVariant &gt;::progressMaximum" ref="qfuture.html#progressMaximum" />
+      <keyword name="progressText" id="QFuture&lt; QVariant &gt;::progressText" ref="qfuture.html#progressText" />
+      <keyword name="waitForFinished" id="QFuture&lt; QVariant &gt;::waitForFinished" ref="qfuture.html#waitForFinished" />
+      <keyword name="result" id="QFuture&lt; QVariant &gt;::result" ref="qfuture.html#result" />
+      <keyword name="resultAt" id="QFuture&lt; QVariant &gt;::resultAt" ref="qfuture.html#resultAt" />
+      <keyword name="isResultReadyAt" id="QFuture&lt; QVariant &gt;::isResultReadyAt" ref="qfuture.html#isResultReadyAt" />
+      <keyword name="operator T" id="QFuture&lt; QVariant &gt;::operator T" ref="qfuture.html#operator-T" />
+      <keyword name="results" id="QFuture&lt; QVariant &gt;::results" ref="qfuture.html#results" />
+      <keyword name="begin" id="QFuture&lt; QVariant &gt;::begin" ref="qfuture.html#begin" />
+      <keyword name="constBegin" id="QFuture&lt; QVariant &gt;::constBegin" ref="qfuture.html#constBegin" />
+      <keyword name="end" id="QFuture&lt; QVariant &gt;::end" ref="qfuture.html#end" />
+      <keyword name="constEnd" id="QFuture&lt; QVariant &gt;::constEnd" ref="qfuture.html#constEnd" />
+      <keyword name="ConstIterator" id="QFuture&lt; QVariant &gt;::ConstIterator" ref="qfuture.html#ConstIterator-typedef" />
+      <keyword name="Task" id="QtDataSync::Task::Task" ref="class_qt_data_sync_1_1_task.html#a77e50cc6b9d9ccd8bebf0afaa787f05f" />
       <keyword name="QtDataSync::WsAuthenticator" id="QtDataSync::WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html" />
       <keyword name="reconnect" id="QtDataSync::WsAuthenticator::reconnect" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7816b45ef1cbdce32b66d9971974dd26" />
       <keyword name="setRemoteEnabled" id="QtDataSync::WsAuthenticator::setRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7" />
@@ -1379,6 +1562,8 @@
       <keyword name="connectedChanged" id="QtDataSync::WsAuthenticator::connectedChanged" ref="class_qt_data_sync_1_1_ws_authenticator.html#a5e120ca51e4e93d056ab9a53963a409b" />
       <keyword name="WsAuthenticator" id="QtDataSync::WsAuthenticator::WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html#a3a6273d388078bad966ece35f8d8d93a" />
       <keyword name="~WsAuthenticator" id="QtDataSync::WsAuthenticator::~WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html#ae4ae918958b753ce6230b515ee262f25" />
+      <keyword name="exportUserDataImpl" id="QtDataSync::WsAuthenticator::exportUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a1cc2305077ddcf2188ce1b2310826384" />
+      <keyword name="importUserDataImpl" id="QtDataSync::WsAuthenticator::importUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b84c9394105047cca4ab271483fc2b2" />
       <keyword name="isRemoteEnabled" id="QtDataSync::WsAuthenticator::isRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e" />
       <keyword name="remoteUrl" id="QtDataSync::WsAuthenticator::remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#afe07ec340ac495627986e5d39c79e0f0" />
       <keyword name="customHeaders" id="QtDataSync::WsAuthenticator::customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#ab9d254df5a5d735f6d2c6a58ab220ea9" />
@@ -1387,6 +1572,10 @@
       <keyword name="serverSecret" id="QtDataSync::WsAuthenticator::serverSecret" ref="class_qt_data_sync_1_1_ws_authenticator.html#a6147368aea35db8578a437aefb0530ac" />
       <keyword name="isConnected" id="QtDataSync::WsAuthenticator::isConnected" ref="class_qt_data_sync_1_1_ws_authenticator.html#ada64f1aaeceffbc72ea4bdde5f385065" />
       <keyword name="Authenticator" id="QtDataSync::Authenticator::Authenticator" ref="class_qt_data_sync_1_1_authenticator.html#a0285b6393d1ab342a8d06e26290e7a0d" />
+      <keyword name="exportUserData" id="QtDataSync::Authenticator::exportUserData" ref="class_qt_data_sync_1_1_authenticator.html#a9916b6f6cae7e7bd224ed67463574c55" />
+      <keyword name="exportUserData" id="QtDataSync::Authenticator::exportUserData" ref="class_qt_data_sync_1_1_authenticator.html#af8647da30ee6f0040f03c78466c9d57b" />
+      <keyword name="importUserData" id="QtDataSync::Authenticator::importUserData" ref="class_qt_data_sync_1_1_authenticator.html#a2b718c736d7fe8ee049c3c6536aa5405" />
+      <keyword name="importUserData" id="QtDataSync::Authenticator::importUserData" ref="class_qt_data_sync_1_1_authenticator.html#ad263131492f6b91c1c93ab64a52f5788" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
       <keyword name="event" id="QObject::event" ref="qobject.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="qobject.html#eventFilter" />
@@ -1490,11 +1679,14 @@
       <file>defaults_8cpp_source.html</file>
       <file>defaults_8h_source.html</file>
       <file>doxme_8py_source.html</file>
+      <file>encryptor_8cpp_source.html</file>
+      <file>encryptor_8h_source.html</file>
       <file>exceptions_8cpp_source.html</file>
       <file>exceptions_8h_source.html</file>
       <file>localstore_8cpp_source.html</file>
       <file>localstore_8h_source.html</file>
       <file>qtdatasync__global_8h_source.html</file>
+      <file>qtinyaesencryptor_8cpp_source.html</file>
       <file>_r_e_a_d_m_e_8md_source.html</file>
       <file>remoteconnector_8cpp_source.html</file>
       <file>remoteconnector_8h_source.html</file>
@@ -1539,12 +1731,18 @@
       <file>class_qt_data_sync_1_1_defaults.html</file>
       <file>class_qt_data_sync_1_1_defaults.png</file>
       <file>class_qt_data_sync_1_1_defaults-members.html</file>
+      <file>class_qt_data_sync_1_1_encryptor.html</file>
+      <file>class_qt_data_sync_1_1_encryptor.png</file>
+      <file>class_qt_data_sync_1_1_encryptor-members.html</file>
       <file>class_qt_data_sync_1_1_generic_task.html</file>
       <file>class_qt_data_sync_1_1_generic_task.png</file>
       <file>class_qt_data_sync_1_1_generic_task-members.html</file>
       <file>class_qt_data_sync_1_1_generic_task_3_01void_01_4.html</file>
       <file>class_qt_data_sync_1_1_generic_task_3_01void_01_4.png</file>
       <file>class_qt_data_sync_1_1_generic_task_3_01void_01_4-members.html</file>
+      <file>class_qt_data_sync_1_1_invalid_data_exception.html</file>
+      <file>class_qt_data_sync_1_1_invalid_data_exception.png</file>
+      <file>class_qt_data_sync_1_1_invalid_data_exception-members.html</file>
       <file>class_qt_data_sync_1_1_local_store.html</file>
       <file>class_qt_data_sync_1_1_local_store.png</file>
       <file>class_qt_data_sync_1_1_local_store-members.html</file>
@@ -1571,6 +1769,9 @@
       <file>class_qt_data_sync_1_1_task.html</file>
       <file>class_qt_data_sync_1_1_task.png</file>
       <file>class_qt_data_sync_1_1_task-members.html</file>
+      <file>class_qt_data_sync_1_1_update_task.html</file>
+      <file>class_qt_data_sync_1_1_update_task.png</file>
+      <file>class_qt_data_sync_1_1_update_task-members.html</file>
       <file>class_qt_data_sync_1_1_ws_authenticator.html</file>
       <file>class_qt_data_sync_1_1_ws_authenticator.png</file>
       <file>class_qt_data_sync_1_1_ws_authenticator-members.html</file>
@@ -1587,6 +1788,7 @@
       <file>functions.html</file>
       <file>functions_c.html</file>
       <file>functions_d.html</file>
+      <file>functions_e.html</file>
       <file>functions_f.html</file>
       <file>functions_g.html</file>
       <file>functions_i.html</file>
@@ -1603,23 +1805,24 @@
       <file>functions_w.html</file>
       <file>functions_0x7e.html</file>
       <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
-      <file>functions_func.html</file>
+      <file>functions_func_c.html</file>
+      <file>functions_func_d.html</file>
+      <file>functions_func_e.html</file>
+      <file>functions_func_f.html</file>
+      <file>functions_func_g.html</file>
+      <file>functions_func_i.html</file>
+      <file>functions_func_k.html</file>
+      <file>functions_func_l.html</file>
+      <file>functions_func_m.html</file>
+      <file>functions_func_o.html</file>
+      <file>functions_func_p.html</file>
+      <file>functions_func_r.html</file>
+      <file>functions_func_s.html</file>
+      <file>functions_func_t.html</file>
+      <file>functions_func_u.html</file>
+      <file>functions_func_v.html</file>
+      <file>functions_func_w.html</file>
+      <file>functions_func_0x7e.html</file>
       <file>functions_vars.html</file>
       <file>functions_type.html</file>
       <file>functions_enum.html</file>

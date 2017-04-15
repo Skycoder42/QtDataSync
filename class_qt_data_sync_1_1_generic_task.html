@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">2.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -222,7 +222,7 @@ class QtDataSync::GenericTask&lt; T &gt;</h3>
 
 <p>Generic version of the <a class="el" href="class_qt_data_sync_1_1_task.html" title="A class to extend QFuture by an onResult handler. ">Task</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="task_8h_source.html#l00016">16</a> of file <a class="el" href="task_8h_source.html">task.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="task_8h_source.html#l00020">20</a> of file <a class="el" href="task_8h_source.html">task.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ae44643784144eb23b7351e81679765fb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae44643784144eb23b7351e81679765fb">&#9670;&nbsp;</a></span>onResult() <span class="overload">[1/2]</span></h2>
@@ -271,7 +271,7 @@ template&lt;typename T &gt; </div>
 <dl class="section note"><dt>Note</dt><dd>If you only want to catch one specific exception type, simply call <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qexception.html#raise">QException::raise</a> in you handler inside a custom try-catch block. However, this means exception you do not catch there again will crash your application.</dd></dl>
 <p>If no parent is specified, the handler will be bound to <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qcoreapplication.html#instance">QCoreApplication::instance()</a>. This means as long as the qApp exists, the handlers are called when finished. If you specify a parent, handlers will be called only as long as this object is alive. If it's deleted before the future has finished, the handlers will <em>not</em> be called anymore. </p>
 
-<p class="definition">Definition at line <a class="el" href="task_8h_source.html#l00101">101</a> of file <a class="el" href="task_8h_source.html">task.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="task_8h_source.html#l00136">136</a> of file <a class="el" href="task_8h_source.html">task.h</a>.</p>
 
 </div>
 </div>
@@ -315,7 +315,7 @@ template&lt;typename T &gt; </div>
 <dl class="section note"><dt>Note</dt><dd>If you only want to catch one specific exception type, simply call <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qexception.html#raise">QException::raise</a> in you handler inside a custom try-catch block. However, this means exception you do not catch there again will crash your application.</dd></dl>
 <p>If no parent is specified, the handler will be bound to <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qcoreapplication.html#instance">QCoreApplication::instance()</a>. This means as long as the qApp exists, the handlers are called when finished. If you specify a parent, handlers will be called only as long as this object is alive. If it's deleted before the future has finished, the handlers will <em>not</em> be called anymore. </p>
 
-<p class="definition">Definition at line <a class="el" href="task_8h_source.html#l00111">111</a> of file <a class="el" href="task_8h_source.html">task.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="task_8h_source.html#l00146">146</a> of file <a class="el" href="task_8h_source.html">task.h</a>.</p>
 
 </div>
 </div>
@@ -326,7 +326,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 7 2017 15:32:55 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

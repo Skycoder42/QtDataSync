@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">1.1.0</span>
+   &#160;<span id="projectnumber">2.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -153,6 +153,9 @@ Public Member Functions</h2></td></tr>
 <a class="el" href="class_qt_data_sync_1_1_task.html">Task</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a2ac1f0e282794b4a44bb7cc7b17d58ed">search</a> (int dataMetaTypeId, int listMetaTypeId, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;query)</td></tr>
 <tr class="memdesc:a2ac1f0e282794b4a44bb7cc7b17d58ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Searches the store for datasets of the given type where the key matches the query. <br /></td></tr>
 <tr class="separator:a2ac1f0e282794b4a44bb7cc7b17d58ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6b88b7d99b3bf149b286c8354a90aae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_async_data_store.html#ab6b88b7d99b3bf149b286c8354a90aae">iterate</a> (int metaTypeId, const std::function&lt; bool(<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>)&gt; &amp;iterator, const std::function&lt; void(const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qexception.html">QException</a> &amp;)&gt; &amp;onExcept)</td></tr>
+<tr class="memdesc:ab6b88b7d99b3bf149b286c8354a90aae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asynchronously iterates over all existing datasets of the given types.  <a href="#ab6b88b7d99b3bf149b286c8354a90aae">More...</a><br /></td></tr>
+<tr class="separator:ab6b88b7d99b3bf149b286c8354a90aae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00c2954d4e1f020b7d6362e68a3770d4"><td class="memTemplParams" colspan="2"><a id="a00c2954d4e1f020b7d6362e68a3770d4"></a>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a00c2954d4e1f020b7d6362e68a3770d4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_generic_task.html">GenericTask</a>&lt; int &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a00c2954d4e1f020b7d6362e68a3770d4">count</a> ()</td></tr>
@@ -198,6 +201,20 @@ template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a8ac2ebfa4ddb810e32884f591946e289"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_generic_task.html">GenericTask</a>&lt; <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qlist.html">QList</a>&lt; T &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a8ac2ebfa4ddb810e32884f591946e289">search</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;query)</td></tr>
 <tr class="memdesc:a8ac2ebfa4ddb810e32884f591946e289"><td class="mdescLeft">&#160;</td><td class="mdescRight">Searches the store for datasets of the given type where the key matches the query. <br /></td></tr>
 <tr class="separator:a8ac2ebfa4ddb810e32884f591946e289"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a357654518058d89e16716c2801c7db77"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a357654518058d89e16716c2801c7db77"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a357654518058d89e16716c2801c7db77">iterate</a> (const std::function&lt; bool(T)&gt; &amp;iterator, const std::function&lt; void(const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qexception.html">QException</a> &amp;)&gt; &amp;onExcept)</td></tr>
+<tr class="memdesc:a357654518058d89e16716c2801c7db77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asynchronously iterates over all existing datasets of the given types.  <a href="#a357654518058d89e16716c2801c7db77">More...</a><br /></td></tr>
+<tr class="separator:a357654518058d89e16716c2801c7db77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43e7a0f62c201b4f6b5ab5f4b896824f"><td class="memTemplParams" colspan="2"><a id="a43e7a0f62c201b4f6b5ab5f4b896824f"></a>
+template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a43e7a0f62c201b4f6b5ab5f4b896824f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_update_task.html">UpdateTask</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_async_data_store.html#a43e7a0f62c201b4f6b5ab5f4b896824f">loadInto</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;key, const T &amp;object)</td></tr>
+<tr class="memdesc:a43e7a0f62c201b4f6b5ab5f4b896824f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the dataset with the given key for the given type into the existing object by updating it's properties. <br /></td></tr>
+<tr class="separator:a43e7a0f62c201b4f6b5ab5f4b896824f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abae7e96b69956b3f48e7c3a22d56329c"><td class="memTemplParams" colspan="2"><a id="abae7e96b69956b3f48e7c3a22d56329c"></a>
+template&lt;typename T , typename K &gt; </td></tr>
+<tr class="memitem:abae7e96b69956b3f48e7c3a22d56329c"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_update_task.html">UpdateTask</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_async_data_store.html#abae7e96b69956b3f48e7c3a22d56329c">loadInto</a> (const K &amp;key, const T &amp;object)</td></tr>
+<tr class="memdesc:abae7e96b69956b3f48e7c3a22d56329c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads the dataset with the given key for the given type into the existing object by updating it's properties. <br /></td></tr>
+<tr class="separator:abae7e96b69956b3f48e7c3a22d56329c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_qobject"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_qobject')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="target="_blank" https://doc.qt.io/qt-5/qobject.html">QObject</a></td></tr>
 <tr class="memitem:QObject inherit pub_methods_qobject"><td class="memItemLeft" align="right" valign="top"><a id="QObject"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#QObject">QObject</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html">QObject</a> *<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#parent">parent</a>)</td></tr>
@@ -383,7 +400,7 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef"
 <dl class="section warning"><dt>Warning</dt><dd>If you are using the async stores generic methods, and you are working with <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html">QObject</a> classes, please be aware that the store <b>never</b> takes ownership of those objects, neither for saving nor for loading. You as the caller of those methods are responsible for deleting the objects after the operations have been completed.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_caching_data_store.html" title="A class to access data synchronously. ">CachingDataStore</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="asyncdatastore_8h_source.html#l00017">17</a> of file <a class="el" href="asyncdatastore_8h_source.html">asyncdatastore.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="asyncdatastore_8h_source.html#l00018">18</a> of file <a class="el" href="asyncdatastore_8h_source.html">asyncdatastore.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a2f54bca99ceb7c47c32ceadce44639d2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2f54bca99ceb7c47c32ceadce44639d2">&#9670;&nbsp;</a></span>dataChanged</h2>
@@ -438,6 +455,97 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef"
 
 </div>
 </div>
+<a id="ab6b88b7d99b3bf149b286c8354a90aae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6b88b7d99b3bf149b286c8354a90aae">&#9670;&nbsp;</a></span>iterate() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QtDataSync::AsyncDataStore::iterate </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>metaTypeId</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; bool(<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>iterator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; void(const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qexception.html">QException</a> &amp;)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>onExcept</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Asynchronously iterates over all existing datasets of the given types. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">metaTypeId</td><td>The type of datasets to iterate over </td></tr>
+    <tr><td class="paramname">iterator</td><td>The iterator to be called for each dataset loaded </td></tr>
+    <tr><td class="paramname">onExcept</td><td>A handler to be called if reading fails at some point</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Inernally, the store will load one dataset after another, and call iterator with the result. You can return <code>true</code> to continue iterating, or <code>false</code> to cancel prematurely. The exception handler is passed to to the Tasks internally used.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_task.html" title="A class to extend QFuture by an onResult handler. ">Task</a> </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="asyncdatastore_8cpp_source.html#l00072">72</a> of file <a class="el" href="asyncdatastore_8cpp_source.html">asyncdatastore.cpp</a>.</p>
+
+</div>
+</div>
+<a id="a357654518058d89e16716c2801c7db77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a357654518058d89e16716c2801c7db77">&#9670;&nbsp;</a></span>iterate() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">QtDataSync::AsyncDataStore::iterate </td>
+          <td>(</td>
+          <td class="paramtype">const std::function&lt; bool(T)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>iterator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; void(const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qexception.html">QException</a> &amp;)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>onExcept</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Asynchronously iterates over all existing datasets of the given types. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">iterator</td><td>The iterator to be called for each dataset loaded </td></tr>
+    <tr><td class="paramname">onExcept</td><td>A handler to be called if reading fails at some point</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Inernally, the store will load one dataset after another, and call iterator with the result. You can return <code>true</code> to continue iterating, or <code>false</code> to cancel prematurely. The exception handler is passed to to the Tasks internally used.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_task.html" title="A class to extend QFuture by an onResult handler. ">Task</a> </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="asyncdatastore_8h_source.html#l00172">172</a> of file <a class="el" href="asyncdatastore_8h_source.html">asyncdatastore.h</a>.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="asyncdatastore_8h_source.html">asyncdatastore.h</a></li>
 <li><a class="el" href="asyncdatastore_8cpp_source.html">asyncdatastore.cpp</a></li>
@@ -446,7 +554,7 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef"
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 7 2017 15:32:55 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>
