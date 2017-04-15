@@ -1,6 +1,7 @@
 #include "qtinyaesencryptor_p.h"
 
 #include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
 #include <QtCore/qcryptographichash.h>
 
 #include <qtinyaes.h>
