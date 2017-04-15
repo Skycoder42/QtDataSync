@@ -51,6 +51,29 @@ QException *SetupLockedException::clone() const
 	return new SetupLockedException(this);
 }
 
+InvalidDataException::InvalidDataException(const QString &what) :
+	_what(what.toUtf8())
+{}
+
+InvalidDataException::InvalidDataException(const QByteArray &what) :
+	_what(what)
+{}
+
+const char *InvalidDataException::what() const noexcept
+{
+	return _what.constData();
+}
+
+void InvalidDataException::raise() const
+{
+	throw *this;
+}
+
+QException *InvalidDataException::clone() const
+{
+	return new InvalidDataException(_what);
+}
+
 DataSyncException::DataSyncException(const QString &what) :
 	QException(),
 	_what(what.toUtf8())

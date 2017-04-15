@@ -21,7 +21,7 @@ public:
 	//! Called from the engine to finalize the encryptor
 	virtual void finalize();
 
-	//! Returns the current encryption key
+	//! Returns the current encryption key (must be thread-safe)
 	virtual QByteArray key() const = 0;
 	//! Sets the encryption key
 	virtual void setKey(const QByteArray &key) = 0;

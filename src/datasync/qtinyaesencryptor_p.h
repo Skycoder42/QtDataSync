@@ -5,6 +5,7 @@
 #include "encryptor.h"
 
 #include <QtCore/QException>
+#include <QtCore/QMutex>
 
 namespace QtDataSync {
 
@@ -42,6 +43,7 @@ public:
 private:
 	Defaults *_defaults;
 	QByteArray _key;
+	mutable QMutex _keyMutex;
 };
 
 }

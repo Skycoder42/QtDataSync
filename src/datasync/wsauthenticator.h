@@ -42,6 +42,9 @@ public:
 	//! Destructor
 	~WsAuthenticator();
 
+	void exportUserData(QIODevice *device) const override;
+	GenericTask<void> importUserData(QIODevice *device) override;
+
 	//! @readAcFn{WsAuthenticator::remoteEnabled}
 	bool isRemoteEnabled() const;
 	//! @readAcFn{WsAuthenticator::remoteUrl}

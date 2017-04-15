@@ -3,6 +3,8 @@
 #include "wsauthenticator_p.h"
 #include "wsremoteconnector_p.h"
 
+#include <QtCore/QJsonDocument>
+
 using namespace QtDataSync;
 
 WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, Defaults *defaults, QObject *parent) :
@@ -17,6 +19,34 @@ WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, Defaults *default
 }
 
 WsAuthenticator::~WsAuthenticator() {}
+
+void WsAuthenticator::exportUserData(QIODevice *device) const
+{
+	QJsonObject data;
+	data[QStringLiteral("key")] = QString::fromUtf8(d->connector->cryptor()->key().toBase64());
+	data[QStringLiteral("identity")] = QString::fromUtf8(userIdentity());
+
+	device->write(QJsonDocument(data).toJson(QJsonDocument::Indented));
+}
+
+GenericTask<void> WsAuthenticator::importUserData(QIODevice *device)
+{
+	QJsonParseError error;
+	auto data = QJsonDocument::fromJson(device->readAll(), &error);
+	if(error.error != QJsonParseError::NoError) {
+		QFutureInterface<QVariant> futureInterface;
+		futureInterface.reportStarted();
+		futureInterface.reportException(InvalidDataException(error.errorString()));
+		futureInterface.reportFinished();
+		return futureInterface;
+	}
+
+	auto obj = data.object();
+	auto key = QByteArray::fromBase64(obj[QStringLiteral("key")].toString().toUtf8());
+	QMetaObject::invokeMethod(d->connector->cryptor(), "setKey", Qt::QueuedConnection,
+							  Q_ARG(QByteArray, key));
+	return setUserIdentity(obj[QStringLiteral("identity")].toString().toUtf8());
+}
 
 bool WsAuthenticator::isRemoteEnabled() const
 {

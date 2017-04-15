@@ -40,6 +40,9 @@ public:
 	//! Called from the engine to finalize the connector
 	virtual void finalize();
 
+	//! Returns the encryptor this connector uses (can be nullptr)
+	virtual Encryptor *cryptor() const;
+
 	//! Method to create an authenticator for this connector
 	virtual Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) = 0;
 

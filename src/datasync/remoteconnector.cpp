@@ -10,6 +10,7 @@ public:
 	RemoteConnectorPrivate();
 
 	Defaults *defaults;
+	Encryptor *cryptor;
 };
 }
 
@@ -22,12 +23,18 @@ RemoteConnector::RemoteConnector(QObject *parent) :
 
 RemoteConnector::~RemoteConnector() {}
 
-void RemoteConnector::initialize(Defaults *defaults, Encryptor *)
+void RemoteConnector::initialize(Defaults *defaults, Encryptor *cryptor)
 {
 	d->defaults = defaults;
+	d->cryptor = cryptor;
 }
 
 void RemoteConnector::finalize() {}
+
+Encryptor *RemoteConnector::cryptor() const
+{
+	return d->cryptor;
+}
 
 void RemoteConnector::resetUserId(QFutureInterface<QVariant> futureInterface, const QVariant &extraData, bool resetLocalStore)
 {
@@ -61,5 +68,6 @@ QByteArray RemoteConnector::getDeviceId() const
 
 
 RemoteConnectorPrivate::RemoteConnectorPrivate() :
-	defaults(nullptr)
+	defaults(nullptr),
+	cryptor(nullptr)
 {}

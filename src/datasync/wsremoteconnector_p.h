@@ -73,7 +73,6 @@ private:
 
 	QWebSocket *socket;
 	QSettings *settings;
-	Encryptor *cryptor;
 
 	SocketState state;
 	int retryIndex;

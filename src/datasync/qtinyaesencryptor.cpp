@@ -9,7 +9,8 @@ using namespace QtDataSync;
 QTinyAesEncryptor::QTinyAesEncryptor(QObject *parent) :
 	Encryptor(parent),
 	_defaults(nullptr),
-	_key()
+	_key(),
+	_keyMutex()
 {}
 
 void QTinyAesEncryptor::initialize(Defaults *defaults)
@@ -25,11 +26,13 @@ void QTinyAesEncryptor::initialize(Defaults *defaults)
 
 QByteArray QTinyAesEncryptor::key() const
 {
+	QMutexLocker _(&_keyMutex);
 	return _key;
 }
 
 void QTinyAesEncryptor::setKey(const QByteArray &key)
 {
+	QMutexLocker _(&_keyMutex);
 	if((quint32)_key.size() != QTinyAes::KEYSIZE)
 		throw InvalidKeyException();
 	_key = key;

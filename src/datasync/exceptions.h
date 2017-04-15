@@ -58,6 +58,27 @@ private:
 	SetupLockedException(const SetupException *cloneFrom);
 };
 
+//! Exception thrown if imported user data is invalid
+class Q_DATASYNC_EXPORT InvalidDataException : public QException
+{
+public:
+	//! Constructor with error message
+	InvalidDataException(const QString &what);
+
+public:
+	//! @inherit{std::exception::what}
+	const char *what() const noexcept final;
+
+	//! @inherit{QException::raise}
+	void raise() const final;
+	//! @inherit{QException::clone}
+	QException *clone() const final;
+
+private:
+	InvalidDataException(const QByteArray &what);
+	const QByteArray _what;
+};
+
 //! Exception thrown if something goes wrong when using the async store
 class Q_DATASYNC_EXPORT DataSyncException : public QException
 {

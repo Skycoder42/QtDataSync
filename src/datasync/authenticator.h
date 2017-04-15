@@ -6,6 +6,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qiodevice.h>
 
 #include <functional>
 #include <type_traits>
@@ -22,6 +23,15 @@ class Q_DATASYNC_EXPORT Authenticator : public QObject
 public:
 	//! Constructor
 	explicit Authenticator(QObject *parent = nullptr);
+
+	//! Export all user-related remote data to the given device
+	virtual void exportUserData(QIODevice *device) const = 0;
+	//! Export all user-related remote data
+	QByteArray exportUserData() const;
+	//! Import user-related remote data from the given device
+	virtual GenericTask<void> importUserData(QIODevice *device) = 0;
+	//! Import user-related remote data
+	GenericTask<void> importUserData(QByteArray data);
 
 protected:
 	//! Call this method to reset the users identity.

@@ -24,7 +24,6 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	RemoteConnector(parent),
 	socket(nullptr),
 	settings(nullptr),
-	cryptor(nullptr),
 	state(Disconnected),
 	retryIndex(0),
 	needResync(false),
@@ -39,7 +38,6 @@ void WsRemoteConnector::initialize(Defaults *defaults, Encryptor *cryptor)
 {
 	RemoteConnector::initialize(defaults, cryptor);
 	settings = defaults->createSettings(this);
-	this->cryptor = cryptor;
 
 	operationTimer->setInterval(30000);//30 secs timout
 	operationTimer->setSingleShot(true);
@@ -162,7 +160,7 @@ void WsRemoteConnector::download(const ObjectKey &key, const QByteArray &keyProp
 		sendCommand("load", data);
 
 		//if cryptor is valid, expect the reply to be encrypted
-		if(cryptor) {
+		if(cryptor()) {
 			currentKey = key;
 			currentKeyProperty = keyProperty;
 			decryptReply = true;
@@ -179,9 +177,9 @@ void WsRemoteConnector::upload(const ObjectKey &key, const QJsonObject &object, 
 		QJsonObject data;
 		data[QStringLiteral("type")] = QString::fromUtf8(key.first);
 		data[QStringLiteral("key")] = key.second;
-		if(cryptor) {
+		if(cryptor()) {
 			try {
-				data[QStringLiteral("value")] = cryptor->encrypt(key, object, keyProperty);
+				data[QStringLiteral("value")] = cryptor()->encrypt(key, object, keyProperty);
 				sendCommand("save", data);
 			} catch(QException &e) {
 				emit operationFailed(QString::fromUtf8(e.what()));
@@ -418,7 +416,7 @@ void WsRemoteConnector::completed(const QJsonObject &result)
 	if(result[QStringLiteral("success")].toBool()) {
 		if(decryptReply) {
 			try {
-				auto data = cryptor->decrypt(currentKey, result[QStringLiteral("data")], currentKeyProperty);
+				auto data = cryptor()->decrypt(currentKey, result[QStringLiteral("data")], currentKeyProperty);
 				emit operationDone(data);
 			} catch(QException &e) {
 				emit operationFailed(QString::fromUtf8(e.what()));
