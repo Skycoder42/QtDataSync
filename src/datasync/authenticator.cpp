@@ -9,21 +9,31 @@ Authenticator::Authenticator(QObject *parent) :
 	QObject(parent)
 {}
 
+void Authenticator::exportUserData(QIODevice *device) const
+{
+	exportUserDataImpl(device);
+}
+
 QByteArray Authenticator::exportUserData() const
 {
 	QBuffer buffer;
 	buffer.open(QIODevice::WriteOnly);
-	exportUserData(&buffer);
+	exportUserDataImpl(&buffer);
 	auto res = buffer.data();
 	buffer.close();
 	return res;
+}
+
+GenericTask<void> Authenticator::importUserData(QIODevice *device)
+{
+	return importUserDataImpl(device);
 }
 
 GenericTask<void> Authenticator::importUserData(QByteArray data)
 {
 	QBuffer buffer(&data);
 	buffer.open(QIODevice::ReadOnly);
-	auto res = importUserData(&buffer);
+	auto res = importUserDataImpl(&buffer);
 	buffer.close();
 	return res;
 }

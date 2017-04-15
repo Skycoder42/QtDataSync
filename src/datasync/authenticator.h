@@ -25,17 +25,20 @@ public:
 	explicit Authenticator(QObject *parent = nullptr);
 
 	//! Export all user-related remote data to the given device
-	virtual void exportUserData(QIODevice *device) const = 0;
+	void exportUserData(QIODevice *device) const;
 	//! Export all user-related remote data
 	QByteArray exportUserData() const;
 	//! Import user-related remote data from the given device
-	virtual GenericTask<void> importUserData(QIODevice *device) = 0;
+	GenericTask<void> importUserData(QIODevice *device);
 	//! Import user-related remote data
 	GenericTask<void> importUserData(QByteArray data);
 
 protected:
 	//! Call this method to reset the users identity.
 	GenericTask<void> resetIdentity(const QVariant &extraData = {}, bool resetLocalStore = true);
+
+	virtual void exportUserDataImpl(QIODevice *device) const = 0;
+	virtual GenericTask<void> importUserDataImpl(QIODevice *device) = 0;
 
 	//! Returns a reference to the connector this authenticator belongs to
 	virtual RemoteConnector *connector() = 0;

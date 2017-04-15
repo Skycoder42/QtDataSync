@@ -20,7 +20,7 @@ WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, Defaults *default
 
 WsAuthenticator::~WsAuthenticator() {}
 
-void WsAuthenticator::exportUserData(QIODevice *device) const
+void WsAuthenticator::exportUserDataImpl(QIODevice *device) const
 {
 	QJsonObject data;
 	data[QStringLiteral("key")] = QString::fromUtf8(d->connector->cryptor()->key().toBase64());
@@ -29,7 +29,7 @@ void WsAuthenticator::exportUserData(QIODevice *device) const
 	device->write(QJsonDocument(data).toJson(QJsonDocument::Indented));
 }
 
-GenericTask<void> WsAuthenticator::importUserData(QIODevice *device)
+GenericTask<void> WsAuthenticator::importUserDataImpl(QIODevice *device)
 {
 	QJsonParseError error;
 	auto data = QJsonDocument::fromJson(device->readAll(), &error);

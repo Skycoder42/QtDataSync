@@ -22,6 +22,7 @@ private Q_SLOTS:
 	void testRemove();
 
 	void testSecondDevice();
+	void testExportImport();
 
 Q_SIGNALS:
 	void unlockSignal();
@@ -264,6 +265,65 @@ void WsRemoteConnectorTest::testSecondDevice()
 
 	auth->setUserIdentity(auth->userIdentity());//reset device trick...
 	auth->reconnect();
+
+	QVERIFY(conSpy.wait());
+	QVERIFY(!auth->isConnected());
+	QVERIFY(conSpy.wait());
+	QVERIFY(auth->isConnected());
+	for(auto i = 0; i < 10 && syncSpy.count() < 4; i++)
+		syncSpy.wait(500);
+	QCOMPARE(syncSpy.count(), 4);
+	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncSpy[2][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncSpy[3][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+
+	store->mutex.lock();
+	[&](){
+		QLISTCOMPARE(store->pseudoStore.keys(), generateDataJson(313, 318).keys());
+	}();
+	store->mutex.unlock();
+}
+
+void WsRemoteConnectorTest::testExportImport()
+{
+	//IMPORTANT!!! clear pending notifies...
+	QCoreApplication::processEvents();
+
+	QSignalSpy syncSpy(controller, &SyncController::syncStateChanged);
+	QSignalSpy conSpy(auth, &WsAuthenticator::connectedChanged);
+
+	auto data = auth->exportUserData();
+
+	//after export: test with different user to reset
+	auth->resetUserIdentity();//reset device trick...
+	auth->reconnect();
+
+	QVERIFY(conSpy.wait());
+	QVERIFY(!auth->isConnected());
+	QVERIFY(conSpy.wait());
+	QVERIFY(auth->isConnected());
+	for(auto i = 0; i < 10 && syncSpy.count() < 4; i++)
+		syncSpy.wait(500);
+	QCOMPARE(syncSpy.count(), 4);
+	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncSpy[2][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncSpy[3][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+
+	store->mutex.lock();
+	[&](){
+		QVERIFY(store->pseudoStore.keys().isEmpty());
+	}();
+	store->mutex.unlock();
+
+	//now reimport
+	syncSpy.clear();
+	conSpy.clear();
+
+	auth->importUserData(data);
 
 	QVERIFY(conSpy.wait());
 	QVERIFY(!auth->isConnected());
