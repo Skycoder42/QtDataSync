@@ -286,17 +286,19 @@ template <typename TType, typename TKey>
 void CachingDataStore<TType*, TKey>::save(TType *value)
 {
 	auto userProp = TType::staticMetaObject.userProperty();
-	auto key = userProp.read(value).template value<TKey>();
+	auto keyVariant = userProp.read(value);
+	auto key = keyVariant.template value<TKey>();
+	auto keyString = keyVariant.toString();
 
 	auto data = _data.value(key, nullptr);
 	if(data == value) {
 		_store->save(value);
-		emit dataChanged(key, QVariant::fromValue(value));
+		emit dataChanged(keyString, QVariant::fromValue(value));
 	} else {
 		value->setParent(this);
 		_data.insert(key, value);
 		_store->save(value);
-		emit dataChanged(key, QVariant::fromValue(value));
+		emit dataChanged(keyString, QVariant::fromValue(value));
 		if(data)
 			data->deleteLater();
 	}
@@ -307,8 +309,9 @@ void CachingDataStore<TType*, TKey>::remove(const TKey &key)
 {
 	auto data = _data.take(key);
 	if(data) {
-		_store->remove<TType*>(QVariant::fromValue(key).toString());
-		emit dataChanged(key, QVariant());
+		auto keyString = QVariant::fromValue(key).toString();
+		_store->remove<TType*>(keyString);
+		emit dataChanged(keyString, QVariant());
 		data->deleteLater();
 	}
 }
