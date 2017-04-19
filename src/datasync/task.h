@@ -9,6 +9,7 @@
 #include <QtCore/qexception.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qsharedpointer.h>
+#include <QtCore/qscopedpointer.h>
 #include <QtCore/qmetaobject.h>
 
 #include <functional>
@@ -112,11 +113,15 @@ public:
 	T result() const;
 
 private:
-	T _data;
-	mutable bool _updated;
-	mutable QSharedPointer<QMutex> _mutex;
+	struct UpdateData {
+		T data;
+		bool updated;
+		QScopedPointer<QMutex> mutex;
+	};
 
-	T interalGet() const;
+	QSharedPointer<UpdateData> _data;
+
+	static T interalGet(QSharedPointer<UpdateData> data, QVariant result);
 };
 
 // ------------- Generic Implementation -------------
@@ -163,18 +168,20 @@ T GenericTask<T>::result() const
 template<typename T>
 UpdateTask<T>::UpdateTask(T data, QFutureInterface<QVariant> d) :
 	Task(d),
-	_data(data),
-	_updated(false),
-	_mutex(new QMutex())
+	_data(new UpdateData())
 {
-	Q_ASSERT_X(_data, Q_FUNC_INFO, "UpdateTask must have an existing data object to update!");
+	Q_ASSERT_X(data, Q_FUNC_INFO, "UpdateTask must have an existing data object to update!");
+	_data->data = data;
+	_data->updated = false;
+	_data->mutex.reset(new QMutex());
 }
 
 template<typename T>
 UpdateTask<T> &UpdateTask<T>::onResult(QObject *parent, const std::function<void (T)> &onSuccess, const std::function<void (const QException &)> &onExcept)
 {
-	Task::onResult(parent, [=](QVariant){
-		onSuccess(interalGet());
+	auto data = _data;
+	Task::onResult(parent, [=](QVariant res){
+		onSuccess(interalGet(data, res));
 	}, onExcept);
 
 	return *this;
@@ -183,8 +190,9 @@ UpdateTask<T> &UpdateTask<T>::onResult(QObject *parent, const std::function<void
 template<typename T>
 UpdateTask<T> &UpdateTask<T>::onResult(const std::function<void (T)> &onSuccess, const std::function<void (const QException &)> &onExcept)
 {
-	Task::onResult([=](QVariant){
-		onSuccess(interalGet());
+	auto data = _data;
+	Task::onResult([=](QVariant res){
+		onSuccess(interalGet(data, res));
 	}, onExcept);
 
 	return *this;
@@ -193,45 +201,45 @@ UpdateTask<T> &UpdateTask<T>::onResult(const std::function<void (T)> &onSuccess,
 template<typename T>
 T UpdateTask<T>::result() const
 {
-	return interalGet();
+	return interalGet(_data, Task::result());
 }
 
 template<typename T>
-T UpdateTask<T>::interalGet() const
+T UpdateTask<T>::interalGet(QSharedPointer<UpdateData> data, QVariant result)
 {
-	_mutex->lock();
-	if(!_updated) {
+	data->mutex->lock();
+	if(!data->updated) {
 		try {
-			auto newResult = Task::result().template value<T>();
-			auto oldMeta = _data->metaObject();
+			auto newResult = result.template value<T>();
+			auto oldMeta = data->data->metaObject();
 			auto newMeta = newResult->metaObject();
 
 			//verify objects match
 			if(!newMeta->inherits(oldMeta))
 				throw DataSyncException("loadInto: Loaded class type does not match the one to load into!");
 			auto user = oldMeta->userProperty();
-			if(user.read(newResult).toString() != user.read(_data).toString())
+			if(user.read(newResult).toString() != user.read(data->data).toString())
 				throw DataSyncException("loadInto: The id of the loaded data does not match the one to be updated!");
 
 			//pass on properties
 			for(auto i = 1; i < oldMeta->propertyCount(); i++) {//skip object name
 				auto prop = oldMeta->property(i);
 				if(prop.isStored())
-					prop.write(_data, prop.read(newResult));
+					prop.write(data->data, prop.read(newResult));
 			}
 			foreach(auto dynProp, newResult->dynamicPropertyNames())
-				_data->setProperty(dynProp, newResult->property(dynProp));
+				data->data->setProperty(dynProp, newResult->property(dynProp));
 
-			_updated = true;
+			data->updated = true;
 			newResult->deleteLater();
 		} catch(...) {
-			_mutex->unlock();
+			data->mutex->unlock();
 			throw;
 		}
 	}
-	_mutex->unlock();
+	data->mutex->unlock();
 
-	return _data;
+	return data->data;
 }
 
 }
