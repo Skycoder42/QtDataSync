@@ -80,7 +80,7 @@ void SyncController::updateAuthenticationError(const QString &authenticationErro
 void SyncController::setupTriggerResult(std::function<void (SyncController::SyncState)> resultFn)
 {
 	auto receiver = new QObject(this);//dummy to disconnect after one call
-	connect(this, &SyncController::syncStateChanged, receiver, [=](SyncState state){
+	connect(this, &SyncController::syncStateChanged, receiver, [resultFn, receiver](SyncState state){
 		if(state == Loading || state == Syncing)
 			return;
 		resultFn(state);

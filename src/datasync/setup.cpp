@@ -180,12 +180,11 @@ void Setup::create(const QString &name)
 					 engine, &StorageEngine::initialize);
 	QObject::connect(thread, &QThread::finished,
 					 engine, &StorageEngine::deleteLater);
-	QObject::connect(engine, &StorageEngine::destroyed, qApp, [=](){
-		auto t = storageDir.path();
+	QObject::connect(engine, &StorageEngine::destroyed, qApp, [lockFile](){
 		lockFile->unlock();
 		delete lockFile;
 	}, Qt::DirectConnection);
-	QObject::connect(thread, &QThread::finished, thread, [=](){
+	QObject::connect(thread, &QThread::finished, thread, [name, thread](){
 		QMutexLocker _(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
 		thread->deleteLater();

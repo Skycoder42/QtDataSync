@@ -140,7 +140,7 @@ GenericTask<T>::GenericTask(QFutureInterface<QVariant> d) :
 template<typename T>
 GenericTask<T> &GenericTask<T>::onResult(QObject *parent, const std::function<void (T)> &onSuccess, const std::function<void (const QException &)> &onExcept)
 {
-	Task::onResult(parent, [=](QVariant result){
+	Task::onResult(parent, [onSuccess](QVariant result){
 		onSuccess(result.value<T>());
 	}, onExcept);
 
@@ -150,7 +150,7 @@ GenericTask<T> &GenericTask<T>::onResult(QObject *parent, const std::function<vo
 template<typename T>
 GenericTask<T> &GenericTask<T>::onResult(const std::function<void (T)> &onSuccess, const std::function<void (const QException &)> &onExcept)
 {
-	Task::onResult([=](QVariant result){
+	Task::onResult([onSuccess](QVariant result){
 		onSuccess(result.value<T>());
 	}, onExcept);
 
@@ -180,7 +180,7 @@ template<typename T>
 UpdateTask<T> &UpdateTask<T>::onResult(QObject *parent, const std::function<void (T)> &onSuccess, const std::function<void (const QException &)> &onExcept)
 {
 	auto data = _data;
-	Task::onResult(parent, [=](QVariant res){
+	Task::onResult(parent, [onSuccess, data](QVariant res){
 		onSuccess(interalGet(data, res));
 	}, onExcept);
 
@@ -191,7 +191,7 @@ template<typename T>
 UpdateTask<T> &UpdateTask<T>::onResult(const std::function<void (T)> &onSuccess, const std::function<void (const QException &)> &onExcept)
 {
 	auto data = _data;
-	Task::onResult([=](QVariant res){
+	Task::onResult([onSuccess, data](QVariant res){
 		onSuccess(interalGet(data, res));
 	}, onExcept);
 
