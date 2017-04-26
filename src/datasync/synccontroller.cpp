@@ -47,7 +47,7 @@ QString SyncController::authenticationError() const
 
 void SyncController::triggerSync()
 {
-	QMetaObject::invokeMethod(d->engine, "triggerSync");
+	QMetaObject::invokeMethod(d->engine, "triggerSync", Qt::QueuedConnection);
 }
 
 void SyncController::triggerSyncWithResult(std::function<void (SyncState)> resultFn)
@@ -58,7 +58,7 @@ void SyncController::triggerSyncWithResult(std::function<void (SyncState)> resul
 
 void SyncController::triggerResync()
 {
-	QMetaObject::invokeMethod(d->engine, "triggerResync");
+	QMetaObject::invokeMethod(d->engine, "triggerResync", Qt::QueuedConnection);
 }
 
 void SyncController::triggerResyncWithResult(std::function<void (SyncController::SyncState)> resultFn)
@@ -69,7 +69,8 @@ void SyncController::triggerResyncWithResult(std::function<void (SyncController:
 
 void SyncController::setSyncEnabled(bool syncEnabled)
 {
-	QMetaObject::invokeMethod(d->engine, "setSyncEnabled", Q_ARG(bool, syncEnabled));
+	QMetaObject::invokeMethod(d->engine, "setSyncEnabled", Qt::QueuedConnection,
+							  Q_ARG(bool, syncEnabled));
 }
 
 void SyncController::setupTriggerResult(std::function<void (SyncController::SyncState)> resultFn)

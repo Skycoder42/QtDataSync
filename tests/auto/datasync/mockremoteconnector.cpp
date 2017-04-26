@@ -25,16 +25,20 @@ void MockRemoteConnector::initialize(Defaults *, Encryptor *)
 
 bool MockRemoteConnector::isSyncEnabled() const
 {
-	//TODO mock implement
-	Q_UNIMPLEMENTED();
-	return true;
+	return connected;
 }
 
 bool MockRemoteConnector::setSyncEnabled(bool syncEnabled)
 {
-	//TODO mock implement
-	Q_UNIMPLEMENTED();
-	return false;
+	if(syncEnabled != connected) {
+		connected = syncEnabled;
+		if(!connected)
+			emit remoteStateChanged(RemoteDisconnected);
+		else
+			reloadRemoteState();
+		return true;
+	} else
+		return false;
 }
 
 void MockRemoteConnector::updateConnected(bool resync)

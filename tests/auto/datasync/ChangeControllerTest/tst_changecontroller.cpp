@@ -18,6 +18,7 @@ private Q_SLOTS:
 	void testLiveChanges_data();
 	void testLiveChanges();
 
+	void testSyncEnable();
 	void testTriggerSync();
 	void testTriggerResync();
 	void testAuthError();
@@ -31,6 +32,7 @@ private:
 	AsyncDataStore *async;
 	SyncController *controller;
 
+	void cleanRemConnect();
 	DataSet generateSyncData(int param);
 	StateHolder::ChangeHash generateSyncHash(StateHolder::ChangeState state);
 };
@@ -346,15 +348,8 @@ void ChangeControllerTest::testLiveChanges()
 	QFETCH(StateHolder::ChangeHash, remoteChange);
 	QFETCH(bool, error);
 
-	remote->mutex.lock();
-	remote->connected = true;
-	remote->mutex.unlock();
-	remote->updateConnected(false);
-	QThread::msleep(500);
-
+	cleanRemConnect();
 	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
-	syncStateSpy.wait(500);
-	syncStateSpy.clear();
 
 	//make shure both sides are stable
 	remote->mutex.lock();
@@ -413,8 +408,46 @@ void ChangeControllerTest::testLiveChanges()
 	}
 }
 
+void ChangeControllerTest::testSyncEnable()
+{
+	cleanRemConnect();
+	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
+	QSignalSpy syncEnabledSpy(controller, &SyncController::syncEnabledChanged);
+
+	//disable sync
+	controller->setSyncEnabled(false);
+
+	QVERIFY(syncEnabledSpy.wait(2500));
+	QCOMPARE(syncEnabledSpy.count(), 1);
+	QCOMPARE(syncEnabledSpy[0][0], QVariant(false));
+
+	QCOMPARE(syncStateSpy.count(), 1);
+	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(controller->syncState(), SyncController::Disconnected);
+
+	//trigger sync does not work, because disabled
+	controller->triggerSync();
+	QVERIFY(!syncStateSpy.wait(500));
+
+	//disable sync
+	syncStateSpy.clear();
+	syncEnabledSpy.clear();
+	controller->setSyncEnabled(true);
+
+	for(auto i = 0; i < 10 && syncStateSpy.count() < 3; i++)
+		syncStateSpy.wait(500);
+	QCOMPARE(syncEnabledSpy.count(), 1);
+	QCOMPARE(syncEnabledSpy[0][0], QVariant(true));
+	QCOMPARE(syncStateSpy.count(), 3);
+	QCOMPARE(syncStateSpy[0][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncStateSpy[1][0], QVariant::fromValue(SyncController::Syncing));
+	QCOMPARE(syncStateSpy[2][0], QVariant::fromValue(SyncController::Synced));
+	QCOMPARE(controller->syncState(), SyncController::Synced);
+}
+
 void ChangeControllerTest::testTriggerSync()
 {
+	cleanRemConnect();
 	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
 
 	controller->triggerSync();
@@ -430,6 +463,7 @@ void ChangeControllerTest::testTriggerSync()
 
 void ChangeControllerTest::testTriggerResync()
 {
+	cleanRemConnect();
 	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
 
 	controller->triggerResync();
@@ -446,6 +480,7 @@ void ChangeControllerTest::testTriggerResync()
 
 void ChangeControllerTest::testAuthError()
 {
+	cleanRemConnect();
 	QSignalSpy syncErrorSpy(controller, &SyncController::authenticationErrorChanged);
 	QSignalSpy syncStateSpy(controller, &SyncController::syncStateChanged);
 
@@ -481,6 +516,16 @@ void ChangeControllerTest::testAuthError()
 	if(syncErrorSpy.isEmpty())
 		QVERIFY(syncErrorSpy.wait());
 	QVERIFY(controller->authenticationError().isEmpty());
+}
+
+void ChangeControllerTest::cleanRemConnect()
+{
+	remote->mutex.lock();
+	remote->connected = true;
+	remote->mutex.unlock();
+	remote->updateConnected(false);
+	QThread::msleep(500);
+	QCoreApplication::processEvents();
 }
 
 DataSet ChangeControllerTest::generateSyncData(int param)
