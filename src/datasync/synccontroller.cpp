@@ -27,6 +27,12 @@ SyncController::SyncController(const QString &setupName, QObject *parent) :
 
 SyncController::~SyncController() {}
 
+bool SyncController::isSyncEnabled() const
+{
+	Q_UNIMPLEMENTED();
+	return false;
+}
+
 SyncController::SyncState SyncController::syncState() const
 {
 	return d->engine->syncState();
@@ -57,6 +63,11 @@ void SyncController::triggerResyncWithResult(std::function<void (SyncController:
 {
 	setupTriggerResult(resultFn);
 	triggerResync();
+}
+
+void SyncController::setSyncEnabled(bool syncEnabled)
+{
+	Q_UNIMPLEMENTED();
 }
 
 void SyncController::setupTriggerResult(std::function<void (SyncController::SyncState)> resultFn)

@@ -15,6 +15,7 @@ class Q_DATASYNC_EXPORT SyncController : public QObject
 {
 	Q_OBJECT
 
+	Q_PROPERTY(bool syncEnabled READ isSyncEnabled WRITE setSyncEnabled NOTIFY syncEnabledChanged)
 	//! The current synchronization state
 	Q_PROPERTY(SyncState syncState READ syncState NOTIFY syncStateChanged)
 	//! Holds authentication errors, if they did occur
@@ -38,6 +39,8 @@ public:
 	//! Destructor
 	~SyncController();
 
+	//! @readAcFn{SyncController::syncEnabled}
+	bool isSyncEnabled() const;
 	//! @readAcFn{SyncController::syncState}
 	SyncState syncState() const;
 	//! @readAcFn{SyncController::authenticationError}
@@ -53,7 +56,12 @@ public Q_SLOTS:
 	//! Tells the datasync instance to start a resynchronization, with a result handler
 	void triggerResyncWithResult(std::function<void(SyncState)> resultFn);
 
+	//! @writeAcFn{SyncController::syncEnabled}
+	void setSyncEnabled(bool syncEnabled);
+
 Q_SIGNALS:
+	//! @notifyAcFn{SyncController::syncEnabled}
+	void syncEnabledChanged(bool syncEnabled);
 	//! @notifyAcFn{SyncController::syncState}
 	void syncStateChanged(SyncState syncState);
 	//! Is emitted with the current count of remaining datasets to be synced

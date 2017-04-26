@@ -14,11 +14,14 @@ public:
 	QtDataSync::Authenticator *createAuthenticator(QtDataSync::Defaults *defaults, QObject *parent) override;
 	void initialize(QtDataSync::Defaults *defaults, QtDataSync::Encryptor *encryptor) override;
 
+	bool isSyncEnabled() const override;
+
 	//WARNING!!! mutex must be unlocked
 	void updateConnected(bool resync);
 	void doChangeEmit();
 
 public slots:
+	void setSyncEnabled(bool syncEnabled) override;
 	void reloadRemoteState() override;
 	void requestResync() override;
 	void download(const QtDataSync::ObjectKey &key, const QByteArray &keyProperty) override;

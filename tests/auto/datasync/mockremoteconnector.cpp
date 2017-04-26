@@ -23,6 +23,13 @@ void MockRemoteConnector::initialize(Defaults *, Encryptor *)
 	reloadRemoteState();
 }
 
+bool MockRemoteConnector::isSyncEnabled() const
+{
+	//TODO mock implement
+	Q_UNIMPLEMENTED();
+	return true;
+}
+
 void MockRemoteConnector::updateConnected(bool resync)
 {
 	QMetaObject::invokeMethod(this, resync ? "requestResync" : "reloadRemoteState", Qt::BlockingQueuedConnection);
@@ -31,6 +38,12 @@ void MockRemoteConnector::updateConnected(bool resync)
 void MockRemoteConnector::doChangeEmit()
 {
 	QMetaObject::invokeMethod(this, "doChangeEmitImpl", Qt::BlockingQueuedConnection);
+}
+
+void MockRemoteConnector::setSyncEnabled(bool syncEnabled)
+{
+	//TODO mock implement
+	Q_UNIMPLEMENTED();
 }
 
 void MockRemoteConnector::reloadRemoteState()

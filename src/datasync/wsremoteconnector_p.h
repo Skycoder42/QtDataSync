@@ -41,10 +41,13 @@ public:
 	void initialize(Defaults *defaults, Encryptor *cryptor) override;
 	void finalize() override;
 
+	bool isSyncEnabled() const override;
+
 	Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) override;
 
 public Q_SLOTS:
 	void reconnect();
+	void setSyncEnabled(bool syncEnabled) override;
 	void reloadRemoteState() override;
 	void requestResync() override;
 

@@ -48,11 +48,6 @@ GenericTask<void> WsAuthenticator::importUserDataImpl(QIODevice *device)
 	return setUserIdentity(obj[QStringLiteral("identity")].toString().toUtf8());
 }
 
-bool WsAuthenticator::isRemoteEnabled() const
-{
-	return d->settings->value(WsRemoteConnector::keyRemoteEnabled, true).toBool();
-}
-
 QUrl WsAuthenticator::remoteUrl() const
 {
 	return d->settings->value(WsRemoteConnector::keyRemoteUrl).toUrl();
@@ -92,12 +87,6 @@ bool WsAuthenticator::isConnected() const
 void WsAuthenticator::reconnect()
 {
 	QMetaObject::invokeMethod(d->connector, "reconnect");
-}
-
-void WsAuthenticator::setRemoteEnabled(bool remoteEnabled)
-{
-	d->settings->setValue(WsRemoteConnector::keyRemoteEnabled, remoteEnabled);
-	d->settings->sync();
 }
 
 void WsAuthenticator::setRemoteUrl(QUrl remoteUrl)

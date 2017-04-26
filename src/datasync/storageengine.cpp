@@ -33,6 +33,12 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 		encryptor->setParent(this);
 }
 
+bool StorageEngine::isSyncEnabled() const
+{
+	QReadLocker _(&controllerLock);
+	return remoteConnector->isSyncEnabled();
+}
+
 SyncController::SyncState StorageEngine::syncState() const
 {
 	QReadLocker _(&controllerLock);

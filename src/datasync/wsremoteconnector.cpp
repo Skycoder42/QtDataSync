@@ -53,6 +53,11 @@ void WsRemoteConnector::finalize()
 	RemoteConnector::finalize();
 }
 
+bool WsRemoteConnector::isSyncEnabled() const
+{
+	return settings->value(WsRemoteConnector::keyRemoteEnabled, true).toBool();
+}
+
 Authenticator *WsRemoteConnector::createAuthenticator(Defaults *defaults, QObject *parent)
 {
 	return new WsAuthenticator(this, defaults, parent);
@@ -117,6 +122,14 @@ void WsRemoteConnector::reconnect()
 		settings->endGroup();
 
 		socket->open(request);
+	}
+}
+
+void WsRemoteConnector::setSyncEnabled(bool syncEnabled)
+{
+	if(syncEnabled != isSyncEnabled()) {
+		settings->setValue(WsRemoteConnector::keyRemoteEnabled, syncEnabled);
+		reconnect();
 	}
 }
 
