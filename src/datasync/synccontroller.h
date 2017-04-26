@@ -61,10 +61,6 @@ Q_SIGNALS:
 	//! @notifyAcFn{SyncController::authenticationError}
 	void authenticationErrorChanged(const QString &authenticationError);
 
-private Q_SLOTS:
-	void updateSyncState(SyncState syncState);
-	void updateAuthenticationError(const QString &authenticationError);
-
 private:
 	QScopedPointer<SyncControllerPrivate> d;
 

@@ -20,6 +20,7 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 	changeController(new ChangeController(dataMerger, this)),
 	requestCache(),
 	requestCounter(0),
+	controllerLock(QReadWriteLock::Recursive),
 	currentSyncState(SyncController::Loading),
 	currentAuthError()
 {
@@ -34,11 +35,13 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 
 SyncController::SyncState StorageEngine::syncState() const
 {
+	QReadLocker _(&controllerLock);
 	return currentSyncState;
 }
 
 QString StorageEngine::authenticationError() const
 {
+	QReadLocker _(&controllerLock);
 	return currentAuthError;
 }
 
@@ -223,12 +226,14 @@ void StorageEngine::operationFailed(const QString &errorString)
 
 void StorageEngine::authError(const QString &reason)
 {
+	QWriteLocker _(&controllerLock);
 	currentAuthError = reason;
 	emit authenticationErrorChanged(reason);
 }
 
 void StorageEngine::clearAuthError()
 {
+	QWriteLocker _(&controllerLock);
 	if(!currentAuthError.isNull()) {
 		currentAuthError.clear();
 		emit authenticationErrorChanged({});
@@ -243,6 +248,7 @@ void StorageEngine::loadLocalStatus()
 
 void StorageEngine::updateSyncState(SyncController::SyncState state)
 {
+	QWriteLocker _(&controllerLock);
 	if(state != currentSyncState) {
 		currentSyncState = state;
 		emit syncStateChanged(state);

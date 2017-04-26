@@ -11,8 +11,6 @@ class Q_DATASYNC_EXPORT SyncControllerPrivate
 {
 public:
 	StorageEngine *engine;
-	SyncController::SyncState state;
-	QString authError;
 };
 
 }

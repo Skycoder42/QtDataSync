@@ -13,6 +13,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFuture>
 #include <QtCore/QObject>
+#include <QtCore/QReadWriteLock>
 
 #include <QtJsonSerializer/QJsonSerializer>
 
@@ -120,6 +121,7 @@ private:
 	QHash<quint64, RequestInfo> requestCache;
 	quint64 requestCounter;
 
+	mutable QReadWriteLock controllerLock;
 	SyncController::SyncState currentSyncState;
 	QString currentAuthError;
 

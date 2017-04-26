@@ -15,13 +15,13 @@ SyncController::SyncController(const QString &setupName, QObject *parent) :
 	d->engine = SetupPrivate::engine(setupName);
 	Q_ASSERT_X(d->engine, Q_FUNC_INFO, "SyncController requires a valid setup!");
 	connect(d->engine, &StorageEngine::syncStateChanged,
-			this, &SyncController::updateSyncState,
+			this, &SyncController::syncStateChanged,
 			Qt::QueuedConnection);
 	connect(d->engine, &StorageEngine::syncOperationsChanged,
 			this, &SyncController::syncOperationsChanged,
 			Qt::QueuedConnection);
 	connect(d->engine, &StorageEngine::authenticationErrorChanged,
-			this, &SyncController::updateAuthenticationError,
+			this, &SyncController::authenticationErrorChanged,
 			Qt::QueuedConnection);
 }
 
@@ -29,12 +29,12 @@ SyncController::~SyncController() {}
 
 SyncController::SyncState SyncController::syncState() const
 {
-	return d->state;
+	return d->engine->syncState();
 }
 
 QString SyncController::authenticationError() const
 {
-	return d->authError;
+	return d->engine->authenticationError();
 }
 
 void SyncController::triggerSync()
@@ -57,24 +57,6 @@ void SyncController::triggerResyncWithResult(std::function<void (SyncController:
 {
 	setupTriggerResult(resultFn);
 	triggerResync();
-}
-
-void SyncController::updateSyncState(SyncController::SyncState syncState)
-{
-	if(d->state == syncState)
-		return;
-
-	d->state = syncState;
-	emit syncStateChanged(syncState);
-}
-
-void SyncController::updateAuthenticationError(const QString &authenticationError)
-{
-	if(d->authError == authenticationError)
-		return;
-
-	d->authError = authenticationError;
-	emit authenticationErrorChanged(authenticationError);
 }
 
 void SyncController::setupTriggerResult(std::function<void (SyncController::SyncState)> resultFn)
