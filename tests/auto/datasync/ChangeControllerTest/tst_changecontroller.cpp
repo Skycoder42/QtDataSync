@@ -498,7 +498,7 @@ void ChangeControllerTest::testAuthError()
 	QCOMPARE(syncStateSpy[2][0], QVariant::fromValue(SyncController::Disconnected));
 	QCOMPARE(controller->syncState(), SyncController::Disconnected);
 
-	QVERIFY(syncErrorSpy.wait());
+	QVERIFY(syncErrorSpy.wait() || syncErrorSpy.count() == 1);
 	QVERIFY(!controller->authenticationError().isEmpty());
 
 	syncStateSpy.clear();

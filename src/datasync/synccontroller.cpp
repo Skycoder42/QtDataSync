@@ -75,11 +75,14 @@ void SyncController::setSyncEnabled(bool syncEnabled)
 
 void SyncController::setupTriggerResult(std::function<void (SyncController::SyncState)> resultFn)
 {
-	auto receiver = new QObject(this);//dummy to disconnect after one call
-	connect(this, &SyncController::syncStateChanged, receiver, [resultFn, receiver](SyncState state){
-		if(state == Loading || state == Syncing)
-			return;
-		resultFn(state);
-		receiver->deleteLater();
-	});
+	if(d->engine->isSyncEnabled()) {
+		auto receiver = new QObject(this);//dummy to disconnect after one call
+		connect(this, &SyncController::syncStateChanged, receiver, [resultFn, receiver](SyncState state){
+			if(state == Loading || state == Syncing)
+				return;
+			resultFn(state);
+			receiver->deleteLater();
+		});
+	} else
+		resultFn(Disconnected);
 }

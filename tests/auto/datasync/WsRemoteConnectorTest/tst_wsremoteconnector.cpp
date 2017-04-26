@@ -18,6 +18,7 @@ private Q_SLOTS:
 	void testUpload_data();
 	void testUpload();
 	void testReloadAndResync();
+	void testSyncDisable();
 	void testRemove_data();
 	void testRemove();
 
@@ -208,6 +209,37 @@ void WsRemoteConnectorTest::testReloadAndResync()
 		QLISTCOMPARE(store->pseudoStore.keys(), generateDataJson(310, 318).keys());
 	}();
 	store->mutex.unlock();
+}
+
+void WsRemoteConnectorTest::testSyncDisable()
+{
+	//IMPORTANT!!! clear pending notifies...
+	QCoreApplication::processEvents();
+
+	QSignalSpy unlockSpy(this, &WsRemoteConnectorTest::unlockSignal);
+	QSignalSpy syncChangedSpy(controller, &SyncController::syncEnabledChanged);
+
+	store->mutex.lock();
+	store->enabled = true;
+	store->mutex.unlock();
+
+	controller->setSyncEnabled(false);
+	QVERIFY(syncChangedSpy.wait());
+
+	controller->triggerSyncWithResult([&](SyncController::SyncState state){
+		QCOMPARE(state, SyncController::Disconnected);
+		emit unlockSignal();
+	});
+	QCOMPARE(unlockSpy.count(), 1);
+
+	controller->setSyncEnabled(true);
+	QVERIFY(syncChangedSpy.wait());
+
+	controller->triggerSyncWithResult([&](SyncController::SyncState state){
+		QCOMPARE(state, SyncController::Synced);
+		emit unlockSignal();
+	});
+	QVERIFY(unlockSpy.wait());
 }
 
 void WsRemoteConnectorTest::testRemove_data()
