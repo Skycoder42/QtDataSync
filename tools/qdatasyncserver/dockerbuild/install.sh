@@ -15,7 +15,7 @@ apt-get -qq install --no-install-recommends $QT_DEPS $QT_BUILD_DEPS
 # install qt
 curl -Lo $INSTALLER https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
 chmod +x $INSTALLER
-QT_QPA_PLATFORM=minimal $INSTALLER --script $INSTALL_DIR/qt-installer-script.qs --addRepository https://install.skycoder42.de/qtmodules/linux_x64 
+QT_QPA_PLATFORM=minimal $INSTALLER --script $INSTALL_DIR/qt-installer-script.qs --addRepository https://install.skycoder42.de/qtmodules/linux_x64
 
 # move libs
 QT_LIB_DIR=$QT_DIR/lib
@@ -43,6 +43,9 @@ DATASYNC_BIN_DIR=$DATASYNC_DIR/bin/
 mkdir -p $DATASYNC_BIN_DIR
 mv $QT_BIN_DIR/qdatasyncserver $DATASYNC_BIN_DIR
 mv $QT_BIN_DIR/qt.conf $DATASYNC_BIN_DIR
+
+#create data dir
+mkdir -p $DATASYNC_DIR/data
 
 # remove unused stuff
 apt-get -qq purge --auto-remove $QT_BUILD_DEPS

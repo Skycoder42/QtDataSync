@@ -41,7 +41,9 @@ DISTFILES += \
 	docker-compose.yaml \
 	dockerbuild/makedocker.sh \
 	dockerbuild/Dockerfile \
-	dockerbuild/setup.conf
+    dockerbuild/env_start.sh \
+    dockerbuild/install.sh \
+    dockerbuild/qt-installer-script.qs
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "Qt Rest API Builder"
