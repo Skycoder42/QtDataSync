@@ -35,7 +35,6 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 
 bool StorageEngine::isSyncEnabled() const
 {
-	QReadLocker _(&controllerLock);
 	return remoteConnector->isSyncEnabled();
 }
 
@@ -105,6 +104,12 @@ void StorageEngine::triggerSync()
 void StorageEngine::triggerResync()
 {
 	remoteConnector->requestResync();
+}
+
+void StorageEngine::setSyncEnabled(bool syncEnabled)
+{
+	if(remoteConnector->setSyncEnabled(syncEnabled))
+		emit syncEnabledChanged(syncEnabled);
 }
 
 void StorageEngine::initialize()

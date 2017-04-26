@@ -14,6 +14,9 @@ SyncController::SyncController(const QString &setupName, QObject *parent) :
 {
 	d->engine = SetupPrivate::engine(setupName);
 	Q_ASSERT_X(d->engine, Q_FUNC_INFO, "SyncController requires a valid setup!");
+	connect(d->engine, &StorageEngine::syncEnabledChanged,
+			this, &SyncController::syncEnabledChanged,
+			Qt::QueuedConnection);
 	connect(d->engine, &StorageEngine::syncStateChanged,
 			this, &SyncController::syncStateChanged,
 			Qt::QueuedConnection);
@@ -29,8 +32,7 @@ SyncController::~SyncController() {}
 
 bool SyncController::isSyncEnabled() const
 {
-	Q_UNIMPLEMENTED();
-	return false;
+	return d->engine->isSyncEnabled();
 }
 
 SyncController::SyncState SyncController::syncState() const
@@ -67,7 +69,7 @@ void SyncController::triggerResyncWithResult(std::function<void (SyncController:
 
 void SyncController::setSyncEnabled(bool syncEnabled)
 {
-	Q_UNIMPLEMENTED();
+	QMetaObject::invokeMethod(d->engine, "setSyncEnabled", Q_ARG(bool, syncEnabled));
 }
 
 void SyncController::setupTriggerResult(std::function<void (SyncController::SyncState)> resultFn)

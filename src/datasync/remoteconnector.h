@@ -42,15 +42,16 @@ public:
 
 	//! Checks if synchronization is currently active (THREADSAFE)
 	virtual bool isSyncEnabled() const = 0;
+	//! Enables or disables synchronization
+	virtual bool setSyncEnabled(bool syncEnabled) = 0;
+
 	//! Returns the encryptor this connector uses (can be nullptr)
 	virtual Encryptor *cryptor() const;
 
-	//! Method to create an authenticator for this connector
+	//! Method to create an authenticator for this connector (THREADSAFE)
 	virtual Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) = 0;
 
 public Q_SLOTS:
-	//! Enables or disables synchronization by  (THREADSAFE)
-	virtual void setSyncEnabled(bool syncEnabled) = 0;
 	//! Is called if the remote state should be reloaded
 	virtual void reloadRemoteState() = 0;
 	//! Is called to start a resync operation

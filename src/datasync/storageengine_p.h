@@ -59,11 +59,13 @@ public Q_SLOTS:
 				   const QVariant &value = {});
 	void triggerSync();
 	void triggerResync();
+	void setSyncEnabled(bool syncEnabled);
 
 Q_SIGNALS:
 	void notifyChanged(int metaTypeId, const QString &key, bool wasDeleted);
 	void notifyResetted();
 
+	void syncEnabledChanged(bool syncEnabled);
 	void syncStateChanged(SyncController::SyncState syncState);
 	void syncOperationsChanged(int remainingOperations);
 	void authenticationErrorChanged(const QString &authenticationError);

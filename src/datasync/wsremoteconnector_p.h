@@ -42,12 +42,12 @@ public:
 	void finalize() override;
 
 	bool isSyncEnabled() const override;
+	bool setSyncEnabled(bool syncEnabled) override;
 
 	Authenticator *createAuthenticator(Defaults *defaults, QObject *parent) override;
 
 public Q_SLOTS:
 	void reconnect();
-	void setSyncEnabled(bool syncEnabled) override;
 	void reloadRemoteState() override;
 	void requestResync() override;
 

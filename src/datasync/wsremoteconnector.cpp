@@ -55,7 +55,19 @@ void WsRemoteConnector::finalize()
 
 bool WsRemoteConnector::isSyncEnabled() const
 {
-	return settings->value(WsRemoteConnector::keyRemoteEnabled, true).toBool();
+	QScopedPointer<QSettings> localSettings(defaults()->createSettings());
+	return localSettings->value(WsRemoteConnector::keyRemoteEnabled, true).toBool();
+}
+
+bool WsRemoteConnector::setSyncEnabled(bool syncEnabled)
+{
+	if(syncEnabled != settings->value(WsRemoteConnector::keyRemoteEnabled, true).toBool()) {
+		settings->setValue(WsRemoteConnector::keyRemoteEnabled, syncEnabled);
+		settings->sync();
+		reconnect();
+		return true;
+	} else
+		return false;
 }
 
 Authenticator *WsRemoteConnector::createAuthenticator(Defaults *defaults, QObject *parent)
@@ -122,14 +134,6 @@ void WsRemoteConnector::reconnect()
 		settings->endGroup();
 
 		socket->open(request);
-	}
-}
-
-void WsRemoteConnector::setSyncEnabled(bool syncEnabled)
-{
-	if(syncEnabled != isSyncEnabled()) {
-		settings->setValue(WsRemoteConnector::keyRemoteEnabled, syncEnabled);
-		reconnect();
 	}
 }
 
