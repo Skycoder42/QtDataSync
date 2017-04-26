@@ -35,10 +35,12 @@ public:
 	void initialize(Defaults *defaults) override;
 
 	QByteArray key() const override;
-	void setKey(const QByteArray &key) override;
 
 	QJsonValue encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const override;
 	QJsonObject decrypt(const ObjectKey &key, const QJsonValue &data, const QByteArray &keyProperty) const override;
+
+public slots:
+	void setKey(const QByteArray &key) override;
 
 private:
 	Defaults *_defaults;

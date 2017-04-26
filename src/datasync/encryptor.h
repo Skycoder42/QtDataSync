@@ -24,13 +24,15 @@ public:
 
 	//! Returns the current encryption key (must be thread-safe)
 	virtual QByteArray key() const = 0;
-	//! Sets the encryption key
-	virtual void setKey(const QByteArray &key) = 0;
 
 	//! Encrypts the given dataset
 	virtual QJsonValue encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const = 0;
 	//! Decrypts the given dataset
 	virtual QJsonObject decrypt(const ObjectKey &key, const QJsonValue &data, const QByteArray &keyProperty) const = 0;
+
+public slots:
+	//! Sets the encryption key
+	virtual void setKey(const QByteArray &key) = 0;
 };
 
 }
