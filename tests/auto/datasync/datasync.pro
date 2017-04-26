@@ -8,4 +8,5 @@ SUBDIRS += \
     CachingDataStoreTest \
     SqlStateHolderTest \
     WsRemoteConnectorTest \
-    SetupTest
+    SetupTest \
+    TinyAesEncryptorTest

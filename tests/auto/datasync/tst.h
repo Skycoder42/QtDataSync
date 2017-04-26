@@ -10,6 +10,7 @@
 #include "mockstateholder.h"
 #include "mockremoteconnector.h"
 #include "mockdatamerger.h"
+#include "mockencryptor.h"
 
 void tst_init();
 void mockSetup(QtDataSync::Setup &setup, bool autoRem = true);

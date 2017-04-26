@@ -7,7 +7,8 @@ HEADERS += \
 	$$PWD/mockstateholder.h \
 	$$PWD/mockremoteconnector.h \
 	$$PWD/mockdatamerger.h \
-	$$PWD/testobject.h
+	$$PWD/testobject.h \
+    $$PWD/mockencryptor.h
 
 SOURCES += \
 	$$PWD/testdata.cpp \
@@ -16,7 +17,8 @@ SOURCES += \
 	$$PWD/mockstateholder.cpp \
 	$$PWD/mockremoteconnector.cpp \
 	$$PWD/mockdatamerger.cpp \
-	$$PWD/testobject.cpp
+	$$PWD/testobject.cpp \
+    $$PWD/mockencryptor.cpp
 
 INCLUDEPATH += $$PWD
 

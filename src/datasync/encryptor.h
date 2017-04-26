@@ -4,12 +4,15 @@
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
 
-#include <QObject>
+#include <QtCore/qobject.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qjsonvalue.h>
 
 namespace QtDataSync {
 
 //! The class responsible for en/decrypting user data before exchaning it with the remote
-class Encryptor : public QObject
+class Q_DATASYNC_EXPORT Encryptor : public QObject
 {
 	Q_OBJECT
 
@@ -30,7 +33,7 @@ public:
 	//! Decrypts the given dataset
 	virtual QJsonObject decrypt(const ObjectKey &key, const QJsonValue &data, const QByteArray &keyProperty) const = 0;
 
-public slots:
+public Q_SLOTS:
 	//! Sets the encryption key
 	virtual void setKey(const QByteArray &key) = 0;
 };

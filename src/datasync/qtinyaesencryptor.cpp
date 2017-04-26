@@ -34,7 +34,7 @@ QByteArray QTinyAesEncryptor::key() const
 void QTinyAesEncryptor::setKey(const QByteArray &key)
 {
 	QMutexLocker _(&_keyMutex);
-	if((quint32)_key.size() != QTinyAes::KEYSIZE)
+	if((quint32)key.size() != QTinyAes::KEYSIZE)
 		throw InvalidKeyException();
 	_key = key;
 	_defaults->settings()->setValue(QStringLiteral("encryption/key"), _key);

@@ -39,7 +39,7 @@ public:
 	QJsonValue encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const override;
 	QJsonObject decrypt(const ObjectKey &key, const QJsonValue &data, const QByteArray &keyProperty) const override;
 
-public slots:
+public Q_SLOTS:
 	void setKey(const QByteArray &key) override;
 
 private:

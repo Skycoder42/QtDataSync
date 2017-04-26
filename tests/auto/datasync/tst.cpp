@@ -17,6 +17,7 @@ void mockSetup(QtDataSync::Setup &setup, bool autoRem)
 		 .setStateHolder(new MockStateHolder())
 		 .setRemoteConnector(new MockRemoteConnector())
 		 .setDataMerger(new MockDataMerger())
+		 .setEncryptor(new MockEncryptor())
 		 .setLocalDir(tDir->path());
 }
 
