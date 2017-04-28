@@ -727,6 +727,13 @@
     <name>QtDataSync::Encryptor</name>
     <filename>class_qt_data_sync_1_1_encryptor.html</filename>
     <base>QObject</base>
+    <member kind="slot" virtualness="pure">
+      <type>virtual void</type>
+      <name>setKey</name>
+      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
+      <anchor>ade8df7572f25f4bb9dc526cbaf1d9ed3</anchor>
+      <arglist>(const QByteArray &amp;key)=0</arglist>
+    </member>
     <member kind="function">
       <type></type>
       <name>Encryptor</name>
@@ -754,13 +761,6 @@
       <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
       <anchor>a2d67b863e2a93b993689ea0d068f7f19</anchor>
       <arglist>() const =0</arglist>
-    </member>
-    <member kind="function" virtualness="pure">
-      <type>virtual void</type>
-      <name>setKey</name>
-      <anchorfile>class_qt_data_sync_1_1_encryptor.html</anchorfile>
-      <anchor>ade8df7572f25f4bb9dc526cbaf1d9ed3</anchor>
-      <arglist>(const QByteArray &amp;key)=0</arglist>
     </member>
     <member kind="function" virtualness="pure">
       <type>virtual QJsonValue</type>
@@ -1138,6 +1138,20 @@
       <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
       <anchor>ac6b58fc434014f1d816e7cb79c82ed2b</anchor>
       <arglist>()</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual bool</type>
+      <name>isSyncEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a2383e8542ba37b5e1ecae1d50e794fc3</anchor>
+      <arglist>() const =0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual bool</type>
+      <name>setSyncEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a9445a3a5fb7f656b3b0efb66df779297</anchor>
+      <arglist>(bool syncEnabled)=0</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual Encryptor *</type>
@@ -1628,6 +1642,20 @@
       <anchor>a88fdcdb76b878ef6a4114e6470ecbfac</anchor>
       <arglist>(std::function&lt; void(SyncState)&gt; resultFn)</arglist>
     </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setSyncEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a30904bec877ee0a24849c91de74fcb4a</anchor>
+      <arglist>(bool syncEnabled)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>syncEnabledChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a37fd4ccf1753b4bbb00cae93723616b9</anchor>
+      <arglist>(bool syncEnabled)</arglist>
+    </member>
     <member kind="signal">
       <type>void</type>
       <name>syncStateChanged</name>
@@ -1671,6 +1699,13 @@
       <arglist>()</arglist>
     </member>
     <member kind="function">
+      <type>bool</type>
+      <name>isSyncEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a91d0ce38b30552aa0910f020734b4d68</anchor>
+      <arglist>() const</arglist>
+    </member>
+    <member kind="function">
       <type>SyncState</type>
       <name>syncState</name>
       <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
@@ -1683,6 +1718,13 @@
       <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
       <anchor>afc55e46f755975dbd84f8f3f2e1c9338</anchor>
       <arglist>() const</arglist>
+    </member>
+    <member kind="property">
+      <type>bool</type>
+      <name>syncEnabled</name>
+      <anchorfile>class_qt_data_sync_1_1_sync_controller.html</anchorfile>
+      <anchor>a2ec0fe9610dfce2dfe8f176b56b143b9</anchor>
+      <arglist></arglist>
     </member>
     <member kind="property">
       <type>SyncState</type>
@@ -1779,13 +1821,6 @@
     </member>
     <member kind="slot">
       <type>void</type>
-      <name>setRemoteEnabled</name>
-      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
-      <anchor>a0de9800e633288c38c089a91975295b7</anchor>
-      <arglist>(bool remoteEnabled)</arglist>
-    </member>
-    <member kind="slot">
-      <type>void</type>
       <name>setRemoteUrl</name>
       <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
       <anchor>ac615ad9207c6a1d442eecdd2973cd15e</anchor>
@@ -1862,13 +1897,6 @@
       <arglist>(QIODevice *device) override</arglist>
     </member>
     <member kind="function">
-      <type>bool</type>
-      <name>isRemoteEnabled</name>
-      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
-      <anchor>a9b53b7d7a035ae5cc999732ed3f9196e</anchor>
-      <arglist>() const</arglist>
-    </member>
-    <member kind="function">
       <type>QUrl</type>
       <name>remoteUrl</name>
       <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
@@ -1916,13 +1944,6 @@
       <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
       <anchor>a841fe12d2e1840445043315f6ade56a8</anchor>
       <arglist>() override</arglist>
-    </member>
-    <member kind="property">
-      <type>bool</type>
-      <name>remoteEnabled</name>
-      <anchorfile>class_qt_data_sync_1_1_ws_authenticator.html</anchorfile>
-      <anchor>ac722009048eba930588437b41e0ff2af</anchor>
-      <arglist></arglist>
     </member>
     <member kind="property">
       <type>QUrl</type>

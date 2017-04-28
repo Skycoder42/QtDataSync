@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <QtHelpProject version="1.0">
-  <namespace>de.skycoder42.qtdatasync.200</namespace>
+  <namespace>de.skycoder42.qtdatasync.300</namespace>
   <virtualFolder>doc_qtdatasync</virtualFolder>
-  <customFilter name="DataSync 2.0.0">
+  <customFilter name="DataSync 3.0.0">
     <filterAttribute>qtdatasync</filterAttribute>
-    <filterAttribute>2.0.0</filterAttribute>
+    <filterAttribute>3.0.0</filterAttribute>
   </customFilter>
   <filterSection>
     <filterAttribute>doxygen</filterAttribute>
     <toc>
-      <section title="QtDataSync 2.0.0" ref="index.html">
+      <section title="QtDataSync 3.0.0" ref="index.html">
         <section title="Features" ref="index.html#qtdatasync_readme_label_0" />
         <section title="Requirements" ref="index.html#qtdatasync_readme_label_1" />
         <section title="Download/Installation" ref="index.html#qtdatasync_readme_label_2">
@@ -230,6 +230,7 @@
                 <section title="finalize" ref="class_qt_data_sync_1_1_remote_connector.html#ac6b58fc434014f1d816e7cb79c82ed2b" />
                 <section title="getDeviceId" ref="class_qt_data_sync_1_1_remote_connector.html#ae6fcf3a41acfb9fc4f19de04363531f7" />
                 <section title="initialize" ref="class_qt_data_sync_1_1_remote_connector.html#a3ce294ce77e422647f5e0f032db4cbc8" />
+                <section title="isSyncEnabled" ref="class_qt_data_sync_1_1_remote_connector.html#a2383e8542ba37b5e1ecae1d50e794fc3" />
                 <section title="markUnchanged" ref="class_qt_data_sync_1_1_remote_connector.html#a1b104e733a49613a24ba94b1b9a0c4ce" />
                 <section title="operationDone" ref="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" />
                 <section title="operationFailed" ref="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" />
@@ -241,6 +242,7 @@
                 <section title="requestResync" ref="class_qt_data_sync_1_1_remote_connector.html#a4eac3fa1b69df4ebbac42e8d1605abfd" />
                 <section title="resetUserData" ref="class_qt_data_sync_1_1_remote_connector.html#a12b995ed3715eadf330b8a2618db8049" />
                 <section title="resetUserId" ref="class_qt_data_sync_1_1_remote_connector.html#ae9be2dc1c065254653f9aa78a9ff6eaa" />
+                <section title="setSyncEnabled" ref="class_qt_data_sync_1_1_remote_connector.html#a9445a3a5fb7f656b3b0efb66df779297" />
                 <section title="upload" ref="class_qt_data_sync_1_1_remote_connector.html#ad8da40775a1ae148e86444175fe52725" />
               </section>
               <section title="Setup" ref="class_qt_data_sync_1_1_setup.html">
@@ -308,6 +310,9 @@
                 <section title="~SyncController" ref="class_qt_data_sync_1_1_sync_controller.html#a58e5aad6e00749326c2e4a34866b7df0" />
                 <section title="authenticationError" ref="class_qt_data_sync_1_1_sync_controller.html#afc55e46f755975dbd84f8f3f2e1c9338" />
                 <section title="authenticationErrorChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a69de1f502ab0a41cc4db2223bebca646" />
+                <section title="isSyncEnabled" ref="class_qt_data_sync_1_1_sync_controller.html#a91d0ce38b30552aa0910f020734b4d68" />
+                <section title="setSyncEnabled" ref="class_qt_data_sync_1_1_sync_controller.html#a30904bec877ee0a24849c91de74fcb4a" />
+                <section title="syncEnabledChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a37fd4ccf1753b4bbb00cae93723616b9" />
                 <section title="syncOperationsChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a2e9e24650057ba15064fcbb4fcdd0020" />
                 <section title="syncState" ref="class_qt_data_sync_1_1_sync_controller.html#a800cec3c4f5c3ac58600f0011271a1a0" />
                 <section title="syncStateChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a10c6a1841dc69053df82072e5c3d3d04" />
@@ -316,6 +321,7 @@
                 <section title="triggerSync" ref="class_qt_data_sync_1_1_sync_controller.html#a0f665658f06f52ff71e039f6159de2fa" />
                 <section title="triggerSyncWithResult" ref="class_qt_data_sync_1_1_sync_controller.html#a130ac1495992369655766ce81c9ccc26" />
                 <section title="authenticationError" ref="class_qt_data_sync_1_1_sync_controller.html#a9ed23e30b0a99f775aa2360c926c17b7" />
+                <section title="syncEnabled" ref="class_qt_data_sync_1_1_sync_controller.html#a2ec0fe9610dfce2dfe8f176b56b143b9" />
                 <section title="syncState" ref="class_qt_data_sync_1_1_sync_controller.html#aa8ea8b1342be92b312a8cdbfee99cbf4" />
               </section>
               <section title="Task" ref="class_qt_data_sync_1_1_task.html">
@@ -341,13 +347,11 @@
                 <section title="exportUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a1cc2305077ddcf2188ce1b2310826384" />
                 <section title="importUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b84c9394105047cca4ab271483fc2b2" />
                 <section title="isConnected" ref="class_qt_data_sync_1_1_ws_authenticator.html#ada64f1aaeceffbc72ea4bdde5f385065" />
-                <section title="isRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e" />
                 <section title="reconnect" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7816b45ef1cbdce32b66d9971974dd26" />
                 <section title="remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#afe07ec340ac495627986e5d39c79e0f0" />
                 <section title="resetUserIdentity" ref="class_qt_data_sync_1_1_ws_authenticator.html#a89421c105efac8b73faa36a83a4c9072" />
                 <section title="serverSecret" ref="class_qt_data_sync_1_1_ws_authenticator.html#a6147368aea35db8578a437aefb0530ac" />
                 <section title="setCustomHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9d7f384d39510ce7d7eb6212e6ec3b35" />
-                <section title="setRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7" />
                 <section title="setRemoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac615ad9207c6a1d442eecdd2973cd15e" />
                 <section title="setServerSecret" ref="class_qt_data_sync_1_1_ws_authenticator.html#a1107b9eda844284c67dff49d7bdfc90f" />
                 <section title="setUserIdentity" ref="class_qt_data_sync_1_1_ws_authenticator.html#a0476864e44a03d7552bae5039b98ea43" />
@@ -356,7 +360,6 @@
                 <section title="validateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#af709dd48f3556bf38bfde57cf02e85f3" />
                 <section title="connected" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7b8c14e79d93e81950faf69ba089e40b" />
                 <section title="customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a38d5b115dbdeb0e557f15a9fbb1464d6" />
-                <section title="remoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac722009048eba930588437b41e0ff2af" />
                 <section title="remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#af042685cc0e56efcb7514ad9f5bf1578" />
                 <section title="serverSecret" ref="class_qt_data_sync_1_1_ws_authenticator.html#a96290386827ef22368eb95ede5014f0b" />
                 <section title="userIdentity" ref="class_qt_data_sync_1_1_ws_authenticator.html#a82df63121dc762dfb15b1444d6f67c34" />
@@ -997,11 +1000,11 @@
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="qobject.html#disconnectNotify" />
       <keyword name="objectName" id="QObject::objectName" ref="qobject.html#objectName-prop" />
       <keyword name="QtDataSync::Encryptor" id="QtDataSync::Encryptor" ref="class_qt_data_sync_1_1_encryptor.html" />
+      <keyword name="setKey" id="QtDataSync::Encryptor::setKey" ref="class_qt_data_sync_1_1_encryptor.html#ade8df7572f25f4bb9dc526cbaf1d9ed3" />
       <keyword name="Encryptor" id="QtDataSync::Encryptor::Encryptor" ref="class_qt_data_sync_1_1_encryptor.html#a272e26a79ac97156a396afddb1767991" />
       <keyword name="initialize" id="QtDataSync::Encryptor::initialize" ref="class_qt_data_sync_1_1_encryptor.html#a3fcc14363cf56972a12ed849af762605" />
       <keyword name="finalize" id="QtDataSync::Encryptor::finalize" ref="class_qt_data_sync_1_1_encryptor.html#af4fa51e6d73fc2c63b1368352be7b7fe" />
       <keyword name="key" id="QtDataSync::Encryptor::key" ref="class_qt_data_sync_1_1_encryptor.html#a2d67b863e2a93b993689ea0d068f7f19" />
-      <keyword name="setKey" id="QtDataSync::Encryptor::setKey" ref="class_qt_data_sync_1_1_encryptor.html#ade8df7572f25f4bb9dc526cbaf1d9ed3" />
       <keyword name="encrypt" id="QtDataSync::Encryptor::encrypt" ref="class_qt_data_sync_1_1_encryptor.html#ad7547f51fccc43618fd588cabd9e9f2f" />
       <keyword name="decrypt" id="QtDataSync::Encryptor::decrypt" ref="class_qt_data_sync_1_1_encryptor.html#ae49b258e051814ed18c92613adb1e0c9" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
@@ -1227,6 +1230,8 @@
       <keyword name="RemoteConnector" id="QtDataSync::RemoteConnector::RemoteConnector" ref="class_qt_data_sync_1_1_remote_connector.html#ad0fe0a90d7c3ecb9ca875cae551f92b8" />
       <keyword name="initialize" id="QtDataSync::RemoteConnector::initialize" ref="class_qt_data_sync_1_1_remote_connector.html#a3ce294ce77e422647f5e0f032db4cbc8" />
       <keyword name="finalize" id="QtDataSync::RemoteConnector::finalize" ref="class_qt_data_sync_1_1_remote_connector.html#ac6b58fc434014f1d816e7cb79c82ed2b" />
+      <keyword name="isSyncEnabled" id="QtDataSync::RemoteConnector::isSyncEnabled" ref="class_qt_data_sync_1_1_remote_connector.html#a2383e8542ba37b5e1ecae1d50e794fc3" />
+      <keyword name="setSyncEnabled" id="QtDataSync::RemoteConnector::setSyncEnabled" ref="class_qt_data_sync_1_1_remote_connector.html#a9445a3a5fb7f656b3b0efb66df779297" />
       <keyword name="cryptor" id="QtDataSync::RemoteConnector::cryptor" ref="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" />
       <keyword name="createAuthenticator" id="QtDataSync::RemoteConnector::createAuthenticator" ref="class_qt_data_sync_1_1_remote_connector.html#a935f33edd15660d94c62b613479ccb32" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
@@ -1409,12 +1414,15 @@
       <keyword name="triggerSyncWithResult" id="QtDataSync::SyncController::triggerSyncWithResult" ref="class_qt_data_sync_1_1_sync_controller.html#a130ac1495992369655766ce81c9ccc26" />
       <keyword name="triggerResync" id="QtDataSync::SyncController::triggerResync" ref="class_qt_data_sync_1_1_sync_controller.html#a4cf0f88a421ce681d6d6c24772372736" />
       <keyword name="triggerResyncWithResult" id="QtDataSync::SyncController::triggerResyncWithResult" ref="class_qt_data_sync_1_1_sync_controller.html#a88fdcdb76b878ef6a4114e6470ecbfac" />
+      <keyword name="setSyncEnabled" id="QtDataSync::SyncController::setSyncEnabled" ref="class_qt_data_sync_1_1_sync_controller.html#a30904bec877ee0a24849c91de74fcb4a" />
+      <keyword name="syncEnabledChanged" id="QtDataSync::SyncController::syncEnabledChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a37fd4ccf1753b4bbb00cae93723616b9" />
       <keyword name="syncStateChanged" id="QtDataSync::SyncController::syncStateChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a10c6a1841dc69053df82072e5c3d3d04" />
       <keyword name="syncOperationsChanged" id="QtDataSync::SyncController::syncOperationsChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a2e9e24650057ba15064fcbb4fcdd0020" />
       <keyword name="authenticationErrorChanged" id="QtDataSync::SyncController::authenticationErrorChanged" ref="class_qt_data_sync_1_1_sync_controller.html#a69de1f502ab0a41cc4db2223bebca646" />
       <keyword name="SyncController" id="QtDataSync::SyncController::SyncController" ref="class_qt_data_sync_1_1_sync_controller.html#a3726f7f274e1ad8f1a88a573c8f9eefb" />
       <keyword name="SyncController" id="QtDataSync::SyncController::SyncController" ref="class_qt_data_sync_1_1_sync_controller.html#ac942d5cf0f710218720d68a83a839080" />
       <keyword name="~SyncController" id="QtDataSync::SyncController::~SyncController" ref="class_qt_data_sync_1_1_sync_controller.html#a58e5aad6e00749326c2e4a34866b7df0" />
+      <keyword name="isSyncEnabled" id="QtDataSync::SyncController::isSyncEnabled" ref="class_qt_data_sync_1_1_sync_controller.html#a91d0ce38b30552aa0910f020734b4d68" />
       <keyword name="syncState" id="QtDataSync::SyncController::syncState" ref="class_qt_data_sync_1_1_sync_controller.html#a800cec3c4f5c3ac58600f0011271a1a0" />
       <keyword name="authenticationError" id="QtDataSync::SyncController::authenticationError" ref="class_qt_data_sync_1_1_sync_controller.html#afc55e46f755975dbd84f8f3f2e1c9338" />
       <keyword name="QObject" id="QObject::QObject" ref="qobject.html#QObject" />
@@ -1452,6 +1460,7 @@
       <keyword name="parent" id="QObject::parent" ref="qobject.html#parent" />
       <keyword name="inherits" id="QObject::inherits" ref="qobject.html#inherits" />
       <keyword name="deleteLater" id="QObject::deleteLater" ref="qobject.html#deleteLater" />
+      <keyword name="syncEnabled" id="QtDataSync::SyncController::syncEnabled" ref="class_qt_data_sync_1_1_sync_controller.html#a2ec0fe9610dfce2dfe8f176b56b143b9" />
       <keyword name="syncState" id="QtDataSync::SyncController::syncState" ref="class_qt_data_sync_1_1_sync_controller.html#aa8ea8b1342be92b312a8cdbfee99cbf4" />
       <keyword name="authenticationError" id="QtDataSync::SyncController::authenticationError" ref="class_qt_data_sync_1_1_sync_controller.html#a9ed23e30b0a99f775aa2360c926c17b7" />
       <keyword name="objectName" id="QObject::objectName" ref="qobject.html#objectName-prop" />
@@ -1552,7 +1561,6 @@
       <keyword name="Task" id="QtDataSync::Task::Task" ref="class_qt_data_sync_1_1_task.html#a77e50cc6b9d9ccd8bebf0afaa787f05f" />
       <keyword name="QtDataSync::WsAuthenticator" id="QtDataSync::WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html" />
       <keyword name="reconnect" id="QtDataSync::WsAuthenticator::reconnect" ref="class_qt_data_sync_1_1_ws_authenticator.html#a7816b45ef1cbdce32b66d9971974dd26" />
-      <keyword name="setRemoteEnabled" id="QtDataSync::WsAuthenticator::setRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7" />
       <keyword name="setRemoteUrl" id="QtDataSync::WsAuthenticator::setRemoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac615ad9207c6a1d442eecdd2973cd15e" />
       <keyword name="setCustomHeaders" id="QtDataSync::WsAuthenticator::setCustomHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9d7f384d39510ce7d7eb6212e6ec3b35" />
       <keyword name="setValidateServerCertificate" id="QtDataSync::WsAuthenticator::setValidateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#a750f0912f3c7c13ed238706fcc497de2" />
@@ -1564,7 +1572,6 @@
       <keyword name="~WsAuthenticator" id="QtDataSync::WsAuthenticator::~WsAuthenticator" ref="class_qt_data_sync_1_1_ws_authenticator.html#ae4ae918958b753ce6230b515ee262f25" />
       <keyword name="exportUserDataImpl" id="QtDataSync::WsAuthenticator::exportUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a1cc2305077ddcf2188ce1b2310826384" />
       <keyword name="importUserDataImpl" id="QtDataSync::WsAuthenticator::importUserDataImpl" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b84c9394105047cca4ab271483fc2b2" />
-      <keyword name="isRemoteEnabled" id="QtDataSync::WsAuthenticator::isRemoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#a9b53b7d7a035ae5cc999732ed3f9196e" />
       <keyword name="remoteUrl" id="QtDataSync::WsAuthenticator::remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#afe07ec340ac495627986e5d39c79e0f0" />
       <keyword name="customHeaders" id="QtDataSync::WsAuthenticator::customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#ab9d254df5a5d735f6d2c6a58ab220ea9" />
       <keyword name="validateServerCertificate" id="QtDataSync::WsAuthenticator::validateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#af709dd48f3556bf38bfde57cf02e85f3" />
@@ -1622,7 +1629,6 @@
       <keyword name="customEvent" id="QObject::customEvent" ref="qobject.html#customEvent" />
       <keyword name="connectNotify" id="QObject::connectNotify" ref="qobject.html#connectNotify" />
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="qobject.html#disconnectNotify" />
-      <keyword name="remoteEnabled" id="QtDataSync::WsAuthenticator::remoteEnabled" ref="class_qt_data_sync_1_1_ws_authenticator.html#ac722009048eba930588437b41e0ff2af" />
       <keyword name="remoteUrl" id="QtDataSync::WsAuthenticator::remoteUrl" ref="class_qt_data_sync_1_1_ws_authenticator.html#af042685cc0e56efcb7514ad9f5bf1578" />
       <keyword name="customHeaders" id="QtDataSync::WsAuthenticator::customHeaders" ref="class_qt_data_sync_1_1_ws_authenticator.html#a38d5b115dbdeb0e557f15a9fbb1464d6" />
       <keyword name="validateServerCertificate" id="QtDataSync::WsAuthenticator::validateServerCertificate" ref="class_qt_data_sync_1_1_ws_authenticator.html#a4c6b5e924a39445b71953b5b49a598f9" />

@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">3.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -244,7 +244,7 @@ template&lt;typename T &gt; </div>
 </dl>
 <p>You can use this method to get the authenticator for your remote connector. You will own the returned authenticator. However, an authenticator only stays valid as long as the datasync instance is not removed.</p>
 <dl class="section warning"><dt>Warning</dt><dd>The generic parameter T is determined by the type of setup you use. If it does not match, <code>nullptr</code> is returned. If you are using the default setup, the authenticators type is <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html" title="The authenticator for the default RemoteConnector implementation. ">WsAuthenticator</a>.</dd></dl>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> auth = Setup::authenticatorForSetup&lt;WsAuthenticator&gt;(<span class="keyword">this</span>);</div></div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_authenticator.html" title="The base class for all authenticator objects. ">Authenticator</a>, <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html" title="The authenticator for the default RemoteConnector implementation. ">WsAuthenticator</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a935f33edd15660d94c62b613479ccb32" title="Method to create an authenticator for this connector. ">RemoteConnector::createAuthenticator</a> </dd></dl>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> auth = Setup::authenticatorForSetup&lt;WsAuthenticator&gt;(<span class="keyword">this</span>);</div></div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_authenticator.html" title="The base class for all authenticator objects. ">Authenticator</a>, <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html" title="The authenticator for the default RemoteConnector implementation. ">WsAuthenticator</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a935f33edd15660d94c62b613479ccb32" title="Method to create an authenticator for this connector (THREADSAFE) ">RemoteConnector::createAuthenticator</a> </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00089">89</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
@@ -426,7 +426,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 28 2017 17:12:36 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

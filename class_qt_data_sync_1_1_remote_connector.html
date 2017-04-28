@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">3.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -169,12 +169,18 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#ac6b58fc434014f1d816e7cb79c82ed2b">finalize</a> ()</td></tr>
 <tr class="memdesc:ac6b58fc434014f1d816e7cb79c82ed2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called from the engine to finalize the connector. <br /></td></tr>
 <tr class="separator:ac6b58fc434014f1d816e7cb79c82ed2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2383e8542ba37b5e1ecae1d50e794fc3"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a2383e8542ba37b5e1ecae1d50e794fc3">isSyncEnabled</a> () const =0</td></tr>
+<tr class="memdesc:a2383e8542ba37b5e1ecae1d50e794fc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if synchronization is currently enabled (THREADSAFE)  <a href="#a2383e8542ba37b5e1ecae1d50e794fc3">More...</a><br /></td></tr>
+<tr class="separator:a2383e8542ba37b5e1ecae1d50e794fc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9445a3a5fb7f656b3b0efb66df779297"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a9445a3a5fb7f656b3b0efb66df779297">setSyncEnabled</a> (bool syncEnabled)=0</td></tr>
+<tr class="memdesc:a9445a3a5fb7f656b3b0efb66df779297"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables or disables synchronization with a remote.  <a href="#a9445a3a5fb7f656b3b0efb66df779297">More...</a><br /></td></tr>
+<tr class="separator:a9445a3a5fb7f656b3b0efb66df779297"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47e47369c5e3e5379bff90d438ee47b3"><td class="memItemLeft" align="right" valign="top"><a id="a47e47369c5e3e5379bff90d438ee47b3"></a>
 virtual <a class="el" href="class_qt_data_sync_1_1_encryptor.html">Encryptor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3">cryptor</a> () const</td></tr>
 <tr class="memdesc:a47e47369c5e3e5379bff90d438ee47b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the encryptor this connector uses (can be nullptr) <br /></td></tr>
 <tr class="separator:a47e47369c5e3e5379bff90d438ee47b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a935f33edd15660d94c62b613479ccb32"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="class_qt_data_sync_1_1_authenticator.html">Authenticator</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a935f33edd15660d94c62b613479ccb32">createAuthenticator</a> (<a class="el" href="class_qt_data_sync_1_1_defaults.html">Defaults</a> *<a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a14f598e34ef4d8d702b3b224189ad318">defaults</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html">QObject</a> *<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.8/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qobject.html#parent">parent</a>)=0</td></tr>
-<tr class="memdesc:a935f33edd15660d94c62b613479ccb32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to create an authenticator for this connector.  <a href="#a935f33edd15660d94c62b613479ccb32">More...</a><br /></td></tr>
+<tr class="memdesc:a935f33edd15660d94c62b613479ccb32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to create an authenticator for this connector (THREADSAFE)  <a href="#a935f33edd15660d94c62b613479ccb32">More...</a><br /></td></tr>
 <tr class="separator:a935f33edd15660d94c62b613479ccb32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_qobject"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_qobject')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="target="_blank" https://doc.qt.io/qt-5/qobject.html">QObject</a></td></tr>
 <tr class="memitem:QObject inherit pub_methods_qobject"><td class="memItemLeft" align="right" valign="top"><a id="QObject"></a>
@@ -502,7 +508,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 </table>
 </div><div class="memdoc">
 
-<p>Method to create an authenticator for this connector. </p>
+<p>Method to create an authenticator for this connector (THREADSAFE) </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">defaults</td><td>The defaults of the datasync instance the authenticator belongs to </td></tr>
@@ -564,6 +570,37 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 <p>The result of this operation must be reported by calling <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">operationDone()</a>. The result parameter must be the downloaded json object, passed via the json value.</p>
 <p>If your operation fails, emit <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">operationFailed()</a> with an error message.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a44627659641c88535d44bb615077b39c" title="Is emitted when an operation was completed successfully. ">RemoteConnector::operationDone</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#af2c91e9b495489232fdd7952403d60c4" title="Is emitted when an operation failed. ">RemoteConnector::operationFailed</a>, <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a47e47369c5e3e5379bff90d438ee47b3" title="Returns the encryptor this connector uses (can be nullptr) ">RemoteConnector::cryptor</a>, <a class="el" href="class_qt_data_sync_1_1_encryptor.html#ad7547f51fccc43618fd588cabd9e9f2f" title="Encrypts the given dataset. ">Encryptor::encrypt</a> </dd></dl>
+
+</div>
+</div>
+<a id="a2383e8542ba37b5e1ecae1d50e794fc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2383e8542ba37b5e1ecae1d50e794fc3">&#9670;&nbsp;</a></span>isSyncEnabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QtDataSync::RemoteConnector::isSyncEnabled </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if synchronization is currently enabled (THREADSAFE) </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if synchronization is allowed, <code>false</code> if not</dd></dl>
+<p>Typically, this function should is used to tell the user whether synchronization is possible at all. It should not tell if the remote is currently available, but rather if in general data will be synced.</p>
+<dl class="section warning"><dt>Warning</dt><dd>This method can be called from <b>any</b> thread, and it will always be a different one then the one the <a class="el" href="class_qt_data_sync_1_1_remote_connector.html" title="The class responsible for data exchange with a remote server. ">RemoteConnector</a> lives on. Your implementation must be threadsafe.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a9445a3a5fb7f656b3b0efb66df779297" title="Enables or disables synchronization with a remote. ">RemoteConnector::setSyncEnabled</a> </dd></dl>
 
 </div>
 </div>
@@ -957,6 +994,44 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 
 </div>
 </div>
+<a id="a9445a3a5fb7f656b3b0efb66df779297"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9445a3a5fb7f656b3b0efb66df779297">&#9670;&nbsp;</a></span>setSyncEnabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QtDataSync::RemoteConnector::setSyncEnabled </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>syncEnabled</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enables or disables synchronization with a remote. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">syncEnabled</td><td>Specifies whether sync should be activated or deactivated </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the state was actually changed, <code>false</code> if nothing changed</dd></dl>
+<p>Thes functions gets called by the engine to enable or disable sync in general. It is recommended you follow those requests, since they typicalle mirror the users wishes. If you can't change to the desired mode, you should at least log the reason.</p>
+<dl class="section note"><dt>Note</dt><dd>Unlike <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a2383e8542ba37b5e1ecae1d50e794fc3" title="Checks if synchronization is currently enabled (THREADSAFE) ">isSyncEnabled()</a>, this method itself must not be threadsafe. However, since you are changing the data read by a threadsafe method (depending on your implementation), You typically need to make it threadsafe to some extend as well.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a2383e8542ba37b5e1ecae1d50e794fc3" title="Checks if synchronization is currently enabled (THREADSAFE) ">RemoteConnector::isSyncEnabled</a> </dd></dl>
+
+</div>
+</div>
 <a id="ad8da40775a1ae148e86444175fe52725"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad8da40775a1ae148e86444175fe52725">&#9670;&nbsp;</a></span>upload</h2>
 
@@ -1023,7 +1098,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="elRef" target=
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 28 2017 17:12:36 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

@@ -112,6 +112,7 @@ var searchData=
   ['surfacepixelratio',['surfacePixelRatio',['https://doc.qt.io/qt-5/qt3drender-qrendersurfaceselector.html#surfacePixelRatio-prop',0,'Qt3DRender::QRenderSurfaceSelector']]],
   ['swipeangle',['swipeAngle',['https://doc.qt.io/qt-5/qswipegesture.html#swipeAngle-prop',0,'QSwipeGesture']]],
   ['syncdata',['syncData',['https://doc.qt.io/qt-5/qt3drender-qbuffer.html#syncData-prop',0,'Qt3DRender::QBuffer']]],
+  ['syncenabled',['syncEnabled',['../class_qt_data_sync_1_1_sync_controller.html#a2ec0fe9610dfce2dfe8f176b56b143b9',1,'QtDataSync::SyncController']]],
   ['syncpolicy',['syncPolicy',['../class_qt_data_sync_1_1_data_merger.html#a0dc4627679825189c6cdecc3c560fc6a',1,'QtDataSync::DataMerger']]],
   ['syncstate',['syncState',['../class_qt_data_sync_1_1_sync_controller.html#aa8ea8b1342be92b312a8cdbfee99cbf4',1,'QtDataSync::SyncController']]]
 ];

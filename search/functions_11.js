@@ -168,7 +168,7 @@ var searchData=
   ['remainingtimensecs',['remainingTimeNSecs',['https://doc.qt.io/qt-5/qdeadlinetimer.html#remainingTimeNSecs',0,'QDeadlineTimer']]],
   ['remoteaddress',['remoteAddress',['https://doc.qt.io/qt-5/qbluetoothservicediscoveryagent.html#remoteAddress',0,'QBluetoothServiceDiscoveryAgent::remoteAddress()'],['https://doc.qt.io/qt-5/qlowenergycontroller.html#remoteAddress',0,'QLowEnergyController::remoteAddress()']]],
   ['remoteaddresstype',['remoteAddressType',['https://doc.qt.io/qt-5/qlowenergycontroller.html#remoteAddressType',0,'QLowEnergyController']]],
-  ['remoteconnector',['RemoteConnector',['../class_qt_data_sync_1_1_remote_connector.html#ad0fe0a90d7c3ecb9ca875cae551f92b8',1,'QtDataSync::RemoteConnector::RemoteConnector()'],['../class_qt_data_sync_1_1_setup.html#a22983c887cc586dc04ead7f53333b122',1,'QtDataSync::Setup::remoteConnector()']]],
+  ['remoteconnector',['remoteConnector',['../class_qt_data_sync_1_1_setup.html#a22983c887cc586dc04ead7f53333b122',1,'QtDataSync::Setup::remoteConnector()'],['../class_qt_data_sync_1_1_remote_connector.html#ad0fe0a90d7c3ecb9ca875cae551f92b8',1,'QtDataSync::RemoteConnector::RemoteConnector()']]],
   ['remotedatachanged',['remoteDataChanged',['../class_qt_data_sync_1_1_remote_connector.html#a6a7d0304591d016eca56a6d6252c5390',1,'QtDataSync::RemoteConnector']]],
   ['remotedeviceuuid',['remoteDeviceUuid',['https://doc.qt.io/qt-5/qlowenergycontroller.html#remoteDeviceUuid',0,'QLowEnergyController']]],
   ['remotename',['remoteName',['https://doc.qt.io/qt-5/qlowenergycontroller.html#remoteName',0,'QLowEnergyController']]],

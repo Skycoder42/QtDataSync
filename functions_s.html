@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">3.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -113,9 +113,6 @@ $(function() {
 <li>setRemoteConnector()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a4be2df29b03483f3eeb6a531b61fea02">QtDataSync::Setup</a>
 </li>
-<li>setRemoteEnabled()
-: <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7">QtDataSync::WsAuthenticator</a>
-</li>
 <li>setRemoteUrl()
 : <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#ac615ad9207c6a1d442eecdd2973cd15e">QtDataSync::WsAuthenticator</a>
 </li>
@@ -127,6 +124,10 @@ $(function() {
 </li>
 <li>setStateHolder()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a420f2021906269625a431f9d417784f3">QtDataSync::Setup</a>
+</li>
+<li>setSyncEnabled()
+: <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a9445a3a5fb7f656b3b0efb66df779297">QtDataSync::RemoteConnector</a>
+, <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a30904bec877ee0a24849c91de74fcb4a">QtDataSync::SyncController</a>
 </li>
 <li>setSyncPolicy()
 : <a class="el" href="class_qt_data_sync_1_1_data_merger.html#ab63bc6f8d7c3e017edb0233db1a31091">QtDataSync::DataMerger</a>
@@ -165,7 +166,7 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e">QtDataSync::CachingDataStoreBase</a>
 </li>
 <li>SyncController()
-: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a3726f7f274e1ad8f1a88a573c8f9eefb">QtDataSync::SyncController</a>
+: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#ac942d5cf0f710218720d68a83a839080">QtDataSync::SyncController</a>
 </li>
 <li>Synced
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#af5fc5102475cdfa66405035c4ce6cfd3ac48c9a1220214cd3bfa2344a97693bcb">QtDataSync::SyncController</a>
@@ -173,17 +174,26 @@ $(function() {
 <li>SyncedWithErrors
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#af5fc5102475cdfa66405035c4ce6cfd3ab7c1205994c9ecea584f060e23c2dfbc">QtDataSync::SyncController</a>
 </li>
+<li>syncEnabled
+: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a2ec0fe9610dfce2dfe8f176b56b143b9">QtDataSync::SyncController</a>
+</li>
+<li>syncEnabledChanged()
+: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a37fd4ccf1753b4bbb00cae93723616b9">QtDataSync::SyncController</a>
+</li>
 <li>Syncing
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#af5fc5102475cdfa66405035c4ce6cfd3a310578a2db004c56fbd2e0cb11777b00">QtDataSync::SyncController</a>
 </li>
 <li>syncOperationsChanged()
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a2e9e24650057ba15064fcbb4fcdd0020">QtDataSync::SyncController</a>
 </li>
+<li>syncPolicy
+: <a class="el" href="class_qt_data_sync_1_1_data_merger.html#a0dc4627679825189c6cdecc3c560fc6a">QtDataSync::DataMerger</a>
+</li>
 <li>SyncPolicy
 : <a class="el" href="class_qt_data_sync_1_1_data_merger.html#ab91bd94e1d261c06ac0d56feb7174f0c">QtDataSync::DataMerger</a>
 </li>
-<li>syncPolicy()
-: <a class="el" href="class_qt_data_sync_1_1_data_merger.html#a81cb97bcb57cbf6db12de7937f041683">QtDataSync::DataMerger</a>
+<li>syncState()
+: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a800cec3c4f5c3ac58600f0011271a1a0">QtDataSync::SyncController</a>
 </li>
 <li>SyncState
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#af5fc5102475cdfa66405035c4ce6cfd3">QtDataSync::SyncController</a>
@@ -198,7 +208,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 28 2017 17:12:36 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

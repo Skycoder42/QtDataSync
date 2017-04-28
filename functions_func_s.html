@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">2.0.0</span>
+   &#160;<span id="projectnumber">3.0.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -113,9 +113,6 @@ $(function() {
 <li>setRemoteConnector()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a4be2df29b03483f3eeb6a531b61fea02">QtDataSync::Setup</a>
 </li>
-<li>setRemoteEnabled()
-: <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#a0de9800e633288c38c089a91975295b7">QtDataSync::WsAuthenticator</a>
-</li>
 <li>setRemoteUrl()
 : <a class="el" href="class_qt_data_sync_1_1_ws_authenticator.html#ac615ad9207c6a1d442eecdd2973cd15e">QtDataSync::WsAuthenticator</a>
 </li>
@@ -128,6 +125,10 @@ $(function() {
 <li>setStateHolder()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a420f2021906269625a431f9d417784f3">QtDataSync::Setup</a>
 </li>
+<li>setSyncEnabled()
+: <a class="el" href="class_qt_data_sync_1_1_remote_connector.html#a9445a3a5fb7f656b3b0efb66df779297">QtDataSync::RemoteConnector</a>
+, <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a30904bec877ee0a24849c91de74fcb4a">QtDataSync::SyncController</a>
+</li>
 <li>setSyncPolicy()
 : <a class="el" href="class_qt_data_sync_1_1_data_merger.html#ab63bc6f8d7c3e017edb0233db1a31091">QtDataSync::DataMerger</a>
 </li>
@@ -138,7 +139,7 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a0921e54e5a0200af117192e4c0c845b7">QtDataSync::Setup</a>
 </li>
 <li>SetupException()
-: <a class="el" href="class_qt_data_sync_1_1_setup_exception.html#af9444a5b060224172388f838c7607565">QtDataSync::SetupException</a>
+: <a class="el" href="class_qt_data_sync_1_1_setup_exception.html#a8ad6b9015050879d5187d27e79b37943">QtDataSync::SetupException</a>
 </li>
 <li>SetupExistsException()
 : <a class="el" href="class_qt_data_sync_1_1_setup_exists_exception.html#a0c88c2dd44044cde04052118c5e7132e">QtDataSync::SetupExistsException</a>
@@ -165,7 +166,10 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_caching_data_store_base.html#a980e7c5cb8d054742221815414e1bf1e">QtDataSync::CachingDataStoreBase</a>
 </li>
 <li>SyncController()
-: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#ac942d5cf0f710218720d68a83a839080">QtDataSync::SyncController</a>
+: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a3726f7f274e1ad8f1a88a573c8f9eefb">QtDataSync::SyncController</a>
+</li>
+<li>syncEnabledChanged()
+: <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a37fd4ccf1753b4bbb00cae93723616b9">QtDataSync::SyncController</a>
 </li>
 <li>syncOperationsChanged()
 : <a class="el" href="class_qt_data_sync_1_1_sync_controller.html#a2e9e24650057ba15064fcbb4fcdd0020">QtDataSync::SyncController</a>
@@ -183,7 +187,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 15 2017 14:53:56 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 28 2017 17:12:36 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>
