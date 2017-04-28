@@ -41,9 +41,9 @@ DISTFILES += \
 	docker-compose.yaml \
 	dockerbuild/makedocker.sh \
 	dockerbuild/Dockerfile \
-    dockerbuild/env_start.sh \
-    dockerbuild/install.sh \
-    dockerbuild/qt-installer-script.qs
+	dockerbuild/env_start.sh \
+	dockerbuild/install.sh \
+	dockerbuild/qt-installer-script.qs
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "Qt Rest API Builder"
@@ -59,7 +59,3 @@ unix:!mac {
 	LIBS += -L$$[QT_INSTALL_LIBS] -licui18n
 	LIBS += -L$$[QT_INSTALL_LIBS] -licuuc
 }
-
-dockerTarget.target = docker
-dockerTarget.commands = $$PWD/dockerbuild/makedocker.sh \"$$PWD/dockerbuild\" \"$$[QT_INSTALL_LIBS]\" \"$$[QT_INSTALL_PLUGINS]\"
-QMAKE_EXTRA_TARGETS += dockerTarget
