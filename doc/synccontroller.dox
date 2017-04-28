@@ -6,6 +6,24 @@ specific actions.
 */
 
 /*!
+@property QtDataSync::SyncController::syncEnabled
+
+@default{`true`}
+
+If set to false, the engone will disconnect from any servers and stay this ways. It's basically
+an "offline mode". Please not that changes are still locally stored, and once sync gets enabled,
+all changes since the last connection will be synchronized.
+
+@accessors{
+	@readAc{isSyncEnabled()}
+	@writeAc{setSyncEnabled()}
+	@notifyAc{syncEnabledChanged()}
+}
+
+@sa SyncController::syncState
+*/
+
+/*!
 @property QtDataSync::SyncController::syncState
 
 @default{SyncController::Loading}
@@ -18,7 +36,7 @@ synchronization between the instances local store and the remote.
 	@notifyAc{syncStateChanged()}
 }
 
-@sa SyncController::syncOperationsChanged, SyncController::triggerSync
+@sa SyncController::syncOperationsChanged, SyncController::syncEnabled, SyncController::triggerSync
 */
 
 /*!

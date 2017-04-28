@@ -19,6 +19,38 @@ to ensure a fast and smooth usage.
 */
 
 /*!
+@fn QtDataSync::RemoteConnector::isSyncEnabled
+
+@returns `true` if synchronization is allowed, `false` if not
+
+Typically, this function should is used to tell the user whether synchronization is possible
+at all. It should not tell if the remote is currently available, but rather if in general
+data will be synced.
+
+@warning This method can be called from **any** thread, and it will always be a different one
+then the one the RemoteConnector lives on. Your implementation must be threadsafe.
+
+@sa RemoteConnector::setSyncEnabled
+*/
+
+/*!
+@fn QtDataSync::RemoteConnector::setSyncEnabled
+
+@param syncEnabled Specifies whether sync should be activated or deactivated
+@returns `true` if the state was actually changed, `false` if nothing changed
+
+Thes functions gets called by the engine to enable or disable sync in general. It is recommended
+you follow those requests, since they typicalle mirror the users wishes. If you can't change
+to the desired mode, you should at least log the reason.
+
+@note Unlike isSyncEnabled(), this method itself must not be threadsafe. However, since you
+are changing the data read by a threadsafe method (depending on your implementation), You
+typically need to make it threadsafe to some extend as well.
+
+@sa RemoteConnector::isSyncEnabled
+*/
+
+/*!
 @fn QtDataSync::RemoteConnector::createAuthenticator
 
 @param defaults The defaults of the datasync instance the authenticator belongs to

@@ -40,9 +40,9 @@ public:
 	//! Called from the engine to finalize the connector
 	virtual void finalize();
 
-	//! Checks if synchronization is currently active (THREADSAFE)
+	//! Checks if synchronization is currently enabled (THREADSAFE)
 	virtual bool isSyncEnabled() const = 0;
-	//! Enables or disables synchronization
+	//! Enables or disables synchronization with a remote
 	virtual bool setSyncEnabled(bool syncEnabled) = 0;
 
 	//! Returns the encryptor this connector uses (can be nullptr)

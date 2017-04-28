@@ -9,22 +9,6 @@ configure the connection to your qdatasync server.
 */
 
 /*!
-@property QtDataSync::WsAuthenticator::remoteEnabled
-
-@default{`true`}
-
-If set to false, following reconnects will not connect to the server. It is treated as "offline", until it get's
-enabled again. This property is stored permanently.
-
-@accessors{
-	@readAc{isRemoteEnabled()}
-	@writeAc{setRemoteEnabled()}
-}
-
-@sa WsAuthenticator::reconnect
-*/
-
-/*!
 @property QtDataSync::WsAuthenticator::remoteUrl
 
 @default{<i>invalid</i> (default constructed)}
