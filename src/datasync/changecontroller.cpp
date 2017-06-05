@@ -73,6 +73,7 @@ void ChangeController::setRemoteStatus(RemoteConnector::RemoteState state, const
 		emit updateSyncState(SyncController::Disconnected);
 		remoteReady = false;
 		break;
+	case RemoteConnector::RemoteConnecting:
 	case RemoteConnector::RemoteLoadingState:
 		emit updateSyncState(SyncController::Loading);
 		remoteReady = false;

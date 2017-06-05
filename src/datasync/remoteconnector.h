@@ -26,7 +26,8 @@ public:
 	//! Describes the current state of the connector
 	enum RemoteState {
 		RemoteDisconnected,//!< The remote server is "not available"
-		RemoteLoadingState,//!< The remote is available, and the remote state is currently beeing loaded
+		RemoteConnecting,//!< The controller is currently trying to connect to the remote (may result in disconnected or loading states)
+		RemoteLoadingState,//!< The remote is available (or trying to connect to it), and the remote state is currently beeing loaded
 		RemoteReady//!< The remote state was successfully loaded and the connector is ready for synchronization
 	};
 	Q_ENUM(RemoteState)

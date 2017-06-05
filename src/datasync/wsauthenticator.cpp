@@ -134,8 +134,22 @@ RemoteConnector *WsAuthenticator::connector()
 
 void WsAuthenticator::updateConnected(int connected)
 {
-	d->connected = (connected != RemoteConnector::RemoteDisconnected);
-	emit connectedChanged(connected);
+	auto cOld = d->connected;
+	switch (connected) {
+	case RemoteConnector::RemoteDisconnected:
+	case RemoteConnector::RemoteConnecting:
+		d->connected = false;
+		break;
+	case RemoteConnector::RemoteLoadingState:
+	case RemoteConnector::RemoteReady:
+		d->connected = true;
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+	if(d->connected != cOld)
+		emit connectedChanged(connected);
 }
 
 WsAuthenticatorPrivate::WsAuthenticatorPrivate(WsRemoteConnector *connector) :

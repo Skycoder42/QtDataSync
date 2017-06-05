@@ -94,12 +94,13 @@ void WsRemoteConnectorTest::testServerConnecting()
 	auth->setUserIdentity("invalid");
 	auth->reconnect();
 
-	QVERIFY(conSpy.wait());
-	QVERIFY(!auth->isConnected());
-	for(auto i = 0; i < 10 && syncSpy.count() < 1; i++)
+	for(auto i = 0; i < 10 && syncSpy.count() < 3; i++)
 		syncSpy.wait(500);
-	QCOMPARE(syncSpy.count(), 1);
+	QVERIFY(!auth->isConnected());
+	QCOMPARE(syncSpy.count(), 3);
 	QCOMPARE(syncSpy[0][0], QVariant::fromValue(SyncController::Disconnected));
+	QCOMPARE(syncSpy[1][0], QVariant::fromValue(SyncController::Loading));
+	QCOMPARE(syncSpy[2][0], QVariant::fromValue(SyncController::Disconnected));
 	QCOMPARE(controller->syncState(), SyncController::Disconnected);
 
 	//now connect again, but reset id first
@@ -123,9 +124,8 @@ void WsRemoteConnectorTest::testServerConnecting()
 	syncSpy.clear();
 	auth->reconnect();
 
-	QVERIFY(conSpy.wait());
-	QVERIFY(!auth->isConnected());
-	QVERIFY(conSpy.wait());
+	QVERIFY(conSpy.wait());//disconnect
+	QVERIFY(conSpy.wait());//reconnect
 	QVERIFY(auth->isConnected());
 	for(auto i = 0; i < 10 && syncSpy.count() < 4; i++)
 		syncSpy.wait(500);

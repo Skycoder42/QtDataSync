@@ -91,11 +91,12 @@ void WsRemoteConnector::reconnect()
 		emit clearAuthenticationError();
 		state = Connecting;
 		settings->sync();
+		emit remoteStateChanged(RemoteConnecting);
 
 		auto remoteUrl = settings->value(keyRemoteUrl).toUrl();
 		if(!remoteUrl.isValid() || !settings->value(keyRemoteEnabled, true).toBool()) {
 			state = Disconnected;
-			remoteStateChanged(RemoteDisconnected);
+			emit remoteStateChanged(RemoteDisconnected);
 			return;
 		}
 
@@ -144,7 +145,7 @@ void WsRemoteConnector::reloadRemoteState()
 		reconnect();
 		break;
 	case Idle:
-		remoteStateChanged(RemoteLoadingState);
+		emit remoteStateChanged(RemoteLoadingState);
 		if(needResync)
 			emit performLocalReset(false);//direct connected, thus "inline"
 		state = Reloading;
@@ -346,6 +347,7 @@ void WsRemoteConnector::error()
 {
 	qCWarning(LOG) << "Socket error"
 				   << socket->errorString();
+	emit remoteStateChanged(RemoteDisconnected);
 	socket->close();
 }
 
@@ -356,8 +358,10 @@ void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 					   << error.errorString();
 	}
 
-	if(settings->value(keyVerifyPeer, true).toBool())
+	if(settings->value(keyVerifyPeer, true).toBool()) {
+		emit remoteStateChanged(RemoteDisconnected);
 		socket->close();
+	}
 }
 
 void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue &data)
