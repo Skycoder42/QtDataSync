@@ -81,7 +81,7 @@ protected:
 	RemoteConnector *connector() override;
 
 private Q_SLOTS:
-	void updateConnected(bool connected);
+	void updateConnected(int connected);
 
 private:
 	QScopedPointer<WsAuthenticatorPrivate> d;

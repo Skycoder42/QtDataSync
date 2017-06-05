@@ -74,7 +74,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void loadLocalStatus();
 	void updateSyncState(SyncController::SyncState state);
-	void updateSyncProgress(quint32 remainingOperations);
+	void updateSyncProgress(int remainingOperations);
 
 	void beginRemoteOperation(const ChangeOperation &operation);
 	void beginLocalOperation(const ChangeOperation &operation);

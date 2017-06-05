@@ -5,6 +5,7 @@
 #include <QtCore/qcryptographichash.h>
 
 #include <qtinyaes.h>
+#include <qrng.h>
 using namespace QtDataSync;
 
 QTinyAesEncryptor::QTinyAesEncryptor(QObject *parent) :
@@ -19,8 +20,9 @@ void QTinyAesEncryptor::initialize(Defaults *defaults)
 	_defaults = defaults;
 	_key = _defaults->settings()->value(QStringLiteral("encryption/key")).toByteArray();
 	if(_key.isEmpty()) {
-		for(quint32 i = 0; i < QTinyAes::KEYSIZE; i++)
-			_key += (char)qrand();
+		QRng secureRng;
+		secureRng.setSecurityLevel(QRng::HighSecurity);
+		_key = secureRng.generateRandom(QTinyAes::KEYSIZE);
 		_defaults->settings()->setValue(QStringLiteral("encryption/key"), _key);
 	}
 }
@@ -42,9 +44,7 @@ void QTinyAesEncryptor::setKey(const QByteArray &key)
 
 QJsonValue QTinyAesEncryptor::encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const
 {
-	QByteArray salt;
-	for(quint32 i = 0; i < 28; i++)//224 bits
-		salt += (char)qrand();
+	auto salt = QRng().generateRandom(28);//224 bits
 	auto iv = QCryptographicHash::hash(salt + key.first + key.second.toUtf8() + keyProperty, QCryptographicHash::Sha3_224);
 	iv.resize(QTinyAes::BLOCKSIZE);
 

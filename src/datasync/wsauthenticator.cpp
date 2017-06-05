@@ -14,7 +14,7 @@ WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, Defaults *default
 	d->settings = defaults->createSettings(this);
 
 	connect(d->connector, &WsRemoteConnector::remoteStateChanged,
-			this, &WsAuthenticator::updateConnected,
+			this, [this](RemoteConnector::RemoteState s){updateConnected(s);},
 			Qt::QueuedConnection);
 }
 
@@ -132,9 +132,9 @@ RemoteConnector *WsAuthenticator::connector()
 	return d->connector;
 }
 
-void WsAuthenticator::updateConnected(bool connected)
+void WsAuthenticator::updateConnected(int connected)
 {
-	d->connected = connected;
+	d->connected = (connected != RemoteConnector::RemoteDisconnected);
 	emit connectedChanged(connected);
 }
 
