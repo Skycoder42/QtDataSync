@@ -167,6 +167,11 @@ void App::dbDone(bool ok)
 		lastError = QStringLiteral("Failed to setup database. Check error log for details.");
 	if(currentTerminal)
 		completeStart();
+	else {
+		QTimer::singleShot(5000, this, [](){
+			qApp->exit(EXIT_FAILURE);
+		});
+	}
 }
 
 void App::completeStart()
