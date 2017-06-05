@@ -7,5 +7,8 @@ var searchData=
   ['generictask',['GenericTask',['../class_qt_data_sync_1_1_generic_task.html',1,'QtDataSync']]],
   ['generictask_3c_20void_20_3e',['GenericTask&lt; void &gt;',['../class_qt_data_sync_1_1_generic_task_3_01void_01_4.html',1,'QtDataSync']]],
   ['globalterminal',['GlobalTerminal',['https://skycoder42.github.io/QtBackgroundProcess/class_qt_background_process_1_1_global_terminal.html',0,'QtBackgroundProcess']]],
-  ['gltfio',['GLTFIO',['https://doc.qt.io/qt-5/qt3drender-gltfio.html',0,'Qt3DRender']]]
+  ['gltfexporter',['GLTFExporter',['https://doc.qt.io/qt-5/qt3drender-gltfexporter.html',0,'Qt3DRender']]],
+  ['gltfgeometryloader',['GLTFGeometryLoader',['https://doc.qt.io/qt-5/qt3drender-gltfgeometryloader.html',0,'Qt3DRender']]],
+  ['gltfimporter',['GLTFImporter',['https://doc.qt.io/qt-5/qt3drender-gltfimporter.html',0,'Qt3DRender']]],
+  ['gltfoptions',['GltfOptions',['https://doc.qt.io/qt-5/qt3drender-gltfexporter-gltfoptions.html',0,'Qt3DRender::GLTFExporter']]]
 ];

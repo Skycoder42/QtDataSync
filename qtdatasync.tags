@@ -991,6 +991,12 @@
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
+      <name>RemoteConnecting</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a161f11314bd5eca8dd6e39063713f905</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
       <name>RemoteLoadingState</name>
       <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
       <anchor>a3559486872598c62e9cf7dafe0d393a2a3bba428a35ca83baab47f459b66e32dd</anchor>
@@ -1006,6 +1012,12 @@
       <name>RemoteDisconnected</name>
       <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
       <anchor>a3559486872598c62e9cf7dafe0d393a2a6a47d3f967ad7f68931cfc56e5534bba</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>RemoteConnecting</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_connector.html</anchorfile>
+      <anchor>a3559486872598c62e9cf7dafe0d393a2a161f11314bd5eca8dd6e39063713f905</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
