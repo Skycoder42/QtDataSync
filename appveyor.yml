@@ -6,7 +6,7 @@ version: build-{build}
 
 environment:
   QT_VER: 5.9.1
-  EXTRA_MODULES: .skycoder42.jsonserializer;.skycoder42.qtbackgroundprocess
+  EXTRA_MODULES: .skycoder42.jsonserializer;.skycoder42.backgroundprocess
 
   matrix:
     - PLATFORM: msvc2017_64
