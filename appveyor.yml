@@ -36,6 +36,7 @@ matrix:
 
 install:
   - git clone https://github.com/Skycoder42/QtModules.git .\qtmodules-travis
+  - .\tests\ci\setup.bat
   - .\qtmodules-travis\ci\win\setup.bat
 
 build_script:

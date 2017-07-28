@@ -3,9 +3,8 @@ set -e
 
 # get postgres running for ws test
 if [[ $PLATFORM == "gcc_64" ]]; then
-	sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.11.2/docker-compose-$(uname -s)-$(uname -m)"
+	sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.14.0/docker-compose-$(uname -s)-$(uname -m)"
 	sudo chmod +x /usr/local/bin/docker-compose
-	sudo docker-compose -v
 
 	sudo docker-compose -f ./tools/qdatasyncserver/docker-compose.yaml up -d
 fi
