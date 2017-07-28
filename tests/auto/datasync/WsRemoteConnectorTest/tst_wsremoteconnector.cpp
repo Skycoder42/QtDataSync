@@ -59,11 +59,10 @@ void WsRemoteConnectorTest::initTestCase()
 
 	//now start the server!
 	QProcess p;
-	p.start(QStringLiteral("../../../../bin/qdatasyncserver start -c %1/../../../../tools/qdatasyncserver/docker_setup.conf")
+	p.start(QStringLiteral("%1/../../../../bin/qdatasyncserver start -c %2/../../../../tools/qdatasyncserver/docker_setup.conf")
+			.arg(BUILDDIR)
 			.arg(SRCDIR));
-	p.waitForFinished();
-	qDebug() << p.error() << p.exitStatus() << p.errorString();
-	QVERIFY(p.waitForFinished());
+	QVERIFY2(p.waitForFinished(), qPrintable(p.errorString()));
 	QCOMPARE(p.exitCode(), EXIT_SUCCESS);
 }
 
