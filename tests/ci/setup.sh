@@ -3,7 +3,7 @@ set -e
 
 # get postgres running
 if [[ $PLATFORM == "gcc_64" ]]; then
-	apt-get -qq install docker-compose
+	sudo apt-get -qq install docker-compose
 fi
 
 sudo docker-compose -f ./tools/qdatasyncserver/docker-compose.yaml up -d
