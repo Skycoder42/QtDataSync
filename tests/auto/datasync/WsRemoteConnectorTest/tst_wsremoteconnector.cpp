@@ -75,8 +75,9 @@ void WsRemoteConnectorTest::cleanupTestCase()
 
 	//and stop the server!
 	QProcess p;
-	p.start(QStringLiteral("../../../../bin/qdatasyncserver stop"));
-	QVERIFY(p.waitForFinished());
+	p.start(QStringLiteral("%1/../../../../bin/qdatasyncserver stop")
+			.arg(BUILDDIR));
+	QVERIFY2(p.waitForFinished(), qPrintable(p.errorString()));
 	QCOMPARE(p.exitCode(), EXIT_SUCCESS);
 }
 
