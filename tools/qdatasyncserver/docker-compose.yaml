@@ -1,4 +1,4 @@
-version: '2'
+version: '2.2'
 services:
   datasync_postgres:
     container_name: datasync_example_postgres
