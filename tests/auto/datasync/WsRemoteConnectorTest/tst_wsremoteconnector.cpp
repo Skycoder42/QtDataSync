@@ -58,12 +58,10 @@ void WsRemoteConnectorTest::initTestCase()
 	auth = Setup::authenticatorForSetup<WsAuthenticator>(this);
 
 	//now start the server!
-	QProcess p;
-	p.start(QStringLiteral("%1/../../../../bin/qdatasyncserver start -c %2")
-			.arg(BUILDDIR)
-			.arg(SETUP_CONF));
-	QVERIFY2(p.waitForFinished(), qPrintable(p.errorString()));
-	QCOMPARE(p.exitCode(), EXIT_SUCCESS);
+	auto res = QProcess::execute(QStringLiteral("%1/../../../../bin/qdatasyncserver start -c %2")
+								 .arg(BUILDDIR)
+								 .arg(SETUP_CONF));
+	QCOMPARE(res, EXIT_SUCCESS);
 }
 
 void WsRemoteConnectorTest::cleanupTestCase()
@@ -74,11 +72,9 @@ void WsRemoteConnectorTest::cleanupTestCase()
 	Setup::removeSetup(Setup::DefaultSetup);
 
 	//and stop the server!
-	QProcess p;
-	p.start(QStringLiteral("%1/../../../../bin/qdatasyncserver stop")
-			.arg(BUILDDIR));
-	QVERIFY2(p.waitForFinished(), qPrintable(p.errorString()));
-	QCOMPARE(p.exitCode(), EXIT_SUCCESS);
+	auto res = QProcess::execute(QStringLiteral("%1/../../../../bin/qdatasyncserver stop")
+								 .arg(BUILDDIR));
+	QCOMPARE(res, EXIT_SUCCESS);
 }
 
 void WsRemoteConnectorTest::testServerConnecting()

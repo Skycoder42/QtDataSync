@@ -26,5 +26,7 @@ DEFINES += BUILDDIR=\\\"$$OUT_PWD/\\\"
 
 HEADERS +=
 
+DISTFILES += server-setup.conf
+
 include(setup.pri)
 DEFINES += SETUP_CONF=\\\"$$SETUP_FILE\\\"
