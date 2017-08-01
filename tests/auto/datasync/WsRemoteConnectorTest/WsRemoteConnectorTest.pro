@@ -20,7 +20,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += tst_wsremoteconnector.cpp
+
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 DEFINES += BUILDDIR=\\\"$$OUT_PWD/\\\"
 
 HEADERS +=
+
+include(setup.pri)
+DEFINES += SETUP_CONF=\\\"$$SETUP_FILE\\\"
