@@ -1,4 +1,5 @@
 #include "qtinyaesencryptor_p.h"
+#include "setup_p.h"
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -19,11 +20,23 @@ void QTinyAesEncryptor::initialize(Defaults *defaults)
 {
 	_defaults = defaults;
 	_key = _defaults->settings()->value(QStringLiteral("encryption/key")).toByteArray();
+
 	if(_key.isEmpty()) {
 		QRng secureRng;
 		secureRng.setSecurityLevel(QRng::HighSecurity);
 		_key = secureRng.generateRandom(QTinyAes::KEYSIZE);
 		_defaults->settings()->setValue(QStringLiteral("encryption/key"), _key);
+	} else if((quint32)_key.size() != QTinyAes::KEYSIZE) { //key size changed -> derive new key from old one
+		QCryptographicHash hash(QCryptographicHash::Sha3_256);
+		for(quint32 i = 0; i < QTinyAes::KEYSIZE; i += _key.size())
+			hash.addData(_key);
+		_key = hash.result();
+		_key.resize(QTinyAes::KEYSIZE);
+		_defaults->settings()->setValue(QStringLiteral("encryption/key"), _key);
+
+		//trigger a resync to get rid of all datasets with the old key
+		auto engine = SetupPrivate::engine(defaults->setupName());
+		QMetaObject::invokeMethod(engine, "triggerResync", Qt::QueuedConnection);
 	}
 }
 
@@ -44,13 +57,12 @@ void QTinyAesEncryptor::setKey(const QByteArray &key)
 
 QJsonValue QTinyAesEncryptor::encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const
 {
-	//TODO adjust to AES256
 	auto salt = QRng().generateRandom(28);//224 bits
 	auto iv = QCryptographicHash::hash(salt + key.first + key.second.toUtf8() + keyProperty, QCryptographicHash::Sha3_224);
 	iv.resize(QTinyAes::BLOCKSIZE);
 
 	auto data = QJsonDocument(object).toBinaryData();
-	auto cipher = QTinyAes::cbcEncrypt( _key, iv, data);
+	auto cipher = QTinyAes::cbcEncrypt(_key, iv, data);
 
 	QJsonObject result;
 	result[QStringLiteral("salt")] = QString::fromUtf8(salt.toBase64());
@@ -68,9 +80,6 @@ QJsonObject QTinyAesEncryptor::decrypt(const ObjectKey &key, const QJsonValue &d
 	iv.resize(QTinyAes::BLOCKSIZE);
 
 	auto cipher = QByteArray::fromBase64(obj[QStringLiteral("data")].toString().toUtf8());
-	if(cipher.size() % QTinyAes::KEYSIZE != 0)
-		throw DecryptionFailedException();
-
 	auto plain = QTinyAes::cbcDecrypt(_key, iv, cipher);
 	auto json = QJsonDocument::fromBinaryData(plain);
 	if(json.isObject())
@@ -83,7 +92,7 @@ QJsonObject QTinyAesEncryptor::decrypt(const ObjectKey &key, const QJsonValue &d
 
 const char *InvalidKeyException::what() const noexcept
 {
-	return "The given key does not have the valid length of 128 bit!";
+	return "The given key does not have the valid length of 256 bit!";
 }
 
 void InvalidKeyException::raise() const
@@ -98,7 +107,7 @@ QException *InvalidKeyException::clone() const
 
 const char *DecryptionFailedException::what() const noexcept
 {
-	return "Failed to decrypt data returned from server. Maybe it's not encrypted?";
+	return "Failed to decrypt data returned from server. Try a resync.";
 }
 
 void DecryptionFailedException::raise() const
