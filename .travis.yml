@@ -1,0 +1,62 @@
+language: cpp
+
+services:
+  - docker
+
+sudo: required
+dist: trusty
+osx_image: xcode8.3
+
+env:
+  global:
+    - QT_VER=5.9.1
+    - EXTRA_MODULES=".skycoder42.jsonserializer .skycoder42.backgroundprocess"
+
+matrix:
+  include:
+    - os: linux
+      env:
+        - PLATFORM=gcc_64
+        - BUILD_DOC=true
+    - os: linux
+      env:
+        - PLATFORM=android_armv7
+    - os: linux
+      env:
+        - PLATFORM=android_x86
+    - os: osx
+      env:
+        - PLATFORM=clang_64
+    - os: osx
+      env:
+        - PLATFORM=ios
+
+before_install:
+  - git clone https://github.com/Skycoder42/QtModules.git ./qtmodules-travis
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then travis_wait 40 ./qtmodules-travis/ci/$TRAVIS_OS_NAME/setup.sh; else ./qtmodules-travis/ci/$TRAVIS_OS_NAME/setup.sh; fi
+  - ./tests/ci/setup.sh
+
+script:
+  - ./qtmodules-travis/ci/$TRAVIS_OS_NAME/build.sh
+
+before_deploy:
+  - ./qtmodules-travis/ci/$TRAVIS_OS_NAME/upload-prepare.sh
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: rlbQDrfTPXKyOBgnixuvnXwl/0G9O89rHe+IEGJuLWc7hfkEYKhDCcjjfONM6dQ/qp3NDYKJYO1FsYgfkjN50IywpHO2Hgmr/2Gg/Bin37kbT7ZPzKqYT2TD1IqTerdNmL7n60YjJtvIDLd/k+9k5xU2TDd1jawiz1pEKkvUKHkBImKhNUk3NX6Ba8d4xbWwAvg3IIg63TI42f0srapZY+jvzbQjiuIqfL+pbByfcPi77NIKtrSJNF0UsLFeeqEYrvd1TsmeObyp566xPH7OZzJ0llomDqmD1leSYUM7bwBMscQai/3BcucygQbX+wx/Z9Ghq4HhXQ+E9nQvhEHwAXgvGB+Rxd/IvtzBRS8VQoDpCyFqEN1xhEE38vvkkTGfxWLDCeTSNsKrZYj6iqPOrOkF6/DFC/L1jSy0BumedhK4+Zi2InvniGSPIk9Gk3PWgJp1MWTzdJ+E3L5WEch4iV+TY3E8ukPCuvTyIQiitm9O+Dfz2FVmT+aMwvL/tHr7w7dG/05fDZj7psXjEGTPdKIfzjf1fUp++AKmg0hjPYXkQRvMg7jHS9R4AYvwVagDleXLZwq7lhmREq1gJL32D806sdN8+9scNKrA6D/ZhHr6j03i6eLoLzL1n17IOfjB6taantmsOeSEV4TKyznMXOY2/Wdm8gIpk0GTn1h7O8Y=
+  file_glob: true
+  file: install/opt/build_*_$QT_VER.tar.xz
+  on:
+    repo: Skycoder42/QtDataSync
+    tags: true
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.android/build-cache

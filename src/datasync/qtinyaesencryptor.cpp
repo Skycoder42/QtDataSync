@@ -44,6 +44,7 @@ void QTinyAesEncryptor::setKey(const QByteArray &key)
 
 QJsonValue QTinyAesEncryptor::encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const
 {
+	//TODO adjust to AES256
 	auto salt = QRng().generateRandom(28);//224 bits
 	auto iv = QCryptographicHash::hash(salt + key.first + key.second.toUtf8() + keyProperty, QCryptographicHash::Sha3_224);
 	iv.resize(QTinyAes::BLOCKSIZE);

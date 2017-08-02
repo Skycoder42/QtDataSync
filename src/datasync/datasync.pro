@@ -1,6 +1,7 @@
 TARGET = QtDataSync
 
 QT = core jsonserializer sql websockets
+QTAES_KEYSIZE = 128 #TODO make 256 with next major release
 
 include(../3rdparty/vendor/vendor.pri)
 
