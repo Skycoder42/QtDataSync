@@ -365,10 +365,13 @@ void ChangeControllerTest::testLiveChanges()
 	remote->mutex.unlock();
 
 	if(localChange.id != -1) {//not default constructed
+		holder->mutex.lock();//block holder to prevent early changes
+
 		try {
 			auto task = async->save<TestData>(localChange);
 			task.waitForFinished();
 		} catch(QException &e) {
+			holder->mutex.unlock();
 			QFAIL(e.what());
 		}
 
@@ -377,6 +380,8 @@ void ChangeControllerTest::testLiveChanges()
 			store->failCount = 1;
 			store->mutex.unlock();
 		}
+
+		holder->mutex.unlock();
 	}
 	if(remoteChange.size() == 1) {
 		remote->mutex.lock();
