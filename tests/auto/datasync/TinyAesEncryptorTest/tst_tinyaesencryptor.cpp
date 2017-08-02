@@ -64,7 +64,7 @@ void TinyAesEncryptorTest::testEncryptionCycle()
 		QVERIFY_EXCEPTION_THROWN(encryptor->decrypt(key, plain, "id"), DecryptionFailedException);
 
 		//test invalid key
-		encryptor->setKey(QByteArray("x").repeated(16));
+		encryptor->setKey(QByteArray("x").repeated(32));
 		QVERIFY_EXCEPTION_THROWN(encryptor->decrypt(key, cipher, "id"), DecryptionFailedException);
 	} catch(QException &e) {
 		QFAIL(e.what());
@@ -74,7 +74,7 @@ void TinyAesEncryptorTest::testEncryptionCycle()
 void TinyAesEncryptorTest::testKeyChange()
 {
 	try {
-		auto newKey = QByteArray("y").repeated(16);//128 bit
+		auto newKey = QByteArray("y").repeated(32);//256 bit
 		encryptor->setKey(newKey);
 		QCOMPARE(encryptor->key(), newKey);
 
