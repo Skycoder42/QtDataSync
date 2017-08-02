@@ -33,6 +33,11 @@ const QLoggingCategory &Defaults::loggingCategory() const
 	return d->logCat;
 }
 
+QString Defaults::setupName() const
+{
+	return d->setupName;
+}
+
 QDir Defaults::storageDir() const
 {
 	return d->storageDir;
@@ -74,6 +79,7 @@ void Defaults::releaseDatabase()
 
 
 QtDataSync::DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir) :
+	setupName(setupName),
 	storageDir(storageDir),
 	dbRefCounter(0),
 	catName("qtdatasync." + setupName.toUtf8()),

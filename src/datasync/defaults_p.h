@@ -15,6 +15,7 @@ public:
 
 	DefaultsPrivate(const QString &setupName, const QDir &storageDir);
 
+	QString setupName;
 	QDir storageDir;
 	quint64 dbRefCounter;
 	QByteArray catName;

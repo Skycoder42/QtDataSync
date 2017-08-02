@@ -29,6 +29,8 @@ public:
 	//! A logging category for this setup
 	const QLoggingCategory &loggingCategory() const;
 
+	//! Returns the name of the current setup
+	QString setupName() const;
 	//! Returns the storage directory
 	QDir storageDir() const;
 	//! Returns an instance of QSettings owned by defaults
