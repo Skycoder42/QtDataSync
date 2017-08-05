@@ -23,6 +23,10 @@ mkdir /tmp/build
 cd /tmp/build
 git clone https://github.com/Skycoder42/QtDataSync.git --branch 3.0.2
 
+echo 'SUBDIRS = ' >> QtDataSync/examples/examples.pro
+echo 'SUBDIRS = ' >> QtDataSync/src/src.pro
+echo 'SUBDIRS = ' >> QtDataSync/tests/tests.pro
+
 mkdir build
 cd build
 $QT_DIR/bin/qmake -r ../QtDataSync/
