@@ -21,7 +21,7 @@ QT_QPA_PLATFORM=minimal $INSTALLER --script $INSTALL_DIR/qt-installer-script.qs 
 # clone and build datasync
 mkdir /tmp/build
 cd /tmp/build
-git clone https://github.com/Skycoder42/QtDataSync.git --branch 3.0.2
+git clone https://github.com/Skycoder42/QtDataSync.git #--branch 3.0.2
 
 echo 'SUBDIRS = ' >> QtDataSync/examples/examples.pro
 echo 'SUBDIRS = ' >> QtDataSync/src/src.pro
