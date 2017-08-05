@@ -25,7 +25,7 @@ git clone https://github.com/Skycoder42/QtDataSync.git --branch 3.0.2
 
 mkdir build
 cd build
-$QT_DIR/bin/qmake -r ../qtdatasync/
+$QT_DIR/bin/qmake -r ../QtDataSync/
 cd tools/qdatasyncserver
 make
 make install
