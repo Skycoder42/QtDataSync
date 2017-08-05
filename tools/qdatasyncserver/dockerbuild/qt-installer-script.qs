@@ -30,8 +30,8 @@ Controller.prototype.TargetDirectoryPageCallback = function() {
 Controller.prototype.ComponentSelectionPageCallback = function() {
     var widget = gui.currentPageWidget();
     widget.deselectAll();
-    widget.selectComponent("qt.59.gcc_64");
-	widget.selectComponent("qt.59.skycoder42.datasync");
+    widget.selectComponent("qt.591.gcc_64");
+	widget.selectComponent("qt.591.skycoder42.backgroundprocess");
     gui.clickButton(buttons.NextButton);
 }
 
