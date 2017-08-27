@@ -305,6 +305,12 @@ quint16 UserInfo::port() const
 	return (quint16)d->datagram.senderPort();
 }
 
+UserInfo &UserInfo::operator=(const UserInfo &other)
+{
+	d = other.d;
+	return *this;
+}
+
 bool UserInfo::operator==(const UserInfo &other) const
 {
 	return address() == other.address() &&

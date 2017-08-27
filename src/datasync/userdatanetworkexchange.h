@@ -32,6 +32,7 @@ public:
 	QHostAddress address() const;
 	quint16 port() const;
 
+	UserInfo &operator=(const UserInfo &other);
 	bool operator==(const UserInfo &other) const;
 
 private:

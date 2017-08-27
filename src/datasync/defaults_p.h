@@ -5,6 +5,7 @@
 #include "defaults.h"
 
 #include <QtSql/QSqlDatabase>
+#include <QtJsonSerializer/QJsonSerializer>
 
 namespace QtDataSync {
 
