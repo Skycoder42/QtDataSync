@@ -3,6 +3,7 @@
 #include "setup_p.h"
 
 #include <QtCore/QCryptographicHash>
+#include <QtCore/QDebug>
 #include <QtNetwork/QNetworkInterface>
 
 #include <qtinyaes.h>
@@ -51,12 +52,12 @@ QString UserDataNetworkExchange::socketError() const
 	return d->socket->errorString();
 }
 
-bool UserDataNetworkExchange::startExchange(quint16 port)
+bool UserDataNetworkExchange::startExchange(quint16 port, bool allowReuseAddress)
 {
-	return startExchange(QHostAddress::Any, port);
+	return startExchange(QHostAddress::Any, port, allowReuseAddress);
 }
 
-bool UserDataNetworkExchange::startExchange(const QHostAddress &listenAddress, quint16 port)
+bool UserDataNetworkExchange::startExchange(const QHostAddress &listenAddress, quint16 port, bool allowReuseAddress)
 {
 	d->users.clear();
 	d->messageCache.clear();
@@ -66,8 +67,13 @@ bool UserDataNetworkExchange::startExchange(const QHostAddress &listenAddress, q
 	if(d->socket->isOpen())
 		d->socket->close();
 
-	if(!d->socket->bind(listenAddress, port, QAbstractSocket::DontShareAddress))
+	if(!d->socket->bind(listenAddress,
+						port,
+						allowReuseAddress ?
+							QAbstractSocket::ShareAddress :
+							QAbstractSocket::DontShareAddress)) {
 		return false;
+	}
 
 	d->timer->start();
 	emit activeChanged(true);
@@ -167,17 +173,19 @@ void UserDataNetworkExchange::newData()
 
 		//skip messages from myself
 		auto isSelf = false;
-		foreach(auto addr, QNetworkInterface::allAddresses()) {
-			if(addr.isEqual(datagram.senderAddress())) {
-				isSelf = true;
-				break;
+		if(datagram.senderPort() == d->socket->localPort()) {
+			foreach(auto addr, QNetworkInterface::allAddresses()) {
+				if(addr.isEqual(datagram.senderAddress())) {
+					isSelf = true;
+					break;
+				}
 			}
 		}
 		if(isSelf)
 			continue;
 
 		try {
-			ExchangeDatagram message = d->serializer->deserializeFrom<ExchangeDatagram>(datagram.data());
+			auto message = d->serializer->deserializeFrom<ExchangeDatagram>(datagram.data());
 			switch (message.type) {
 			case ExchangeDatagram::Invalid: //ignored
 				break;
@@ -309,6 +317,18 @@ uint QtDataSync::qHash(const UserInfo &info, uint seed)
 			::qHash(info.port(), seed);
 }
 
+QDebug operator<<(QDebug stream, const UserInfo &userInfo)
+{
+	QDebugStateSaver saver(stream);
+	stream.noquote().nospace() << "["
+							   << userInfo.name() << "]("
+							   << userInfo.address()
+							   << ":"
+							   << userInfo.port()
+							   << ")";
+	return stream;
+}
+
 // ------------- UserInfoData Implementation -------------
 
 UserInfoData::UserInfoData(const QString &name, const QNetworkDatagram &datagram) :
@@ -337,13 +357,13 @@ ExchangeDatagram::ExchangeDatagram() :
 {}
 
 ExchangeDatagram::ExchangeDatagram(const QString &name) :
-	type(UserData),
+	type(UserInfo),
 	data(name),
 	salt()
 {}
 
 ExchangeDatagram::ExchangeDatagram(const QByteArray &data, const QByteArray &salt) :
-	type(UserInfo),
+	type(UserData),
 	data(QString::fromUtf8(data.toBase64())),
 	salt(salt.isEmpty() ? QString() : QString::fromUtf8(salt.toBase64()))
 {}

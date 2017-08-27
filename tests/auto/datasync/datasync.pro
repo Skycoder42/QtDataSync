@@ -11,4 +11,5 @@ SUBDIRS +=  \
 	SqlStateHolderTest \
 	WsRemoteConnectorTest \
 	SetupTest \
-	TinyAesEncryptorTest
+	TinyAesEncryptorTest \
+    NetworkExchangeTest
