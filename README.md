@@ -2,7 +2,7 @@
 A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices.
 
 [![Travis Build Status](https://travis-ci.org/Skycoder42/QtDataSync.svg?branch=master)](https://travis-ci.org/Skycoder42/QtDataSync)
-[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/ygrlpdc6p3dcnmk1?svg=true)](https://ci.appveyor.com/project/Skycoder42/qtdatasync)
+[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/ygrlpdc6p3dcnmk1/branch/master?svg=true)](https://ci.appveyor.com/project/Skycoder42/qtdatasync/branch/master)
 
 
 ## Features
