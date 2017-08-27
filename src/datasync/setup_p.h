@@ -8,6 +8,7 @@
 #include "setup.h"
 #include "stateholder.h"
 #include "encryptor.h"
+#include "defaults.h"
 #include "storageengine_p.h"
 
 #include <QtCore/QMutex>
@@ -23,6 +24,7 @@ class Q_DATASYNC_EXPORT SetupPrivate
 
 public:
 	static StorageEngine *engine(const QString &name = Setup::DefaultSetup);
+	static Defaults *defaults(const QString &name = Setup::DefaultSetup);
 
 	static void cleanupHandler();
 

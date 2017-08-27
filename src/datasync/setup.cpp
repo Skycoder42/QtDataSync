@@ -217,6 +217,15 @@ StorageEngine *SetupPrivate::engine(const QString &name)
 	return SetupPrivate::engines.value(name, {nullptr, nullptr}).second;
 }
 
+Defaults *SetupPrivate::defaults(const QString &name)
+{
+	auto eng = engine(name);
+	if(eng)
+		return eng->getDefaults();
+	else
+		return nullptr;
+}
+
 void SetupPrivate::cleanupHandler()
 {
 	QMutexLocker _(&setupMutex);

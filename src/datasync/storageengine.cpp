@@ -33,6 +33,11 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 		encryptor->setParent(this);
 }
 
+Defaults *StorageEngine::getDefaults() const
+{
+	return defaults;
+}
+
 bool StorageEngine::isSyncEnabled() const
 {
 	return remoteConnector->isSyncEnabled();

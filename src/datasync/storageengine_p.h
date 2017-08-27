@@ -47,6 +47,8 @@ public:
 						   DataMerger *dataMerger,
 						   Encryptor *encryptor);
 
+	Defaults *getDefaults() const;
+
 	bool isSyncEnabled() const;
 	SyncController::SyncState syncState() const;
 	QString authenticationError() const;

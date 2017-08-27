@@ -33,7 +33,9 @@ HEADERS += \
 	exceptions.h \
 	qtdatasync_global.h \
 	encryptor.h \
-	qtinyaesencryptor_p.h
+	qtinyaesencryptor_p.h \
+    userdatanetworkexchange.h \
+    userdatanetworkexchange_p.h
 
 SOURCES += \
 	asyncdatastore.cpp \
@@ -55,7 +57,8 @@ SOURCES += \
 	wsremoteconnector.cpp \
 	exceptions.cpp \
 	encryptor.cpp \
-	qtinyaesencryptor.cpp
+	qtinyaesencryptor.cpp \
+    userdatanetworkexchange.cpp
 
 OTHER_FILES += \
 	engine.qmodel
