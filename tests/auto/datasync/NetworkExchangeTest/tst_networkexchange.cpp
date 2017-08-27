@@ -15,7 +15,9 @@ private Q_SLOTS:
 	void cleanupTestCase();
 
 	void testExchangeSetup();
+#ifdef Q_OS_UNIX
 	void testMessageBroadcast();
+#endif
 	void testFullExchange_data();
 	void testFullExchange();
 
@@ -89,6 +91,7 @@ void NetworkExchangeTest::testExchangeSetup()
 	exchange->deleteLater();
 }
 
+#ifdef Q_OS_UNIX
 void NetworkExchangeTest::testMessageBroadcast()
 {
 	//create and start the exchange
@@ -122,6 +125,7 @@ void NetworkExchangeTest::testMessageBroadcast()
 	QVERIFY(!exchange->isActive());
 	exchange->deleteLater();
 }
+#endif
 
 void NetworkExchangeTest::testFullExchange_data()
 {

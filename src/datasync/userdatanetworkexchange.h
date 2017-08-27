@@ -7,7 +7,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qshareddata.h>
 
-class QHostAddress;
+#include <QtNetwork/qhostaddress.h>
 
 namespace QtDataSync {
 
