@@ -8,7 +8,7 @@ HEADERS += \
 	$$PWD/mockremoteconnector.h \
 	$$PWD/mockdatamerger.h \
 	$$PWD/testobject.h \
-    $$PWD/mockencryptor.h
+	$$PWD/mockencryptor.h
 
 SOURCES += \
 	$$PWD/testdata.cpp \
@@ -18,10 +18,8 @@ SOURCES += \
 	$$PWD/mockremoteconnector.cpp \
 	$$PWD/mockdatamerger.cpp \
 	$$PWD/testobject.cpp \
-    $$PWD/mockencryptor.cpp
+	$$PWD/mockencryptor.cpp
 
 INCLUDEPATH += $$PWD
-
-DEFINES += QT_DEPRECATED_WARNINGS
 
 mac: QMAKE_LFLAGS += '-Wl,-rpath,\'$$OUT_PWD/../../../../lib\''

@@ -59,8 +59,8 @@ void WsRemoteConnectorTest::initTestCase()
 
 	//now start the server!
 	auto res = QProcess::execute(QStringLiteral("%1/../../../../bin/qdatasyncserver start -c %2")
-								 .arg(BUILDDIR)
-								 .arg(SETUP_CONF));
+								 .arg(QStringLiteral(BUILDDIR))
+								 .arg(QStringLiteral(SETUP_CONF)));
 	QCOMPARE(res, EXIT_SUCCESS);
 }
 
@@ -73,7 +73,7 @@ void WsRemoteConnectorTest::cleanupTestCase()
 
 	//and stop the server!
 	auto res = QProcess::execute(QStringLiteral("%1/../../../../bin/qdatasyncserver stop")
-								 .arg(BUILDDIR));
+								 .arg(QStringLiteral(BUILDDIR)));
 	QCOMPARE(res, EXIT_SUCCESS);
 }
 
@@ -88,7 +88,7 @@ void WsRemoteConnectorTest::testServerConnecting()
 
 	//empty store -> used INVALID id
 	auth->setRemoteUrl(QStringLiteral("ws://localhost:4242"));
-	auth->setServerSecret("baum42");
+	auth->setServerSecret(QStringLiteral("baum42"));
 	auth->setUserIdentity("invalid");
 	auth->reconnect();
 

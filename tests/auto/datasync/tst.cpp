@@ -58,8 +58,8 @@ DataSet generateDataJson(int from, int to)
 QJsonObject generateDataJson(int index)
 {
 	QJsonObject data;
-	data["id"] = index;
-	data["text"] = QString::number(index);
+	data[QStringLiteral("id")] = index;
+	data[QStringLiteral("text")] = QString::number(index);
 	return data;
 }
 

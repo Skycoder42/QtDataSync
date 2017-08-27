@@ -130,7 +130,7 @@ void MainWidget::setup()
 				sync, &QtDataSync::SyncController::triggerResync);
 
 		store->loadAll<SampleData*>().onResult(this, [this](QList<SampleData*> data){
-			report(QtInfoMsg, "All Data loaded from store!");
+			report(QtInfoMsg, tr("All Data loaded from store!"));
 			foreach (auto d, data)
 				update(d);
 		}, [this](const QException &exception) {
@@ -155,7 +155,7 @@ void MainWidget::on_addButton_clicked()
 		report(QtInfoMsg, QStringLiteral("Data with id %1 saved!").arg(data->id));
 		data->deleteLater();
 	}, [this, data](const QException &exception) {
-		report(QtCriticalMsg, exception.what());
+		report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		data->deleteLater();
 	});
 }
@@ -171,7 +171,7 @@ void MainWidget::on_deleteButton_clicked()
 			else
 				report(QtInfoMsg, QStringLiteral("No entry with id %1 found!").arg(id));
 		}, [this](const QException &exception) {
-			report(QtCriticalMsg, exception.what());
+			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 	}
 }
@@ -223,7 +223,7 @@ void MainWidget::on_searchEdit_returnPressed()
 	auto query = ui->searchEdit->text();
 	if(query.isEmpty()) {
 		store->loadAll<SampleData*>().onResult(this, [this](QList<SampleData*> data){
-			report(QtInfoMsg, "All Data loaded from store!");
+			report(QtInfoMsg, tr("All Data loaded from store!"));
 			foreach (auto d, data)
 				update(d);
 		}, [this](const QException &exception) {
@@ -231,7 +231,7 @@ void MainWidget::on_searchEdit_returnPressed()
 		});
 	} else {
 		store->search<SampleData*>(query).onResult(this, [this](QList<SampleData*> data){
-			report(QtInfoMsg, "Searched data in store!");
+			report(QtInfoMsg, tr("Searched data in store!"));
 			foreach (auto d, data)
 				update(d);
 		}, [this](const QException &exception) {

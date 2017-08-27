@@ -537,8 +537,8 @@ DataSet ChangeControllerTest::generateSyncData(int param)
 {
 	DataSet hash;
 	QJsonObject data;
-	data["id"] = 42;
-	data["text"] = QString::number(param);
+	data[QStringLiteral("id")] = 42;
+	data[QStringLiteral("text")] = QString::number(param);
 	hash.insert(generateKey(42), data);
 	return hash;
 }

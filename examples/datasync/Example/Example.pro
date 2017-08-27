@@ -4,8 +4,6 @@ QT       += core gui widgets datasync
 
 TARGET = Example
 
-DEFINES += QT_DEPRECATED_WARNINGS
-
 HEADERS  += mainwidget.h \
 	sampledata.h \
 	setupdialog.h
