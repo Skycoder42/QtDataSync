@@ -3,12 +3,14 @@
 
 #include "QtDataSync/qtdatasync_global.h"
 
+#include <QtCore/qglobal.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qloggingcategory.h>
 
 class QSqlDatabase;
+class QJsonSerializer;
 
 namespace QtDataSync {
 
@@ -20,9 +22,15 @@ class Q_DATASYNC_EXPORT Defaults : public QObject
 
 public:
 	//! Constructor called from the setup
+	QT_DEPRECATED Defaults(const QString &setupName,
+						   const QDir &storageDir,
+						   const QHash<QByteArray, QVariant> &properties,
+						   QObject *parent = nullptr);
+	//! Constructor called from the setup
 	Defaults(const QString &setupName,
 			 const QDir &storageDir,
 			 const QHash<QByteArray, QVariant> &properties,
+			 const QJsonSerializer *serializer,
 			 QObject *parent = nullptr);
 	~Defaults();
 
@@ -37,6 +45,8 @@ public:
 	QSettings *settings() const;
 	//! Returns a new instance of QSettings for this setup
 	QSettings *createSettings(QObject *parent = nullptr) const;
+	//! Returns the serializer of the current setup
+	const QJsonSerializer *serializer() const;
 
 	//! Aquire the standard sqlite database
 	QSqlDatabase aquireDatabase();

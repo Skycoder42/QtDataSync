@@ -14,8 +14,12 @@ using namespace QtDataSync;
 const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
 
 Defaults::Defaults(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, QObject *parent) :
+	Defaults(setupName, storageDir, properties, nullptr, parent)
+{}
+
+Defaults::Defaults(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, const QJsonSerializer *serializer, QObject *parent) :
 	QObject(parent),
-	d(new DefaultsPrivate(setupName, storageDir))
+	d(new DefaultsPrivate(setupName, storageDir, serializer))
 {
 	for(auto it = properties.constBegin(); it != properties.constEnd(); it++)
 		setProperty(it.key().constData(), it.value());
@@ -54,6 +58,11 @@ QSettings *Defaults::createSettings(QObject *parent) const
 	return new QSettings(path, QSettings::IniFormat, parent);
 }
 
+const QJsonSerializer *Defaults::serializer() const
+{
+	return d->serializer;
+}
+
 QSqlDatabase Defaults::aquireDatabase()
 {
 	if(d->dbRefCounter++ == 0) {
@@ -78,13 +87,12 @@ void Defaults::releaseDatabase()
 
 
 
-QtDataSync::DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir) :
+QtDataSync::DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QJsonSerializer *serializer) :
 	setupName(setupName),
 	storageDir(storageDir),
 	dbRefCounter(0),
 	catName("qtdatasync." + setupName.toUtf8()),
 	logCat(catName, QtWarningMsg),
-	settings(nullptr)
-{
-
-}
+	settings(nullptr),
+	serializer(serializer)
+{}

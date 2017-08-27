@@ -164,7 +164,7 @@ void Setup::create(const QString &name)
 	if(!lockFile->tryLock())
 		throw SetupLockedException(name);
 
-	auto defaults = new Defaults(name, storageDir, d->properties);
+	auto defaults = new Defaults(name, storageDir, d->properties, d->serializer.data());
 
 	auto engine = new StorageEngine(defaults,
 									d->serializer.take(),

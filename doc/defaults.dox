@@ -67,6 +67,20 @@ store data persistently, like usernames etc, use this settings.
 */
 
 /*!
+@fn QtDataSync::Defaults::serializer
+
+@returns The json serializer
+
+The serializer is the one used by datasync internally. If you need to de/serializer data
+in your custom implementations, make shure to use this one.
+
+@attention This instance is shared across the whole setup, do not delete or change it, use
+it only to de/serializer data.
+
+@sa Setup::serializer, QJsonSerializer
+*/
+
+/*!
 @fn QtDataSync::Defaults::aquireDatabase
 
 @returns An instance of the local sqlite database
