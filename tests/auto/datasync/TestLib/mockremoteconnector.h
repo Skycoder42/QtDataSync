@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <remoteconnector.h>
+#include <authenticator.h>
 
 class MockRemoteConnector : public QtDataSync::RemoteConnector
 {
@@ -29,6 +30,9 @@ public slots:
 	void remove(const QtDataSync::ObjectKey &key, const QByteArray &keyProperty) override;
 	void markUnchanged(const QtDataSync::ObjectKey &key, const QByteArray &keyProperty) override;
 
+	//internal
+	void importUserData(const QByteArray &data, QFutureInterface<QVariant> d);
+
 protected:
 	void resetUserData(const QVariant &extraData, const QByteArray &) override;
 
@@ -41,8 +45,25 @@ public:
 	QHash<QtDataSync::ObjectKey, QJsonObject> pseudoStore;
 	QtDataSync::StateHolder::ChangeHash pseudoState;
 	QList<QtDataSync::ObjectKey> emitList;
+	QByteArray pseudoUserData;
 
 	Q_INVOKABLE void doChangeEmitImpl();
+};
+
+class MockAuthenticator : public QtDataSync::Authenticator
+{
+	Q_OBJECT
+
+public:
+	MockAuthenticator(MockRemoteConnector *connector, QObject *parent = nullptr);
+
+protected:
+	void exportUserDataImpl(QIODevice *device) const override;
+	QtDataSync::GenericTask<void> importUserDataImpl(QIODevice *device) override;
+	QtDataSync::RemoteConnector *connector() override;
+
+public:
+	MockRemoteConnector *_con;
 };
 
 #endif // MOCKREMOTECONNECTOR_H

@@ -13,9 +13,9 @@ MockRemoteConnector::MockRemoteConnector(QObject *parent) :
 	pseudoState()
 {}
 
-QtDataSync::Authenticator *MockRemoteConnector::createAuthenticator(QtDataSync::Defaults *, QObject *)
+QtDataSync::Authenticator *MockRemoteConnector::createAuthenticator(QtDataSync::Defaults *, QObject *parent)
 {
-	return nullptr;
+	return new MockAuthenticator(this, parent);
 }
 
 void MockRemoteConnector::initialize(Defaults *, Encryptor *)
@@ -151,6 +151,18 @@ void MockRemoteConnector::markUnchanged(const QtDataSync::ObjectKey &key, const 
 	}
 }
 
+void MockRemoteConnector::importUserData(const QByteArray &data, QFutureInterface<QVariant> d)
+{
+	QMutexLocker _(&mutex);
+	if(!enabled)
+		d.reportException(QtDataSync::DataSyncException("remote connector not enabled"));
+	else {
+		pseudoUserData = data;
+		d.reportResult(QVariant());
+	}
+	d.reportFinished();
+}
+
 void MockRemoteConnector::resetUserData(const QVariant &, const QByteArray &)
 {
 	QMutexLocker _(&mutex);
@@ -162,4 +174,31 @@ void MockRemoteConnector::doChangeEmitImpl()
 	foreach(auto v, emitList)
 		emit remoteDataChanged(v, pseudoState.value(v, StateHolder::Unchanged));
 	emitList.clear();
+}
+
+
+
+MockAuthenticator::MockAuthenticator(MockRemoteConnector *connector, QObject *parent) :
+	Authenticator(parent),
+	_con(connector)
+{}
+
+void MockAuthenticator::exportUserDataImpl(QIODevice *device) const
+{
+	device->write(_con->pseudoUserData);
+}
+
+GenericTask<void> MockAuthenticator::importUserDataImpl(QIODevice *device)
+{
+	QFutureInterface<QVariant> d;
+	d.reportStarted();
+	QMetaObject::invokeMethod(_con, "importUserData", Qt::QueuedConnection,
+							  Q_ARG(QByteArray, device->readAll()),
+							  Q_ARG(QFutureInterface<QVariant>, d));
+	return GenericTask<void>(d);
+}
+
+RemoteConnector *MockAuthenticator::connector()
+{
+	return _con;
 }

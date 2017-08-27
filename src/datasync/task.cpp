@@ -13,6 +13,7 @@ Task::Task(QFutureInterface<QVariant> d) :
 Task &Task::onResult(QObject *parent, const std::function<void (QVariant)> &onSuccess, const std::function<void(const QException &)> &onExcept)
 {
 	auto watcher = new QFutureWatcher<QVariant>(parent);
+	//signal is emitted, even if the future did already finish. Thus, this approach is always safe!
 	QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, [watcher, onSuccess, onExcept](){
 		try {
 			auto res = watcher->result();

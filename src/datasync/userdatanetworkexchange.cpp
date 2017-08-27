@@ -120,7 +120,7 @@ GenericTask<void> UserDataNetworkExchange::importFrom(const UserInfo &userInfo, 
 	if(message.type != ExchangeDatagram::UserData) {
 		QFutureInterface<QVariant> d;
 		d.reportStarted();
-		d.reportResult(QVariant());
+		d.reportException(DataSyncException("No user data has been received for the given user"));
 		d.reportFinished();
 		return GenericTask<void>(d);
 	}
@@ -128,7 +128,7 @@ GenericTask<void> UserDataNetworkExchange::importFrom(const UserInfo &userInfo, 
 	auto data = QByteArray::fromBase64(message.data.toUtf8());
 	if(!message.salt.isEmpty()) {
 		auto key = QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha3_256);
-		auto salt = QByteArray::fromBase64(message.data.toUtf8());
+		auto salt = QByteArray::fromBase64(message.salt.toUtf8());
 		data = QTinyAes::cbcDecrypt(key, salt, data);
 	}
 
