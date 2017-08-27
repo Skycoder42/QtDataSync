@@ -16,8 +16,5 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-DEFINES += QT_DEPRECATED_WARNINGS
-
-
 SOURCES += tst_changecontroller.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"

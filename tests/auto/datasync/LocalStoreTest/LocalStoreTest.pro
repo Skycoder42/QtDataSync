@@ -16,7 +16,5 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-DEFINES += QT_DEPRECATED_WARNINGS
-
 SOURCES += tst_localstore.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
