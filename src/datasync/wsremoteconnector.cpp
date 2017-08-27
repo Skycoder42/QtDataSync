@@ -19,7 +19,7 @@ const QString WsRemoteConnector::keyVerifyPeer(QStringLiteral("RemoteConnector/v
 const QString WsRemoteConnector::keyUserIdentity(QStringLiteral("RemoteConnector/userIdentity"));
 const QString WsRemoteConnector::keySharedSecret(QStringLiteral("RemoteConnector/sharedSecret"));
 const QString WsRemoteConnector::keyResync(QStringLiteral("RemoteConnector/resync"));
-const QVector<int> WsRemoteConnector::timeouts = {5 * 1000, 10 * 1000, 30 * 1000, 60 * 1000, 5 * 60 * 1000, 10 * 60 * 1000};
+const QVector<int> WsRemoteConnector::timeouts = {5 * 1000, 10 * 1000, 30 * 1000, 60 * 1000, 5 * 60 * 1000};
 
 WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	RemoteConnector(parent),
