@@ -58,6 +58,8 @@ public:
 	Encryptor *encryptor() const;
 	//! Returns the additional property with the given key
 	QVariant property(const QByteArray &key) const;
+	//! Returns the fatal error handler to be used by the Logger
+	std::function<void(QString,bool,QString)> fatalErrorHandler() const;
 
 	//! Sets the setups local directory
 	Setup &setLocalDir(QString localDir);
@@ -77,7 +79,7 @@ public:
 	Setup &unsetEncryptor();
 	//! Sets the additional property with the given key to data
 	Setup &setProperty(const QByteArray &key, const QVariant &data);
-
+	//! Sets the fatal error handler to be used by the Logger
 	Setup &setFatalErrorHandler(const std::function<void(QString,bool,QString)> &fatalErrorHandler);
 
 	//! Creates a datasync instance from this setup with the given name

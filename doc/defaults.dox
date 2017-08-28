@@ -13,16 +13,16 @@ logging, you should use this defaults to do so.
 */
 
 /*!
-@fn QtDataSync::Defaults::loggingCategory
+@fn QtDataSync::Defaults::createLogger
 
-@returns A reference to the logging category
+@param subCategory The sub category, passed to the logger constructor
+@param parent The object parent of the created logger
+@returns A new created instance of a logger
 
-A setups category is always named `"qtdatasync.<setup_name>"`. By default, the debug log for
-all those categories is disabled, to minimize the output. It works just like any normal
-logging category, and can be influces by Qt's logging rules. Check the logging category
-implementation for more details.
+Uses the setup this defaults belong to and the passed category to create a logger.
+Read the Logger documentation for more details.
 
-@sa QLoggingCategory
+@sa Logger
 */
 
 /*!

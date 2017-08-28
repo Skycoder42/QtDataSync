@@ -93,6 +93,11 @@ QVariant Setup::property(const QByteArray &key) const
 	return d->properties.value(key);
 }
 
+std::function<void (QString, bool, QString)> Setup::fatalErrorHandler() const
+{
+	return d->fatalErrorHandler;
+}
+
 Setup &Setup::setLocalDir(QString localDir)
 {
 	d->localDir = localDir;

@@ -72,6 +72,16 @@ auto auth = Setup::authenticatorForSetup<WsAuthenticator>(this);
 */
 
 /*!
+@fn QtDataSync::Setup::fatalErrorHandler
+
+@returns The fatal error handler
+
+Check the Setup::setFatalErrorHandler documentation
+
+@sa Setup::setFatalErrorHandler, Logger::reportFatalError
+*/
+
+/*!
 @fn QtDataSync::Setup::setProperty
 
 @param key The property key
@@ -81,6 +91,36 @@ Those properties will be set on the Defaults object that is passed to all the im
 initialize functions. You can read it there by using Defaults::property.
 
 @sa Defaults::property
+*/
+
+/*!
+@fn QtDataSync::Setup::setFatalErrorHandler
+
+@param fatalErrorHandler The fatal error handler to be used
+
+When a fatal error occurs it is reported to the engine via #logFatal (which uses Logger::reportFatalError).
+Such a fatal error must be handelt immediatly, and this method sets the method to be called in such cases.
+
+It is called on the thread where the error happends, and should be used to react to the error in whatever way.
+A fatal error will render the datasync instance invalid, leading to a failure of all requests for that instance
+until fixed. (All request via the stores will fail).
+
+The parameters are:
+
+1. QString: A descriptive string of the error
+2. bool: Specifies if the error is recoverable
+3. QString: The name of the setup of the instance in which the error occured.
+
+The method must be threadsafe. The second parameter specifies if the error is recoverable. A recoverable
+error might be fixed with a resync. If you want to, you can try a resync is such cases using SyncController::triggerResync.
+For an unrecoverable error, there is nothing that can be done to safe. You should always quit the application (or at least
+remove the setup) in such a case.
+
+The default implementation will try a resync once per setup in case of a recoverable error. On the second
+recoverable or the first unrecoverable error per setup, the default handler abort the application by
+using #qFatal. Abort in this case equals a hard kill.
+
+@sa Logger::reportFatalError, SyncController::triggerResync, Setup::removeSetup
 */
 
 /*!

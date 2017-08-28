@@ -24,7 +24,6 @@ class Q_DATASYNC_EXPORT Defaults : public QObject
 	Q_OBJECT
 
 public:
-	//! Constructor called from the setup
 	QT_DEPRECATED Defaults(const QString &setupName,
 						   const QDir &storageDir,
 						   const QHash<QByteArray, QVariant> &properties,
@@ -37,8 +36,8 @@ public:
 			 QObject *parent = nullptr);
 	~Defaults();
 
-	//! A logging category for this setup
 	QT_DEPRECATED const QLoggingCategory &loggingCategory() const;
+	//! Create a new logger instance
 	Logger *createLogger(const QByteArray &subCategory, QObject *parent = nullptr) const;
 
 	//! Returns the name of the current setup
