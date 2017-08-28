@@ -1,5 +1,5 @@
 %modules = (
-    "QtDataSync" => "$basedir/src/datasync",
+	"QtDataSync" => "$basedir/src/datasync",
 );
 
 %classnames = (
@@ -17,4 +17,5 @@
 	"synccontroller.h" => "SyncController",
 	"task.h" => "Task,GenericTask,UpdateTask",
 	"wsauthenticator.h" => "WsAuthenticator",
+	"userdatanetworkexchange.h" => "UserInfo,UserDataNetworkExchange",
 );
