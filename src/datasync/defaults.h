@@ -8,11 +8,14 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qdebug.h>
 
 class QSqlDatabase;
 class QJsonSerializer;
 
 namespace QtDataSync {
+
+class Logger;
 
 class DefaultsPrivate;
 //! A helper class to get defaults per datasync instance
@@ -35,7 +38,8 @@ public:
 	~Defaults();
 
 	//! A logging category for this setup
-	const QLoggingCategory &loggingCategory() const;
+	QT_DEPRECATED const QLoggingCategory &loggingCategory() const;
+	Logger *createLogger(const QByteArray &subCategory, QObject *parent = nullptr) const;
 
 	//! Returns the name of the current setup
 	QString setupName() const;

@@ -5,6 +5,8 @@
 
 #include <QtCore/qobject.h>
 
+#include <functional>
+
 class QJsonSerializer;
 
 namespace QtDataSync {
@@ -75,6 +77,8 @@ public:
 	Setup &unsetEncryptor();
 	//! Sets the additional property with the given key to data
 	Setup &setProperty(const QByteArray &key, const QVariant &data);
+
+	Setup &setFatalErrorHandler(const std::function<void(QString,bool,QString)> &fatalErrorHandler);
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);

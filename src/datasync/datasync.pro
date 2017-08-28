@@ -35,7 +35,9 @@ HEADERS += \
 	encryptor.h \
 	qtinyaesencryptor_p.h \
     userdatanetworkexchange.h \
-    userdatanetworkexchange_p.h
+    userdatanetworkexchange_p.h \
+    logger.h \
+    logger_p.h
 
 SOURCES += \
 	asyncdatastore.cpp \
@@ -58,7 +60,8 @@ SOURCES += \
 	exceptions.cpp \
 	encryptor.cpp \
 	qtinyaesencryptor.cpp \
-    userdatanetworkexchange.cpp
+    userdatanetworkexchange.cpp \
+    logger.cpp
 
 OTHER_FILES += \
 	engine.qmodel

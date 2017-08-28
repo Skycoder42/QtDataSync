@@ -10,6 +10,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLockFile>
 #include <QtCore/QStandardPaths>
+#include <QtCore/QThreadStorage>
 
 using namespace QtDataSync;
 
@@ -146,6 +147,12 @@ Setup &Setup::setProperty(const QByteArray &key, const QVariant &data)
 	return *this;
 }
 
+Setup &Setup::setFatalErrorHandler(const std::function<void (QString, bool, QString)> &fatalErrorHandler)
+{
+	d->fatalErrorHandler = fatalErrorHandler;
+	return *this;
+}
+
 void Setup::create(const QString &name)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
@@ -172,7 +179,8 @@ void Setup::create(const QString &name)
 									d->stateHolder.take(),
 									d->remoteConnector.take(),
 									d->dataMerger.take(),
-									d->encryptor.take());
+									d->encryptor.take(),
+									d->fatalErrorHandler);
 
 	auto thread = new QThread();
 	engine->moveToThread(thread);
@@ -253,8 +261,28 @@ SetupPrivate::SetupPrivate() :
 	remoteConnector(new WsRemoteConnector()),
 	dataMerger(new DataMerger()),
 	encryptor(new QTinyAesEncryptor()),
-	properties()
+	properties(),
+	fatalErrorHandler(QtDataSync::defaultFatalErrorHandler)
 {}
+
+static QThreadStorage<bool> retryStore;
+void QtDataSync::defaultFatalErrorHandler(QString error, bool recoverable, QString setupName)
+{
+	qCritical().noquote() << "Setup" << setupName << "received fatal error:\n" << error;
+
+	if(recoverable && !retryStore.hasLocalData())
+		retryStore.setLocalData(true);
+	else
+		recoverable = false;
+
+	auto name = setupName.toUtf8();
+	auto engine = SetupPrivate::engine(setupName);
+	if(recoverable && engine) {
+		qCritical("Trying recovery for \"%s\" after fatal error via resync", name.constData());
+		QMetaObject::invokeMethod(engine, "triggerResync", Qt::QueuedConnection);
+	} else
+		qFatal("Unrecoverable error for \"%s\" - killing application", name.constData());
+}
 
 // ------------- Application hooks -------------
 

@@ -2,14 +2,15 @@
 #include "defaults_p.h"
 #include "setup.h"
 
+#define QTDATASYNC_LOG d->logger
+#include "logger.h"
+
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDebug>
 
 #include <QtSql/QSqlError>
 
 using namespace QtDataSync;
-
-#define LOG d->logCat
 
 const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
 
@@ -19,7 +20,7 @@ Defaults::Defaults(const QString &setupName, const QDir &storageDir, const QHash
 
 Defaults::Defaults(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, const QJsonSerializer *serializer, QObject *parent) :
 	QObject(parent),
-	d(new DefaultsPrivate(setupName, storageDir, serializer))
+	d(new DefaultsPrivate(this, setupName, storageDir, serializer))
 {
 	for(auto it = properties.constBegin(); it != properties.constEnd(); it++)
 		setProperty(it.key().constData(), it.value());
@@ -29,12 +30,17 @@ Defaults::Defaults(const QString &setupName, const QDir &storageDir, const QHash
 Defaults::~Defaults()
 {
 	if(d->dbRefCounter != 0)
-		qCWarning(LOG) << "Defaults: Number of database references is not 0 on destruction!";
+		logWarning() << "Defaults: Number of database references is not 0 on destruction!";
 }
 
 const QLoggingCategory &Defaults::loggingCategory() const
 {
-	return d->logCat;
+	return d->logger->loggingCategory();
+}
+
+Logger *Defaults::createLogger(const QByteArray &subCategory, QObject *parent) const
+{
+	return new Logger(subCategory, d->setupName, parent);
 }
 
 QString Defaults::setupName() const
@@ -69,8 +75,9 @@ QSqlDatabase Defaults::aquireDatabase()
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), DefaultsPrivate::DatabaseName);
 		database.setDatabaseName(d->storageDir.absoluteFilePath(QStringLiteral("./store.db")));
 		if(!database.open()) {
-			qCCritical(LOG).noquote() << "Failed to open database! All subsequent operations will fail! Database error:\n"
-									  << database.lastError().text();
+			logFatal(false,
+					 QStringLiteral("Failed to open database! All subsequent operations will fail! Database error:\n") +
+					 database.lastError().text());
 		}
 	}
 
@@ -87,12 +94,11 @@ void Defaults::releaseDatabase()
 
 
 
-QtDataSync::DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QJsonSerializer *serializer) :
+QtDataSync::DefaultsPrivate::DefaultsPrivate(Defaults *q_ptr, const QString &setupName, const QDir &storageDir, const QJsonSerializer *serializer) :
 	setupName(setupName),
 	storageDir(storageDir),
 	dbRefCounter(0),
-	catName("qtdatasync." + setupName.toUtf8()),
-	logCat(catName, QtWarningMsg),
+	logger(new Logger("defaults", setupName, q_ptr)),
 	settings(nullptr),
 	serializer(serializer)
 {}

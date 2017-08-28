@@ -45,13 +45,16 @@ public:
 						   StateHolder *stateHolder,
 						   RemoteConnector *remoteConnector,
 						   DataMerger *dataMerger,
-						   Encryptor *encryptor);
+						   Encryptor *encryptor,
+						   std::function<void (QString, bool, QString)> fatalErrorHandler);
 
 	Defaults *getDefaults() const;
 
 	bool isSyncEnabled() const;
 	SyncController::SyncState syncState() const;
 	QString authenticationError() const;
+
+	void enterFatalState(const QString &error, bool recoverable);
 
 public Q_SLOTS:
 	void beginTask(QFutureInterface<QVariant> futureInterface,
@@ -129,6 +132,12 @@ private:
 	mutable QReadWriteLock controllerLock;
 	SyncController::SyncState currentSyncState;
 	QString currentAuthError;
+
+	std::function<void (QString, bool, QString)> fatalErrorHandler;
+	QString fatalError;
+	bool fatalRecoverable;
+
+	void tryFatal();
 
 	void count(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId);
 	void keys(QFutureInterface<QVariant> futureInterface, QThread *targetThread, int metaTypeId);

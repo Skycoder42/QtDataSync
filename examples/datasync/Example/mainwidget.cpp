@@ -138,8 +138,12 @@ void MainWidget::setup()
 		});
 
 		//caching test
-		QtDataSync::CachingDataStore<SampleData*, int> cacheStore(nullptr, true);
-		qDebug() << "caching store test:" << cacheStore.keys();
+		try {
+			QtDataSync::CachingDataStore<SampleData*, int> cacheStore(nullptr, true);
+			qDebug() << "caching store test:" << cacheStore.keys();
+		} catch(QException &exception) {
+			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
+		}
 	} else
 		qApp->quit();
 }

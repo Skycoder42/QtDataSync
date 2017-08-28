@@ -9,7 +9,7 @@ using namespace QtDataSync;
 
 #define LOG defaults->loggingCategory()
 
-StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger, Encryptor *encryptor) :
+StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger, Encryptor *encryptor, std::function<void (QString, bool, QString)> fatalErrorHandler) :
 	QObject(),
 	defaults(defaults),
 	serializer(serializer),
@@ -22,7 +22,10 @@ StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, Lo
 	requestCounter(0),
 	controllerLock(QReadWriteLock::Recursive),
 	currentSyncState(SyncController::Loading),
-	currentAuthError()
+	currentAuthError(),
+	fatalErrorHandler(fatalErrorHandler),
+	fatalError(),
+	fatalRecoverable(true)
 {
 	defaults->setParent(this);
 	serializer->setParent(this);
@@ -55,9 +58,18 @@ QString StorageEngine::authenticationError() const
 	return currentAuthError;
 }
 
+void StorageEngine::enterFatalState(const QString &error, bool recoverable)
+{
+	fatalError = error;
+	fatalRecoverable = recoverable;
+	fatalErrorHandler(error, recoverable, defaults->setupName());
+}
+
 void StorageEngine::beginTask(QFutureInterface<QVariant> futureInterface, QThread *targetThread, StorageEngine::TaskType taskType, int metaTypeId, const QVariant &value)
 {
 	try {
+		tryFatal();
+
 		auto flags = QMetaType::typeFlags(metaTypeId);
 		auto metaObject = QMetaType::metaObjectForType(metaTypeId);
 		if((!flags.testFlag(QMetaType::PointerToQObject) &&
@@ -108,6 +120,8 @@ void StorageEngine::triggerSync()
 
 void StorageEngine::triggerResync()
 {
+	if(fatalRecoverable)
+		fatalError.clear();
 	remoteConnector->requestResync();
 }
 
@@ -190,6 +204,8 @@ void StorageEngine::requestCompleted(quint64 id, const QJsonValue &result)
 	} else {
 		if(!result.isUndefined()) {
 			try {
+				tryFatal();
+
 				auto obj = serializer->deserialize(result, info.convertMetaTypeId);
 				if(info.targetThread)
 					tryMoveToThread(obj, info.targetThread);
@@ -358,6 +374,20 @@ void StorageEngine::performLocalReset(bool clearStore)
 	} else {
 		auto state = stateHolder->resetAllChanges(localStore->loadAllKeys());
 		changeController->setInitialLocalStatus(state, true);
+	}
+}
+
+void StorageEngine::tryFatal()
+{
+	if(!fatalError.isNull()) {
+		if(fatalRecoverable)
+			throw DataSyncException(QStringLiteral("Datasync is in a fatal error state and no operations are permitted. "
+												   "Trigger a resync to try a recovery. The error is:\n") +
+									fatalError);
+		else
+			throw DataSyncException(QStringLiteral("Datasync is in a fatal error state and no operations are permitted. "
+												   "Error is not recoverable. The error is:\n") +
+									fatalError);
 	}
 }
 

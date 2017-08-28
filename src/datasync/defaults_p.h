@@ -14,15 +14,15 @@ class Q_DATASYNC_EXPORT DefaultsPrivate
 public:
 	static const QString DatabaseName;
 
-	DefaultsPrivate(const QString &setupName,
+	DefaultsPrivate(Defaults *q_ptr,
+					const QString &setupName,
 					const QDir &storageDir,
 					const QJsonSerializer *serializer);
 
 	QString setupName;
 	QDir storageDir;
 	quint64 dbRefCounter;
-	QByteArray catName;
-	QLoggingCategory logCat;
+	Logger *logger;
 	QSettings *settings;
 	QPointer<const QJsonSerializer> serializer;
 };

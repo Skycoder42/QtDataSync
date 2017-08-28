@@ -41,9 +41,12 @@ private:
 	QScopedPointer<DataMerger> dataMerger;
 	QScopedPointer<Encryptor> encryptor;
 	QHash<QByteArray, QVariant> properties;
+	std::function<void (QString, bool, QString)> fatalErrorHandler;
 
 	SetupPrivate();
 };
+
+Q_DATASYNC_EXPORT void defaultFatalErrorHandler(QString error, bool recoverable, QString setupName);
 
 }
 
