@@ -96,7 +96,7 @@ void NetworkExchangeTest::testMessageBroadcast()
 {
 	//create and start the exchange
 	auto exchange = new UserDataNetworkExchange(this);
-	QVERIFY(exchange->startExchange(0, true));//random port, ALLOW REUSE
+	QVERIFY(exchange->startExchange(QHostAddress::Any, 0, true));//random port, ALLOW REUSE
 	QVERIFY(exchange->isActive());
 	auto port = exchange->port();
 	QVERIFY(port != 0);

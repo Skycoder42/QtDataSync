@@ -7,6 +7,7 @@ The following classes are "user classes". They are what you need to work with da
 - AsyncDataStore
 - CachingDataStore
 - GenericTask (and Task, UpdateTask)
+- UserDataNetworkExchange (and UserInfo)
 - WsAuthenticator (for the default remote connector)
 
 The other classes are "developer classes". They are interfaces, base classes and utilities you
@@ -18,4 +19,5 @@ need if you want to extend datasync:
 - RemoteConnector
 - Authenticator
 - Defaults
+- Logger
 */

@@ -18,4 +18,5 @@
 	"task.h" => "Task,GenericTask,UpdateTask",
 	"wsauthenticator.h" => "WsAuthenticator",
 	"userdatanetworkexchange.h" => "UserInfo,UserDataNetworkExchange",
+	"logger.h" => "Logger",
 );

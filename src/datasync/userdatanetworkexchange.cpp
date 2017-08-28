@@ -52,14 +52,15 @@ QString UserDataNetworkExchange::socketError() const
 	return d->socket->errorString();
 }
 
-bool UserDataNetworkExchange::startExchange(quint16 port, bool allowReuseAddress)
+bool UserDataNetworkExchange::startExchange(quint16 port)
 {
-	return startExchange(QHostAddress::Any, port, allowReuseAddress);
+	return startExchange(QHostAddress::Any, port);
 }
 
 bool UserDataNetworkExchange::startExchange(const QHostAddress &listenAddress, quint16 port, bool allowReuseAddress)
 {
 	d->users.clear();
+	d->timeouts.clear();
 	d->messageCache.clear();
 	emit usersChanged(d->users);
 
@@ -89,12 +90,16 @@ void UserDataNetworkExchange::stopExchange()
 	emit activeChanged(false);
 
 	d->users.clear();
+	d->timeouts.clear();
 	d->messageCache.clear();
 	emit usersChanged(d->users);
 }
 
 void UserDataNetworkExchange::exportTo(const UserInfo &userInfo, const QString &password)
 {
+	if(!isActive())
+		return;
+
 	auto data = d->authenticator->exportUserData();
 	QByteArray salt;
 
@@ -162,6 +167,19 @@ void UserDataNetworkExchange::resetDeviceName()
 void UserDataNetworkExchange::timeout()
 {
 	d->socket->writeDatagram(d->serializer->serializeTo<ExchangeDatagram>(deviceName()), QHostAddress::Broadcast, d->socket->localPort());
+
+	//remove all users that did not appear in 10 seconds
+	auto wasChanged = false;
+	for(auto i = 0; i < d->users.size(); i++) {
+		if(--d->timeouts[i] == 0) {
+			d->users.removeAt(i);
+			d->timeouts.removeAt(i);
+			i--;
+			wasChanged = true;
+		}
+	}
+	if(wasChanged)
+		emit usersChanged(d->users);
 }
 
 void UserDataNetworkExchange::newData()
@@ -215,6 +233,7 @@ UserDataNetworkExchangePrivate::UserDataNetworkExchangePrivate(const QString &se
 	settings(nullptr),
 	timer(new QTimer(q)),
 	users(),
+	timeouts(),
 	messageCache(),
 	logger(nullptr)
 {
@@ -250,12 +269,14 @@ void UserDataNetworkExchangePrivate::receiveUserInfo(const ExchangeDatagram &mes
 	auto wasChanged = false;
 	auto index = findInfo(datagram);
 	if(index != -1) {
+		timeouts[index] = 5;
 		if(users[index].name() != name) {
 			users[index] = userInfo;
 			wasChanged = true;
 		}
 	} else {
 		users.append(userInfo);
+		timeouts.append(5);
 		wasChanged = true;
 	}
 
@@ -270,7 +291,9 @@ void UserDataNetworkExchangePrivate::receiveUserData(const ExchangeDatagram &mes
 	if(index == -1) {// create an unnamed user if no user was found
 		UserInfo userInfo(new UserInfoData(UserDataNetworkExchange::tr("<Unnamed>"), datagram));
 		users.append(userInfo);
+		timeouts.append(5);
 		index = users.size() - 1;
+		emit q->usersChanged(users);
 	}
 
 	auto userInfo = users[index];

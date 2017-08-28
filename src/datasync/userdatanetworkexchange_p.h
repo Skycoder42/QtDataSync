@@ -68,6 +68,7 @@ public:
 	QTimer *timer;
 
 	QList<UserInfo> users;
+	QList<int> timeouts;
 	QHash<UserInfo, ExchangeDatagram> messageCache;
 
 	Logger *logger;
