@@ -31,8 +31,8 @@ void SqlStateHolder::initialize(Defaults *defaults)
 												"PRIMARY KEY(Type, Key)"
 										   ");"));
 		if(!createQuery.exec()) {
-			qCCritical(LOG) << "Failed to create SyncState table with error:"
-							<< createQuery.lastError().text();
+			qCCritical(LOG).noquote() << "Failed to create SyncState table with error:\n"
+									  << createQuery.lastError().text();
 		}
 	}
 }
@@ -48,8 +48,8 @@ StateHolder::ChangeHash SqlStateHolder::listLocalChanges()
 	QSqlQuery listQuery(database);
 	listQuery.prepare(QStringLiteral("SELECT Type, Key, Changed FROM SyncState WHERE Changed != 0"));
 	if(!listQuery.exec()) {
-		qCCritical(LOG) << "Failed to load current state with error:"
-						<< listQuery.lastError().text();
+		qCCritical(LOG).noquote() << "Failed to load current state with error:\n"
+								  << listQuery.lastError().text();
 		return {};
 	}
 
@@ -84,8 +84,8 @@ void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeS
 						<< key.first
 						<< "and key"
 						<< key.second
-						<< "with error:"
-						<< updateQuery.lastError().text();
+						<< "with error:\n"
+						<< qUtf8Printable(updateQuery.lastError().text());
 	}
 }
 
@@ -94,8 +94,8 @@ StateHolder::ChangeHash SqlStateHolder::resetAllChanges(const QList<ObjectKey> &
 	clearAllChanges();
 
 	if(!database.transaction()) {
-		qCCritical(LOG) << "Failed to start database transaction with error:"
-						<< database.lastError().text();
+		qCCritical(LOG).noquote() << "Failed to start database transaction with error:\n"
+								  << database.lastError().text();
 		return {};
 	}
 
@@ -110,16 +110,16 @@ StateHolder::ChangeHash SqlStateHolder::resetAllChanges(const QList<ObjectKey> &
 		keyQuery.addBindValue((int)Changed);
 
 		if(!keyQuery.exec()) {
-			qCCritical(LOG) << "Failed to reset sync state with error:"
-							<< keyQuery.lastError().text();
+			qCCritical(LOG).noquote() << "Failed to reset sync state with error:\n"
+									  << keyQuery.lastError().text();
 			database.rollback();
 			return {};
 		}
 	}
 
 	if(!database.commit()) {
-		qCCritical(LOG) << "Failed to commit transaction with error:"
-						<< database.lastError().text();
+		qCCritical(LOG).noquote() << "Failed to commit transaction with error:\n"
+								  << database.lastError().text();
 		return {};
 	} else
 		return stateHash;
@@ -130,7 +130,7 @@ void SqlStateHolder::clearAllChanges()
 	QSqlQuery resetQuery(database);
 	resetQuery.prepare(QStringLiteral("DELETE FROM SyncState"));
 	if(!resetQuery.exec()) {
-		qCCritical(LOG) << "Failed to remove sync state from database with error:"
-						<< resetQuery.lastError().text();
+		qCCritical(LOG).noquote() << "Failed to remove sync state from database with error:\n"
+								  << resetQuery.lastError().text();
 	}
 }

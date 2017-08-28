@@ -20,7 +20,7 @@ using namespace QtDataSync;
 
 #define EXEC_QUERY(query) do {\
 	if(!query.exec()) { \
-		emit requestFailed(id, query.lastError().text()); \
+		emit requestFailed(id, QLatin1Char('\n') + query.lastError().text()); \
 		return; \
 	} \
 } while(false)
@@ -46,8 +46,8 @@ void SqlLocalStore::initialize(Defaults *defaults)
 												"PRIMARY KEY(Type, Key)"
 										   ");"));
 		if(!createQuery.exec()) {
-			qCCritical(LOG) << "Failed to create DataIndex table with error:"
-							<< createQuery.lastError().text();
+			qCCritical(LOG).noquote() << "Failed to create DataIndex table with error:\n"
+									  << createQuery.lastError().text();
 		}
 	}
 
@@ -56,14 +56,15 @@ void SqlLocalStore::initialize(Defaults *defaults)
 	testIndexQuery.prepare(QStringLiteral("SELECT * FROM sqlite_master WHERE name = ?"));
 	testIndexQuery.addBindValue(QStringLiteral("index_DataIndex_Type"));
 	if(!testIndexQuery.exec()) {
-		qCCritical(LOG) << "Failed to check if index for DataIndex exists with error:"
-						<< testIndexQuery.lastError().text();
-	} else if(!testIndexQuery.first()) {
+		qCWarning(LOG).noquote() << "Failed to check if index for DataIndex exists with error:\n"
+								 << testIndexQuery.lastError().text();
+	}
+	if(!testIndexQuery.first()) {
 		QSqlQuery indexQuery(database);
 		indexQuery.prepare(QStringLiteral("CREATE INDEX index_DataIndex_Type ON DataIndex (Type)"));
 		if(!indexQuery.exec()) {
-			qCCritical(LOG) << "Failed to create index for DataIndex with error:"
-							<< indexQuery.lastError().text();
+			qCCritical(LOG).noquote() << "Failed to create index for DataIndex with error:\n"
+									  << indexQuery.lastError().text();
 		}
 	}
 }
@@ -79,8 +80,8 @@ QList<ObjectKey> SqlLocalStore::loadAllKeys()
 	QSqlQuery loadQuery(database);
 	loadQuery.prepare(QStringLiteral("SELECT Type, Key FROM DataIndex"));
 	if(!loadQuery.exec()) {
-		qCCritical(LOG) << "Failed to load all keys with error:"
-						<< loadQuery.lastError().text();
+		qCCritical(LOG).noquote() << "Failed to load all existing keys with error:\n"
+								  << loadQuery.lastError().text();
 		return {};
 	}
 
@@ -96,14 +97,14 @@ void SqlLocalStore::resetStore()
 	auto storageDir = defaults->storageDir();
 	if(storageDir.cd(QStringLiteral("store"))) {
 		if(!storageDir.removeRecursively())
-			qCCritical(LOG) << "Failed to remove local storage directory!";
+			qCWarning(LOG) << "Failed to remove local storage directory!";
 	}
 
 	QSqlQuery resetQuery(database);
 	resetQuery.prepare(QStringLiteral("DELETE FROM DataIndex"));
 	if(!resetQuery.exec()) {
-		qCCritical(LOG) << "Failed to remove data keys from database with error:"
-						<< resetQuery.lastError().text();
+		qCCritical(LOG).noquote() << "Failed to remove data keys from database with error:\n"
+								  << resetQuery.lastError().text();
 	}
 }
 

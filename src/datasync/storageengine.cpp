@@ -219,8 +219,8 @@ void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 {
 	auto info = requestCache.take(id);
 	if(info.isChangeControllerRequest) {
-		qCCritical(LOG) << "Local operation failed with error:"
-						<< errorString;
+		qCWarning(LOG).noquote() << "Local operation failed with error:"
+								 << errorString;
 		changeController->nextStage(false);
 	} else {
 		info.futureInterface.reportException(DataSyncException(errorString));
@@ -235,8 +235,8 @@ void StorageEngine::operationDone(const QJsonValue &result)
 
 void StorageEngine::operationFailed(const QString &errorString)
 {
-	qCWarning(LOG) << "Network operation failed with error:"
-				   << errorString;
+	qCWarning(LOG).noquote() << "Network operation failed with error:"
+							 << errorString;
 	changeController->nextStage(false);
 }
 

@@ -105,7 +105,7 @@ void ChangeController::nextStage(bool success, const QJsonValue &result)
 
 	//in case of done --> go to the next one!
 	if(currentState == DoneState) {
-		qCDebug(LOG) << "Synced"
+		qCDebug(LOG) << "Successfully synced"
 					 << currentKey.first
 					 << "with id"
 					 << currentKey.second;

@@ -168,6 +168,7 @@ void WsRemoteConnector::reloadRemoteState()
 void WsRemoteConnector::requestResync()
 {
 	needResync = true;
+	retryIndex = 0;
 	reloadRemoteState();
 }
 
@@ -294,20 +295,16 @@ void WsRemoteConnector::disconnected()
 		emit operationFailed(QStringLiteral("Connection closed"));
 
 	if(state != Closing) {
-		auto delta = retry();
-		if(state == Connecting) {
-			qCWarning(LOG) << "Unable to connect to server. Retrying in"
-						   << delta / 1000
-						   << "seconds";
-		} else {
-			qCWarning(LOG) << "Unexpected disconnect from server with exit code"
-						   << socket->closeCode()
-						   << ":"
-						   << socket->closeReason()
-						   << ". Retrying in"
-						   << delta / 1000
-						   << "seconds";
+		if(state != Connecting) {
+			qCWarning(LOG).noquote() << "Unexpected disconnect from server with exit code"
+									 << socket->closeCode()
+									 << "and reason:"
+									 << socket->closeReason();
 		}
+		auto delta = retry();
+		qCDebug(LOG) << "Retrying to connect to server in"
+					 << delta / 1000
+					 << "seconds";
 	}
 
 	state = Disconnected;
@@ -325,8 +322,8 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	QJsonParseError error;
 	auto doc = QJsonDocument::fromJson(message, &error);
 	if(error.error != QJsonParseError::NoError) {
-		qCWarning(LOG) << "Invalid data received. Parser error:"
-					   << error.errorString();
+		qCWarning(LOG).noquote() << "Invalid data received from server. Parser error:"
+								 << error.errorString();
 		return;
 	}
 
@@ -343,15 +340,20 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	else if(obj[QStringLiteral("command")] == QStringLiteral("completed"))
 		completed(data.toObject());
 	else {
-		qCWarning(LOG) << "Unkown command received:"
+		qCWarning(LOG) << "Unkown command received from server:"
 					   << obj[QStringLiteral("command")].toString();
 	}
 }
 
 void WsRemoteConnector::error()
 {
-	qCWarning(LOG) << "Socket error"
-				   << socket->errorString();
+	if(retryIndex == 0) {
+		qCWarning(LOG).noquote() << "Server connection socket error:"
+								 << socket->errorString();
+	} else {
+		qCDebug(LOG).noquote() << "Repeated server connection socket error:"
+								 << socket->errorString();
+	}
 	emit remoteStateChanged(RemoteDisconnected);
 	socket->close();
 }
@@ -359,8 +361,13 @@ void WsRemoteConnector::error()
 void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
-		qCWarning(LOG) << "SSL errors"
-					   << error.errorString();
+		if(retryIndex == 0) {
+			qCWarning(LOG).noquote() << "Server connection SSL error:"
+									 << error.errorString();
+		} else {
+			qCDebug(LOG).noquote() << "Repeated server connection SSL error:"
+								   << error.errorString();
+		}
 	}
 
 	if(settings->value(keyVerifyPeer, true).toBool()) {
@@ -406,7 +413,7 @@ void WsRemoteConnector::identifyFailed()
 void WsRemoteConnector::changeState(const QJsonObject &data)
 {
 	if(data[QStringLiteral("success")].toBool()) {
-		//reset retry & need resync
+		//reset retry
 		retryIndex = 0;
 
 		StateHolder::ChangeHash changeState;
@@ -421,10 +428,10 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 	} else {
 		auto delta = retry();
 		qCWarning(LOG) << "Failed to load state with error:"
-					   << data[QStringLiteral("error")].toString()
-					   << ". Retrying in"
-					   << delta / 1000
-					   << "seconds";
+					   << data[QStringLiteral("error")].toString();
+		qCDebug(LOG) << "Retrying to load state in"
+					 << delta / 1000
+					 << "seconds";
 	}
 	state = Idle;
 }

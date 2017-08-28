@@ -29,7 +29,7 @@ Defaults::Defaults(const QString &setupName, const QDir &storageDir, const QHash
 Defaults::~Defaults()
 {
 	if(d->dbRefCounter != 0)
-		qCWarning(LOG) << "Number of database references is not 0!";
+		qCWarning(LOG) << "Defaults: Number of database references is not 0 on destruction!";
 }
 
 const QLoggingCategory &Defaults::loggingCategory() const
@@ -69,8 +69,8 @@ QSqlDatabase Defaults::aquireDatabase()
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), DefaultsPrivate::DatabaseName);
 		database.setDatabaseName(d->storageDir.absoluteFilePath(QStringLiteral("./store.db")));
 		if(!database.open()) {
-			qCCritical(LOG) << "Failed to open database! All subsequent operations will fail! Database error:"
-							<< database.lastError().text();
+			qCCritical(LOG).noquote() << "Failed to open database! All subsequent operations will fail! Database error:\n"
+									  << database.lastError().text();
 		}
 	}
 
