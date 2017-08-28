@@ -2,6 +2,7 @@
 #define QTDATASYNC_SQLLOCALSTORE_P_H
 
 #include "localstore.h"
+#include "logger.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QObject>
@@ -35,6 +36,7 @@ public Q_SLOTS:
 
 private:
 	Defaults *defaults;
+	Logger *logger;
 	QSqlDatabase database;
 
 	QDir typeDirectory(quint64 id, const QByteArray &typeName);

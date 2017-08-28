@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include "stateholder.h"
+#include "logger.h"
 
 #include <QtCore/QObject>
 #include <QtSql/QSqlDatabase>
@@ -26,6 +27,7 @@ public:
 
 private:
 	Defaults *defaults;
+	Logger *logger;
 	QSqlDatabase database;
 };
 

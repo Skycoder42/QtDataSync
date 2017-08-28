@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include "remoteconnector.h"
+#include "logger.h"
 
 #include <QtCore/QJsonArray>
 #include <QtCore/QObject>
@@ -77,6 +78,7 @@ private:
 
 	QWebSocket *socket;
 	QSettings *settings;
+	Logger *logger;
 
 	SocketState state;
 	int retryIndex;

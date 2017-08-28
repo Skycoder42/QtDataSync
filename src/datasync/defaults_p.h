@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include "defaults.h"
+#include "logger.h"
 
 #include <QtSql/QSqlDatabase>
 #include <QtJsonSerializer/QJsonSerializer>

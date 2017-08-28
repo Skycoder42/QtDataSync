@@ -8,17 +8,19 @@
 
 using namespace QtDataSync;
 
-#define LOG defaults->loggingCategory()
+#define QTDATASYNC_LOG logger
 
 SqlStateHolder::SqlStateHolder(QObject *parent) :
 	StateHolder(parent),
 	defaults(nullptr),
+	logger(nullptr),
 	database()
 {}
 
 void SqlStateHolder::initialize(Defaults *defaults)
 {
 	this->defaults = defaults;
+	logger = defaults->createLogger("stateholder", this);
 	database = defaults->aquireDatabase();
 
 	//create table
@@ -31,8 +33,9 @@ void SqlStateHolder::initialize(Defaults *defaults)
 												"PRIMARY KEY(Type, Key)"
 										   ");"));
 		if(!createQuery.exec()) {
-			qCCritical(LOG).noquote() << "Failed to create SyncState table with error:\n"
-									  << createQuery.lastError().text();
+			logFatal(false,
+					 QStringLiteral("Failed to create SyncState table with error:\n") +
+					 createQuery.lastError().text());
 		}
 	}
 }
@@ -48,8 +51,9 @@ StateHolder::ChangeHash SqlStateHolder::listLocalChanges()
 	QSqlQuery listQuery(database);
 	listQuery.prepare(QStringLiteral("SELECT Type, Key, Changed FROM SyncState WHERE Changed != 0"));
 	if(!listQuery.exec()) {
-		qCCritical(LOG).noquote() << "Failed to load current state with error:\n"
-								  << listQuery.lastError().text();
+		logFatal(true,
+				 QStringLiteral("Failed to load current state with error:\n") +
+				 listQuery.lastError().text());
 		return {};
 	}
 
@@ -80,12 +84,11 @@ void SqlStateHolder::markLocalChanged(const ObjectKey &key, StateHolder::ChangeS
 	}
 
 	if(!updateQuery.exec()) {
-		qCCritical(LOG) << "Failed to update current state for type"
-						<< key.first
-						<< "and key"
-						<< key.second
-						<< "with error:\n"
-						<< qUtf8Printable(updateQuery.lastError().text());
+		logFatal(true,
+				 QStringLiteral("Failed to update current state for type \"%1\" and key \"%2\" with error:\n")
+				 .arg(QString::fromUtf8(key.first))
+				 .arg(key.second) +
+				 updateQuery.lastError().text());
 	}
 }
 
@@ -94,8 +97,9 @@ StateHolder::ChangeHash SqlStateHolder::resetAllChanges(const QList<ObjectKey> &
 	clearAllChanges();
 
 	if(!database.transaction()) {
-		qCCritical(LOG).noquote() << "Failed to start database transaction with error:\n"
-								  << database.lastError().text();
+		logFatal(false,
+				 QStringLiteral("Failed to start database transaction with error:\n") +
+				 database.lastError().text());
 		return {};
 	}
 
@@ -110,16 +114,18 @@ StateHolder::ChangeHash SqlStateHolder::resetAllChanges(const QList<ObjectKey> &
 		keyQuery.addBindValue((int)Changed);
 
 		if(!keyQuery.exec()) {
-			qCCritical(LOG).noquote() << "Failed to reset sync state with error:\n"
-									  << keyQuery.lastError().text();
 			database.rollback();
+			logFatal(true,
+					 QStringLiteral("Failed to reset sync state with error:\n") +
+					 keyQuery.lastError().text());
 			return {};
 		}
 	}
 
 	if(!database.commit()) {
-		qCCritical(LOG).noquote() << "Failed to commit transaction with error:\n"
-								  << database.lastError().text();
+		logFatal(false,
+				 QStringLiteral("Failed to commit database transaction with error:\n") +
+				 database.lastError().text());
 		return {};
 	} else
 		return stateHash;
@@ -130,7 +136,8 @@ void SqlStateHolder::clearAllChanges()
 	QSqlQuery resetQuery(database);
 	resetQuery.prepare(QStringLiteral("DELETE FROM SyncState"));
 	if(!resetQuery.exec()) {
-		qCCritical(LOG).noquote() << "Failed to remove sync state from database with error:\n"
-								  << resetQuery.lastError().text();
+		logFatal(true,
+				 QStringLiteral("Failed to remove sync state from database with error:\n") +
+				 resetQuery.lastError().text());
 	}
 }

@@ -32,7 +32,7 @@ private:
 #define logDebug() qCDebug(QTDATASYNC_LOG->loggingCategory())
 #define logInfo() qCInfo(QTDATASYNC_LOG->loggingCategory())
 #define logWarning() qCWarning(QTDATASYNC_LOG->loggingCategory())
-#define qlogCritical() qCCritical(QTDATASYNC_LOG->loggingCategory())
+#define logCritical() qCCritical(QTDATASYNC_LOG->loggingCategory())
 #define logFatal(resyncRecoverable, error) QTDATASYNC_LOG->reportFatalError(error, resyncRecoverable, QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC)
 
 #endif // QTDATASYNC_LOGGER_H

@@ -9,6 +9,7 @@
 #include "remoteconnector.h"
 #include "stateholder.h"
 #include "encryptor.h"
+#include "logger.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QFuture>
@@ -119,6 +120,7 @@ private:
 	};
 
 	Defaults *defaults;
+	Logger *logger;
 	QJsonSerializer *serializer;
 	LocalStore *localStore;
 	StateHolder *stateHolder;

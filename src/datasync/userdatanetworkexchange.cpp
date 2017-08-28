@@ -11,7 +11,7 @@
 
 using namespace QtDataSync;
 
-#define LOG d->logCat
+#define QTDATASYNC_LOG d->logger
 
 const quint16 UserDataNetworkExchange::DataExchangePort = 13742;
 
@@ -200,7 +200,7 @@ void UserDataNetworkExchange::newData()
 				break;
 			}
 		} catch(QJsonDeserializationException &e) {
-			qCWarning(LOG) << "Received invalid datagram. Serializer error:" << e.what();
+			logWarning() << "Received invalid datagram. Serializer error:" << e.what();
 		}
 	}
 }
@@ -212,12 +212,16 @@ UserDataNetworkExchangePrivate::UserDataNetworkExchangePrivate(const QString &se
 	authenticator(Setup::authenticatorForSetup<Authenticator>(q, setupName)),
 	serializer(new QJsonSerializer(q)),
 	socket(new QUdpSocket(q)),
-	settings(SetupPrivate::defaults(setupName)->createSettings(q)),
+	settings(nullptr),
 	timer(new QTimer(q)),
 	users(),
 	messageCache(),
-	logCat(QByteArray("qtdatasync." + setupName.toUtf8()), QtWarningMsg)
+	logger(nullptr)
 {
+	auto defaults = SetupPrivate::defaults(setupName);
+	logger = defaults->createLogger("exchange", q);
+	settings = defaults->createSettings(q);
+
 	settings->beginGroup(QStringLiteral("NetworkExchange"));
 	serializer->setEnumAsString(true);
 	timer->setTimerType(Qt::VeryCoarseTimer);

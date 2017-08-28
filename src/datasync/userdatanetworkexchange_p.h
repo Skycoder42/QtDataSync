@@ -4,6 +4,7 @@
 #include "qtdatasync_global.h"
 #include "userdatanetworkexchange.h"
 #include "authenticator.h"
+#include "logger.h"
 
 #include <QtCore/QTimer>
 #include <QtCore/QLoggingCategory>
@@ -69,7 +70,7 @@ public:
 	QList<UserInfo> users;
 	QHash<UserInfo, ExchangeDatagram> messageCache;
 
-	QLoggingCategory logCat;
+	Logger *logger;
 
 	int findInfo(const QNetworkDatagram &datagram) const;
 

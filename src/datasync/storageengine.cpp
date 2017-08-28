@@ -7,11 +7,12 @@
 
 using namespace QtDataSync;
 
-#define LOG defaults->loggingCategory()
+#define QTDATASYNC_LOG logger
 
 StorageEngine::StorageEngine(Defaults *defaults, QJsonSerializer *serializer, LocalStore *localStore, StateHolder *stateHolder, RemoteConnector *remoteConnector, DataMerger *dataMerger, Encryptor *encryptor, std::function<void (QString, bool, QString)> fatalErrorHandler) :
 	QObject(),
 	defaults(defaults),
+	logger(defaults->createLogger("engine", this)),
 	serializer(serializer),
 	localStore(localStore),
 	stateHolder(stateHolder),
@@ -235,8 +236,8 @@ void StorageEngine::requestFailed(quint64 id, const QString &errorString)
 {
 	auto info = requestCache.take(id);
 	if(info.isChangeControllerRequest) {
-		qCWarning(LOG).noquote() << "Local operation failed with error:"
-								 << errorString;
+		logWarning().noquote() << "Local operation failed with error:"
+							   << errorString;
 		changeController->nextStage(false);
 	} else {
 		info.futureInterface.reportException(DataSyncException(errorString));
@@ -251,8 +252,8 @@ void StorageEngine::operationDone(const QJsonValue &result)
 
 void StorageEngine::operationFailed(const QString &errorString)
 {
-	qCWarning(LOG).noquote() << "Network operation failed with error:"
-							 << errorString;
+	logWarning().noquote() << "Network operation failed with error:"
+						   << errorString;
 	changeController->nextStage(false);
 }
 
@@ -292,9 +293,9 @@ void StorageEngine::beginRemoteOperation(const ChangeController::ChangeOperation
 	auto metaTypeId = QMetaType::type(operation.key.first);
 	auto metaObject = QMetaType::metaObjectForType(metaTypeId);
 	if(!metaObject) {
-		qCWarning(LOG) << "Remote operation for invalid type"
-					   << operation.key.first
-					   << "requested!";
+		logWarning() << "Remote operation for invalid type"
+					 << operation.key.first
+					 << "requested!";
 		return;
 	}
 
@@ -322,9 +323,9 @@ void StorageEngine::beginLocalOperation(const ChangeController::ChangeOperation 
 	auto metaTypeId = QMetaType::type(operation.key.first);
 	auto metaObject = QMetaType::metaObjectForType(metaTypeId);
 	if(!metaObject) {
-		qCWarning(LOG) << "Local operation for invalid type"
-					   << operation.key.first
-					   << "requested!";
+		logWarning() << "Local operation for invalid type"
+					 << operation.key.first
+					 << "requested!";
 		return;
 	}
 

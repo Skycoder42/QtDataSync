@@ -2,15 +2,14 @@
 #include "defaults_p.h"
 #include "setup.h"
 
-#define QTDATASYNC_LOG d->logger
-#include "logger.h"
-
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDebug>
 
 #include <QtSql/QSqlError>
 
 using namespace QtDataSync;
+
+#define QTDATASYNC_LOG d->logger
 
 const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
 

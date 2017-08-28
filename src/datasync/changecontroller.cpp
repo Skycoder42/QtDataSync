@@ -5,11 +5,11 @@
 using namespace QtDataSync;
 
 #define UNITE_STATE(x, y) (x | (y << 16))
-#define LOG defaults->loggingCategory()
+#define QTDATASYNC_LOG logger
 
 ChangeController::ChangeController(DataMerger *merger, QObject *parent) :
 	QObject(parent),
-	defaults(nullptr),
+	logger(nullptr),
 	merger(merger),
 	localReady(false),
 	remoteReady(false),
@@ -25,7 +25,7 @@ ChangeController::ChangeController(DataMerger *merger, QObject *parent) :
 
 void ChangeController::initialize(Defaults *defaults)
 {
-	this->defaults = defaults;
+	logger = defaults->createLogger("controller", this);
 	merger->initialize(defaults);
 }
 
@@ -105,10 +105,10 @@ void ChangeController::nextStage(bool success, const QJsonValue &result)
 
 	//in case of done --> go to the next one!
 	if(currentState == DoneState) {
-		qCDebug(LOG) << "Successfully synced"
-					 << currentKey.first
-					 << "with id"
-					 << currentKey.second;
+		logDebug() << "Successfully synced"
+				   << currentKey.first
+				   << "with id"
+				   << currentKey.second;
 		localState.remove(currentKey);
 		remoteState.remove(currentKey);
 	}
@@ -283,12 +283,12 @@ void ChangeController::generateNextAction()
 	}
 
 	if(currentMode != DoNothing) {
-		qCDebug(LOG) << "Beginning operation of type"
-					 << QMetaEnum::fromType<ActionMode>().valueToKey(currentMode)
-					 << "for"
-					 << currentKey.first
-					 << "with id"
-					 << currentKey.second;
+		logDebug() << "Beginning operation of type"
+				   << QMetaEnum::fromType<ActionMode>().valueToKey(currentMode)
+				   << "for"
+				   << currentKey.first
+				   << "with id"
+				   << currentKey.second;
 	}
 }
 

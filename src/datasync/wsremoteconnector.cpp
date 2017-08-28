@@ -10,7 +10,7 @@
 
 using namespace QtDataSync;
 
-#define LOG defaults()->loggingCategory()
+#define QTDATASYNC_LOG logger
 
 const QString WsRemoteConnector::keyRemoteEnabled(QStringLiteral("RemoteConnector/remoteEnabled"));
 const QString WsRemoteConnector::keyRemoteUrl(QStringLiteral("RemoteConnector/remoteUrl"));
@@ -25,6 +25,7 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 	RemoteConnector(parent),
 	socket(nullptr),
 	settings(nullptr),
+	logger(nullptr),
 	state(Disconnected),
 	retryIndex(0),
 	needResync(false),
@@ -38,6 +39,7 @@ WsRemoteConnector::WsRemoteConnector(QObject *parent) :
 void WsRemoteConnector::initialize(Defaults *defaults, Encryptor *cryptor)
 {
 	RemoteConnector::initialize(defaults, cryptor);
+	logger = defaults->createLogger("remoteconnector", this);
 	settings = defaults->createSettings(this);
 
 	needResync = settings->value(WsRemoteConnector::keyResync, needResync).toBool();
@@ -296,15 +298,15 @@ void WsRemoteConnector::disconnected()
 
 	if(state != Closing) {
 		if(state != Connecting) {
-			qCWarning(LOG).noquote() << "Unexpected disconnect from server with exit code"
-									 << socket->closeCode()
-									 << "and reason:"
-									 << socket->closeReason();
+			logWarning().noquote() << "Unexpected disconnect from server with exit code"
+								   << socket->closeCode()
+								   << "and reason:"
+								   << socket->closeReason();
 		}
 		auto delta = retry();
-		qCDebug(LOG) << "Retrying to connect to server in"
-					 << delta / 1000
-					 << "seconds";
+		logDebug() << "Retrying to connect to server in"
+				   << delta / 1000
+				   << "seconds";
 	}
 
 	state = Disconnected;
@@ -322,8 +324,8 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	QJsonParseError error;
 	auto doc = QJsonDocument::fromJson(message, &error);
 	if(error.error != QJsonParseError::NoError) {
-		qCWarning(LOG).noquote() << "Invalid data received from server. Parser error:"
-								 << error.errorString();
+		logWarning().noquote() << "Invalid data received from server. Parser error:"
+							   << error.errorString();
 		return;
 	}
 
@@ -340,19 +342,19 @@ void WsRemoteConnector::binaryMessageReceived(const QByteArray &message)
 	else if(obj[QStringLiteral("command")] == QStringLiteral("completed"))
 		completed(data.toObject());
 	else {
-		qCWarning(LOG) << "Unkown command received from server:"
-					   << obj[QStringLiteral("command")].toString();
+		logWarning() << "Unkown command received from server:"
+					 << obj[QStringLiteral("command")].toString();
 	}
 }
 
 void WsRemoteConnector::error()
 {
 	if(retryIndex == 0) {
-		qCWarning(LOG).noquote() << "Server connection socket error:"
-								 << socket->errorString();
+		logWarning().noquote() << "Server connection socket error:"
+							   << socket->errorString();
 	} else {
-		qCDebug(LOG).noquote() << "Repeated server connection socket error:"
-								 << socket->errorString();
+		logDebug().noquote() << "Repeated server connection socket error:"
+							 << socket->errorString();
 	}
 	emit remoteStateChanged(RemoteDisconnected);
 	socket->close();
@@ -362,11 +364,11 @@ void WsRemoteConnector::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
 		if(retryIndex == 0) {
-			qCWarning(LOG).noquote() << "Server connection SSL error:"
-									 << error.errorString();
-		} else {
-			qCDebug(LOG).noquote() << "Repeated server connection SSL error:"
+			logWarning().noquote() << "Server connection SSL error:"
 								   << error.errorString();
+		} else {
+			logDebug().noquote() << "Repeated server connection SSL error:"
+								 << error.errorString();
 		}
 	}
 
@@ -389,7 +391,7 @@ void WsRemoteConnector::sendCommand(const QByteArray &command, const QJsonValue 
 
 void WsRemoteConnector::operationTimeout()
 {
-	qCWarning(LOG) << "Network operation timed out! Try to reconnect to server.";
+	logWarning() << "Network operation timed out! Try to reconnect to server.";
 	reconnect();
 }
 
@@ -398,7 +400,7 @@ void WsRemoteConnector::identified(const QJsonObject &data)
 	auto userId = data[QStringLiteral("userId")].toString();
 	needResync = needResync || data[QStringLiteral("resync")].toBool();
 	settings->setValue(keyUserIdentity, userId.toUtf8());
-	qCDebug(LOG) << "Identification successful";
+	logDebug() << "Identification successful";
 	state = Idle;
 	reloadRemoteState();
 }
@@ -427,11 +429,11 @@ void WsRemoteConnector::changeState(const QJsonObject &data)
 		emit remoteStateChanged(RemoteReady, changeState);
 	} else {
 		auto delta = retry();
-		qCWarning(LOG) << "Failed to load state with error:"
-					   << data[QStringLiteral("error")].toString();
-		qCDebug(LOG) << "Retrying to load state in"
-					 << delta / 1000
-					 << "seconds";
+		logWarning() << "Failed to load state with error:"
+					 << data[QStringLiteral("error")].toString();
+		logDebug() << "Retrying to load state in"
+				   << delta / 1000
+				   << "seconds";
 	}
 	state = Idle;
 }

@@ -7,6 +7,7 @@
 #include "stateholder.h"
 #include "synccontroller.h"
 #include "remoteconnector.h"
+#include "logger.h"
 
 #include <QtCore/QJsonValue>
 #include <QtCore/QObject>
@@ -80,7 +81,7 @@ Q_SIGNALS:
 	void beginLocalOperation(const ChangeOperation &operation);
 
 private:
-	Defaults *defaults;
+	Logger *logger;
 	DataMerger *merger;
 
 	bool localReady;
