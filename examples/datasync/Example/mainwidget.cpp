@@ -67,6 +67,13 @@ void MainWidget::updateProgress(int count)
 void MainWidget::selectionChange(const QModelIndex &index)
 {
 	SampleData* data = model->object<SampleData*>(index);
+	model->loadObject<SampleData*>(index).onResult(this, [](SampleData* d){
+		qDebug() << "loaded successfully" << d;
+		d->deleteLater();
+	}, [this](const QException &e) {
+		report(QtCriticalMsg, QString::fromUtf8(e.what()));
+	});
+
 	if(data) {
 		ui->idSpinBox->setValue(data->id);
 		ui->titleLineEdit->setText(data->title);
@@ -106,7 +113,7 @@ void MainWidget::setup()
 				sync, &QtDataSync::SyncController::triggerResync);
 
 		model = new QtDataSync::DataStoreModel(store, this);//TODO here
-		model->setDataType<SampleData*>();
+		model->setTypeId<SampleData*>();
 		ui->dataTreeView->setModel(model);
 		connect(ui->dataTreeView->selectionModel(), &QItemSelectionModel::currentChanged,
 				this, &MainWidget::selectionChange);

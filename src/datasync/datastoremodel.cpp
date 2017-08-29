@@ -31,7 +31,12 @@ int DataStoreModel::typeId() const
 	return d->type;
 }
 
-bool DataStoreModel::setDataType(int typeId)
+bool DataStoreModel::isEditable() const
+{
+	return d->editable;
+}
+
+bool DataStoreModel::setTypeId(int typeId)
 {
 	auto flags = QMetaType::typeFlags(typeId);
 	if(flags.testFlag(QMetaType::IsGadget) ||
@@ -48,6 +53,15 @@ bool DataStoreModel::setDataType(int typeId)
 		return true;
 	} else
 		return false;
+}
+
+void DataStoreModel::setEditable(bool editable)
+{
+	if (d->editable == editable)
+		return;
+
+	d->editable = editable;
+	emit editableChanged(editable);
 }
 
 QVariant DataStoreModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -96,7 +110,7 @@ QVariant DataStoreModel::data(const QModelIndex &index, int role) const
 
 bool DataStoreModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-	if (!d->testValid(index, role))
+	if (!d->editable || !d->testValid(index, role))
 		return {};
 
 	if(d->writeProperty(key(index), d->roleNames.value(role), value)) {
@@ -115,15 +129,30 @@ QVariant DataStoreModel::object(const QModelIndex &index) const
 		return d->dataHash.value(iKey);
 }
 
+Task DataStoreModel::loadObject(const QModelIndex &index) const
+{
+	auto iKey = key(index);
+	if(iKey.isNull()) {
+		QFutureInterface<QVariant> d;
+		d.reportStarted();
+		d.reportException(DataSyncException("QModelIndex is not valid"));
+		d.reportFinished();
+		return GenericTask<void>(d);
+	} else
+		return d->store->load(d->type, iKey);
+}
+
 Qt::ItemFlags DataStoreModel::flags(const QModelIndex &index) const
 {
 	if (!index.isValid())
 		return Qt::NoItemFlags;
 
-	return Qt::ItemIsEnabled |
+	auto flags = Qt::ItemIsEnabled |
 			Qt::ItemIsSelectable |
-			Qt::ItemNeverHasChildren  |
-			Qt::ItemIsEditable;
+			Qt::ItemNeverHasChildren;
+	if(d->editable)
+		flags |= Qt::ItemIsEditable;
+	return flags;
 }
 
 QHash<int, QByteArray> DataStoreModel::roleNames() const
@@ -164,6 +193,7 @@ void DataStoreModel::storeResetted()
 DataStoreModelPrivate::DataStoreModelPrivate(DataStoreModel *q_ptr, AsyncDataStore *store) :
 	q(q_ptr),
 	store(store),
+	editable(false),
 	type(QMetaType::UnknownType),
 	isObject(false),
 	roleNames(),
@@ -181,13 +211,12 @@ void DataStoreModelPrivate::createRoleNames()
 	roleNames.clear();
 
 	auto metaObject = QMetaType::metaObjectForType(type);
-	QByteArray userProp = metaObject->userProperty().name();
-	roleNames.insert(Qt::DisplayRole, userProp);//use the key for the display role
+	roleNames.insert(Qt::DisplayRole, metaObject->userProperty().name());//use the key for the display role
 
 	auto roleIndex = Qt::UserRole + 1;
 	for(auto i = 0; i < metaObject->propertyCount(); i++) {
 		auto prop = metaObject->property(i);
-		if(prop.name() != userProp)
+		if(!prop.isUser())
 			roleNames.insert(roleIndex++, prop.name());
 	}
 }
@@ -246,9 +275,11 @@ void DataStoreModelPrivate::onLoad(QVariant data)
 		dataHash.insert(key, data);
 		q->endInsertRows();
 	} else {
+		auto oldData = dataHash.take(key);
 		dataHash.insert(key, data);
 		auto mIndex = q->index(index);
 		emit q->dataChanged(mIndex, mIndex);
+		deleteObject(oldData);
 	}
 }
 
@@ -307,6 +338,8 @@ bool DataStoreModelPrivate::writeProperty(const QString &key, const QByteArray &
 	if(pIndex == -1)
 		return false;
 	auto prop = metaObject->property(pIndex);
+	if(prop.isUser())//user property not editable, as this would change the identity
+		return false;
 
 	if(isObject) {
 		auto object = data.value<QObject*>();

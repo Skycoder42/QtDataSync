@@ -15,6 +15,7 @@ public:
 
 	DataStoreModel *q;
 	AsyncDataStore *store;
+	bool editable;
 
 	int type;
 	bool isObject;
