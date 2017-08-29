@@ -33,6 +33,8 @@ public:
 	GenericTask<QStringList> keys(int metaTypeId);
 	//! @copybrief AsyncDataStore::loadAll()
 	Task loadAll(int dataMetaTypeId, int listMetaTypeId);
+	//! @copybrief AsyncDataStore::loadAll()
+	Task loadAll(int dataMetaTypeId);
 	//! @copybrief AsyncDataStore::load(const QString &)
 	Task load(int metaTypeId, const QString &key);
 	//! @copybrief AsyncDataStore::load(const K &)

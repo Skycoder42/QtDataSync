@@ -39,6 +39,15 @@ Task AsyncDataStore::loadAll(int dataMetaTypeId, int listMetaTypeId)
 	return internalLoadAll(dataMetaTypeId, listMetaTypeId);
 }
 
+Task AsyncDataStore::loadAll(int dataMetaTypeId)
+{
+	QByteArray listTypeName = QByteArray("QList<") +
+							  QMetaType::typeName(dataMetaTypeId) +
+							  QByteArray(">");
+	auto listMetaTypeId = QMetaType::type(listTypeName.constData());
+	return internalLoadAll(dataMetaTypeId, listMetaTypeId);
+}
+
 Task AsyncDataStore::load(int metaTypeId, const QString &key)
 {
 	return internalLoad(metaTypeId, key);

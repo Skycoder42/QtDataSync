@@ -37,7 +37,9 @@ HEADERS += \
     userdatanetworkexchange.h \
     userdatanetworkexchange_p.h \
     logger.h \
-    logger_p.h
+    logger_p.h \
+    datastoremodel.h \
+    datastoremodel_p.h
 
 SOURCES += \
 	asyncdatastore.cpp \
@@ -61,7 +63,8 @@ SOURCES += \
 	encryptor.cpp \
 	qtinyaesencryptor.cpp \
     userdatanetworkexchange.cpp \
-    logger.cpp
+    logger.cpp \
+    datastoremodel.cpp
 
 OTHER_FILES += \
 	engine.qmodel
