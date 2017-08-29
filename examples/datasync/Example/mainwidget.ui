@@ -22,14 +22,7 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QLineEdit" name="searchEdit">
-         <property name="placeholderText">
-          <string>Enter a wildcard/regex search query</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTreeWidget" name="dataTreeWidget">
+        <widget class="QTreeView" name="dataTreeView">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -42,33 +35,12 @@
          <property name="itemsExpandable">
           <bool>false</bool>
          </property>
-         <property name="sortingEnabled">
-          <bool>true</bool>
-         </property>
          <property name="animated">
           <bool>true</bool>
          </property>
          <property name="expandsOnDoubleClick">
           <bool>false</bool>
          </property>
-         <property name="columnCount">
-          <number>3</number>
-         </property>
-         <column>
-          <property name="text">
-           <string>Id</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Title</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Description</string>
-          </property>
-         </column>
         </widget>
        </item>
       </layout>

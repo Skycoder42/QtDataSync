@@ -3,6 +3,7 @@
 #include "setupdialog.h"
 #include "ui_mainwidget.h"
 #include <QInputDialog>
+#include <QMessageBox>
 #include <cachingdatastore.h>
 #include <setup.h>
 #include <wsauthenticator.h>
@@ -14,7 +15,8 @@ MainWidget::MainWidget(QWidget *parent) :
 	QWidget(parent),
 	ui(new Ui::MainWidget),
 	store(nullptr),
-	sync(nullptr)
+	sync(nullptr),
+	model(nullptr)
 {
 	ui->setupUi(this);
 
@@ -49,29 +51,6 @@ void MainWidget::report(QtMsgType type, const QString &message)
 	new QListWidgetItem(icon, message, ui->reportListWidget);
 }
 
-void MainWidget::dataChanged(int metaTypeId, const QString &key, bool wasDeleted)
-{
-	if(wasDeleted) {
-		auto item = items.take(key.toInt());
-		if(item)
-			delete item;
-	} else {
-		store->load(metaTypeId, key).toGeneric<SampleData*>().onResult(this, [this, key](SampleData* data){
-			report(QtInfoMsg, QStringLiteral("Data with id %1 changed").arg(key));
-			update(data);
-		}, [this](const QException &exception) {
-			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		});
-	}
-}
-
-void MainWidget::dataResetted()
-{
-	items.clear();
-	ui->dataTreeWidget->clear();
-	report(QtInfoMsg, QStringLiteral("Data resetted"));
-}
-
 void MainWidget::updateProgress(int count)
 {
 	if(count == 0) {
@@ -85,27 +64,24 @@ void MainWidget::updateProgress(int count)
 	}
 }
 
-void MainWidget::update(SampleData *data)
+void MainWidget::selectionChange(const QModelIndex &index)
 {
-	auto item = items.value(data->id);
-	if(!item) {
-		item = new QTreeWidgetItem(ui->dataTreeWidget);
-		item->setText(0, QString::number(data->id));
-		items.insert(data->id, item);
+	SampleData* data = model->object<SampleData*>(index);
+	if(data) {
+		ui->idSpinBox->setValue(data->id);
+		ui->titleLineEdit->setText(data->title);
+		ui->detailsLineEdit->setText(data->description);
+	} else {
+		ui->idSpinBox->clear();
+		ui->titleLineEdit->clear();
+		ui->detailsLineEdit->clear();
 	}
-
-	item->setText(1, data->title);
-	item->setText(2, data->description);
 }
 
 void MainWidget::setup()
 {
 	if(SetupDialog::setup(this)) {
 		store = new QtDataSync::AsyncDataStore(this);
-		connect(store, &QtDataSync::AsyncDataStore::dataChanged,
-				this, &MainWidget::dataChanged);
-		connect(store, &QtDataSync::AsyncDataStore::dataResetted,
-				this, &MainWidget::dataResetted);
 
 		sync = new QtDataSync::SyncController(this);
 		connect(sync, &QtDataSync::SyncController::syncStateChanged,
@@ -115,11 +91,11 @@ void MainWidget::setup()
 		connect(sync, &QtDataSync::SyncController::syncOperationsChanged,
 				this, &MainWidget::updateProgress);
 		connect(sync, &QtDataSync::SyncController::authenticationErrorChanged,
-				this, [](QString error) {
+				this, [this](QString error) {
 			if(error.isEmpty())
 				qDebug() << "auth error cleared";
 			else
-				qDebug() << "auth error:" << error;
+				QMessageBox::critical(this, tr("Authentication error"), error);
 		});
 		qDebug() << sync->syncState();
 		if(!sync->authenticationError().isEmpty())
@@ -129,13 +105,11 @@ void MainWidget::setup()
 		connect(ui->resyncButton, &QPushButton::clicked,
 				sync, &QtDataSync::SyncController::triggerResync);
 
-		store->loadAll<SampleData*>().onResult(this, [this](QList<SampleData*> data){
-			report(QtInfoMsg, tr("All Data loaded from store!"));
-			foreach (auto d, data)
-				update(d);
-		}, [this](const QException &exception) {
-			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		});
+		model = new QtDataSync::DataStoreModel(store, this);//TODO here
+		model->setDataType<SampleData*>();
+		ui->dataTreeView->setModel(model);
+		connect(ui->dataTreeView->selectionModel(), &QItemSelectionModel::currentChanged,
+				this, &MainWidget::selectionChange);
 
 		//caching test
 		try {
@@ -166,10 +140,10 @@ void MainWidget::on_addButton_clicked()
 
 void MainWidget::on_deleteButton_clicked()
 {
-	auto item = ui->dataTreeWidget->currentItem();
-	if(item) {
-		auto id = items.key(item);
-		store->remove<SampleData*>(QString::number(id)).onResult(this, [this, id](bool success){
+	auto index = ui->dataTreeView->currentIndex();
+	auto id = model->key(index);
+	if(!id.isNull()) {
+		store->remove<SampleData*>(id).onResult(this, [this, id](bool success){
 			if(success)
 				report(QtInfoMsg, QStringLiteral("Data with id %1 removed!").arg(id));
 			else
@@ -201,45 +175,6 @@ void MainWidget::on_changeUserButton_clicked()
 		task.onResult(this, [auth](){
 			qDebug() << "Changed userId to" << auth->userIdentity();
 			auth->deleteLater();
-		});
-	}
-}
-
-void MainWidget::on_dataTreeWidget_itemSelectionChanged()
-{
-	auto item = ui->dataTreeWidget->currentItem();
-	if(item) {
-		ui->idSpinBox->setValue(item->text(0).toInt());
-		ui->titleLineEdit->setText(item->text(1));
-		ui->detailsLineEdit->setText(item->text(2));
-	} else {
-		ui->idSpinBox->clear();
-		ui->titleLineEdit->clear();
-		ui->detailsLineEdit->clear();
-	}
-}
-
-void MainWidget::on_searchEdit_returnPressed()
-{
-	items.clear();
-	ui->dataTreeWidget->clear();
-
-	auto query = ui->searchEdit->text();
-	if(query.isEmpty()) {
-		store->loadAll<SampleData*>().onResult(this, [this](QList<SampleData*> data){
-			report(QtInfoMsg, tr("All Data loaded from store!"));
-			foreach (auto d, data)
-				update(d);
-		}, [this](const QException &exception) {
-			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
-		});
-	} else {
-		store->search<SampleData*>(query).onResult(this, [this](QList<SampleData*> data){
-			report(QtInfoMsg, tr("Searched data in store!"));
-			foreach (auto d, data)
-				update(d);
-		}, [this](const QException &exception) {
-			report(QtCriticalMsg, QString::fromUtf8(exception.what()));
 		});
 	}
 }

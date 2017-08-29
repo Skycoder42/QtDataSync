@@ -76,12 +76,22 @@ QModelIndex DataStoreModel::idIndex(const QString &id) const
 		return {};
 }
 
+QString DataStoreModel::key(const QModelIndex &index) const
+{
+	if(index.isValid() &&
+	   index.column() == 0 &&
+	   index.row() < d->keyList.size())
+		return d->keyList[index.row()];
+	else
+		return {};
+}
+
 QVariant DataStoreModel::data(const QModelIndex &index, int role) const
 {
 	if (!d->testValid(index, role))
 		return {};
 
-	return d->readProperty(keyImpl(index), d->roleNames.value(role));
+	return d->readProperty(key(index), d->roleNames.value(role));
 }
 
 bool DataStoreModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -89,11 +99,20 @@ bool DataStoreModel::setData(const QModelIndex &index, const QVariant &value, in
 	if (!d->testValid(index, role))
 		return {};
 
-	if(d->writeProperty(keyImpl(index), d->roleNames.value(role), value)) {
+	if(d->writeProperty(key(index), d->roleNames.value(role), value)) {
 		emit dataChanged(index, index, {role});
 		return true;
 	} else
 		return false;
+}
+
+QVariant DataStoreModel::object(const QModelIndex &index) const
+{
+	auto iKey = key(index);
+	if(iKey.isNull())
+		return {};
+	else
+		return d->dataHash.value(iKey);
 }
 
 Qt::ItemFlags DataStoreModel::flags(const QModelIndex &index) const
@@ -137,16 +156,6 @@ void DataStoreModel::storeResetted()
 	endResetModel();
 }
 
-QString DataStoreModel::keyImpl(const QModelIndex &index) const
-{
-	if(index.isValid() &&
-	   index.column() == 0 &&
-	   index.row() < d->keyList.size())
-		return d->keyList[index.row()];
-	else
-		return {};
-}
-
 // ------------- Private Implementation -------------
 
 #undef FN
@@ -160,20 +169,26 @@ DataStoreModelPrivate::DataStoreModelPrivate(DataStoreModel *q_ptr, AsyncDataSto
 	roleNames(),
 	keyList(),
 	dataHash()
-{}
+{
+	QObject::connect(store, &AsyncDataStore::dataChanged,
+					 q, &DataStoreModel::storeChanged);
+	QObject::connect(store, &AsyncDataStore::dataResetted,
+					 q, &DataStoreModel::storeResetted);
+}
 
 void DataStoreModelPrivate::createRoleNames()
 {
 	roleNames.clear();
 
 	auto metaObject = QMetaType::metaObjectForType(type);
-	roleNames.insert(Qt::DisplayRole, metaObject->property(0).name());//property 0 is the objectName property
-	roleNames.insert(Qt::EditRole, metaObject->property(0).name());//allow editing via simple role
+	QByteArray userProp = metaObject->userProperty().name();
+	roleNames.insert(Qt::DisplayRole, userProp);//use the key for the display role
 
 	auto roleIndex = Qt::UserRole + 1;
-	for(auto i = 1; i < metaObject->propertyCount(); i++) {
+	for(auto i = 0; i < metaObject->propertyCount(); i++) {
 		auto prop = metaObject->property(i);
-		roleNames.insert(roleIndex++, prop.name());
+		if(prop.name() != userProp)
+			roleNames.insert(roleIndex++, prop.name());
 	}
 }
 
@@ -239,7 +254,7 @@ void DataStoreModelPrivate::onLoad(QVariant data)
 
 void DataStoreModelPrivate::onError(const QException &exception)
 {
-	//TODO do something
+	emit q->storeError(exception);
 }
 
 QString DataStoreModelPrivate::readKey(QVariant data)

@@ -25,9 +25,7 @@ public:
 
 	bool setDataType(int typeId);
 	template <typename T>
-	inline bool setDataType() {
-		return setDataType(qMetaTypeId<T>());
-	}
+	inline bool setDataType();
 
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
@@ -35,16 +33,17 @@ public:
 	using QAbstractListModel::index;
 	QModelIndex idIndex(const QString &id) const;
 	template <typename T>
-	inline QModelIndex idIndex(const T &id) const {
-		return idIndex(QVariant::fromValue<T>(id).toString());
-	}
-	template <typename T = QString>
-	inline T key(const QModelIndex &index) const {
-		return QVariant(keyImpl(index)).value<T>();
-	}
+	inline QModelIndex idIndex(const T &id) const;
+	QString key(const QModelIndex &index) const;
+	template <typename T>
+	inline T key(const QModelIndex &index) const;
 
 	QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+
+	QVariant object(const QModelIndex &index) const;
+	template <typename T>
+	inline T object(const QModelIndex &index) const;
 
 	Qt::ItemFlags flags(const QModelIndex &index) const override;
 	QHash<int, QByteArray> roleNames() const override;
@@ -52,15 +51,35 @@ public:
 Q_SIGNALS:
 	void storeLoaded();
 
+	void storeError(const QException &exception);
+
 private Q_SLOTS:
 	void storeChanged(int metaTypeId, const QString &key, bool wasDeleted);
 	void storeResetted();
 
 private:
 	QScopedPointer<DataStoreModelPrivate> d;
-
-	QString keyImpl(const QModelIndex &index) const;
 };
+
+template <typename T>
+inline bool DataStoreModel::setDataType() {
+	return setDataType(qMetaTypeId<T>());
+}
+
+template <typename T>
+inline QModelIndex DataStoreModel::idIndex(const T &id) const {
+	return idIndex(QVariant::fromValue<T>(id).toString());
+}
+
+template <typename T>
+inline T DataStoreModel::key(const QModelIndex &index) const {
+	return QVariant(key(index)).value<T>();
+}
+
+template <typename T>
+inline T DataStoreModel::object(const QModelIndex &index) const {
+	return object(index).value<T>();
+}
 
 }
 
