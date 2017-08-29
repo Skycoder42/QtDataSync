@@ -12,7 +12,7 @@ namespace QtDataSync {
 
 class DataMergerPrivate;
 //! The class responsible for deciding what happens on sync conflicts
-class Q_DATASYNC_EXPORT DataMerger : public QObject
+class QT_DEPRECATED Q_DATASYNC_EXPORT DataMerger : public QObject
 {
 	Q_OBJECT
 
@@ -65,6 +65,22 @@ public Q_SLOTS:
 
 private:
 	QScopedPointer<DataMergerPrivate> d;
+};
+
+//! Extended DataMerger with an additional parameter for merge
+class Q_DATASYNC_EXPORT DataMerger2 : public DataMerger
+{
+	Q_OBJECT
+
+public:
+	//! Constructor
+	DataMerger2(QObject *parent = nullptr);
+
+	//! Called, if the merge policy is Merge and data needs to be merged
+	virtual QJsonObject merge(QJsonObject local, QJsonObject remote, const QByteArray &typeName);
+
+private:
+	QJsonObject merge(QJsonObject local, QJsonObject remote) final;
 };
 
 }

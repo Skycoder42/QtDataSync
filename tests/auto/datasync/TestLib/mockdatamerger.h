@@ -3,14 +3,14 @@
 
 #include <datamerger.h>
 
-class MockDataMerger : public QtDataSync::DataMerger
+class MockDataMerger : public QtDataSync::DataMerger2
 {
 	Q_OBJECT
 
 public:
 	MockDataMerger(QObject *parent = nullptr);
 
-	QJsonObject merge(QJsonObject local, QJsonObject remote) override;
+	QJsonObject merge(QJsonObject local, QJsonObject remote, const QByteArray &typeName) override;
 
 public:
 	int mergeCount;

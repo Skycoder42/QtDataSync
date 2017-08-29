@@ -24,8 +24,9 @@ DataMerger::MergePolicy DataMerger::mergePolicy() const
 	return d->mergePolicy;
 }
 
-QJsonObject DataMerger::merge(QJsonObject local, QJsonObject)
+QJsonObject DataMerger::merge(QJsonObject local, QJsonObject remote)
 {
+	Q_UNUSED(remote);
 	return local;
 }
 
@@ -40,7 +41,29 @@ void DataMerger::setMergePolicy(DataMerger::MergePolicy mergePolicy)
 }
 
 
+
 DataMergerPrivate::DataMergerPrivate() :
 	syncPolicy(DataMerger::PreferUpdated),
 	mergePolicy(DataMerger::KeepLocal)
 {}
+
+
+
+DataMerger2::DataMerger2(QObject *parent) :
+	DataMerger(parent)
+{}
+
+QJsonObject DataMerger2::merge(QJsonObject local, QJsonObject remote, const QByteArray &typeName)
+{
+	Q_UNUSED(remote);
+	Q_UNUSED(typeName);
+	return local;
+}
+
+QJsonObject DataMerger2::merge(QJsonObject local, QJsonObject remote)
+{
+	Q_UNUSED(local);
+	Q_UNUSED(remote);
+	Q_UNREACHABLE();
+	return {};
+}

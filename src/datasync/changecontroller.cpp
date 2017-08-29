@@ -389,13 +389,19 @@ void ChangeController::actionMerge(const QJsonValue &result)
 		currentState = SaveState;
 		break;
 	case SaveState:
-		currentObject = merger->merge(result.toObject(), currentObject);//merge into temp var
+	{
+		auto merger2 = qobject_cast<DataMerger2*>(merger);
+		if(merger2)
+			currentObject = merger2->merge(result.toObject(), currentObject, currentKey.first);//merge into temp var
+		else
+			currentObject = merger->merge(result.toObject(), currentObject);//merge into temp var
 
 		operation.operation = Save;
 		operation.writeObject = currentObject;
 		emit beginLocalOperation(operation);
 		currentState = UploadState;
 		break;
+	}
 	case UploadState:
 		operation.operation = Save;
 		operation.writeObject = currentObject;

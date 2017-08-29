@@ -1,6 +1,8 @@
 /*!
 @class QtDataSync::DataMerger
 
+@note This class is deprecated. Please use DataMerger2 instead
+
 The data merger is internally used to find out what needs to be done if conflicting changes
 are detected. By default, this is done via the policy properties. If you want to adjust the
 behaviour, simply get a reference to the merger before creating the instance from the setup
@@ -21,7 +23,7 @@ instance thread. The initialize() function is the first to be called after chang
 You should do nothing in the constructor, and all the initialization inside of that function,
 to ensure a fast and smooth usage.
 
-@sa DataMerger::syncPolicy, DataMerger::mergePolicy, DataMerger::merge, Setup::setDataMerger,
+@sa DataMerger2, DataMerger::syncPolicy, DataMerger::mergePolicy, DataMerger::merge, Setup::setDataMerger,
 Setup::dataMerger
 */
 
@@ -72,4 +74,16 @@ changed/changed conflicts. The default implementation simply returns local. You 
 this method to add a custom merging algorithm. Please note that this function **must** always
 return a valid merge result, it cannot fail. If your merging algorithm can fail, simply return
 either one of the parameters.
+*/
+
+/*!
+@fn QtDataSync::DataMerger2::merge(QJsonObject, QJsonObject, const QByteArray &)
+
+@param typeName The typename of the data to be merged
+@copydetails QtDataSync::DataMerger::merge
+
+With the given typeName, and the serializer from Defaults, you can try to deserialize
+the passed objects to their c++ class, if that's beneficial for your merging.
+
+@sa Defaults::serializer
 */

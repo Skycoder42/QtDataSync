@@ -264,7 +264,7 @@ SetupPrivate::SetupPrivate() :
 	localStore(new SqlLocalStore()),
 	stateHolder(new SqlStateHolder()),
 	remoteConnector(new WsRemoteConnector()),
-	dataMerger(new DataMerger()),
+	dataMerger(new DataMerger2()),
 	encryptor(new QTinyAesEncryptor()),
 	properties(),
 	fatalErrorHandler(QtDataSync::defaultFatalErrorHandler)
