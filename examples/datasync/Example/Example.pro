@@ -16,6 +16,8 @@ SOURCES += main.cpp\
 FORMS    += mainwidget.ui \
 	setupdialog.ui
 
+include(../../3rdparty/modeltest.pri)
+
 target.path = $$[QT_INSTALL_EXAMPLES]/datasync/Example
 INSTALLS += target
 

@@ -8,6 +8,8 @@
 #include <setup.h>
 #include <wsauthenticator.h>
 
+#include "modeltest.h"
+
 static QtMessageHandler prevHandler;
 static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
@@ -117,6 +119,7 @@ void MainWidget::setup()
 		ui->dataTreeView->setModel(model);
 		connect(ui->dataTreeView->selectionModel(), &QItemSelectionModel::currentChanged,
 				this, &MainWidget::selectionChange);
+		new ModelTest(model, this);
 
 		//caching test
 		try {
