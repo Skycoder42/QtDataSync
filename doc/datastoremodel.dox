@@ -1,0 +1,102 @@
+/*!
+@class QtDataSync::DataStoreModel
+
+This model can be used to display the data from a AsyncDataStore as model. The model itself
+is typically readonly, as the data is updated automatically as the contents in the store changes.
+Check out the example below to see how to use it.
+
+After creating the model, you can set the datatype it should display via setTypeId(). This will
+reset the model and let it load the data from it's store. The model is generic and can handle
+any object or gadget type. The properties of those objects/gadgets are translated to display roles,
+and each object/gadget is represented by one row in the model.
+
+This makes the model easy to use with QML, as there you access data via roles, but requires additional
+code to display it via a QTreeView or similar. Here, another project of mine can help:
+[QObjectListModel](https://github.com/Skycoder42/QObjectListModel) Provides a class called `QObjectProxyModel`.
+This class can map roles to columns, making it possible to display a model like this one in widgets
+properly. The example below shows how to.
+
+To "modify" the model, use one of the datasync stores and insert, updated or remove data. Once the
+change is successfully done in the engine, the model updates automatically. Sorting the model itself
+is not possible, but you can make use of a QSortFilterProxyModel to display the data sorted.
+
+The model is readonly by default, but you can make exising items editable via DataStoreModel::editable.
+This does not allow inserting or removing items via the model, but allows you to change properties
+via the setData() method.
+
+Items can be loaded from the model use loadObject(). This allows you to get the item at a specific index
+and pass it to other components, update it and other. This method loads a new instance from the store, and
+this is safe in any case. With the object() method this can be done faster, but is <b>not safe</b> for all
+types. Read the DataStoreModel::object documentation for details.
+
+<h3>Example</h3>
+Assuming your data class looks like this:
+@code{.cpp}
+class Person
+{
+	Q_GADGET
+
+	Q_PROPERTY(QString name MEMBER name)
+	Q_PROPERTY(int age MEMBER age)
+
+	//...
+};
+@endcode
+
+You can instanciate a model for this data as follows:
+@code{.cpp}
+auto model = new QtDataSync::DataStoreModel(this);
+model->setTypeId<Person>();
+@endcode
+
+To properly use it with widgets, you can use [QObjectListModel's](https://github.com/Skycoder42/QObjectListModel) `QObjectProxyModel`.
+The code below creates a model with 2 columns, where column 0 shows the "name" role and
+column 1 shows the "age" role:
+@code{.cpp}
+auto proxy = new QObjectProxyModel({"name", "age"}, this);
+proxy->setSourceModel(model);
+proxy->addMapping(0, Qt::DisplayRole, "name");
+proxy->addMapping(1, Qt::DisplayRole, "age");
+@endcode
+
+@sa AsyncDataStore, CachingDataStore, [QObjectListModel](https://github.com/Skycoder42/QObjectListModel)
+*/
+
+/*!
+@property QtDataSync::DataStoreModel::typeId
+
+@default{`QMetaType::UnknownType`}
+
+The type id is essential for the model, and defines what data should be loaded.
+When changing the property, the model resets and the loads all data from it's store
+for the given type, and then reacts on changes for that type.
+
+Setting it to an unknown or invalid will lead to errors. The type should be set before
+passing the model to a view or proxy model.
+
+@accessors{
+	@readAc{typeId()}
+	@writeAc{setTypeId()}
+}
+
+@sa DataStoreModel::storeLoaded, DataStoreModel::storeError
+*/
+
+/*!
+@property QtDataSync::DataStoreModel::editable
+
+@default{`false`}
+
+By default, the model is not editable and servers as a normal read only model.
+By enabeling this property, the setData() method allows modification of items.
+These modifications will be automatically passed to the store and thus are
+permanent data changes.
+
+@accessors{
+	@readAc{isEditable()}
+	@writeAc{setEditable()}
+	@notifyAc{editableChanged()}
+}
+
+@sa DataStoreModel::setData
+*/
