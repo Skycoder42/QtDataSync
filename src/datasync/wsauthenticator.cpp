@@ -20,34 +20,6 @@ WsAuthenticator::WsAuthenticator(WsRemoteConnector *connector, Defaults *default
 
 WsAuthenticator::~WsAuthenticator() {}
 
-void WsAuthenticator::exportUserDataImpl(QIODevice *device) const
-{
-	QJsonObject data;
-	data[QStringLiteral("key")] = QString::fromUtf8(d->connector->cryptor()->key().toBase64());
-	data[QStringLiteral("identity")] = QString::fromUtf8(userIdentity());
-
-	device->write(QJsonDocument(data).toJson(QJsonDocument::Indented));
-}
-
-GenericTask<void> WsAuthenticator::importUserDataImpl(QIODevice *device)
-{
-	QJsonParseError error;
-	auto data = QJsonDocument::fromJson(device->readAll(), &error);
-	if(error.error != QJsonParseError::NoError) {
-		QFutureInterface<QVariant> futureInterface;
-		futureInterface.reportStarted();
-		futureInterface.reportException(InvalidDataException(error.errorString()));
-		futureInterface.reportFinished();
-		return futureInterface;
-	}
-
-	auto obj = data.object();
-	auto key = QByteArray::fromBase64(obj[QStringLiteral("key")].toString().toUtf8());
-	QMetaObject::invokeMethod(d->connector->cryptor(), "setKey", Qt::QueuedConnection,
-							  Q_ARG(QByteArray, key));
-	return setUserIdentity(obj[QStringLiteral("identity")].toString().toUtf8());
-}
-
 QUrl WsAuthenticator::remoteUrl() const
 {
 	return d->settings->value(WsRemoteConnector::keyRemoteUrl).toUrl();
@@ -111,13 +83,22 @@ void WsAuthenticator::setValidateServerCertificate(bool validateServerCertificat
 	d->settings->sync();
 }
 
+GenericTask<void> WsAuthenticator::resetUserData(bool clearLocalStore)
+{
+	return resetIdentity(QVariant(), clearLocalStore);
+}
+
 GenericTask<void> WsAuthenticator::setUserIdentity(QByteArray userIdentity, bool clearLocalStore)
 {
+	qWarning() << "Method setUserIdentity is unsafe, as it does not set the key."
+			   << "Use importUserData instead!";
 	return resetIdentity(userIdentity, clearLocalStore);
 }
 
 GenericTask<void> WsAuthenticator::resetUserIdentity(bool clearLocalStore)
 {
+	qWarning() << "Method resetUserIdentity is unsafe, as it does not reset the key."
+			   << "Use resetUserData instead!";
 	return resetIdentity(QVariant(), clearLocalStore);
 }
 
@@ -130,6 +111,34 @@ void WsAuthenticator::setServerSecret(QString serverSecret)
 RemoteConnector *WsAuthenticator::connector()
 {
 	return d->connector;
+}
+
+void WsAuthenticator::exportUserDataImpl(QIODevice *device) const
+{
+	QJsonObject data;
+	data[QStringLiteral("key")] = QString::fromUtf8(d->connector->cryptor()->key().toBase64());
+	data[QStringLiteral("identity")] = QString::fromUtf8(userIdentity());
+
+	device->write(QJsonDocument(data).toJson(QJsonDocument::Indented));
+}
+
+GenericTask<void> WsAuthenticator::importUserDataImpl(QIODevice *device)
+{
+	QJsonParseError error;
+	auto data = QJsonDocument::fromJson(device->readAll(), &error);
+	if(error.error != QJsonParseError::NoError) {
+		QFutureInterface<QVariant> futureInterface;
+		futureInterface.reportStarted();
+		futureInterface.reportException(InvalidDataException(error.errorString()));
+		futureInterface.reportFinished();
+		return futureInterface;
+	}
+
+	auto obj = data.object();
+	auto key = QByteArray::fromBase64(obj[QStringLiteral("key")].toString().toUtf8());
+	QMetaObject::invokeMethod(d->connector->cryptor(), "setKey", Qt::QueuedConnection,
+							  Q_ARG(QByteArray, key));
+	return resetIdentity(obj[QStringLiteral("identity")].toString().toUtf8(), true);
 }
 
 void WsAuthenticator::updateConnected(int connected)

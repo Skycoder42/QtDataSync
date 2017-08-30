@@ -114,7 +114,7 @@ void MainWidget::setup()
 		connect(ui->resyncButton, &QPushButton::clicked,
 				sync, &QtDataSync::SyncController::triggerResync);
 
-		model = new QtDataSync::DataStoreModel(store, this);//TODO here
+		model = new QtDataSync::DataStoreModel(store, this);
 		model->setTypeId<SampleData*>();
 		ui->dataTreeView->setModel(model);
 		connect(ui->dataTreeView->selectionModel(), &QItemSelectionModel::currentChanged,
@@ -166,6 +166,7 @@ void MainWidget::on_deleteButton_clicked()
 
 void MainWidget::on_changeUserButton_clicked()
 {
+	//TODO change to import/export dialog
 	auto auth = QtDataSync::Setup::authenticatorForSetup<QtDataSync::WsAuthenticator>(this);
 	auto user = auth->userIdentity();
 	auto ok = false;
@@ -179,9 +180,9 @@ void MainWidget::on_changeUserButton_clicked()
 		user = str.toUtf8();
 		QtDataSync::GenericTask<void> task;
 		if(user.isEmpty())
-			task = auth->resetUserIdentity();
+			task = auth->resetUserData();
 		else
-			task = auth->setUserIdentity(user);
+			task = auth->importUserData(user);
 		task.onResult(this, [auth](){
 			qDebug() << "Changed userId to" << auth->userIdentity();
 			auth->deleteLater();

@@ -89,7 +89,7 @@ void WsRemoteConnectorTest::testServerConnecting()
 	//empty store -> used INVALID id
 	auth->setRemoteUrl(QStringLiteral("ws://localhost:4242"));
 	auth->setServerSecret(QStringLiteral("baum42"));
-	auth->setUserIdentity("invalid");
+	auth->importUserData("{\"identity\": \"invalid\",\"key\": \"invalid\"}");
 	auth->reconnect();
 
 	for(auto i = 0; i < 10 && syncSpy.count() < 3; i++)
@@ -104,7 +104,7 @@ void WsRemoteConnectorTest::testServerConnecting()
 	//now connect again, but reset id first
 	conSpy.clear();
 	syncSpy.clear();
-	auth->resetUserIdentity();
+	auth->resetUserData();
 	auth->reconnect();
 
 	QVERIFY(conSpy.wait());
@@ -293,7 +293,7 @@ void WsRemoteConnectorTest::testSecondDevice()
 	QSignalSpy syncSpy(controller, &SyncController::syncStateChanged);
 	QSignalSpy conSpy(auth, &WsAuthenticator::connectedChanged);
 
-	auth->setUserIdentity(auth->userIdentity());//reset device trick...
+	auth->importUserData(auth->exportUserData());//reset device trick...
 	auth->reconnect();
 
 	QVERIFY(conSpy.wait());
@@ -327,7 +327,7 @@ void WsRemoteConnectorTest::testExportImport()
 	auto data = auth->exportUserData();
 
 	//after export: test with different user to reset
-	auth->resetUserIdentity();//reset device trick...
+	auth->resetUserData();//reset device trick...
 	auth->reconnect();
 
 	QVERIFY(conSpy.wait());

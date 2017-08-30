@@ -55,6 +55,15 @@ void QTinyAesEncryptor::setKey(const QByteArray &key)
 	_defaults->settings()->setValue(QStringLiteral("encryption/key"), _key);
 }
 
+void QTinyAesEncryptor::resetKey()
+{
+	QMutexLocker _(&_keyMutex);
+	QRng secureRng;
+	secureRng.setSecurityLevel(QRng::HighSecurity);
+	_key = secureRng.generateRandom(QTinyAes::KEYSIZE);
+	_defaults->settings()->setValue(QStringLiteral("encryption/key"), _key);
+}
+
 QJsonValue QTinyAesEncryptor::encrypt(const ObjectKey &key, const QJsonObject &object, const QByteArray &keyProperty) const
 {
 	auto salt = QRng().generateRandom(28);//224 bits

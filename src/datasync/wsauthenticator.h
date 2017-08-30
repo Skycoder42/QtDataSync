@@ -25,8 +25,8 @@ class Q_DATASYNC_EXPORT WsAuthenticator : public Authenticator
 	Q_PROPERTY(QHash<QByteArray, QByteArray> customHeaders READ customHeaders WRITE setCustomHeaders)
 	//! Specify, whether server certificates should be validated
 	Q_PROPERTY(bool validateServerCertificate READ validateServerCertificate WRITE setValidateServerCertificate)
-	//! Holds the current user identity, i.e. the account
-	Q_PROPERTY(QByteArray userIdentity READ userIdentity WRITE setUserIdentity RESET resetUserIdentity)
+	//! Holds the current users data, i.e. the account and encryption keys
+	Q_PROPERTY(QByteArray userData READ exportUserData WRITE importUserData RESET resetUserData)
 	//! Holds the secret that is required to use the server
 	Q_PROPERTY(QString serverSecret READ serverSecret WRITE setServerSecret)
 	//! Specifies, whether the remote is currently connected or not
@@ -40,16 +40,13 @@ public:
 	//! Destructor
 	~WsAuthenticator();
 
-	void exportUserDataImpl(QIODevice *device) const override;
-	GenericTask<void> importUserDataImpl(QIODevice *device) override;
-
 	//! @readAcFn{WsAuthenticator::remoteUrl}
 	QUrl remoteUrl() const;
 	//! @readAcFn{WsAuthenticator::customHeaders}
 	QHash<QByteArray, QByteArray> customHeaders() const;
 	//! @readAcFn{WsAuthenticator::validateServerCertificate}
 	bool validateServerCertificate() const;
-	//! @readAcFn{WsAuthenticator::userIdentity}
+	//! Returns the users remote identity
 	QByteArray userIdentity() const;
 	//! @readAcFn{WsAuthenticator::serverSecret}
 	QString serverSecret() const;
@@ -66,12 +63,13 @@ public Q_SLOTS:
 	void setCustomHeaders(QHash<QByteArray, QByteArray> customHeaders);
 	//! @writeAcFn{WsAuthenticator::validateServerCertificate}
 	void setValidateServerCertificate(bool validateServerCertificate);
-	//! @writeAcFn{WsAuthenticator::userIdentity}
-	GenericTask<void> setUserIdentity(QByteArray userIdentity, bool clearLocalStore = true);
-	//! @resetAcFn{WsAuthenticator::userIdentity}
-	GenericTask<void> resetUserIdentity(bool clearLocalStore = true);
+	//! @reseteAcFn{WsAuthenticator::userData}
+	GenericTask<void> resetUserData(bool clearLocalStore = true);
 	//! @writeAcFn{WsAuthenticator::serverSecret}
 	void setServerSecret(QString serverSecret);
+
+	QT_DEPRECATED GenericTask<void> setUserIdentity(QByteArray userIdentity, bool clearLocalStore = true);
+	QT_DEPRECATED GenericTask<void> resetUserIdentity(bool clearLocalStore = true);
 
 Q_SIGNALS:
 	//! @notifyAcFn{WsAuthenticator::connected}
@@ -79,6 +77,9 @@ Q_SIGNALS:
 
 protected:
 	RemoteConnector *connector() override;
+
+	void exportUserDataImpl(QIODevice *device) const override;
+	GenericTask<void> importUserDataImpl(QIODevice *device) override;
 
 private Q_SLOTS:
 	void updateConnected(int connected);

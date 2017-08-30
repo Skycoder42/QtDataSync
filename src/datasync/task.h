@@ -40,7 +40,7 @@ public:
 
 protected:
 	//! Constructor with future interface
-	Task(QFutureInterface<QVariant> d); //TODO make public
+	Task(QFutureInterface<QVariant> d); //MAJOR make public
 };
 
 //! Generic version of the Task

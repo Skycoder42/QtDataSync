@@ -1,6 +1,7 @@
 #include "defaults.h"
 #include "wsauthenticator.h"
 #include "wsremoteconnector_p.h"
+#include "qtinyaesencryptor_p.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QJsonDocument>
@@ -256,6 +257,13 @@ void WsRemoteConnector::resetUserData(const QVariant &extraData, const QByteArra
 		settings->setValue(keyUserIdentity, extraData);
 	else
 		settings->remove(keyUserIdentity);
+
+	//MAJOR remove next major
+	//reset the encryption key, if possible...
+	auto tCr = qobject_cast<QTinyAesEncryptor*>(cryptor());
+	if(tCr)
+		tCr->resetKey();
+
 	reconnect();
 }
 

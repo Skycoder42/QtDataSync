@@ -41,6 +41,7 @@ public:
 
 public Q_SLOTS:
 	void setKey(const QByteArray &key) override;
+	void resetKey();
 
 private:
 	Defaults *_defaults;
