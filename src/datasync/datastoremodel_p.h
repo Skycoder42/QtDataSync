@@ -26,7 +26,7 @@ public:
 
 
 	template <typename TRet, typename... TArgs>
-	Q_DECL_CONSTEXPR std::function<TRet(TArgs...)> fn(TRet(DataStoreModelPrivate::* member)(TArgs...)) {
+	inline std::function<TRet(TArgs...)> fn(TRet(DataStoreModelPrivate::* member)(TArgs...)) {
 		return [this, member](TArgs... args) -> TRet {
 			return (this->*member)(args...);
 		};

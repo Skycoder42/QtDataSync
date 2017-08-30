@@ -19,4 +19,5 @@
 	"wsauthenticator.h" => "WsAuthenticator",
 	"userdatanetworkexchange.h" => "UserInfo,UserDataNetworkExchange",
 	"logger.h" => "Logger",
+	"datastoremodel.h" => "DataStoreModel",
 );
