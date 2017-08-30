@@ -63,7 +63,7 @@ public Q_SLOTS:
 	void setCustomHeaders(QHash<QByteArray, QByteArray> customHeaders);
 	//! @writeAcFn{WsAuthenticator::validateServerCertificate}
 	void setValidateServerCertificate(bool validateServerCertificate);
-	//! @reseteAcFn{WsAuthenticator::userData}
+	//! @resetAcFn{WsAuthenticator::userData}
 	GenericTask<void> resetUserData(bool clearLocalStore = true);
 	//! @writeAcFn{WsAuthenticator::serverSecret}
 	void setServerSecret(QString serverSecret);

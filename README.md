@@ -9,14 +9,16 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 - Document-Store like access, using QObjects and Q_GADGET classes
 	- Asynchronous access, general access to all data, with futures and onResult handler
 	- Synchronous access with caching store per datatype
+- Qt "model" class (`QAbstractListModel`) to view store data in item views
 - Stable offline storage, to make shure apps work even without network
 - Remote synchronisation between devices
 	- Multi-user and multi-device system - data is synchronized per user on all his devices
 - Includes server application as backend, websocket based
 - Controller class to control and monitor sync state
 - Works "out of the box", since all components are provided
-	- Can be used a simple local store only
+	- Can be used as simple local store only
 	- Includes a docker-compose file for a PostgreSQL server
+- Class to exchange user identities between devices in a local network
 - Highly extensible
 
 ## Requirements
@@ -39,7 +41,7 @@ To actually run the server, it needs to connect to a SQL Database. A little more
 	7. You can install either all of my modules, or select the one you need: `Qt Data Sync`
 	8. Continue the setup and thats it! you can now use the module for all of your installed Kits for that Qt Version
 3. Download the compiled modules from the release page. **Note:** You will have to add the correct ones yourself and may need to adjust some paths to fit your installation! In addition to that, you will have to download the modules this one depends on as well.
-4. Build it yourself! **Note:** This requires perl to be installed, as well as all dependencies. If you don't have/need cmake, you can ignore the related warnings. To automatically build and install to your Qt installation, run:
+4. Build it yourself! **Note:** This requires perl and qpm to be installed, as well as all dependencies. If you don't have/need cmake, you can ignore the related warnings. To automatically build and install to your Qt installation, run:
 	- `cd src/3rdparty && qpm install && cd ../..`
 	- `qmake`
 	- `make qmake_all`
