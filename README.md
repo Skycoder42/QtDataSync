@@ -4,7 +4,6 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 [![Travis Build Status](https://travis-ci.org/Skycoder42/QtDataSync.svg?branch=master)](https://travis-ci.org/Skycoder42/QtDataSync)
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/ygrlpdc6p3dcnmk1/branch/master?svg=true)](https://ci.appveyor.com/project/Skycoder42/qtdatasync/branch/master)
 
-
 ## Features
 - Document-Store like access, using QObjects and Q_GADGET classes
 	- Asynchronous access, general access to all data, with futures and onResult handler
