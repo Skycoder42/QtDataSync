@@ -1,10 +1,23 @@
 TARGET = QtDataSync
 
-QT = core jsonserializer websockets
+QT = core jsonserializer sql
 
-HEADERS += qtdatasync_global.h
+HEADERS += qtdatasync_global.h \
+	localstore_p.h \
+	defaults_p.h \
+	defaults.h \
+    logger_p.h \
+    logger.h \
+    setup_p.h \
+    setup.h \
+    exceptions.h
 
-SOURCES +=
+SOURCES += \
+	localstore.cpp \
+	defaults.cpp \
+    logger.cpp \
+    setup.cpp \
+    exceptions.cpp
 
 DISTFILES += \
 	datasync.qmodel \

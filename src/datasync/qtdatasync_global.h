@@ -9,4 +9,14 @@
 #	define Q_DATASYNC_EXPORT Q_DECL_IMPORT
 #endif
 
+namespace QtDataSync {
+
+struct Q_DATASYNC_EXPORT ObjectKey
+{
+	QByteArray typeName;
+	QString id;
+};
+
+}
+
 #endif // QTDATASYNC_GLOBAL_H
