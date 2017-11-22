@@ -201,6 +201,52 @@ void QtDataSync::defaultFatalErrorHandler(QString error, bool recoverable, QStri
 		qFatal("Unrecoverable error for \"%s\" - killing application", name.constData());
 }
 
+// ------------- Exceptions -------------
+
+SetupException::SetupException(const QString &setupName, const QString &message) :
+	Exception(setupName, message)
+{}
+
+SetupException::SetupException(const SetupException * const other) :
+	Exception(other)
+{}
+
+SetupExistsException::SetupExistsException(const QString &setupName) :
+	SetupException(setupName, QStringLiteral("Failed to create setup! A setup with the given name already exists!"))
+{}
+
+SetupExistsException::SetupExistsException(const SetupExistsException *const other) :
+	SetupException(other)
+{}
+
+void SetupExistsException::raise() const
+{
+	throw (*this);
+}
+
+QException *SetupExistsException::clone() const
+{
+	return new SetupExistsException(this);
+}
+
+SetupLockedException::SetupLockedException(const QString &setupName) :
+	SetupException(setupName, QStringLiteral("Failed to lock the storage directory! Is it already locked by another process?"))
+{}
+
+SetupLockedException::SetupLockedException(const SetupLockedException *const other) :
+	SetupException(other)
+{}
+
+void SetupLockedException::raise() const
+{
+	throw (*this);
+}
+
+QException *SetupLockedException::clone() const
+{
+	return new SetupLockedException(this);
+}
+
 // ------------- Application hooks -------------
 
 static void initCleanupHandlers()

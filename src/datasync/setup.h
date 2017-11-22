@@ -3,6 +3,7 @@
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
+#include "QtDataSync/exception.h"
 
 #include <QtCore/qobject.h>
 
@@ -52,6 +53,48 @@ public:
 
 private:
 	QScopedPointer<SetupPrivate> d;
+};
+
+//! Exception throw if Setup::create fails
+class Q_DATASYNC_EXPORT SetupException : public Exception
+{
+public:
+	//! Constructor with error message and setup name
+	SetupException(const QString &setupName, const QString &message);
+
+protected:
+	//! Constructor that clones another exception
+	SetupException(const SetupException * const other);
+};
+
+//! Exception thrown if a setup with the same name already exsits
+class Q_DATASYNC_EXPORT SetupExistsException : public SetupException
+{
+public:
+	//! Constructor with setup name
+	SetupExistsException(const QString &setupName);
+
+	void raise() const final;
+	QException *clone() const final;
+
+protected:
+	//! Constructor that clones another exception
+	SetupExistsException(const SetupExistsException * const other);
+};
+
+//! Exception thrown if a setups storage directory is locked by another instance
+class Q_DATASYNC_EXPORT SetupLockedException : public SetupException
+{
+public:
+	//! Constructor with setup name
+	SetupLockedException(const QString &setupName);
+
+	void raise() const final;
+	QException *clone() const final;
+
+protected:
+	//! Constructor that clones another exception
+	SetupLockedException(const SetupLockedException *cloneFrom);
 };
 
 }

@@ -219,7 +219,7 @@ QJsonObject LocalStore::readJson(const QString &tableName, const QString &fileNa
 	return doc.object();
 }
 
-
+// ------------- Exceptions -------------
 
 LocalStoreException::LocalStoreException(const Defaults &defaults, const ObjectKey &key, const QString &context, const QString &message) :
 	Exception(defaults, message),
