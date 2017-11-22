@@ -1,5 +1,4 @@
 #include "defaults.h"
-#include "exceptions.h"
 #include "setup.h"
 #include "setup_p.h"
 #include "defaults_p.h"

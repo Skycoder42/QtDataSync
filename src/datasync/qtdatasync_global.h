@@ -18,6 +18,11 @@ struct Q_DATASYNC_EXPORT ObjectKey
 {
 	QByteArray typeName;
 	QString id;
+
+	inline ObjectKey(const QByteArray &typeName = {}, const QString &id = {}) :
+		typeName(typeName),
+		id(id)
+	{}
 };
 
 }

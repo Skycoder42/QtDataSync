@@ -12,7 +12,7 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger
 
-const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_default_database"));
+const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_database_%1"));
 
 Defaults::Defaults(const QString &setupName) :
 	d(DefaultsPrivate::obtainDefaults(setupName))
@@ -139,7 +139,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 	auto name = DefaultsPrivate::DatabaseName.arg(setupName);
 	if(dbRefCounter++ == 0) {
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
-		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("./store.db")));
+		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		if(!database.open()) {
 			logFatal(false,
 					 QStringLiteral("Failed to open database! All subsequent operations will fail! Database error:\n") +

@@ -10,14 +10,14 @@ HEADERS += qtdatasync_global.h \
     logger.h \
     setup_p.h \
     setup.h \
-    exceptions.h
+    exception.h
 
 SOURCES += \
 	localstore.cpp \
 	defaults.cpp \
     logger.cpp \
     setup.cpp \
-    exceptions.cpp
+    exception.cpp
 
 DISTFILES += \
 	datasync.qmodel \
