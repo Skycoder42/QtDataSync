@@ -2,6 +2,7 @@
 #include "exceptions.h"
 #include "setup.h"
 #include "setup_p.h"
+#include "defaults_p.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLockFile>
@@ -13,7 +14,7 @@ using namespace QtDataSync;
 static void initCleanupHandlers();
 Q_COREAPP_STARTUP_FUNCTION(initCleanupHandlers)
 
-const QString Setup::DefaultSetup(QStringLiteral("DefaultSetup"));
+const QString QtDataSync::DefaultSetup(QStringLiteral("DefaultSetup"));
 
 void Setup::setCleanupTimeout(unsigned long timeout)
 {
@@ -111,29 +112,30 @@ void Setup::create(const QString &name)
 	if(!lockFile->tryLock())
 		throw SetupLockedException(name);//TODO add extended lock info
 
+	//create defaults
+	DefaultsPrivate::createDefaults(name, storageDir, d->properties, d->serializer.take());
+
 	//TODO create engine
 	ExchangeEngine *engine = nullptr;
-
-	//create defaults
-	auto defaults = new Defaults(name, storageDir, d->properties, d->serializer.data()/*TODO , engine*/);
 
 	auto thread = new QThread();
 //	engine->moveToThread(thread);
 //	QObject::connect(thread, &QThread::started,
 //					 engine, &ExchangeEngine::initialize);
-//	QObject::connect(thread, &QThread::finished,
-//					 engine, &ExchangeEngine::deleteLater);
-//	QObject::connect(engine, &ExchangeEngine::destroyed, qApp, [lockFile](){
-//		lockFile->unlock();
-//		delete lockFile;
-//	}, Qt::DirectConnection);
+	QObject::connect(thread, &QThread::finished,
+					 /*engine, &ExchangeEngine::deleteLater);
+	QObject::connect(engine, &ExchangeEngine::destroyed,*/ qApp, [lockFile](){
+		lockFile->unlock();
+		delete lockFile;
+	}, Qt::DirectConnection);
 	QObject::connect(thread, &QThread::finished, thread, [name, thread](){
 		QMutexLocker _(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
+		DefaultsPrivate::removeDefaults(name);
 		thread->deleteLater();
 	}, Qt::QueuedConnection);
 	thread->start();
-	SetupPrivate::engines.insert(name, {thread, defaults, engine});
+	SetupPrivate::engines.insert(name, {thread, engine});
 }
 
 // ------------- Private Implementation -------------
@@ -141,12 +143,6 @@ void Setup::create(const QString &name)
 QMutex SetupPrivate::setupMutex(QMutex::Recursive);
 QHash<QString, SetupPrivate::SetupInfo> SetupPrivate::engines;
 unsigned long SetupPrivate::timeout = ULONG_MAX;
-
-Defaults *SetupPrivate::defaults(const QString &name)
-{
-	QMutexLocker _(&setupMutex);
-	return SetupPrivate::engines.value(name).defaults;
-}
 
 void SetupPrivate::cleanupHandler()
 {
@@ -156,6 +152,8 @@ void SetupPrivate::cleanupHandler()
 			//TODO QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
 			info.engine = nullptr;
 		}
+		//DEBUG
+		info.thread->quit();
 	}
 	foreach (auto info, engines) {
 		if(!info.thread->wait(timeout)) {
@@ -165,6 +163,7 @@ void SetupPrivate::cleanupHandler()
 		info.thread->deleteLater();
 	}
 	engines.clear();
+	DefaultsPrivate::clearDefaults();
 }
 
 SetupPrivate::SetupPrivate() :
@@ -175,12 +174,11 @@ SetupPrivate::SetupPrivate() :
 {}
 
 SetupPrivate::SetupInfo::SetupInfo() :
-	SetupInfo(nullptr, nullptr, nullptr)
+	SetupInfo(nullptr, nullptr)
 {}
 
-SetupPrivate::SetupInfo::SetupInfo(QThread *thread, Defaults *defaults, ExchangeEngine *engine) :
+SetupPrivate::SetupInfo::SetupInfo(QThread *thread, ExchangeEngine *engine) :
 	thread(thread),
-	defaults(defaults),
 	engine(engine)
 {}
 

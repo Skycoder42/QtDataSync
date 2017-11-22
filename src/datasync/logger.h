@@ -2,7 +2,6 @@
 #define QTDATASYNC_LOGGER_H
 
 #include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/setup.h"
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qdebug.h>
@@ -18,7 +17,7 @@ class Q_DATASYNC_EXPORT Logger : public QObject
 
 public:
 	//! Constructor, internally used by Defaults::createLogger
-	explicit Logger(QByteArray subCategory, const QString &setupName = Setup::DefaultSetup, QObject *parent = nullptr);
+	explicit Logger(QByteArray subCategory, const QString &setupName, QObject *parent = nullptr);
 	//! Destructor
 	~Logger();
 

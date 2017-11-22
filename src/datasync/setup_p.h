@@ -19,18 +19,15 @@ class Q_DATASYNC_EXPORT SetupPrivate
 	friend class Setup;
 
 public:
-	static Defaults *defaults(const QString &name = Setup::DefaultSetup);
-
 	static void cleanupHandler();
 
 private:
 	struct SetupInfo {
 		QThread *thread;
-		Defaults *defaults;
 		ExchangeEngine *engine;
 
 		SetupInfo();
-		SetupInfo(QThread *thread, Defaults *defaults, ExchangeEngine *engine);
+		SetupInfo(QThread *thread, ExchangeEngine *engine);
 	};
 
 	static QMutex setupMutex;
@@ -38,7 +35,7 @@ private:
 	static unsigned long timeout;
 
 	QString localDir;
-	QScopedPointer<QJsonSerializer> serializer;
+	QScopedPointer<QJsonSerializer> serializer;//TODO use normal pointer instead
 	QHash<QByteArray, QVariant> properties;
 	std::function<void (QString, bool, QString)> fatalErrorHandler;
 

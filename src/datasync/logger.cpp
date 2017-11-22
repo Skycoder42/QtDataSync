@@ -1,6 +1,5 @@
 #include "logger.h"
 #include "logger_p.h"
-#include "setup_p.h"
 using namespace QtDataSync;
 
 Logger::Logger(QByteArray subCategory, const QString &setupName, QObject *parent) :

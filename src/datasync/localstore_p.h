@@ -7,6 +7,8 @@
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 
+#include <QtSql/QSqlDatabase>
+
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT LocalStore : public QObject
@@ -27,6 +29,10 @@ public:
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
 
 private:
+	Defaults defaults;
+
+	QSqlDatabase db;
+	DatabaseRef dbRef;
 };
 
 }

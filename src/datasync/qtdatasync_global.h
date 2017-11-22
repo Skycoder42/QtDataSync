@@ -11,6 +11,9 @@
 
 namespace QtDataSync {
 
+//! The default setup name
+extern Q_DATASYNC_EXPORT const QString DefaultSetup;
+
 struct Q_DATASYNC_EXPORT ObjectKey
 {
 	QByteArray typeName;

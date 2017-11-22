@@ -1,15 +1,16 @@
 #include "localstore_p.h"
 
-#include "setup.h"
-
 using namespace QtDataSync;
 
 LocalStore::LocalStore(QObject *parent) :
-	LocalStore(Setup::DefaultSetup, parent)
+	LocalStore(DefaultSetup, parent)
 {}
 
 LocalStore::LocalStore(const QString &setupName, QObject *parent) :
-	QObject(parent)
+	QObject(parent),
+	defaults(setupName),
+	db(),
+	dbRef(defaults.aquireDatabase(db))
 {}
 
 quint64 LocalStore::count(const QByteArray &typeName)

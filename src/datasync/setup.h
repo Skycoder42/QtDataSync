@@ -19,9 +19,6 @@ class Q_DATASYNC_EXPORT Setup
 	Q_DISABLE_COPY(Setup)
 
 public:
-	//! The default setup name
-	static const QString DefaultSetup;
-
 	//! Sets the maximum timeout for shutting down setups
 	static void setCleanupTimeout(unsigned long timeout);
 	//! Stops the datasync instance and removes it
