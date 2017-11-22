@@ -3,11 +3,15 @@
 
 #include "qtdatasync_global.h"
 #include "defaults.h"
+#include "logger.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
+#include <QtCore/QCache>
 
 #include <QtSql/QSqlDatabase>
+
+#include <QReadWriteLock>
 
 namespace QtDataSync {
 
@@ -28,11 +32,24 @@ public:
 	void remove(const ObjectKey &id);
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
 
-private:
-	Defaults defaults;
+Q_SIGNALS:
+	void dataChanged(const ObjectKey &key);
 
-	QSqlDatabase db;
+private:
+	static QReadWriteLock globalLock;
+
+	Defaults defaults;
+	Logger *logger;
+
+	QSqlDatabase database;
 	DatabaseRef dbRef;
+
+	QHash<QByteArray, QString> tableNameCache;
+	QCache<ObjectKey, QJsonObject> dataCache;//TODO clear on changed
+
+	QString table(const QByteArray &typeName);
+	QDir typeDirectory(const QByteArray &typeName);
+	QJsonObject readJson(const QByteArray &typeName, const QString &fileName);
 };
 
 }
