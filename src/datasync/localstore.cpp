@@ -78,12 +78,12 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 		return {};
 
 	QSqlQuery loadQuery(database);
-	loadQuery.prepare(QStringLiteral("SELECT File FROM %1").arg(table));
+	loadQuery.prepare(QStringLiteral("SELECT Key, File FROM %1").arg(table));
 	EXEC_QUERY(loadQuery, typeName);
 
 	QList<QJsonObject> array;
 	while(loadQuery.next())
-		array.append(readJson(table, loadQuery.value(0).toString(), typeName));
+		array.append(readJson(table, loadQuery.value(1).toString(), {typeName, loadQuery.value(0).toString()}));
 	return array;
 }
 
@@ -153,14 +153,56 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 	}
 }
 
-void LocalStore::remove(const ObjectKey &key)
+bool LocalStore::remove(const ObjectKey &key)
 {
+	QWriteLocker _(&globalLock);
 
+	auto table = getTable(key.typeName);
+	if(table.isEmpty()) //no table -> nothing to delete
+		return false;
+
+	QSqlQuery loadQuery(database);
+	loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
+	loadQuery.addBindValue(key.id);
+	EXEC_QUERY(loadQuery, key);
+
+	if(loadQuery.first()) {
+		auto tableDir = typeDirectory(table, key);
+		auto fileName = tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat"));
+		if(!QFile::remove(fileName))
+			throw LocalStoreException(defaults, key, fileName, QStringLiteral("Failed to delete file"));
+
+		QSqlQuery removeQuery(database);
+		removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(table));
+		removeQuery.addBindValue(key.id);
+		EXEC_QUERY(removeQuery, key);
+
+		return true;
+	} else
+		return false;
 }
 
 QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &query)
 {
+	QReadLocker _(&globalLock);
 
+	auto table = getTable(typeName);
+	if(table.isEmpty())
+		return {};
+
+	auto searchQuery = query;
+	searchQuery.replace(QLatin1Char('*'), QLatin1Char('%'));
+	searchQuery.replace(QLatin1Char('?'), QLatin1Char('_'));
+
+	QSqlQuery findQuery(database);
+	findQuery.prepare(QStringLiteral("SELECT Key, File FROM %1 WHERE Key LIKE ?").arg(table));
+	findQuery.addBindValue(searchQuery);
+	EXEC_QUERY(findQuery, typeName);
+
+	QList<QJsonObject> array;
+	while(findQuery.next())
+		array.append(readJson(table, findQuery.value(1).toString(), {typeName, findQuery.value(0).toString()}));
+	return array;
 }
 
 QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
@@ -243,7 +285,7 @@ QString LocalStoreException::context() const
 	return _context;
 }
 
-QString QtDataSync::LocalStoreException::qWhat() const
+QString LocalStoreException::qWhat() const
 {
 	QString msg = Exception::qWhat() +
 				  QStringLiteral("\n\tContext: %1"
@@ -255,12 +297,12 @@ QString QtDataSync::LocalStoreException::qWhat() const
 	return msg;
 }
 
-void QtDataSync::LocalStoreException::raise() const
+void LocalStoreException::raise() const
 {
 	throw (*this);
 }
 
-QException *QtDataSync::LocalStoreException::clone() const
+QException *LocalStoreException::clone() const
 {
 	return new LocalStoreException(this);
 }

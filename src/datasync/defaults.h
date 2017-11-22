@@ -2,6 +2,7 @@
 #define QTDATASYNC_DEFAULTS_H
 
 #include "QtDataSync/qtdatasync_global.h"
+#include "QtDataSync/exception.h"
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qobject.h>
@@ -61,6 +62,18 @@ public:
 
 private:
 	QSharedPointer<DefaultsPrivate> d;
+};
+
+class Q_DATASYNC_EXPORT SetupDoesNotExistException : public Exception
+{
+public:
+	SetupDoesNotExistException(const QString &setupName);
+
+	void raise() const override;
+	QException *clone() const override;
+
+protected:
+	SetupDoesNotExistException(const SetupDoesNotExistException * const other);
 };
 
 }

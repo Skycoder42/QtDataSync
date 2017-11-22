@@ -30,7 +30,7 @@ public:
 	QList<QJsonObject> loadAll(const QByteArray &typeName);
 	QJsonObject load(const ObjectKey &key);
 	void save(const ObjectKey &key, const QJsonObject &data);
-	void remove(const ObjectKey &key);
+	bool remove(const ObjectKey &key);
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
 
 Q_SIGNALS:

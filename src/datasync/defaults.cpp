@@ -17,7 +17,8 @@ const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_databas
 Defaults::Defaults(const QString &setupName) :
 	d(DefaultsPrivate::obtainDefaults(setupName))
 {
-	Q_ASSERT_X(d, Q_FUNC_INFO, "You can't obtain non-existant defaults");//TODO exception
+	if(!d)
+		throw SetupDoesNotExistException(setupName);
 }
 
 Defaults::Defaults(const Defaults &other) :
@@ -116,7 +117,7 @@ QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &s
 	return setupDefaults.value(setupName);
 }
 
-QtDataSync::DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, QJsonSerializer *serializer) :
+DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, QJsonSerializer *serializer) :
 	setupName(setupName),
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
@@ -172,4 +173,24 @@ DatabaseRefPrivate::~DatabaseRefPrivate()
 {
 	memberDb = QSqlDatabase();
 	defaultsPrivate->releaseDatabase();
+}
+
+// ------------- Exceptions -------------
+
+SetupDoesNotExistException::SetupDoesNotExistException(const QString &setupName) :
+	Exception(setupName, QStringLiteral("The requested setup does not exist! Create it with Setup::create"))
+{}
+
+SetupDoesNotExistException::SetupDoesNotExistException(const SetupDoesNotExistException * const other) :
+	Exception(other)
+{}
+
+void SetupDoesNotExistException::raise() const
+{
+	throw (*this);
+}
+
+QException *SetupDoesNotExistException::clone() const
+{
+	return new SetupDoesNotExistException(this);
 }
