@@ -59,11 +59,6 @@ QJsonSerializer *Setup::serializer() const
 	return d->serializer.data();
 }
 
-QVariant Setup::property(const QByteArray &key) const
-{
-	return d->properties.value(key);
-}
-
 std::function<void (QString, bool, QString)> Setup::fatalErrorHandler() const
 {
 	return d->fatalErrorHandler;
@@ -78,12 +73,6 @@ Setup &Setup::setLocalDir(QString localDir)
 Setup &Setup::setSerializer(QJsonSerializer *serializer)
 {
 	d->serializer.reset(serializer);
-	return *this;
-}
-
-Setup &Setup::setProperty(const QByteArray &key, const QVariant &data)
-{
-	d->properties.insert(key, data);
 	return *this;
 }
 
@@ -135,6 +124,21 @@ void Setup::create(const QString &name)
 	}, Qt::QueuedConnection);
 	thread->start();
 	SetupPrivate::engines.insert(name, {thread, engine});
+}
+
+int Setup::cacheSize() const
+{
+	return d->properties.value(Defaults::CacheSize, MB(10)).toInt();
+}
+
+void Setup::setCacheSize(int cacheSize)
+{
+	d->properties.insert(Defaults::CacheSize, cacheSize);
+}
+
+void Setup::resetCacheSize()
+{
+	d->properties.insert(Defaults::CacheSize, MB(10));
 }
 
 // ------------- Private Implementation -------------

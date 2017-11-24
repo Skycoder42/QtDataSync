@@ -39,7 +39,14 @@ class DefaultsPrivate;
 //! A helper class to get defaults per datasync instance (threadsafe)
 class Q_DATASYNC_EXPORT Defaults
 {
+	Q_GADGET
+
 public:
+	enum PropertyKey {
+		CacheSize
+	};
+	Q_ENUM(PropertyKey)
+
 	//! Copy constructor
 	Defaults(const QString &setupName);
 	Defaults(const Defaults &other);
@@ -56,6 +63,7 @@ public:
 	QSettings *createSettings(QObject *parent = nullptr) const;
 	//! Returns the serializer of the current setup
 	const QJsonSerializer *serializer() const;
+	QVariant property(PropertyKey key) const;
 
 	//! Aquire the standard sqlite database
 	DatabaseRef aquireDatabase(QSqlDatabase &dbMember);

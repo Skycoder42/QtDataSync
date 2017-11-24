@@ -31,7 +31,7 @@ public:
 
 	static void createDefaults(const QString &setupName,
 							   const QDir &storageDir,
-							   const QHash<QByteArray, QVariant> &properties,
+							   const QHash<Defaults::PropertyKey, QVariant> &properties,
 							   QJsonSerializer *serializer);
 	static void removeDefaults(const QString &setupName);
 	static void clearDefaults();
@@ -39,7 +39,7 @@ public:
 
 	DefaultsPrivate(const QString &setupName,
 					const QDir &storageDir,
-					const QHash<QByteArray, QVariant> &properties,
+					const QHash<Defaults::PropertyKey, QVariant> &properties,
 					QJsonSerializer *serializer);
 	~DefaultsPrivate();
 
@@ -54,6 +54,7 @@ private:
 	QDir storageDir;
 	Logger *logger;
 	QJsonSerializer *serializer;
+	QHash<Defaults::PropertyKey, QVariant> properties;
 
 	quint64 dbRefCounter;
 };

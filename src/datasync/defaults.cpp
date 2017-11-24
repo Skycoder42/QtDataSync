@@ -53,6 +53,11 @@ const QJsonSerializer *Defaults::serializer() const
 	return d->serializer;
 }
 
+QVariant Defaults::property(Defaults::PropertyKey key) const
+{
+	return d->properties.value(key);
+}
+
 DatabaseRef Defaults::aquireDatabase(QSqlDatabase &dbMember)
 {
 	return DatabaseRef(new DatabaseRefPrivate(d, dbMember));
@@ -93,7 +98,7 @@ DatabaseRef &DatabaseRef::operator =(DatabaseRef &&other)
 QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
 
-void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, QJsonSerializer *serializer)
+void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer)
 {
 	QMutexLocker _(&setupDefaultsMutex);
 	setupDefaults.insert(setupName, QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, properties, serializer));
@@ -117,16 +122,15 @@ QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &s
 	return setupDefaults.value(setupName);
 }
 
-DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QHash<QByteArray, QVariant> &properties, QJsonSerializer *serializer) :
+DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer) :
 	setupName(setupName),
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
 	serializer(serializer),
+	properties(properties),
 	dbRefCounter(0)
 {
 	serializer->setParent(this);
-	for(auto it = properties.constBegin(); it != properties.constEnd(); it++)
-		setProperty(it.key().constData(), it.value());
 }
 
 DefaultsPrivate::~DefaultsPrivate()

@@ -11,9 +11,6 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG logger
 
-#define KB(x) (x*1024)
-#define MB(x) (KB(x)*1024)
-
 #define EXEC_QUERY(query, key) do {\
 	if(!query.exec()) { \
 		throw LocalStoreException(defaults, key, database.databaseName(), query.lastError().text()); \
@@ -33,7 +30,7 @@ LocalStore::LocalStore(const QString &setupName, QObject *parent) :
 	database(),
 	dbRef(defaults.aquireDatabase(database)),
 	tableNameCache(),
-	dataCache(MB(10)) //TODO via defaults
+	dataCache(defaults.property(Defaults::CacheSize).toInt())
 {}
 
 quint64 LocalStore::count(const QByteArray &typeName)

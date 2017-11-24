@@ -11,13 +11,20 @@
 
 class QJsonSerializer;
 
+#define KB(x) (x*1024)
+#define MB(x) (KB(x)*1024)
+#define GB(x) (MB(x)*1024)
+
 namespace QtDataSync {
 
 class SetupPrivate;
 //! The class to setup and create datasync instances
 class Q_DATASYNC_EXPORT Setup
 {
+	Q_GADGET
 	Q_DISABLE_COPY(Setup)
+
+	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 
 public:
 	//! Sets the maximum timeout for shutting down setups
@@ -34,8 +41,6 @@ public:
 	QString localDir() const;
 	//! Returns the setups json serializer
 	QJsonSerializer *serializer() const;
-	//! Returns the additional property with the given key
-	QVariant property(const QByteArray &key) const;
 	//! Returns the fatal error handler to be used by the Logger
 	std::function<void(QString,bool,QString)> fatalErrorHandler() const;
 
@@ -43,13 +48,15 @@ public:
 	Setup &setLocalDir(QString localDir);
 	//! Sets the setups json serializer
 	Setup &setSerializer(QJsonSerializer *serializer);
-	//! Sets the additional property with the given key to data
-	Setup &setProperty(const QByteArray &key, const QVariant &data);
 	//! Sets the fatal error handler to be used by the Logger
 	Setup &setFatalErrorHandler(const std::function<void(QString,bool,QString)> &fatalErrorHandler);
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);
+
+	int cacheSize() const;
+	void setCacheSize(int cacheSize);
+	void resetCacheSize();
 
 private:
 	QScopedPointer<SetupPrivate> d;

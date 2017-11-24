@@ -36,7 +36,7 @@ private:
 
 	QString localDir;
 	QScopedPointer<QJsonSerializer> serializer;//TODO use normal pointer instead
-	QHash<QByteArray, QVariant> properties;
+	QHash<Defaults::PropertyKey, QVariant> properties;
 	std::function<void (QString, bool, QString)> fatalErrorHandler;
 
 	SetupPrivate();
