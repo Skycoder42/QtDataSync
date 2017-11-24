@@ -23,7 +23,21 @@ struct Q_DATASYNC_EXPORT ObjectKey
 		typeName(typeName),
 		id(id)
 	{}
+
+	inline bool operator ==(const ObjectKey &other) const {
+		return typeName == other.typeName &&
+			id == other.id;
+	}
+
+	inline bool operator !=(const ObjectKey &other) const {
+		return typeName != other.typeName ||
+			id != other.id;
+	}
 };
+
+inline uint Q_DATASYNC_EXPORT qHash(const ObjectKey &key, uint seed = 0) {
+	return qHash(key.typeName, seed) ^ qHash(key.id, seed);
+}
 
 }
 

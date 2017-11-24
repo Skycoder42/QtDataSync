@@ -11,6 +11,9 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG logger
 
+#define KB(x) (x*1024)
+#define MB(x) (KB(x)*1024)
+
 #define EXEC_QUERY(query, key) do {\
 	if(!query.exec()) { \
 		throw LocalStoreException(defaults, key, database.databaseName(), query.lastError().text()); \
@@ -30,7 +33,7 @@ LocalStore::LocalStore(const QString &setupName, QObject *parent) :
 	database(),
 	dbRef(defaults.aquireDatabase(database)),
 	tableNameCache(),
-	dataCache()
+	dataCache(MB(10)) //TODO via defaults
 {}
 
 quint64 LocalStore::count(const QByteArray &typeName)
@@ -81,15 +84,25 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 	loadQuery.prepare(QStringLiteral("SELECT Key, File FROM %1").arg(table));
 	EXEC_QUERY(loadQuery, typeName);
 
-	QList<QJsonObject> array;
-	while(loadQuery.next())
-		array.append(readJson(table, loadQuery.value(1).toString(), {typeName, loadQuery.value(0).toString()}));
+	QList<QJsonObject> array;//do not cache
+	while(loadQuery.next()) {
+		int size;
+		ObjectKey key {typeName, loadQuery.value(0).toString()};
+		auto json = readJson(table, loadQuery.value(1).toString(), key, &size);
+		array.append(json);
+		dataCache.insert(key, new QJsonObject(json), size);
+	}
 	return array;
 }
 
 QJsonObject LocalStore::load(const ObjectKey &key)
 {
 	QReadLocker _(&globalLock);
+
+	//check if cached
+	auto data = dataCache.object(key);
+	if(data)
+		return *data;
 
 	auto table = getTable(key.typeName);
 	if(table.isEmpty())
@@ -100,9 +113,12 @@ QJsonObject LocalStore::load(const ObjectKey &key)
 	loadQuery.addBindValue(key.id);
 	EXEC_QUERY(loadQuery, key);
 
-	if(loadQuery.first())
-		return readJson(table, loadQuery.value(0).toString(), key);
-	else
+	if(loadQuery.first()) {
+		int size;
+		auto json = readJson(table, loadQuery.value(0).toString(), key, &size);
+		dataCache.insert(key, new QJsonObject(json), size);
+		return json;
+	} else
 		throw NoDataException(defaults, key);
 }
 
@@ -139,6 +155,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 	//save the file
 	QJsonDocument doc(data);
 	file->write(doc.toBinaryData());
+	auto size = file->size();
 	file->close();
 	if(file->error() != QFile::NoError)
 		throw LocalStoreException(defaults, key, file->fileName(), file->errorString());
@@ -151,6 +168,9 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 		insertQuery.addBindValue(tableDir.relativeFilePath(QFileInfo(file->fileName()).completeBaseName()));
 		EXEC_QUERY(insertQuery, key);
 	}
+
+	//update cache
+	dataCache.insert(key, new QJsonObject(data), size);
 }
 
 bool LocalStore::remove(const ObjectKey &key)
@@ -177,6 +197,9 @@ bool LocalStore::remove(const ObjectKey &key)
 		removeQuery.addBindValue(key.id);
 		EXEC_QUERY(removeQuery, key);
 
+		//update cache
+		dataCache.remove(key);
+
 		return true;
 	} else
 		return false;
@@ -200,8 +223,13 @@ QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &q
 	EXEC_QUERY(findQuery, typeName);
 
 	QList<QJsonObject> array;
-	while(findQuery.next())
-		array.append(readJson(table, findQuery.value(1).toString(), {typeName, findQuery.value(0).toString()}));
+	while(findQuery.next()) {
+		int size;
+		ObjectKey key {typeName, findQuery.value(0).toString()};
+		auto json = readJson(table, findQuery.value(1).toString(), key, &size);
+		array.append(json);
+		dataCache.insert(key, new QJsonObject(json), size);
+	}
 	return array;
 }
 
@@ -246,18 +274,19 @@ QDir LocalStore::typeDirectory(const QString &tableName, const ObjectKey &key)
 		return tableDir;
 }
 
-QJsonObject LocalStore::readJson(const QString &tableName, const QString &fileName, const ObjectKey &key)
+QJsonObject LocalStore::readJson(const QString &tableName, const QString &fileName, const ObjectKey &key, int *costs)
 {
 	QFile file(typeDirectory(tableName, key).absoluteFilePath(fileName + QStringLiteral(".dat")));
 	if(!file.open(QIODevice::ReadOnly))
 		throw LocalStoreException(defaults, key, file.fileName(), file.errorString());
+
 	auto doc = QJsonDocument::fromBinaryData(file.readAll());
+	if(costs)
+		*costs = file.size();
 	file.close();
 
-	if(!doc.isObject()) {
+	if(!doc.isObject())
 		throw LocalStoreException(defaults, key, file.fileName(), QStringLiteral("File contains invalid json data"));
-	}
-
 	return doc.object();
 }
 

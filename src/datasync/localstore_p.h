@@ -50,7 +50,7 @@ private:
 
 	QString getTable(const QByteArray &typeName, bool allowCreate = false);
 	QDir typeDirectory(const QString &tableName, const ObjectKey &key);
-	QJsonObject readJson(const QString &tableName, const QString &fileName, const ObjectKey &key);
+	QJsonObject readJson(const QString &tableName, const QString &fileName, const ObjectKey &key, int *costs = nullptr);
 };
 
 class Q_DATASYNC_EXPORT LocalStoreException : public Exception
