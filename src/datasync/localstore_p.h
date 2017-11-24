@@ -42,8 +42,7 @@ private:
 	Defaults defaults;
 	Logger *logger;
 
-	QSqlDatabase database;
-	DatabaseRef dbRef;
+	DatabaseRef database;
 
 	QHash<QByteArray, QString> tableNameCache;
 	QCache<ObjectKey, QJsonObject> dataCache;//TODO clear on changed

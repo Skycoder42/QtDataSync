@@ -13,7 +13,7 @@ using namespace QtDataSync;
 
 #define EXEC_QUERY(query, key) do {\
 	if(!query.exec()) { \
-		throw LocalStoreException(defaults, key, database.databaseName(), query.lastError().text()); \
+		throw LocalStoreException(defaults, key, database->databaseName(), query.lastError().text()); \
 	} \
 } while(false)
 
@@ -27,8 +27,7 @@ LocalStore::LocalStore(const QString &setupName, QObject *parent) :
 	QObject(parent),
 	defaults(setupName),
 	logger(defaults.createLogger(staticMetaObject.className(), this)),
-	database(),
-	dbRef(defaults.aquireDatabase(database)),
+	database(defaults.aquireDatabase(this)),
 	tableNameCache(),
 	dataCache(defaults.property(Defaults::CacheSize).toInt())
 {}
@@ -239,7 +238,7 @@ QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
 		auto tableName = QStringLiteral("data_%1")
 						 .arg(QString::fromUtf8(encName));
 
-		if(!database.tables().contains(tableName)) {
+		if(!database->tables().contains(tableName)) {
 			if(allowCreate) {
 				QSqlQuery createQuery(database);
 				createQuery.prepare(QStringLiteral("CREATE TABLE %1 ("
@@ -250,7 +249,7 @@ QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
 												   "PRIMARY KEY(Key)"
 												   ");").arg(tableName));
 				if(!createQuery.exec())
-					throw LocalStoreException(defaults, typeName, database.databaseName(), createQuery.lastError().text());
+					throw LocalStoreException(defaults, typeName, database->databaseName(), createQuery.lastError().text());
 
 				tableNameCache.insert(typeName, tableName);
 			}

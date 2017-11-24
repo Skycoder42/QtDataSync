@@ -12,7 +12,7 @@
 
 namespace QtDataSync {
 
-class ExchangeEngine;//TODO include
+class ExchangeEngine;
 
 class Q_DATASYNC_EXPORT SetupPrivate
 {

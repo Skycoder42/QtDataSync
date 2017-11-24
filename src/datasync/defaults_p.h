@@ -6,20 +6,25 @@
 #include "logger.h"
 
 #include <QtCore/QMutex>
+#include <QtCore/QThreadStorage>
 #include <QtSql/QSqlDatabase>
 #include <QtJsonSerializer/QJsonSerializer>
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT DatabaseRefPrivate
+class Q_DATASYNC_EXPORT DatabaseRefPrivate : public QObject
 {
 public:
-	DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QSqlDatabase &memberDb);
+	DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object);
 	~DatabaseRefPrivate();
+
+	QSqlDatabase &db();
+	bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
 	QSharedPointer<DefaultsPrivate> defaultsPrivate;
-	QSqlDatabase &memberDb;
+	QObject *object;
+	QSqlDatabase database;
 };
 
 class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject
@@ -41,10 +46,9 @@ public:
 					const QDir &storageDir,
 					const QHash<Defaults::PropertyKey, QVariant> &properties,
 					QJsonSerializer *serializer);
-	~DefaultsPrivate();
 
-	QSqlDatabase acquireDatabase();
-	void releaseDatabase();
+	QSqlDatabase acquireDatabase(QThread *thread);
+	void releaseDatabase(QThread *thread);
 
 private:
 	static QMutex setupDefaultsMutex;
@@ -56,7 +60,7 @@ private:
 	QJsonSerializer *serializer;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 
-	quint64 dbRefCounter;
+	QThreadStorage<quint64> dbRefCounter;
 };
 
 }

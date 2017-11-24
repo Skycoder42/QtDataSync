@@ -4,6 +4,7 @@
 #include <QtCore/QThread>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDebug>
+#include <QtCore/QEvent>
 
 #include <QtSql/QSqlError>
 
@@ -11,8 +12,6 @@
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger
-
-const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_database_%1"));
 
 Defaults::Defaults(const QString &setupName) :
 	d(DefaultsPrivate::obtainDefaults(setupName))
@@ -58,9 +57,9 @@ QVariant Defaults::property(Defaults::PropertyKey key) const
 	return d->properties.value(key);
 }
 
-DatabaseRef Defaults::aquireDatabase(QSqlDatabase &dbMember)
+DatabaseRef Defaults::aquireDatabase(QObject *object)
 {
-	return DatabaseRef(new DatabaseRefPrivate(d, dbMember));
+	return DatabaseRef(new DatabaseRefPrivate(d, object));
 }
 
 
@@ -89,12 +88,28 @@ DatabaseRef &DatabaseRef::operator =(DatabaseRef &&other)
 	return (*this);
 }
 
+QSqlDatabase DatabaseRef::database() const
+{
+	return d->db();
+}
+
+DatabaseRef::operator QSqlDatabase() const
+{
+	return d->db();
+}
+
+QSqlDatabase *DatabaseRef::operator ->() const
+{
+	return &(d->db());
+}
+
 
 
 
 #undef QTDATASYNC_LOG
 #define QTDATASYNC_LOG logger
 
+const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_database_%1_0x%2"));
 QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
 
@@ -128,21 +143,17 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	logger(new Logger("defaults", setupName, this)),
 	serializer(serializer),
 	properties(properties),
-	dbRefCounter(0)
+	dbRefCounter()
 {
 	serializer->setParent(this);
 }
 
-DefaultsPrivate::~DefaultsPrivate()
+QSqlDatabase DefaultsPrivate::acquireDatabase(QThread *thread)
 {
-	if(dbRefCounter != 0)
-		logWarning() << "Number of database references is not 0 on destruction!";
-}
-
-QSqlDatabase DefaultsPrivate::acquireDatabase()
-{
-	auto name = DefaultsPrivate::DatabaseName.arg(setupName);
-	if(dbRefCounter++ == 0) {
+	auto name = DefaultsPrivate::DatabaseName
+				.arg(setupName)
+				.arg(QString::number((quint64)thread, 16));
+	if(dbRefCounter.localData()++ == 0) {
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		if(!database.open()) {
@@ -155,10 +166,12 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 	return QSqlDatabase::database(name);
 }
 
-void DefaultsPrivate::releaseDatabase()
+void DefaultsPrivate::releaseDatabase(QThread *thread)
 {
-	if(--dbRefCounter == 0) {
-		auto name = DefaultsPrivate::DatabaseName.arg(setupName);
+	if(--dbRefCounter.localData() == 0) {
+		auto name = DefaultsPrivate::DatabaseName
+					.arg(setupName)
+					.arg(QString::number((quint64)thread, 16));
 		QSqlDatabase::database(name).close();
 		QSqlDatabase::removeDatabase(name);
 	}
@@ -166,17 +179,39 @@ void DefaultsPrivate::releaseDatabase()
 
 
 
-DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QSqlDatabase &memberDb) :
+DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object) :
 	defaultsPrivate(defaultsPrivate),
-	memberDb(memberDb)
+	object(object),
+	database()
 {
-	memberDb = defaultsPrivate->acquireDatabase();
+	object->installEventFilter(this);
 }
 
 DatabaseRefPrivate::~DatabaseRefPrivate()
 {
-	memberDb = QSqlDatabase();
-	defaultsPrivate->releaseDatabase();
+	if(database.isValid()) {
+		database = QSqlDatabase();
+		defaultsPrivate->releaseDatabase(QThread::currentThread());
+	}
+}
+
+QSqlDatabase &DatabaseRefPrivate::db()
+{
+	if(!database.isValid())
+		database = defaultsPrivate->acquireDatabase(QThread::currentThread());
+	return database;
+}
+
+bool DatabaseRefPrivate::eventFilter(QObject *watched, QEvent *event)
+{
+	if(event->type() == QEvent::ThreadChange && watched == object) {
+		if(database.isValid()) {
+			database = QSqlDatabase();
+			defaultsPrivate->releaseDatabase(QThread::currentThread());
+		}
+	}
+
+	return false;
 }
 
 // ------------- Exceptions -------------

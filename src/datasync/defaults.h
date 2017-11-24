@@ -31,6 +31,10 @@ public:
 	DatabaseRef(DatabaseRef &&other);
 	DatabaseRef &operator =(DatabaseRef &&other);
 
+	QSqlDatabase database() const;
+	operator QSqlDatabase() const;
+	QSqlDatabase *operator ->() const;
+
 private:
 	QScopedPointer<DatabaseRefPrivate> d;
 };
@@ -66,7 +70,7 @@ public:
 	QVariant property(PropertyKey key) const;
 
 	//! Aquire the standard sqlite database
-	DatabaseRef aquireDatabase(QSqlDatabase &dbMember);
+	DatabaseRef aquireDatabase(QObject *object);
 
 private:
 	QSharedPointer<DefaultsPrivate> d;
