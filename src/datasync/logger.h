@@ -1,11 +1,11 @@
 #ifndef QTDATASYNC_LOGGER_H
 #define QTDATASYNC_LOGGER_H
 
-#include "QtDataSync/qtdatasync_global.h"
-
 #include <QtCore/qglobal.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
+
+#include "QtDataSync/qtdatasync_global.h"
 
 namespace QtDataSync {
 

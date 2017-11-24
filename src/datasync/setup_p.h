@@ -1,14 +1,14 @@
 #ifndef QTDATASYNC_SETUP_P_H
 #define QTDATASYNC_SETUP_P_H
 
-#include "qtdatasync_global.h"
-#include "setup.h"
-#include "defaults.h"
-
 #include <QtCore/QMutex>
 #include <QtCore/QThread>
 
 #include <QtJsonSerializer/QJsonSerializer>
+
+#include "qtdatasync_global.h"
+#include "setup.h"
+#include "defaults.h"
 
 namespace QtDataSync {
 

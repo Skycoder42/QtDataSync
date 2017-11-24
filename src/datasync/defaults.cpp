@@ -8,7 +8,6 @@
 
 #include <QtSql/QSqlError>
 
-
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger

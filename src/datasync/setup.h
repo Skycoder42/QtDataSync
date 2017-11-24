@@ -1,13 +1,13 @@
 #ifndef QTDATASYNC_SETUP_H
 #define QTDATASYNC_SETUP_H
 
-#include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/defaults.h"
-#include "QtDataSync/exception.h"
-
 #include <QtCore/qobject.h>
 
 #include <functional>
+
+#include "QtDataSync/qtdatasync_global.h"
+#include "QtDataSync/defaults.h"
+#include "QtDataSync/exception.h"
 
 class QJsonSerializer;
 

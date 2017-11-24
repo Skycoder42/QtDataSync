@@ -1,15 +1,15 @@
 #ifndef QTDATASYNC_DEFAULTS_H
 #define QTDATASYNC_DEFAULTS_H
 
-#include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/exception.h"
-
 #include <QtCore/qglobal.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qdebug.h>
+
+#include "QtDataSync/qtdatasync_global.h"
+#include "QtDataSync/exception.h"
 
 class QSqlDatabase;
 class QJsonSerializer;

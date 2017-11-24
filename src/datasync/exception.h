@@ -1,9 +1,9 @@
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
 
-#include "qtdatasync_global.h"
-
 #include <QtCore/qexception.h>
+
+#include "qtdatasync_global.h"
 
 namespace QtDataSync {
 

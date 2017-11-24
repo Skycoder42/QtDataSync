@@ -1,20 +1,31 @@
 #ifndef LOCALSTORE_P_H
 #define LOCALSTORE_P_H
 
+#include <QtCore/QObject>
+#include <QtCore/QPointer>
+#include <QtCore/QCache>
+#include <QtCore/QReadWriteLock>
+
+#include <QtSql/QSqlDatabase>
+
 #include "qtdatasync_global.h"
+#include "objectkey.h"
 #include "defaults.h"
 #include "logger.h"
 #include "exception.h"
 
-#include <QtCore/QObject>
-#include <QtCore/QPointer>
-#include <QtCore/QCache>
-
-#include <QtSql/QSqlDatabase>
-
-#include <QReadWriteLock>
-
 namespace QtDataSync {
+
+class Q_DATASYNC_EXPORT LocalStoreEmitter : public QObject
+{
+	Q_OBJECT
+
+public:
+	LocalStoreEmitter(QObject *parent = nullptr);
+
+Q_SIGNALS:
+	void dataChanged(QObject *origin, const ObjectKey &key, const QJsonObject data, int size);
+};
 
 class Q_DATASYNC_EXPORT LocalStore : public QObject
 {
@@ -34,7 +45,10 @@ public:
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
 
 Q_SIGNALS:
-	void dataChanged(const ObjectKey &key);
+	void dataChanged(const ObjectKey &key, bool deleted);
+
+private Q_SLOTS:
+	void onDataChange(QObject *origin, const ObjectKey &key, const QJsonObject &data, int size);
 
 private:
 	static QReadWriteLock globalLock;

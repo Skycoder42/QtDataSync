@@ -1,14 +1,16 @@
 #ifndef QTDATASYNC_DEFAULTS_P_H
 #define QTDATASYNC_DEFAULTS_P_H
 
+#include <QtCore/QMutex>
+#include <QtCore/QThreadStorage>
+
+#include <QtSql/QSqlDatabase>
+
+#include <QtJsonSerializer/QJsonSerializer>
+
 #include "qtdatasync_global.h"
 #include "defaults.h"
 #include "logger.h"
-
-#include <QtCore/QMutex>
-#include <QtCore/QThreadStorage>
-#include <QtSql/QSqlDatabase>
-#include <QtJsonSerializer/QJsonSerializer>
 
 namespace QtDataSync {
 
