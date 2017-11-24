@@ -125,48 +125,59 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 	auto table = getTable(key.typeName, true);
 	auto tableDir = typeDirectory(table, key);
 
-	//check if the file exists
-	QSqlQuery existQuery(database);
-	existQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
-	existQuery.addBindValue(key.id);
-	EXEC_QUERY(existQuery, key);
+	if(!database->transaction())
+		throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
-	auto needUpdate = false;
-	QScopedPointer<QFile> file;
-	if(existQuery.first()) {
-		file.reset(new QFile(tableDir.absoluteFilePath(existQuery.value(0).toString() + QStringLiteral(".dat"))));
-		if(!file->open(QIODevice::WriteOnly))
+	try {
+		//check if the file exists
+		QSqlQuery existQuery(database);
+		existQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
+		existQuery.addBindValue(key.id);
+		EXEC_QUERY(existQuery, key);
+
+		auto needUpdate = false;
+		QScopedPointer<QFile> file;
+		if(existQuery.first()) {
+			file.reset(new QFile(tableDir.absoluteFilePath(existQuery.value(0).toString() + QStringLiteral(".dat"))));
+			if(!file->open(QIODevice::WriteOnly))
+				throw LocalStoreException(defaults, key, file->fileName(), file->errorString());
+		} else {
+			auto fileName = QString::fromUtf8(QUuid::createUuid().toRfc4122().toHex());
+			fileName = tableDir.absoluteFilePath(QStringLiteral("%1XXXXXX.dat")).arg(fileName);
+			auto tFile = new QTemporaryFile(fileName);
+			tFile->setAutoRemove(false);
+			if(!tFile->open())
+				throw LocalStoreException(defaults, key, tFile->fileName(), tFile->errorString());
+			file.reset(tFile);
+			needUpdate = true;
+		}
+
+		//save the file
+		QJsonDocument doc(data);
+		file->write(doc.toBinaryData());
+		auto size = file->size();
+		file->close();
+		if(file->error() != QFile::NoError)
 			throw LocalStoreException(defaults, key, file->fileName(), file->errorString());
-	} else {
-		auto fileName = QString::fromUtf8(QUuid::createUuid().toRfc4122().toHex());
-		fileName = tableDir.absoluteFilePath(QStringLiteral("%1XXXXXX.dat")).arg(fileName);
-		auto tFile = new QTemporaryFile(fileName);
-		tFile->setAutoRemove(false);
-		if(!tFile->open())
-			throw LocalStoreException(defaults, key, tFile->fileName(), tFile->errorString());
-		file.reset(tFile);
-		needUpdate = true;
+
+		//save key in database
+		if(needUpdate) {
+			QSqlQuery insertQuery(database);
+			insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (Key, File) VALUES(?, ?)").arg(table));
+			insertQuery.addBindValue(key.id);
+			insertQuery.addBindValue(tableDir.relativeFilePath(QFileInfo(file->fileName()).completeBaseName()));
+			EXEC_QUERY(insertQuery, key);
+		}
+
+		if(!database->commit())
+			throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
+
+		//update cache
+		dataCache.insert(key, new QJsonObject(data), size);
+	} catch(...) {
+		database->rollback();
+		throw;
 	}
-
-	//save the file
-	QJsonDocument doc(data);
-	file->write(doc.toBinaryData());
-	auto size = file->size();
-	file->close();
-	if(file->error() != QFile::NoError)
-		throw LocalStoreException(defaults, key, file->fileName(), file->errorString());
-
-	//save key in database
-	if(needUpdate) {
-		QSqlQuery insertQuery(database);
-		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (Key, File) VALUES(?, ?)").arg(table));
-		insertQuery.addBindValue(key.id);
-		insertQuery.addBindValue(tableDir.relativeFilePath(QFileInfo(file->fileName()).completeBaseName()));
-		EXEC_QUERY(insertQuery, key);
-	}
-
-	//update cache
-	dataCache.insert(key, new QJsonObject(data), size);
 }
 
 bool LocalStore::remove(const ObjectKey &key)
@@ -177,28 +188,39 @@ bool LocalStore::remove(const ObjectKey &key)
 	if(table.isEmpty()) //no table -> nothing to delete
 		return false;
 
-	QSqlQuery loadQuery(database);
-	loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
-	loadQuery.addBindValue(key.id);
-	EXEC_QUERY(loadQuery, key);
+	if(!database->transaction())
+		throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
-	if(loadQuery.first()) {
-		auto tableDir = typeDirectory(table, key);
-		auto fileName = tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat"));
-		if(!QFile::remove(fileName))
-			throw LocalStoreException(defaults, key, fileName, QStringLiteral("Failed to delete file"));
+	try {
+		QSqlQuery loadQuery(database);
+		loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
+		loadQuery.addBindValue(key.id);
+		EXEC_QUERY(loadQuery, key);
 
-		QSqlQuery removeQuery(database);
-		removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(table));
-		removeQuery.addBindValue(key.id);
-		EXEC_QUERY(removeQuery, key);
+		if(loadQuery.first()) {
+			auto tableDir = typeDirectory(table, key);
+			auto fileName = tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat"));
+			if(!QFile::remove(fileName))
+				throw LocalStoreException(defaults, key, fileName, QStringLiteral("Failed to delete file"));
 
-		//update cache
-		dataCache.remove(key);
+			QSqlQuery removeQuery(database);
+			removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(table));
+			removeQuery.addBindValue(key.id);
+			EXEC_QUERY(removeQuery, key);
 
-		return true;
-	} else
-		return false;
+			if(!database->commit())
+				throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
+
+			//update cache
+			dataCache.remove(key);
+
+			return true;
+		} else
+			return false;
+	} catch(...) {
+		database->rollback();
+		throw;
+	}
 }
 
 QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &query)
