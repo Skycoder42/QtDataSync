@@ -25,6 +25,7 @@ public:
 
 Q_SIGNALS:
 	void dataChanged(QObject *origin, const ObjectKey &key, const QJsonObject data, int size);
+	void dataResetted(QObject *origin, const QByteArray &typeName = {});
 };
 
 class Q_DATASYNC_EXPORT LocalStore : public QObject
@@ -37,18 +38,24 @@ public:
 
 	quint64 count(const QByteArray &typeName);
 	QStringList keys(const QByteArray &typeName);
-
 	QList<QJsonObject> loadAll(const QByteArray &typeName);
+
 	QJsonObject load(const ObjectKey &key);
 	void save(const ObjectKey &key, const QJsonObject &data);
 	bool remove(const ObjectKey &key);
+
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
+	void clear(const QByteArray &typeName);
+	void reset();
 
 Q_SIGNALS:
 	void dataChanged(const ObjectKey &key, bool deleted);
+	void dataCleared(const QByteArray &typeName);
+	void dataResetted();
 
 private Q_SLOTS:
 	void onDataChange(QObject *origin, const ObjectKey &key, const QJsonObject &data, int size);
+	void onDataReset(QObject *origin, const QByteArray &typeName);
 
 private:
 	static QReadWriteLock globalLock;
@@ -59,7 +66,7 @@ private:
 	DatabaseRef database;
 
 	QHash<QByteArray, QString> tableNameCache;
-	QCache<ObjectKey, QJsonObject> dataCache;//TODO clear on changed
+	QCache<ObjectKey, QJsonObject> dataCache;
 
 	QString getTable(const QByteArray &typeName, bool allowCreate = false);
 	QDir typeDirectory(const QString &tableName, const ObjectKey &key);
