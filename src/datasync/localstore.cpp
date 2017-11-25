@@ -10,6 +10,7 @@
 
 #include <QtSql/QSqlQuery>
 
+#include <qhashpipe.h>
 
 using namespace QtDataSync;
 
@@ -182,9 +183,13 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				};
 			}
 
-			//write the data
+			//write the data & get the hash
 			QJsonDocument doc(data);
-			device->write(doc.toBinaryData());
+			QHashPipe hashPipe(QCryptographicHash::Sha3_256);
+			hashPipe.setAutoClose(false);
+			hashPipe.pipeTo(device.data());
+			hashPipe.pipeWrite(doc.toBinaryData());
+			hashPipe.pipeClose();
 			if(device->error() != QFile::NoError) //TODO commit AFTER updating the database?
 				throw LocalStoreException(defaults, key, device->fileName(), device->errorString());
 
@@ -192,9 +197,10 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			QFileInfo info(device->fileName());
 			if(needUpdate) {//TODO always update, because of id and hash...
 				QSqlQuery insertQuery(database);
-				insertQuery.prepare(QStringLiteral("INSERT INTO %1 (Key, File) VALUES(?, ?)").arg(table));
+				insertQuery.prepare(QStringLiteral("INSERT INTO %1 (Key, File, Checksum) VALUES(?, ?, ?)").arg(table));
 				insertQuery.addBindValue(key.id);
 				insertQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName()));
+				insertQuery.addBindValue(hashPipe.hash().toHex());
 				EXEC_QUERY(insertQuery, key);
 			} //TODO ...via else too
 
@@ -336,6 +342,8 @@ void LocalStore::reset()
 
 		try {
 			foreach(auto table, database->tables()) {
+				if(!table.startsWith(QStringLiteral("data_")))
+					continue;
 				QSqlQuery dropQuery(database);
 				dropQuery.prepare(QStringLiteral("DROP TABLE %1").arg(table));
 				EXEC_QUERY(dropQuery, {});
@@ -407,8 +415,8 @@ QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
 			if(allowCreate) {
 				QSqlQuery createQuery(database);
 				createQuery.prepare(QStringLiteral("CREATE TABLE %1 ("
-												   "Key		TEXT NOT NULL,"
-												   "Version	INTEGER NOT NULL,"
+												   "Key			TEXT NOT NULL,"
+												   "Version		INTEGER NOT NULL DEFAULT 1,"
 												   "File		TEXT NOT NULL,"
 												   "Checksum	BLOB NOT NULL"
 												   "PRIMARY KEY(Key)"
