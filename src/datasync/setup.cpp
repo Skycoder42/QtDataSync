@@ -13,8 +13,6 @@ using namespace QtDataSync;
 static void initCleanupHandlers();
 Q_COREAPP_STARTUP_FUNCTION(initCleanupHandlers)
 
-const QString QtDataSync::DefaultSetup(QStringLiteral("DefaultSetup"));
-
 void Setup::setCleanupTimeout(unsigned long timeout)
 {
 	SetupPrivate::timeout = timeout;

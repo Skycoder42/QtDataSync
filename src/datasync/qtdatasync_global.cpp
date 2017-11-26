@@ -3,6 +3,8 @@
 
 #include <QtCore/QCoreApplication>
 
+const QString QtDataSync::DefaultSetup(QStringLiteral("DefaultSetup"));
+
 static void setupQtDataSync()
 {
 	qRegisterMetaType<QtDataSync::ObjectKey>();
