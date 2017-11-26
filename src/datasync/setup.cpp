@@ -253,7 +253,6 @@ QException *SetupLockedException::clone() const
 
 static void initCleanupHandlers()
 {
-	qRegisterMetaType<QFutureInterface<QVariant>>("QFutureInterface<QVariant>");
 	qRegisterMetaType<QThread*>();
 	qAddPostRoutine(SetupPrivate::cleanupHandler);
 }
