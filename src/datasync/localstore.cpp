@@ -9,6 +9,7 @@
 #include <QtCore/QSaveFile>
 
 #include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
 
 #include <qhashpipe.h>
 

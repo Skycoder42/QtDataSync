@@ -5,6 +5,7 @@
 #include <QtCore/QPointer>
 #include <QtCore/QCache>
 #include <QtCore/QReadWriteLock>
+#include <QtCore/QJsonObject>
 
 #include <QtSql/QSqlDatabase>
 
