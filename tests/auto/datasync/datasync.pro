@@ -1,4 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    TestLocalStore
+	TestLib \
+	TestLocalStore
+
+CONFIG += ordered

@@ -62,7 +62,7 @@ private:
 	QJsonSerializer *serializer;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 
-	QThreadStorage<quint64> dbRefCounter;
+	QThreadStorage<quint64> dbRefCounter;//TODO use other mechanism?
 };
 
 }

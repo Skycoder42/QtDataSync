@@ -18,7 +18,7 @@ using namespace QtDataSync;
 
 #define EXEC_QUERY(query, key) do {\
 	if(!query.exec()) { \
-		throw LocalStoreException(defaults, key, database->databaseName(), query.lastError().text()); \
+		throw LocalStoreException(defaults, key, query.executedQuery().simplified(), query.lastError().text()); \
 	} \
 } while(false)
 
@@ -418,11 +418,10 @@ QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
 												   "Key			TEXT NOT NULL,"
 												   "Version		INTEGER NOT NULL DEFAULT 1,"
 												   "File		TEXT NOT NULL,"
-												   "Checksum	BLOB NOT NULL"
+												   "Checksum	BLOB NOT NULL,"
 												   "PRIMARY KEY(Key)"
 												   ");").arg(tableName));
-				if(!createQuery.exec())
-					throw LocalStoreException(defaults, typeName, database->databaseName(), createQuery.lastError().text());
+				EXEC_QUERY(createQuery, typeName);
 
 				tableNameCache.insert(typeName, tableName);
 			}
