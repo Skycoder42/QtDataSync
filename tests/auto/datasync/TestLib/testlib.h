@@ -3,11 +3,13 @@
 
 #include <QtDataSync>
 #include "testdata.h"
+#include "tst.h"
 
 class TestLib
 {
 public:
 	typedef QHash<QtDataSync::ObjectKey, QJsonObject> DataSet;
+	static const QByteArray TypeName;
 
 	static void init();
 	static QtDataSync::Setup &setup(QtDataSync::Setup &setup);

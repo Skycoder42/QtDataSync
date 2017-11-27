@@ -5,8 +5,10 @@ CONFIG += static
 
 HEADERS += \
 	testlib.h \
-    testdata.h
+    testdata.h \
+    tst.h
 
 SOURCES += \
 	testlib.cpp \
-    testdata.cpp
+    testdata.cpp \
+    tst.cpp

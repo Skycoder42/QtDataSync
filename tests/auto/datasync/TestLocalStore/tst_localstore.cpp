@@ -16,14 +16,20 @@ private Q_SLOTS:
 	void testEmpty();
 	void testSave_data();
 	void testSave();
+	void testAll();
+	void testFind();
+	void testUncached();
+	void testRemove_data();
+	void testRemove();
+	void testClear();
+
+	void testChangeSignals();
 
 private:
-	static const QByteArray TypeName;
-
 	LocalStore *store;
-};
 
-const QByteArray TestLocalStore::TypeName("TestType");
+	static void testAllImpl(LocalStore *store);
+};
 
 void TestLocalStore::initTestCase()
 {
@@ -48,10 +54,10 @@ void TestLocalStore::cleanupTestCase()
 void TestLocalStore::testEmpty()
 {
 	try {
-		QCOMPARE(store->count(TypeName), 0ull);
-		QVERIFY(store->keys(TypeName).isEmpty());
-		QVERIFY_EXCEPTION_THROWN(store->load({TypeName, QStringLiteral("id")}), NoDataException);
-		QCOMPARE(store->remove({TypeName, QStringLiteral("id")}), false);
+		QCOMPARE(store->count(TestLib::TypeName), 0ull);
+		QVERIFY(store->keys(TestLib::TypeName).isEmpty());
+		QVERIFY_EXCEPTION_THROWN(store->load(TestLib::generateKey(1)), NoDataException);
+		QCOMPARE(store->remove(TestLib::generateKey(2)), false);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -62,12 +68,14 @@ void TestLocalStore::testSave_data()
 	QTest::addColumn<ObjectKey>("key");
 	QTest::addColumn<QJsonObject>("data");
 
-	QTest::newRow("data0") << TestLib::generateKey(420)
-						   << TestLib::generateDataJson(420);
-	QTest::newRow("data1") << TestLib::generateKey(421)
-						   << TestLib::generateDataJson(421);
-	QTest::newRow("data2") << TestLib::generateKey(422)
-						   << TestLib::generateDataJson(422);
+	QTest::newRow("data0") << TestLib::generateKey(429)
+						   << TestLib::generateDataJson(429);
+	QTest::newRow("data1") << TestLib::generateKey(430)
+						   << TestLib::generateDataJson(430);
+	QTest::newRow("data2") << TestLib::generateKey(431)
+						   << TestLib::generateDataJson(431);
+	QTest::newRow("data3") << TestLib::generateKey(432)
+						   << TestLib::generateDataJson(432);
 }
 
 void TestLocalStore::testSave()
@@ -79,6 +87,153 @@ void TestLocalStore::testSave()
 		store->save(key, data);
 		auto res = store->load(key);
 		QCOMPARE(res, data);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestLocalStore::testAll()
+{
+	testAllImpl(store);
+}
+
+void TestLocalStore::testFind()
+{
+	const QList<QJsonObject> objects {
+		TestLib::generateDataJson(429),
+		TestLib::generateDataJson(432)
+	};
+
+	try {
+		QCOMPARE(store->find(TestLib::TypeName, QStringLiteral("*2*")), objects);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestLocalStore::testUncached()
+{
+	auto second = new LocalStore(this);
+	testAllImpl(second);
+	second->deleteLater();
+}
+
+void TestLocalStore::testRemove_data()
+{
+	QTest::addColumn<ObjectKey>("key");
+
+	QTest::newRow("data0") << TestLib::generateKey(429);
+	QTest::newRow("data1") << TestLib::generateKey(430);
+}
+
+void TestLocalStore::testRemove()
+{
+	QFETCH(ObjectKey, key);
+
+	try {
+		store->remove(key);
+		QVERIFY_EXCEPTION_THROWN(store->load(key), NoDataException);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestLocalStore::testClear()
+{
+	try {
+		//clear
+		QCOMPARE(store->count(TestLib::TypeName), 2ull);
+		store->clear(TestLib::TypeName);
+		QCOMPARE(store->count(TestLib::TypeName), 0ull);
+
+		//rest
+		store->save(TestLib::generateKey(42), TestLib::generateDataJson(42));
+		QCOMPARE(store->count(TestLib::TypeName), 1ull);
+		store->reset();
+		QCOMPARE(store->count(TestLib::TypeName), 0ull);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestLocalStore::testChangeSignals()
+{
+	const auto key = TestLib::generateKey(77);
+	auto data = TestLib::generateDataJson(77);
+
+	auto second = new LocalStore(this);
+
+	QSignalSpy store1Spy(store, &LocalStore::dataChanged);
+	QSignalSpy store2Spy(second, &LocalStore::dataChanged);
+
+	try {
+		store->save(key, data);
+		QCOMPARE(store->load(key), data);
+		QCOMPARE(second->load(key), data);
+
+		QCOMPARE(store1Spy.size(), 1);
+		auto sig = store1Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		QVERIFY(store2Spy.wait());
+		QCOMPARE(store2Spy.size(), 1);
+		sig = store2Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		data.insert(QStringLiteral("baum"), 42);
+		second->save(key, data);
+		QCOMPARE(second->load(key), data);
+		QCOMPARE(store->load(key), data);
+
+		QCOMPARE(store2Spy.size(), 1);
+		sig = store2Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		QVERIFY(store1Spy.wait());
+		QCOMPARE(store1Spy.size(), 1);
+		sig = store1Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		store->remove(key);
+		QVERIFY_EXCEPTION_THROWN(store->load(key), NoDataException);
+		QVERIFY_EXCEPTION_THROWN(second->load(key), NoDataException);
+
+		QCOMPARE(store1Spy.size(), 1);
+		sig = store1Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), true);
+
+		QVERIFY(store2Spy.wait());
+		QCOMPARE(store2Spy.size(), 1);
+		sig = store2Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), true);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+
+	second->deleteLater();
+}
+
+void TestLocalStore::testAllImpl(LocalStore *store)
+{
+	const quint64 count = 4;
+	const QStringList keys {
+		QStringLiteral("429"),
+		QStringLiteral("430"),
+		QStringLiteral("431"),
+		QStringLiteral("432")
+	};
+	const QList<QJsonObject> objects = TestLib::generateDataJson(429, 432).values();
+
+	try {
+		QCOMPARE(store->count(TestLib::TypeName), count);
+		QCOMPAREUNORDERED(store->keys(TestLib::TypeName), keys);
+		QCOMPAREUNORDERED(store->loadAll(TestLib::TypeName), objects);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

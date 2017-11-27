@@ -25,7 +25,7 @@ public:
 	LocalStoreEmitter(QObject *parent = nullptr);
 
 Q_SIGNALS:
-	void dataChanged(QObject *origin, const ObjectKey &key, const QJsonObject data, int size);
+	void dataChanged(QObject *origin, const QtDataSync::ObjectKey &key, const QJsonObject data, int size);
 	void dataResetted(QObject *origin, const QByteArray &typeName = {});
 };
 
@@ -50,12 +50,12 @@ public:
 	void reset();
 
 Q_SIGNALS:
-	void dataChanged(const ObjectKey &key, bool deleted);
+	void dataChanged(const QtDataSync::ObjectKey &key, bool deleted);
 	void dataCleared(const QByteArray &typeName);
 	void dataResetted();
 
 private Q_SLOTS:
-	void onDataChange(QObject *origin, const ObjectKey &key, const QJsonObject &data, int size);
+	void onDataChange(QObject *origin, const QtDataSync::ObjectKey &key, const QJsonObject &data, int size);
 	void onDataReset(QObject *origin, const QByteArray &typeName);
 
 private:

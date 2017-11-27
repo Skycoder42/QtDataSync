@@ -95,7 +95,7 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 	loadQuery.prepare(QStringLiteral("SELECT Key, File FROM %1").arg(table));
 	EXEC_QUERY(loadQuery, typeName);
 
-	QList<QJsonObject> array;//do not cache
+	QList<QJsonObject> array;
 	while(loadQuery.next()) {
 		int size;
 		ObjectKey key {typeName, loadQuery.value(0).toString()};
@@ -349,6 +349,9 @@ void LocalStore::reset()
 				dropQuery.prepare(QStringLiteral("DROP TABLE %1").arg(table));
 				EXEC_QUERY(dropQuery, {});
 			}
+
+			if(!database->commit())
+				throw LocalStoreException(defaults, QByteArray("<any>"), database->databaseName(), database->lastError().text());
 		} catch(...) {
 			database->rollback();
 			throw;
@@ -379,7 +382,7 @@ void LocalStore::onDataChange(QObject *origin, const ObjectKey &key, const QJson
 		}
 
 		QMetaObject::invokeMethod(this, "dataChanged", Qt::QueuedConnection,
-								  Q_ARG(ObjectKey, key),
+								  Q_ARG(QtDataSync::ObjectKey, key),
 								  Q_ARG(bool, data.isEmpty()));
 	}
 }

@@ -1,6 +1,7 @@
 #include "testlib.h"
 using namespace QtDataSync;
 
+const QByteArray TestLib::TypeName("TestData");
 QTemporaryDir TestLib::tDir;
 
 void TestLib::init()
@@ -16,7 +17,7 @@ Setup &TestLib::setup(Setup &setup)
 
 ObjectKey TestLib::generateKey(int index)
 {
-	return {"TestData", QString::number(index)};
+	return {TypeName, QString::number(index)};
 }
 
 TestData TestLib::generateData(int index)
@@ -27,7 +28,7 @@ TestData TestLib::generateData(int index)
 QList<TestData> TestLib::generateData(int from, int to)
 {
 	QList<TestData> list;
-	for(auto i = from; i < to; i++)
+	for(auto i = from; i <= to; i++)
 		list.append({i, QString::number(i)});
 	return list;
 }
@@ -35,7 +36,7 @@ QList<TestData> TestLib::generateData(int from, int to)
 QStringList TestLib::generateDataKeys(int from, int to)
 {
 	QStringList list;
-	for(auto i = from; i < to; i++)
+	for(auto i = from; i <= to; i++)
 		list.append(QString::number(i));
 	return list;
 }
@@ -51,7 +52,7 @@ QJsonObject TestLib::generateDataJson(int index)
 TestLib::DataSet TestLib::generateDataJson(int from, int to)
 {
 	DataSet hash;
-	for(auto i = from; i < to; i++)
+	for(auto i = from; i <= to; i++)
 		hash.insert(generateKey(i), generateDataJson(i));
 	return hash;
 }
