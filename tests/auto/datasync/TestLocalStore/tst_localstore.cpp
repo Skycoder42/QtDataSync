@@ -1,6 +1,7 @@
 #include <QString>
 #include <QtTest>
 #include <QCoreApplication>
+#include <QtConcurrent>
 #include <testlib.h>
 #include <QtDataSync/private/localstore_p.h>
 using namespace QtDataSync;
@@ -24,6 +25,7 @@ private Q_SLOTS:
 	void testClear();
 
 	void testChangeSignals();
+	void testAsync();
 
 private:
 	LocalStore *store;
@@ -217,6 +219,36 @@ void TestLocalStore::testChangeSignals()
 	}
 
 	second->deleteLater();
+}
+
+void TestLocalStore::testAsync()
+{
+	auto cnt = 10 * QThread::idealThreadCount();
+
+	QList<QFuture<void>> futures;
+	for(auto i = 0; i < cnt; i++) {
+		futures.append(QtConcurrent::run([&](){
+			LocalStore lStore;//thread without eventloop!
+			auto key = TestLib::generateKey(66);
+			auto data = TestLib::generateDataJson(66);
+
+			//try to provoke conflicts
+			lStore.save(key, data);
+			lStore.load(key);
+			lStore.load(key);
+			lStore.save(key, data);
+			lStore.load(key);
+			if(lStore.count(TestLib::TypeName) != 1)
+				throw Exception(DefaultSetup, QStringLiteral("Expected count is not 1"));
+		}));
+	}
+
+	try {
+		foreach(auto f, futures)
+			f.waitForFinished();
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
 }
 
 void TestLocalStore::testAllImpl(LocalStore *store)

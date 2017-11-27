@@ -1,4 +1,11 @@
-QT       += testlib datasync datasync-private
+TEMPLATE = app
+
+QT = core testlib datasync datasync-private
+
+CONFIG   += console
+CONFIG   -= app_bundle
+
+DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_/\\\"
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../TestLib/release/ -lTestLib
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../TestLib/debug/ -lTestLib

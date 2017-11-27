@@ -1,16 +1,8 @@
-TEMPLATE = app
+include(../tests.pri)
 
-QT       += testlib datasync-private
-QT       -= gui
-
-CONFIG   += console
-CONFIG   -= app_bundle
+QT       += concurrent
 
 TARGET = tst_localstore
 
-include(../tests.pri)
-
 SOURCES += \
 		tst_localstore.cpp
-
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
