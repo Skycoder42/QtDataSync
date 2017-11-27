@@ -10,6 +10,7 @@
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/objectkey.h"
 #include "QtDataSync/exception.h"
+#include "QtDataSync/qtdatasync_helpertypes.h"
 
 namespace QtDataSync {
 
@@ -52,9 +53,49 @@ public:
 				 const std::function<bool(QVariant)> &iterator,
 				 const std::function<void(const QException &)> &onExcept = {}) const;
 
-public Q_SLOTS:
+	//! Counts the number of datasets for the given type
+	template<typename T>
+	quint64 count();
+	//! Returns all saved keys for the given type
+	template<typename T>
+	QStringList keys();
+	//! Loads all existing datasets for the given type
+	template<typename T>
+	QList<T> loadAll();
+	//! Loads the dataset with the given key for the given type
+	template<typename T>
+	T load(const QString &key);
+	//! @copybrief AsyncDataStore::load(const QString &)
+	template<typename T, typename K>
+	T load(const K &key);
+	//! Saves the given dataset in the store
+	template<typename T>
+	void save(const T &value);
+	//! Removes the dataset with the given key for the given type
+	template<typename T>
+	bool remove(const QString &key);
+	//! @copybrief AsyncDataStore::remove(const QString &)
+	template<typename T, typename K>
+	bool remove(const K &key);
+	//! Searches the store for datasets of the given type where the key matches the query
+	template<typename T>
+	QList<T> search(const QString &query);
+	//! Asynchronously iterates over all existing datasets of the given types
+	template<typename T>
+	void iterate(const std::function<bool(T)> &iterator,
+				 const std::function<void(const QException &)> &onExcept = {});
+
+	//! Loads the dataset with the given key for the given type into the existing object by updating it's properties
+	template<typename T>
+	void loadInto(const QString &key, T object);
+	//! @copybrief AsyncDataStore::loadInto(const QString &, const T &)
+	template<typename T, typename K>
+	void loadInto(const K &key, T object);
 
 Q_SIGNALS:
+	void dataChanged(int metaTypeId, const QString &key, bool deleted);
+	void dataCleared(int metaTypeId);
+	void dataResetted();
 
 private:
 	QScopedPointer<DataStorePrivate> d;
@@ -124,6 +165,102 @@ protected:
 
 	const QByteArray _typeName;
 };
+
+// ------------- GENERIC IMPLEMENTATION -------------
+
+template<typename T>
+quint64 DataStore::count()
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return count(qMetaTypeId<T>());
+}
+
+template<typename T>
+QStringList DataStore::keys()
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return keys(qMetaTypeId<T>());
+}
+
+template<typename T>
+QList<T> DataStore::loadAll()
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	auto mList = loadAll(qMetaTypeId<T>());
+	QList<T> rList;
+	foreach(auto v, mList)
+		rList.append(v.template value<T>());
+	return rList;
+}
+
+template<typename T>
+T DataStore::load(const QString &key)
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return load(qMetaTypeId<T>(), key).template value<T>();
+}
+
+template<typename T, typename K>
+T DataStore::load(const K &key)
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return load(qMetaTypeId<T>(), QVariant::fromValue(key)).template value<T>();
+}
+
+template<typename T>
+void DataStore::save(const T &value)
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	save(qMetaTypeId<T>(), QVariant::fromValue(value));
+}
+
+template<typename T>
+bool DataStore::remove(const QString &key)
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return load(qMetaTypeId<T>(), key);
+}
+
+template<typename T, typename K>
+bool DataStore::remove(const K &key)
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return load(qMetaTypeId<T>(), QVariant::fromValue(key));
+}
+
+template<typename T>
+QList<T> DataStore::search(const QString &query)
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	auto mList = search(qMetaTypeId<T>(), query);
+	QList<T> rList;
+	foreach(auto v, mList)
+		rList.append(v.template value<T>());
+	return rList;
+}
+
+template<typename T>
+void DataStore::iterate(const std::function<bool (T)> &iterator, const std::function<void (const QException &)> &onExcept)
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	iterate(qMetaTypeId<T>(), [iterator](QVariant v) {
+		return iterator(v.template value<T>());
+	}, onExcept);
+}
+
+template<typename T>
+void DataStore::loadInto(const QString &key, T object)
+{
+	static_assert(__helpertypes::is_storable_obj<T>::value, "loadInto can only be used for pointers to QObject extending classes");
+	Q_UNIMPLEMENTED();
+}
+
+template<typename T, typename K>
+void DataStore::loadInto(const K &key, T object)
+{
+	static_assert(__helpertypes::is_storable_obj<T>::value, "loadInto can only be used for pointers to QObject extending classes");
+	Q_UNIMPLEMENTED();
+}
 
 }
 

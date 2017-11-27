@@ -13,7 +13,8 @@ HEADERS += qtdatasync_global.h \
 	exception.h \
 	objectkey.h \
     datastore.h \
-    datastore_p.h
+    datastore_p.h \
+    qtdatasync_helpertypes.h
 
 SOURCES += \
 	localstore.cpp \

@@ -45,14 +45,14 @@ void DataStore::save(int metaTypeId, QVariant value)
 {
 	auto typeName = d->typeName(metaTypeId);
 	if(!value.convert(metaTypeId))
-		throw InvalidDataException(d->defaults, typeName, "Failed to convert passed variant to the target type");
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Failed to convert passed variant to the target type"));
 
 	auto meta = QMetaType::metaObjectForType(metaTypeId);
 	if(!meta)
-		throw InvalidDataException(d->defaults, typeName, "Type does not have a meta object");
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Type does not have a meta object"));
 	auto userProp = meta->userProperty();
 	if(!userProp.isValid())
-		throw InvalidDataException(d->defaults, typeName, "Type does not have a user property");
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Type does not have a user property"));
 
 	QString key;
 	auto flags = QMetaType::typeFlags(metaTypeId);
@@ -67,13 +67,13 @@ void DataStore::save(int metaTypeId, QVariant value)
 	else if(flags.testFlag(QMetaType::TrackingPointerToQObject))
 		key = userProp.read(value.value<QPointer<QObject>>().data()).toString();
 	else
-		throw InvalidDataException(d->defaults, typeName, "Type is neither a gadget nor a pointer to an object");
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Type is neither a gadget nor a pointer to an object"));
 
 	if(key.isEmpty())
-		throw InvalidDataException(d->defaults, typeName, "Failed to convert user property value to a string");
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Failed to convert user property value to a string"));
 	auto json = d->serializer->serialize(value);
 	if(!json.isObject())
-		throw InvalidDataException(d->defaults, typeName, "Serialization converted to invalid json type. Only json objects are allowed");
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Serialization converted to invalid json type. Only json objects are allowed"));
 	d->store->save({typeName, key}, json.toObject());
 }
 
@@ -122,7 +122,7 @@ QByteArray DataStorePrivate::typeName(int metaTypeId) const
 	if(name)
 		return name;
 	else
-		throw InvalidDataException(defaults, "type_" + QByteArray::number(metaTypeId), "Not a valid metatype id");
+		throw InvalidDataException(defaults, "type_" + QByteArray::number(metaTypeId), QStringLiteral("Not a valid metatype id"));
 }
 
 // ------------- Exceptions -------------
