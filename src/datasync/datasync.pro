@@ -36,5 +36,8 @@ win32 {
 	QMAKE_TARGET_BUNDLE_PREFIX = "de.skycoder42."
 }
 
+# IOS workaround until fixed
+ios:!system(rm qpmx.json && mv qpmx.ios.json qpmx.json):error(Failed to load temporary qpmx.json file)
+
 !ReleaseBuild:!DebugBuild:!system(qpmx -d $$shell_quote($$_PRO_FILE_PWD_) --qmake-run init $$QPMX_EXTRA_OPTIONS $$shell_quote($$QMAKE_QMAKE) $$shell_quote($$OUT_PWD)): error(qpmx initialization failed. Check the compilation log for details.)
 else: include($$OUT_PWD/qpmx_generated.pri)

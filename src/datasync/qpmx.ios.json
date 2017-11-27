@@ -1,0 +1,20 @@
+{
+    "dependencies": [
+        {
+            "package": "de.skycoder42.qpipedevice",
+            "provider": "qpm",
+            "version": "1.0.0"
+        }
+    ],
+    "license": {
+        "file": "",
+        "name": ""
+    },
+    "prcFile": "",
+    "priFile": "",
+    "priIncludes": [
+    ],
+    "publishers": {
+    },
+    "source": true
+}
