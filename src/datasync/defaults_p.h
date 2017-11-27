@@ -48,6 +48,7 @@ public:
 					const QDir &storageDir,
 					const QHash<Defaults::PropertyKey, QVariant> &properties,
 					QJsonSerializer *serializer);
+	~DefaultsPrivate();
 
 	QSqlDatabase acquireDatabase(QThread *thread);
 	void releaseDatabase(QThread *thread);
@@ -55,14 +56,13 @@ public:
 private:
 	static QMutex setupDefaultsMutex;
 	static QHash<QString, QSharedPointer<DefaultsPrivate>> setupDefaults;
+	static QThreadStorage<QHash<QString, quint64>> dbRefHash;
 
 	QString setupName;
 	QDir storageDir;
 	Logger *logger;
 	QJsonSerializer *serializer;
 	QHash<Defaults::PropertyKey, QVariant> properties;
-
-	QThreadStorage<quint64> dbRefCounter;//TODO use other mechanism?
 };
 
 }

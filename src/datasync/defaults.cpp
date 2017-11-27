@@ -8,6 +8,10 @@
 
 #include <QtSql/QSqlError>
 
+#ifndef QT_NO_DEBUG
+#include <iostream>
+#endif
+
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger
@@ -111,6 +115,7 @@ QSqlDatabase *DatabaseRef::operator ->() const
 const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_database_%1_0x%2"));
 QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
+QThreadStorage<QHash<QString, quint64>> DefaultsPrivate::dbRefHash;
 
 void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer)
 {
@@ -121,13 +126,35 @@ void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &stora
 void DefaultsPrivate::removeDefaults(const QString &setupName)
 {
 	QMutexLocker _(&setupDefaultsMutex);
+#ifndef QT_NO_DEBUG
+	QWeakPointer<DefaultsPrivate> weakRef;
+	{
+		auto ref = setupDefaults.take(setupName);
+		if(ref)
+			weakRef = ref.toWeakRef();
+	}
+	if(weakRef)
+		std::cerr << "Defaults for setup" << setupName.toStdString() << "still in user after setup was deleted!" << std::endl;
+#else
 	setupDefaults.remove(setupName);
+#endif
 }
 
 void DefaultsPrivate::clearDefaults()
 {
 	QMutexLocker _(&setupDefaultsMutex);
+#ifndef QT_NO_DEBUG
+	QList<QPair<QString, QWeakPointer<DefaultsPrivate>>> weakRefs;
+	for(auto it = setupDefaults.constBegin(); it != setupDefaults.constEnd(); it++)
+		weakRefs.append({it.key(), it.value().toWeakRef()});
 	setupDefaults.clear();
+	foreach(auto ref, weakRefs) {
+		if(ref.second)
+			std::cerr << "Defaults for setup" << ref.first.toStdString() << "still in user after setup was deleted!" << std::endl;
+	}
+#else
+	setupDefaults.clear();
+#endif
 }
 
 QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &setupName)
@@ -141,10 +168,16 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
 	serializer(serializer),
-	properties(properties),
-	dbRefCounter()
+	properties(properties)
 {
 	serializer->setParent(this);
+}
+
+DefaultsPrivate::~DefaultsPrivate()
+{
+	auto cnt = dbRefHash.localData().value(setupName);
+	if(cnt > 0)
+		logWarning() << "Defaults destroyed with" << cnt << "open database connections!";
 }
 
 QSqlDatabase DefaultsPrivate::acquireDatabase(QThread *thread)
@@ -152,7 +185,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase(QThread *thread)
 	auto name = DefaultsPrivate::DatabaseName
 				.arg(setupName)
 				.arg(QString::number((quint64)thread, 16));
-	if(dbRefCounter.localData()++ == 0) {
+	if((dbRefHash.localData()[setupName])++ == 0) {
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		if(!database.open()) {
@@ -167,7 +200,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase(QThread *thread)
 
 void DefaultsPrivate::releaseDatabase(QThread *thread)
 {
-	if(--dbRefCounter.localData() == 0) {
+	if(--(dbRefHash.localData()[setupName]) == 0) {
 		auto name = DefaultsPrivate::DatabaseName
 					.arg(setupName)
 					.arg(QString::number((quint64)thread, 16));
