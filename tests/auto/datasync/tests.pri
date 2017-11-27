@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT = core testlib datasync datasync-private
+QT = core testlib datasync
 
 CONFIG   += console
 CONFIG   -= app_bundle

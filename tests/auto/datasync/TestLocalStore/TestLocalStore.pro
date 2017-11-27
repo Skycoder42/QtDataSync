@@ -1,6 +1,6 @@
 include(../tests.pri)
 
-QT       += concurrent
+QT       += concurrent datasync-private
 
 TARGET = tst_localstore
 
