@@ -12,7 +12,18 @@ DataStore::DataStore(QObject *parent) :
 DataStore::DataStore(const QString &setupName, QObject *parent) :
 	QObject(parent),
 	d(new DataStorePrivate(this, setupName))
-{}
+{
+	connect(d->store, &LocalStore::dataChanged,
+			this, [this](const ObjectKey &key, bool deleted) {
+		emit dataChanged(QMetaType::type(key.typeName), key.id, deleted);
+	});
+	connect(d->store, &LocalStore::dataCleared,
+			this, [this](const QByteArray &typeName) {
+		emit dataCleared(QMetaType::type(typeName));
+	});
+	connect(d->store, &LocalStore::dataResetted,
+			this, &DataStore::dataResetted);
+}
 
 DataStore::~DataStore() {}
 
