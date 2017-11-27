@@ -152,7 +152,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			existQuery.addBindValue(key.id);
 			EXEC_QUERY(existQuery, key);
 
-			auto needUpdate = false;
+			auto notExisting = false;
 			QScopedPointer<QFileDevice> device;
 			std::function<bool(QFileDevice*)> commitFn;
 
@@ -172,7 +172,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				device.reset(file);
 				if(!file->open())
 					throw LocalStoreException(defaults, key, file->fileName(), file->errorString());
-				needUpdate = true;
+				notExisting = true;
 				commitFn = [](QFileDevice *d){
 					auto f = static_cast<QTemporaryFile*>(d);
 					f->close();
@@ -191,24 +191,29 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			hashPipe.pipeTo(device.data());
 			hashPipe.pipeWrite(doc.toBinaryData());
 			hashPipe.pipeClose();
-			if(device->error() != QFile::NoError) //TODO commit AFTER updating the database?
+			if(device->error() != QFile::NoError)
 				throw LocalStoreException(defaults, key, device->fileName(), device->errorString());
 
 			//save key in database
 			QFileInfo info(device->fileName());
-			if(needUpdate) {//TODO always update, because of id and hash...
+			if(notExisting) {
 				QSqlQuery insertQuery(database);
 				insertQuery.prepare(QStringLiteral("INSERT INTO %1 (Key, File, Checksum) VALUES(?, ?, ?)").arg(table));
 				insertQuery.addBindValue(key.id);
 				insertQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName()));
 				insertQuery.addBindValue(hashPipe.hash().toHex());
 				EXEC_QUERY(insertQuery, key);
-			} //TODO ...via else too
+			} else {
+				QSqlQuery updateQuery(database);
+				updateQuery.prepare(QStringLiteral("UPDATE %1 SET Checksum = ?, Version = Version + 1 WHERE Key = ?").arg(table));
+				updateQuery.addBindValue(hashPipe.hash().toHex());
+				updateQuery.addBindValue(key.id);
+				EXEC_QUERY(updateQuery, key);
+			}
 
-			//complete the file-save
+			//complete the file-save, then the transaction
 			if(!commitFn(device.data()))
 				throw LocalStoreException(defaults, key, device->fileName(), device->errorString());
-
 			if(!database->commit())
 				throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
@@ -397,7 +402,10 @@ void LocalStore::onDataReset(QObject *origin, const QByteArray &typeName)
 			QMetaObject::invokeMethod(this, "dataResetted", Qt::QueuedConnection);
 	} else {
 		tableNameCache.remove(typeName);
-		dataCache.clear();//TODO iterate? may take significantly longer!
+		foreach(auto key, dataCache.keys()) {
+			if(key.typeName == typeName)
+				dataCache.remove(key);
+		}
 
 		if(origin != this) {
 			QMetaObject::invokeMethod(this, "dataCleared", Qt::QueuedConnection,

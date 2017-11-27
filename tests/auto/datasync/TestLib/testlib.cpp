@@ -12,6 +12,7 @@ void TestLib::init()
 
 Setup &TestLib::setup(Setup &setup)
 {
+	tDir.setAutoRemove(false);
 	return setup.setLocalDir(tDir.path());
 }
 
