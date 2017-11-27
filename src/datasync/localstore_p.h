@@ -29,7 +29,7 @@ Q_SIGNALS:
 	void dataResetted(QObject *origin, const QByteArray &typeName = {});
 };
 
-class Q_DATASYNC_EXPORT LocalStore : public QObject
+class Q_DATASYNC_EXPORT LocalStore : public QObject //TODO use const where useful
 {
 	Q_OBJECT
 
@@ -72,42 +72,6 @@ private:
 	QString getTable(const QByteArray &typeName, bool allowCreate = false);
 	QDir typeDirectory(const QString &tableName, const ObjectKey &key);
 	QJsonObject readJson(const QString &tableName, const QString &fileName, const ObjectKey &key, int *costs = nullptr);
-};
-
-class Q_DATASYNC_EXPORT LocalStoreException : public Exception
-{
-public:
-	LocalStoreException(const Defaults &defaults, const ObjectKey &key, const QString &context, const QString &message);
-
-	ObjectKey key() const;
-	QString context() const;
-
-	QString qWhat() const override;
-	void raise() const override;
-	QException *clone() const override;
-
-protected:
-	LocalStoreException(const LocalStoreException * const other);
-
-	const ObjectKey _key;
-	const QString _context;
-};
-
-class Q_DATASYNC_EXPORT NoDataException : public Exception
-{
-public:
-	NoDataException(const Defaults &defaults, const ObjectKey &key);
-
-	ObjectKey key() const;
-
-	QString qWhat() const override;
-	void raise() const override;
-	QException *clone() const override;
-
-protected:
-	NoDataException(const NoDataException * const other);
-
-	const ObjectKey _key;
 };
 
 }

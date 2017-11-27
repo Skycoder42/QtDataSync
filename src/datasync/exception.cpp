@@ -18,6 +18,11 @@ Exception::Exception(const Exception * const other) :
 	_message(other->_message)
 {}
 
+QByteArray Exception::className() const noexcept
+{
+	return QTDATASYNC_EXCEPTION_NAME(Exception);
+}
+
 QString Exception::setupName() const
 {
 	return _setupName;
@@ -31,8 +36,10 @@ QString Exception::message() const
 QString Exception::qWhat() const
 {
 	return QStringLiteral("Message: %1"
-						  "\n\tSetup: %2")
+						  "\n\tException-Type: %2"
+						  "\n\tSetup: %3")
 			.arg(_message)
+			.arg(QString::fromUtf8(className()))
 			.arg(_setupName);
 }
 

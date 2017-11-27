@@ -15,6 +15,7 @@ public:
 	Exception(const QString &setupName, const QString &message);
 	Exception(const Defaults &defaults, const QString &message);
 
+	virtual QByteArray className() const noexcept;
 	QString setupName() const;
 	QString message() const;
 
@@ -32,5 +33,7 @@ protected:
 };
 
 }
+
+#define QTDATASYNC_EXCEPTION_NAME(x) #x
 
 #endif // EXCEPTION_H

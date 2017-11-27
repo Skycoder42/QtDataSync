@@ -213,6 +213,8 @@ SetupException::SetupException(const SetupException * const other) :
 	Exception(other)
 {}
 
+
+
 SetupExistsException::SetupExistsException(const QString &setupName) :
 	SetupException(setupName, QStringLiteral("Failed to create setup! A setup with the given name already exists!"))
 {}
@@ -220,6 +222,11 @@ SetupExistsException::SetupExistsException(const QString &setupName) :
 SetupExistsException::SetupExistsException(const SetupExistsException *const other) :
 	SetupException(other)
 {}
+
+QByteArray SetupExistsException::className() const noexcept
+{
+	return QTDATASYNC_EXCEPTION_NAME(SetupExistsException);
+}
 
 void SetupExistsException::raise() const
 {
@@ -231,6 +238,8 @@ QException *SetupExistsException::clone() const
 	return new SetupExistsException(this);
 }
 
+
+
 SetupLockedException::SetupLockedException(const QString &setupName) :
 	SetupException(setupName, QStringLiteral("Failed to lock the storage directory! Is it already locked by another process?"))
 {}
@@ -238,6 +247,11 @@ SetupLockedException::SetupLockedException(const QString &setupName) :
 SetupLockedException::SetupLockedException(const SetupLockedException *const other) :
 	SetupException(other)
 {}
+
+QByteArray SetupLockedException::className() const noexcept
+{
+	return QTDATASYNC_EXCEPTION_NAME(SetupLockedException);
+}
 
 void SetupLockedException::raise() const
 {

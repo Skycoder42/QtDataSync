@@ -1,4 +1,5 @@
 #include "localstore_p.h"
+#include "datastore.h"
 
 #include <QtCore/QUrl>
 #include <QtCore/QJsonDocument>
@@ -478,87 +479,4 @@ LocalStoreEmitter::LocalStoreEmitter(QObject *parent) :
 	auto coreThread = qApp->thread();
 	if(thread() != coreThread)
 		moveToThread(coreThread);
-}
-
-
-// ------------- Exceptions -------------
-
-LocalStoreException::LocalStoreException(const Defaults &defaults, const ObjectKey &key, const QString &context, const QString &message) :
-	Exception(defaults, message),
-	_key(key),
-	_context(context)
-{}
-
-LocalStoreException::LocalStoreException(const LocalStoreException * const other) :
-	Exception(other),
-	_key(other->_key),
-	_context(other->_context)
-{}
-
-ObjectKey LocalStoreException::key() const
-{
-	return _key;
-}
-
-QString LocalStoreException::context() const
-{
-	return _context;
-}
-
-QString LocalStoreException::qWhat() const
-{
-	QString msg = Exception::qWhat() +
-				  QStringLiteral("\n\tContext: %1"
-								 "\n\tTypeName: %2")
-				  .arg(_context)
-				  .arg(QString::fromUtf8(_key.typeName));
-	if(!_key.id.isNull())
-		msg += QStringLiteral("\n\tKey: %1").arg(_key.id);
-	return msg;
-}
-
-void LocalStoreException::raise() const
-{
-	throw (*this);
-}
-
-QException *LocalStoreException::clone() const
-{
-	return new LocalStoreException(this);
-}
-
-
-
-NoDataException::NoDataException(const Defaults &defaults, const ObjectKey &key) :
-	Exception(defaults, QStringLiteral("The requested data does not exist")),
-	_key(key)
-{}
-
-NoDataException::NoDataException(const NoDataException * const other) :
-	Exception(other),
-	_key(other->_key)
-{}
-
-ObjectKey NoDataException::key() const
-{
-	return _key;
-}
-
-QString NoDataException::qWhat() const
-{
-	return Exception::qWhat() +
-			QStringLiteral("\n\tTypeName: %1"
-						   "\n\tKey: %2")
-			.arg(QString::fromUtf8(_key.typeName))
-			.arg(_key.id);
-}
-
-void NoDataException::raise() const
-{
-	throw (*this);
-}
-
-QException *NoDataException::clone() const
-{
-	return new NoDataException(this);
 }

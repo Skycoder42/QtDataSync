@@ -256,6 +256,11 @@ SetupDoesNotExistException::SetupDoesNotExistException(const SetupDoesNotExistEx
 	Exception(other)
 {}
 
+QByteArray SetupDoesNotExistException::className() const noexcept
+{
+	return QTDATASYNC_EXCEPTION_NAME(SetupDoesNotExistException);
+}
+
 void SetupDoesNotExistException::raise() const
 {
 	throw (*this);

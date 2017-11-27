@@ -65,11 +65,9 @@ private:
 //! Exception throw if Setup::create fails
 class Q_DATASYNC_EXPORT SetupException : public Exception
 {
-public:
+protected:
 	//! Constructor with error message and setup name
 	SetupException(const QString &setupName, const QString &message);
-
-protected:
 	//! Constructor that clones another exception
 	SetupException(const SetupException * const other);
 };
@@ -81,6 +79,7 @@ public:
 	//! Constructor with setup name
 	SetupExistsException(const QString &setupName);
 
+	QByteArray className() const noexcept override;
 	void raise() const final;
 	QException *clone() const final;
 
@@ -96,6 +95,7 @@ public:
 	//! Constructor with setup name
 	SetupLockedException(const QString &setupName);
 
+	QByteArray className() const noexcept override;
 	void raise() const final;
 	QException *clone() const final;
 
