@@ -625,9 +625,9 @@
                           </DElement>
                          </base-DElement>
                          <object>{f256c44d-a370-4546-ad4e-b1e5d500ccd7}</object>
-                         <name>CachingDataStore</name>
+                         <name>DataTypeStore</name>
                          <pos>x:435;y:70</pos>
-                         <rect>x:-55;y:-30;w:110;h:60</rect>
+                         <rect>x:-50;y:-30;w:100;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1604,7 +1604,7 @@
                     <uid>{f256c44d-a370-4546-ad4e-b1e5d500ccd7}</uid>
                    </MElement>
                   </base-MElement>
-                  <name>CachingDataStore</name>
+                  <name>DataTypeStore</name>
                   <relations>
                    <handles>
                     <handles>

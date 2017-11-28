@@ -12,15 +12,15 @@ namespace __helpertypes {
 
 //! helper to get the gadget information
 template <class T, class Enable = void>
-struct gadget_helper : public std::false_type {};
+struct is_gadget : public std::false_type {};
 
 //! @copydoc _qjsonserializer_helpertypes::gadget_helper
 template <class T>
-struct gadget_helper<T, typename T::QtGadgetHelper> : public std::true_type {};
+struct is_gadget<T, typename T::QtGadgetHelper> : public std::true_type {};
 
 //! test if a type can be stored
 template <typename T>
-struct is_storable : public gadget_helper<T> {};
+struct is_storable : public is_gadget<T> {};
 
 //! test if a type can be stored
 template <typename T>

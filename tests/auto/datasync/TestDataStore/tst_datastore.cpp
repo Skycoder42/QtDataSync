@@ -279,6 +279,20 @@ void TestDataStore::testChangeSignals()
 	second->deleteLater();
 }
 
+static void dataTypeStoreCompiletest_DO_NOT_CALL()
+{
+	DataTypeStore<TestData, int> t1;
+	t1.count();
+	t1.keys();
+	t1.load(0);
+	t1.loadAll();
+	t1.search(QStringLiteral("47"));
+	t1.iterate([](TestData) {
+		return false;
+	});
+	t1.clear();
+}
+
 QTEST_MAIN(TestDataStore)
 
 #include "tst_datastore.moc"
