@@ -118,6 +118,11 @@ void DataStore::iterate(int metaTypeId, const std::function<bool (QVariant)> &it
 	}
 }
 
+void DataStore::clear(int metaTypeId)
+{
+	d->store->clear(d->typeName(metaTypeId));
+}
+
 // ------------- PRIVATE IMPLEMENTATION -------------
 
 DataStorePrivate::DataStorePrivate(DataStore *q, const QString &setupName) :

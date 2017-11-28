@@ -52,6 +52,7 @@ public:
 	void iterate(int metaTypeId,
 				 const std::function<bool(QVariant)> &iterator,
 				 const std::function<void(const QException &)> &onExcept = {}) const;
+	void clear(int metaTypeId);
 
 	//! Counts the number of datasets for the given type
 	template<typename T>
@@ -59,6 +60,9 @@ public:
 	//! Returns all saved keys for the given type
 	template<typename T>
 	QStringList keys();
+	//! @copybrief AsyncDataStore::keys()
+	template<typename T, typename K>
+	QList<K> keys();
 	//! Loads all existing datasets for the given type
 	template<typename T>
 	QList<T> loadAll();
@@ -84,6 +88,8 @@ public:
 	template<typename T>
 	void iterate(const std::function<bool(T)> &iterator,
 				 const std::function<void(const QException &)> &onExcept = {});
+	template<typename T>
+	void clear();
 
 	//! Loads the dataset with the given key for the given type into the existing object by updating it's properties
 	template<typename T>
@@ -182,6 +188,17 @@ QStringList DataStore::keys()
 	return keys(qMetaTypeId<T>());
 }
 
+template<typename T, typename K>
+QList<K> DataStore::keys()
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	auto kList = keys<T>();
+	QList<K> rList;
+	foreach(auto k, kList)
+		rList.append(QVariant(k).template value<K>());
+	return rList;
+}
+
 template<typename T>
 QList<T> DataStore::loadAll()
 {
@@ -218,14 +235,14 @@ template<typename T>
 bool DataStore::remove(const QString &key)
 {
 	QTDATASYNC_STORE_ASSERT(T);
-	return load(qMetaTypeId<T>(), key);
+	return remove(qMetaTypeId<T>(), key);
 }
 
 template<typename T, typename K>
 bool DataStore::remove(const K &key)
 {
 	QTDATASYNC_STORE_ASSERT(T);
-	return load(qMetaTypeId<T>(), QVariant::fromValue(key));
+	return remove(qMetaTypeId<T>(), QVariant::fromValue(key));
 }
 
 template<typename T>
@@ -246,6 +263,13 @@ void DataStore::iterate(const std::function<bool (T)> &iterator, const std::func
 	iterate(qMetaTypeId<T>(), [iterator](QVariant v) {
 		return iterator(v.template value<T>());
 	}, onExcept);
+}
+
+template<typename T>
+void DataStore::clear()
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	clear(qMetaTypeId<T>());
 }
 
 template<typename T>
