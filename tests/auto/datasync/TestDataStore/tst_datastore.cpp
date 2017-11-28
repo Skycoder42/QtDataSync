@@ -17,13 +17,15 @@ private Q_SLOTS:
 	void testEmpty();
 	void testSave_data();
 	void testSave();
+	void testSaveInvalid();
 	void testAll();
 	void testFind();
 	void testRemove_data();
 	void testRemove();
 	void testClear();
 
-	void testLoadInto();
+	void testUpdate();
+	void testUpdateInvalid();
 
 	void testChangeSignals();
 
@@ -84,6 +86,19 @@ void TestDataStore::testSave()
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
+}
+
+void TestDataStore::testSaveInvalid()
+{
+	auto obj = new QObject(this);
+	try {
+		QVERIFY_EXCEPTION_THROWN(store->save(qMetaTypeId<TestData>(), 42), InvalidDataException);
+		QVERIFY_EXCEPTION_THROWN(store->save(qMetaTypeId<int>(), 42), InvalidDataException);
+		QVERIFY_EXCEPTION_THROWN(store->save(obj), InvalidDataException);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+	obj->deleteLater();
 }
 
 void TestDataStore::testAll()
@@ -148,7 +163,7 @@ void TestDataStore::testClear()
 	}
 }
 
-void TestDataStore::testLoadInto()
+void TestDataStore::testUpdate()
 {
 	auto dataObj = new TestObject(this);
 	dataObj->id = 10;
@@ -181,6 +196,18 @@ void TestDataStore::testLoadInto()
 	}
 
 	dataObj->deleteLater();
+}
+
+void TestDataStore::testUpdateInvalid()
+{
+	auto obj = new QObject(this);
+	try {
+		QVERIFY_EXCEPTION_THROWN(store->update(obj), InvalidDataException);
+		QVERIFY_EXCEPTION_THROWN(store->update(qMetaTypeId<TestObject*>(), obj), InvalidDataException);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+	obj->deleteLater();
 }
 
 void TestDataStore::testChangeSignals()
