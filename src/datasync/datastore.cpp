@@ -123,6 +123,35 @@ void DataStore::clear(int metaTypeId)
 	d->store->clear(d->typeName(metaTypeId));
 }
 
+void DataStore::update(int metaTypeId, QObject *object)
+{
+	auto typeName = d->typeName(metaTypeId);
+	auto meta = QMetaType::metaObjectForType(metaTypeId);
+	if(!meta)
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Type does not have a meta object"));
+	auto userProp = meta->userProperty();
+	if(!userProp.isValid())
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Type does not have a user property"));
+
+	auto key = userProp.read(object).toString();
+	if(key.isEmpty())
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Failed to convert user property value to a string"));
+
+	if(!object->metaObject()->inherits(meta)) {
+		throw InvalidDataException(d->defaults,
+								   typeName,
+								   QStringLiteral("Passed object of type %1 does not inherit the given meta type")
+								   .arg(QString::fromUtf8(object->metaObject()->className())));
+	}
+
+	auto nObj = load(metaTypeId, key).value<QObject*>();
+	for(auto i = 0; i < meta->propertyCount(); i++) {
+		auto prop = meta->property(i);
+		prop.write(object, prop.read(nObj));
+	}
+	nObj->deleteLater();
+}
+
 // ------------- PRIVATE IMPLEMENTATION -------------
 
 DataStorePrivate::DataStorePrivate(DataStore *q, const QString &setupName) :

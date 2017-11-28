@@ -165,10 +165,8 @@ void TestDataStore::testLoadInto()
 		dataObj->text = QStringLiteral("something new");
 		store->save(dataObj);
 
-		QEXPECT_FAIL("", "Not implemented yet", Abort);
-
 		QSignalSpy spy(d2, &TestObject::textChanged);
-		store->loadInto(dataObj->id, d2);
+		store->update(d2);
 
 		QCOMPARE(spy.size(), 1);
 		auto f = spy.takeFirst();

@@ -43,7 +43,7 @@ public:
 	//! @copybrief DataStore::remove(const QString &)
 	bool remove(int metaTypeId, const QString &key);
 	//! @copybrief DataStore::remove(const K &)
-	bool remove(int metaTypeId, const QVariant &key) {
+	inline bool remove(int metaTypeId, const QVariant &key) {
 		return remove(metaTypeId, key.toString());
 	}
 	//! @copybrief DataStore::search(const QString &)
@@ -53,6 +53,7 @@ public:
 				 const std::function<bool(QVariant)> &iterator,
 				 const std::function<void(const QException &)> &onExcept = {}) const;
 	void clear(int metaTypeId);
+	void update(int metaTypeId, QObject *object);
 
 	//! Counts the number of datasets for the given type
 	template<typename T>
@@ -93,10 +94,7 @@ public:
 
 	//! Loads the dataset with the given key for the given type into the existing object by updating it's properties
 	template<typename T>
-	void loadInto(const QString &key, T object);
-	//! @copybrief AsyncDataStore::loadInto(const QString &, const T &)
-	template<typename T, typename K>
-	void loadInto(const K &key, T object);
+	void update(T object);
 
 Q_SIGNALS:
 	void dataChanged(int metaTypeId, const QString &key, bool deleted);
@@ -273,17 +271,10 @@ void DataStore::clear()
 }
 
 template<typename T>
-void DataStore::loadInto(const QString &key, T object)
+void DataStore::update(T object)
 {
 	static_assert(__helpertypes::is_storable_obj<T>::value, "loadInto can only be used for pointers to QObject extending classes");
-	Q_UNIMPLEMENTED();
-}
-
-template<typename T, typename K>
-void DataStore::loadInto(const K &key, T object)
-{
-	static_assert(__helpertypes::is_storable_obj<T>::value, "loadInto can only be used for pointers to QObject extending classes");
-	Q_UNIMPLEMENTED();
+	update(qMetaTypeId<T>(), object);
 }
 
 }
