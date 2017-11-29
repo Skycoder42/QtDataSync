@@ -12,10 +12,10 @@ HEADERS += qtdatasync_global.h \
 	setup.h \
 	exception.h \
 	objectkey.h \
-    datastore.h \
-    datastore_p.h \
-    qtdatasync_helpertypes.h \
-    datatypestore.h
+	datastore.h \
+	datastore_p.h \
+	qtdatasync_helpertypes.h \
+	datatypestore.h
 
 SOURCES += \
 	localstore.cpp \
@@ -25,8 +25,8 @@ SOURCES += \
 	exception.cpp \
 	qtdatasync_global.cpp \
 	objectkey.cpp \
-    datastore.cpp \
-    datatypestore.cpp
+	datastore.cpp \
+	datatypestore.cpp
 
 DISTFILES += \
 	datasync.qmodel \

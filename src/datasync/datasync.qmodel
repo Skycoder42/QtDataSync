@@ -827,9 +827,58 @@
                       </DAssociation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DClass">
+                      <DClass>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{c74afde5-2d75-4ef3-b48c-2fc7977b6a20}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{78ee8c0f-a3b6-4e9f-a5ac-db4785b725fe}</object>
+                         <name>CachingDataTypeStore</name>
+                         <pos>x:440;y:170</pos>
+                         <rect>x:-70;y:-30;w:140;h:60</rect>
+                         <visual-role>6</visual-role>
+                        </DObject>
+                       </base-DObject>
+                      </DClass>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DAssociation">
+                      <DAssociation>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{132baeec-9cec-4003-ab67-f76a8f964242}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{00695b43-1de7-4d3f-8c95-a980f48dc6fb}</object>
+                         <a>{c74afde5-2d75-4ef3-b48c-2fc7977b6a20}</a>
+                         <b>{a9755af6-b90d-4c5e-89cf-b336c4a04c8a}</b>
+                        </DRelation>
+                       </base-DRelation>
+                       <a>
+                        <DAssociationEnd>
+                         <navigable>true</navigable>
+                         <kind>1</kind>
+                        </DAssociationEnd>
+                       </a>
+                       <b>
+                        <DAssociationEnd>
+                         <cradinality>1</cradinality>
+                        </DAssociationEnd>
+                       </b>
+                      </DAssociation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1511303890111</last-modified>
+                  <last-modified>1511965964726</last-modified>
                   <toolbarid>Classes</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1785,6 +1834,68 @@
                    </MElement>
                   </base-MElement>
                   <name>CryptoController</name>
+                 </MObject>
+                </base-MObject>
+               </MClass>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{78ee8c0f-a3b6-4e9f-a5ac-db4785b725fe}</uid>
+             <target>
+              <instance type="MClass">
+               <MClass>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{78ee8c0f-a3b6-4e9f-a5ac-db4785b725fe}</uid>
+                   </MElement>
+                  </base-MElement>
+                  <name>CachingDataTypeStore</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{00695b43-1de7-4d3f-8c95-a980f48dc6fb}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{00695b43-1de7-4d3f-8c95-a980f48dc6fb}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{78ee8c0f-a3b6-4e9f-a5ac-db4785b725fe}</a>
+                             <b>{37410736-0fd8-4a41-b7f8-ec12190e4977}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <navigable>true</navigable>
+                             <kind>1</kind>
+                            </MAssociationEnd>
+                           </a>
+                           <b>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                            </MAssociationEnd>
+                           </b>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
                  </MObject>
                 </base-MObject>
                </MClass>

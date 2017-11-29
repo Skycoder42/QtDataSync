@@ -1,7 +1,7 @@
 #ifndef DATATYPESTORE_H
 #define DATATYPESTORE_H
 
-#include <QtCore/QObject>
+#include <QtCore/qobject.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/datastore.h"
