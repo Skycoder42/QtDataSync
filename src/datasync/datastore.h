@@ -20,6 +20,7 @@ class DataStorePrivate;
 class Q_DATASYNC_EXPORT DataStore : public QObject
 {
 	Q_OBJECT
+	friend class DataStoreModel;
 
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 
