@@ -27,6 +27,11 @@ DataStore::DataStore(const QString &setupName, QObject *parent) :
 
 DataStore::~DataStore() {}
 
+int DataStore::cacheSize() const
+{
+	return d->store->cacheSize();
+}
+
 qint64 DataStore::count(int metaTypeId) const
 {
 	return d->store->count(d->typeName(metaTypeId));
@@ -150,6 +155,16 @@ void DataStore::update(int metaTypeId, QObject *object)
 		prop.write(object, prop.read(nObj));
 	}
 	nObj->deleteLater();
+}
+
+void DataStore::setCacheSize(int cacheSize)
+{
+	d->store->setCacheSize(cacheSize);
+}
+
+void DataStore::resetCacheSize()
+{
+	d->store->resetCacheSize();
 }
 
 // ------------- PRIVATE IMPLEMENTATION -------------

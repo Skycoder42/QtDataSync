@@ -16,6 +16,8 @@ public:
 	int id;
 	QString text;
 
+	bool equals(const TestObject *other) const;
+
 signals:
 	void idChanged(int id);
 	void textChanged(QString text);

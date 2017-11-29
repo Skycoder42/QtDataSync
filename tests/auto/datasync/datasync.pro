@@ -3,6 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	TestLib \
 	TestLocalStore \
-    TestDataStore
+    TestDataStore \
+    TestDataTypeStore
 
 CONFIG += ordered

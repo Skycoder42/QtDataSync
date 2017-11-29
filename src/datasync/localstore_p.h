@@ -33,6 +33,8 @@ class Q_DATASYNC_EXPORT LocalStore : public QObject //TODO use const where usefu
 {
 	Q_OBJECT
 
+	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
+
 public:
 	explicit LocalStore(QObject *parent = nullptr);
 	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);
@@ -48,6 +50,12 @@ public:
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
 	void clear(const QByteArray &typeName);
 	void reset();
+
+	int cacheSize() const;
+
+public Q_SLOTS:
+	void setCacheSize(int cacheSize);
+	void resetCacheSize();
 
 Q_SIGNALS:
 	void dataChanged(const QtDataSync::ObjectKey &key, bool deleted);

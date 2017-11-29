@@ -15,6 +15,8 @@ class Q_DATASYNC_EXPORT DataTypeStoreBase : public QObject
 public:
 	explicit DataTypeStoreBase(QObject *parent = nullptr);
 
+	virtual DataStore *store() const = 0;
+
 Q_SIGNALS:
 	//! Will be emitted when a dataset in the store has changed
 	void dataChanged(const QString &key, const QVariant &value);
@@ -35,6 +37,8 @@ public:
 	//! Constructs a store for the given setup
 	explicit DataTypeStore(DataStore *store, QObject *parent = nullptr);
 
+	DataStore *store() const override;
+
 	//! Counts the number of datasets in the store
 	int count() const;
 	//! Returns all keys in the store
@@ -46,7 +50,7 @@ public:
 	//! Saves the given dataset
 	void save(const TType &value);
 	//! Removes the dataset with the given key
-	void remove(const TKey &key);
+	bool remove(const TKey &key);
 	QList<TType> search(const QString &query);
 	//! Asynchronously iterates over all existing datasets of the given types
 	void iterate(const std::function<bool(TType)> &iterator,
@@ -76,6 +80,8 @@ public:
 	//! Constructs a store for the given setup
 	explicit CachingDataTypeStore(DataStore *store, QObject *parent = nullptr);
 
+	DataStore *store() const override;
+
 	//! Counts the number of datasets in the store
 	int count() const;
 	//! Returns all keys in the store
@@ -89,7 +95,7 @@ public:
 	//! Saves the given dataset
 	void save(const TType &value);
 	//! Removes the dataset with the given key
-	void remove(const TKey &key);
+	bool remove(const TKey &key);
 	TType take(const TKey &key);
 	void clear();
 
@@ -110,7 +116,8 @@ private:
 template <typename TType, typename TKey>
 class CachingDataTypeStore<TType*, TKey> : public DataTypeStoreBase
 {
-	static_assert(std::is_base_of<QObject, TType>::value, "TType must inherit QObject");
+	static_assert(__helpertypes::is_object<TType*>::value, "TType must inherit QObject");
+
 public:
 	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(QObject *, bool)
 	explicit CachingDataTypeStore(QObject *parent = nullptr);
@@ -118,6 +125,8 @@ public:
 	explicit CachingDataTypeStore(const QString &setupName, QObject *parent = nullptr);
 	//! Constructs a store for the given setup
 	explicit CachingDataTypeStore(DataStore *store, QObject *parent = nullptr);
+
+	DataStore *store() const override;
 
 	//!@copydoc CachingDataTypeStore::count
 	int count() const;
@@ -132,7 +141,7 @@ public:
 	//!@copydoc CachingDataTypeStore::save
 	void save(TType *value);
 	//!@copydoc CachingDataTypeStore::remove
-	void remove(const TKey &key);
+	bool remove(const TKey &key);
 	TType* take(const TKey &key);
 	void clear();
 
@@ -143,7 +152,7 @@ public:
 
 private:
 	DataStore *_store;
-	QHash<TKey, TType> _data;
+	QHash<TKey, TType*> _data;
 
 	void evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted);
 	void evalDataCleared(int metaTypeId);
@@ -177,6 +186,12 @@ DataTypeStore<TType, TKey>::DataTypeStore(DataStore *store, QObject *parent) :
 			this, &DataTypeStore::dataResetted);
 }
 
+template<typename TType, typename TKey>
+DataStore *DataTypeStore<TType, TKey>::store() const
+{
+	return _store;
+}
+
 template <typename TType, typename TKey>
 int DataTypeStore<TType, TKey>::count() const
 {
@@ -208,9 +223,9 @@ void DataTypeStore<TType, TKey>::save(const TType &value)
 }
 
 template <typename TType, typename TKey>
-void DataTypeStore<TType, TKey>::remove(const TKey &key)
+bool DataTypeStore<TType, TKey>::remove(const TKey &key)
 {
-	_store->remove<TType>(key);
+	return _store->remove<TType>(key);
 }
 
 template<typename TType, typename TKey>
@@ -287,6 +302,12 @@ CachingDataTypeStore<TType, TKey>::CachingDataTypeStore(DataStore *store, QObjec
 			this, &CachingDataTypeStore::evalDataResetted);
 }
 
+template<typename TType, typename TKey>
+DataStore *CachingDataTypeStore<TType, TKey>::store() const
+{
+	return _store;
+}
+
 template <typename TType, typename TKey>
 int CachingDataTypeStore<TType, TKey>::count() const
 {
@@ -324,17 +345,19 @@ void CachingDataTypeStore<TType, TKey>::save(const TType &value)
 }
 
 template <typename TType, typename TKey>
-void CachingDataTypeStore<TType, TKey>::remove(const TKey &key)
+bool CachingDataTypeStore<TType, TKey>::remove(const TKey &key)
 {
-	_store->remove<TType>(QVariant::fromValue(key).toString());
+	return _store->remove<TType>(QVariant::fromValue(key).toString());
 }
 
 template<typename TType, typename TKey>
 TType CachingDataTypeStore<TType, TKey>::take(const TKey &key)
 {
 	auto mData = _data.value(key);
-	_store->remove<TType>(QVariant::fromValue(key).toString());
-	return mData;
+	if(_store->remove<TType>(QVariant::fromValue(key).toString()))
+		return mData;
+	else
+		return {};
 }
 
 template<typename TType, typename TKey>
@@ -368,7 +391,7 @@ void CachingDataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QS
 template <typename TType, typename TKey>
 void CachingDataTypeStore<TType, TKey>::evalDataCleared(int metaTypeId)
 {
-	if(metaTypeId == qMetaTypeId<TType*>())
+	if(metaTypeId == qMetaTypeId<TType>())
 		evalDataResetted();
 }
 
@@ -400,7 +423,7 @@ CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(DataStore *store, QObje
 	_data()
 {
 	auto userProp = TType::staticMetaObject.userProperty();
-	foreach(auto data, store->loadAll<TType>()){
+	foreach(auto data, store->loadAll<TType*>()){
 		data->setParent(this);
 		_data.insert(userProp.read(data).template value<TKey>(), data);
 	}
@@ -411,6 +434,12 @@ CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(DataStore *store, QObje
 			this, &CachingDataTypeStore::evalDataCleared);
 	connect(_store, &DataStore::dataResetted,
 			this, &CachingDataTypeStore::evalDataResetted);
+}
+
+template<typename TType, typename TKey>
+DataStore *CachingDataTypeStore<TType*, TKey>::store() const
+{
+	return _store;
 }
 
 template <typename TType, typename TKey>
@@ -450,9 +479,9 @@ void CachingDataTypeStore<TType*, TKey>::save(TType *value)
 }
 
 template <typename TType, typename TKey>
-void CachingDataTypeStore<TType*, TKey>::remove(const TKey &key)
+bool CachingDataTypeStore<TType*, TKey>::remove(const TKey &key)
 {
-	_store->remove<TType*>(key);
+	return _store->remove<TType*>(key);
 }
 
 template<typename TType, typename TKey>
@@ -460,19 +489,21 @@ TType* CachingDataTypeStore<TType*, TKey>::take(const TKey &key)
 {
 	auto mData = _data.take(key);
 	try {
-		_store->remove<TType>(QVariant::fromValue(key).toString());
+		if(!_store->remove<TType*>(QVariant::fromValue(key).toString()))
+			return nullptr;
 	} catch(...) {
 		_data.insert(key, mData);
 		throw;
 	}
 	mData->setParent(nullptr);
+	emit dataChanged(QVariant(key).toString(), QVariant());//manual emit required, because not happening in change signal because removed before
 	return mData;
 }
 
 template<typename TType, typename TKey>
 void CachingDataTypeStore<TType*, TKey>::clear()
 {
-	_store->clear<TType>();
+	_store->clear<TType*>();
 }
 
 template<typename TType, typename TKey>

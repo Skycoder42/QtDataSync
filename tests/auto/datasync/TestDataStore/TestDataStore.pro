@@ -4,8 +4,4 @@ TARGET = tst_datastore
 
 
 SOURCES += \
-		tst_datastore.cpp \
-    testobject.cpp
-
-HEADERS += \
-    testobject.h
+		tst_datastore.cpp

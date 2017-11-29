@@ -271,8 +271,12 @@ bool LocalStore::remove(const ObjectKey &key)
 
 				//notify others
 				emit emitter->dataChanged(this, key, {}, 0);
-			} else
+			} else { //not stored -> done
+				if(!database->commit())
+					throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
+
 				return false;
+			}
 		} catch(...) {
 			database->rollback();
 			throw;
@@ -375,6 +379,21 @@ void LocalStore::reset()
 
 	//own signal
 	emit dataResetted();
+}
+
+int LocalStore::cacheSize() const
+{
+	return dataCache.maxCost();
+}
+
+void LocalStore::setCacheSize(int cacheSize)
+{
+	dataCache.setMaxCost(cacheSize);
+}
+
+void LocalStore::resetCacheSize()
+{
+	dataCache.setMaxCost(defaults.property(Defaults::CacheSize).toInt());
 }
 
 void LocalStore::onDataChange(QObject *origin, const ObjectKey &key, const QJsonObject &data, int size)

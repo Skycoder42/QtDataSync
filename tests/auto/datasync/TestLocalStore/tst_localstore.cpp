@@ -116,6 +116,7 @@ void TestLocalStore::testFind()
 void TestLocalStore::testUncached()
 {
 	auto second = new LocalStore(this);
+	second->setCacheSize(0);
 	testAllImpl(second);
 	second->deleteLater();
 }
@@ -123,17 +124,23 @@ void TestLocalStore::testUncached()
 void TestLocalStore::testRemove_data()
 {
 	QTest::addColumn<ObjectKey>("key");
+	QTest::addColumn<bool>("result");
 
-	QTest::newRow("data0") << TestLib::generateKey(429);
-	QTest::newRow("data1") << TestLib::generateKey(430);
+	QTest::newRow("data0") << TestLib::generateKey(429)
+						   << true;
+	QTest::newRow("data1") << TestLib::generateKey(430)
+						   << true;
+	QTest::newRow("data2") << TestLib::generateKey(430)
+						   << false;
 }
 
 void TestLocalStore::testRemove()
 {
 	QFETCH(ObjectKey, key);
+	QFETCH(bool, result);
 
 	try {
-		store->remove(key);
+		QCOMPARE(store->remove(key), result);
 		QVERIFY_EXCEPTION_THROWN(store->load(key), NoDataException);
 	} catch(QException &e) {
 		QFAIL(e.what());
@@ -200,7 +207,7 @@ void TestLocalStore::testChangeSignals()
 		QCOMPARE(sig[0].value<ObjectKey>(), key);
 		QCOMPARE(sig[1].toBool(), false);
 
-		store->remove(key);
+		QVERIFY(store->remove(key));
 		QVERIFY_EXCEPTION_THROWN(store->load(key), NoDataException);
 		QVERIFY_EXCEPTION_THROWN(second->load(key), NoDataException);
 
