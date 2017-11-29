@@ -73,6 +73,9 @@ class CachingDataTypeStore : public DataTypeStoreBase
 	static_assert(__helpertypes::is_gadget<TType>::value, "TType must be a Q_GADGET");
 
 public:
+	typedef typename QHash<TKey, TType>::const_iterator const_iterator;
+	typedef const_iterator iterator;
+
 	//! Constructs a store for the default setup
 	explicit CachingDataTypeStore(QObject *parent = nullptr);
 	//! Constructs a store for the given setup
@@ -99,7 +102,8 @@ public:
 	TType take(const TKey &key);
 	void clear();
 
-	//TODO add iterator
+	const_iterator begin() const;
+	const_iterator end() const;
 
 	//! Shortcut to convert a string to the store key type
 	static TKey toKey(const QString &key);
@@ -119,6 +123,9 @@ class CachingDataTypeStore<TType*, TKey> : public DataTypeStoreBase
 	static_assert(__helpertypes::is_object<TType*>::value, "TType must inherit QObject");
 
 public:
+	typedef typename QHash<TKey, TType*>::const_iterator const_iterator;
+	typedef const_iterator iterator;
+
 	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(QObject *, bool)
 	explicit CachingDataTypeStore(QObject *parent = nullptr);
 	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(const QString &, QObject *, bool)
@@ -145,7 +152,8 @@ public:
 	TType* take(const TKey &key);
 	void clear();
 
-	//TODO add iterator
+	const_iterator begin() const;
+	const_iterator end() const;
 
 	//!@copydoc CachingDataTypeStore::toKey
 	static TKey toKey(const QString &key);
@@ -367,6 +375,18 @@ void CachingDataTypeStore<TType, TKey>::clear()
 }
 
 template<typename TType, typename TKey>
+typename CachingDataTypeStore<TType, TKey>::const_iterator CachingDataTypeStore<TType, TKey>::begin() const
+{
+	return _data.constBegin();
+}
+
+template<typename TType, typename TKey>
+typename CachingDataTypeStore<TType, TKey>::const_iterator CachingDataTypeStore<TType, TKey>::end() const
+{
+	return _data.constEnd();
+}
+
+template<typename TType, typename TKey>
 TKey CachingDataTypeStore<TType, TKey>::toKey(const QString &key)
 {
 	return QVariant(key).value<TKey>();
@@ -504,6 +524,18 @@ template<typename TType, typename TKey>
 void CachingDataTypeStore<TType*, TKey>::clear()
 {
 	_store->clear<TType*>();
+}
+
+template<typename TType, typename TKey>
+typename CachingDataTypeStore<TType*, TKey>::const_iterator CachingDataTypeStore<TType*, TKey>::begin() const
+{
+	return _data.constBegin();
+}
+
+template<typename TType, typename TKey>
+typename CachingDataTypeStore<TType*, TKey>::const_iterator CachingDataTypeStore<TType*, TKey>::end() const
+{
+	return _data.constEnd();
 }
 
 template<typename TType, typename TKey>

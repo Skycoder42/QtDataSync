@@ -154,6 +154,9 @@ void TestDataTypeStore::testCaching(std::function<QList<T>(int,int)> generator, 
 		QCOMPAREUNORDERED(store.keys(), k);
 		QCOMPARE(store.loadAll().size(), 4);
 
+		for(auto it = store.begin(); it != store.end(); it++)
+			QVERIFY(k.contains(it.key()));
+
 		QVERIFY(store.remove(1));
 		QCOMPARE(store.count(), 3);
 		QVERIFY(!store.contains(1));
@@ -206,17 +209,21 @@ static void dataTypeStoreCompiletest_DO_NOT_CALL()
 	t2.remove(5);
 	t2.take(4);
 	t2.clear();
+	t2.begin();
+	t2.end();
 
 	CachingDataTypeStore<TestObject*, int> t3;
-	t2.count();
-	t2.keys();
-	t2.contains(42);
-	t2.load(0);
-	t2.loadAll();
-	t2.save(TestData());
-	t2.remove(5);
-	t2.take(4);
-	t2.clear();
+	t3.count();
+	t3.keys();
+	t3.contains(42);
+	t3.load(0);
+	t3.loadAll();
+	t3.save(nullptr);
+	t3.remove(5);
+	t3.take(4);
+	t3.clear();
+	t3.begin();
+	t3.end();
 }
 
 QTEST_MAIN(TestDataTypeStore)
