@@ -29,7 +29,7 @@ private:
 	QSqlDatabase database;
 };
 
-class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject
+class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject //TODO split into 2 parts, to move out logger into 1 per Defaults instance
 {
 	friend class Defaults;
 
@@ -63,6 +63,7 @@ private:
 	Logger *logger;
 	QJsonSerializer *serializer;
 	QHash<Defaults::PropertyKey, QVariant> properties;
+	QReadWriteLock lock;
 };
 
 }

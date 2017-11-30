@@ -65,6 +65,11 @@ DatabaseRef Defaults::aquireDatabase(QObject *object)
 	return DatabaseRef(new DatabaseRefPrivate(d, object));
 }
 
+QReadWriteLock *Defaults::databaseLock() const
+{
+	return &(d->lock);
+}
+
 
 
 

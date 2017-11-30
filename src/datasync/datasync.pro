@@ -18,7 +18,9 @@ HEADERS += qtdatasync_global.h \
 	datatypestore.h \
     datastoremodel.h \
     datastoremodel_p.h \
-    exchangeengine_p.h
+    exchangeengine_p.h \
+    syncmanager.h \
+    changecontroller_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -31,7 +33,9 @@ SOURCES += \
 	datastore.cpp \
 	datatypestore.cpp \
     datastoremodel.cpp \
-    exchangeengine.cpp
+    exchangeengine.cpp \
+    syncmanager.cpp \
+    changecontroller.cpp
 
 DISTFILES += \
 	datasync.qmodel \

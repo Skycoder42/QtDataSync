@@ -38,6 +38,7 @@ class Q_DATASYNC_EXPORT LocalStore : public QObject //TODO use const where usefu
 public:
 	explicit LocalStore(QObject *parent = nullptr);
 	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);
+	~LocalStore();
 
 	quint64 count(const QByteArray &typeName);
 	QStringList keys(const QByteArray &typeName);
@@ -67,8 +68,6 @@ private Q_SLOTS:
 	void onDataReset(QObject *origin, const QByteArray &typeName);
 
 private:
-	static QReadWriteLock globalLock;
-
 	Defaults defaults;
 	Logger *logger;
 
@@ -77,6 +76,7 @@ private:
 	QHash<QByteArray, QString> tableNameCache;
 	QCache<ObjectKey, QJsonObject> dataCache;
 
+	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 	QString getTable(const QByteArray &typeName, bool allowCreate = false);
 	QDir typeDirectory(const QString &tableName, const ObjectKey &key);
 	QJsonObject readJson(const QString &tableName, const QString &fileName, const ObjectKey &key, int *costs = nullptr);

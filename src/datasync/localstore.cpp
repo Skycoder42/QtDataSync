@@ -1,5 +1,6 @@
 #include "localstore_p.h"
 #include "datastore.h"
+#include "changecontroller_p.h"
 
 #include <QtCore/QUrl>
 #include <QtCore/QJsonDocument>
@@ -18,15 +19,7 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG logger
 
-#define EXEC_QUERY(query, key) do {\
-	if(!query.exec()) { \
-		throw LocalStoreException(defaults, key, query.executedQuery().simplified(), query.lastError().text()); \
-	} \
-} while(false)
-
 Q_GLOBAL_STATIC(LocalStoreEmitter, emitter)
-
-QReadWriteLock LocalStore::globalLock;
 
 LocalStore::LocalStore(QObject *parent) :
 	LocalStore(DefaultSetup, parent)
@@ -48,17 +41,19 @@ LocalStore::LocalStore(const QString &setupName, QObject *parent) :
 			Qt::DirectConnection);
 }
 
+LocalStore::~LocalStore() {}
+
 quint64 LocalStore::count(const QByteArray &typeName)
 {
-	QReadLocker _(&globalLock);
+	QReadLocker _(defaults.databaseLock());
 
 	auto table = getTable(typeName);
 	if(table.isEmpty())
 		return 0;
 
 	QSqlQuery countQuery(database);
-	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM %1").arg(table));
-	EXEC_QUERY(countQuery, typeName);
+	countQuery.prepare(QStringLiteral("SELECT Count(Key) FROM %1").arg(table));
+	exec(countQuery, typeName);
 
 	if(countQuery.first())
 		return countQuery.value(0).toInt();
@@ -68,7 +63,7 @@ quint64 LocalStore::count(const QByteArray &typeName)
 
 QStringList LocalStore::keys(const QByteArray &typeName)
 {
-	QReadLocker _(&globalLock);
+	QReadLocker _(defaults.databaseLock());
 
 	auto table = getTable(typeName);
 	if(table.isEmpty())
@@ -76,7 +71,7 @@ QStringList LocalStore::keys(const QByteArray &typeName)
 
 	QSqlQuery keysQuery(database);
 	keysQuery.prepare(QStringLiteral("SELECT Key FROM %1").arg(table));
-	EXEC_QUERY(keysQuery, typeName);
+	exec(keysQuery, typeName);
 
 	QStringList resList;
 	while(keysQuery.next())
@@ -86,7 +81,7 @@ QStringList LocalStore::keys(const QByteArray &typeName)
 
 QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 {
-	QReadLocker _(&globalLock);
+	QReadLocker _(defaults.databaseLock());
 
 	auto table = getTable(typeName);
 	if(table.isEmpty())
@@ -94,7 +89,7 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 
 	QSqlQuery loadQuery(database);
 	loadQuery.prepare(QStringLiteral("SELECT Key, File FROM %1").arg(table));
-	EXEC_QUERY(loadQuery, typeName);
+	exec(loadQuery, typeName);
 
 	QList<QJsonObject> array;
 	while(loadQuery.next()) {
@@ -109,7 +104,7 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 
 QJsonObject LocalStore::load(const ObjectKey &key)
 {
-	QReadLocker _(&globalLock);
+	QReadLocker _(defaults.databaseLock());
 
 	//check if cached
 	auto data = dataCache.object(key);
@@ -123,7 +118,7 @@ QJsonObject LocalStore::load(const ObjectKey &key)
 	QSqlQuery loadQuery(database);
 	loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
 	loadQuery.addBindValue(key.id);
-	EXEC_QUERY(loadQuery, key);
+	exec(loadQuery, key);
 
 	if(loadQuery.first()) {
 		int size;
@@ -138,7 +133,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 {
 	//scope for the lock
 	{
-		QWriteLocker _(&globalLock);
+		QWriteLocker _(defaults.databaseLock());
 
 		auto table = getTable(key.typeName, true);
 		auto tableDir = typeDirectory(table, key);
@@ -149,17 +144,20 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 		try {
 			//check if the file exists
 			QSqlQuery existQuery(database);
-			existQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
+			existQuery.prepare(QStringLiteral("SELECT Version, File FROM %1 WHERE Key = ?").arg(table));
 			existQuery.addBindValue(key.id);
-			EXEC_QUERY(existQuery, key);
+			exec(existQuery, key);
 
 			auto notExisting = false;
 			QScopedPointer<QFileDevice> device;
 			std::function<bool(QFileDevice*)> commitFn;
 
 			//create the file device to write to
+			quint64 version = 1ull;
 			if(existQuery.first()) {
-				auto file = new QSaveFile(tableDir.absoluteFilePath(existQuery.value(0).toString() + QStringLiteral(".dat")));
+				version = existQuery.value(0).toULongLong() + 1ull;
+
+				auto file = new QSaveFile(tableDir.absoluteFilePath(existQuery.value(1).toString() + QStringLiteral(".dat")));
 				device.reset(file);
 				if(!file->open(QIODevice::WriteOnly))
 					throw LocalStoreException(defaults, key, file->fileName(), file->errorString());
@@ -167,13 +165,14 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 					return static_cast<QSaveFile*>(d)->commit();
 				};
 			} else {
+				notExisting = true;
+
 				auto fileName = QString::fromUtf8(QUuid::createUuid().toRfc4122().toHex());
 				fileName = tableDir.absoluteFilePath(QStringLiteral("%1XXXXXX.dat")).arg(fileName);
 				auto file = new QTemporaryFile(fileName);
 				device.reset(file);
 				if(!file->open())
 					throw LocalStoreException(defaults, key, file->fileName(), file->errorString());
-				notExisting = true;
 				commitFn = [](QFileDevice *d){
 					auto f = static_cast<QTemporaryFile*>(d);
 					f->close();
@@ -199,22 +198,27 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			QFileInfo info(device->fileName());
 			if(notExisting) {
 				QSqlQuery insertQuery(database);
-				insertQuery.prepare(QStringLiteral("INSERT INTO %1 (Key, File, Checksum) VALUES(?, ?, ?)").arg(table));
+				insertQuery.prepare(QStringLiteral("INSERT INTO %1 (Key, Version, File, Checksum) VALUES(?, ?, ?, ?)").arg(table));
 				insertQuery.addBindValue(key.id);
+				insertQuery.addBindValue(version);
 				insertQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName()));
-				insertQuery.addBindValue(hashPipe.hash().toHex());
-				EXEC_QUERY(insertQuery, key);
+				insertQuery.addBindValue(hashPipe.hash());
+				exec(insertQuery, key);
 			} else {
 				QSqlQuery updateQuery(database);
-				updateQuery.prepare(QStringLiteral("UPDATE %1 SET Checksum = ?, Version = Version + 1 WHERE Key = ?").arg(table));
-				updateQuery.addBindValue(hashPipe.hash().toHex());
+				updateQuery.prepare(QStringLiteral("UPDATE %1 SET Version = ?, Checksum = ? WHERE Key = ?").arg(table));
+				updateQuery.addBindValue(version);
+				updateQuery.addBindValue(hashPipe.hash());
 				updateQuery.addBindValue(key.id);
-				EXEC_QUERY(updateQuery, key);
+				exec(updateQuery, key);
 			}
 
-			//complete the file-save, then the transaction
+			//complete the file-save
 			if(!commitFn(device.data()))
 				throw LocalStoreException(defaults, key, device->fileName(), device->errorString());
+
+			//notify change controller (BEFORE committing) and commit
+			ChangeController::triggerDataChange(defaults, database, {key, version, hashPipe.hash()});
 			if(!database->commit())
 				throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
@@ -237,7 +241,7 @@ bool LocalStore::remove(const ObjectKey &key)
 {
 	//scope for the lock
 	{
-		QWriteLocker _(&globalLock);
+		QWriteLocker _(defaults.databaseLock());
 
 		auto table = getTable(key.typeName);
 		if(table.isEmpty()) //no table -> nothing to delete
@@ -248,21 +252,24 @@ bool LocalStore::remove(const ObjectKey &key)
 
 		try {
 			QSqlQuery loadQuery(database);
-			loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
+			loadQuery.prepare(QStringLiteral("SELECT Version, File FROM %1 WHERE Key = ?").arg(table));
 			loadQuery.addBindValue(key.id);
-			EXEC_QUERY(loadQuery, key);
+			exec(loadQuery, key);
 
 			if(loadQuery.first()) {
 				QSqlQuery removeQuery(database);
 				removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(table));
 				removeQuery.addBindValue(key.id);
-				EXEC_QUERY(removeQuery, key);
+				exec(removeQuery, key);
 
+				auto version = loadQuery.value(0).toULongLong() + 1;
 				auto tableDir = typeDirectory(table, key);
-				auto fileName = tableDir.absoluteFilePath(loadQuery.value(0).toString() + QStringLiteral(".dat"));
+				auto fileName = tableDir.absoluteFilePath(loadQuery.value(1).toString() + QStringLiteral(".dat"));
 				if(!QFile::remove(fileName))
 					throw LocalStoreException(defaults, key, fileName, QStringLiteral("Failed to delete file"));
 
+				//notify change controller (BEFORE committing) and commit
+				ChangeController::triggerDataChange(defaults, database, {key, version});
 				if(!database->commit())
 					throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
@@ -290,7 +297,7 @@ bool LocalStore::remove(const ObjectKey &key)
 
 QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &query)
 {
-	QReadLocker _(&globalLock);
+	QReadLocker _(defaults.databaseLock());
 
 	auto table = getTable(typeName);
 	if(table.isEmpty())
@@ -303,7 +310,7 @@ QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &q
 	QSqlQuery findQuery(database);
 	findQuery.prepare(QStringLiteral("SELECT Key, File FROM %1 WHERE Key LIKE ?").arg(table));
 	findQuery.addBindValue(searchQuery);
-	EXEC_QUERY(findQuery, typeName);
+	exec(findQuery, typeName);
 
 	QList<QJsonObject> array;
 	while(findQuery.next()) {
@@ -320,15 +327,17 @@ void LocalStore::clear(const QByteArray &typeName)
 {
 	//scope for the lock
 	{
-		QWriteLocker _(&globalLock);
+		QWriteLocker _(defaults.databaseLock());
 
 		auto table = getTable(typeName);
 		if(table.isEmpty()) //no table -> nothing to delete
 			return;
 
 		QSqlQuery dropQuery(database);
-		dropQuery.prepare(QStringLiteral("DROP TABLE %1").arg(table));
-		EXEC_QUERY(dropQuery, typeName);
+		dropQuery.prepare(QStringLiteral("DROP TABLE IF EXISTS %1").arg(table));
+		exec(dropQuery, typeName);
+
+		ChangeController::triggerDataClear(defaults, database, typeName);
 
 		auto tableDir = typeDirectory(table, typeName);
 		if(!tableDir.removeRecursively())
@@ -346,7 +355,7 @@ void LocalStore::reset()
 {
 	//scope for the lock
 	{
-		QWriteLocker _(&globalLock);
+		QWriteLocker _(defaults.databaseLock());
 
 		if(!database->transaction())
 			throw LocalStoreException(defaults, {}, database->databaseName(), database->lastError().text());
@@ -357,8 +366,10 @@ void LocalStore::reset()
 					continue;
 				QSqlQuery dropQuery(database);
 				dropQuery.prepare(QStringLiteral("DROP TABLE %1").arg(table));
-				EXEC_QUERY(dropQuery, {});
+				exec(dropQuery);
 			}
+
+			//note: resets are local only, so they dont trigger any changecontroller stuff
 
 			if(!database->commit())
 				throw LocalStoreException(defaults, QByteArray("<any>"), database->databaseName(), database->lastError().text());
@@ -434,6 +445,16 @@ void LocalStore::onDataReset(QObject *origin, const QByteArray &typeName)
 	}
 }
 
+void LocalStore::exec(QSqlQuery &query, const ObjectKey &key) const
+{
+	if(!query.exec()) {
+		throw LocalStoreException(defaults,
+								  key,
+								  query.executedQuery().simplified(),
+								  query.lastError().text());
+	}
+}
+
 QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
 {
 	//create table
@@ -448,18 +469,21 @@ QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
 				QSqlQuery createQuery(database);
 				createQuery.prepare(QStringLiteral("CREATE TABLE %1 ("
 												   "Key			TEXT NOT NULL,"
-												   "Version		INTEGER NOT NULL DEFAULT 1,"
+												   "Version		INTEGER NOT NULL,"
 												   "File		TEXT NOT NULL,"
 												   "Checksum	BLOB NOT NULL,"
 												   "PRIMARY KEY(Key)"
 												   ");").arg(tableName));
-				EXEC_QUERY(createQuery, typeName);
+				exec(createQuery, typeName);
 
 				tableNameCache.insert(typeName, tableName);
 			}
 		} else
 			tableNameCache.insert(typeName, tableName);
 	}
+
+	//to be save: check the same for changecontroller
+	ChangeController::createTables(defaults, database, allowCreate);
 
 	return tableNameCache.value(typeName);
 }

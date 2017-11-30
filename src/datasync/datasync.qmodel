@@ -167,7 +167,7 @@
                        </a>
                        <b>
                         <DAssociationEnd>
-                         <cradinality>1</cradinality>
+                         <cradinality>static</cradinality>
                         </DAssociationEnd>
                        </b>
                       </DAssociation>
@@ -956,7 +956,7 @@
                            </a>
                            <b>
                             <MAssociationEnd>
-                             <cardinality>1</cardinality>
+                             <cardinality>static</cardinality>
                             </MAssociationEnd>
                            </b>
                           </MAssociation>

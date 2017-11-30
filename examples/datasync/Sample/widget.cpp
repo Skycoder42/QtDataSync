@@ -15,6 +15,7 @@ Widget::Widget(QWidget *parent) :
 {
 	ui->setupUi(this);
 
+	qApp->setProperty("__mw", QVariant::fromValue(this));
 	prevHandler = qInstallMessageHandler(filterLogger);
 
 	new ModelTest(_model, this);
@@ -26,6 +27,7 @@ Widget::Widget(QWidget *parent) :
 
 Widget::~Widget()
 {
+	qApp->setProperty("__mw", QVariant::fromValue(nullptr));
 	delete ui;
 }
 
@@ -82,6 +84,13 @@ void Widget::on_deleteButton_clicked()
 {
 	_model->store()->remove<SampleData>(ui->idSpinBox->value());
 }
+
+void Widget::on_clearButton_clicked()
+{
+	_model->store()->clear<SampleData>();
+}
+
+
 
 static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {

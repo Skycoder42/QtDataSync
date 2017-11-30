@@ -101,7 +101,7 @@ void Setup::create(const QString &name)
 	//create defaults
 	DefaultsPrivate::createDefaults(name, storageDir, d->properties, d->serializer.take());
 
-	auto engine = new ExchangeEngine();
+	auto engine = new ExchangeEngine(name);
 
 	auto thread = new QThread();
 	engine->moveToThread(thread);
