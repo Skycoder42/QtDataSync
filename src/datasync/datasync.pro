@@ -33,7 +33,8 @@ SOURCES += \
 
 DISTFILES += \
 	datasync.qmodel \
-	network.pdf
+	network.pdf \
+    exchange.txt
 
 load(qt_module)
 

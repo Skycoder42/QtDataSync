@@ -1,0 +1,57 @@
+Environment:
+	action{[changed,deleted]<->[changed,deleted]}
+	policy{[changed,deleted,auto]}
+
+Parameters:
+	version{v*}
+	chksum{c*}
+	data{d*} (on demand)
+
+action(changed<->changed):
+	switch(v1,c1; v2,c2):
+		case v1 != v2:
+			choose max(v1, v2)
+			done
+		case v1 == v2; c1 == c2:
+			done
+		case v1 == v2; c1 != c2:
+			if <chooser(d1, d2, &result)>:
+				choose result
+			else if c1 > c2:
+				choose v1 + 1
+			else:
+				choose v2 + 1
+			send
+			done
+
+action(deleted<->deleted):
+	done
+
+action(changed<->deleted):
+	policy(changed):
+		choose v1
+		done
+	policy(deleted):
+		choose v2
+		done
+	policy(auto):
+		switch(v1, v2):
+			case v2 > v1:
+				choose v2
+				send	#send again, because the other side does not know delete was choosen
+				done
+			default:
+				choose v1
+				done
+
+action(deleted<->changed):
+	policy(changed):
+		choose v2
+		done
+	policy(deleted):
+		choose v1
+		done
+	policy(auto):
+		choose v2   #TODO will always choose changed, as no local version information is available. If delete is prefered, send is done again
+		done
+
