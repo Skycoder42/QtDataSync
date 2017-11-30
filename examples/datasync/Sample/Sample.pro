@@ -6,15 +6,17 @@ TARGET = Sample
 
 HEADERS += \
 		widget.h \
-    sampledata.h
+	sampledata.h
 
 SOURCES += \
 		main.cpp \
 		widget.cpp \
-    sampledata.cpp
+	sampledata.cpp
 
 FORMS += \
 		widget.ui
+
+include(../../3rdparty/modeltest.pri)
 
 target.path = $$[QT_INSTALL_EXAMPLES]/datasync/$$TARGET
 INSTALLS += target

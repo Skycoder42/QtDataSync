@@ -3,6 +3,8 @@
 #include "sampledata.h"
 #include <QDebug>
 
+#include "modeltest.h"
+
 static QtMessageHandler prevHandler;
 static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
@@ -15,6 +17,7 @@ Widget::Widget(QWidget *parent) :
 
 	prevHandler = qInstallMessageHandler(filterLogger);
 
+	new ModelTest(_model, this);
 	_model->setTypeId<SampleData>();
 	ui->dataTreeView->setModel(_model);
 	connect(ui->dataTreeView->selectionModel(), &QItemSelectionModel::currentChanged,
