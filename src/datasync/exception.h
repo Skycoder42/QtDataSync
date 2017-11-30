@@ -28,12 +28,13 @@ public:
 protected:
 	Exception(const Exception * const other);
 
-	const QString _setupName;
-	const QString _message;
+	QString _setupName;
+	QString _message;
 };
 
 }
 
-#define QTDATASYNC_EXCEPTION_NAME(x) #x
+#define __QTDATASYNC_EXCEPTION_NAME_IMPL(x) #x
+#define QTDATASYNC_EXCEPTION_NAME(x) "QtDataSync::" __QTDATASYNC_EXCEPTION_NAME_IMPL(x)
 
 #endif // EXCEPTION_H

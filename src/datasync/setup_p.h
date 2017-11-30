@@ -9,10 +9,9 @@
 #include "qtdatasync_global.h"
 #include "setup.h"
 #include "defaults.h"
+#include "exchangeengine_p.h"
 
 namespace QtDataSync {
-
-class ExchangeEngine;
 
 class Q_DATASYNC_EXPORT SetupPrivate
 {
@@ -20,6 +19,8 @@ class Q_DATASYNC_EXPORT SetupPrivate
 
 public:
 	static void cleanupHandler();
+
+	static ExchangeEngine *engine(const QString &setupName);
 
 private:
 	struct SetupInfo {
@@ -37,12 +38,12 @@ private:
 	QString localDir;
 	QScopedPointer<QJsonSerializer> serializer;//TODO use normal pointer instead
 	QHash<Defaults::PropertyKey, QVariant> properties;
-	std::function<void (QString, bool, QString)> fatalErrorHandler;
+	std::function<void (QString, QString)> fatalErrorHandler;
 
 	SetupPrivate();
 };
 
-Q_DATASYNC_EXPORT void defaultFatalErrorHandler(QString error, bool recoverable, QString setupName);
+Q_DATASYNC_EXPORT void defaultFatalErrorHandler(QString error, QString setupName);
 
 }
 

@@ -140,8 +140,8 @@ public:
 protected:
 	LocalStoreException(const LocalStoreException * const other);
 
-	const ObjectKey _key;
-	const QString _context;
+	ObjectKey _key;
+	QString _context;
 };
 
 class Q_DATASYNC_EXPORT NoDataException : public DataStoreException
@@ -159,7 +159,7 @@ public:
 protected:
 	NoDataException(const NoDataException * const other);
 
-	const ObjectKey _key;
+	ObjectKey _key;
 };
 
 class Q_DATASYNC_EXPORT InvalidDataException : public DataStoreException
@@ -177,7 +177,7 @@ public:
 protected:
 	InvalidDataException(const InvalidDataException * const other);
 
-	const QByteArray _typeName;
+	QByteArray _typeName;
 };
 
 // ------------- GENERIC IMPLEMENTATION -------------

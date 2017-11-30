@@ -2,6 +2,7 @@
 #define QTDATASYNC_SETUP_H
 
 #include <QtCore/qobject.h>
+class QLockFile;
 
 #include <functional>
 
@@ -42,14 +43,14 @@ public:
 	//! Returns the setups json serializer
 	QJsonSerializer *serializer() const;
 	//! Returns the fatal error handler to be used by the Logger
-	std::function<void(QString,bool,QString)> fatalErrorHandler() const;
+	std::function<void (QString, QString)> fatalErrorHandler() const;
 
 	//! Sets the setups local directory
 	Setup &setLocalDir(QString localDir);
 	//! Sets the setups json serializer
 	Setup &setSerializer(QJsonSerializer *serializer);
 	//! Sets the fatal error handler to be used by the Logger
-	Setup &setFatalErrorHandler(const std::function<void(QString,bool,QString)> &fatalErrorHandler);
+	Setup &setFatalErrorHandler(const std::function<void(QString, QString)> &fatalErrorHandler);
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);
@@ -93,15 +94,24 @@ class Q_DATASYNC_EXPORT SetupLockedException : public SetupException
 {
 public:
 	//! Constructor with setup name
-	SetupLockedException(const QString &setupName);
+	SetupLockedException(QLockFile *lockfile, const QString &setupName);
+
+	qint64 pid() const;
+	QString hostname() const;
+	QString appname() const;
 
 	QByteArray className() const noexcept override;
+	QString qWhat() const override;
 	void raise() const final;
 	QException *clone() const final;
 
 protected:
 	//! Constructor that clones another exception
 	SetupLockedException(const SetupLockedException *cloneFrom);
+
+	qint64 _pid;
+	QString _hostname;
+	QString _appname;
 };
 
 }

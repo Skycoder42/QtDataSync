@@ -25,7 +25,7 @@ public:
 	const QLoggingCategory &loggingCategory() const;
 
 	//! report a fatal error to the datasync engine
-	void reportFatalError(const QString &error, bool resyncRecoverable, const char *file, int line, const char *function);
+	void reportFatalError(const QString &error, const char *file, int line, const char *function);
 
 private:
 	QScopedPointer<LoggerPrivate> d;
@@ -42,7 +42,7 @@ private:
 //! A define to log like with qCritical, but using a logger. QTDATASYNC_LOG must be defined as a pointer to a logger
 #define logCritical() qCCritical(QTDATASYNC_LOG->loggingCategory())
 //! A convenient define to log a fatal error, using QtDataSync::Logger::reportFatalError. QTDATASYNC_LOG must be defined as a pointer to a logger
-#define logFatal(resyncRecoverable, error) QTDATASYNC_LOG->reportFatalError(error, resyncRecoverable, QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC)
+#define logFatal(error) QTDATASYNC_LOG->reportFatalError(error, QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC)
 
 //! @file logger.h The Logger header
 #endif // QTDATASYNC_LOGGER_H

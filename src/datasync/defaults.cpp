@@ -189,8 +189,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase(QThread *thread)
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		if(!database.open()) {
-			logFatal(false,
-					 QStringLiteral("Failed to open database! All subsequent operations will fail! Database error:\n") +
+			logFatal(QStringLiteral("Failed to open database! All subsequent operations will fail! Database error:\n") +
 					 database.lastError().text());
 		}
 	}

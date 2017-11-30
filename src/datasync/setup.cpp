@@ -24,7 +24,7 @@ void Setup::removeSetup(const QString &name, bool waitForFinished)
 	if(SetupPrivate::engines.contains(name)) {
 		auto &info = SetupPrivate::engines[name];
 		if(info.engine) {
-			//TODO QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
 			info.engine = nullptr;
 		}
 
@@ -57,7 +57,7 @@ QJsonSerializer *Setup::serializer() const
 	return d->serializer.data();
 }
 
-std::function<void (QString, bool, QString)> Setup::fatalErrorHandler() const
+std::function<void (QString, QString)> Setup::fatalErrorHandler() const
 {
 	return d->fatalErrorHandler;
 }
@@ -74,7 +74,7 @@ Setup &Setup::setSerializer(QJsonSerializer *serializer)
 	return *this;
 }
 
-Setup &Setup::setFatalErrorHandler(const std::function<void (QString, bool, QString)> &fatalErrorHandler)
+Setup &Setup::setFatalErrorHandler(const std::function<void (QString, QString)> &fatalErrorHandler)
 {
 	d->fatalErrorHandler = fatalErrorHandler;
 	return *this;
@@ -96,21 +96,20 @@ void Setup::create(const QString &name)
 
 	auto lockFile = new QLockFile(storageDir.absoluteFilePath(QStringLiteral(".lock")));
 	if(!lockFile->tryLock())
-		throw SetupLockedException(name);//TODO add extended lock info
+		throw SetupLockedException(lockFile, name);
 
 	//create defaults
 	DefaultsPrivate::createDefaults(name, storageDir, d->properties, d->serializer.take());
 
-	//TODO create engine
-	ExchangeEngine *engine = nullptr;
+	auto engine = new ExchangeEngine();
 
 	auto thread = new QThread();
-//	engine->moveToThread(thread);
-//	QObject::connect(thread, &QThread::started,
-//					 engine, &ExchangeEngine::initialize);
+	engine->moveToThread(thread);
+	QObject::connect(thread, &QThread::started,
+					 engine, &ExchangeEngine::initialize);
 	QObject::connect(thread, &QThread::finished,
-					 /*engine, &ExchangeEngine::deleteLater);
-	QObject::connect(engine, &ExchangeEngine::destroyed,*/ qApp, [lockFile](){
+					 engine, &ExchangeEngine::deleteLater);
+	QObject::connect(engine, &ExchangeEngine::destroyed, qApp, [lockFile](){
 		lockFile->unlock();
 		delete lockFile;
 	}, Qt::DirectConnection);
@@ -150,11 +149,9 @@ void SetupPrivate::cleanupHandler()
 	QMutexLocker _(&setupMutex);
 	foreach (auto info, engines) {
 		if(info.engine) {
-			//TODO QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
 			info.engine = nullptr;
 		}
-		//DEBUG
-		info.thread->quit();
 	}
 	foreach (auto info, engines) {
 		if(!info.thread->wait(timeout)) {
@@ -165,6 +162,12 @@ void SetupPrivate::cleanupHandler()
 	}
 	engines.clear();
 	DefaultsPrivate::clearDefaults();
+}
+
+ExchangeEngine *SetupPrivate::engine(const QString &setupName)
+{
+	QMutexLocker _(&setupMutex);
+	return engines.value(setupName).engine;
 }
 
 SetupPrivate::SetupPrivate() :
@@ -183,24 +186,13 @@ SetupPrivate::SetupInfo::SetupInfo(QThread *thread, ExchangeEngine *engine) :
 	engine(engine)
 {}
 
-static QThreadStorage<bool> retryStore;
-void QtDataSync::defaultFatalErrorHandler(QString error, bool recoverable, QString setupName)
+void QtDataSync::defaultFatalErrorHandler(QString error, QString setupName)
 {
-	qCritical().noquote() << "Setup" << setupName << "received fatal error:\n" << error;
-
-	if(recoverable && !retryStore.hasLocalData())
-		retryStore.setLocalData(true);
-	else
-		recoverable = false;
-
 	auto name = setupName.toUtf8();
-	//TODO
-//	auto engine = SetupPrivate::engine(setupName);
-//	if(recoverable && engine) {
-//		qCritical("Trying recovery for \"%s\" after fatal error via resync", name.constData());
-//		QMetaObject::invokeMethod(engine, "triggerResync", Qt::QueuedConnection);
-//	} else
-		qFatal("Unrecoverable error for \"%s\" - killing application", name.constData());
+	auto msg = error.toUtf8();
+	qFatal("Unrecoverable error for \"%s\" - killing application.\nError: %s",
+		   name.constData(),
+		   msg.constData());
 }
 
 // ------------- Exceptions -------------
@@ -240,9 +232,33 @@ QException *SetupExistsException::clone() const
 
 
 
-SetupLockedException::SetupLockedException(const QString &setupName) :
-	SetupException(setupName, QStringLiteral("Failed to lock the storage directory! Is it already locked by another process?"))
-{}
+SetupLockedException::SetupLockedException(QLockFile *lockfile, const QString &setupName) :
+	SetupException(setupName, QString()),
+	_pid(-1),
+	_hostname(),
+	_appname()
+{
+	switch(lockfile->error()) {
+	case QLockFile::LockFailedError:
+		_message = QStringLiteral("Failed to lock storage directory, already locked by another process!");
+		if(!lockfile->getLockInfo(&_pid, &_hostname, &_appname)) {
+			_pid = -1;
+			_hostname = QStringLiteral("<unknown>");
+			_appname = _hostname;
+		}
+		break;
+	case QLockFile::PermissionError:
+		_message = QStringLiteral("Failed to lock storage directory, no permission to create lockfile!");
+		break;
+	case QLockFile::NoError:
+	case QLockFile::UnknownError:
+		_message = QStringLiteral("Failed to lock storage directory with unknown error!");
+		break;
+
+	}
+
+	delete lockfile;
+}
 
 SetupLockedException::SetupLockedException(const SetupLockedException *const other) :
 	SetupException(other)
@@ -251,6 +267,21 @@ SetupLockedException::SetupLockedException(const SetupLockedException *const oth
 QByteArray SetupLockedException::className() const noexcept
 {
 	return QTDATASYNC_EXCEPTION_NAME(SetupLockedException);
+}
+
+QString SetupLockedException::qWhat() const
+{
+	QString msg = Exception::qWhat();
+	if(_pid != 0) {
+		msg += QStringLiteral("\n\tLocked by:"
+							  "\n\t\tProcess-ID: %1"
+							  "\n\t\tHostname: %2"
+							  "\n\t\tAppname: %3")
+			   .arg(_pid)
+			   .arg(_hostname)
+			   .arg(_appname);
+	}
+	return msg;
 }
 
 void SetupLockedException::raise() const
