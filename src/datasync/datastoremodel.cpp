@@ -71,13 +71,13 @@ void DataStoreModel::fetchMore(const QModelIndex &parent)
 {
 	if(!parent.isValid()) {
 		try {
-			//load 100 at once //TODO via defaults?
+			//load 100 at once
 			auto offset = d->dataHash.size();
 			auto max = qMin(offset + 100, d->keyList.size());
 			QVariantHash loadData;
 
 			for(auto i = offset; i < max; i++) {
-				auto key = d->keyList.value(offset + i);
+				auto key = d->keyList.value(i);
 				loadData.insert(key, d->store->load(d->type, key));
 			}
 
@@ -196,37 +196,38 @@ void DataStoreModel::storeChanged(int metaTypeId, const QString &key, bool wasDe
 		return;
 
 	if(wasDeleted) {
-		auto index = d->activeKeys().indexOf(key);
+		auto index = d->keyList.indexOf(key);
 		if(index != -1) {
-			beginRemoveRows(QModelIndex(), index, index);
-			d->keyList.removeAt(index);
-			d->deleteObject(d->dataHash.take(key));
-			endRemoveRows();
+			if(index < d->dataHash.size()) {
+				beginRemoveRows(QModelIndex(), index, index);
+				d->keyList.removeAt(index);
+				d->deleteObject(d->dataHash.take(key));
+				endRemoveRows();
+			} else
+				d->keyList.removeAt(index);
 		}
 	} else {
-		auto needsUpdate = false;
-		if(d->keyList.size() == d->dataHash.size()) { //already fully loaded
-			if(d->keyList.contains(key))
-				needsUpdate = true;
-			else {
+		auto index = d->keyList.indexOf(key);
+		if(index != -1) { //key already know
+			if(index < d->dataHash.size()) { //not fully loaded -> only load if already fetched
+				try {
+					if(d->isObject) {
+						auto obj = d->dataHash.value(key).value<QObject*>();
+						d->store->update(d->type, obj);
+					} else
+						d->dataHash.insert(key, d->store->load(d->type, key));
+					auto mIndex = idIndex(key);
+					emit dataChanged(mIndex, mIndex);
+				} catch(QException &e) {
+					emit storeError(e);
+				}
+			}
+		} else { //key unknown
+			if(d->keyList.size() == d->dataHash.size()) { //already fully loaded
 				d->keyList.append(key);
 				fetchMore(QModelIndex());//simply call fetch more does the loading
-			}
-		} else if(d->activeKeys().contains(key))
-			needsUpdate = true;
-
-		if(needsUpdate) { //not fully loaded -> only load if already fetched
-			try {
-				if(d->isObject) {
-					auto obj = d->dataHash.value(key).value<QObject*>();
-					d->store->update(d->type, obj);
-				} else
-					d->dataHash.insert(key, d->store->load(d->type, key));
-				auto mIndex = idIndex(key);
-				emit dataChanged(mIndex, mIndex);
-			} catch(QException &e) {
-				emit storeError(e);
-			}
+			} else
+				d->keyList.append(key);
 		}
 	}
 }

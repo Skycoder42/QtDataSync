@@ -5,11 +5,13 @@ QT       += core gui widgets datasync
 TARGET = Sample
 
 HEADERS += \
-		widget.h
+		widget.h \
+    sampledata.h
 
 SOURCES += \
 		main.cpp \
-		widget.cpp
+		widget.cpp \
+    sampledata.cpp
 
 FORMS += \
 		widget.ui

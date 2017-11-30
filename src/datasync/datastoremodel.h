@@ -37,7 +37,7 @@ public:
 	int typeId() const;
 	//! @writeAcFn{DataStoreModel::typeId}
 	template <typename T>
-	inline bool setTypeId();
+	inline void setTypeId();
 	//! @readAcFn{DataStoreModel::editable}
 	bool isEditable() const;
 
@@ -132,9 +132,9 @@ private:
 // ------------- Generic Implementation -------------
 
 template <typename T>
-inline bool DataStoreModel::setTypeId() {
+inline void DataStoreModel::setTypeId() {
 	QTDATASYNC_STORE_ASSERT(T);
-	return setTypeId(qMetaTypeId<T>());
+	setTypeId(qMetaTypeId<T>());
 }
 
 template <typename T>
