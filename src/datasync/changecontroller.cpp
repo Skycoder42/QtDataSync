@@ -51,7 +51,7 @@ bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bo
 	return true;
 }
 
-void ChangeController::triggerDataChange(Defaults defaults, QSqlDatabase database, const ChangeInfo &changeInfo)
+void ChangeController::triggerDataChange(Defaults defaults, QSqlDatabase database, const ChangeInfo &changeInfo, const QWriteLocker &)
 {
 	QSqlQuery changeQuery(database);
 	changeQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO ChangeStore (Type, Id, Version, Checksum) VALUES(?, ?, ?, ?)"));
@@ -61,12 +61,15 @@ void ChangeController::triggerDataChange(Defaults defaults, QSqlDatabase databas
 	changeQuery.addBindValue(changeInfo.checksum);
 	exec(defaults, changeQuery, changeInfo.key);
 
-	auto instance = SetupPrivate::engine(defaults.setupName())->changeController();
-	if(instance)
-		QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
+	auto engine = SetupPrivate::engine(defaults.setupName());
+	if(engine) {
+		auto instance =engine->changeController();
+		if(instance)
+			QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
+	}
 }
 
-void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName)
+void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName, const QWriteLocker &)
 {
 	QSqlQuery changeQuery(database);
 	changeQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO ClearStore (Type) VALUES(?)"));
@@ -79,9 +82,12 @@ void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database
 	clearQuery.addBindValue(typeName);
 	exec(defaults, clearQuery, typeName);
 
-	auto instance = SetupPrivate::engine(defaults.setupName())->changeController();
-	if(instance)
-		QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
+	auto engine = SetupPrivate::engine(defaults.setupName());
+	if(engine) {
+		auto instance =engine->changeController();
+		if(instance)
+			QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
+	}
 }
 
 QList<ChangeController::ChangeInfo> ChangeController::loadChanges()

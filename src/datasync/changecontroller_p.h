@@ -28,8 +28,8 @@ public:
 
 	static bool createTables(Defaults defaults, QSqlDatabase database, bool canWrite = false);
 
-	static void triggerDataChange(Defaults defaults, QSqlDatabase database, const ChangeInfo &changeInfo);
-	static void triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName);
+	static void triggerDataChange(Defaults defaults, QSqlDatabase database, const ChangeInfo &changeInfo, const QWriteLocker &);
+	static void triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName, const QWriteLocker &);
 
 	QList<ChangeInfo> loadChanges();
 	void clearChanged(const ObjectKey &key, quint64 version);

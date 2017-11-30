@@ -213,12 +213,14 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				exec(updateQuery, key);
 			}
 
-			//complete the file-save
+			//notify change controller
+			ChangeController::triggerDataChange(defaults, database, {key, version, hashPipe.hash()}, _);
+
+			//complete the file-save (last before commit!)
 			if(!commitFn(device.data()))
 				throw LocalStoreException(defaults, key, device->fileName(), device->errorString());
 
-			//notify change controller (BEFORE committing) and commit
-			ChangeController::triggerDataChange(defaults, database, {key, version, hashPipe.hash()});
+			//commit database changes
 			if(!database->commit())
 				throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
@@ -251,25 +253,32 @@ bool LocalStore::remove(const ObjectKey &key)
 			throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
 		try {
+			//load data of existing entry
 			QSqlQuery loadQuery(database);
 			loadQuery.prepare(QStringLiteral("SELECT Version, File FROM %1 WHERE Key = ?").arg(table));
 			loadQuery.addBindValue(key.id);
 			exec(loadQuery, key);
 
-			if(loadQuery.first()) {
+			if(loadQuery.first()) { //stored -> remove it
+				auto version = loadQuery.value(0).toULongLong() + 1;
+				auto tableDir = typeDirectory(table, key);
+				auto fileName = tableDir.absoluteFilePath(loadQuery.value(1).toString() + QStringLiteral(".dat"));
+
+				//remove from db
 				QSqlQuery removeQuery(database);
 				removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(table));
 				removeQuery.addBindValue(key.id);
 				exec(removeQuery, key);
 
-				auto version = loadQuery.value(0).toULongLong() + 1;
-				auto tableDir = typeDirectory(table, key);
-				auto fileName = tableDir.absoluteFilePath(loadQuery.value(1).toString() + QStringLiteral(".dat"));
-				if(!QFile::remove(fileName))
-					throw LocalStoreException(defaults, key, fileName, QStringLiteral("Failed to delete file"));
+				//notify change controller
+				ChangeController::triggerDataChange(defaults, database, {key, version}, _);
 
-				//notify change controller (BEFORE committing) and commit
-				ChangeController::triggerDataChange(defaults, database, {key, version});
+				//delete the file
+				QFile rmFile(fileName);
+				if(!rmFile.remove())
+					throw LocalStoreException(defaults, key, rmFile.fileName(), rmFile.errorString());
+
+				//commit db
 				if(!database->commit())
 					throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
 
@@ -333,18 +342,32 @@ void LocalStore::clear(const QByteArray &typeName)
 		if(table.isEmpty()) //no table -> nothing to delete
 			return;
 
-		QSqlQuery dropQuery(database);
-		dropQuery.prepare(QStringLiteral("DROP TABLE IF EXISTS %1").arg(table));
-		exec(dropQuery, typeName);
+		if(!database->transaction())
+			throw LocalStoreException(defaults, typeName, database->databaseName(), database->lastError().text());
 
-		ChangeController::triggerDataClear(defaults, database, typeName);
+		try {
+			QSqlQuery dropQuery(database);
+			dropQuery.prepare(QStringLiteral("DROP TABLE IF EXISTS %1").arg(table));
+			exec(dropQuery, typeName);
 
-		auto tableDir = typeDirectory(table, typeName);
-		if(!tableDir.removeRecursively())
-			throw LocalStoreException(defaults, typeName, tableDir.absolutePath(), QStringLiteral("Failed to delete cleared data directory"));
+			//notify change controller
+			ChangeController::triggerDataClear(defaults, database, typeName, _);
 
-		//notify others (and self)
-		emit emitter->dataResetted(this, typeName);
+			auto tableDir = typeDirectory(table, typeName);
+			if(!tableDir.removeRecursively()) {
+				logWarning() << "Failed to delete cleared data directory for type"
+							 << typeName;
+			}
+
+			if(!database->commit())
+				throw LocalStoreException(defaults, typeName, database->databaseName(), database->lastError().text());
+
+			//notify others (and self)
+			emit emitter->dataResetted(this, typeName);
+		} catch(...) {
+			database->rollback();
+			throw;
+		}
 	}
 
 	//own signal
@@ -371,17 +394,17 @@ void LocalStore::reset()
 
 			//note: resets are local only, so they dont trigger any changecontroller stuff
 
+			auto tableDir = defaults.storageDir();
+			if(tableDir.cd(QStringLiteral("store"))) {
+				if(!tableDir.removeRecursively()) //no rollback, as partially removed is possible, better keep junk data...
+					logWarning() << "Failed to delete store directory" << tableDir.absolutePath();
+			}
+
 			if(!database->commit())
 				throw LocalStoreException(defaults, QByteArray("<any>"), database->databaseName(), database->lastError().text());
 		} catch(...) {
 			database->rollback();
 			throw;
-		}
-
-		auto tableDir = defaults.storageDir();
-		if(tableDir.cd(QStringLiteral("store"))) {
-			if(!tableDir.removeRecursively()) //no rollback, as partially removed is possible, better keep junk data...
-				throw LocalStoreException(defaults, {}, tableDir.absolutePath(), QStringLiteral("Failed to delete data directory"));
 		}
 
 		//notify others (and self)
