@@ -34,6 +34,9 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void stateChanged(SyncManager::SyncState state);
 
+private Q_SLOTS:
+	void localDataChange();
+
 private:
 	SyncManager::SyncState _state;
 

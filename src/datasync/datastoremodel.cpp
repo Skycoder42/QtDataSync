@@ -1,6 +1,9 @@
 #include "datastoremodel.h"
 #include "datastoremodel_p.h"
 #include "datastore_p.h"
+
+#include <QtCore/QMetaProperty>
+
 using namespace QtDataSync;
 
 DataStoreModel::DataStoreModel(QObject *parent) :

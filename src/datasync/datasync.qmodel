@@ -49,7 +49,7 @@
                          </base-DElement>
                          <object>{46944352-a594-40e3-a0ed-5e58e3aeca2b}</object>
                          <name>LocalStore</name>
-                         <pos>x:110;y:265</pos>
+                         <pos>x:105;y:325</pos>
                          <rect>x:-40;y:-30;w:80;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -74,7 +74,7 @@
                           </qlist>
                          </stereotypes>
                          <name>local database</name>
-                         <pos>x:110;y:530</pos>
+                         <pos>x:105;y:590</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -94,7 +94,7 @@
                          </base-DElement>
                          <object>{82f895b2-9ed0-42ad-be13-db5677896b6a}</object>
                          <name>ChangeController</name>
-                         <pos>x:320;y:265</pos>
+                         <pos>x:315;y:325</pos>
                          <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -114,7 +114,7 @@
                          </base-DElement>
                          <object>{9303fbbe-e418-46e6-871d-0a807c0935c8}</object>
                          <name>SyncController</name>
-                         <pos>x:325;y:390</pos>
+                         <pos>x:355;y:470</pos>
                          <rect>x:-50;y:-30;w:100;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -162,6 +162,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>0..n</cradinality>
                          <navigable>true</navigable>
                         </DAssociationEnd>
                        </a>
@@ -185,7 +186,7 @@
                          </base-DElement>
                          <object>{9be9e6e2-adb6-4736-a252-ef6fa93f627a}</object>
                          <name>LocalStore</name>
-                         <pos>x:325;y:525</pos>
+                         <pos>x:535;y:585</pos>
                          <rect>x:-40;y:-30;w:80;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -204,12 +205,13 @@
                           </DElement>
                          </base-DElement>
                          <object>{3106e435-a4da-4556-95f6-f638832b9858}</object>
-                         <a>{afdfbd7f-a41a-4b67-b22b-42bf0a218470}</a>
+                         <a>{c4868831-0c5f-4bf8-ac52-d02858473d5c}</a>
                          <b>{c0022f90-56eb-480c-9260-3454b0058d13}</b>
                         </DRelation>
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -257,7 +259,7 @@
                          </base-DElement>
                          <object>{5ca8a614-1a59-4dc6-9a04-47986bb92b0a}</object>
                          <name>ExchangeEngine</name>
-                         <pos>x:540;y:335</pos>
+                         <pos>x:535;y:395</pos>
                          <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -282,6 +284,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -311,6 +314,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -335,7 +339,7 @@
                          </base-DElement>
                          <object>{c66b69bf-96a9-4d72-8fe9-e42709200c44}</object>
                          <name>RemoteConnector</name>
-                         <pos>x:765;y:335</pos>
+                         <pos>x:760;y:395</pos>
                          <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -360,6 +364,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -389,7 +394,7 @@
                           </qlist>
                          </stereotypes>
                          <name>Server</name>
-                         <pos>x:940;y:510</pos>
+                         <pos>x:935;y:570</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -437,7 +442,7 @@
                           </qlist>
                          </stereotypes>
                          <name>ConflictResolver</name>
-                         <pos>x:490;y:515</pos>
+                         <pos>x:225;y:525</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -462,6 +467,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -491,7 +497,7 @@
                           </qlist>
                          </stereotypes>
                          <name>Authenticator</name>
-                         <pos>x:945;y:335</pos>
+                         <pos>x:940;y:395</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -516,6 +522,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -540,7 +547,7 @@
                          </base-DElement>
                          <object>{eb71fa83-8407-41e5-9525-f52d29f958c7}</object>
                          <name>SyncManager</name>
-                         <pos>x:645;y:80</pos>
+                         <pos>x:710;y:75</pos>
                          <rect>x:-45;y:-30;w:90;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -608,9 +615,16 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
+                         <kind>1</kind>
                         </DAssociationEnd>
                        </a>
+                       <b>
+                        <DAssociationEnd>
+                         <cradinality>1</cradinality>
+                        </DAssociationEnd>
+                       </b>
                       </DAssociation>
                      </instance>
                     </item>
@@ -651,6 +665,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1..n</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -675,7 +690,7 @@
                          </base-DElement>
                          <object>{53a61e00-872f-4796-a0e2-65a5573b815f}</object>
                          <name>UserDataExchange</name>
-                         <pos>x:915;y:85</pos>
+                         <pos>x:1000;y:80</pos>
                          <rect>x:-60;y:-30;w:120;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -743,6 +758,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1..n</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -790,7 +806,7 @@
                          </base-DElement>
                          <object>{6814093f-c949-442b-8c76-3c44328a8329}</object>
                          <name>CryptoController</name>
-                         <pos>x:770;y:505</pos>
+                         <pos>x:765;y:565</pos>
                          <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -815,6 +831,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -864,6 +881,7 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
+                         <cradinality>1..n</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
@@ -876,9 +894,90 @@
                       </DAssociation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DAssociation">
+                      <DAssociation>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{65e6e0cc-8dd4-4813-8bd8-5bbff3832db0}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{7999cc97-9b28-4bd1-95d7-234b0b4d5fc5}</object>
+                         <a>{afdfbd7f-a41a-4b67-b22b-42bf0a218470}</a>
+                         <b>{c0022f90-56eb-480c-9260-3454b0058d13}</b>
+                        </DRelation>
+                       </base-DRelation>
+                       <a>
+                        <DAssociationEnd>
+                         <cradinality>1</cradinality>
+                         <navigable>true</navigable>
+                        </DAssociationEnd>
+                       </a>
+                       <b>
+                        <DAssociationEnd>
+                         <cradinality>1</cradinality>
+                        </DAssociationEnd>
+                       </b>
+                      </DAssociation>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DAssociation">
+                      <DAssociation>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{49e5a2f4-7cfe-4d08-b22c-e2e813f95df0}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{c4a5e2bc-a3f8-44dd-9726-49910d3ae90a}</object>
+                         <a>{49da69a3-26d9-47ba-b9ec-c3f3c5c84d0c}</a>
+                         <b>{c0022f90-56eb-480c-9260-3454b0058d13}</b>
+                        </DRelation>
+                       </base-DRelation>
+                       <a>
+                        <DAssociationEnd>
+                         <cradinality>1</cradinality>
+                         <navigable>true</navigable>
+                        </DAssociationEnd>
+                       </a>
+                       <b>
+                        <DAssociationEnd>
+                         <cradinality>1</cradinality>
+                        </DAssociationEnd>
+                       </b>
+                      </DAssociation>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{dd9c8208-6343-45cc-8a9b-47bcd821800a}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{a840b0d9-5ec8-4de9-9915-7655ddb7408e}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>database</item>
+                          </qlist>
+                         </stereotypes>
+                         <a>{00443bd0-f227-4b6b-822a-1121173b3fad}</a>
+                         <b>{4259a539-3668-4d68-8f69-818d45171959}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1511965964726</last-modified>
+                  <last-modified>1512069704603</last-modified>
                   <toolbarid>Classes</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -951,6 +1050,7 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>0..n</cardinality>
                              <navigable>true</navigable>
                             </MAssociationEnd>
                            </a>
@@ -1015,6 +1115,41 @@
                    </MElement>
                   </base-MElement>
                   <name>ChangeController</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{a840b0d9-5ec8-4de9-9915-7655ddb7408e}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{a840b0d9-5ec8-4de9-9915-7655ddb7408e}</uid>
+                               <stereotypes>
+                                <qlist>
+                                 <item>database</item>
+                                </qlist>
+                               </stereotypes>
+                              </MElement>
+                             </base-MElement>
+                             <a>{82f895b2-9ed0-42ad-be13-db5677896b6a}</a>
+                             <b>{a2830a72-b623-4f7d-a628-2202cf368374}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
                  </MObject>
                 </base-MObject>
                </MClass>
@@ -1042,39 +1177,6 @@
                      <qlist>
                       <item>
                        <handle>
-                        <uid>{3106e435-a4da-4556-95f6-f638832b9858}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{3106e435-a4da-4556-95f6-f638832b9858}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{9303fbbe-e418-46e6-871d-0a807c0935c8}</a>
-                             <b>{9be9e6e2-adb6-4736-a252-ef6fa93f627a}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </a>
-                           <b>
-                            <MAssociationEnd>
-                             <cardinality>1</cardinality>
-                            </MAssociationEnd>
-                           </b>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
                         <uid>{6e39d026-61b6-4621-b817-9d94cf05034b}</uid>
                         <target>
                          <instance type="MAssociation">
@@ -1092,8 +1194,42 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
+                            </MAssociationEnd>
+                           </a>
+                           <b>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                            </MAssociationEnd>
+                           </b>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                      <item>
+                       <handle>
+                        <uid>{7999cc97-9b28-4bd1-95d7-234b0b4d5fc5}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{7999cc97-9b28-4bd1-95d7-234b0b4d5fc5}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{9303fbbe-e418-46e6-871d-0a807c0935c8}</a>
+                             <b>{9be9e6e2-adb6-4736-a252-ef6fa93f627a}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                             <navigable>true</navigable>
                             </MAssociationEnd>
                            </a>
                            <b>
@@ -1210,6 +1346,7 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
@@ -1243,6 +1380,7 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
@@ -1276,6 +1414,41 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                             <navigable>true</navigable>
+                             <kind>1</kind>
+                            </MAssociationEnd>
+                           </a>
+                           <b>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                            </MAssociationEnd>
+                           </b>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                      <item>
+                       <handle>
+                        <uid>{3106e435-a4da-4556-95f6-f638832b9858}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{3106e435-a4da-4556-95f6-f638832b9858}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{5ca8a614-1a59-4dc6-9a04-47986bb92b0a}</a>
+                             <b>{9be9e6e2-adb6-4736-a252-ef6fa93f627a}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
@@ -1365,6 +1538,7 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
@@ -1398,8 +1572,42 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
+                            </MAssociationEnd>
+                           </a>
+                           <b>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                            </MAssociationEnd>
+                           </b>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                      <item>
+                       <handle>
+                        <uid>{c4a5e2bc-a3f8-44dd-9726-49910d3ae90a}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{c4a5e2bc-a3f8-44dd-9726-49910d3ae90a}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{c66b69bf-96a9-4d72-8fe9-e42709200c44}</a>
+                             <b>{9be9e6e2-adb6-4736-a252-ef6fa93f627a}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                             <navigable>true</navigable>
                             </MAssociationEnd>
                            </a>
                            <b>
@@ -1621,9 +1829,16 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1</cardinality>
                              <navigable>true</navigable>
+                             <kind>1</kind>
                             </MAssociationEnd>
                            </a>
+                           <b>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                            </MAssociationEnd>
+                           </b>
                           </MAssociation>
                          </instance>
                         </target>
@@ -1677,6 +1892,7 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1..n</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
@@ -1795,6 +2011,7 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1..n</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
@@ -1878,6 +2095,7 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
+                             <cardinality>1..n</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>

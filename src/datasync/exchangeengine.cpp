@@ -19,7 +19,6 @@ ExchangeEngine::ExchangeEngine(const QString &setupName) :
 void ExchangeEngine::enterFatalState(const QString &error)
 {
 	logDebug() << Q_FUNC_INFO;
-	Q_UNIMPLEMENTED();
 }
 
 ChangeController *ExchangeEngine::changeController() const
@@ -34,14 +33,18 @@ SyncManager::SyncState ExchangeEngine::state() const
 
 void ExchangeEngine::initialize()
 {
-	logDebug() << Q_FUNC_INFO;
-
 	_changeController = new ChangeController(_defaults.setupName(), this);
+	connect(_changeController, &ChangeController::changeTriggered,
+			this, &ExchangeEngine::localDataChange);
 }
 
 void ExchangeEngine::finalize()
 {
 	logDebug() << Q_FUNC_INFO;
-	Q_UNIMPLEMENTED();
 	thread()->quit();
+}
+
+void ExchangeEngine::localDataChange()
+{
+	logDebug() << Q_FUNC_INFO;
 }

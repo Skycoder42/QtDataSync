@@ -40,7 +40,11 @@ SOURCES += \
 DISTFILES += \
 	datasync.qmodel \
 	network.pdf \
-    exchange.txt
+    exchange.txt \
+    network_connect.qmodel \
+    network_exchange.qmodel \
+    network_device.qmodel \
+    network_keychange.qmodel
 
 load(qt_module)
 
