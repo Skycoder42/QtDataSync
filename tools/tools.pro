@@ -2,8 +2,8 @@ TEMPLATE = subdirs
 
 win32:cross_compile: CONFIG += winrt
 !android:!ios:!winrt {
-	#SUBDIRS = qdatasyncserver
-	#qdatasyncserver.CONFIG = host_build
+	SUBDIRS = qdatasyncserver
+	qdatasyncserver.CONFIG = host_build
 }
 
 docTarget.target = doxygen

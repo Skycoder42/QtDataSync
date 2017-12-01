@@ -1,0 +1,28 @@
+version: '2.2'
+services:
+  datasync_postgres:
+    container_name: datasync_example_postgres
+    image: postgres:latest
+    ports:
+      - "15432:5432/tcp"
+    environment:
+      POSTGRES_USER: qtdatasync
+      POSTGRES_PASSWORD: baum42
+      POSTGRES_DB: QtDataSync
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - datasync_example_postgres_data:/var/lib/postgresql/data/pgdata
+    network_mode: "bridge"
+  datasync_pgAdmin:
+    container_name: datasync_example_pgAdmin
+    image: thajeztah/pgadmin4:latest
+    depends_on:
+      - datasync_postgres
+    ports:
+      - "5050:5050/tcp"
+    volumes:
+      - datasync_example_pgAdmin_data:/pgadmin
+    network_mode: "bridge"
+volumes:
+  datasync_example_postgres_data:
+  datasync_example_pgAdmin_data:
