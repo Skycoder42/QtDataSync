@@ -64,7 +64,7 @@ bool ClientConnector::setupWss()
 bool ClientConnector::listen()
 {
 	auto host = qApp->configuration()->value(QStringLiteral("server/host"), QHostAddress(QHostAddress::Any).toString()).toString();
-	auto port = (quint16)qApp->configuration()->value(QStringLiteral("server/port"), 0).toUInt();
+	auto port = (quint16)qApp->configuration()->value(QStringLiteral("server/port"), 4242).toUInt();
 	if(server->listen(QHostAddress(host), port)) {
 		qInfo() << "Listening on port" << server->serverPort();
 		return true;

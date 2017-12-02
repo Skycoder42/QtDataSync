@@ -1,12 +1,14 @@
 #ifndef DATABASECONTROLLER_H
 #define DATABASECONTROLLER_H
 
-#include <QObject>
-#include <QSharedPointer>
-#include <QSqlDatabase>
-#include <QThreadPool>
-#include <QThreadStorage>
-#include <QUuid>
+#include <QtCore/QObject>
+#include <QtCore/QSharedPointer>
+#include <QtCore/QThreadPool>
+#include <QtCore/QThreadStorage>
+#include <QtCore/QUuid>
+#include <QtCore/QJsonObject>
+
+#include <QtSql/QSqlDatabase>
 
 class DatabaseController : public QObject
 {
@@ -15,21 +17,10 @@ class DatabaseController : public QObject
 public:
 	explicit DatabaseController(QObject *parent = nullptr);
 
-	QUuid createIdentity(const QUuid &deviceId, bool &resync);
-	bool identify(const QUuid &identity, const QUuid &deviceId, bool &resync);
-	QJsonValue loadChanges(const QUuid &userId, const QUuid &deviceId, bool resync);
-	QJsonValue load(const QUuid &userId, const QString &type, const QString &key);
-	bool save(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key, const QJsonObject &object);
-	bool remove(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
-	bool markUnchanged(const QUuid &userId, const QUuid &deviceId, const QString &type, const QString &key);
-	void deleteOldDevice(const QUuid &userId, const QUuid &deviceId);
-
 	void cleanupDevices(quint64 offlineSinceDays);
-	void cleanupUsers();
-	void cleanupData();
-	void cleanupResync();
 
 signals:
+	//TODO correct
 	void notifyChanged(const QUuid &userId,
 					   const QUuid &excludedDeviceId,
 					   const QString &type,
@@ -55,9 +46,6 @@ private:
 	QThreadStorage<DatabaseWrapper> threadStore;
 
 	void initDatabase();
-	bool markStateUnchanged(QSqlDatabase &database, const QUuid &userId, const QUuid &deviceId, quint64 index);
-	bool updateDeviceStates(QSqlDatabase &database, const QUuid &userId, const QUuid &deviceId, quint64 index);
-	void tryDeleteData(QSqlDatabase &database, quint64 index);
 
 	QString jsonToString(const QJsonObject &object) const;
 	QJsonObject stringToJson(const QString &data) const;

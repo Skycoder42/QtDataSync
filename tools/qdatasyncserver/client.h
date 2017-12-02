@@ -1,12 +1,13 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "databasecontroller.h"
+#include <QtCore/QJsonValue>
+#include <QtCore/QObject>
+#include <QtCore/QUuid>
 
-#include <QJsonValue>
-#include <QObject>
-#include <QUuid>
-#include <QWebSocket>
+#include <QtWebSockets/QWebSocket>
+
+#include "databasecontroller.h"
 
 class Client : public QObject
 {
@@ -39,15 +40,6 @@ private:
 
 	QHostAddress socketAddress;
 	QAtomicInt runCount;
-
-	void createIdentity(const QJsonObject &data);
-	void identify(const QJsonObject &data);
-	void loadChanges(bool resync);
-	void load(const QJsonObject &data);
-	void save(const QJsonObject &data);
-	void remove(const QJsonObject &data);
-	void markUnchanged(const QJsonObject &data);
-	void deleteOldDevice();
 
 	void close();
 	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
