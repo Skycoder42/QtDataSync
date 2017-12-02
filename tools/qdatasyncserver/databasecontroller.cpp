@@ -43,6 +43,8 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();
+	if(!db.isOpen())
+		emit databaseInitDone(false);
 
 	//TODO IMPLEMENT
 	Q_UNIMPLEMENTED();
