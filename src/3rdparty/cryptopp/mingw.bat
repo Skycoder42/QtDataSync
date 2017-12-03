@@ -17,9 +17,12 @@ powershell -Command "Invoke-WebRequest https://github.com/weidai11/cryptopp/arch
 :: TODO verify checksum
 7z x .\%NAME%.zip || exit /B 1
 
+set "xDir=%sDir:\=/%"
+
 cd cryptopp-%NAME%
 mingw32-make static > nul || exit /B 1
-mingw32-make install PREFIX=%sDir% || exit /B 1
+echo %xDir%
+mingw32-make install PREFIX=%xDir% || exit /B 1
 
 cd %sDir%
 rmdir /s /q %tDir%

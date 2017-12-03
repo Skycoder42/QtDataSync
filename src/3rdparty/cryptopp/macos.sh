@@ -10,7 +10,7 @@ tDir=$(mktemp -d)
 pushd $tDir
 
 curl -Lo "./$NAME.tar.gz" "https://github.com/weidai11/cryptopp/archive/$NAME.tar.gz"
-echo "$SHA512SUM $NAME.tar.gz" | sha512sum --check -
+echo "$SHA512SUM $NAME.tar.gz" | gsha512sum --check -
 
 tar -xf "$NAME.tar.gz"
 
