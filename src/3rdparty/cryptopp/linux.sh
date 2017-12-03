@@ -15,7 +15,7 @@ echo "$SHA512SUM $NAME.tar.gz" | sha512sum --check -
 tar -xf "$NAME.tar.gz"
 
 pushd cryptopp-$NAME
-make static > /dev/null
+make static CXX=g++-6 CC=gcc-6 > /dev/null
 make install PREFIX=$sDir
 
 popd

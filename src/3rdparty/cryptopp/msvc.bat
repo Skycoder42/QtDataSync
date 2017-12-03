@@ -32,8 +32,10 @@ cd ..\..\..
 msbuild /t:Build /p:Configuration=Release;Platform=%VC_ARCH% cryptlib.vcxproj || exit /B 1
 cd %VC_ARCH%\Output\Release
 copy cryptlib.lib %sDir%\lib\cryptlib.lib
-copy cryptlib.pdb %sDir%\lib\cryptlib.pdb
 cd ..\..\..
+
+mkdir %sDir%\include
+for %I in (*.h) do copy %I %sDir%\include\
 
 cd %sDir%
 rmdir /s /q %tDir%
