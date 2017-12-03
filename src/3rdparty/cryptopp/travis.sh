@@ -12,5 +12,5 @@ if [[ "$PLATFORM" == "clang_64" ]]; then
 fi
 
 if [[ "$PLATFORM" == "ios" ]]; then
-	echo TODO
+	$scriptdir/ios.sh
 fi
