@@ -27,11 +27,13 @@ msbuild /t:Build /p:Configuration=Debug;Platform=%VC_ARCH% cryptlib.vcxproj || e
 cd %VC_ARCH%\Output\Debug
 copy cryptlib.lib %sDir%\lib\cryptlibd.lib
 copy cryptlib.pdb %sDir%\lib\cryptlibd.pdb
+cd ..\..\..
 
 msbuild /t:Build /p:Configuration=Release;Platform=%VC_ARCH% cryptlib.vcxproj || exit /B 1
 cd %VC_ARCH%\Output\Release
 copy cryptlib.lib %sDir%\lib\cryptlib.lib
 copy cryptlib.pdb %sDir%\lib\cryptlib.pdb
+cd ..\..\..
 
 cd %sDir%
 rmdir /s /q %tDir%

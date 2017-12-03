@@ -7,6 +7,10 @@ if [[ "$PLATFORM" == "gcc_64" ]]; then
 	$scriptdir/linux.sh
 fi
 
-if [[ "$PLATFORM" == "android"* ]]; then
-	$scriptdir/android.sh
+if [[ "$PLATFORM" == "android_armv7" ]]; then
+	$scriptdir/android.sh armv7
+fi
+
+if [[ "$PLATFORM" == "android_x86" ]]; then
+	$scriptdir/android.sh x86
 fi
