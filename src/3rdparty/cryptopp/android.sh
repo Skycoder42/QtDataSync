@@ -20,7 +20,7 @@ sDir=$(dirname $(readlink -f $0))
 tDir=$(mktemp -d)
 pushd $tDir
 
-wget "https://github.com/weidai11/cryptopp/archive/$NAME.tar.gz"
+curl -Lo "./$NAME.tar.gz" "https://github.com/weidai11/cryptopp/archive/$NAME.tar.gz"
 echo "$SHA512SUM $NAME.tar.gz" | sha512sum --check -
 
 tar -xf "$NAME.tar.gz"
