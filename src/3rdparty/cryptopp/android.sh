@@ -37,7 +37,7 @@ source setenv-android.sh $ABI gnu
 set -e
 export AOSP_STL_INC="$ANDROID_NDK_ROOT/sysroot/usr/include/$ABI_INC -I$AOSP_STL_INC -I$ANDROID_NDK_ROOT/sysroot/usr/include/"
 make -f GNUmakefile-cross static
-make install PREFIX=$sDir
+make -f GNUmakefile-cross install PREFIX=$sDir
 
 popd
 rm -rf $tDir
