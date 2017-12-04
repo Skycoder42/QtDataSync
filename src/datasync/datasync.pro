@@ -16,11 +16,11 @@ HEADERS += qtdatasync_global.h \
 	datastore_p.h \
 	qtdatasync_helpertypes.h \
 	datatypestore.h \
-    datastoremodel.h \
-    datastoremodel_p.h \
-    exchangeengine_p.h \
-    syncmanager.h \
-    changecontroller_p.h
+	datastoremodel.h \
+	datastoremodel_p.h \
+	exchangeengine_p.h \
+	syncmanager.h \
+	changecontroller_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -32,19 +32,37 @@ SOURCES += \
 	objectkey.cpp \
 	datastore.cpp \
 	datatypestore.cpp \
-    datastoremodel.cpp \
-    exchangeengine.cpp \
-    syncmanager.cpp \
-    changecontroller.cpp
+	datastoremodel.cpp \
+	exchangeengine.cpp \
+	syncmanager.cpp \
+	changecontroller.cpp
 
 DISTFILES += \
 	datasync.qmodel \
 	network.pdf \
-    exchange.txt \
-    network_connect.qmodel \
-    network_exchange.qmodel \
-    network_device.qmodel \
-    network_keychange.qmodel
+	exchange.txt \
+	network_connect.qmodel \
+	network_exchange.qmodel \
+	network_device.qmodel \
+	network_keychange.qmodel
+
+system_cryptopp:unix {
+	CONFIG += link_pkgconfig
+	PKGCONFIG += libcrypto++
+} else {
+	win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlib
+	else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlibd
+	else:unix: LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptopp
+
+	INCLUDEPATH += $$PWD/../3rdparty/cryptopp/include
+	DEPENDPATH += $$PWD/../3rdparty/cryptopp/include
+
+	win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/libcryptopp.a
+	else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/libcryptoppd.a
+	else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/cryptlib.lib
+	else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/cryptlibd.lib
+	else:unix: PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/libcryptopp.a
+}
 
 load(qt_module)
 
