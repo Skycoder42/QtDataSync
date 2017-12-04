@@ -8,7 +8,8 @@ export ANDROID_HOME=$HOME/android/sdk
 export ANDROID_NDK=$HOME/android/sdk/ndk-bundle
 export ANDROID_SDK_ROOT=$ANDROID_HOME
 export ANDROID_NDK_ROOT=$ANDROID_NDK
-export AOSP_API="android-16" #required to build against the same sysroot as Qt
+export ABI_NR=16
+export AOSP_API="android-$ABI_NR" #required to build against the same sysroot as Qt
 
 VERSION=5_6_5
 NAME=CRYPTOPP_${VERSION}
@@ -36,6 +37,7 @@ set +e
 source setenv-android.sh $ABI gnu
 set -e
 export AOSP_STL_INC="$ANDROID_NDK_ROOT/sysroot/usr/include/$ABI_INC -I$AOSP_STL_INC -I$ANDROID_NDK_ROOT/sysroot/usr/include/"
+export CXXFLAGS="-D__ANDROID_API__=$ABI_NR"
 make -f GNUmakefile-cross static
 make -f GNUmakefile-cross install PREFIX=$sDir
 
