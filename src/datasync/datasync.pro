@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core jsonserializer sql
+QT = core jsonserializer sql websockets
 
 HEADERS += qtdatasync_global.h \
 	localstore_p.h \
@@ -21,7 +21,7 @@ HEADERS += qtdatasync_global.h \
 	exchangeengine_p.h \
 	syncmanager.h \
 	changecontroller_p.h \
-    remoteconnector_p.h
+	remoteconnector_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -37,7 +37,7 @@ SOURCES += \
 	exchangeengine.cpp \
 	syncmanager.cpp \
 	changecontroller.cpp \
-    remoteconnector.cpp
+	remoteconnector.cpp
 
 DISTFILES += \
 	datasync.qmodel \

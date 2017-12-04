@@ -36,11 +36,16 @@ SyncManager::SyncState ExchangeEngine::state() const
 
 void ExchangeEngine::initialize()
 {
-	_changeController = new ChangeController(_defaults, this);
-	connect(_changeController, &ChangeController::changeTriggered,
-			this, &ExchangeEngine::localDataChange);
+	try {
+		_changeController = new ChangeController(_defaults, this);
+		connect(_changeController, &ChangeController::changeTriggered,
+				this, &ExchangeEngine::localDataChange);
 
-	_remoteConnector = new RemoteConnector(_defaults, this);
+		_remoteConnector = new RemoteConnector(_defaults, this);
+		_remoteConnector->reconnect();
+	} catch (Exception &e) {
+		enterFatalState(e.qWhat());
+	}
 }
 
 void ExchangeEngine::finalize()

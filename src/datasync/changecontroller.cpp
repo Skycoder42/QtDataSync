@@ -13,7 +13,10 @@ ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	QObject(parent),
 	_defaults(defaults),
 	_database(_defaults.aquireDatabase(this))
-{}
+{
+	QWriteLocker(_defaults.databaseLock());
+	createTables(_defaults, _database, true);
+}
 
 bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bool canWrite)
 {
