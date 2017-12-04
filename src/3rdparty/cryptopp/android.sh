@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
-# $1 android arch (armv7, x86)
+# $1 android arch (armv7a, x86)
+
+export MAKEFLAGS="-j$(nproc)"
 
 export ANDROID_HOME=$HOME/android/sdk
 export ANDROID_NDK=$HOME/android/sdk/ndk-bundle
@@ -13,7 +15,7 @@ NAME=CRYPTOPP_${VERSION}
 SHA512SUM=82e9a51080ace2734bfe4ba932c31e6a963cb20b570f0fea2fbe9ceccb887c8afecb36cde91c46ac6fea1357fdff6320ab2535b3f0aa48424acdd2cd9dd2e880
 ABI=$1
 
-if [[ "$ABI" == "armv7" ]]; then
+if [[ "$ABI" == "armv7a" ]]; then
 	ABI_INC=arm-linux-androideabi
 fi
 if [[ "$ABI" == "x86" ]]; then
@@ -33,7 +35,7 @@ pushd cryptopp-$NAME
 set +e
 source setenv-android.sh $ABI gnu
 set -e
-export AOSP_STL_INC="$AOSP_STL_INC -I$ANDROID_NDK_ROOT/sysroot/usr/include/ -I$ANDROID_NDK_ROOT/sysroot/usr/include/$ABI_INC"
+export AOSP_STL_INC="$ANDROID_NDK_ROOT/sysroot/usr/include/$ABI_INC -I$AOSP_STL_INC -I$ANDROID_NDK_ROOT/sysroot/usr/include/"
 make -f GNUmakefile-cross static
 make install PREFIX=$sDir
 
