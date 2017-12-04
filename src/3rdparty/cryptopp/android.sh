@@ -6,6 +6,7 @@ export ANDROID_HOME=$HOME/android/sdk
 export ANDROID_NDK=$HOME/android/sdk/ndk-bundle
 export ANDROID_SDK_ROOT=$ANDROID_HOME
 export ANDROID_NDK_ROOT=$ANDROID_NDK
+export AOSP_API="android-16" #required to build against the same sysroot as Qt
 
 VERSION=5_6_5
 NAME=CRYPTOPP_${VERSION}
