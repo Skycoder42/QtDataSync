@@ -1,3 +1,4 @@
+@echo off
 setlocal
 
 set VERSION=5_6_5
@@ -18,7 +19,6 @@ powershell -Command "Invoke-WebRequest https://github.com/weidai11/cryptopp/arch
 cd cryptopp-%NAME%
 
 call %VC_DIR% %VC_VARSALL% || exit /B 1
-@echo on
 set PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\
 
 start /wait devenv.exe /upgrade .\cryptlib.vcxproj
@@ -34,8 +34,8 @@ cd %VC_ARCH%\Output\Release
 copy cryptlib.lib %sDir%\lib\cryptlib.lib
 cd ..\..\..
 
-mkdir %sDir%\include
-for %%I in (*.h) do copy %%I %sDir%\include\
+mkdir %sDir%\include\cryptopp
+for %%I in (*.h) do copy %%I %sDir%\include\cryptopp\
 
 cd %sDir%
 rmdir /s /q %tDir%

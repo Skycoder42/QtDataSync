@@ -46,9 +46,14 @@ DISTFILES += \
 	network_device.qmodel \
 	network_keychange.qmodel
 
+include(../3rdparty/cryptoqq/cryptoqq.pri)
+
 system_cryptopp:unix {
 	CONFIG += link_pkgconfig
 	PKGCONFIG += libcrypto++
+
+	# debug
+	INCLUDEPATH += $$PWD/../3rdparty/cryptopp/include
 } else {
 	win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlib
 	else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlibd

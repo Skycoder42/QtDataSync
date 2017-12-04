@@ -1,3 +1,4 @@
+@echo off
 setlocal
 
 set PATH=C:\Qt\Tools\mingw530_32\bin;%PATH%;
