@@ -22,6 +22,8 @@ call %VC_DIR% %VC_VARSALL% || exit /B 1
 set PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\
 
 start /wait devenv.exe /upgrade .\cryptlib.vcxproj
+powershell -Command "(gc cryptlib.vcxproj) -replace '<RuntimeLibrary>MultiThreadedDebug<\/RuntimeLibrary>', '<RuntimeLibrary>MultiThreadedDebugDLL<\/RuntimeLibrary>' | Out-File cryptlib.vcxproj" || exit /B 1
+powershell -Command "(gc cryptlib.vcxproj) -replace '<RuntimeLibrary>MultiThreaded<\/RuntimeLibrary>', '<RuntimeLibrary>MultiThreadedDLL<\/RuntimeLibrary>' | Out-File cryptlib.vcxproj" || exit /B 1
 
 msbuild /t:Build /p:Configuration=Debug;Platform=%VC_ARCH% cryptlib.vcxproj || exit /B 1
 cd %VC_ARCH%\Output\Debug

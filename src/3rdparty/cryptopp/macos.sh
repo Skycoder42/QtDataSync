@@ -20,3 +20,6 @@ make install PREFIX=$sDir
 
 popd
 rm -rf $tDir
+
+ls -lsa /Users/travis/build/Skycoder42/QtDataSync/src/3rdparty/cryptopp/lib
+file /Users/travis/build/Skycoder42/QtDataSync/src/datasync/../3rdparty/cryptopp/lib/libcryptopp.a

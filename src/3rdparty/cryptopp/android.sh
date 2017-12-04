@@ -2,6 +2,9 @@
 set -e
 # $1 android arch (armv7, x86)
 
+export ANDROID_HOME=$HOME/android/sdk
+export ANDROID_NDK=$HOME/android/sdk/ndk-bundle
+export ANDROID_SDK_ROOT=$ANDROID_HOME
 export ANDROID_NDK_ROOT=$ANDROID_NDK
 
 VERSION=5_6_5
