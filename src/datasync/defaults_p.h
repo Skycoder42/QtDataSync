@@ -24,9 +24,9 @@ public:
 	bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
-	QSharedPointer<DefaultsPrivate> defaultsPrivate;
-	QObject *object;
-	QSqlDatabase database;
+	QSharedPointer<DefaultsPrivate> _defaultsPrivate;
+	QObject *_object;
+	QSqlDatabase _database;
 };
 
 class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject //TODO split into 2 parts, to move out logger into 1 per Defaults instance

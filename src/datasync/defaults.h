@@ -65,13 +65,13 @@ public:
 	//! Returns the storage directory
 	QDir storageDir() const;
 	//! Returns a new instance of QSettings for this setup
-	QSettings *createSettings(QObject *parent = nullptr) const;
+	QSettings *createSettings(QObject *parent = nullptr, const QString &group = {}) const;
 	//! Returns the serializer of the current setup
 	const QJsonSerializer *serializer() const;
 	QVariant property(PropertyKey key) const;
 
 	//! Aquire the standard sqlite database
-	DatabaseRef aquireDatabase(QObject *object);
+	DatabaseRef aquireDatabase(QObject *object) const;
 	QReadWriteLock *databaseLock() const;
 
 private:

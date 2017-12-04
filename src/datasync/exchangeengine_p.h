@@ -11,6 +11,7 @@
 namespace QtDataSync {
 
 class ChangeController;
+class RemoteConnector;
 
 class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 {
@@ -44,6 +45,7 @@ private:
 	Logger *_logger;
 
 	QAtomicPointer<ChangeController> _changeController;
+	RemoteConnector *_remoteConnector;
 };
 
 }

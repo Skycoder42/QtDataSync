@@ -1,6 +1,8 @@
 #include "exchangeengine_p.h"
 #include "logger.h"
+
 #include "changecontroller_p.h"
+#include "remoteconnector_p.h"
 
 #include <QtCore/QThread>
 
@@ -13,7 +15,8 @@ ExchangeEngine::ExchangeEngine(const QString &setupName) :
 	_state(SyncManager::Initializing),
 	_defaults(setupName),
 	_logger(_defaults.createLogger("engine", this)),
-	_changeController(nullptr) //create early, to make accessible for localstores immediatly
+	_changeController(nullptr),
+	_remoteConnector(nullptr)
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error)
@@ -33,9 +36,11 @@ SyncManager::SyncState ExchangeEngine::state() const
 
 void ExchangeEngine::initialize()
 {
-	_changeController = new ChangeController(_defaults.setupName(), this);
+	_changeController = new ChangeController(_defaults, this);
 	connect(_changeController, &ChangeController::changeTriggered,
 			this, &ExchangeEngine::localDataChange);
+
+	_remoteConnector = new RemoteConnector(_defaults, this);
 }
 
 void ExchangeEngine::finalize()

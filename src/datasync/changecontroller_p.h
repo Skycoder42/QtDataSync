@@ -24,7 +24,7 @@ public:
 		ChangeInfo(const ObjectKey &key, quint64 version, const QByteArray &checksum = {});
 	};
 
-	explicit ChangeController(const QString &setupName, QObject *parent = nullptr);
+	explicit ChangeController(const Defaults &defaults, QObject *parent = nullptr);
 
 	static bool createTables(Defaults defaults, QSqlDatabase database, bool canWrite = false);
 
@@ -41,10 +41,10 @@ Q_SIGNALS:
 	void changeTriggered();
 
 private:
-	static bool initialized;
+	static bool _initialized;
 
-	Defaults defaults;
-	DatabaseRef database;
+	Defaults _defaults;
+	DatabaseRef _database;
 
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 	static void exec(Defaults defaults, QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"});

@@ -68,13 +68,13 @@ private Q_SLOTS:
 	void onDataReset(QObject *origin, const QByteArray &typeName);
 
 private:
-	Defaults defaults;
-	Logger *logger;
+	Defaults _defaults;
+	Logger *_logger;
 
-	DatabaseRef database;
+	DatabaseRef _database;
 
-	QHash<QByteArray, QString> tableNameCache;
-	QCache<ObjectKey, QJsonObject> dataCache;
+	QHash<QByteArray, QString> _tableNameCache;
+	QCache<ObjectKey, QJsonObject> _dataCache;
 
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 	QString getTable(const QByteArray &typeName, bool allowCreate = false);

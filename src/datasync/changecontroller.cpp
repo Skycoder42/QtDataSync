@@ -7,17 +7,17 @@
 
 using namespace QtDataSync;
 
-bool ChangeController::initialized = false;
+bool ChangeController::_initialized = false;
 
-ChangeController::ChangeController(const QString &setupName, QObject *parent) :
+ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	QObject(parent),
-	defaults(setupName),
-	database(defaults.aquireDatabase(this))
+	_defaults(defaults),
+	_database(_defaults.aquireDatabase(this))
 {}
 
 bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bool canWrite)
 {
-	if(initialized)
+	if(_initialized)
 		return true;
 
 	if(!database.tables().contains(QStringLiteral("ChangeStore"))) {
@@ -47,7 +47,7 @@ bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bo
 		exec(defaults, createQuery);
 	}
 
-	initialized = true;
+	_initialized = true;
 	return true;
 }
 
@@ -92,12 +92,12 @@ void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database
 
 QList<ChangeController::ChangeInfo> ChangeController::loadChanges()
 {
-	QReadLocker _(defaults.databaseLock());
+	QReadLocker _(_defaults.databaseLock());
 
 	if(!createTables())
 		return {};
 
-	QSqlQuery loadQuery(database);
+	QSqlQuery loadQuery(_database);
 	loadQuery.prepare(QStringLiteral("SELECT Type, Id, Version, Checksum FROM ChangeStore"));
 	exec(loadQuery);
 
@@ -115,12 +115,12 @@ QList<ChangeController::ChangeInfo> ChangeController::loadChanges()
 
 void ChangeController::clearChanged(const ObjectKey &key, quint64 version)
 {
-	QWriteLocker _(defaults.databaseLock());
+	QWriteLocker _(_defaults.databaseLock());
 
 	if(!createTables())
 		return;
 
-	QSqlQuery clearQuery(database);
+	QSqlQuery clearQuery(_database);
 	clearQuery.prepare(QStringLiteral("DELETE FROM ChangeStore WHERE Type = ? AND Id = ? AND version = ?"));
 	clearQuery.addBindValue(key.typeName);
 	clearQuery.addBindValue(key.id);
@@ -130,12 +130,12 @@ void ChangeController::clearChanged(const ObjectKey &key, quint64 version)
 
 QByteArrayList ChangeController::loadClears()
 {
-	QReadLocker _(defaults.databaseLock());
+	QReadLocker _(_defaults.databaseLock());
 
 	if(!createTables())
 		return {};
 
-	QSqlQuery loadQuery(database);
+	QSqlQuery loadQuery(_database);
 	loadQuery.prepare(QStringLiteral("SELECT Type FROM ClearStore"));
 	exec(loadQuery);
 
@@ -147,12 +147,12 @@ QByteArrayList ChangeController::loadClears()
 
 void ChangeController::clearCleared(const QByteArray &typeName)
 {
-	QWriteLocker _(defaults.databaseLock());
+	QWriteLocker _(_defaults.databaseLock());
 
 	if(!createTables())
 		return;
 
-	QSqlQuery clearQuery(database);
+	QSqlQuery clearQuery(_database);
 	clearQuery.prepare(QStringLiteral("DELETE FROM ClearStore WHERE Type = ?"));
 	clearQuery.addBindValue(typeName);
 	exec(clearQuery, typeName);
@@ -160,7 +160,7 @@ void ChangeController::clearCleared(const QByteArray &typeName)
 
 void ChangeController::exec(QSqlQuery &query, const ObjectKey &key) const
 {
-	exec(defaults, query, key);
+	exec(_defaults, query, key);
 }
 
 void ChangeController::exec(Defaults defaults, QSqlQuery &query, const ObjectKey &key)
@@ -175,7 +175,7 @@ void ChangeController::exec(Defaults defaults, QSqlQuery &query, const ObjectKey
 
 bool ChangeController::createTables()
 {
-	return createTables(defaults, database, false);
+	return createTables(_defaults, _database, false);
 }
 
 

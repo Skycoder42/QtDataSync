@@ -112,7 +112,6 @@ Q_SIGNALS:
 
 private:
 	QScopedPointer<DataStorePrivate> d;
-	int m_cacheSize;
 };
 
 

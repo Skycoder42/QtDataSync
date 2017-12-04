@@ -44,10 +44,13 @@ QDir Defaults::storageDir() const
 	return d->storageDir;
 }
 
-QSettings *Defaults::createSettings(QObject *parent) const
+QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 {
 	auto path = d->storageDir.absoluteFilePath(QStringLiteral("config.ini"));
-	return new QSettings(path, QSettings::IniFormat, parent);
+	auto settings = new QSettings(path, QSettings::IniFormat, parent);
+	if(!group.isNull())
+		settings->beginGroup(group);
+	return settings;
 }
 
 const QJsonSerializer *Defaults::serializer() const
@@ -60,7 +63,7 @@ QVariant Defaults::property(Defaults::PropertyKey key) const
 	return d->properties.value(key);
 }
 
-DatabaseRef Defaults::aquireDatabase(QObject *object)
+DatabaseRef Defaults::aquireDatabase(QObject *object) const
 {
 	return DatabaseRef(new DatabaseRefPrivate(d, object));
 }
@@ -216,34 +219,34 @@ void DefaultsPrivate::releaseDatabase(QThread *thread)
 
 
 DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object) :
-	defaultsPrivate(defaultsPrivate),
-	object(object),
-	database()
+	_defaultsPrivate(defaultsPrivate),
+	_object(object),
+	_database()
 {
 	object->installEventFilter(this);
 }
 
 DatabaseRefPrivate::~DatabaseRefPrivate()
 {
-	if(database.isValid()) {
-		database = QSqlDatabase();
-		defaultsPrivate->releaseDatabase(QThread::currentThread());
+	if(_database.isValid()) {
+		_database = QSqlDatabase();
+		_defaultsPrivate->releaseDatabase(QThread::currentThread());
 	}
 }
 
 QSqlDatabase &DatabaseRefPrivate::db()
 {
-	if(!database.isValid())
-		database = defaultsPrivate->acquireDatabase(QThread::currentThread());
-	return database;
+	if(!_database.isValid())
+		_database = _defaultsPrivate->acquireDatabase(QThread::currentThread());
+	return _database;
 }
 
 bool DatabaseRefPrivate::eventFilter(QObject *watched, QEvent *event)
 {
-	if(event->type() == QEvent::ThreadChange && watched == object) {
-		if(database.isValid()) {
-			database = QSqlDatabase();
-			defaultsPrivate->releaseDatabase(QThread::currentThread());
+	if(event->type() == QEvent::ThreadChange && watched == _object) {
+		if(_database.isValid()) {
+			_database = QSqlDatabase();
+			_defaultsPrivate->releaseDatabase(QThread::currentThread());
 		}
 	}
 

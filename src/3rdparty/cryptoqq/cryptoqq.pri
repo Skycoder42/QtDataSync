@@ -5,3 +5,5 @@ HEADERS += \
 SOURCES += \
 	$$PWD/qiodevicesource.cpp \
 	$$PWD/qiodevicesink.cpp
+
+INCLUDEPATH += $$PWD
