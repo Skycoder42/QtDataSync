@@ -57,8 +57,10 @@ system_cryptopp:unix {
 	# debug
 	INCLUDEPATH += $$PWD/../3rdparty/cryptopp/include
 } else {
-	win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlib
-	else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlibd
+	win32-g++::CONFIG(release, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptopp
+	else:win32-g++::CONFIG(debug, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptoppd
+	else:win32:!win32-g++:CONFIG(release, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlib
+	else:win32:!win32-g++:CONFIG(debug, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlibd
 	else:unix: LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptopp
 
 	INCLUDEPATH += $$PWD/../3rdparty/cryptopp/include

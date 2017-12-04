@@ -25,10 +25,17 @@ start /wait devenv.exe /upgrade .\cryptlib.vcxproj
 powershell -Command "(gc cryptlib.vcxproj) -replace '<RuntimeLibrary>MultiThreadedDebug<\/RuntimeLibrary>', '<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>' | Out-File cryptlib.vcxproj" || exit /B 1
 powershell -Command "(gc cryptlib.vcxproj) -replace '<RuntimeLibrary>MultiThreaded<\/RuntimeLibrary>', '<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>' | Out-File cryptlib.vcxproj" || exit /B 1
 
+echo
+echo
+type .\cryptlib.vcxproj
+echo
+echo
+
 msbuild /t:Build /p:Configuration=Debug;Platform=%VC_ARCH% cryptlib.vcxproj || exit /B 1
 cd %VC_ARCH%\Output\Debug
 copy cryptlib.lib %sDir%\lib\cryptlibd.lib
-copy cryptlib.pdb %sDir%\lib\cryptlibd.pdb
+:: d only in cryplib, because copy replace....
+copy cryptlib.pdb %sDir%\lib\cryptlib.pdb
 cd ..\..\..
 
 msbuild /t:Build /p:Configuration=Release;Platform=%VC_ARCH% cryptlib.vcxproj || exit /B 1
