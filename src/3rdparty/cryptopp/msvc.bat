@@ -35,7 +35,7 @@ copy cryptlib.lib %sDir%\lib\cryptlib.lib
 cd ..\..\..
 
 mkdir %sDir%\include
-for %I in (*.h) do copy %I %sDir%\include\
+for %%I in (*.h) do copy %%I %sDir%\include\
 
 cd %sDir%
 rmdir /s /q %tDir%
