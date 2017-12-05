@@ -86,7 +86,10 @@ void ClientConnector::notifyChanged(const QUuid &userId, const QUuid &excludedDe
 
 void ClientConnector::verifySecret(QWebSocketCorsAuthenticator *authenticator)
 {
-	authenticator->setAllowed(authenticator->origin() == secret);
+	if(secret.isNull())
+		authenticator->setAllowed(true);
+	else
+		authenticator->setAllowed(authenticator->origin() == secret);
 }
 
 void ClientConnector::newConnection()

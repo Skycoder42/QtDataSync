@@ -55,16 +55,7 @@ private:
 	void tryClose();
 
 	QVariant sValue(const QString &key) const;
-	template <typename... Args>
-	bool checkState(QAbstractSocket::SocketState state, Args... states);
-	bool checkState(QAbstractSocket::SocketState state);
 };
-
-template<typename... Args>
-bool RemoteConnector::checkState(QAbstractSocket::SocketState state, Args... states)
-{
-	return checkState(state) || checkState(states...);
-}
 
 }
 

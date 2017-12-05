@@ -50,6 +50,8 @@ void ExchangeEngine::initialize()
 
 void ExchangeEngine::finalize()
 {
+	//TODO disconnect socket
+
 	logDebug() << Q_FUNC_INFO;
 	thread()->quit();
 }

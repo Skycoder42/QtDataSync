@@ -192,8 +192,3 @@ QVariant RemoteConnector::sValue(const QString &key) const
 	else
 		return {};
 }
-
-bool RemoteConnector::checkState(QAbstractSocket::SocketState state)
-{
-	return _socket->state() == state;
-}
