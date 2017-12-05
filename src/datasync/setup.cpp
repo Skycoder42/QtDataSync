@@ -125,7 +125,7 @@ void Setup::create(const QString &name)
 
 int Setup::cacheSize() const
 {
-	return d->properties.value(Defaults::CacheSize, MB(10)).toInt();
+	return d->properties.value(Defaults::CacheSize).toInt();
 }
 
 void Setup::setCacheSize(int cacheSize)
@@ -136,6 +136,21 @@ void Setup::setCacheSize(int cacheSize)
 void Setup::resetCacheSize()
 {
 	d->properties.insert(Defaults::CacheSize, MB(10));
+}
+
+QSslConfiguration Setup::sslConfiguration() const
+{
+	return d->properties.value(Defaults::SslConfiguration).value<QSslConfiguration>();
+}
+
+void Setup::setSslConfiguration(QSslConfiguration sslConfiguration)
+{
+	d->properties.insert(Defaults::SslConfiguration, QVariant::fromValue(sslConfiguration));
+}
+
+void Setup::resetSslConfiguration()
+{
+	setSslConfiguration(QSslConfiguration::defaultConfiguration());
 }
 
 // ------------- Private Implementation -------------
@@ -173,7 +188,10 @@ ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 SetupPrivate::SetupPrivate() :
 	localDir(QStringLiteral("./qtdatasync_localstore")),
 	serializer(new QJsonSerializer()),
-	properties(),
+	properties({
+		{Defaults::CacheSize, MB(10)},
+		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())}
+	}),
 	fatalErrorHandler(QtDataSync::defaultFatalErrorHandler)
 {}
 

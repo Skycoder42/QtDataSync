@@ -4,6 +4,8 @@
 #include <QtCore/qobject.h>
 class QLockFile;
 
+#include <QtNetwork/qsslconfiguration.h>
+
 #include <functional>
 
 #include "QtDataSync/qtdatasync_global.h"
@@ -26,6 +28,7 @@ class Q_DATASYNC_EXPORT Setup
 	Q_DISABLE_COPY(Setup)
 
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
+	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
 
 public:
 	//! Sets the maximum timeout for shutting down setups
@@ -58,9 +61,13 @@ public:
 	int cacheSize() const;
 	void setCacheSize(int cacheSize);
 	void resetCacheSize();
+	QSslConfiguration sslConfiguration() const;
+	void setSslConfiguration(QSslConfiguration sslConfiguration);
+	void resetSslConfiguration();
 
 private:
 	QScopedPointer<SetupPrivate> d;
+	QSslConfiguration m_sslConfiguration;
 };
 
 //! Exception throw if Setup::create fails

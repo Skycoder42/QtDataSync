@@ -43,7 +43,6 @@ private Q_SLOTS:
 private:
 	static const QString keyRemoteUrl;
 	static const QString keySharedSecret;
-	static const QString keyVerifyPeer;
 	static const QString keyHeaders;
 
 	Defaults _defaults;

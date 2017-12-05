@@ -6,7 +6,6 @@ using namespace QtDataSync;
 
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remoteUrl"));
 const QString RemoteConnector::keySharedSecret(QStringLiteral("sharedSecret"));
-const QString RemoteConnector::keyVerifyPeer(QStringLiteral("verifyPeer"));
 const QString RemoteConnector::keyHeaders(QStringLiteral("headers"));
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
@@ -40,11 +39,9 @@ void RemoteConnector::reconnect()
 								 QWebSocketProtocol::VersionLatest,
 								 this);
 
-		if(!_settings->value(keyVerifyPeer, true).toBool()) {
-			auto conf = _socket->sslConfiguration();
-			conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+		auto conf = _defaults.property(Defaults::SslConfiguration).value<QSslConfiguration>();
+		if(!conf.isNull())
 			_socket->setSslConfiguration(conf);
-		}
 
 		connect(_socket, &QWebSocket::connected,
 				this, &RemoteConnector::connected);
@@ -131,7 +128,10 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 	foreach(auto error, errors) {
 		if(error.error() == QSslError::SelfSignedCertificate ||
 		   error.error() == QSslError::SelfSignedCertificateInChain)
-			shouldClose = shouldClose && _settings->value(keyVerifyPeer, true).toBool();
+			shouldClose = shouldClose &&
+						  (_defaults.property(Defaults::SslConfiguration)
+						   .value<QSslConfiguration>()
+						   .peerVerifyMode() >= QSslSocket::VerifyPeer);
 		//TODO retryIndex
 //		if(retryIndex == 0) {
 			logWarning().noquote() << "Server connection SSL error:"

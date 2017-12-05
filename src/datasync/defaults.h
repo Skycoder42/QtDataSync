@@ -48,7 +48,8 @@ class Q_DATASYNC_EXPORT Defaults
 
 public:
 	enum PropertyKey {
-		CacheSize
+		CacheSize,
+		SslConfiguration
 	};
 	Q_ENUM(PropertyKey)
 
