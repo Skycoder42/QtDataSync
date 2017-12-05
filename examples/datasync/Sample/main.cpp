@@ -12,7 +12,9 @@ int main(int argc, char *argv[])
 	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
 
 	//setup datasync
-	QtDataSync::Setup().create();
+	QtDataSync::Setup()
+			.setRemoteConfiguration(QUrl(QStringLiteral("ws://localhost:4242")))
+			.create();
 
 	Widget w;
 	w.show();

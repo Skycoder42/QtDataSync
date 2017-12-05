@@ -8,6 +8,7 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qreadwritelock.h>
+#include <QtCore/qurl.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
@@ -40,6 +41,14 @@ private:
 	QScopedPointer<DatabaseRefPrivate> d;
 };
 
+struct Q_DATASYNC_EXPORT RemoteConfig {
+	QUrl url;
+	QString accessKey;
+	QHash<QByteArray, QByteArray> headers;
+
+	RemoteConfig(const QUrl &url = {}, const QString &accessKey = {}, const QHash<QByteArray, QByteArray> &headers = {});
+};
+
 class DefaultsPrivate;
 //! A helper class to get defaults per datasync instance (threadsafe)
 class Q_DATASYNC_EXPORT Defaults
@@ -49,7 +58,8 @@ class Q_DATASYNC_EXPORT Defaults
 public:
 	enum PropertyKey {
 		CacheSize,
-		SslConfiguration
+		SslConfiguration,
+		RemoteConfiguration
 	};
 	Q_ENUM(PropertyKey)
 
@@ -93,5 +103,7 @@ protected:
 };
 
 }
+
+Q_DECLARE_METATYPE(QtDataSync::RemoteConfig)
 
 #endif // QTDATASYNC_DEFAULTS_H

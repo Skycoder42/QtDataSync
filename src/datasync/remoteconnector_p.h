@@ -37,12 +37,12 @@ private Q_SLOTS:
 	void connected();
 	void disconnected();
 	void binaryMessageReceived(const QByteArray &message);
-	void error();
+	void error(QAbstractSocket::SocketError error);
 	void sslErrors(const QList<QSslError> &errors);
 
 private:
 	static const QString keyRemoteUrl;
-	static const QString keySharedSecret;
+	static const QString keyAccessKey;
 	static const QString keyHeaders;
 
 	Defaults _defaults;
@@ -50,10 +50,11 @@ private:
 	QSettings *_settings;
 
 	QWebSocket *_socket;
-	bool _disconnecting;
+	bool _changingConnection;
 
 	void tryClose();
 
+	QVariant sValue(const QString &key) const;
 	template <typename... Args>
 	bool checkState(QAbstractSocket::SocketState state, Args... states);
 	bool checkState(QAbstractSocket::SocketState state);

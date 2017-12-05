@@ -128,14 +128,16 @@ int Setup::cacheSize() const
 	return d->properties.value(Defaults::CacheSize).toInt();
 }
 
-void Setup::setCacheSize(int cacheSize)
+Setup &Setup::setCacheSize(int cacheSize)
 {
 	d->properties.insert(Defaults::CacheSize, cacheSize);
+	return *this;
 }
 
-void Setup::resetCacheSize()
+Setup &Setup::resetCacheSize()
 {
 	d->properties.insert(Defaults::CacheSize, MB(10));
+	return *this;
 }
 
 QSslConfiguration Setup::sslConfiguration() const
@@ -143,14 +145,26 @@ QSslConfiguration Setup::sslConfiguration() const
 	return d->properties.value(Defaults::SslConfiguration).value<QSslConfiguration>();
 }
 
-void Setup::setSslConfiguration(QSslConfiguration sslConfiguration)
+Setup &Setup::setSslConfiguration(QSslConfiguration sslConfiguration)
 {
 	d->properties.insert(Defaults::SslConfiguration, QVariant::fromValue(sslConfiguration));
+	return *this;
 }
 
-void Setup::resetSslConfiguration()
+Setup &Setup::resetSslConfiguration()
 {
-	setSslConfiguration(QSslConfiguration::defaultConfiguration());
+	return setSslConfiguration(QSslConfiguration::defaultConfiguration());
+}
+
+RemoteConfig Setup::remoteConfiguration() const
+{
+	return d->properties.value(Defaults::RemoteConfiguration).value<RemoteConfig>();
+}
+
+Setup &Setup::setRemoteConfiguration(RemoteConfig remoteConfiguration)
+{
+	d->properties.insert(Defaults::RemoteConfiguration, QVariant::fromValue(remoteConfiguration));
+	return *this;
 }
 
 // ------------- Private Implementation -------------
@@ -190,7 +204,8 @@ SetupPrivate::SetupPrivate() :
 	serializer(new QJsonSerializer()),
 	properties({
 		{Defaults::CacheSize, MB(10)},
-		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())}
+		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
+		{Defaults::RemoteConfiguration, QVariant()}
 	}),
 	fatalErrorHandler(QtDataSync::defaultFatalErrorHandler)
 {}

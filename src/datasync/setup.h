@@ -29,6 +29,7 @@ class Q_DATASYNC_EXPORT Setup
 
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
+	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration) //TODO allow changing via sync/exchange manager?
 
 public:
 	//! Sets the maximum timeout for shutting down setups
@@ -59,15 +60,16 @@ public:
 	void create(const QString &name = DefaultSetup);
 
 	int cacheSize() const;
-	void setCacheSize(int cacheSize);
-	void resetCacheSize();
+	Setup &setCacheSize(int cacheSize);
+	Setup &resetCacheSize();
 	QSslConfiguration sslConfiguration() const;
-	void setSslConfiguration(QSslConfiguration sslConfiguration);
-	void resetSslConfiguration();
+	Setup &setSslConfiguration(QSslConfiguration sslConfiguration);
+	Setup &resetSslConfiguration();
+	RemoteConfig remoteConfiguration() const;
+	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
 
 private:
 	QScopedPointer<SetupPrivate> d;
-	QSslConfiguration m_sslConfiguration;
 };
 
 //! Exception throw if Setup::create fails

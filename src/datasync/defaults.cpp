@@ -73,8 +73,7 @@ QReadWriteLock *Defaults::databaseLock() const
 	return &(d->lock);
 }
 
-
-
+// ------------- DatabaseRef -------------
 
 DatabaseRef::DatabaseRef() :
 	d(nullptr)
@@ -114,8 +113,15 @@ QSqlDatabase *DatabaseRef::operator ->() const
 	return &(d->db());
 }
 
+// ------------- RemoteConfig -------------
 
+RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const QHash<QByteArray, QByteArray> &headers) :
+	url(url),
+	accessKey(accessKey),
+	headers(headers)
+{}
 
+// ------------- PRIVAZE IMPLEMENTATION Defaults -------------
 
 #undef QTDATASYNC_LOG
 #define QTDATASYNC_LOG logger
@@ -216,7 +222,7 @@ void DefaultsPrivate::releaseDatabase(QThread *thread)
 	}
 }
 
-
+// ------------- PRIVAZE IMPLEMENTATION DatabaseRef -------------
 
 DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object) :
 	_defaultsPrivate(defaultsPrivate),

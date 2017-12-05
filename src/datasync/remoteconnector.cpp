@@ -5,7 +5,7 @@ using namespace QtDataSync;
 #define QTDATASYNC_LOG _logger
 
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remoteUrl"));
-const QString RemoteConnector::keySharedSecret(QStringLiteral("sharedSecret"));
+const QString RemoteConnector::keyAccessKey(QStringLiteral("accessKey"));
 const QString RemoteConnector::keyHeaders(QStringLiteral("headers"));
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
@@ -14,28 +14,34 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_logger(_defaults.createLogger("connector", this)),
 	_settings(_defaults.createSettings(this, QStringLiteral("connector"))),
 	_socket(nullptr),
-	_disconnecting(false)
+	_changingConnection(false)
 {}
 
 void RemoteConnector::reconnect()
 {
 	if(_socket) {
-		if(_socket->state() == QAbstractSocket::ConnectedState) {
-			_disconnecting = true;
+		if(_socket->state() == QAbstractSocket::UnconnectedState) {
+			logDebug() << "Removing unconnected but still not deleted socket";
+			_socket->deleteLater();
+			_socket = nullptr;
+			emit stateChanged(RemoteDisconnected);
+			QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
+		} else if(_socket->state() == QAbstractSocket::ConnectedState) {
+			_changingConnection = true;
 			_socket->close();
 			emit stateChanged(RemoteReconnecting);
-		}
+		} else
+			logDebug() << "Delaying reconnect operation. Socket in changing state:" << _socket->state();
 	} else {
 		emit stateChanged(RemoteReconnecting);
 
-		//TODO sync settings?
-		auto remoteUrl = _settings->value(keyRemoteUrl).toUrl();
+		auto remoteUrl = sValue(keyRemoteUrl).toUrl();
 		if(!remoteUrl.isValid()) {
 			emit stateChanged(RemoteDisconnected);
 			return;
 		}
 
-		_socket = new QWebSocket(_settings->value(keySharedSecret).toString(),
+		_socket = new QWebSocket(sValue(keyAccessKey).toString(),
 								 QWebSocketProtocol::VersionLatest,
 								 this);
 
@@ -61,12 +67,11 @@ void RemoteConnector::reconnect()
 		request.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
 		request.setAttribute(QNetworkRequest::HTTP2AllowedAttribute, true);
 
-		_settings->beginGroup(keyHeaders);
-		auto keys = _settings->childKeys();
-		foreach(auto key, keys)
-			request.setRawHeader(key.toUtf8(), _settings->value(key).toByteArray());
-		_settings->endGroup();
+		auto keys = sValue(keyHeaders).value<QHash<QByteArray, QByteArray>>();
+		for(auto it = keys.begin(); it != keys.end(); it++)
+			request.setRawHeader(it.key(), it.value());
 
+		_changingConnection = true;
 		_socket->open(request);
 	}
 }
@@ -78,12 +83,13 @@ void RemoteConnector::reloadState()
 
 void RemoteConnector::connected()
 {
+	logDebug() << "Connection changed to connected";
 	emit stateChanged(RemoteLoadingState);
 }
 
 void RemoteConnector::disconnected()
 {
-	if(!_disconnecting) {
+	if(!_changingConnection) {
 		logWarning().noquote() << "Unexpected disconnect from server with exit code"
 							   << _socket->closeCode()
 							   << "and reason:"
@@ -94,12 +100,14 @@ void RemoteConnector::disconnected()
 //				   << delta / 1000
 //				   << "seconds";
 	} else
-		_disconnecting = false;
+		_changingConnection = false;
 
-	_socket->deleteLater();
+	if(_socket)//better be safe
+		_socket->deleteLater();
 	_socket = nullptr;
 
 	//always "disable" remote for the state changer
+	logDebug() << "Connection changed to disconnected";
 	emit stateChanged(RemoteDisconnected);
 }
 
@@ -108,7 +116,7 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 
 }
 
-void RemoteConnector::error()
+void RemoteConnector::error(QAbstractSocket::SocketError error)
 {
 	//TODO retryIndex
 //	if(retryIndex == 0) {
@@ -149,11 +157,40 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 void RemoteConnector::tryClose()
 {
 	logDebug() << Q_FUNC_INFO << "socket state:" << _socket->state();
-	if(_socket->state() == QAbstractSocket::ConnectedState) {
-		_disconnecting = true;
+	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
+		_changingConnection = true;
 		_socket->close();
 	} else
 		emit stateChanged(RemoteDisconnected);
+}
+
+QVariant RemoteConnector::sValue(const QString &key) const
+{
+	if(key == keyHeaders) {
+		if(_settings->childGroups().contains(keyHeaders)) {
+			_settings->beginGroup(keyHeaders);
+			auto keys = _settings->childKeys();
+			QHash<QByteArray, QByteArray> headers;
+			foreach(auto key, keys)
+				headers.insert(key.toUtf8(), _settings->value(key).toByteArray());
+			_settings->endGroup();
+			return QVariant::fromValue(headers);
+		}
+	} else {
+		auto res = _settings->value(key);
+		if(res.isValid())
+			return res;
+	}
+
+	auto config = _defaults.property(Defaults::RemoteConfiguration).value<RemoteConfig>();
+	if(key == keyRemoteUrl)
+		return config.url;
+	else if(key == keyAccessKey)
+		return config.accessKey;
+	else if(key == keyHeaders)
+		return QVariant::fromValue(config.headers);
+	else
+		return {};
 }
 
 bool RemoteConnector::checkState(QAbstractSocket::SocketState state)
