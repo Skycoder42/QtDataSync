@@ -394,7 +394,7 @@
                           </qlist>
                          </stereotypes>
                          <name>Server</name>
-                         <pos>x:935;y:570</pos>
+                         <pos>x:1020;y:70</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -496,7 +496,7 @@
                            <item>interface</item>
                           </qlist>
                          </stereotypes>
-                         <name>Authenticator</name>
+                         <name>KeyStore</name>
                          <pos>x:940;y:395</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
@@ -547,7 +547,7 @@
                          </base-DElement>
                          <object>{eb71fa83-8407-41e5-9525-f52d29f958c7}</object>
                          <name>SyncManager</name>
-                         <pos>x:710;y:75</pos>
+                         <pos>x:725;y:70</pos>
                          <rect>x:-45;y:-30;w:90;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -690,7 +690,7 @@
                          </base-DElement>
                          <object>{53a61e00-872f-4796-a0e2-65a5573b815f}</object>
                          <name>UserDataExchange</name>
-                         <pos>x:1000;y:80</pos>
+                         <pos>x:880;y:65</pos>
                          <rect>x:-60;y:-30;w:120;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -710,7 +710,7 @@
                          </base-DElement>
                          <object>{0ab6984e-f9e4-466f-84b1-e34736a7ef0e}</object>
                          <a>{ecff1074-9943-4343-82da-4b8449fd8542}</a>
-                         <b>{4d356b00-0cd2-4866-8560-6888b0da571c}</b>
+                         <b>{49da69a3-26d9-47ba-b9ec-c3f3c5c84d0c}</b>
                         </DRelation>
                        </base-DRelation>
                        <a>
@@ -783,7 +783,7 @@
                          </base-DElement>
                          <object>{7a880560-8d49-4d02-894b-4a98bd02dd4a}</object>
                          <a>{ebb7b149-8467-469f-b956-673a9bec234b}</a>
-                         <b>{4d356b00-0cd2-4866-8560-6888b0da571c}</b>
+                         <b>{49da69a3-26d9-47ba-b9ec-c3f3c5c84d0c}</b>
                         </DRelation>
                        </base-DRelation>
                        <a>
@@ -975,9 +975,104 @@
                       </DDependency>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DClass">
+                      <DClass>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{ae6f4a67-a41e-49e7-9b51-659a0696b93b}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{17183438-8880-47b9-82e4-d6175d96239c}</object>
+                         <name>StandardKeyStore</name>
+                         <pos>x:940;y:565</pos>
+                         <rect>x:-55;y:-30;w:110;h:60</rect>
+                         <visual-role>5</visual-role>
+                        </DObject>
+                       </base-DObject>
+                      </DClass>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DInheritance">
+                      <DInheritance>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{ba283225-5418-49af-89d0-cd19636021e9}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{a12e122a-a313-4954-89e1-6b65cbdee19c}</object>
+                         <a>{ae6f4a67-a41e-49e7-9b51-659a0696b93b}</a>
+                         <b>{4d356b00-0cd2-4866-8560-6888b0da571c}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DInheritance>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DClass">
+                      <DClass>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{13868ee0-2ee9-4faa-bd3c-dd0d0e712356}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{60e8dd0c-4986-486b-b866-372acce0ed03}</object>
+                         <name>Setup</name>
+                         <pos>x:580;y:65</pos>
+                         <rect>x:-40;y:-30;w:80;h:60</rect>
+                         <visual-role>6</visual-role>
+                        </DObject>
+                       </base-DObject>
+                      </DClass>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DAssociation">
+                      <DAssociation>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{48cd724d-49e6-4c07-8528-c39a8282c893}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{0761212c-4467-4bc1-8da7-337cb99eb656}</object>
+                         <a>{13868ee0-2ee9-4faa-bd3c-dd0d0e712356}</a>
+                         <b>{c4868831-0c5f-4bf8-ac52-d02858473d5c}</b>
+                        </DRelation>
+                       </base-DRelation>
+                       <a>
+                        <DAssociationEnd>
+                         <navigable>true</navigable>
+                        </DAssociationEnd>
+                       </a>
+                      </DAssociation>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DBoundary">
+                      <DBoundary>
+                       <base-DElement>
+                        <DElement>
+                         <uid>{36f95127-7559-4ace-963c-107c0cc342ab}</uid>
+                        </DElement>
+                       </base-DElement>
+                       <text>Extra Thread</text>
+                       <pos>x:605;y:445</pos>
+                       <rect>x:-430;y:-180;w:860;h:360</rect>
+                      </DBoundary>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1512069704603</last-modified>
+                  <last-modified>1512484411908</last-modified>
                   <toolbarid>Classes</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1701,7 +1796,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>Authenticator</name>
+                  <name>KeyStore</name>
                  </MObject>
                 </base-MObject>
                </MClass>
@@ -1768,7 +1863,7 @@
                               </MElement>
                              </base-MElement>
                              <a>{eb71fa83-8407-41e5-9525-f52d29f958c7}</a>
-                             <b>{6d11b758-2ceb-4baa-a181-35eec939bad9}</b>
+                             <b>{c66b69bf-96a9-4d72-8fe9-e42709200c44}</b>
                             </MRelation>
                            </base-MRelation>
                            <a>
@@ -1950,7 +2045,7 @@
                               </MElement>
                              </base-MElement>
                              <a>{53a61e00-872f-4796-a0e2-65a5573b815f}</a>
-                             <b>{6d11b758-2ceb-4baa-a181-35eec939bad9}</b>
+                             <b>{c66b69bf-96a9-4d72-8fe9-e42709200c44}</b>
                             </MRelation>
                            </base-MRelation>
                            <a>
@@ -2105,6 +2200,113 @@
                              <cardinality>1</cardinality>
                             </MAssociationEnd>
                            </b>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+               </MClass>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{17183438-8880-47b9-82e4-d6175d96239c}</uid>
+             <target>
+              <instance type="MClass">
+               <MClass>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{17183438-8880-47b9-82e4-d6175d96239c}</uid>
+                   </MElement>
+                  </base-MElement>
+                  <name>StandardKeyStore</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{a12e122a-a313-4954-89e1-6b65cbdee19c}</uid>
+                        <target>
+                         <instance type="MInheritance">
+                          <MInheritance>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{a12e122a-a313-4954-89e1-6b65cbdee19c}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{17183438-8880-47b9-82e4-d6175d96239c}</a>
+                             <b>{6d11b758-2ceb-4baa-a181-35eec939bad9}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MInheritance>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+               </MClass>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{60e8dd0c-4986-486b-b866-372acce0ed03}</uid>
+             <target>
+              <instance type="MClass">
+               <MClass>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{60e8dd0c-4986-486b-b866-372acce0ed03}</uid>
+                   </MElement>
+                  </base-MElement>
+                  <name>Setup</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{0761212c-4467-4bc1-8da7-337cb99eb656}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{0761212c-4467-4bc1-8da7-337cb99eb656}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{60e8dd0c-4986-486b-b866-372acce0ed03}</a>
+                             <b>{5ca8a614-1a59-4dc6-9a04-47986bb92b0a}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <navigable>true</navigable>
+                            </MAssociationEnd>
+                           </a>
                           </MAssociation>
                          </instance>
                         </target>

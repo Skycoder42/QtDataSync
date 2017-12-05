@@ -1,6 +1,6 @@
 Environment:
-	action{[changed,deleted]<->[changed,deleted]}
-	policy{[changed,deleted,auto]}
+	action{[changed,noexists,cachedDelete]<->[changed,deleted]}
+	policy{[changed,deleted]}
 
 Parameters:
 	version{v*}
@@ -24,34 +24,53 @@ action(changed<->changed):
 			send
 			done
 
-action(deleted<->deleted):
+action(noexists<->deleted):
+	done
+
+action(cachedDelete<->deleted):
 	done
 
 action(changed<->deleted):
-	policy(changed):
-		choose v1
-		done
-	policy(deleted):
-		choose v2
-		done
-	policy(auto):
-		switch(v1, v2):
-			case v2 > v1:
-				choose v2
-				send	#send again, because the other side does not know delete was choosen
+	switch(v1, v2):
+		case v2 > v1:
+			choose v2
+			send	#send again, because the other side does not know delete was choosen
+			done
+		case v1 > v2:
+			choose v1
+			done
+		default:
+			policy(changed):
+				choose v1 + 1
+				send
 				done
-			default:
-				choose v1
+			policy(deleted):
+				choose v2 + 1
+				send
 				done
 
-action(deleted<->changed):
-	policy(changed):
-		choose v2
-		done
-	policy(deleted):
-		choose v1
-		done
-	policy(auto):
-		choose v2   #TODO will always choose changed, as no local version information is available. If delete is prefered, send is done again
-		done
+action(noexists<->changed):
+	choose v2
+	done
+	# !!! no information is given whether locally was just deleted or never existed or was deleted long ago.
+	# But this is addressed by the other side, if delete is prefered, they will resend a higher versioned delete change
+
+action(cachedDelete<->changed): #special, happens only when deleted, but change not yet pushed
+	switch(v1, v2):
+		case v2 > v1:
+			choose v2
+			done
+		case v1 > v2:
+			choose v1	#no send needed, is already cached as change
+			done
+		default:
+			policy(changed):
+				choose v2 + 1
+				send
+				done
+			policy(deleted):
+				choose v1 + 1
+				send
+				done
+
 

@@ -447,7 +447,7 @@
                            <item>external</item>
                           </qlist>
                          </stereotypes>
-                         <name>ADDME(deviceId, cryptKey, nounce)</name>
+                         <name>ADDME(pubKey, nounce)</name>
                          <pos>x:295;y:225</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
@@ -1663,7 +1663,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ADDME(deviceId, cryptKey, nounce)</name>
+                  <name>ADDME(pubKey, nounce)</name>
                   <relations>
                    <handles>
                     <handles>

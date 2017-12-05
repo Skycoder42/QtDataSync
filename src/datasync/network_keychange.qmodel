@@ -126,7 +126,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>DEVICES(&lt;deviceId, cryptKey&gt;, ...)</name>
+                         <name>DEVICES(&lt;deviceId, pubKey&gt;, ...)</name>
                          <pos>x:420;y:75</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -418,7 +418,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>DEVICES(&lt;deviceId, cryptKey&gt;, ...)</name>
+                  <name>DEVICES(&lt;deviceId, pubKey&gt;, ...)</name>
                   <relations>
                    <handles>
                     <handles>
