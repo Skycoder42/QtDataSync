@@ -22,7 +22,6 @@ set "xDir=%sDir:\=/%"
 
 cd cryptopp-%NAME%
 mingw32-make static > nul || exit /B 1
-echo %xDir%
 mingw32-make install PREFIX=%xDir% || exit /B 1
 
 cd %sDir%
