@@ -1,16 +1,19 @@
 #!/bin/bash
 set -e
 
-scriptdir=$(dirname $0)
+version=5_6_5
 
-if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-	docker run --rm --name docker-qt-build -e QMAKE_FLAGS -e BUILD_DOC -e TEST_DIR -e NO_TESTS -v "$(pwd):/root/project" skycoder42/qt-build /root/project/src/3rdparty/cryptopp/travis-docker.sh
-fi
+case "$PLATFORM" in
+	gcc_64)
+		pkgName=linux
+		;;
+	clang_64)
+		pkgName=macos
+		;;
+	*)
+		pkgName=$PLATFORM
+		;;
+esac
 
-if [[ "$PLATFORM" == "clang_64" ]]; then
-	$scriptdir/macos.sh
-fi
-
-if [[ "$PLATFORM" == "ios" ]]; then
-	$scriptdir/ios.sh
-fi
+curl -Lo /tmp/cryptopp.tar.xz https://github.com/Skycoder42/ci-builds/releases/download/cryptopp_${version}/cryptopp_${version}_${pkgName}.tar.xz
+tar -xf /tmp/cryptopp.tar.xz -C ./src/3rdparty/
