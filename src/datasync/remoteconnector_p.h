@@ -8,6 +8,8 @@
 #include "defaults.h"
 #include "qtdatasync_global.h"
 
+#include "identifymessage_p.h"
+
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT RemoteConnector : public QObject
@@ -55,6 +57,8 @@ private:
 	void tryClose();
 
 	QVariant sValue(const QString &key) const;
+
+	void onIdentify(const IdentifyMessage &message);
 };
 
 }

@@ -42,7 +42,7 @@ private:
 	QAtomicInt runCount;
 
 	void close();
-	void sendCommand(const QByteArray &command, const QJsonValue &data = QJsonValue::Null);
+	void sendMessage(const QByteArray &message);
 	Q_INVOKABLE void doSend(const QByteArray &message);
 };
 

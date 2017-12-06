@@ -1,7 +1,9 @@
 HEADERS += \
-    $$PWD/message_p.h \
-    $$PWD/identifymessage_p.h
+	$$PWD/message_p.h \
+	$$PWD/identifymessage_p.h
 
 SOURCES += \
-    $$PWD/message.cpp \
-    $$PWD/identifymessage.cpp
+	$$PWD/message.cpp \
+	$$PWD/identifymessage.cpp
+
+INCLUDEPATH += $$PWD

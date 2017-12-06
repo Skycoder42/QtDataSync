@@ -49,27 +49,8 @@ DISTFILES += \
 	network_keychange.qmodel
 
 include(messages/messages.pri)
+include(../3rdparty/cryptopp/cryptopp.pri)
 include(../3rdparty/cryptoqq/cryptoqq.pri) #TODO qpmx
-
-system_cryptopp:unix {
-	CONFIG += link_pkgconfig
-	PKGCONFIG += libcrypto++
-
-	# debug
-	INCLUDEPATH += $$PWD/../3rdparty/cryptopp/include
-} else {
-	win32:!win32-g++:CONFIG(release, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlib
-	else:win32:!win32-g++:CONFIG(debug, debug|release): LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptlibd
-	else: LIBS += -L$$PWD/../3rdparty/cryptopp/lib/ -lcryptopp
-
-	INCLUDEPATH += $$PWD/../3rdparty/cryptopp/include
-	DEPENDPATH += $$PWD/../3rdparty/cryptopp/include
-
-	win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/cryptlib.lib
-	else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/cryptlibd.lib
-	else: PRE_TARGETDEPS += $$PWD/../3rdparty/cryptopp/lib/libcryptopp.a
-}
-
 load(qt_module)
 
 win32 {

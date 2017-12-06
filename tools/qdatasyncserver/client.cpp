@@ -1,10 +1,13 @@
 #include "client.h"
 #include "app.h"
+#include "identifymessage_p.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUuid>
 #include <QtConcurrent>
+
+using namespace QtDataSync;
 
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
@@ -25,6 +28,9 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 			this, &Client::error);
 	connect(socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
+
+	//initialize connection by sending indent message
+	socket->sendBinaryMessage(serializeMessage(IdentifyMessage::createRandom()));
 }
 
 QUuid Client::deviceId() const
@@ -41,23 +47,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 {
 	runCount++;
 	QtConcurrent::run(qApp->threadPool(), [message, this](){
-		QJsonParseError error;
-		auto doc = QJsonDocument::fromJson(message, &error);
-		if(error.error != QJsonParseError::NoError) {
-			qWarning() << "Invalid data received. Parser error:"
-					   << error.errorString();
-			runCount--;
-			return;
-		}
-
-		auto obj = doc.object();
-		auto data = obj[QStringLiteral("data")];
-		/*else*/ {
-			qDebug() << "Unknown command"
-					 << obj[QStringLiteral("command")].toString();
-			close();
-		}
-
+		qDebug() << Q_FUNC_INFO << message;
 		runCount--;
 	});
 }
@@ -67,7 +57,8 @@ void Client::error()
 	qWarning() << socket->peerAddress()
 			   << "Socket error"
 			   << socket->errorString();
-	socket->close();
+	if(socket->state() == QAbstractSocket::ConnectedState)
+		socket->close();
 }
 
 void Client::sslErrors(const QList<QSslError> &errors)
@@ -77,7 +68,8 @@ void Client::sslErrors(const QList<QSslError> &errors)
 				   << "SSL errors"
 				   << error.errorString();
 	}
-	socket->close();
+	if(socket->state() == QAbstractSocket::ConnectedState)
+		socket->close();
 }
 
 void Client::closeClient()
@@ -99,15 +91,10 @@ void Client::close()
 	QMetaObject::invokeMethod(socket, "close", Qt::QueuedConnection);
 }
 
-void Client::sendCommand(const QByteArray &command, const QJsonValue &data)
+void Client::sendMessage(const QByteArray &message)
 {
-	QJsonObject message;
-	message[QStringLiteral("command")] = QString::fromUtf8(command);
-	message[QStringLiteral("data")] = data;
-
-	QJsonDocument doc(message);
 	QMetaObject::invokeMethod(this, "doSend", Qt::QueuedConnection,
-							  Q_ARG(QByteArray, doc.toJson(QJsonDocument::Compact)));
+							  Q_ARG(QByteArray, message));
 }
 
 void Client::doSend(const QByteArray &message)

@@ -1,5 +1,6 @@
 #include "remoteconnector_p.h"
 #include "logger.h"
+
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG _logger
@@ -113,7 +114,22 @@ void RemoteConnector::disconnected()
 
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 {
+	try {
+		QDataStream stream(message);
+		setupStream(stream);
+		stream.startTransaction();
+		QByteArray name;
+		stream >> name;
+		if(!stream.commitTransaction())
+			throw DataStreamException(stream);
 
+		if(isType<IdentifyMessage>(name))
+			onIdentify(deserializeMessage<IdentifyMessage>(stream));
+		else
+			logDebug() << Q_FUNC_INFO << message; //TODO error instead
+	} catch(DataStreamException &e) {
+		logFatal(e.what());
+	}
 }
 
 void RemoteConnector::error(QAbstractSocket::SocketError error)
@@ -191,4 +207,9 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return QVariant::fromValue(config.headers);
 	else
 		return {};
+}
+
+void RemoteConnector::onIdentify(const IdentifyMessage &message)
+{
+	logDebug() << message;
 }

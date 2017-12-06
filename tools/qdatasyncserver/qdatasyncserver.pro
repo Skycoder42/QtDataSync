@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += core websockets backgroundprocess sql concurrent
+QT += websockets backgroundprocess sql concurrent
 QT -= gui
 
 CONFIG += c++11 console
@@ -41,6 +41,9 @@ DISTFILES += \
 	dockerbuild/env_start.sh \
 	dockerbuild/install.sh \
 	dockerbuild/qt-installer-script.qs
+
+include(../../src/datasync/messages/messages.pri)
+include(../../src/3rdparty/cryptopp/cryptopp.pri)
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "Qt Datasync Server"

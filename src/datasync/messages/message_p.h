@@ -5,6 +5,7 @@
 #include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
 #include <QtCore/QException>
+#include <QtCore/QDebug>
 
 #ifdef BUILD_QDATASYNCSERVER
 #define Q_DATASYNC_EXPORT
@@ -36,14 +37,9 @@ template <typename TMessage>
 QByteArray serializeMessage(const TMessage &message);
 
 template <typename TMessage>
+inline bool isType(const QByteArray &name);
+template <typename TMessage>
 TMessage deserializeMessage(QDataStream &stream);
-
-template <typename... Args>
-void applyMessage(const QByteArray &data, Args... args);
-
-void inline applyMessageInteral(QDataStream &stream, const QByteArray &name);
-template <typename TMessage, typename... Args>
-void applyMessageInteral(QDataStream &stream, const QByteArray &name, const std::function<void(TMessage)> &fn, Args... args);
 
 // ------------- Generic Implementation -------------
 
@@ -69,6 +65,13 @@ QByteArray serializeMessage(const TMessage &message)
 	return out;
 }
 
+template<typename TMessage>
+inline bool isType(const QByteArray &name)
+{
+	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
+	return (TMessage::staticMetaObject.className() == name);
+}
+
 template <typename TMessage>
 TMessage deserializeMessage(QDataStream &stream)
 {
@@ -81,37 +84,6 @@ TMessage deserializeMessage(QDataStream &stream)
 	else
 		throw DataStreamException(stream);
 }
-
-template<typename... Args>
-void applyMessage(const QByteArray &data, Args... args)
-{
-	QDataStream stream(data);
-
-	stream.startTransaction();
-	QByteArray name;
-	stream >> name;
-	if(!stream.commitTransaction())
-		throw DataStreamException(stream);
-
-	applyMessageInteral(stream, name, args...);
-}
-
-void inline applyMessageInteral(QDataStream &stream, const QByteArray &name)
-{
-	Q_UNUSED(name)
-	throw DataStreamException(stream);//TODO real exception
-}
-
-template<typename TMessage, typename... Args>
-void applyMessageInteral(QDataStream &stream, const QByteArray &name, const std::function<void (TMessage)> &fn, Args... args)
-{
-	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
-	if(name == TMessage::staticMetaObject.className())
-		fn(deserializeMessage<TMessage>(stream));
-	else
-		applyMessageInteral(stream, name, args...);
-}
-
 
 }
 

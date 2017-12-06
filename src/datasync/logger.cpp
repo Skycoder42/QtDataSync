@@ -25,6 +25,11 @@ void Logger::reportFatalError(const QString &error, const char *file, int line, 
 	engine->enterFatalState(error);
 }
 
+void Logger::reportFatalError(const char *error, const char *file, int line, const char *function)
+{
+	reportFatalError(QString::fromUtf8(error), file, line, function);
+}
+
 // ------------- PRIVATE IMPLEMENTATION -------------
 
 LoggerPrivate::LoggerPrivate(const QString &setupName, const QByteArray &subCategory) :
