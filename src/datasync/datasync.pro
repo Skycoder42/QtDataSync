@@ -48,7 +48,8 @@ DISTFILES += \
 	network_device.qmodel \
 	network_keychange.qmodel
 
-include(../3rdparty/cryptoqq/cryptoqq.pri)
+include(messages/messages.pri)
+include(../3rdparty/cryptoqq/cryptoqq.pri) #TODO qpmx
 
 system_cryptopp:unix {
 	CONFIG += link_pkgconfig
