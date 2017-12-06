@@ -2,6 +2,7 @@
 #include "setup.h"
 #include "setup_p.h"
 #include "defaults_p.h"
+#include "keystore.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLockFile>
@@ -167,6 +168,23 @@ Setup &Setup::setRemoteConfiguration(RemoteConfig remoteConfiguration)
 	return *this;
 }
 
+QByteArray Setup::keyStoreProvider() const
+{
+	return d->properties.value(Defaults::KeyStoreProvider).toByteArray();
+}
+
+Setup &Setup::setKeyStoreProvider(QByteArray keyStoreProvider)
+{
+	d->properties.insert(Defaults::KeyStoreProvider, keyStoreProvider);
+	return *this;
+}
+
+Setup &Setup::resetKeyStoreProvider()
+{
+	d->properties.insert(Defaults::KeyStoreProvider, KeyStore::defaultProvider());
+	return *this;
+}
+
 // ------------- Private Implementation -------------
 
 QMutex SetupPrivate::setupMutex(QMutex::Recursive);
@@ -205,7 +223,8 @@ SetupPrivate::SetupPrivate() :
 	properties({
 		{Defaults::CacheSize, MB(10)},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
-		{Defaults::RemoteConfiguration, QVariant()}
+		{Defaults::RemoteConfiguration, QVariant()},
+		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()}
 	}),
 	fatalErrorHandler(QtDataSync::defaultFatalErrorHandler)
 {}

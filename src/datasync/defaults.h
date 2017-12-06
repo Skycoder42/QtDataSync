@@ -59,7 +59,8 @@ public:
 	enum PropertyKey {
 		CacheSize,
 		SslConfiguration,
-		RemoteConfiguration
+		RemoteConfiguration,
+		KeyStoreProvider
 	};
 	Q_ENUM(PropertyKey)
 

@@ -497,7 +497,7 @@
                           </qlist>
                          </stereotypes>
                          <name>KeyStore</name>
-                         <pos>x:940;y:395</pos>
+                         <pos>x:940;y:565</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -516,7 +516,7 @@
                           </DElement>
                          </base-DElement>
                          <object>{98030895-607c-4c9c-821c-9b2c0db23b79}</object>
-                         <a>{49da69a3-26d9-47ba-b9ec-c3f3c5c84d0c}</a>
+                         <a>{cce5cd4d-08b2-42c8-a89d-2325d249926c}</a>
                          <b>{4d356b00-0cd2-4866-8560-6888b0da571c}</b>
                         </DRelation>
                        </base-DRelation>
@@ -987,7 +987,7 @@
                          </base-DElement>
                          <object>{17183438-8880-47b9-82e4-d6175d96239c}</object>
                          <name>StandardKeyStore</name>
-                         <pos>x:940;y:565</pos>
+                         <pos>x:940;y:395</pos>
                          <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -1072,7 +1072,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1512484411908</last-modified>
+                  <last-modified>1512597158034</last-modified>
                   <toolbarid>Classes</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1616,40 +1616,6 @@
                       </item>
                       <item>
                        <handle>
-                        <uid>{98030895-607c-4c9c-821c-9b2c0db23b79}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{98030895-607c-4c9c-821c-9b2c0db23b79}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{c66b69bf-96a9-4d72-8fe9-e42709200c44}</a>
-                             <b>{6d11b758-2ceb-4baa-a181-35eec939bad9}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <cardinality>1</cardinality>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </a>
-                           <b>
-                            <MAssociationEnd>
-                             <cardinality>1</cardinality>
-                            </MAssociationEnd>
-                           </b>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
                         <uid>{75fb9108-895e-4701-aad0-bb1df12cea5d}</uid>
                         <target>
                          <instance type="MAssociation">
@@ -2146,6 +2112,48 @@
                    </MElement>
                   </base-MElement>
                   <name>CryptoController</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{98030895-607c-4c9c-821c-9b2c0db23b79}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{98030895-607c-4c9c-821c-9b2c0db23b79}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{6814093f-c949-442b-8c76-3c44328a8329}</a>
+                             <b>{6d11b758-2ceb-4baa-a181-35eec939bad9}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                             <navigable>true</navigable>
+                             <kind>1</kind>
+                            </MAssociationEnd>
+                           </a>
+                           <b>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                            </MAssociationEnd>
+                           </b>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
                  </MObject>
                 </base-MObject>
                </MClass>

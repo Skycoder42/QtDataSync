@@ -5,8 +5,9 @@
 
 #include <QtWebSockets/QWebSocket>
 
-#include "defaults.h"
 #include "qtdatasync_global.h"
+#include "defaults.h"
+#include "cryptocontroller_p.h"
 
 #include "identifymessage_p.h"
 
@@ -46,10 +47,12 @@ private:
 	static const QString keyRemoteUrl;
 	static const QString keyAccessKey;
 	static const QString keyHeaders;
+	static const QString keyUserId;
 
 	Defaults _defaults;
 	Logger *_logger;
 	QSettings *_settings;
+	CryptoController *_cryptoController;
 
 	QWebSocket *_socket;
 	bool _changingConnection;

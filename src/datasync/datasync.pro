@@ -21,7 +21,9 @@ HEADERS += qtdatasync_global.h \
 	exchangeengine_p.h \
 	syncmanager.h \
 	changecontroller_p.h \
-	remoteconnector_p.h
+	remoteconnector_p.h \
+	cryptocontroller_p.h \
+	keystore.h
 
 SOURCES += \
 	localstore.cpp \
@@ -37,7 +39,9 @@ SOURCES += \
 	exchangeengine.cpp \
 	syncmanager.cpp \
 	changecontroller.cpp \
-	remoteconnector.cpp
+	remoteconnector.cpp \
+	cryptocontroller.cpp \
+	keystore.cpp
 
 DISTFILES += \
 	datasync.qmodel \
@@ -51,6 +55,9 @@ DISTFILES += \
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)
 include(../3rdparty/cryptoqq/cryptoqq.pri) #TODO qpmx
+
+MODULE_PLUGIN_TYPES = keystores
+
 load(qt_module)
 
 win32 {
@@ -60,6 +67,8 @@ win32 {
 } else:mac {
 	QMAKE_TARGET_BUNDLE_PREFIX = "de.skycoder42."
 }
+
+# TODO add prl cleanup + ios ar merge
 
 # IOS workaround until fixed
 ios:exists(qpmx.ios.json):!system(rm qpmx.json && mv qpmx.ios.json qpmx.json):error(Failed to load temporary qpmx.json file)

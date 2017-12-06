@@ -8,12 +8,14 @@ using namespace QtDataSync;
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remoteUrl"));
 const QString RemoteConnector::keyAccessKey(QStringLiteral("accessKey"));
 const QString RemoteConnector::keyHeaders(QStringLiteral("headers"));
+const QString RemoteConnector::keyUserId(QStringLiteral("userId"));
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	QObject(parent),
 	_defaults(defaults),
 	_logger(_defaults.createLogger("connector", this)),
 	_settings(_defaults.createSettings(this, QStringLiteral("connector"))),
+	_cryptoController(new CryptoController(_defaults, this)),
 	_socket(nullptr),
 	_changingConnection(false)
 {}
@@ -212,4 +214,10 @@ QVariant RemoteConnector::sValue(const QString &key) const
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	logDebug() << message;
+	if(_settings->contains(keyUserId)) { //login
+
+	} else {
+		//TODO create public key
+		//TODO send REGISTER message
+	}
 }

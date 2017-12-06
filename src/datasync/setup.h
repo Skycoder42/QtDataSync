@@ -30,6 +30,7 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
 	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration) //TODO allow changing via sync/exchange manager?
+	Q_PROPERTY(QByteArray keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
 
 public:
 	//! Sets the maximum timeout for shutting down setups
@@ -67,6 +68,9 @@ public:
 	Setup &resetSslConfiguration();
 	RemoteConfig remoteConfiguration() const;
 	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
+	QByteArray keyStoreProvider() const;
+	Setup &setKeyStoreProvider(QByteArray keyStoreProvider);
+	Setup &resetKeyStoreProvider();
 
 private:
 	QScopedPointer<SetupPrivate> d;
