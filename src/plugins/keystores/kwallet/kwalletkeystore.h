@@ -1,17 +1,18 @@
-#ifndef PLAINKEYSTORE_H
-#define PLAINKEYSTORE_H
+#ifndef KWALLETKEYSTORE_H
+#define KWALLETKEYSTORE_H
 
-#include <QtCore/QSettings>
 #include <QtCore/QPointer>
 
 #include <QtDataSync/keystore.h>
 
-class PlainKeyStore : public QtDataSync::KeyStore
+#include <KWallet>
+
+class KWalletKeyStore : public QtDataSync::KeyStore
 {
 	Q_OBJECT
 
 public:
-	explicit PlainKeyStore(QObject *parent = nullptr);
+	explicit KWalletKeyStore(QObject *parent = nullptr);
 
 	bool loadStore() override;
 	void closeStore() override;
@@ -21,7 +22,7 @@ public:
 	bool removeSecret(const QString &key) override;
 
 private:
-	QPointer<QSettings> _settings;
+	QPointer<KWallet::Wallet> _wallet;
 };
 
-#endif // PLAINKEYSTORE_H
+#endif // KWALLETKEYSTORE_H

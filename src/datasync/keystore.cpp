@@ -13,11 +13,9 @@ QStringList KeyStore::listProviders()
 
 QString KeyStore::defaultProvider()
 {
+#ifdef Q_OS_LINUX
+	return QStringLiteral("kwallet");
+#else
 	return QStringLiteral("plain");
-}
-
-bool KeyStore::contains(const QByteArray &key) const
-{
-	Q_UNUSED(key)
-	return false;
+#endif
 }

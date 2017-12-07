@@ -17,18 +17,13 @@ public:
 	static QStringList listProviders();
 	static QString defaultProvider();
 
-	virtual bool canCheckContains() const = 0;
-	virtual bool contains(const QByteArray &key) const;
+	virtual bool loadStore() = 0;
+	virtual void closeStore() = 0;
 
-public Q_SLOTS:
-	virtual void storeSecret(const QByteArray &key, const QByteArray &secret) = 0;
-	virtual void loadSecret(const QByteArray &key) = 0;
-
-Q_SIGNALS:
-	void secretStored();
-	void secretLoaded(const QByteArray &secret);
-	void secretNotExistant();
-	void storeError(const QString &error);
+	virtual bool containsSecret(const QString &key) const = 0;
+	virtual bool storeSecret(const QString &key, const QByteArray &secret) = 0;
+	virtual QByteArray loadSecret(const QString &key) = 0;
+	virtual bool removeSecret(const QString &key) = 0;
 };
 
 class Q_DATASYNC_EXPORT KeyStorePlugin

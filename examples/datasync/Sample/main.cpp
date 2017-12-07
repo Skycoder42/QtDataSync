@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QLoggingCategory>
 #include <QtDataSync/setup.h>
+#include <QtDataSync/keystore.h>
 #include "sampledata.h"
 
 int main(int argc, char *argv[])
@@ -10,6 +11,8 @@ int main(int argc, char *argv[])
 	qRegisterMetaType<SampleData>();
 
 	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
+
+	qDebug() << "Available keystores:" << QtDataSync::KeyStore::listProviders();
 
 	//setup datasync
 	QtDataSync::Setup()

@@ -4,33 +4,65 @@
 
 PlainKeyStore::PlainKeyStore(QObject *parent) :
 	KeyStore(parent),
-	_settings(new QSettings(QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation))
-							.absoluteFilePath(QStringLiteral("plain.keystore")),
-							QSettings::IniFormat,
-							this))
+	_settings(nullptr)
 {}
 
-bool PlainKeyStore::canCheckContains() const
+bool PlainKeyStore::loadStore()
 {
-	return true;
+	if(!_settings) {
+		_settings = new QSettings(QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation))
+								  .absoluteFilePath(QStringLiteral("plain.keystore")),
+								  QSettings::IniFormat,
+								  this);
+		if(!_settings->isWritable()) {
+			_settings->deleteLater();
+			return false;
+		}
+	}
+
+	return _settings;
 }
 
-bool PlainKeyStore::contains(const QByteArray &key) const
+void PlainKeyStore::closeStore()
 {
-	return _settings->contains(QString::fromUtf8(key));
+	if(_settings) {
+		_settings->sync();
+		_settings->deleteLater();
+	}
 }
 
-void PlainKeyStore::storeSecret(const QByteArray &key, const QByteArray &secret)
+bool PlainKeyStore::containsSecret(const QString &key) const
 {
-	_settings->setValue(QString::fromUtf8(key), secret);
-	emit secretStored();
-}
-
-void PlainKeyStore::loadSecret(const QByteArray &key)
-{
-	auto data = _settings->value(QString::fromUtf8(key));
-	if(data.isValid())
-		emit secretLoaded(data.toByteArray());
+	if(_settings)
+		return _settings->contains(key);
 	else
-		emit secretNotExistant();
+		return false;
+}
+
+bool PlainKeyStore::storeSecret(const QString &key, const QByteArray &secret)
+{
+	if(!_settings)
+		return false;
+	else {
+		_settings->setValue(key, secret);
+		return true;
+	}
+}
+
+QByteArray PlainKeyStore::loadSecret(const QString &key)
+{
+	if(!_settings)
+		return {};
+	else
+		return _settings->value(key).toByteArray();
+}
+
+bool PlainKeyStore::removeSecret(const QString &key)
+{
+	if(!_settings)
+		return false;
+	else {
+		_settings->remove(key);
+		return true;
+	}
 }

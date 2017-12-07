@@ -1,4 +1,4 @@
 TEMPLATE = subdirs
 
-SUBDIRS += \
-    plain
+SUBDIRS += plain
+qtHaveModule(KWallet): SUBDIRS += kwallet
