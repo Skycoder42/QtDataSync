@@ -24,11 +24,11 @@ public:
 	explicit ExchangeEngine(const QString &setupName,
 							const Setup::FatalErrorHandler &errorHandler);
 
-	void enterFatalState(const QString &error,
-						 const char *file,
-						 int line,
-						 const char *function,
-						 const char *category);
+	Q_NORETURN void enterFatalState(const QString &error,
+									const char *file,
+									int line,
+									const char *function,
+									const char *category);
 
 	ChangeController *changeController() const;
 
@@ -53,6 +53,8 @@ private:
 
 	QAtomicPointer<ChangeController> _changeController;
 	RemoteConnector *_remoteConnector;
+
+	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 };
 
 }

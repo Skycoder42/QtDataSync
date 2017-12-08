@@ -18,9 +18,8 @@ CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
 	_settings(_defaults.createSettings(this, QStringLiteral("crypto"))),
 	_keyStore(factory->createInstance(_defaults.property(Defaults::KeyStoreProvider).toString(), this))
 {
-	if(!_keyStore) { //TODO only if not used (i.e. in settings)
+	if(!_keyStore)
 		logFatal(QStringLiteral("Failed to load desired keystore %1").arg(_defaults.property(Defaults::KeyStoreProvider).toString()));
-	}
 }
 
 QStringList CryptoController::allKeys()

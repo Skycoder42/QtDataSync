@@ -31,6 +31,8 @@ private:
 		SetupInfo(QThread *thread, ExchangeEngine *engine);
 	};
 
+	static const QString DefaultLocalDir;
+
 	static QMutex setupMutex;
 	static QHash<QString, SetupInfo> engines;
 	static unsigned long timeout;
@@ -42,8 +44,6 @@ private:
 
 	SetupPrivate();
 };
-
-Q_DATASYNC_EXPORT void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 
 }
 

@@ -128,12 +128,14 @@ Setup &Setup::setKeyStoreProvider(QString keyStoreProvider)
 
 Setup &Setup::resetLocalDir()
 {
-
+	d->localDir = SetupPrivate::DefaultLocalDir;
+	return *this;
 }
 
 Setup &Setup::resetFatalErrorHandler()
 {
-
+	d->fatalErrorHandler = FatalErrorHandler();
+	return *this;
 }
 
 Setup &Setup::resetCacheSize()
@@ -198,6 +200,7 @@ void Setup::create(const QString &name)
 
 // ------------- Private Implementation -------------
 
+const QString SetupPrivate::DefaultLocalDir = QStringLiteral("./qtdatasync");
 QMutex SetupPrivate::setupMutex(QMutex::Recursive);
 QHash<QString, SetupPrivate::SetupInfo> SetupPrivate::engines;
 unsigned long SetupPrivate::timeout = ULONG_MAX;
@@ -229,7 +232,7 @@ ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 }
 
 SetupPrivate::SetupPrivate() :
-	localDir(QStringLiteral("./qtdatasync_localstore")),
+	localDir(DefaultLocalDir),
 	serializer(new QJsonSerializer()),
 	properties({
 		{Defaults::CacheSize, MB(10)},
@@ -237,7 +240,7 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::RemoteConfiguration, QVariant()},
 		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()}
 	}),
-	fatalErrorHandler(QtDataSync::defaultFatalErrorHandler)
+	fatalErrorHandler()
 {}
 
 SetupPrivate::SetupInfo::SetupInfo() :
@@ -248,16 +251,6 @@ SetupPrivate::SetupInfo::SetupInfo(QThread *thread, ExchangeEngine *engine) :
 	thread(thread),
 	engine(engine)
 {}
-
-void QtDataSync::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)
-{
-	auto name = setup.toUtf8();
-	auto msg = error.toUtf8();
-	QMessageLogger(context.file, context.line, context.function, context.category)
-			.fatal("Unrecoverable error for \"%s\" - killing application. Error Message:\n\t%s",
-				   name.constData(),
-				   msg.constData());
-}
 
 // ------------- Exceptions -------------
 

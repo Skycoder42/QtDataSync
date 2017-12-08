@@ -25,8 +25,8 @@ public:
 	const QLoggingCategory &loggingCategory() const;
 
 	//! report a fatal error to the datasync engine
-	void reportFatalError(const QString &error, const char *file, int line, const char *function);
-	void reportFatalError(const char *error, const char *file, int line, const char *function);
+	Q_NORETURN void reportFatalError(const QString &error, const char *file, int line, const char *function);
+	Q_NORETURN void reportFatalError(const char *error, const char *file, int line, const char *function);
 
 private:
 	QScopedPointer<LoggerPrivate> d;

@@ -1,5 +1,6 @@
 #include "exchangeengine_p.h"
 #include "logger.h"
+#include "setup_p.h"
 
 #include "changecontroller_p.h"
 #include "remoteconnector_p.h"
@@ -23,7 +24,10 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
 {
 	QMessageLogContext context {file, line, function, category};
-	_fatalErrorHandler(error, _defaults.setupName(), context);
+	if(_fatalErrorHandler)
+		_fatalErrorHandler(error, _defaults.setupName(), context);
+	//fallback: in case the no handler or it returns
+	defaultFatalErrorHandler(error, _defaults.setupName(), context);
 }
 
 ChangeController *ExchangeEngine::changeController() const
@@ -61,4 +65,14 @@ void ExchangeEngine::finalize()
 void ExchangeEngine::localDataChange()
 {
 	logDebug() << Q_FUNC_INFO;
+}
+
+void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)
+{
+	auto name = setup.toUtf8();
+	auto msg = error.toUtf8();
+	QMessageLogger(context.file, context.line, context.function, context.category)
+			.fatal("Unrecoverable error for \"%s\" - killing application. Error Message:\n\t%s",
+				   name.constData(),
+				   msg.constData());
 }
