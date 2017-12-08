@@ -6,6 +6,7 @@
 #include <QtWebSockets/QWebSocket>
 
 #include "qtdatasync_global.h"
+#include "controller_p.h"
 #include "defaults.h"
 #include "cryptocontroller_p.h"
 
@@ -13,7 +14,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT RemoteConnector : public QObject
+class Q_DATASYNC_EXPORT RemoteConnector : public Controller
 {
 	Q_OBJECT
 
@@ -28,6 +29,9 @@ public:
 	Q_ENUM(RemoteState)
 
 	explicit RemoteConnector(const Defaults &defaults, QObject *parent = nullptr);
+
+	void initialize() final;
+	void finalize() final;
 
 public Q_SLOTS:
 	void reconnect();
@@ -49,9 +53,6 @@ private:
 	static const QString keyHeaders;
 	static const QString keyUserId;
 
-	Defaults _defaults;
-	Logger *_logger;
-	QSettings *_settings;
 	CryptoController *_cryptoController;
 
 	QWebSocket *_socket;

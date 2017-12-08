@@ -2,15 +2,17 @@
 #define CHANGECONTROLLER_P_H
 
 #include <QtCore/QObject>
+
 #include <QtSql/QSqlDatabase>
 
 #include "qtdatasync_global.h"
 #include "objectkey.h"
 #include "defaults.h"
+#include "controller_p.h"
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ChangeController : public QObject
+class Q_DATASYNC_EXPORT ChangeController : public Controller
 {
 	Q_OBJECT
 
@@ -25,6 +27,8 @@ public:
 	};
 
 	explicit ChangeController(const Defaults &defaults, QObject *parent = nullptr);
+
+	void initialize() final;
 
 	static bool createTables(Defaults defaults, QSqlDatabase database, bool canWrite = false);
 
@@ -41,9 +45,10 @@ Q_SIGNALS:
 	void changeTriggered();
 
 private:
-	static bool _initialized;
+	//app global lock, since the init cache is shared by all setups
+	static QReadWriteLock _initLock;
+	static QHash<QString, bool> _initialized;
 
-	Defaults _defaults;
 	DatabaseRef _database;
 
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;

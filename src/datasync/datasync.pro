@@ -23,7 +23,8 @@ HEADERS += qtdatasync_global.h \
 	changecontroller_p.h \
 	remoteconnector_p.h \
 	cryptocontroller_p.h \
-	keystore.h
+	keystore.h \
+    controller_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -41,7 +42,8 @@ SOURCES += \
 	changecontroller.cpp \
 	remoteconnector.cpp \
 	cryptocontroller.cpp \
-	keystore.cpp
+	keystore.cpp \
+    controller.cpp
 
 DISTFILES += \
 	datasync.qmodel \

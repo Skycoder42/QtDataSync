@@ -48,15 +48,21 @@ void ExchangeEngine::initialize()
 				this, &ExchangeEngine::localDataChange);
 
 		_remoteConnector = new RemoteConnector(_defaults, this);
-		_remoteConnector->reconnect();
+
+		//initialize all
+		_changeController.load()->initialize();
+		_remoteConnector->initialize();
 	} catch (Exception &e) {
 		logFatal(e.qWhat());
+	} catch (QException &e) {
+		logFatal(e.what());
 	}
 }
 
 void ExchangeEngine::finalize()
 {
-	//TODO disconnect socket
+	_remoteConnector->finalize();
+	_changeController.load()->finalize();
 
 	logDebug() << Q_FUNC_INFO;
 	thread()->quit();

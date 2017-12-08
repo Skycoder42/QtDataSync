@@ -1,27 +1,38 @@
 #include "changecontroller_p.h"
 #include "datastore.h"
 #include "setup_p.h"
+#include "exchangeengine_p.h"
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 
 using namespace QtDataSync;
 
-bool ChangeController::_initialized = false;
+QReadWriteLock ChangeController::_initLock;
+QHash<QString, bool> ChangeController::_initialized;
+
+#define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
 ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
-	QObject(parent),
-	_defaults(defaults),
-	_database(_defaults.aquireDatabase(this))
+	Controller("change", defaults, parent),
+	_database()
+{}
+
+void ChangeController::initialize()
 {
-	QWriteLocker _(_defaults.databaseLock());
-	createTables(_defaults, _database, true);
+	_database = defaults().aquireDatabase(this);
+
+	QWriteLocker _(defaults().databaseLock());
+	createTables(defaults(), _database, true);
 }
 
 bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bool canWrite)
 {
-	if(_initialized)
-		return true;
+	{
+		QReadLocker _(&_initLock);
+		if(_initialized[defaults.setupName()])
+			return true;
+	}
 
 	if(!database.tables().contains(QStringLiteral("ChangeStore"))) {
 		if(!canWrite)
@@ -50,7 +61,8 @@ bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bo
 		exec(defaults, createQuery);
 	}
 
-	_initialized = true;
+	QWriteLocker _(&_initLock);
+	_initialized[defaults.setupName()] = true;
 	return true;
 }
 
@@ -66,7 +78,7 @@ void ChangeController::triggerDataChange(Defaults defaults, QSqlDatabase databas
 
 	auto engine = SetupPrivate::engine(defaults.setupName());
 	if(engine) {
-		auto instance =engine->changeController();
+		auto instance = engine->changeController();
 		if(instance)
 			QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
 	}
@@ -95,7 +107,7 @@ void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database
 
 QList<ChangeController::ChangeInfo> ChangeController::loadChanges()
 {
-	QReadLocker _(_defaults.databaseLock());
+	QReadLocker _(defaults().databaseLock());
 
 	if(!createTables())
 		return {};
@@ -118,7 +130,7 @@ QList<ChangeController::ChangeInfo> ChangeController::loadChanges()
 
 void ChangeController::clearChanged(const ObjectKey &key, quint64 version)
 {
-	QWriteLocker _(_defaults.databaseLock());
+	QWriteLocker _(defaults().databaseLock());
 
 	if(!createTables())
 		return;
@@ -133,7 +145,7 @@ void ChangeController::clearChanged(const ObjectKey &key, quint64 version)
 
 QByteArrayList ChangeController::loadClears()
 {
-	QReadLocker _(_defaults.databaseLock());
+	QReadLocker _(defaults().databaseLock());
 
 	if(!createTables())
 		return {};
@@ -150,7 +162,7 @@ QByteArrayList ChangeController::loadClears()
 
 void ChangeController::clearCleared(const QByteArray &typeName)
 {
-	QWriteLocker _(_defaults.databaseLock());
+	QWriteLocker _(defaults().databaseLock());
 
 	if(!createTables())
 		return;
@@ -163,7 +175,7 @@ void ChangeController::clearCleared(const QByteArray &typeName)
 
 void ChangeController::exec(QSqlQuery &query, const ObjectKey &key) const
 {
-	exec(_defaults, query, key);
+	exec(defaults(), query, key);
 }
 
 void ChangeController::exec(Defaults defaults, QSqlQuery &query, const ObjectKey &key)
@@ -178,7 +190,7 @@ void ChangeController::exec(Defaults defaults, QSqlQuery &query, const ObjectKey
 
 bool ChangeController::createTables()
 {
-	return createTables(_defaults, _database, false);
+	return createTables(defaults(), _database, false);
 }
 
 

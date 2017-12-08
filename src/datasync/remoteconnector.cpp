@@ -3,7 +3,7 @@
 
 using namespace QtDataSync;
 
-#define QTDATASYNC_LOG _logger
+#define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remoteUrl"));
 const QString RemoteConnector::keyAccessKey(QStringLiteral("accessKey"));
@@ -11,14 +11,25 @@ const QString RemoteConnector::keyHeaders(QStringLiteral("headers"));
 const QString RemoteConnector::keyUserId(QStringLiteral("userId"));
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
-	QObject(parent),
-	_defaults(defaults),
-	_logger(_defaults.createLogger("connector", this)),
-	_settings(_defaults.createSettings(this, QStringLiteral("connector"))),
-	_cryptoController(new CryptoController(_defaults, this)),
+	Controller("connector", defaults, parent),
+	_cryptoController(new CryptoController(defaults, this)),
 	_socket(nullptr),
 	_changingConnection(false)
 {}
+
+void RemoteConnector::initialize()
+{
+	_cryptoController->initialize();
+
+	//TODO start stuff up
+}
+
+void RemoteConnector::finalize()
+{
+	//TODO disconnect socket
+
+	_cryptoController->finalize();
+}
 
 void RemoteConnector::reconnect()
 {
@@ -48,7 +59,7 @@ void RemoteConnector::reconnect()
 								 QWebSocketProtocol::VersionLatest,
 								 this);
 
-		auto conf = _defaults.property(Defaults::SslConfiguration).value<QSslConfiguration>();
+		auto conf = defaults().property(Defaults::SslConfiguration).value<QSslConfiguration>();
 		if(!conf.isNull())
 			_socket->setSslConfiguration(conf);
 
@@ -155,7 +166,7 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 		if(error.error() == QSslError::SelfSignedCertificate ||
 		   error.error() == QSslError::SelfSignedCertificateInChain)
 			shouldClose = shouldClose &&
-						  (_defaults.property(Defaults::SslConfiguration)
+						  (defaults().property(Defaults::SslConfiguration)
 						   .value<QSslConfiguration>()
 						   .peerVerifyMode() >= QSslSocket::VerifyPeer);
 		//TODO retryIndex
@@ -185,22 +196,22 @@ void RemoteConnector::tryClose()
 QVariant RemoteConnector::sValue(const QString &key) const
 {
 	if(key == keyHeaders) {
-		if(_settings->childGroups().contains(keyHeaders)) {
-			_settings->beginGroup(keyHeaders);
-			auto keys = _settings->childKeys();
+		if(settings()->childGroups().contains(keyHeaders)) {
+			settings()->beginGroup(keyHeaders);
+			auto keys = settings()->childKeys();
 			QHash<QByteArray, QByteArray> headers;
 			foreach(auto key, keys)
-				headers.insert(key.toUtf8(), _settings->value(key).toByteArray());
-			_settings->endGroup();
+				headers.insert(key.toUtf8(), settings()->value(key).toByteArray());
+			settings()->endGroup();
 			return QVariant::fromValue(headers);
 		}
 	} else {
-		auto res = _settings->value(key);
+		auto res = settings()->value(key);
 		if(res.isValid())
 			return res;
 	}
 
-	auto config = _defaults.property(Defaults::RemoteConfiguration).value<RemoteConfig>();
+	auto config = defaults().property(Defaults::RemoteConfiguration).value<RemoteConfig>();
 	if(key == keyRemoteUrl)
 		return config.url;
 	else if(key == keyAccessKey)
@@ -214,7 +225,7 @@ QVariant RemoteConnector::sValue(const QString &key) const
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	logDebug() << message;
-	if(_settings->contains(keyUserId)) { //login
+	if(settings()->contains(keyUserId)) { //login
 
 	} else {
 		//TODO create public key
