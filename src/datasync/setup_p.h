@@ -38,12 +38,12 @@ private:
 	QString localDir;
 	QScopedPointer<QJsonSerializer> serializer;//TODO use normal pointer instead
 	QHash<Defaults::PropertyKey, QVariant> properties;
-	std::function<void (QString, QString)> fatalErrorHandler;
+	Setup::FatalErrorHandler fatalErrorHandler;
 
 	SetupPrivate();
 };
 
-Q_DATASYNC_EXPORT void defaultFatalErrorHandler(QString error, QString setupName);
+Q_DATASYNC_EXPORT void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 
 }
 

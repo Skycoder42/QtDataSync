@@ -19,12 +19,7 @@ CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
 	_keyStore(factory->createInstance(_defaults.property(Defaults::KeyStoreProvider).toString(), this))
 {
 	if(!_keyStore) { //TODO only if not used (i.e. in settings)
-		//try to load the plain store
-		logWarning() << "Failed to load desired keystore" << _defaults.property(Defaults::KeyStoreProvider).toString()
-					 << "- now trying to load fallback store";
-		_keyStore = factory->createInstance(QStringLiteral("plain"), this);
-		if(!_keyStore)
-			logFatal("No keystore could be loaded");
+		logFatal(QStringLiteral("Failed to load desired keystore %1").arg(_defaults.property(Defaults::KeyStoreProvider).toString()));
 	}
 }
 

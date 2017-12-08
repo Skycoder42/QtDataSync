@@ -58,9 +58,30 @@ QJsonSerializer *Setup::serializer() const
 	return d->serializer.data();
 }
 
-std::function<void (QString, QString)> Setup::fatalErrorHandler() const
+Setup::FatalErrorHandler Setup::fatalErrorHandler() const
 {
 	return d->fatalErrorHandler;
+}
+
+int Setup::cacheSize() const
+{
+	return d->properties.value(Defaults::CacheSize).toInt();
+}
+
+
+QSslConfiguration Setup::sslConfiguration() const
+{
+	return d->properties.value(Defaults::SslConfiguration).value<QSslConfiguration>();
+}
+
+RemoteConfig Setup::remoteConfiguration() const
+{
+	return d->properties.value(Defaults::RemoteConfiguration).value<RemoteConfig>();
+}
+
+QString Setup::keyStoreProvider() const
+{
+	return d->properties.value(Defaults::KeyStoreProvider).toString();
 }
 
 Setup &Setup::setLocalDir(QString localDir)
@@ -75,9 +96,60 @@ Setup &Setup::setSerializer(QJsonSerializer *serializer)
 	return *this;
 }
 
-Setup &Setup::setFatalErrorHandler(const std::function<void (QString, QString)> &fatalErrorHandler)
+Setup &Setup::setFatalErrorHandler(const FatalErrorHandler &fatalErrorHandler)
 {
 	d->fatalErrorHandler = fatalErrorHandler;
+	return *this;
+}
+
+Setup &Setup::setCacheSize(int cacheSize)
+{
+	d->properties.insert(Defaults::CacheSize, cacheSize);
+	return *this;
+}
+
+Setup &Setup::setSslConfiguration(QSslConfiguration sslConfiguration)
+{
+	d->properties.insert(Defaults::SslConfiguration, QVariant::fromValue(sslConfiguration));
+	return *this;
+}
+
+Setup &Setup::setRemoteConfiguration(RemoteConfig remoteConfiguration)
+{
+	d->properties.insert(Defaults::RemoteConfiguration, QVariant::fromValue(remoteConfiguration));
+	return *this;
+}
+
+Setup &Setup::setKeyStoreProvider(QString keyStoreProvider)
+{
+	d->properties.insert(Defaults::KeyStoreProvider, keyStoreProvider);
+	return *this;
+}
+
+Setup &Setup::resetLocalDir()
+{
+
+}
+
+Setup &Setup::resetFatalErrorHandler()
+{
+
+}
+
+Setup &Setup::resetCacheSize()
+{
+	d->properties.insert(Defaults::CacheSize, MB(10));
+	return *this;
+}
+
+Setup &Setup::resetSslConfiguration()
+{
+	return setSslConfiguration(QSslConfiguration::defaultConfiguration());
+}
+
+Setup &Setup::resetKeyStoreProvider()
+{
+	d->properties.insert(Defaults::KeyStoreProvider, KeyStore::defaultProvider());
 	return *this;
 }
 
@@ -102,7 +174,7 @@ void Setup::create(const QString &name)
 	//create defaults
 	DefaultsPrivate::createDefaults(name, storageDir, d->properties, d->serializer.take());
 
-	auto engine = new ExchangeEngine(name);
+	auto engine = new ExchangeEngine(name, d->fatalErrorHandler);
 
 	auto thread = new QThread();
 	engine->moveToThread(thread);
@@ -122,67 +194,6 @@ void Setup::create(const QString &name)
 	}, Qt::QueuedConnection);
 	thread->start();
 	SetupPrivate::engines.insert(name, {thread, engine});
-}
-
-int Setup::cacheSize() const
-{
-	return d->properties.value(Defaults::CacheSize).toInt();
-}
-
-Setup &Setup::setCacheSize(int cacheSize)
-{
-	d->properties.insert(Defaults::CacheSize, cacheSize);
-	return *this;
-}
-
-Setup &Setup::resetCacheSize()
-{
-	d->properties.insert(Defaults::CacheSize, MB(10));
-	return *this;
-}
-
-QSslConfiguration Setup::sslConfiguration() const
-{
-	return d->properties.value(Defaults::SslConfiguration).value<QSslConfiguration>();
-}
-
-Setup &Setup::setSslConfiguration(QSslConfiguration sslConfiguration)
-{
-	d->properties.insert(Defaults::SslConfiguration, QVariant::fromValue(sslConfiguration));
-	return *this;
-}
-
-Setup &Setup::resetSslConfiguration()
-{
-	return setSslConfiguration(QSslConfiguration::defaultConfiguration());
-}
-
-RemoteConfig Setup::remoteConfiguration() const
-{
-	return d->properties.value(Defaults::RemoteConfiguration).value<RemoteConfig>();
-}
-
-Setup &Setup::setRemoteConfiguration(RemoteConfig remoteConfiguration)
-{
-	d->properties.insert(Defaults::RemoteConfiguration, QVariant::fromValue(remoteConfiguration));
-	return *this;
-}
-
-QString Setup::keyStoreProvider() const
-{
-	return d->properties.value(Defaults::KeyStoreProvider).toString();
-}
-
-Setup &Setup::setKeyStoreProvider(QString keyStoreProvider)
-{
-	d->properties.insert(Defaults::KeyStoreProvider, keyStoreProvider);
-	return *this;
-}
-
-Setup &Setup::resetKeyStoreProvider()
-{
-	d->properties.insert(Defaults::KeyStoreProvider, KeyStore::defaultProvider());
-	return *this;
 }
 
 // ------------- Private Implementation -------------
@@ -238,13 +249,14 @@ SetupPrivate::SetupInfo::SetupInfo(QThread *thread, ExchangeEngine *engine) :
 	engine(engine)
 {}
 
-void QtDataSync::defaultFatalErrorHandler(QString error, QString setupName)
+void QtDataSync::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)
 {
-	auto name = setupName.toUtf8();
+	auto name = setup.toUtf8();
 	auto msg = error.toUtf8();
-	qFatal("Unrecoverable error for \"%s\" - killing application.\nError: %s",
-		   name.constData(),
-		   msg.constData());
+	QMessageLogger(context.file, context.line, context.function, context.category)
+			.fatal("Unrecoverable error for \"%s\" - killing application. Error Message:\n\t%s",
+				   name.constData(),
+				   msg.constData());
 }
 
 // ------------- Exceptions -------------

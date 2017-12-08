@@ -182,7 +182,8 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
 	serializer(serializer),
-	properties(properties)
+	properties(properties),
+	lock(QReadWriteLock::NonRecursive)
 {
 	serializer->setParent(this);
 }

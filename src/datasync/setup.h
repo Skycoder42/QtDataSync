@@ -2,6 +2,7 @@
 #define QTDATASYNC_SETUP_H
 
 #include <QtCore/qobject.h>
+#include <QtCore/qlogging.h>
 class QLockFile;
 
 #include <QtNetwork/qsslconfiguration.h>
@@ -27,12 +28,17 @@ class Q_DATASYNC_EXPORT Setup
 	Q_GADGET
 	Q_DISABLE_COPY(Setup)
 
+	Q_PROPERTY(QString localDir READ localDir WRITE setLocalDir RESET resetLocalDir)
+	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer)
+	Q_PROPERTY(FatalErrorHandler fatalErrorHandler READ fatalErrorHandler WRITE setFatalErrorHandler RESET resetFatalErrorHandler)
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
 	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration) //TODO allow changing via sync/exchange manager?
 	Q_PROPERTY(QString keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
 
 public:
+	typedef std::function<void (QString, QString, const QMessageLogContext &)> FatalErrorHandler;
+
 	//! Sets the maximum timeout for shutting down setups
 	static void setCleanupTimeout(unsigned long timeout);
 	//! Stops the datasync instance and removes it
@@ -48,29 +54,31 @@ public:
 	//! Returns the setups json serializer
 	QJsonSerializer *serializer() const;
 	//! Returns the fatal error handler to be used by the Logger
-	std::function<void (QString, QString)> fatalErrorHandler() const;
+	FatalErrorHandler fatalErrorHandler() const;
+	int cacheSize() const;
+	QSslConfiguration sslConfiguration() const;
+	RemoteConfig remoteConfiguration() const;
+	QString keyStoreProvider() const;
 
 	//! Sets the setups local directory
 	Setup &setLocalDir(QString localDir);
 	//! Sets the setups json serializer
 	Setup &setSerializer(QJsonSerializer *serializer);
 	//! Sets the fatal error handler to be used by the Logger
-	Setup &setFatalErrorHandler(const std::function<void(QString, QString)> &fatalErrorHandler);
+	Setup &setFatalErrorHandler(const FatalErrorHandler &fatalErrorHandler);
+	Setup &setCacheSize(int cacheSize);
+	Setup &setSslConfiguration(QSslConfiguration sslConfiguration);
+	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
+	Setup &setKeyStoreProvider(QString keyStoreProvider);
+
+	Setup &resetLocalDir();
+	Setup &resetFatalErrorHandler();
+	Setup &resetCacheSize();
+	Setup &resetSslConfiguration();
+	Setup &resetKeyStoreProvider();
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);
-
-	int cacheSize() const;
-	Setup &setCacheSize(int cacheSize);
-	Setup &resetCacheSize();
-	QSslConfiguration sslConfiguration() const;
-	Setup &setSslConfiguration(QSslConfiguration sslConfiguration);
-	Setup &resetSslConfiguration();
-	RemoteConfig remoteConfiguration() const;
-	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
-	QString keyStoreProvider() const;
-	Setup &setKeyStoreProvider(QString keyStoreProvider);
-	Setup &resetKeyStoreProvider();
 
 private:
 	QScopedPointer<SetupPrivate> d;

@@ -7,6 +7,7 @@
 #include "qtdatasync_global.h"
 #include "syncmanager.h"
 #include "defaults.h"
+#include "setup.h"
 
 namespace QtDataSync {
 
@@ -20,9 +21,14 @@ class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 	Q_PROPERTY(SyncManager::SyncState state READ state NOTIFY stateChanged)
 
 public:
-	explicit ExchangeEngine(const QString &setupName);
+	explicit ExchangeEngine(const QString &setupName,
+							const Setup::FatalErrorHandler &errorHandler);
 
-	void enterFatalState(const QString &error);
+	void enterFatalState(const QString &error,
+						 const char *file,
+						 int line,
+						 const char *function,
+						 const char *category);
 
 	ChangeController *changeController() const;
 
@@ -43,6 +49,7 @@ private:
 
 	Defaults _defaults;
 	Logger *_logger;
+	Setup::FatalErrorHandler _fatalErrorHandler;
 
 	QAtomicPointer<ChangeController> _changeController;
 	RemoteConnector *_remoteConnector;

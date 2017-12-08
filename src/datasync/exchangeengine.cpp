@@ -10,18 +10,20 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG _logger
 
-ExchangeEngine::ExchangeEngine(const QString &setupName) :
+ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalErrorHandler &errorHandler) :
 	QObject(),
 	_state(SyncManager::Initializing),
 	_defaults(setupName),
 	_logger(_defaults.createLogger("engine", this)),
+	_fatalErrorHandler(errorHandler),
 	_changeController(nullptr),
 	_remoteConnector(nullptr)
 {}
 
-void ExchangeEngine::enterFatalState(const QString &error)
+void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
 {
-	logDebug() << Q_FUNC_INFO;
+	QMessageLogContext context {file, line, function, category};
+	_fatalErrorHandler(error, _defaults.setupName(), context);
 }
 
 ChangeController *ExchangeEngine::changeController() const
@@ -44,7 +46,7 @@ void ExchangeEngine::initialize()
 		_remoteConnector = new RemoteConnector(_defaults, this);
 		_remoteConnector->reconnect();
 	} catch (Exception &e) {
-		enterFatalState(e.qWhat());
+		logFatal(e.qWhat());
 	}
 }
 

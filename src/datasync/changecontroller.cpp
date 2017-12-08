@@ -14,7 +14,7 @@ ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	_defaults(defaults),
 	_database(_defaults.aquireDatabase(this))
 {
-	QWriteLocker(_defaults.databaseLock());
+	QWriteLocker _(_defaults.databaseLock());
 	createTables(_defaults, _database, true);
 }
 
