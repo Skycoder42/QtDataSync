@@ -46,7 +46,7 @@ Setup::Setup() :
 	d->serializer->setAllowDefaultNull(true);//support null gadgets
 }
 
-Setup::~Setup(){}
+Setup::~Setup() {}
 
 QString Setup::localDir() const
 {
@@ -67,7 +67,6 @@ int Setup::cacheSize() const
 {
 	return d->properties.value(Defaults::CacheSize).toInt();
 }
-
 
 QSslConfiguration Setup::sslConfiguration() const
 {
@@ -161,6 +160,7 @@ void Setup::create(const QString &name)
 	if(SetupPrivate::engines.contains(name))
 		throw SetupExistsException(name);
 
+	// create storage dir
 	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 	if(!storageDir.cd(d->localDir)) {
 		storageDir.mkpath(d->localDir);
@@ -169,31 +169,37 @@ void Setup::create(const QString &name)
 							  QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ExeUser);
 	}
 
+	// lock the setup
 	auto lockFile = new QLockFile(storageDir.absoluteFilePath(QStringLiteral(".lock")));
 	if(!lockFile->tryLock())
 		throw SetupLockedException(lockFile, name);
 
-	//create defaults
+	// create defaults + engine
 	DefaultsPrivate::createDefaults(name, storageDir, d->properties, d->serializer.take());
-
 	auto engine = new ExchangeEngine(name, d->fatalErrorHandler);
 
+	// create and connect the new thread
 	auto thread = new QThread();
 	engine->moveToThread(thread);
 	QObject::connect(thread, &QThread::started,
 					 engine, &ExchangeEngine::initialize);
 	QObject::connect(thread, &QThread::finished,
 					 engine, &ExchangeEngine::deleteLater);
+	// unlock as soon as the engine has been destroyed
 	QObject::connect(engine, &ExchangeEngine::destroyed, qApp, [lockFile](){
+		//TODO clear engine from cache?
 		lockFile->unlock();
 		delete lockFile;
 	}, Qt::DirectConnection);
+	// once the thread finished, clear the engine from the cache of known ones
 	QObject::connect(thread, &QThread::finished, thread, [name, thread](){
 		QMutexLocker _(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
 		DefaultsPrivate::removeDefaults(name);
 		thread->deleteLater();
 	}, Qt::QueuedConnection);
+
+	// start the thread and cache engine data
 	thread->start();
 	SetupPrivate::engines.insert(name, {thread, engine});
 }

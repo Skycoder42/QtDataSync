@@ -19,8 +19,22 @@ void CryptoController::initialize()
 {
 	auto provider = defaults().property(Defaults::KeyStoreProvider).toString();
 	_keyStore = factory->createInstance(provider, this);
-	if(!_keyStore)
-		logFatal(QStringLiteral("Failed to load desired keystore %1").arg(provider));
+	if(!_keyStore) {
+		logCritical() << "Failed to load keystore"
+					  << provider
+					  << "- synchronization will be temporarily disabled";
+	}
+}
+
+void CryptoController::finalize()
+{
+	if(_keyStore)
+		_keyStore->closeStore();
+}
+
+bool CryptoController::canAccess() const
+{
+	return _keyStore && _keyStore->loadStore();
 }
 
 QStringList CryptoController::allKeys()

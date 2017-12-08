@@ -7,7 +7,6 @@
 
 #include "qtdatasync_global.h"
 #include "objectkey.h"
-#include "defaults.h"
 #include "controller_p.h"
 
 namespace QtDataSync {

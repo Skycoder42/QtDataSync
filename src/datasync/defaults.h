@@ -31,11 +31,11 @@ public:
 	~DatabaseRef();
 	DatabaseRef(DatabaseRefPrivate *d);
 	DatabaseRef(DatabaseRef &&other);
-	DatabaseRef &operator =(DatabaseRef &&other);
+	DatabaseRef &operator=(DatabaseRef &&other);
 
 	QSqlDatabase database() const;
 	operator QSqlDatabase() const;
-	QSqlDatabase *operator ->() const;
+	QSqlDatabase *operator->() const;
 
 private:
 	QScopedPointer<DatabaseRefPrivate> d;
@@ -65,7 +65,7 @@ public:
 	Q_ENUM(PropertyKey)
 
 	//! Copy constructor
-	Defaults(const QString &setupName);
+	Defaults(const QString &setupName); //TODO check try/catch where used
 	Defaults(const Defaults &other);
 	~Defaults();
 

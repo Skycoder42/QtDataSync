@@ -91,7 +91,7 @@ DatabaseRef::DatabaseRef(DatabaseRef &&other) :
 	d.swap(other.d);
 }
 
-DatabaseRef &DatabaseRef::operator =(DatabaseRef &&other)
+DatabaseRef &DatabaseRef::operator=(DatabaseRef &&other)
 {
 	d.reset();
 	d.swap(other.d);
@@ -108,7 +108,7 @@ DatabaseRef::operator QSqlDatabase() const
 	return d->db();
 }
 
-QSqlDatabase *DatabaseRef::operator ->() const
+QSqlDatabase *DatabaseRef::operator->() const
 {
 	return &(d->db());
 }
@@ -195,16 +195,16 @@ DefaultsPrivate::~DefaultsPrivate()
 		logWarning() << "Defaults destroyed with" << cnt << "open database connections!";
 }
 
-QSqlDatabase DefaultsPrivate::acquireDatabase(QThread *thread)
+QSqlDatabase DefaultsPrivate::acquireDatabase()
 {
 	auto name = DefaultsPrivate::DatabaseName
 				.arg(setupName)
-				.arg(QString::number((quint64)thread, 16));
+				.arg(QString::number((quint64)QThread::currentThread(), 16));
 	if((dbRefHash.localData()[setupName])++ == 0) {
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		if(!database.open()) {
-			logFatal(QStringLiteral("Failed to open database! All subsequent operations will fail! Database error:\n") +
+			logFatal(QStringLiteral("Failed to open database local database. Database error:\n\t") +
 					 database.lastError().text());
 		}
 	}
@@ -212,12 +212,12 @@ QSqlDatabase DefaultsPrivate::acquireDatabase(QThread *thread)
 	return QSqlDatabase::database(name);
 }
 
-void DefaultsPrivate::releaseDatabase(QThread *thread)
+void DefaultsPrivate::releaseDatabase()
 {
 	if(--(dbRefHash.localData()[setupName]) == 0) {
 		auto name = DefaultsPrivate::DatabaseName
 					.arg(setupName)
-					.arg(QString::number((quint64)thread, 16));
+					.arg(QString::number((quint64)QThread::currentThread(), 16));
 		QSqlDatabase::database(name).close();
 		QSqlDatabase::removeDatabase(name);
 	}
@@ -237,14 +237,14 @@ DatabaseRefPrivate::~DatabaseRefPrivate()
 {
 	if(_database.isValid()) {
 		_database = QSqlDatabase();
-		_defaultsPrivate->releaseDatabase(QThread::currentThread());
+		_defaultsPrivate->releaseDatabase();
 	}
 }
 
 QSqlDatabase &DatabaseRefPrivate::db()
 {
 	if(!_database.isValid())
-		_database = _defaultsPrivate->acquireDatabase(QThread::currentThread());
+		_database = _defaultsPrivate->acquireDatabase();
 	return _database;
 }
 
@@ -253,7 +253,7 @@ bool DatabaseRefPrivate::eventFilter(QObject *watched, QEvent *event)
 	if(event->type() == QEvent::ThreadChange && watched == _object) {
 		if(_database.isValid()) {
 			_database = QSqlDatabase();
-			_defaultsPrivate->releaseDatabase(QThread::currentThread());
+			_defaultsPrivate->releaseDatabase();
 		}
 	}
 

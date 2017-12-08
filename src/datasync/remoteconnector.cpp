@@ -41,6 +41,7 @@ void RemoteConnector::reconnect()
 			emit stateChanged(RemoteDisconnected);
 			QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 		} else if(_socket->state() == QAbstractSocket::ConnectedState) {
+			logDebug() << "Closing active connection with server to reconnect";
 			_changingConnection = true;
 			_socket->close();
 			emit stateChanged(RemoteReconnecting);
@@ -51,6 +52,7 @@ void RemoteConnector::reconnect()
 
 		auto remoteUrl = sValue(keyRemoteUrl).toUrl();
 		if(!remoteUrl.isValid()) {
+			logDebug() << "Cannot connect to remote - no URL defined";
 			emit stateChanged(RemoteDisconnected);
 			return;
 		}
@@ -87,6 +89,7 @@ void RemoteConnector::reconnect()
 
 		_changingConnection = true;
 		_socket->open(request);
+		logDebug() << "Connecting to remote server...";
 	}
 }
 
@@ -97,7 +100,7 @@ void RemoteConnector::reloadState()
 
 void RemoteConnector::connected()
 {
-	logDebug() << "Connection changed to connected";
+	logDebug() << "Successfully connected to remote server";
 	emit stateChanged(RemoteLoadingState);
 }
 
@@ -113,15 +116,16 @@ void RemoteConnector::disconnected()
 //		logDebug() << "Retrying to connect to server in"
 //				   << delta / 1000
 //				   << "seconds";
-	} else
+	} else {
 		_changingConnection = false;
+		logDebug() << "Remote server has been disconnected";
+	}
 
 	if(_socket)//better be safe
 		_socket->deleteLater();
 	_socket = nullptr;
 
 	//always "disable" remote for the state changer
-	logDebug() << "Connection changed to disconnected";
 	emit stateChanged(RemoteDisconnected);
 }
 
@@ -139,9 +143,9 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		if(isType<IdentifyMessage>(name))
 			onIdentify(deserializeMessage<IdentifyMessage>(stream));
 		else
-			logDebug() << Q_FUNC_INFO << message; //TODO error instead
+			logWarning() << "Unknown message received: " << message;
 	} catch(DataStreamException &e) {
-		logFatal(e.what());
+		logCritical() << "Remote message error:" << e.what();
 	}
 }
 

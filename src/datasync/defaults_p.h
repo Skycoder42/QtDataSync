@@ -50,8 +50,8 @@ public:
 					QJsonSerializer *serializer);
 	~DefaultsPrivate();
 
-	QSqlDatabase acquireDatabase(QThread *thread);
-	void releaseDatabase(QThread *thread);
+	QSqlDatabase acquireDatabase();
+	void releaseDatabase();
 
 private:
 	static QMutex setupDefaultsMutex;
