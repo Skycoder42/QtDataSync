@@ -13,7 +13,8 @@ void TestLib::init()
 Setup &TestLib::setup(Setup &setup)
 {
 	tDir.setAutoRemove(false);
-	return setup.setLocalDir(tDir.path());
+	return setup.setLocalDir(tDir.path())
+			.setKeyStoreProvider(QStringLiteral("plain"));
 }
 
 ObjectKey TestLib::generateKey(int index)

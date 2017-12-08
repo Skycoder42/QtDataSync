@@ -14,8 +14,9 @@ QStringList KeyStore::listProviders()
 QString KeyStore::defaultProvider()
 {
 #ifdef Q_OS_LINUX
-	return QStringLiteral("kwallet");
-#else
-	return QStringLiteral("plain");
+	auto kwallet = QStringLiteral("kwallet");
+	if(CryptoController::allKeys().contains(kwallet))
+		return kwallet;
 #endif
+	return QStringLiteral("plain");
 }

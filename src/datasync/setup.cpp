@@ -168,12 +168,12 @@ Setup &Setup::setRemoteConfiguration(RemoteConfig remoteConfiguration)
 	return *this;
 }
 
-QByteArray Setup::keyStoreProvider() const
+QString Setup::keyStoreProvider() const
 {
-	return d->properties.value(Defaults::KeyStoreProvider).toByteArray();
+	return d->properties.value(Defaults::KeyStoreProvider).toString();
 }
 
-Setup &Setup::setKeyStoreProvider(QByteArray keyStoreProvider)
+Setup &Setup::setKeyStoreProvider(QString keyStoreProvider)
 {
 	d->properties.insert(Defaults::KeyStoreProvider, keyStoreProvider);
 	return *this;
