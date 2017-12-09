@@ -47,7 +47,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 {
 	runCount++;
 	QtConcurrent::run(qApp->threadPool(), [message, this](){
-		qDebug() << Q_FUNC_INFO << message;
+		qInfo() << Q_FUNC_INFO << message;
 		runCount--;
 	});
 }

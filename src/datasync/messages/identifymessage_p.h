@@ -25,4 +25,6 @@ Q_DATASYNC_EXPORT QDebug operator<<(QDebug debug, const IdentifyMessage &message
 
 }
 
+Q_DECLARE_METATYPE(QtDataSync::IdentifyMessage)
+
 #endif // IDENTIFYMESSAGE_H

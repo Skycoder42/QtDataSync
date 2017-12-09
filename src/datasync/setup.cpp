@@ -83,6 +83,11 @@ QString Setup::keyStoreProvider() const
 	return d->properties.value(Defaults::KeyStoreProvider).toString();
 }
 
+quint32 Setup::rsaKeySize() const
+{
+	return d->properties.value(Defaults::RsaKeySize).toUInt();
+}
+
 Setup &Setup::setLocalDir(QString localDir)
 {
 	d->localDir = localDir;
@@ -125,6 +130,12 @@ Setup &Setup::setKeyStoreProvider(QString keyStoreProvider)
 	return *this;
 }
 
+Setup &Setup::setRsaKeySize(quint32 rsaKeySize)
+{
+	d->properties.insert(Defaults::RsaKeySize, rsaKeySize);
+	return *this;
+}
+
 Setup &Setup::resetLocalDir()
 {
 	d->localDir = SetupPrivate::DefaultLocalDir;
@@ -151,6 +162,12 @@ Setup &Setup::resetSslConfiguration()
 Setup &Setup::resetKeyStoreProvider()
 {
 	d->properties.insert(Defaults::KeyStoreProvider, KeyStore::defaultProvider());
+	return *this;
+}
+
+Setup &Setup::resetRsaKeySize()
+{
+	d->properties.insert(Defaults::RsaKeySize, 4096);
 	return *this;
 }
 
@@ -244,7 +261,8 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::CacheSize, MB(10)},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
 		{Defaults::RemoteConfiguration, QVariant()},
-		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()}
+		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()},
+		{Defaults::RsaKeySize, 4096}
 	}),
 	fatalErrorHandler()
 {}

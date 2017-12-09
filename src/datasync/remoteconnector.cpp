@@ -1,6 +1,8 @@
 #include "remoteconnector_p.h"
 #include "logger.h"
 
+#include "registermessage_p.h"
+
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
@@ -15,7 +17,9 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
 	_cryptoController(new CryptoController(defaults, this)),
 	_socket(nullptr),
-	_changingConnection(false)
+	_changingConnection(false),
+	_state(RemoteDisconnected),
+	_userId()
 {}
 
 void RemoteConnector::initialize()
@@ -39,17 +43,17 @@ void RemoteConnector::reconnect()
 			logDebug() << "Removing unconnected but still not deleted socket";
 			_socket->deleteLater();
 			_socket = nullptr;
-			emit stateChanged(RemoteDisconnected);
+			upState(RemoteDisconnected);
 			QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 		} else if(_socket->state() == QAbstractSocket::ConnectedState) {
 			logDebug() << "Closing active connection with server to reconnect";
 			_changingConnection = true;
 			_socket->close();
-			emit stateChanged(RemoteReconnecting);
+			upState(RemoteReconnecting);
 		} else
 			logDebug() << "Delaying reconnect operation. Socket in changing state:" << _socket->state();
 	} else {
-		emit stateChanged(RemoteReconnecting);
+		upState(RemoteReconnecting);
 		QUrl remoteUrl;
 		if(!checkCanSync(remoteUrl))
 			return;
@@ -98,7 +102,7 @@ void RemoteConnector::reloadState()
 void RemoteConnector::connected()
 {
 	logDebug() << "Successfully connected to remote server";
-	emit stateChanged(RemoteLoadingState);
+	upState(RemoteLoadingState);
 }
 
 void RemoteConnector::disconnected()
@@ -123,7 +127,7 @@ void RemoteConnector::disconnected()
 	_socket = nullptr;
 
 	//always "disable" remote for the state changer
-	emit stateChanged(RemoteDisconnected);
+	upState(RemoteDisconnected);
 }
 
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
@@ -189,7 +193,7 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 	//check if sync is enabled
 	if(!sValue(keyRemoteEnabled).toBool()) {
 		logDebug() << "Remote has been disabled. Not connecting";
-		emit stateChanged(RemoteDisconnected);
+		upState(RemoteDisconnected);
 		return false;
 	}
 
@@ -197,14 +201,14 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 	remoteUrl = sValue(keyRemoteUrl).toUrl();
 	if(!remoteUrl.isValid()) {
 		logDebug() << "Cannot connect to remote - no URL defined";
-		emit stateChanged(RemoteDisconnected);
+		upState(RemoteDisconnected);
 		return false;
 	}
 
 	//load crypto stuff
 	if(!loadIdentity()) {
 		logCritical() << "Unable to access private keys of user in keystore. Cannot synchronize";
-		emit stateChanged(RemoteDisconnected);
+		upState(RemoteDisconnected);
 		return false;
 	}
 
@@ -213,14 +217,19 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 
 bool RemoteConnector::loadIdentity()
 {
-	if(!_cryptoController->canAccess()) //no keystore -> can neither save nor load...
+	try {
+		if(!_cryptoController->canAccess()) //no keystore -> can neither save nor load...
+			return false;
+
+		_userId = sValue(keyUserId).toUuid();
+		if(_userId.isNull()) //no user -> nothing to be loaded
+			return true;
+
+		return _cryptoController->loadKeyMaterial(_userId);
+	} catch(Exception &e) {
+		logCritical() << e.what();
 		return false;
-
-	_userId = sValue(keyUserId).toUuid();
-	if(_userId.isNull()) //no user -> nothing to be loaded
-		return true;
-
-	return _cryptoController->loadKeyMaterial(_userId);
+	}
 }
 
 void RemoteConnector::tryClose()
@@ -230,7 +239,7 @@ void RemoteConnector::tryClose()
 		_changingConnection = true;
 		_socket->close();
 	} else
-		emit stateChanged(RemoteDisconnected);
+		upState(RemoteDisconnected);
 }
 
 QVariant RemoteConnector::sValue(const QString &key) const
@@ -264,13 +273,31 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return {};
 }
 
+void RemoteConnector::upState(RemoteConnector::RemoteState state)
+{
+	if(state != _state) {
+		_state = state;
+		upState(state);
+	}
+}
+
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
-	logDebug() << message;
-	if(settings()->contains(keyUserId)) { //login
-
-	} else {
-		//TODO create public key
-		//TODO send REGISTER message
+	try {
+		if(_state != RemoteLoadingState)
+			logWarning() << "Unexpected identify message:" << message;
+		else {
+			if(!_userId.isNull()) {
+				//TODO login
+			} else {
+				_cryptoController->createPrivateKey(message.nonce);
+				auto regMessage = serializeMessage(RegisterMessage(_cryptoController->publicKey()));
+				_cryptoController->signMessage(regMessage);
+				_socket->sendBinaryMessage(regMessage);
+				logDebug() << "Sent registration message for new id";
+			}
+		}
+	} catch(Exception &e) {
+		logCritical() << e.what();
 	}
 }

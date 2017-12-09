@@ -59,6 +59,7 @@ private:
 
 	QWebSocket *_socket;
 	bool _changingConnection;
+	RemoteState _state;
 
 	QUuid _userId;
 
@@ -67,6 +68,7 @@ private:
 	void tryClose();
 
 	QVariant sValue(const QString &key) const;
+	void upState(RemoteState state);
 
 	void onIdentify(const IdentifyMessage &message);
 };

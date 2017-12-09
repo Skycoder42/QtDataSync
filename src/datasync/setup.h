@@ -35,6 +35,7 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
 	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration) //TODO allow changing via sync/exchange manager?
 	Q_PROPERTY(QString keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
+	Q_PROPERTY(quint32 rsaKeySize READ rsaKeySize WRITE setRsaKeySize RESET resetRsaKeySize)
 
 public:
 	typedef std::function<void (QString, QString, const QMessageLogContext &)> FatalErrorHandler;
@@ -59,6 +60,7 @@ public:
 	QSslConfiguration sslConfiguration() const;
 	RemoteConfig remoteConfiguration() const;
 	QString keyStoreProvider() const;
+	quint32 rsaKeySize() const;
 
 	//! Sets the setups local directory
 	Setup &setLocalDir(QString localDir);
@@ -70,18 +72,21 @@ public:
 	Setup &setSslConfiguration(QSslConfiguration sslConfiguration);
 	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
 	Setup &setKeyStoreProvider(QString keyStoreProvider);
+	Setup &setRsaKeySize(quint32 rsaKeySize);
 
 	Setup &resetLocalDir();
 	Setup &resetFatalErrorHandler();
 	Setup &resetCacheSize();
 	Setup &resetSslConfiguration();
 	Setup &resetKeyStoreProvider();
+	Setup &resetRsaKeySize();
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);
 
 private:
 	QScopedPointer<SetupPrivate> d;
+	quint32 m_rsaKeySize;
 };
 
 //! Exception throw if Setup::create fails

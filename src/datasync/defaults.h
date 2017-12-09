@@ -60,7 +60,8 @@ public:
 		CacheSize,
 		SslConfiguration,
 		RemoteConfiguration,
-		KeyStoreProvider
+		KeyStoreProvider,
+		RsaKeySize
 	};
 	Q_ENUM(PropertyKey)
 
