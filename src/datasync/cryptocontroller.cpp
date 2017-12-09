@@ -1,5 +1,6 @@
 #include "cryptocontroller_p.h"
 #include "logger.h"
+#include "message_p.h"
 
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QDataStream>
@@ -98,7 +99,7 @@ void CryptoController::signMessage(QByteArray &message)
 {
 	try {
 		//create signature
-		RSASSA::Signer signer(_privateKey);
+		RsaScheme::Signer signer(_privateKey);
 
 		QByteArray signature;
 		QByteArraySource (message, true,

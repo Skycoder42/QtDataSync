@@ -9,6 +9,8 @@
 
 #include "databasecontroller.h"
 
+#include "registermessage_p.h"
+
 class Client : public QObject
 {
 	Q_OBJECT
@@ -44,6 +46,8 @@ private:
 	void close();
 	void sendMessage(const QByteArray &message);
 	Q_INVOKABLE void doSend(const QByteArray &message);
+
+	void onRegister(const QtDataSync::RegisterMessage &message);
 };
 
 #endif // CLIENT_H

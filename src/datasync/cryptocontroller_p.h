@@ -58,7 +58,6 @@ public:
 	void signMessage(QByteArray &message);
 
 private:
-	typedef CryptoPP::RSASS<CryptoPP::PSS, CryptoPP::SHA3_512> RSASSA;
 
 	static const QString keyPKeyTemplate;
 

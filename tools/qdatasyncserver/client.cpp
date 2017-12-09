@@ -46,8 +46,24 @@ void Client::notifyChanged(const QString &type, const QString &key, bool changed
 void Client::binaryMessageReceived(const QByteArray &message)
 {
 	runCount++;
-	QtConcurrent::run(qApp->threadPool(), [message, this](){
-		qInfo() << Q_FUNC_INFO << message;
+	QtConcurrent::run(qApp->threadPool(), [message, this]() {
+		try {
+			QDataStream stream(message);
+			setupStream(stream);
+			stream.startTransaction();
+			QByteArray name;
+			stream >> name;
+			if(!stream.commitTransaction())
+				throw DataStreamException(stream);
+
+			if(isType<RegisterMessage>(name))
+				onRegister(deserializeMessage<RegisterMessage>(stream));
+			else
+				qWarning() << "Unknown message received: " << message;
+		} catch(DataStreamException &e) {
+			qWarning() << "Client message error:" << e.what();
+		}
+
 		runCount--;
 	});
 }
@@ -100,4 +116,9 @@ void Client::sendMessage(const QByteArray &message)
 void Client::doSend(const QByteArray &message)
 {
 	socket->sendBinaryMessage(message);
+}
+
+void Client::onRegister(const RegisterMessage &message)
+{
+
 }

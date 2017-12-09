@@ -7,6 +7,10 @@
 #include <QtCore/QException>
 #include <QtCore/QDebug>
 
+#include <cryptopp/rsa.h>
+#include <cryptopp/pssr.h>
+#include <cryptopp/sha3.h>
+
 #ifdef BUILD_QDATASYNCSERVER
 #define Q_DATASYNC_EXPORT
 #else
@@ -14,6 +18,8 @@
 #endif
 
 namespace QtDataSync {
+
+typedef CryptoPP::RSASS<CryptoPP::PSS, CryptoPP::SHA3_512> RsaScheme;
 
 class Q_DATASYNC_EXPORT DataStreamException : public QException
 {

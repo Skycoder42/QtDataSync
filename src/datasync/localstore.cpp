@@ -187,10 +187,12 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			//write the data & get the hash
 			QJsonDocument doc(data);
 			QHashPipe hashPipe(QCryptographicHash::Sha3_256);
+			hashPipe.setAutoOpen(false);
 			hashPipe.setAutoClose(false);
 			hashPipe.pipeTo(device.data());
-			hashPipe.pipeWrite(doc.toBinaryData());
-			hashPipe.pipeClose();
+			hashPipe.open();
+			hashPipe.write(doc.toBinaryData());
+			hashPipe.close();
 			if(device->error() != QFile::NoError)
 				throw LocalStoreException(_defaults, key, device->fileName(), device->errorString());
 

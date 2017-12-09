@@ -4,11 +4,6 @@
             "package": "de.skycoder42.qpipedevice",
             "provider": "qpm",
             "version": "1.1.0"
-        },
-        {
-            "package": "de.skycoder42.qpluginfactory",
-            "provider": "qpm",
-            "version": "1.0.0"
         }
     ],
     "license": {
@@ -21,5 +16,5 @@
     ],
     "publishers": {
     },
-    "source": true
+    "source": false
 }
