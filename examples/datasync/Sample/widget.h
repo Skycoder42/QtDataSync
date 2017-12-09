@@ -16,8 +16,6 @@ public:
 	explicit Widget(QWidget *parent = nullptr);
 	~Widget();
 
-	void report(QtMsgType type, const QString &message);
-
 private slots:
 	void selectionChange(const QModelIndex &index);
 

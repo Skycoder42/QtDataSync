@@ -42,7 +42,7 @@ void KWalletKeyStore::closeStore()
 	}
 }
 
-bool KWalletKeyStore::containsSecret(const QString &key) const
+bool KWalletKeyStore::contains(const QString &key) const
 {
 	if(_wallet)
 		return _wallet->hasEntry(key);
@@ -50,17 +50,17 @@ bool KWalletKeyStore::containsSecret(const QString &key) const
 		return false;
 }
 
-bool KWalletKeyStore::storeSecret(const QString &key, const QByteArray &secret)
+bool KWalletKeyStore::storePrivateKey(const QString &key, const QSslKey &pkey)
 {
 	if(!_wallet)
 		return false;
 	else {
-		auto res = _wallet->writeEntry(key, secret);
+		auto res = _wallet->writeEntry(key, pkey.toDer());
 		return (res == 0);
 	}
 }
 
-QByteArray KWalletKeyStore::loadSecret(const QString &key)
+QSslKey KWalletKeyStore::loadPrivateKey(const QString &key)
 {
 	if(!_wallet)
 		return {};
@@ -71,14 +71,14 @@ QByteArray KWalletKeyStore::loadSecret(const QString &key)
 			QByteArray secret;
 			auto res = _wallet->readEntry(key, secret);
 			if(res == 0)
-				return secret;
+				return QSslKey(secret, QSsl::Rsa, QSsl::Der);
 			else
 				return {};
 		}
 	}
 }
 
-bool KWalletKeyStore::removeSecret(const QString &key)
+bool KWalletKeyStore::remove(const QString &key)
 {
 	if(!_wallet)
 		return false;

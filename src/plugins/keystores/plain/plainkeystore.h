@@ -15,10 +15,10 @@ public:
 
 	bool loadStore() override;
 	void closeStore() override;
-	bool containsSecret(const QString &key) const override;
-	bool storeSecret(const QString &key, const QByteArray &secret) override;
-	QByteArray loadSecret(const QString &key) override;
-	bool removeSecret(const QString &key) override;
+	bool contains(const QString &key) const override;
+	bool storePrivateKey(const QString &key, const QSslKey &pKey) override;
+	QSslKey loadPrivateKey(const QString &key) override;
+	bool remove(const QString &key) override;
 
 private:
 	QPointer<QSettings> _settings;

@@ -3,6 +3,8 @@
 
 #include <QtCore/qobject.h>
 
+#include <QtNetwork/qsslkey.h>
+
 #include "QtDataSync/qtdatasync_global.h"
 
 namespace QtDataSync {
@@ -20,10 +22,10 @@ public:
 	virtual bool loadStore() = 0;
 	virtual void closeStore() = 0;
 
-	virtual bool containsSecret(const QString &key) const = 0;
-	virtual bool storeSecret(const QString &key, const QByteArray &secret) = 0;
-	virtual QByteArray loadSecret(const QString &key) = 0;
-	virtual bool removeSecret(const QString &key) = 0;
+	virtual bool contains(const QString &key) const = 0;
+	virtual bool storePrivateKey(const QString &key, const QSslKey &pKey) = 0;
+	virtual QSslKey loadPrivateKey(const QString &key) = 0;
+	virtual bool remove(const QString &key) = 0;
 };
 
 class Q_DATASYNC_EXPORT KeyStorePlugin

@@ -24,7 +24,8 @@ HEADERS += qtdatasync_global.h \
 	remoteconnector_p.h \
 	cryptocontroller_p.h \
 	keystore.h \
-    controller_p.h
+    controller_p.h \
+    syncmanager_p.h
 
 SOURCES += \
 	localstore.cpp \

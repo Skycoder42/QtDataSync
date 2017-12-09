@@ -9,4 +9,4 @@ qtDir=${1?First parameter must be set to the dir to install}
 version=${2?Set the version as second parameter}
 qtvid=$(echo $qtDir | sed -e "s/\\.//g")
 
-"$myDir/../QtModules/deploy/repogen.py"  "$qtDir" DataSync "qt.$qtvid.skycoder42.jsonserializer,qt.$qtvid.skycoder42.backgroundprocess" "" "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices." "$version" "$myDir/LICENSE" BSD-3-Clause
+"$myDir/../QtModules/deploy/repogen.py"  "$qtDir" DataSync "qt.qt5.$qtvid.skycoder42.jsonserializer,qt.qt5.$qtvid.skycoder42.backgroundprocess" "" "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices." "$version" "$myDir/LICENSE" BSD-3-Clause

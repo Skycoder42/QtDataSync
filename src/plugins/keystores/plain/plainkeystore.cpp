@@ -31,7 +31,7 @@ void PlainKeyStore::closeStore()
 	}
 }
 
-bool PlainKeyStore::containsSecret(const QString &key) const
+bool PlainKeyStore::contains(const QString &key) const
 {
 	if(_settings)
 		return _settings->contains(key);
@@ -39,25 +39,25 @@ bool PlainKeyStore::containsSecret(const QString &key) const
 		return false;
 }
 
-bool PlainKeyStore::storeSecret(const QString &key, const QByteArray &secret)
+bool PlainKeyStore::storePrivateKey(const QString &key, const QSslKey &pKey)
 {
 	if(!_settings)
 		return false;
 	else {
-		_settings->setValue(key, secret);
+		_settings->setValue(key, pKey.toDer());
 		return true;
 	}
 }
 
-QByteArray PlainKeyStore::loadSecret(const QString &key)
+QSslKey PlainKeyStore::loadPrivateKey(const QString &key)
 {
 	if(!_settings)
 		return {};
 	else
-		return _settings->value(key).toByteArray();
+		return QSslKey(_settings->value(key).toByteArray(), QSsl::Rsa, QSsl::Der);
 }
 
-bool PlainKeyStore::removeSecret(const QString &key)
+bool PlainKeyStore::remove(const QString &key)
 {
 	if(!_settings)
 		return false;

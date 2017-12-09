@@ -103,8 +103,8 @@ void QIODeviceStore::StoreInitialize(const CryptoPP::NameValuePairs &parameters)
 {
 	_device = nullptr;
 	parameters.GetValue(DeviceParameter, _device);
-	if(!_device || !_device->isWritable())
-		throw Err(QStringLiteral("QIODeviceStore: passed QIODevice is either null or not opened for writing"));
+	if(!_device || !_device->isReadable())
+		throw Err(QStringLiteral("QIODeviceStore: passed QIODevice is either null or not opened for reading"));
 }
 
 

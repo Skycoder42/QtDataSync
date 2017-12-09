@@ -2,6 +2,7 @@
 #define REMOTECONNECTOR_P_H
 
 #include <QtCore/QObject>
+#include <QtCore/QUuid>
 
 #include <QtWebSockets/QWebSocket>
 
@@ -19,6 +20,12 @@ class Q_DATASYNC_EXPORT RemoteConnector : public Controller
 	Q_OBJECT
 
 public:
+	static const QString keyRemoteEnabled;
+	static const QString keyRemoteUrl;
+	static const QString keyAccessKey;
+	static const QString keyHeaders;
+	static const QString keyUserId;
+
 	//! Describes the current state of the connector
 	enum RemoteState {
 		RemoteDisconnected,//!< The remote server is "not available"
@@ -48,16 +55,15 @@ private Q_SLOTS:
 	void sslErrors(const QList<QSslError> &errors);
 
 private:
-	static const QString keyRemoteUrl;
-	static const QString keyAccessKey;
-	static const QString keyHeaders;
-	static const QString keyUserId;
-
 	CryptoController *_cryptoController;
 
 	QWebSocket *_socket;
 	bool _changingConnection;
 
+	QUuid _userId;
+
+	bool checkCanSync(QUrl &remoteUrl);
+	bool loadIdentity();
 	void tryClose();
 
 	QVariant sValue(const QString &key) const;

@@ -5,9 +5,10 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
-const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remoteUrl"));
-const QString RemoteConnector::keyAccessKey(QStringLiteral("accessKey"));
-const QString RemoteConnector::keyHeaders(QStringLiteral("headers"));
+const QString RemoteConnector::keyRemoteEnabled(QStringLiteral("enabled"));
+const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remote/url"));
+const QString RemoteConnector::keyAccessKey(QStringLiteral("remote/accessKey"));
+const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
 const QString RemoteConnector::keyUserId(QStringLiteral("userId"));
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
@@ -20,8 +21,8 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 void RemoteConnector::initialize()
 {
 	_cryptoController->initialize();
-
-	//TODO start stuff up
+	//always "reconnect", because this loads keys etc. and if disabled, also does nothing
+	QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 }
 
 void RemoteConnector::finalize()
@@ -49,13 +50,9 @@ void RemoteConnector::reconnect()
 			logDebug() << "Delaying reconnect operation. Socket in changing state:" << _socket->state();
 	} else {
 		emit stateChanged(RemoteReconnecting);
-
-		auto remoteUrl = sValue(keyRemoteUrl).toUrl();
-		if(!remoteUrl.isValid()) {
-			logDebug() << "Cannot connect to remote - no URL defined";
-			emit stateChanged(RemoteDisconnected);
+		QUrl remoteUrl;
+		if(!checkCanSync(remoteUrl))
 			return;
-		}
 
 		_socket = new QWebSocket(sValue(keyAccessKey).toString(),
 								 QWebSocketProtocol::VersionLatest,
@@ -187,6 +184,45 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 		tryClose();
 }
 
+bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
+{
+	//check if sync is enabled
+	if(!sValue(keyRemoteEnabled).toBool()) {
+		logDebug() << "Remote has been disabled. Not connecting";
+		emit stateChanged(RemoteDisconnected);
+		return false;
+	}
+
+	//check if remote is defined
+	remoteUrl = sValue(keyRemoteUrl).toUrl();
+	if(!remoteUrl.isValid()) {
+		logDebug() << "Cannot connect to remote - no URL defined";
+		emit stateChanged(RemoteDisconnected);
+		return false;
+	}
+
+	//load crypto stuff
+	if(!loadIdentity()) {
+		logCritical() << "Unable to access private keys of user in keystore. Cannot synchronize";
+		emit stateChanged(RemoteDisconnected);
+		return false;
+	}
+
+	return true;
+}
+
+bool RemoteConnector::loadIdentity()
+{
+	if(!_cryptoController->canAccess()) //no keystore -> can neither save nor load...
+		return false;
+
+	_userId = sValue(keyUserId).toUuid();
+	if(_userId.isNull()) //no user -> nothing to be loaded
+		return true;
+
+	return _cryptoController->loadKeyMaterial(_userId);
+}
+
 void RemoteConnector::tryClose()
 {
 	logDebug() << Q_FUNC_INFO << "socket state:" << _socket->state();
@@ -222,6 +258,8 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return config.accessKey;
 	else if(key == keyHeaders)
 		return QVariant::fromValue(config.headers);
+	else if(key == keyRemoteEnabled)
+		return true;
 	else
 		return {};
 }

@@ -5,18 +5,12 @@
 
 #include "modeltest.h"
 
-static QtMessageHandler prevHandler;
-static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-
 Widget::Widget(QWidget *parent) :
 	QWidget(parent),
 	ui(new Ui::Widget),
 	_model(new QtDataSync::DataStoreModel(this))
 {
 	ui->setupUi(this);
-
-	qApp->setProperty("__mw", QVariant::fromValue(this));
-	prevHandler = qInstallMessageHandler(filterLogger);
 
 	new ModelTest(_model, this);
 	_model->setTypeId<SampleData>();
@@ -27,30 +21,7 @@ Widget::Widget(QWidget *parent) :
 
 Widget::~Widget()
 {
-	qApp->setProperty("__mw", QVariant::fromValue(nullptr));
 	delete ui;
-}
-
-void Widget::report(QtMsgType type, const QString &message)
-{
-	QIcon icon;
-	switch (type) {
-	case QtDebugMsg:
-	case QtInfoMsg:
-		icon = style()->standardPixmap(QStyle::SP_MessageBoxInformation);
-		break;
-	case QtWarningMsg:
-		icon = style()->standardPixmap(QStyle::SP_MessageBoxWarning);
-		break;
-	case QtCriticalMsg:
-	case QtFatalMsg:
-		icon = style()->standardPixmap(QStyle::SP_MessageBoxCritical);
-		break;
-	default:
-		Q_UNREACHABLE();
-		break;
-	}
-	new QListWidgetItem(icon, message, ui->reportListWidget);
 }
 
 void Widget::selectionChange(const QModelIndex &index)
@@ -67,7 +38,7 @@ void Widget::selectionChange(const QModelIndex &index)
 		ui->titleLineEdit->clear();
 		ui->detailsLineEdit->clear();
 	} catch(QException &e) {
-		report(QtCriticalMsg, QString::fromUtf8(e.what()));
+		qCritical() << e.what();
 	}
 }
 
@@ -88,20 +59,4 @@ void Widget::on_deleteButton_clicked()
 void Widget::on_clearButton_clicked()
 {
 	_model->store()->clear<SampleData>();
-}
-
-
-
-static void filterLogger(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-	if(QByteArray(context.category).startsWith("qtdatasync.")) {
-		auto window = qApp->property("__mw").value<Widget*>();
-		if(window) {
-			auto rMsg = qFormatLogMessage(type, context, msg);
-			window->report(type, rMsg);
-			return;
-		}
-	}
-
-	prevHandler(type, context, msg);
 }

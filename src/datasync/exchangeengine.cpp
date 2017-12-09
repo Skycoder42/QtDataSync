@@ -35,6 +35,11 @@ ChangeController *ExchangeEngine::changeController() const
 	return _changeController;
 }
 
+RemoteConnector *ExchangeEngine::remoteConnector() const
+{
+	return _remoteConnector;
+}
+
 SyncManager::SyncState ExchangeEngine::state() const
 {
 	return _state;
@@ -50,11 +55,11 @@ void ExchangeEngine::initialize()
 		_remoteConnector = new RemoteConnector(_defaults, this);
 
 		//initialize all
-		_changeController.load()->initialize();
+		_changeController->initialize();
 		_remoteConnector->initialize();
 	} catch (Exception &e) {
 		logFatal(e.qWhat());
-	} catch (QException &e) {
+	} catch (std::exception &e) {
 		logFatal(e.what());
 	}
 }
@@ -62,7 +67,7 @@ void ExchangeEngine::initialize()
 void ExchangeEngine::finalize()
 {
 	_remoteConnector->finalize();
-	_changeController.load()->finalize();
+	_changeController->finalize();
 
 	logDebug() << Q_FUNC_INFO;
 	thread()->quit();

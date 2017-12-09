@@ -31,6 +31,7 @@ public:
 									const char *category);
 
 	ChangeController *changeController() const;
+	RemoteConnector *remoteConnector() const;
 
 	SyncManager::SyncState state() const;
 
@@ -45,17 +46,38 @@ private Q_SLOTS:
 	void localDataChange();
 
 private:
+	template <typename T>
+	class AtomicPointer : public QAtomicPointer<T>
+	{
+	public:
+		inline AtomicPointer(T *ptr = nullptr);
+		inline T *operator->() const;
+	};
+
 	SyncManager::SyncState _state;
 
 	Defaults _defaults;
 	Logger *_logger;
 	Setup::FatalErrorHandler _fatalErrorHandler;
 
-	QAtomicPointer<ChangeController> _changeController;
-	RemoteConnector *_remoteConnector;
+	AtomicPointer<ChangeController> _changeController;
+	AtomicPointer<RemoteConnector> _remoteConnector;
 
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 };
+
+// ------------- Generic Implementation -------------
+
+template<typename T>
+inline ExchangeEngine::AtomicPointer<T>::AtomicPointer(T *ptr) :
+	QAtomicPointer<T>(ptr)
+{}
+
+template<typename T>
+inline T *ExchangeEngine::AtomicPointer<T>::operator->() const
+{
+	return this->loadAcquire();
+}
 
 }
 
