@@ -14,6 +14,8 @@
 #include "keystore.h"
 #include "controller_p.h"
 
+#include "message_p.h"
+
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT CryptoException : public Exception
@@ -55,7 +57,8 @@ public:
 	void createPrivateKey(quint32 nonce);
 	CryptoPP::RSA::PublicKey publicKey() const;
 
-	void signMessage(QByteArray &message);
+	template <typename TMessage>
+	QByteArray serializeSignedMessage(const TMessage &message);
 
 private:
 
@@ -70,6 +73,20 @@ private:
 	void updateFingerprint();
 };
 
+// ------------- Generic Implementation -------------
+
+template<typename TMessage>
+QByteArray CryptoController::serializeSignedMessage(const TMessage &message)
+{
+	try {
+		RsaScheme::Signer signer(_privateKey);
+		return QtDataSync::serializeSignedMessage<TMessage>(message, signer, _rng);
+	} catch(CryptoPP::Exception &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to sign message"),
+							  e);
+	}
+}
 }
 
 #endif // CRYPTOCONTROLLER_P_H

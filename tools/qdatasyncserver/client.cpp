@@ -56,12 +56,20 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			if(!stream.commitTransaction())
 				throw DataStreamException(stream);
 
-			if(isType<RegisterMessage>(name))
-				onRegister(deserializeMessage<RegisterMessage>(stream));
-			else
+			if(isType<RegisterMessage>(name)) {
+				auto msg = deserializeMessage<RegisterMessage>(stream);
+				verifySignature(stream, msg.pubKey);
+				onRegister(msg);
+			} else {
 				qWarning() << "Unknown message received: " << message;
+				close();
+			}
 		} catch(DataStreamException &e) {
 			qWarning() << "Client message error:" << e.what();
+			close();
+		} catch(CryptoPP::Exception &e) {
+			qWarning() << "Client message error:" << e.what();
+			close();
 		}
 
 		runCount--;
@@ -120,5 +128,5 @@ void Client::doSend(const QByteArray &message)
 
 void Client::onRegister(const RegisterMessage &message)
 {
-
+	qDebug() << Q_FUNC_INFO;
 }

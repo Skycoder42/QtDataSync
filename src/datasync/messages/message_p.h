@@ -36,11 +36,22 @@ private:
 };
 
 void Q_DATASYNC_EXPORT setupStream(QDataStream &stream);
+QByteArray Q_DATASYNC_EXPORT signData(RsaScheme::Signer &signer,
+									  CryptoPP::RandomNumberGenerator &rng,
+									  const QByteArray &message);
+void Q_DATASYNC_EXPORT verifyData(RsaScheme::Verifier &verifier,
+								  const QByteArray &message,
+								  const QByteArray &signature);
+void Q_DATASYNC_EXPORT verifySignature(QDataStream &stream, const CryptoPP::RSA::PublicKey &pubKey);
 
 template <typename TMessage>
 void serializeMessage(QDataStream &stream, const TMessage &message, bool withName = true);
 template <typename TMessage>
 QByteArray serializeMessage(const TMessage &message);
+template <typename TMessage>
+QByteArray serializeSignedMessage(const TMessage &message,
+								  RsaScheme::Signer &signer,
+								  CryptoPP::RandomNumberGenerator &rng);
 
 template <typename TMessage>
 inline bool isType(const QByteArray &name);
@@ -65,9 +76,21 @@ QByteArray serializeMessage(const TMessage &message)
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
 	QByteArray out;
-	QDataStream stream(&out, QIODevice::WriteOnly);
+	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
 	setupStream(stream);
 	serializeMessage(stream, message, true);
+	return out;
+}
+
+template<typename TMessage>
+QByteArray serializeSignedMessage(const TMessage &message, RsaScheme::Signer &signer, CryptoPP::RandomNumberGenerator &rng)
+{
+	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
+	QByteArray out;
+	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
+	setupStream(stream);
+	serializeMessage(stream, message, true);
+	stream << signData(signer, rng, out);
 	return out;
 }
 

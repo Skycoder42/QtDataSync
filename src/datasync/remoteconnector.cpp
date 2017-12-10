@@ -291,9 +291,9 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				//TODO login
 			} else {
 				_cryptoController->createPrivateKey(message.nonce);
-				auto regMessage = serializeMessage(RegisterMessage(_cryptoController->publicKey()));
-				_cryptoController->signMessage(regMessage);
-				_socket->sendBinaryMessage(regMessage);
+				RegisterMessage msg(_cryptoController->publicKey());
+				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
 			}
 		}

@@ -95,28 +95,6 @@ RSA::PublicKey CryptoController::publicKey() const
 	return _privateKey;
 }
 
-void CryptoController::signMessage(QByteArray &message)
-{
-	try {
-		//create signature
-		RsaScheme::Signer signer(_privateKey);
-
-		QByteArray signature;
-		QByteArraySource (message, true,
-			new SignerFilter(_rng, signer,
-				new QByteArraySink(signature)
-		   ) // SignerFilter
-		); // QByteArraySource
-
-		QDataStream stream(&message, QIODevice::WriteOnly | QIODevice::Append);
-		stream << signature;
-	} catch(CryptoPP::Exception &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to sign message"),
-							  e);
-	}
-}
-
 void CryptoController::updateFingerprint()
 {
 	QByteArray pubData;
