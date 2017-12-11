@@ -60,23 +60,13 @@ void DatabaseController::initDatabase()
 	}
 
 	if(!db.tables().contains(QStringLiteral("devices"))) {
-		QSqlQuery createKeyAlg(db);
-		if(!createKeyAlg.exec(QStringLiteral("CREATE TYPE keyalgorithm AS ENUM ( "
-											  "		'RSA_PSS_SHA3_512' "
-											  ")"))) {
-			qCritical() << "Failed to create keyalgorithm type with error:"
-						<< qPrintable(createKeyAlg.lastError().text());
-			emit databaseInitDone(false);
-			return;
-		}
-
 		QSqlQuery createDevices(db);
 		if(!createDevices.exec(QStringLiteral("CREATE TABLE devices ( "
 											  "		id			UUID PRIMARY KEY NOT NULL, "
 											  "		userid		BIGINT NOT NULL REFERENCES users(id), "
 											  "		name		TEXT NOT NULL, "
 											  "		pubkey		BYTEA NOT NULL, "
-											  "		algorithm	keyalgorithm NOT NULL, "
+											  "		algorithm	TEXT NOT NULL, "
 											  "		lastlogin	DATE NOT NULL DEFAULT 'today' "
 											  ")"))) {
 			qCritical() << "Failed to create devices table with error:"

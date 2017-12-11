@@ -5,55 +5,48 @@
 
 using namespace QtDataSync;
 
-RegisterMessage::RegisterMessage(const CryptoPP::RSA::PublicKey &pubKey) :
-	pubKey(pubKey)
+RegisterMessage::RegisterMessage() :
+	keyAlgorithm(),
+	pubKey(),
+	deviceName()
 {}
 
-CryptoPP::RSA::PublicKey RegisterMessage::getPubKey() const
+void RegisterMessage::getKey(CryptoPP::X509PublicKey &key) const
 {
-    return pubKey;
+	QByteArraySource source(pubKey, true);
+	key.BERDecodePublicKey(source, false, 0);
 }
 
-void RegisterMessage::setPubKey(const CryptoPP::RSA::PublicKey &value)
+void RegisterMessage::setKey(const CryptoPP::X509PublicKey &key)
 {
-    pubKey = value;
+	pubKey.clear();
+	QByteArraySink sink(pubKey);
+	key.DEREncodePublicKey(sink);
 }
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
 {
-    try {
-        QByteArray outBuf;
-        QByteArraySink sink(outBuf);
-        message.pubKey.DEREncodePublicKey(sink);
-		stream << outBuf;
-	} catch(CryptoPP::Exception &e) {
-		qWarning() << "Private key write error:" << e.what();
-		stream.setStatus(QDataStream::WriteFailed);
-	}
+	stream << QByteArray::fromStdString(message.keyAlgorithm)
+		   << message.pubKey
+		   << message.deviceName;
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
 {
 	stream.startTransaction();
-	try {
-		QByteArray keyData;
-		stream >> keyData;
-
-		QByteArraySource source(keyData, true);
-		message.pubKey.BERDecodePublicKey(source, false, 0);
-
-		stream.commitTransaction();
-	} catch(CryptoPP::Exception &e) {
-		qWarning() << "Private key read error:" << e.what();
-		stream.abortTransaction();
-	}
+	QByteArray keyAlg;
+	stream >> keyAlg
+		   >> message.pubKey
+		   >> message.deviceName;
+	message.keyAlgorithm = keyAlg.toStdString();
+	stream.commitTransaction();
 	return stream;
 }
 
 QDebug QtDataSync::operator<<(QDebug debug, const RegisterMessage &message)
 {
 	QDebugStateSaver saver(debug);
-	debug << message.pubKey;
+	debug << QByteArray::fromStdString(message.keyAlgorithm) << message.deviceName;
 	return debug;
 }
