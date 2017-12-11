@@ -273,9 +273,23 @@
                       </DAnnotation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DAnnotation">
+                      <DAnnotation>
+                       <base-DElement>
+                        <DElement>
+                         <uid>{9bcd368e-5f3c-4f7e-a777-e2453c338a6d}</uid>
+                        </DElement>
+                       </base-DElement>
+                       <text>sym+asym enc</text>
+                       <pos>x:605;y:30</pos>
+                       <rect>x:0;y:0;w:91.8281;h:32</rect>
+                      </DAnnotation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1512141678701</last-modified>
+                  <last-modified>1513007020403</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>

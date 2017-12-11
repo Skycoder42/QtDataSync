@@ -166,7 +166,7 @@
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>LOGIN(userId, deviceId)</name>
+                         <name>LOGIN(deviceId)</name>
                          <pos>x:655;y:60</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -299,7 +299,7 @@
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>REGISTER(pubKey)</name>
+                         <name>REGISTER(algorithm, pubKey)</name>
                          <pos>x:455;y:255</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -345,7 +345,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ACCOUNT(userId)</name>
+                         <name>ACCOUNT(deviceId)</name>
                          <pos>x:170;y:255</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -466,20 +466,6 @@
                      </instance>
                     </item>
                     <item>
-                     <instance type="DAnnotation">
-                      <DAnnotation>
-                       <base-DElement>
-                        <DElement>
-                         <uid>{81a7b18e-cbd3-49db-98dd-89df3457f0c1}</uid>
-                        </DElement>
-                       </base-DElement>
-                       <text>deviceId = fingerprint(pubKey)</text>
-                       <pos>x:495;y:240</pos>
-                       <rect>x:0;y:0;w:172.391;h:32</rect>
-                      </DAnnotation>
-                     </instance>
-                    </item>
-                    <item>
                      <instance type="DItem">
                       <DItem>
                        <base-DObject>
@@ -521,7 +507,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1512141781465</last-modified>
+                  <last-modified>1513008262767</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -741,7 +727,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>LOGIN(userId, deviceId)</name>
+                  <name>LOGIN(deviceId)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -904,7 +890,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>REGISTER(pubKey)</name>
+                  <name>REGISTER(algorithm, pubKey)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -962,7 +948,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ACCOUNT(userId)</name>
+                  <name>ACCOUNT(deviceId)</name>
                   <relations>
                    <handles>
                     <handles>

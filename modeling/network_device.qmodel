@@ -126,7 +126,7 @@
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ADDDEVICE(pubKey)</name>
+                         <name>ADDDEVICE(algorithm, pubKey)</name>
                          <pos>x:625;y:55</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
@@ -447,7 +447,7 @@
                            <item>external</item>
                           </qlist>
                          </stereotypes>
-                         <name>ADDME(pubKey, nounce)</name>
+                         <name>ADDME(algorithm, pubKey, nounce)</name>
                          <pos>x:295;y:225</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
@@ -492,7 +492,7 @@
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ACCEPT(deviceId, enc{secret}, keys)</name>
+                         <name>ACCEPT(fingerprint, enc{secret}, keys)</name>
                          <pos>x:610;y:220</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -1148,7 +1148,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ADDDEVICE(pubKey)</name>
+                  <name>ADDDEVICE(algorithm, pubKey)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1663,7 +1663,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ADDME(pubKey, nounce)</name>
+                  <name>ADDME(algorithm, pubKey, nounce)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1721,7 +1721,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ACCEPT(deviceId, enc{secret}, keys)</name>
+                  <name>ACCEPT(fingerprint, enc{secret}, keys)</name>
                   <relations>
                    <handles>
                     <handles>

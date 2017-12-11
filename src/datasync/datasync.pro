@@ -24,8 +24,8 @@ HEADERS += qtdatasync_global.h \
 	remoteconnector_p.h \
 	cryptocontroller_p.h \
 	keystore.h \
-    controller_p.h \
-    syncmanager_p.h
+	controller_p.h \
+	syncmanager_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -44,16 +44,7 @@ SOURCES += \
 	remoteconnector.cpp \
 	cryptocontroller.cpp \
 	keystore.cpp \
-    controller.cpp
-
-DISTFILES += \
-	datasync.qmodel \
-	network.pdf \
-	exchange.txt \
-	network_connect.qmodel \
-	network_exchange.qmodel \
-	network_device.qmodel \
-	network_keychange.qmodel
+	controller.cpp
 
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)
