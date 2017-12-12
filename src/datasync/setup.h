@@ -3,6 +3,8 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qlogging.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qhash.h>
 class QLockFile;
 
 #include <QtNetwork/qsslconfiguration.h>
@@ -10,7 +12,6 @@ class QLockFile;
 #include <functional>
 
 #include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/defaults.h"
 #include "QtDataSync/exception.h"
 
 class QJsonSerializer;
@@ -20,6 +21,14 @@ class QJsonSerializer;
 #define GB(x) (MB(x)*1024)
 
 namespace QtDataSync {
+
+struct Q_DATASYNC_EXPORT RemoteConfig {
+	QUrl url;
+	QString accessKey;
+	QHash<QByteArray, QByteArray> headers;
+
+	RemoteConfig(const QUrl &url = {}, const QString &accessKey = {}, const QHash<QByteArray, QByteArray> &headers = {});
+};
 
 class SetupPrivate;
 //! The class to setup and create datasync instances
@@ -35,10 +44,55 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
 	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration) //TODO allow changing via sync/exchange manager?
 	Q_PROPERTY(QString keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
-	Q_PROPERTY(quint32 rsaKeySize READ rsaKeySize WRITE setRsaKeySize RESET resetRsaKeySize)
+	Q_PROPERTY(SignatureScheme signatureScheme READ signatureScheme WRITE setSignatureScheme RESET resetSignatureScheme)
+	Q_PROPERTY(QVariant signatureKeyParam READ signatureKeyParam WRITE setSignatureKeyParam RESET resetSignatureKeyParam)
+	Q_PROPERTY(EncryptionScheme encryptionScheme READ encryptionScheme WRITE setEncryptionScheme RESET resetEncryptionScheme)
+	Q_PROPERTY(QVariant encryptionKeyParam READ encryptionKeyParam WRITE setEncryptionKeyParam RESET resetEncryptionKeyParam)
 
 public:
 	typedef std::function<void (QString, QString, const QMessageLogContext &)> FatalErrorHandler;
+
+	enum SignatureScheme {
+		RSA_PSS_SHA3_512,
+		ECDSA_ECP_SHA3_512
+	};
+	Q_ENUM(SignatureScheme)
+
+	enum EncryptionScheme {
+		RSA_OAEP_SHA3_512
+	};
+	Q_ENUM(EncryptionScheme)
+
+	enum EllipticCurve {
+		secp112r1,
+		secp128r1,
+		secp160r1,
+		secp192r1,
+		secp224r1,
+		secp256r1,
+		secp384r1,
+		secp521r1,
+
+		brainpoolP160r1,
+		brainpoolP192r1,
+		brainpoolP224r1,
+		brainpoolP256r1,
+		brainpoolP320r1,
+		brainpoolP384r1,
+		brainpoolP512r1,
+
+		secp112r2,
+		secp128r2,
+		secp160r2,
+
+		secp160k1,
+		secp192k1,
+		secp224k1,
+		secp256k1
+
+		//TODO CRYPTOPP6 add curve25519
+	};
+	Q_ENUM(EllipticCurve)
 
 	//! Sets the maximum timeout for shutting down setups
 	static void setCleanupTimeout(unsigned long timeout);
@@ -60,7 +114,10 @@ public:
 	QSslConfiguration sslConfiguration() const;
 	RemoteConfig remoteConfiguration() const;
 	QString keyStoreProvider() const;
-	quint32 rsaKeySize() const;
+	SignatureScheme signatureScheme() const;
+	QVariant signatureKeyParam() const;
+	EncryptionScheme encryptionScheme() const;
+	QVariant encryptionKeyParam() const;
 
 	//! Sets the setups local directory
 	Setup &setLocalDir(QString localDir);
@@ -72,21 +129,26 @@ public:
 	Setup &setSslConfiguration(QSslConfiguration sslConfiguration);
 	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
 	Setup &setKeyStoreProvider(QString keyStoreProvider);
-	Setup &setRsaKeySize(quint32 rsaKeySize);
+	Setup &setSignatureScheme(SignatureScheme signatureScheme);
+	Setup &setSignatureKeyParam(QVariant signatureKeyParam);
+	Setup &setEncryptionScheme(EncryptionScheme encryptionScheme);
+	Setup &setEncryptionKeyParam(QVariant encryptionKeyParam);
 
 	Setup &resetLocalDir();
 	Setup &resetFatalErrorHandler();
 	Setup &resetCacheSize();
 	Setup &resetSslConfiguration();
 	Setup &resetKeyStoreProvider();
-	Setup &resetRsaKeySize();
+	Setup &resetSignatureScheme();
+	Setup &resetSignatureKeyParam();
+	Setup &resetEncryptionScheme();
+	Setup &resetEncryptionKeyParam();
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);
 
 private:
 	QScopedPointer<SetupPrivate> d;
-	quint32 m_rsaKeySize;
 };
 
 //! Exception throw if Setup::create fails
@@ -141,5 +203,7 @@ protected:
 };
 
 }
+
+Q_DECLARE_METATYPE(QtDataSync::RemoteConfig)
 
 #endif // QTDATASYNC_SETUP_H

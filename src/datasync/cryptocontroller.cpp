@@ -19,13 +19,14 @@ Q_GLOBAL_STATIC_WITH_ARGS(Factory, factory, (QLatin1String("keystores")))
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
-const QString CryptoController::keyPKeyTemplate(QStringLiteral("user/%1/private-key"));
+const QString CryptoController::keySignScheme(QStringLiteral("scheme/signing"));
+const QString CryptoController::keyCryptScheme(QStringLiteral("scheme/encryption"));
+const QString CryptoController::keySignTemplate(QStringLiteral("device/%1/sign-key"));
+const QString CryptoController::keyCryptTemplate(QStringLiteral("device/%1/crypt-key"));
 
 CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
 	Controller("crypto", defaults, parent),
 	_keyStore(nullptr),
-	_rng(true),
-	_privateKey(),
 	_crypto(nullptr)
 {}
 
@@ -39,7 +40,7 @@ void CryptoController::initialize()
 					  << "- synchronization will be temporarily disabled";
 	}
 
-	_crypto = new AsymmetricCrypto("test1", "test2", this); //TODO schemes
+	_crypto = new ClientCrypto(this);
 }
 
 void CryptoController::finalize()
@@ -48,7 +49,7 @@ void CryptoController::finalize()
 		_keyStore->closeStore();
 }
 
-AsymmetricCrypto *CryptoController::crypto() const
+ClientCrypto *CryptoController::crypto() const
 {
 	return _crypto;
 }
@@ -64,13 +65,21 @@ bool CryptoController::loadKeyMaterial(const QUuid &userId)
 		return false;
 
 	try {
-		auto pKey = _keyStore->loadPrivateKey(keyPKeyTemplate.arg(userId.toString()));
-		if(pKey.isNull()) {
-			logCritical() << "Unable to load private user key from keystore";
+		auto signScheme = settings()->value(keySignScheme).toByteArray();
+		auto signKey = _keyStore->loadPrivateKey(keySignTemplate.arg(userId.toString()));
+		if(signKey.isNull()) {
+			logCritical() << "Unable to load private signing key from keystore";
 			return false;
 		}
-		_privateKey = CryptoQQ::fromQtFormat(pKey);
-		updateFingerprint();
+
+		auto cryptScheme = settings()->value(keyCryptScheme).toByteArray();
+		auto cryptKey = _keyStore->loadPrivateKey(keyCryptTemplate.arg(userId.toString()));
+		if(cryptKey.isNull()) {
+			logCritical() << "Unable to load private encryption key from keystore";
+			return false;
+		}
+
+		_crypto->load(signScheme, signKey, cryptScheme, cryptKey);
 
 		//TODO load and decrypt shared secret
 
@@ -82,15 +91,18 @@ bool CryptoController::loadKeyMaterial(const QUuid &userId)
 	}
 }
 
-void CryptoController::createPrivateKey(quint32 nonce)
+void CryptoController::createPrivateKeys(quint32 nonce)
 {
 	try {
-		if(_rng.CanIncorporateEntropy())
-			_rng.IncorporateEntropy((byte*)&nonce, sizeof(nonce));
-		_privateKey.GenerateRandomWithKeySize(_rng,
-											  defaults().property(Defaults::RsaKeySize).toUInt());
-		updateFingerprint();
-		logDebug().noquote().nospace() << "Generated new RSA key: 0x" << _fingerprint.toHex();
+		if(_crypto->rng().CanIncorporateEntropy())
+			_crypto->rng().IncorporateEntropy((byte*)&nonce, sizeof(nonce));
+
+		_crypto->generate((Setup::SignatureScheme)defaults().property(Defaults::SignScheme).toInt(),
+						  defaults().property(Defaults::SignKeyParam),
+						  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
+						  defaults().property(Defaults::CryptKeyParam));
+
+		logDebug().noquote().nospace() << "Generated new RSA keys"; //TODO common fingerprint?
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),
@@ -98,23 +110,117 @@ void CryptoController::createPrivateKey(quint32 nonce)
 	}
 }
 
-RSA::PublicKey CryptoController::publicKey() const
-{
-	return _privateKey;
-}
-
-void CryptoController::updateFingerprint()
-{
-	QByteArray pubData;
-	QByteArraySink sink(pubData);
-	_privateKey.DEREncodePublicKey(sink);
-	_fingerprint = QCryptographicHash::hash(pubData, QCryptographicHash::Sha3_256);
-}
-
 QStringList CryptoController::allKeys()
 {
 	return factory->allKeys();
 }
+
+// ------------- ClientCrypto Implementation -------------
+
+ClientCrypto::ClientCrypto(QObject *parent) :
+	AsymmetricCrypto(parent),
+	_rng(true),
+	_signKey(nullptr),
+	_cryptKey(nullptr)
+{}
+
+void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &signKeyParam, Setup::EncryptionScheme cryptScheme, const QVariant &cryptKeyParam)
+{
+
+}
+
+void ClientCrypto::load(const QByteArray &signScheme, const QSslKey &signKeym, const QByteArray &cryptScheme, const QSslKey &cryptKey)
+{
+
+}
+
+RandomNumberGenerator &ClientCrypto::rng()
+{
+	return _rng;
+}
+
+QSharedPointer<X509PublicKey> ClientCrypto::signKey() const
+{
+	return _signKey->createPublicKey();
+}
+
+QByteArray ClientCrypto::writeSignKey() const
+{
+	return writeKey(_signKey->createPublicKey());
+}
+
+QSharedPointer<X509PublicKey> ClientCrypto::cryptKey() const
+{
+	return _cryptKey->createPublicKey();
+}
+
+QByteArray ClientCrypto::writeCryptKey() const
+{
+	return writeKey(_cryptKey->createPublicKey());
+}
+
+const PKCS8PrivateKey &ClientCrypto::privateSignKey() const
+{
+	return _signKey->privateKeyRef();
+}
+
+const PKCS8PrivateKey &ClientCrypto::privateCryptKey() const
+{
+	return _cryptKey->privateKeyRef();
+}
+
+QByteArray ClientCrypto::sign(const QByteArray &message)
+{
+	return AsymmetricCrypto::sign(_signKey->privateKeyRef(), _rng, message);
+}
+
+QByteArray ClientCrypto::encrypt(const X509PublicKey &key, const QByteArray &message)
+{
+	return AsymmetricCrypto::encrypt(key, _rng, message);
+}
+
+QByteArray ClientCrypto::decrypt(const QByteArray &message)
+{
+	return AsymmetricCrypto::decrypt(_cryptKey->privateKeyRef(), _rng, message);
+}
+
+#define CC_CURVE(curve) case Setup::curve: return CryptoPP::ASN1::curve()
+
+OID ClientCrypto::curveId(Setup::EllipticCurve curve)
+{
+	switch (curve) {
+		CC_CURVE(secp112r1);
+		CC_CURVE(secp128r1);
+		CC_CURVE(secp160r1);
+		CC_CURVE(secp192r1);
+		CC_CURVE(secp224r1);
+		CC_CURVE(secp256r1);
+		CC_CURVE(secp384r1);
+		CC_CURVE(secp521r1);
+
+		CC_CURVE(brainpoolP160r1);
+		CC_CURVE(brainpoolP192r1);
+		CC_CURVE(brainpoolP224r1);
+		CC_CURVE(brainpoolP256r1);
+		CC_CURVE(brainpoolP320r1);
+		CC_CURVE(brainpoolP384r1);
+		CC_CURVE(brainpoolP512r1);
+
+		CC_CURVE(secp112r2);
+		CC_CURVE(secp128r2);
+		CC_CURVE(secp160r2);
+		CC_CURVE(secp160k1);
+		CC_CURVE(secp192k1);
+		CC_CURVE(secp224k1);
+		CC_CURVE(secp256k1);
+
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+}
+
+#undef CC_CURVE
 
 // ------------- Exceptions Implementation -------------
 

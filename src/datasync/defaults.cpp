@@ -63,6 +63,30 @@ QVariant Defaults::property(Defaults::PropertyKey key) const
 	return d->properties.value(key);
 }
 
+QVariant Defaults::defaultParam(Setup::SignatureScheme scheme)
+{
+	switch(scheme) {
+	case Setup::RSA_PSS_SHA3_512:
+		return 4096;
+	case Setup::ECDSA_ECP_SHA3_512:
+		return Setup::brainpoolP384r1;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+}
+
+QVariant Defaults::defaultParam(Setup::EncryptionScheme scheme)
+{
+	switch (scheme) {
+	case Setup::RSA_OAEP_SHA3_512:
+		return 4096;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+}
+
 DatabaseRef Defaults::aquireDatabase(QObject *object) const
 {
 	return DatabaseRef(new DatabaseRefPrivate(d, object));
@@ -113,14 +137,6 @@ QSqlDatabase *DatabaseRef::operator->() const
 	return &(d->db());
 }
 
-// ------------- RemoteConfig -------------
-
-RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const QHash<QByteArray, QByteArray> &headers) :
-	url(url),
-	accessKey(accessKey),
-	headers(headers)
-{}
-
 // ------------- PRIVAZE IMPLEMENTATION Defaults -------------
 
 #undef QTDATASYNC_LOG
@@ -134,7 +150,18 @@ QThreadStorage<QHash<QString, quint64>> DefaultsPrivate::dbRefHash;
 void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer)
 {
 	QMutexLocker _(&setupDefaultsMutex);
-	setupDefaults.insert(setupName, QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, properties, serializer));
+	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, properties, serializer);
+
+	//create the default propertie values if unset
+	if(!d->properties.contains(Defaults::SignKeyParam))
+		d->properties.insert(Defaults::SignKeyParam,
+							 Defaults::defaultParam((Setup::SignatureScheme)d->properties.value(Defaults::SignScheme).toInt()));
+
+	if(!d->properties.contains(Defaults::CryptKeyParam))
+		d->properties.insert(Defaults::CryptKeyParam,
+							 Defaults::defaultParam((Setup::EncryptionScheme)d->properties.value(Defaults::CryptScheme).toInt()));
+
+	setupDefaults.insert(setupName, d);
 }
 
 void DefaultsPrivate::removeDefaults(const QString &setupName)

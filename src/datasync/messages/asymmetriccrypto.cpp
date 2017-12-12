@@ -1,7 +1,5 @@
 #include "asymmetriccrypto_p.h"
 
-#include <cryptopp/oids.h>
-
 #include <qiodevicesource.h>
 #include <qiodevicesink.h>
 
@@ -31,13 +29,17 @@ public:
 // ------------- Main Implementation -------------
 
 AsymmetricCrypto::AsymmetricCrypto(const QByteArray &signatureScheme, const QByteArray &encryptionScheme, QObject *parent) :
-	QObject(parent),
-	_signature(),
-	_encryption()
+	AsymmetricCrypto(parent)
 {
-	setSignatureScheme(_signature, signatureScheme);
-	setEncryptionScheme(_encryption, encryptionScheme);
+	setSignatureScheme(signatureScheme);
+	setEncryptionScheme(encryptionScheme);
 }
+
+AsymmetricCrypto::AsymmetricCrypto(QObject *parent) :
+	QObject(parent),
+	_signature(nullptr),
+	_encryption(nullptr)
+{}
 
 QByteArray AsymmetricCrypto::signatureScheme() const
 {
@@ -118,34 +120,28 @@ QByteArray AsymmetricCrypto::decrypt(const PKCS8PrivateKey &key, RandomNumberGen
 	return plain;
 }
 
-void AsymmetricCrypto::setSignatureScheme(QScopedPointer<AsymmetricCrypto::Signature> &ptr, const QByteArray &name)
+void AsymmetricCrypto::setSignatureScheme(const QByteArray &name)
 {
-	typedef RSASS<PSS, SHA3_256> RsaScheme;
-	typedef ECDSA<ECP, SHA3_256> EccScheme;
-
 	auto stdStr = name.toStdString();
 	if(stdStr.empty())
-		ptr.reset();
-	else if(stdStr == RsaScheme::StaticAlgorithmName())
-		ptr.reset(new SignatureScheme<RsaScheme>());
-	else if(stdStr == EccScheme::StaticAlgorithmName())
-		ptr.reset(new SignatureScheme<EccScheme>());
+		_signature.reset();
+	else if(stdStr == RsaSignScheme::StaticAlgorithmName())
+		_signature.reset(new SignatureScheme<RsaSignScheme>());
+	else if(stdStr == EccSignScheme::StaticAlgorithmName())
+		_signature.reset(new SignatureScheme<EccSignScheme>());
 	else
 		throw Exception(Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
 }
 
-void AsymmetricCrypto::setEncryptionScheme(QScopedPointer<AsymmetricCrypto::Encryption> &ptr, const QByteArray &name)
+void AsymmetricCrypto::setEncryptionScheme(const QByteArray &name)
 {
-	typedef RSAES<OAEP<SHA3_256>> RsaScheme;
-	//TODO cryptopp 6.0: typedef ECIES<ECP, SHA3_256> EccScheme;
-
 	auto stdStr = name.toStdString();
 	if(stdStr.empty())
-		ptr.reset();
-	else if(stdStr == RsaScheme::StaticAlgorithmName())
-		ptr.reset(new EncryptionScheme<RsaScheme>());
+		_encryption.reset();
+	else if(stdStr == RsaCryptScheme::StaticAlgorithmName())
+		_encryption.reset(new EncryptionScheme<RsaCryptScheme>());
 //	else if(stdStr == EccScheme::StaticAlgorithmName())
-//		ptr.reset(new EncryptionScheme<EccScheme>());
+//		_encryption.reset(new EncryptionScheme<EccScheme>());
 	else
 		throw Exception(Exception::NOT_IMPLEMENTED, "Encryption Scheme \"" + stdStr + "\" not supported");
 }

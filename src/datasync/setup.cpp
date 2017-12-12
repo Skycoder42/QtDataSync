@@ -83,9 +83,24 @@ QString Setup::keyStoreProvider() const
 	return d->properties.value(Defaults::KeyStoreProvider).toString();
 }
 
-quint32 Setup::rsaKeySize() const
+Setup::SignatureScheme Setup::signatureScheme() const
 {
-	return d->properties.value(Defaults::RsaKeySize).toUInt();
+	return (SignatureScheme)d->properties.value(Defaults::SignScheme).toInt();
+}
+
+QVariant Setup::signatureKeyParam() const
+{
+	return d->properties.value(Defaults::SignKeyParam);
+}
+
+Setup::EncryptionScheme Setup::encryptionScheme() const
+{
+	return (EncryptionScheme)d->properties.value(Defaults::CryptScheme).toInt();
+}
+
+QVariant Setup::encryptionKeyParam() const
+{
+	return d->properties.value(Defaults::CryptKeyParam);
 }
 
 Setup &Setup::setLocalDir(QString localDir)
@@ -130,9 +145,27 @@ Setup &Setup::setKeyStoreProvider(QString keyStoreProvider)
 	return *this;
 }
 
-Setup &Setup::setRsaKeySize(quint32 rsaKeySize)
+Setup &Setup::setSignatureScheme(Setup::SignatureScheme signatureScheme)
 {
-	d->properties.insert(Defaults::RsaKeySize, rsaKeySize);
+	d->properties.insert(Defaults::SignScheme, signatureScheme);
+	return *this;
+}
+
+Setup &Setup::setSignatureKeyParam(QVariant signatureKeyParam)
+{
+	d->properties.insert(Defaults::SignKeyParam, signatureKeyParam);
+	return *this;
+}
+
+Setup &Setup::setEncryptionScheme(Setup::EncryptionScheme encryptionScheme)
+{
+	d->properties.insert(Defaults::CryptScheme, encryptionScheme);
+	return *this;
+}
+
+Setup &Setup::setEncryptionKeyParam(QVariant encryptionKeyParam)
+{
+	d->properties.insert(Defaults::CryptKeyParam, encryptionKeyParam);
 	return *this;
 }
 
@@ -165,9 +198,27 @@ Setup &Setup::resetKeyStoreProvider()
 	return *this;
 }
 
-Setup &Setup::resetRsaKeySize()
+Setup &Setup::resetSignatureScheme()
 {
-	d->properties.insert(Defaults::RsaKeySize, 4096);
+	d->properties.insert(Defaults::SignScheme, RSA_PSS_SHA3_512);
+	return *this;
+}
+
+Setup &Setup::resetSignatureKeyParam()
+{
+	d->properties.remove(Defaults::SignKeyParam);
+	return *this;
+}
+
+Setup &Setup::resetEncryptionScheme()
+{
+	d->properties.insert(Defaults::CryptScheme, RSA_OAEP_SHA3_512);
+	return *this;
+}
+
+Setup &Setup::resetEncryptionKeyParam()
+{
+	d->properties.remove(Defaults::CryptKeyParam);
 	return *this;
 }
 
@@ -221,6 +272,14 @@ void Setup::create(const QString &name)
 	SetupPrivate::engines.insert(name, {thread, engine});
 }
 
+// ------------- RemoteConfig -------------
+
+RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const QHash<QByteArray, QByteArray> &headers) :
+	url(url),
+	accessKey(accessKey),
+	headers(headers)
+{}
+
 // ------------- Private Implementation -------------
 
 const QString SetupPrivate::DefaultLocalDir = QStringLiteral("./qtdatasync");
@@ -262,7 +321,8 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
 		{Defaults::RemoteConfiguration, QVariant()},
 		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()},
-		{Defaults::RsaKeySize, 4096}
+		{Defaults::SignScheme, Setup::RSA_PSS_SHA3_512},
+		{Defaults::CryptScheme, Setup::RSA_OAEP_SHA3_512}
 	}),
 	fatalErrorHandler()
 {}

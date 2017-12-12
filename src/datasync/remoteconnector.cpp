@@ -290,10 +290,10 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 			if(!_userId.isNull()) {
 				//TODO login
 			} else {
-				_cryptoController->createPrivateKey(message.nonce);
-				RegisterMessage msg(QSysInfo::machineHostName(), _cryptoController->publicKey(), _cryptoController->crypto()); //TODO device name
-				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
-				_socket->sendBinaryMessage(signedMsg);
+				_cryptoController->createPrivateKeys(message.nonce);
+				//TODO RegisterMessage msg(QSysInfo::machineHostName(), _cryptoController->crypto()->signKey(), _cryptoController->crypto()); //TODO device name
+				//auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				//_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
 			}
 		}

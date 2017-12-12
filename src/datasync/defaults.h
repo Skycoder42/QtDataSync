@@ -8,10 +8,10 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qreadwritelock.h>
-#include <QtCore/qurl.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
+#include "QtDataSync/setup.h"
 
 class QSqlDatabase;
 class QJsonSerializer;
@@ -41,14 +41,6 @@ private:
 	QScopedPointer<DatabaseRefPrivate> d;
 };
 
-struct Q_DATASYNC_EXPORT RemoteConfig {
-	QUrl url;
-	QString accessKey;
-	QHash<QByteArray, QByteArray> headers;
-
-	RemoteConfig(const QUrl &url = {}, const QString &accessKey = {}, const QHash<QByteArray, QByteArray> &headers = {});
-};
-
 class DefaultsPrivate;
 //! A helper class to get defaults per datasync instance (threadsafe)
 class Q_DATASYNC_EXPORT Defaults
@@ -61,7 +53,10 @@ public:
 		SslConfiguration,
 		RemoteConfiguration,
 		KeyStoreProvider,
-		RsaKeySize
+		SignScheme,
+		SignKeyParam,
+		CryptScheme,
+		CryptKeyParam
 	};
 	Q_ENUM(PropertyKey)
 
@@ -82,6 +77,9 @@ public:
 	//! Returns the serializer of the current setup
 	const QJsonSerializer *serializer() const;
 	QVariant property(PropertyKey key) const;
+
+	static QVariant defaultParam(Setup::SignatureScheme scheme);
+	static QVariant defaultParam(Setup::EncryptionScheme scheme);
 
 	//! Aquire the standard sqlite database
 	DatabaseRef aquireDatabase(QObject *object) const;
@@ -105,7 +103,5 @@ protected:
 };
 
 }
-
-Q_DECLARE_METATYPE(QtDataSync::RemoteConfig)
 
 #endif // QTDATASYNC_DEFAULTS_H

@@ -7,9 +7,8 @@
 #include <QtCore/QException>
 #include <QtCore/QDebug>
 
-#include <cryptopp/rsa.h>
-#include <cryptopp/pssr.h>
-#include <cryptopp/sha3.h>
+#include <cryptopp/rng.h>
+#include <cryptopp/asn.h>
 
 #ifdef BUILD_QDATASYNCSERVER
 #define Q_DATASYNC_EXPORT

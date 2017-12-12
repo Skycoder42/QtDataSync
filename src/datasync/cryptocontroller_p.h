@@ -5,9 +5,7 @@
 #include <QtCore/QUuid>
 
 #include <cryptopp/osrng.h>
-#include <cryptopp/rsa.h>
-#include <cryptopp/pssr.h>
-#include <cryptopp/sha3.h>
+#include <cryptopp/oids.h>
 
 #include "qtdatasync_global.h"
 #include "defaults.h"
@@ -40,6 +38,61 @@ protected:
 	CryptoPP::Exception _exception;
 };
 
+class Q_DATASYNC_EXPORT ClientCrypto : public AsymmetricCrypto
+{
+	Q_OBJECT
+
+public:
+	ClientCrypto(QObject *parent = nullptr);
+
+	void generate(Setup::SignatureScheme signScheme,
+				  const QVariant &signKeyParam,
+				  Setup::EncryptionScheme cryptScheme,
+				  const QVariant &cryptKeyParam);
+
+	void load(const QByteArray &signScheme,
+			  const QSslKey &signKeym,
+			  const QByteArray &cryptScheme,
+			  const QSslKey &cryptKey);
+
+	CryptoPP::RandomNumberGenerator &rng();
+
+	QSharedPointer<CryptoPP::X509PublicKey> signKey() const;
+	QByteArray writeSignKey() const;
+	QSharedPointer<CryptoPP::X509PublicKey> cryptKey() const;
+	QByteArray writeCryptKey() const;
+
+	const CryptoPP::PKCS8PrivateKey &privateSignKey() const;
+	const CryptoPP::PKCS8PrivateKey &privateCryptKey() const;
+
+	QByteArray sign(const QByteArray &message);
+
+	QByteArray encrypt(const CryptoPP::X509PublicKey &key, const QByteArray &message);
+	inline QByteArray encrypt(const QSharedPointer<CryptoPP::X509PublicKey> &key, const QByteArray &message) {
+		return encrypt(*(key.data()), message);
+	}
+	QByteArray decrypt(const QByteArray &message);
+
+	static CryptoPP::OID curveId(Setup::EllipticCurve curve);
+
+private:
+	class Q_DATASYNC_EXPORT KeyScheme
+	{
+	public:
+		inline virtual ~KeyScheme() = default;
+
+		virtual QByteArray name() const = 0;
+		virtual void createPrivateKey(CryptoPP::RandomNumberGenerator &rng, const QVariant &keyParam) = 0;
+		virtual void loadPrivateKey(const QSslKey &key) = 0;
+		virtual const CryptoPP::PKCS8PrivateKey &privateKeyRef() const = 0;
+		virtual QSharedPointer<CryptoPP::X509PublicKey> createPublicKey() const = 0;
+	};
+
+	CryptoPP::AutoSeededRandomPool _rng;
+	QScopedPointer<KeyScheme> _signKey;
+	QScopedPointer<KeyScheme> _cryptKey;
+};
+
 class Q_DATASYNC_EXPORT CryptoController : public Controller
 {
 	Q_OBJECT
@@ -52,30 +105,24 @@ public:
 	void initialize() final;
 	void finalize() final;
 
-	AsymmetricCrypto *crypto() const;
+	ClientCrypto *crypto() const;
 
 	bool canAccess() const;
 	bool loadKeyMaterial(const QUuid &userId);
 
-	void createPrivateKey(quint32 nonce);
-	CryptoPP::RSA::PublicKey publicKey() const;
+	void createPrivateKeys(quint32 nonce);
 
 	template <typename TMessage>
 	QByteArray serializeSignedMessage(const TMessage &message);
 
 private:
-
-	static const QString keyPKeyTemplate;
+	static const QString keySignScheme;
+	static const QString keyCryptScheme;
+	static const QString keySignTemplate;
+	static const QString keyCryptTemplate;
 
 	KeyStore *_keyStore;
-
-	CryptoPP::AutoSeededRandomPool _rng;
-	CryptoPP::RSA::PrivateKey _privateKey;
-	AsymmetricCrypto *_crypto;
-
-	QByteArray _fingerprint;
-
-	void updateFingerprint();
+	ClientCrypto *_crypto;
 };
 
 // ------------- Generic Implementation -------------
@@ -84,7 +131,10 @@ template<typename TMessage>
 QByteArray CryptoController::serializeSignedMessage(const TMessage &message)
 {
 	try {
-		return QtDataSync::serializeSignedMessage<TMessage>(message, _privateKey, _rng, _crypto);
+		return QtDataSync::serializeSignedMessage<TMessage>(message,
+															_crypto->privateSignKey(),
+															_crypto->rng(),
+															_crypto);
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to sign message"),
