@@ -46,6 +46,16 @@ void DatabaseController::initDatabase()
 	if(!db.isOpen())
 		emit databaseInitDone(false);
 
+//#define AUTO_DROP_TABLES
+#ifdef AUTO_DROP_TABLES
+	QSqlQuery dropQuery(db);
+	if(!dropQuery.exec(QStringLiteral("DROP TABLE IF EXISTS devices, users CASCADE"))) {
+		qWarning() << "Failed to drop tables with error:"
+				   << qPrintable(dropQuery.lastError().text());
+	} else
+		qInfo() << "Dropped all existing tables";
+#endif
+
 	if(!db.tables().contains(QStringLiteral("users"))) {
 		QSqlQuery createUsers(db);
 		if(!createUsers.exec(QStringLiteral("CREATE TABLE users ( "
@@ -59,14 +69,17 @@ void DatabaseController::initDatabase()
 		}
 	}
 
+
 	if(!db.tables().contains(QStringLiteral("devices"))) {
 		QSqlQuery createDevices(db);
 		if(!createDevices.exec(QStringLiteral("CREATE TABLE devices ( "
 											  "		id			UUID PRIMARY KEY NOT NULL, "
 											  "		userid		BIGINT NOT NULL REFERENCES users(id), "
 											  "		name		TEXT NOT NULL, "
-											  "		pubkey		BYTEA NOT NULL, "
-											  "		algorithm	TEXT NOT NULL, "
+											  "		signscheme	TEXT NOT NULL, "
+											  "		signkey		BYTEA NOT NULL, "
+											  "		cryptscheme	TEXT NOT NULL, "
+											  "		cryptkey	BYTEA NOT NULL, "
 											  "		lastlogin	DATE NOT NULL DEFAULT 'today' "
 											  ")"))) {
 			qCritical() << "Failed to create devices table with error:"

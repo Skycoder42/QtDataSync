@@ -81,7 +81,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>IDENTIFY(nounce)</name>
+                         <name>IDENTIFY(nonce)</name>
                          <pos>x:255;y:60</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -299,7 +299,7 @@
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>REGISTER(algorithm, pubKey)</name>
+                         <name>REGISTER(signScheme, signKey, cryptScheme, cryptKey, name, nonce)</name>
                          <pos>x:455;y:255</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -592,7 +592,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>IDENTIFY(nounce)</name>
+                  <name>IDENTIFY(nonce)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -890,7 +890,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>REGISTER(algorithm, pubKey)</name>
+                  <name>REGISTER(signScheme, signKey, cryptScheme, cryptKey, name, nonce)</name>
                   <relations>
                    <handles>
                     <handles>
