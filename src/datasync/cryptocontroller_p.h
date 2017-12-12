@@ -51,7 +51,7 @@ public:
 				  const QVariant &cryptKeyParam);
 
 	void load(const QByteArray &signScheme,
-			  const QSslKey &signKeym,
+			  const QSslKey &signKey,
 			  const QByteArray &cryptScheme,
 			  const QSslKey &cryptKey);
 
@@ -84,6 +84,7 @@ private:
 		virtual QByteArray name() const = 0;
 		virtual void createPrivateKey(CryptoPP::RandomNumberGenerator &rng, const QVariant &keyParam) = 0;
 		virtual void loadPrivateKey(const QSslKey &key) = 0;
+		virtual QSslKey savePrivateKey() = 0;
 		virtual const CryptoPP::PKCS8PrivateKey &privateKeyRef() const = 0;
 		virtual QSharedPointer<CryptoPP::X509PublicKey> createPublicKey() const = 0;
 	};
@@ -91,6 +92,11 @@ private:
 	CryptoPP::AutoSeededRandomPool _rng;
 	QScopedPointer<KeyScheme> _signKey;
 	QScopedPointer<KeyScheme> _cryptKey;
+
+	void setSignatureKey(const QByteArray &name);
+	void setSignatureKey(Setup::SignatureScheme scheme);
+	void setEncryptionKey(const QByteArray &name);
+	void setEncryptionKey(Setup::EncryptionScheme scheme);
 };
 
 class Q_DATASYNC_EXPORT CryptoController : public Controller

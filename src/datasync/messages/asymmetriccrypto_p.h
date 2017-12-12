@@ -49,12 +49,6 @@ protected:
 	typedef CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA3_256>> RsaCryptScheme;
 	//TODO cryptopp 6.0: typedef CryptoPP::ECIES<CryptoPP::ECP, CryptoPP::SHA3_256> EccCryptScheme;
 
-	explicit AsymmetricCrypto(QObject *parent = nullptr);
-
-	void setSignatureScheme(const QByteArray &name);
-	void setEncryptionScheme(const QByteArray &name);
-
-private:
 	class Q_DATASYNC_EXPORT Scheme
 	{
 	public:
@@ -78,8 +72,13 @@ private:
 		virtual QSharedPointer<CryptoPP::PK_Decryptor> decrypt(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
 	};
 
+	explicit AsymmetricCrypto(QObject *parent = nullptr);
+
 	QScopedPointer<Signature> _signature;
 	QScopedPointer<Encryption> _encryption;
+
+	void setSignatureScheme(const QByteArray &name);
+	void setEncryptionScheme(const QByteArray &name);
 };
 
 }

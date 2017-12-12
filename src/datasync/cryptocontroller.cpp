@@ -115,6 +115,38 @@ QStringList CryptoController::allKeys()
 	return factory->allKeys();
 }
 
+// ------------- KeyScheme class definitions -------------
+
+template <typename TScheme>
+class RsaKeyScheme : public ClientCrypto::KeyScheme
+{
+public:
+	QByteArray name() const override;
+	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
+	void loadPrivateKey(const QSslKey &key) override;
+	QSslKey savePrivateKey() override;
+	const PKCS8PrivateKey &privateKeyRef() const override;
+	QSharedPointer<X509PublicKey> createPublicKey() const override;
+
+private:
+	typename TScheme::PrivateKey _key;
+};
+
+template <typename TScheme>
+class EccKeyScheme : public ClientCrypto::KeyScheme
+{
+public:
+	QByteArray name() const override;
+	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
+	void loadPrivateKey(const QSslKey &key) override;
+	QSslKey savePrivateKey() override;
+	const PKCS8PrivateKey &privateKeyRef() const override;
+	QSharedPointer<X509PublicKey> createPublicKey() const override;
+
+private:
+	typename TScheme::PrivateKey _key;
+};
+
 // ------------- ClientCrypto Implementation -------------
 
 ClientCrypto::ClientCrypto(QObject *parent) :
@@ -126,12 +158,34 @@ ClientCrypto::ClientCrypto(QObject *parent) :
 
 void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &signKeyParam, Setup::EncryptionScheme cryptScheme, const QVariant &cryptKeyParam)
 {
+	setSignatureKey(signScheme);
+	setSignatureScheme(_signKey->name());
+	setEncryptionKey(cryptScheme);
+	setEncryptionScheme(_cryptKey->name());
 
+	if(_signKey->name() != _signature->name())
+		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Signing key scheme does not match signature scheme");
+	if(_cryptKey->name() != _encryption->name())
+		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Crypting key scheme does not match encryption scheme");
+
+	_signKey->createPrivateKey(_rng, signKeyParam);
+	_cryptKey->createPrivateKey(_rng, cryptKeyParam);
 }
 
-void ClientCrypto::load(const QByteArray &signScheme, const QSslKey &signKeym, const QByteArray &cryptScheme, const QSslKey &cryptKey)
+void ClientCrypto::load(const QByteArray &signScheme, const QSslKey &signKey, const QByteArray &cryptScheme, const QSslKey &cryptKey)
 {
+	setSignatureKey(signScheme);
+	setSignatureScheme(signScheme);
+	setEncryptionKey(cryptScheme);
+	setEncryptionScheme(cryptScheme);
 
+	if(_signKey->name() != _signature->name())
+		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Signing key scheme does not match signature scheme");
+	if(_cryptKey->name() != _encryption->name())
+		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Crypting key scheme does not match encryption scheme");
+
+	_signKey->loadPrivateKey(signKey);
+	_cryptKey->loadPrivateKey(cryptKey);
 }
 
 RandomNumberGenerator &ClientCrypto::rng()
@@ -220,7 +274,149 @@ OID ClientCrypto::curveId(Setup::EllipticCurve curve)
 	}
 }
 
+void ClientCrypto::setSignatureKey(const QByteArray &name)
+{
+	auto stdStr = name.toStdString();
+	if(stdStr.empty())
+		_signKey.reset();
+	else if(stdStr == RsaSignScheme::StaticAlgorithmName())
+		_signKey.reset(new RsaKeyScheme<RsaSignScheme>());
+	else if(stdStr == EccSignScheme::StaticAlgorithmName())
+		_signKey.reset(new EccKeyScheme<EccSignScheme>());
+	else
+		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
+}
+
+void ClientCrypto::setSignatureKey(Setup::SignatureScheme scheme)
+{
+	switch (scheme) {
+	case Setup::RSA_PSS_SHA3_512:
+		setSignatureKey(QByteArray::fromStdString(RsaSignScheme::StaticAlgorithmName()));
+		break;
+	case Setup::ECDSA_ECP_SHA3_512:
+		setSignatureKey(QByteArray::fromStdString(EccSignScheme::StaticAlgorithmName()));
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+}
+
+void ClientCrypto::setEncryptionKey(const QByteArray &name)
+{
+	auto stdStr = name.toStdString();
+	if(stdStr.empty())
+		_cryptKey.reset();
+	else if(stdStr == RsaCryptScheme::StaticAlgorithmName())
+		_cryptKey.reset(new RsaKeyScheme<RsaCryptScheme>());
+	else
+		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Encryption Scheme \"" + stdStr + "\" not supported");
+}
+
+void ClientCrypto::setEncryptionKey(Setup::EncryptionScheme scheme)
+{
+	switch (scheme) {
+	case Setup::RSA_OAEP_SHA3_512:
+		setEncryptionKey(QByteArray::fromStdString(RsaCryptScheme::StaticAlgorithmName()));
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+}
+
 #undef CC_CURVE
+
+// ------------- Generic KeyScheme Implementation -------------
+
+template <typename TScheme>
+QByteArray RsaKeyScheme<TScheme>::name() const
+{
+	return QByteArray::fromStdString(TScheme::StaticAlgorithmName());
+}
+
+template <typename TScheme>
+void RsaKeyScheme<TScheme>::createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam)
+{
+	if(keyParam.type() != QVariant::Int)
+		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_ARGUMENT, "keyParam must be an unsigned integer");
+	_key.GenerateRandomWithKeySize(rng, keyParam.toUInt());
+}
+
+template <typename TScheme>
+void RsaKeyScheme<TScheme>::loadPrivateKey(const QSslKey &key)
+{
+	QByteArraySource source(key.toDer(), true);
+	_key.BERDecodePrivateKey(source, false, 0);
+}
+
+template<typename TScheme>
+QSslKey RsaKeyScheme<TScheme>::savePrivateKey()
+{
+	QByteArray data;
+	QByteArraySink sink(data);
+	_key.DEREncodePrivateKey(sink);
+	return QSslKey(data, QSsl::Rsa, QSsl::Der);
+}
+
+template <typename TScheme>
+const PKCS8PrivateKey &RsaKeyScheme<TScheme>::privateKeyRef() const
+{
+	return _key;
+}
+
+template <typename TScheme>
+QSharedPointer<X509PublicKey> RsaKeyScheme<TScheme>::createPublicKey() const
+{
+	return QSharedPointer<typename TScheme::PublicKey>::create(_key);
+}
+
+
+
+template <typename TScheme>
+QByteArray EccKeyScheme<TScheme>::name() const
+{
+	return QByteArray::fromStdString(TScheme::StaticAlgorithmName());
+}
+
+template <typename TScheme>
+void EccKeyScheme<TScheme>::createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam)
+{
+	if(keyParam.type() != QVariant::Int)
+		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_ARGUMENT, "keyParam must be a Setup::EllipticCurve");
+	auto curve = ClientCrypto::curveId((Setup::EllipticCurve)keyParam.toInt());
+	_key.Initialize(rng, curve);
+}
+
+template <typename TScheme>
+void EccKeyScheme<TScheme>::loadPrivateKey(const QSslKey &key)
+{
+	QByteArraySource source(key.toDer(), true);
+	_key.BERDecodePrivateKey(source, false, 0);
+}
+
+template<typename TScheme>
+QSslKey EccKeyScheme<TScheme>::savePrivateKey()
+{
+	QByteArray data;
+	QByteArraySink sink(data);
+	_key.DEREncodePrivateKey(sink);
+	return QSslKey(data, QSsl::Ec, QSsl::Der);
+}
+
+template <typename TScheme>
+const PKCS8PrivateKey &EccKeyScheme<TScheme>::privateKeyRef() const
+{
+	return _key;
+}
+
+template <typename TScheme>
+QSharedPointer<X509PublicKey> EccKeyScheme<TScheme>::createPublicKey() const
+{
+	auto key = QSharedPointer<typename TScheme::PublicKey>::create();
+	_key.MakePublicKey(*key);
+	return key;
+}
 
 // ------------- Exceptions Implementation -------------
 
