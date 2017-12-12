@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	//setup datasync
 	QtDataSync::Setup()
 			.setRemoteConfiguration(QUrl(QStringLiteral("ws://localhost:4242")))
+			.setSignatureScheme(QtDataSync::Setup::ECDSA_ECP_SHA3_512)
 			.create();
 
 	Widget w;

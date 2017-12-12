@@ -44,9 +44,10 @@ public:
 	QByteArray decrypt(const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message);
 
 protected:
-	typedef CryptoPP::RSASS<CryptoPP::PSS, CryptoPP::SHA3_512> RsaSignScheme;
-	typedef CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA3_512> EccSignScheme;
-	typedef CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA3_512>> RsaCryptScheme;
+	typedef CryptoPP::RSASS<CryptoPP::PSS, CryptoPP::SHA3_512> RsassScheme;
+	typedef CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA3_512> EcdsaScheme;
+	typedef CryptoPP::ECNR<CryptoPP::ECP, CryptoPP::SHA3_512> EcnrScheme;
+	typedef CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA3_512>> RsaesScheme;
 	//TODO cryptopp 6.0: typedef CryptoPP::ECIES<CryptoPP::ECP, CryptoPP::SHA3_512> EccCryptScheme;
 
 	explicit AsymmetricCrypto(QObject *parent = nullptr);

@@ -329,10 +329,12 @@ void ClientCrypto::setSignatureKey(const QByteArray &name)
 	auto stdStr = name.toStdString();
 	if(stdStr.empty())
 		_signKey.reset();
-	else if(stdStr == RsaSignScheme::StaticAlgorithmName())
-		_signKey.reset(new RsaKeyScheme<RsaSignScheme>());
-	else if(stdStr == EccSignScheme::StaticAlgorithmName())
-		_signKey.reset(new EccKeyScheme<EccSignScheme>());
+	else if(stdStr == RsassScheme::StaticAlgorithmName())
+		_signKey.reset(new RsaKeyScheme<RsassScheme>());
+	else if(stdStr == EcdsaScheme::StaticAlgorithmName())
+		_signKey.reset(new EccKeyScheme<EcdsaScheme>());
+	else if(stdStr == EcnrScheme::StaticAlgorithmName())
+		_signKey.reset(new EccKeyScheme<EcnrScheme>());
 	else
 		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
 }
@@ -341,10 +343,13 @@ void ClientCrypto::setSignatureKey(Setup::SignatureScheme scheme)
 {
 	switch (scheme) {
 	case Setup::RSA_PSS_SHA3_512:
-		setSignatureKey(QByteArray::fromStdString(RsaSignScheme::StaticAlgorithmName()));
+		setSignatureKey(QByteArray::fromStdString(RsassScheme::StaticAlgorithmName()));
 		break;
 	case Setup::ECDSA_ECP_SHA3_512:
-		setSignatureKey(QByteArray::fromStdString(EccSignScheme::StaticAlgorithmName()));
+		setSignatureKey(QByteArray::fromStdString(EcdsaScheme::StaticAlgorithmName()));
+		break;
+	case Setup::ECNR_ECP_SHA3_512:
+		setSignatureKey(QByteArray::fromStdString(EcnrScheme::StaticAlgorithmName()));
 		break;
 	default:
 		Q_UNREACHABLE();
@@ -357,8 +362,8 @@ void ClientCrypto::setEncryptionKey(const QByteArray &name)
 	auto stdStr = name.toStdString();
 	if(stdStr.empty())
 		_cryptKey.reset();
-	else if(stdStr == RsaCryptScheme::StaticAlgorithmName())
-		_cryptKey.reset(new RsaKeyScheme<RsaCryptScheme>());
+	else if(stdStr == RsaesScheme::StaticAlgorithmName())
+		_cryptKey.reset(new RsaKeyScheme<RsaesScheme>());
 	else
 		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Encryption Scheme \"" + stdStr + "\" not supported");
 }
@@ -367,7 +372,7 @@ void ClientCrypto::setEncryptionKey(Setup::EncryptionScheme scheme)
 {
 	switch (scheme) {
 	case Setup::RSA_OAEP_SHA3_512:
-		setEncryptionKey(QByteArray::fromStdString(RsaCryptScheme::StaticAlgorithmName()));
+		setEncryptionKey(QByteArray::fromStdString(RsaesScheme::StaticAlgorithmName()));
 		break;
 	default:
 		Q_UNREACHABLE();

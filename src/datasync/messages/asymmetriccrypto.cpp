@@ -127,10 +127,12 @@ void AsymmetricCrypto::setSignatureScheme(const QByteArray &name)
 	auto stdStr = name.toStdString();
 	if(stdStr.empty())
 		_signature.reset();
-	else if(stdStr == RsaSignScheme::StaticAlgorithmName())
-		_signature.reset(new SignatureScheme<RsaSignScheme>());
-	else if(stdStr == EccSignScheme::StaticAlgorithmName())
-		_signature.reset(new SignatureScheme<EccSignScheme>());
+	else if(stdStr == RsassScheme::StaticAlgorithmName())
+		_signature.reset(new SignatureScheme<RsassScheme>());
+	else if(stdStr == EcdsaScheme::StaticAlgorithmName())
+		_signature.reset(new SignatureScheme<EcdsaScheme>());
+	else if(stdStr == EcnrScheme::StaticAlgorithmName())
+		_signature.reset(new SignatureScheme<EcnrScheme>());
 	else
 		throw Exception(Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
 }
@@ -140,8 +142,8 @@ void AsymmetricCrypto::setEncryptionScheme(const QByteArray &name)
 	auto stdStr = name.toStdString();
 	if(stdStr.empty())
 		_encryption.reset();
-	else if(stdStr == RsaCryptScheme::StaticAlgorithmName())
-		_encryption.reset(new EncryptionScheme<RsaCryptScheme>());
+	else if(stdStr == RsaesScheme::StaticAlgorithmName())
+		_encryption.reset(new EncryptionScheme<RsaesScheme>());
 //	else if(stdStr == EccScheme::StaticAlgorithmName())
 //		_encryption.reset(new EncryptionScheme<EccScheme>());
 	else

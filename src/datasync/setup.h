@@ -54,7 +54,8 @@ public:
 
 	enum SignatureScheme {
 		RSA_PSS_SHA3_512,
-		ECDSA_ECP_SHA3_512
+		ECDSA_ECP_SHA3_512,
+		ECNR_ECP_SHA3_512
 	};
 	Q_ENUM(SignatureScheme)
 
