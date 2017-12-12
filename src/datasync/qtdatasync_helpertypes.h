@@ -26,7 +26,7 @@ struct is_object : public std::false_type {};
 template <class T>
 struct is_object<T*> : public std::is_base_of<QObject, T> {};
 
-//TODO c++17 disjunction
+//NOTE c++17 disjunction
 //! test if a type can be stored
 template <typename T>
 struct is_storable : public is_gadget<T> {};

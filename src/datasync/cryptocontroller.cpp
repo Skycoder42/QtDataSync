@@ -13,7 +13,7 @@ using namespace QtDataSync;
 using namespace CryptoPP;
 using Exception = QtDataSync::Exception;
 
-typedef QPluginObjectFactory<KeyStorePlugin, KeyStore> Factory; //TODO make threadlocal instance?
+typedef QPluginObjectFactory<KeyStorePlugin, KeyStore> Factory; //TODO make class threadsafe!!!
 Q_GLOBAL_STATIC_WITH_ARGS(Factory, factory, (QLatin1String("keystores")))
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
@@ -102,7 +102,7 @@ bool CryptoController::loadKeyMaterial(const QUuid &deviceId)
 
 		_crypto->load(signScheme, signKey, cryptScheme, cryptKey);
 
-		//TODO load and decrypt shared secret
+		//NOTE load and decrypt shared secret
 
 		return true;
 	} catch(CryptoPP::Exception &e) {
@@ -125,7 +125,12 @@ void CryptoController::createPrivateKeys(quint32 nonce)
 						  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
 						  defaults().property(Defaults::CryptKeyParam));
 
-		logDebug().noquote().nospace() << "Generated new RSA keys"; //TODO common fingerprint?
+#ifndef QT_NO_DEBUG
+		logDebug().noquote() << "Generated new private keys. Fingerprint:"
+							 << fingerprint().toHex();
+#else
+		logDebug() << "Generated new private keys";
+#endif
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),

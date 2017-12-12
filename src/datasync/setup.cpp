@@ -255,7 +255,6 @@ void Setup::create(const QString &name)
 					 engine, &ExchangeEngine::deleteLater);
 	// unlock as soon as the engine has been destroyed
 	QObject::connect(engine, &ExchangeEngine::destroyed, qApp, [lockFile](){
-		//TODO clear engine from cache?
 		lockFile->unlock();
 		delete lockFile;
 	}, Qt::DirectConnection);

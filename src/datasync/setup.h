@@ -42,7 +42,7 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(FatalErrorHandler fatalErrorHandler READ fatalErrorHandler WRITE setFatalErrorHandler RESET resetFatalErrorHandler)
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
-	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration) //TODO allow changing via sync/exchange manager?
+	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration)
 	Q_PROPERTY(QString keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
 	Q_PROPERTY(SignatureScheme signatureScheme READ signatureScheme WRITE setSignatureScheme RESET resetSignatureScheme)
 	Q_PROPERTY(QVariant signatureKeyParam READ signatureKeyParam WRITE setSignatureKeyParam RESET resetSignatureKeyParam)
@@ -91,7 +91,7 @@ public:
 		secp224k1,
 		secp256k1
 
-		//TODO CRYPTOPP6 add curve25519
+		//NOTE CRYPTOPP6 add curve25519
 	};
 	Q_ENUM(EllipticCurve)
 
