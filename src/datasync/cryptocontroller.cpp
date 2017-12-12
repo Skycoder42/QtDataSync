@@ -182,10 +182,9 @@ ClientCrypto::ClientCrypto(QObject *parent) :
 void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &signKeyParam, Setup::EncryptionScheme cryptScheme, const QVariant &cryptKeyParam)
 {
 	//first: clean all
-	setSignatureKey(QByteArray());
-	setSignatureScheme(QByteArray());
-	setEncryptionKey(QByteArray());
-	setEncryptionScheme(QByteArray());
+	resetSchemes();
+	_signKey.reset();
+	_cryptKey.reset();
 
 	//load all schemes
 	setSignatureKey(signScheme);
@@ -209,10 +208,9 @@ void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &s
 void ClientCrypto::load(const QByteArray &signScheme, const QSslKey &signKey, const QByteArray &cryptScheme, const QSslKey &cryptKey)
 {
 	//first: clean all
-	setSignatureKey(QByteArray());
-	setSignatureScheme(QByteArray());
-	setEncryptionKey(QByteArray());
-	setEncryptionScheme(QByteArray());
+	resetSchemes();
+	_signKey.reset();
+	_cryptKey.reset();
 
 	//load all schemes
 	setSignatureKey(signScheme);
@@ -327,9 +325,7 @@ OID ClientCrypto::curveId(Setup::EllipticCurve curve)
 void ClientCrypto::setSignatureKey(const QByteArray &name)
 {
 	auto stdStr = name.toStdString();
-	if(stdStr.empty())
-		_signKey.reset();
-	else if(stdStr == RsassScheme::StaticAlgorithmName())
+	if(stdStr == RsassScheme::StaticAlgorithmName())
 		_signKey.reset(new RsaKeyScheme<RsassScheme>());
 	else if(stdStr == EcdsaScheme::StaticAlgorithmName())
 		_signKey.reset(new EccKeyScheme<EcdsaScheme>());
@@ -360,9 +356,7 @@ void ClientCrypto::setSignatureKey(Setup::SignatureScheme scheme)
 void ClientCrypto::setEncryptionKey(const QByteArray &name)
 {
 	auto stdStr = name.toStdString();
-	if(stdStr.empty())
-		_cryptKey.reset();
-	else if(stdStr == RsaesScheme::StaticAlgorithmName())
+	if(stdStr == RsaesScheme::StaticAlgorithmName())
 		_cryptKey.reset(new RsaKeyScheme<RsaesScheme>());
 	else
 		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Encryption Scheme \"" + stdStr + "\" not supported");

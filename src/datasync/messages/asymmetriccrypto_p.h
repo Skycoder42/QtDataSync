@@ -54,6 +54,7 @@ protected:
 
 	void setSignatureScheme(const QByteArray &name);
 	void setEncryptionScheme(const QByteArray &name);
+	void resetSchemes();
 private:
 
 	class Q_DATASYNC_EXPORT Scheme

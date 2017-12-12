@@ -125,9 +125,7 @@ QByteArray AsymmetricCrypto::decrypt(const PKCS8PrivateKey &key, RandomNumberGen
 void AsymmetricCrypto::setSignatureScheme(const QByteArray &name)
 {
 	auto stdStr = name.toStdString();
-	if(stdStr.empty())
-		_signature.reset();
-	else if(stdStr == RsassScheme::StaticAlgorithmName())
+	if(stdStr == RsassScheme::StaticAlgorithmName())
 		_signature.reset(new SignatureScheme<RsassScheme>());
 	else if(stdStr == EcdsaScheme::StaticAlgorithmName())
 		_signature.reset(new SignatureScheme<EcdsaScheme>());
@@ -140,14 +138,18 @@ void AsymmetricCrypto::setSignatureScheme(const QByteArray &name)
 void AsymmetricCrypto::setEncryptionScheme(const QByteArray &name)
 {
 	auto stdStr = name.toStdString();
-	if(stdStr.empty())
-		_encryption.reset();
-	else if(stdStr == RsaesScheme::StaticAlgorithmName())
+	if(stdStr == RsaesScheme::StaticAlgorithmName())
 		_encryption.reset(new EncryptionScheme<RsaesScheme>());
 //	else if(stdStr == EccScheme::StaticAlgorithmName())
 //		_encryption.reset(new EncryptionScheme<EccScheme>());
 	else
 		throw Exception(Exception::NOT_IMPLEMENTED, "Encryption Scheme \"" + stdStr + "\" not supported");
+}
+
+void AsymmetricCrypto::resetSchemes()
+{
+	_signature.reset();
+	_encryption.reset();
 }
 
 // ------------- Generic Implementation -------------
