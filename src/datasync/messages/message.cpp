@@ -1,7 +1,5 @@
 #include "message_p.h"
-
-#include <qiodevicesource.h>
-#include <qiodevicesink.h>
+#include "asymmetriccrypto_p.h"
 
 #include <QtCore/QMetaProperty>
 
@@ -14,28 +12,7 @@ void QtDataSync::setupStream(QDataStream &stream)
 	stream.resetStatus();
 }
 
-QByteArray QtDataSync::signData(RsaScheme::Signer &signer, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message)
-{
-	QByteArray signature;
-	QByteArraySource (message, true,
-		new CryptoPP::SignerFilter(rng, signer,
-			new QByteArraySink(signature)
-	   ) // SignerFilter
-	); // QByteArraySource
-	return signature;
-}
-
-void QtDataSync::verifyData(RsaScheme::Verifier &verifier, const QByteArray &message, const QByteArray &signature)
-{
-	QByteArraySource (message + signature, true,
-		new CryptoPP::SignatureVerificationFilter(
-			verifier, nullptr,
-			CryptoPP::SignatureVerificationFilter::THROW_EXCEPTION | CryptoPP::SignatureVerificationFilter::SIGNATURE_AT_END
-		) // SignatureVerificationFilter
-	); // StringSource
-}
-
-void QtDataSync::verifySignature(QDataStream &stream, const CryptoPP::RSA::PublicKey &pubKey)
+void QtDataSync::verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto)
 {
 	auto device = stream.device();
 	auto cPos = device->pos();
@@ -51,8 +28,12 @@ void QtDataSync::verifySignature(QDataStream &stream, const CryptoPP::RSA::Publi
 	auto msgData = device->read(cPos);
 	device->seek(nPos);
 
-	RsaScheme::Verifier verifier(pubKey);
-	verifyData(verifier, msgData, signature);
+	crypto->verify(key, msgData, signature);
+}
+
+QByteArray QtDataSync::createSignature(const QByteArray &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto)
+{
+	return crypto->sign(key, rng, message);
 }
 
 

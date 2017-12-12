@@ -15,6 +15,7 @@
 #include "controller_p.h"
 
 #include "message_p.h"
+#include "asymmetriccrypto_p.h"
 
 namespace QtDataSync {
 
@@ -51,6 +52,8 @@ public:
 	void initialize() final;
 	void finalize() final;
 
+	AsymmetricCrypto *crypto() const;
+
 	bool canAccess() const;
 	bool loadKeyMaterial(const QUuid &userId);
 
@@ -68,6 +71,8 @@ private:
 
 	CryptoPP::AutoSeededRandomPool _rng;
 	CryptoPP::RSA::PrivateKey _privateKey;
+	AsymmetricCrypto *_crypto;
+
 	QByteArray _fingerprint;
 
 	void updateFingerprint();
@@ -79,8 +84,7 @@ template<typename TMessage>
 QByteArray CryptoController::serializeSignedMessage(const TMessage &message)
 {
 	try {
-		RsaScheme::Signer signer(_privateKey);
-		return QtDataSync::serializeSignedMessage<TMessage>(message, signer, _rng);
+		return QtDataSync::serializeSignedMessage<TMessage>(message, _privateKey, _rng, _crypto);
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to sign message"),

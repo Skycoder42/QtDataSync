@@ -291,7 +291,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				//TODO login
 			} else {
 				_cryptoController->createPrivateKey(message.nonce);
-				auto msg = RegisterMessage::create<RsaScheme>(QSysInfo::machineHostName(), _cryptoController->publicKey()); //TODO device name
+				RegisterMessage msg(QSysInfo::machineHostName(), _cryptoController->publicKey(), _cryptoController->crypto()); //TODO device name
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";

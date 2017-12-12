@@ -58,10 +58,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 
 			if(isType<RegisterMessage>(name)) {
 				auto msg = deserializeMessage<RegisterMessage>(stream);
-				if(msg.keyAlgorithm == RsaScheme::StaticAlgorithmName())
-					verifySignature(stream, msg.getKey<RsaScheme>());
-				else
-					throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Key algorithm " + msg.keyAlgorithm + "is not supported");
+				QScopedPointer<AsymmetricCrypto> crypto(msg.createCrypto(nullptr));
+				verifySignature(stream, msg.getKey(crypto.data()), crypto.data());
 				onRegister(msg);
 			} else {
 				qWarning() << "Unknown message received: " << message;

@@ -19,7 +19,7 @@
 
 namespace QtDataSync {
 
-typedef CryptoPP::RSASS<CryptoPP::PSS, CryptoPP::SHA3_512> RsaScheme;
+class AsymmetricCrypto;
 
 class Q_DATASYNC_EXPORT DataStreamException : public QException
 {
@@ -36,13 +36,11 @@ private:
 };
 
 void Q_DATASYNC_EXPORT setupStream(QDataStream &stream);
-QByteArray Q_DATASYNC_EXPORT signData(RsaScheme::Signer &signer,
-									  CryptoPP::RandomNumberGenerator &rng,
-									  const QByteArray &message);
-void Q_DATASYNC_EXPORT verifyData(RsaScheme::Verifier &verifier,
-								  const QByteArray &message,
-								  const QByteArray &signature);
-void Q_DATASYNC_EXPORT verifySignature(QDataStream &stream, const CryptoPP::RSA::PublicKey &pubKey);
+void Q_DATASYNC_EXPORT verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto);
+inline void verifySignature(QDataStream &stream, const QSharedPointer<CryptoPP::X509PublicKey> &key, AsymmetricCrypto *crypto) {
+	return verifySignature(stream, *(key.data()), crypto);
+}
+QByteArray Q_DATASYNC_EXPORT createSignature(const QByteArray &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
 
 template <typename TMessage>
 void serializeMessage(QDataStream &stream, const TMessage &message, bool withName = true);
@@ -50,8 +48,9 @@ template <typename TMessage>
 QByteArray serializeMessage(const TMessage &message);
 template <typename TMessage>
 QByteArray serializeSignedMessage(const TMessage &message,
-								  RsaScheme::Signer &signer,
-								  CryptoPP::RandomNumberGenerator &rng);
+								  const CryptoPP::PKCS8PrivateKey &key,
+								  CryptoPP::RandomNumberGenerator &rng,
+								  AsymmetricCrypto *crypto);
 
 template <typename TMessage>
 inline bool isType(const QByteArray &name);
@@ -83,14 +82,14 @@ QByteArray serializeMessage(const TMessage &message)
 }
 
 template<typename TMessage>
-QByteArray serializeSignedMessage(const TMessage &message, RsaScheme::Signer &signer, CryptoPP::RandomNumberGenerator &rng)
+QByteArray serializeSignedMessage(const TMessage &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto)
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
 	QByteArray out;
 	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
 	setupStream(stream);
 	serializeMessage(stream, message, true);
-	stream << signData(signer, rng, out);
+	stream << createSignature(out, key, rng, crypto);
 	return out;
 }
 

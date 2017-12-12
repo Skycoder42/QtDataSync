@@ -20,7 +20,6 @@ class Q_DATASYNC_EXPORT AsymmetricCrypto : public QObject
 public:
 	explicit AsymmetricCrypto(const QByteArray &signatureScheme,
 							  const QByteArray &encryptionScheme,
-							  CryptoPP::RandomNumberGenerator &rng,
 							  QObject *parent = nullptr);
 
 	QByteArray signatureScheme() const;
@@ -36,13 +35,13 @@ public:
 	inline void verify(const QSharedPointer<CryptoPP::X509PublicKey> &key, const QByteArray &message, const QByteArray &signature) {
 		verify(*(key.data()), message, signature);
 	}
-	QByteArray sign(const CryptoPP::PKCS8PrivateKey &key, const QByteArray &message);
+	QByteArray sign(const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message);
 
-	QByteArray encrypt(const CryptoPP::X509PublicKey &key, const QByteArray &message);
-	inline QByteArray encrypt(const QSharedPointer<CryptoPP::X509PublicKey> &key, const QByteArray &message) {
-		return encrypt(*(key.data()), message);
+	QByteArray encrypt(const CryptoPP::X509PublicKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message);
+	inline QByteArray encrypt(const QSharedPointer<CryptoPP::X509PublicKey> &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message) {
+		return encrypt(*(key.data()), rng, message);
 	}
-	QByteArray decrypt(const CryptoPP::PKCS8PrivateKey &key, const QByteArray &message);
+	QByteArray decrypt(const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message);
 
 
 private:
@@ -58,7 +57,7 @@ private:
 	class Q_DATASYNC_EXPORT Signature : public Scheme
 	{
 	public:
-		virtual QSharedPointer<CryptoPP::PK_Signer> signer(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
+		virtual QSharedPointer<CryptoPP::PK_Signer> sign(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
 		virtual QSharedPointer<CryptoPP::PK_Verifier> verify(const CryptoPP::X509PublicKey &pubKey) const = 0;
 	};
 
@@ -69,9 +68,11 @@ private:
 		virtual QSharedPointer<CryptoPP::PK_Decryptor> decrypt(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
 	};
 
-	CryptoPP::RandomNumberGenerator &_rng;
 	QScopedPointer<Signature> _signature;
 	QScopedPointer<Encryption> _encryption;
+
+	static void setSignatureScheme(QScopedPointer<Signature> &ptr, const QByteArray &name);
+	static void setEncryptionScheme(QScopedPointer<Encryption> &ptr, const QByteArray &name);
 };
 
 }

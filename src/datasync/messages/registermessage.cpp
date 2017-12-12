@@ -1,8 +1,5 @@
 #include "registermessage_p.h"
 
-#include <qiodevicesink.h>
-#include <qiodevicesource.h>
-
 using namespace QtDataSync;
 
 RegisterMessage::RegisterMessage() :
@@ -11,22 +8,27 @@ RegisterMessage::RegisterMessage() :
 	deviceName()
 {}
 
-void RegisterMessage::getKey(CryptoPP::X509PublicKey &key) const
+RegisterMessage::RegisterMessage(const QString &deviceName, const CryptoPP::X509PublicKey &pubKey, AsymmetricCrypto *crypto) :
+	keyAlgorithm(crypto->signatureScheme()),
+	pubKey(crypto->writeKey(pubKey)),
+	deviceName(deviceName)
+{}
+
+AsymmetricCrypto *RegisterMessage::createCrypto(QObject *parent)
 {
-	QByteArraySource source(pubKey, true);
-	key.BERDecodePublicKey(source, false, 0);
+	return new AsymmetricCrypto(keyAlgorithm, {}, parent);
 }
 
-void RegisterMessage::setKey(const CryptoPP::X509PublicKey &key)
+QSharedPointer<CryptoPP::X509PublicKey> RegisterMessage::getKey(AsymmetricCrypto *crypto)
 {
-	pubKey.clear();
-	QByteArraySink sink(pubKey);
-	key.DEREncodePublicKey(sink);
+	if(crypto->signatureScheme() != keyAlgorithm)
+		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_ARGUMENT, "Signature scheme of passed crypto object does not match the messages scheme");
+	return crypto->readKey(true, pubKey);
 }
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
 {
-	stream << QByteArray::fromStdString(message.keyAlgorithm)
+	stream << message.keyAlgorithm
 		   << message.pubKey
 		   << message.deviceName;
 	return stream;
@@ -35,11 +37,9 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
 {
 	stream.startTransaction();
-	QByteArray keyAlg;
-	stream >> keyAlg
+	stream >> message.keyAlgorithm
 		   >> message.pubKey
 		   >> message.deviceName;
-	message.keyAlgorithm = keyAlg.toStdString();
 	stream.commitTransaction();
 	return stream;
 }
@@ -47,6 +47,6 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &messag
 QDebug QtDataSync::operator<<(QDebug debug, const RegisterMessage &message)
 {
 	QDebugStateSaver saver(debug);
-	debug << QByteArray::fromStdString(message.keyAlgorithm) << message.deviceName;
+	debug << message.keyAlgorithm << message.deviceName;
 	return debug;
 }

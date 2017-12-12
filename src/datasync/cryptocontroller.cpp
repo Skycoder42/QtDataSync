@@ -25,7 +25,8 @@ CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
 	Controller("crypto", defaults, parent),
 	_keyStore(nullptr),
 	_rng(true),
-	_privateKey()
+	_privateKey(),
+	_crypto(nullptr)
 {}
 
 void CryptoController::initialize()
@@ -37,12 +38,19 @@ void CryptoController::initialize()
 					  << provider
 					  << "- synchronization will be temporarily disabled";
 	}
+
+	_crypto = new AsymmetricCrypto("test1", "test2", this); //TODO schemes
 }
 
 void CryptoController::finalize()
 {
 	if(_keyStore)
 		_keyStore->closeStore();
+}
+
+AsymmetricCrypto *CryptoController::crypto() const
+{
+	return _crypto;
 }
 
 bool CryptoController::canAccess() const
