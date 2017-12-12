@@ -3,6 +3,8 @@
 
 #include "message_p.h"
 
+#include <cryptopp/rng.h>
+
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT IdentifyMessage
@@ -14,7 +16,7 @@ class Q_DATASYNC_EXPORT IdentifyMessage
 public:
 	IdentifyMessage(quint32 nonce = 0);
 
-	static IdentifyMessage createRandom();
+	static IdentifyMessage createRandom(CryptoPP::RandomNumberGenerator &rng);
 
 	quint32 nonce;
 };

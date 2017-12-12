@@ -11,7 +11,7 @@ const QString RemoteConnector::keyRemoteEnabled(QStringLiteral("enabled"));
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remote/url"));
 const QString RemoteConnector::keyAccessKey(QStringLiteral("remote/accessKey"));
 const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
-const QString RemoteConnector::keyUserId(QStringLiteral("userId"));
+const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
@@ -19,7 +19,7 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_socket(nullptr),
 	_changingConnection(false),
 	_state(RemoteDisconnected),
-	_userId()
+	_deviceId()
 {}
 
 void RemoteConnector::initialize()
@@ -218,14 +218,14 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 bool RemoteConnector::loadIdentity()
 {
 	try {
-		if(!_cryptoController->canAccess()) //no keystore -> can neither save nor load...
+		if(!_cryptoController->canAccessStore()) //no keystore -> can neither save nor load...
 			return false;
 
-		_userId = sValue(keyUserId).toUuid();
-		if(_userId.isNull()) //no user -> nothing to be loaded
+		_deviceId = sValue(keyDeviceId).toUuid();
+		if(_deviceId.isNull()) //no user -> nothing to be loaded
 			return true;
 
-		return _cryptoController->loadKeyMaterial(_userId);
+		return _cryptoController->loadKeyMaterial(_deviceId);
 	} catch(Exception &e) {
 		logCritical() << e.what();
 		return false;
@@ -287,13 +287,17 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 		if(_state != RemoteLoadingState)
 			logWarning() << "Unexpected identify message:" << message;
 		else {
-			if(!_userId.isNull()) {
+			if(!_deviceId.isNull()) {
 				//TODO login
 			} else {
 				_cryptoController->createPrivateKeys(message.nonce);
-				//TODO RegisterMessage msg(QSysInfo::machineHostName(), _cryptoController->crypto()->signKey(), _cryptoController->crypto()); //TODO device name
-				//auto signedMsg = _cryptoController->serializeSignedMessage(msg);
-				//_socket->sendBinaryMessage(signedMsg);
+				RegisterMessage msg(QSysInfo::machineHostName(),
+									message.nonce,
+									_cryptoController->crypto()->signKey(),
+									_cryptoController->crypto()->cryptKey(),
+									_cryptoController->crypto()); //TODO device name
+				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
 			}
 		}

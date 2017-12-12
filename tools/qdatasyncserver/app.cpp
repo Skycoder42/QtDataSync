@@ -73,6 +73,7 @@ int App::startupApp(const QCommandLineParser &parser)
 	mainPool = new QThreadPool(this);
 	auto threadCount = config->value(QStringLiteral("threads"), QThread::idealThreadCount()).toInt();
 	mainPool->setMaxThreadCount(threadCount);
+	mainPool->setExpiryTimeout(10 * 60 * 1000); // 10 min
 
 	database = new DatabaseController(this);
 	connect(database, &DatabaseController::databaseInitDone,

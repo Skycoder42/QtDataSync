@@ -1,20 +1,14 @@
 #include "identifymessage_p.h"
 
-#include <QtCore/QThreadStorage>
-
-#include <cryptopp/osrng.h>
-
 using namespace QtDataSync;
-
-static QThreadStorage<CryptoPP::AutoSeededRandomPool> rng;
 
 IdentifyMessage::IdentifyMessage(quint32 nounce) :
 	nonce(nounce)
 {}
 
-IdentifyMessage IdentifyMessage::createRandom()
+IdentifyMessage IdentifyMessage::createRandom(CryptoPP::RandomNumberGenerator &rng)
 {
-	return (quint32)rng.localData().GenerateWord32();
+	return (quint32)rng.GenerateWord32();
 }
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const IdentifyMessage &message)

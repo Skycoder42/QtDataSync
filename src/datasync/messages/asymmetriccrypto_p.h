@@ -25,7 +25,7 @@ public:
 	QByteArray signatureScheme() const;
 	QByteArray encryptionScheme() const;
 
-	QSharedPointer<CryptoPP::X509PublicKey> readKey(bool signKey, const QByteArray &data) const;
+	QSharedPointer<CryptoPP::X509PublicKey> readKey(bool signKey, CryptoPP::RandomNumberGenerator &rng, const QByteArray &data) const;
 	QByteArray writeKey(const CryptoPP::X509PublicKey &key) const;
 	inline QByteArray writeKey(const QSharedPointer<CryptoPP::X509PublicKey> &key) const {
 		return writeKey(*(key.data()));
@@ -44,10 +44,16 @@ public:
 	QByteArray decrypt(const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message);
 
 protected:
-	typedef CryptoPP::RSASS<CryptoPP::PSS, CryptoPP::SHA3_256> RsaSignScheme;
-	typedef CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA3_256> EccSignScheme;
-	typedef CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA3_256>> RsaCryptScheme;
-	//TODO cryptopp 6.0: typedef CryptoPP::ECIES<CryptoPP::ECP, CryptoPP::SHA3_256> EccCryptScheme;
+	typedef CryptoPP::RSASS<CryptoPP::PSS, CryptoPP::SHA3_512> RsaSignScheme;
+	typedef CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA3_512> EccSignScheme;
+	typedef CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA3_512>> RsaCryptScheme;
+	//TODO cryptopp 6.0: typedef CryptoPP::ECIES<CryptoPP::ECP, CryptoPP::SHA3_512> EccCryptScheme;
+
+	explicit AsymmetricCrypto(QObject *parent = nullptr);
+
+	void setSignatureScheme(const QByteArray &name);
+	void setEncryptionScheme(const QByteArray &name);
+private:
 
 	class Q_DATASYNC_EXPORT Scheme
 	{
@@ -72,13 +78,8 @@ protected:
 		virtual QSharedPointer<CryptoPP::PK_Decryptor> decrypt(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
 	};
 
-	explicit AsymmetricCrypto(QObject *parent = nullptr);
-
 	QScopedPointer<Signature> _signature;
 	QScopedPointer<Encryption> _encryption;
-
-	void setSignatureScheme(const QByteArray &name);
-	void setEncryptionScheme(const QByteArray &name);
 };
 
 }

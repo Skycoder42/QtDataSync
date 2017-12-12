@@ -4,8 +4,11 @@
 #include <QtCore/QJsonValue>
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
+#include <QtCore/QThreadStorage>
 
 #include <QtWebSockets/QWebSocket>
+
+#include <cryptopp/osrng.h>
 
 #include "databasecontroller.h"
 
@@ -35,6 +38,8 @@ private slots:
 	void closeClient();
 
 private:
+	static QThreadStorage<CryptoPP::AutoSeededRandomPool> rngPool;
+
 	DatabaseController *database;
 	QWebSocket *socket;
 	QUuid userId;

@@ -5,7 +5,6 @@
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QDataStream>
 
-#include <cryptoqq.h>
 #include <qiodevicesink.h>
 #include <qiodevicesource.h>
 #include <qpluginfactory.h>
@@ -54,26 +53,48 @@ ClientCrypto *CryptoController::crypto() const
 	return _crypto;
 }
 
-bool CryptoController::canAccess() const
+QByteArray CryptoController::fingerprint() const
+{
+	if(_fingerprint.isEmpty()) {
+		try {
+			QCryptographicHash hash(QCryptographicHash::Sha3_256);
+			hash.addData(_crypto->signatureScheme());
+			hash.addData(_crypto->writeSignKey());
+			hash.addData(_crypto->encryptionScheme());
+			hash.addData(_crypto->writeCryptKey());
+			_fingerprint = hash.result();
+		} catch(CryptoPP::Exception &e) {
+			throw CryptoException(defaults(),
+								  QStringLiteral("Failed to generate device fingerprint"),
+								  e);
+		}
+	}
+
+	return _fingerprint;
+}
+
+bool CryptoController::canAccessStore() const
 {
 	return _keyStore && _keyStore->loadStore();
 }
 
-bool CryptoController::loadKeyMaterial(const QUuid &userId)
+bool CryptoController::loadKeyMaterial(const QUuid &deviceId)
 {
-	if(!canAccess())
+	if(!canAccessStore())
 		return false;
 
 	try {
+		_fingerprint.clear();
+
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
-		auto signKey = _keyStore->loadPrivateKey(keySignTemplate.arg(userId.toString()));
+		auto signKey = _keyStore->loadPrivateKey(keySignTemplate.arg(deviceId.toString()));
 		if(signKey.isNull()) {
 			logCritical() << "Unable to load private signing key from keystore";
 			return false;
 		}
 
 		auto cryptScheme = settings()->value(keyCryptScheme).toByteArray();
-		auto cryptKey = _keyStore->loadPrivateKey(keyCryptTemplate.arg(userId.toString()));
+		auto cryptKey = _keyStore->loadPrivateKey(keyCryptTemplate.arg(deviceId.toString()));
 		if(cryptKey.isNull()) {
 			logCritical() << "Unable to load private encryption key from keystore";
 			return false;
@@ -94,6 +115,8 @@ bool CryptoController::loadKeyMaterial(const QUuid &userId)
 void CryptoController::createPrivateKeys(quint32 nonce)
 {
 	try {
+		_fingerprint.clear();
+
 		if(_crypto->rng().CanIncorporateEntropy())
 			_crypto->rng().IncorporateEntropy((byte*)&nonce, sizeof(nonce));
 
@@ -110,7 +133,7 @@ void CryptoController::createPrivateKeys(quint32 nonce)
 	}
 }
 
-QStringList CryptoController::allKeys()
+QStringList CryptoController::allKeystoreKeys()
 {
 	return factory->allKeys();
 }
@@ -158,39 +181,66 @@ ClientCrypto::ClientCrypto(QObject *parent) :
 
 void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &signKeyParam, Setup::EncryptionScheme cryptScheme, const QVariant &cryptKeyParam)
 {
+	//first: clean all
+	setSignatureKey(QByteArray());
+	setSignatureScheme(QByteArray());
+	setEncryptionKey(QByteArray());
+	setEncryptionScheme(QByteArray());
+
+	//load all schemes
 	setSignatureKey(signScheme);
 	setSignatureScheme(_signKey->name());
 	setEncryptionKey(cryptScheme);
 	setEncryptionScheme(_cryptKey->name());
 
-	if(_signKey->name() != _signature->name())
+	if(_signKey->name() != signatureScheme())
 		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Signing key scheme does not match signature scheme");
-	if(_cryptKey->name() != _encryption->name())
+	if(_cryptKey->name() != encryptionScheme())
 		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Crypting key scheme does not match encryption scheme");
 
 	_signKey->createPrivateKey(_rng, signKeyParam);
+	if(!_signKey->privateKeyRef().Validate(_rng, 3))
+		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
 	_cryptKey->createPrivateKey(_rng, cryptKeyParam);
+	if(!_cryptKey->privateKeyRef().Validate(_rng, 3))
+		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
 }
 
 void ClientCrypto::load(const QByteArray &signScheme, const QSslKey &signKey, const QByteArray &cryptScheme, const QSslKey &cryptKey)
 {
+	//first: clean all
+	setSignatureKey(QByteArray());
+	setSignatureScheme(QByteArray());
+	setEncryptionKey(QByteArray());
+	setEncryptionScheme(QByteArray());
+
+	//load all schemes
 	setSignatureKey(signScheme);
 	setSignatureScheme(signScheme);
 	setEncryptionKey(cryptScheme);
 	setEncryptionScheme(cryptScheme);
 
-	if(_signKey->name() != _signature->name())
+	if(_signKey->name() != signatureScheme())
 		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Signing key scheme does not match signature scheme");
-	if(_cryptKey->name() != _encryption->name())
+	if(_cryptKey->name() != encryptionScheme())
 		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Crypting key scheme does not match encryption scheme");
 
 	_signKey->loadPrivateKey(signKey);
+	if(!_signKey->privateKeyRef().Validate(_rng, 3))
+		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
 	_cryptKey->loadPrivateKey(cryptKey);
+	if(!_cryptKey->privateKeyRef().Validate(_rng, 3))
+		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
 }
 
 RandomNumberGenerator &ClientCrypto::rng()
 {
 	return _rng;
+}
+
+QSharedPointer<X509PublicKey> ClientCrypto::readKey(bool signKey, const QByteArray &data)
+{
+	return AsymmetricCrypto::readKey(signKey, _rng, data);
 }
 
 QSharedPointer<X509PublicKey> ClientCrypto::signKey() const

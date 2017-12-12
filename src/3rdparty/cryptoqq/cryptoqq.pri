@@ -1,11 +1,9 @@
 HEADERS += \
 	$$PWD/qiodevicesource.h \
-	$$PWD/qiodevicesink.h \
-    $$PWD/cryptoqq.h
+	$$PWD/qiodevicesink.h
 
 SOURCES += \
 	$$PWD/qiodevicesource.cpp \
-	$$PWD/qiodevicesink.cpp \
-    $$PWD/cryptoqq.cpp
+	$$PWD/qiodevicesink.cpp
 
 INCLUDEPATH += $$PWD

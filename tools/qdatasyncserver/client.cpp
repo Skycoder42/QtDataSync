@@ -9,6 +9,8 @@
 
 using namespace QtDataSync;
 
+QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
+
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
 	database(database),
@@ -29,8 +31,12 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	connect(socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
-	//initialize connection by sending indent message
-	socket->sendBinaryMessage(serializeMessage(IdentifyMessage::createRandom()));
+	runCount++;
+	QtConcurrent::run(qApp->threadPool(), [this]() {
+		//initialize connection by sending indent message
+		sendMessage(serializeMessage(IdentifyMessage::createRandom(rngPool.localData())));
+		runCount--;
+	});
 }
 
 QUuid Client::deviceId() const
@@ -59,7 +65,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			if(isType<RegisterMessage>(name)) {
 				auto msg = deserializeMessage<RegisterMessage>(stream);
 				QScopedPointer<AsymmetricCrypto> crypto(msg.createCrypto(nullptr));
-				verifySignature(stream, msg.getKey(crypto.data()), crypto.data());
+				verifySignature(stream, msg.getSignKey(rngPool.localData(), crypto.data()), crypto.data());
 				onRegister(msg);
 			} else {
 				qWarning() << "Unknown message received: " << message;

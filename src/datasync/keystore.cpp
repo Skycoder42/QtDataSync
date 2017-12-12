@@ -8,14 +8,14 @@ KeyStore::KeyStore(QObject *parent) :
 
 QStringList KeyStore::listProviders()
 {
-	return CryptoController::allKeys();
+	return CryptoController::allKeystoreKeys();
 }
 
 QString KeyStore::defaultProvider()
 {
 #ifdef Q_OS_LINUX
 	auto kwallet = QStringLiteral("kwallet");
-	if(CryptoController::allKeys().contains(kwallet))
+	if(CryptoController::allKeystoreKeys().contains(kwallet))
 		return kwallet;
 #endif
 	return QStringLiteral("plain");

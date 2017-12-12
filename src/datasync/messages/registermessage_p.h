@@ -16,22 +16,31 @@ class Q_DATASYNC_EXPORT RegisterMessage
 {
 	Q_GADGET
 
-	Q_PROPERTY(QByteArray keyAlgorithm MEMBER keyAlgorithm)
-	Q_PROPERTY(QByteArray pubKey MEMBER pubKey)
+	Q_PROPERTY(QByteArray signAlgorithm MEMBER signAlgorithm)
+	Q_PROPERTY(QByteArray signKey MEMBER signKey)
+	Q_PROPERTY(QByteArray cryptAlgorithm MEMBER cryptAlgorithm)
+	Q_PROPERTY(QByteArray cryptKey MEMBER cryptKey)
 	Q_PROPERTY(QString deviceName MEMBER deviceName)
+	Q_PROPERTY(quint32 nonce MEMBER nonce)
 
 public:
 	RegisterMessage();
 	RegisterMessage(const QString &deviceName,
-					const CryptoPP::X509PublicKey &pubKey,
+					quint32 nonce,
+					const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
+					const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
 					AsymmetricCrypto *crypto);
 
-	QByteArray keyAlgorithm;
-	QByteArray pubKey;
+	QByteArray signAlgorithm;
+	QByteArray signKey;
+	QByteArray cryptAlgorithm;
+	QByteArray cryptKey;
 	QString deviceName;
+	quint32 nonce;
 
 	AsymmetricCrypto *createCrypto(QObject *parent = nullptr);
-	QSharedPointer<CryptoPP::X509PublicKey> getKey(AsymmetricCrypto *crypto);
+	QSharedPointer<CryptoPP::X509PublicKey> getSignKey(CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
+	QSharedPointer<CryptoPP::X509PublicKey> getCryptKey(CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterMessage &message);

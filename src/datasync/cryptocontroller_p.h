@@ -57,6 +57,8 @@ public:
 
 	CryptoPP::RandomNumberGenerator &rng();
 
+	QSharedPointer<CryptoPP::X509PublicKey> readKey(bool signKey, const QByteArray &data);
+
 	QSharedPointer<CryptoPP::X509PublicKey> signKey() const;
 	QByteArray writeSignKey() const;
 	QSharedPointer<CryptoPP::X509PublicKey> cryptKey() const;
@@ -106,15 +108,16 @@ class Q_DATASYNC_EXPORT CryptoController : public Controller
 public:
 	explicit CryptoController(const Defaults &defaults, QObject *parent = nullptr);
 
-	static QStringList allKeys();
+	static QStringList allKeystoreKeys();
 
 	void initialize() final;
 	void finalize() final;
 
 	ClientCrypto *crypto() const;
+	QByteArray fingerprint() const;
 
-	bool canAccess() const;
-	bool loadKeyMaterial(const QUuid &userId);
+	bool canAccessStore() const;
+	bool loadKeyMaterial(const QUuid &deviceId);
 
 	void createPrivateKeys(quint32 nonce);
 
@@ -129,6 +132,8 @@ private:
 
 	KeyStore *_keyStore;
 	ClientCrypto *_crypto;
+
+	mutable QByteArray _fingerprint;
 };
 
 // ------------- Generic Implementation -------------

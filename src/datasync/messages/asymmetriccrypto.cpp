@@ -51,13 +51,15 @@ QByteArray AsymmetricCrypto::encryptionScheme() const
 	return _encryption->name();
 }
 
-QSharedPointer<X509PublicKey> AsymmetricCrypto::readKey(bool signKey, const QByteArray &data) const
+QSharedPointer<X509PublicKey> AsymmetricCrypto::readKey(bool signKey, CryptoPP::RandomNumberGenerator &rng, const QByteArray &data) const
 {
 	auto key = signKey ?
 				   _signature->createNullKey() :
 				   _encryption->createNullKey();
 	QByteArraySource source(data, true);
 	key->Load(source);
+	if(!key->Validate(rng, 2))
+	   throw Exception(Exception::INVALID_DATA_FORMAT, "Key failed validation");
 	return key;
 }
 

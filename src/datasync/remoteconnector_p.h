@@ -24,7 +24,7 @@ public:
 	static const QString keyRemoteUrl;
 	static const QString keyAccessKey;
 	static const QString keyHeaders;
-	static const QString keyUserId;
+	static const QString keyDeviceId;
 
 	//! Describes the current state of the connector
 	enum RemoteState {
@@ -61,7 +61,7 @@ private:
 	bool _changingConnection;
 	RemoteState _state;
 
-	QUuid _userId;
+	QUuid _deviceId;
 
 	bool checkCanSync(QUrl &remoteUrl);
 	bool loadIdentity();
