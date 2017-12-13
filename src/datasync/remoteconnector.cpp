@@ -1,6 +1,8 @@
 #include "remoteconnector_p.h"
 #include "logger.h"
 
+#include <QtCore/QSysInfo>
+
 #include "registermessage_p.h"
 
 using namespace QtDataSync;
@@ -12,6 +14,7 @@ const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remote/url"));
 const QString RemoteConnector::keyAccessKey(QStringLiteral("remote/accessKey"));
 const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
+const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
@@ -31,7 +34,11 @@ void RemoteConnector::initialize()
 
 void RemoteConnector::finalize()
 {
-	//TODO disconnect socket
+	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
+		_changingConnection = true;
+		_socket->close();
+		//TODO wait for disconnect?
+	}
 
 	_cryptoController->finalize();
 }
@@ -269,6 +276,8 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return QVariant::fromValue(config.headers);
 	else if(key == keyRemoteEnabled)
 		return true;
+	else if(key == keyDeviceName)
+		return QSysInfo::machineHostName();
 	else
 		return {};
 }
@@ -285,17 +294,17 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	try {
 		if(_state != RemoteLoadingState)
-			logWarning() << "Unexpected identify message:" << message;
+			logWarning() << "Unexpected identify message";
 		else {
 			if(!_deviceId.isNull()) {
 				//TODO login
 			} else {
 				_cryptoController->createPrivateKeys(message.nonce);
-				RegisterMessage msg(QSysInfo::machineHostName(),
+				RegisterMessage msg(sValue(keyDeviceName).toString(),
 									message.nonce,
 									_cryptoController->crypto()->signKey(),
 									_cryptoController->crypto()->cryptKey(),
-									_cryptoController->crypto()); //TODO device name
+									_cryptoController->crypto());
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";

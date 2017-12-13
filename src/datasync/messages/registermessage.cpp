@@ -11,7 +11,7 @@ RegisterMessage::RegisterMessage() :
 	nonce()
 {}
 
-RegisterMessage::RegisterMessage(const QString &deviceName, quint32 nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
+RegisterMessage::RegisterMessage(const QString &deviceName, quint64 nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
 	signAlgorithm(crypto->signatureScheme()),
 	signKey(crypto->writeKey(signKey)),
 	cryptAlgorithm(crypto->encryptionScheme()),

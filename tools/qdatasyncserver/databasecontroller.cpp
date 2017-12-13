@@ -4,9 +4,24 @@
 #include <QtCore/QJsonDocument>
 
 #include <QtSql/QSqlQuery>
-#include <QtSql/QSqlError>
 
 #include <QtConcurrent/QtConcurrentRun>
+
+namespace {
+
+class Query : public QSqlQuery
+{
+public:
+	Query(QSqlDatabase db);
+
+	void prepare(const QString &query);
+	void exec();
+
+private:
+	QSqlDatabase _db;
+};
+
+}
 
 DatabaseController::DatabaseController(QObject *parent) :
 	QObject(parent),
@@ -18,6 +33,7 @@ DatabaseController::DatabaseController(QObject *parent) :
 
 void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 {
+	//TODO work with exceptions etc.
 	QtConcurrent::run(qApp->threadPool(), [this, offlineSinceDays]() {
 		auto db = threadStore.localData().database();
 		if(!db.transaction()) {
@@ -40,68 +56,95 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 	});
 }
 
+QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey)
+{
+	auto db = threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
+
+	//create a new user
+	Query createIdentityQuery(db);
+	createIdentityQuery.prepare(QStringLiteral("INSERT INTO users DEFAULT VALUES "
+											   "RETURNING id"));
+	createIdentityQuery.exec();
+	if(!createIdentityQuery.first())
+		throw DatabaseException(db);
+	auto userId = createIdentityQuery.value(0).toLongLong();
+
+	//create a device entry
+	auto deviceId = QUuid::createUuid();
+	QSqlQuery createDeviceQuery(db);
+	createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
+											 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey) "
+											 "VALUES(?, ?, ?, ?, ?, ?, ?) "));
+	createDeviceQuery.addBindValue(deviceId);
+	createDeviceQuery.addBindValue(userId);
+	createDeviceQuery.addBindValue(name);
+	createDeviceQuery.addBindValue(signScheme);
+	createDeviceQuery.addBindValue(signKey);
+	createDeviceQuery.addBindValue(cryptScheme);
+	createDeviceQuery.addBindValue(cryptKey);
+	createDeviceQuery.exec();
+
+	if(!db.commit())
+		throw DatabaseException(db);
+
+	return deviceId;
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();
-	if(!db.isOpen())
+	if(!db.isOpen()) {
 		emit databaseInitDone(false);
+		return;
+	}
 
+	try {
 //#define AUTO_DROP_TABLES
 #ifdef AUTO_DROP_TABLES
-	QSqlQuery dropQuery(db);
-	if(!dropQuery.exec(QStringLiteral("DROP TABLE IF EXISTS devices, users CASCADE"))) {
-		qWarning() << "Failed to drop tables with error:"
-				   << qPrintable(dropQuery.lastError().text());
-	} else
-		qInfo() << "Dropped all existing tables";
+		QSqlQuery dropQuery(db);
+		if(!dropQuery.exec(QStringLiteral("DROP TABLE IF EXISTS devices, users CASCADE"))) {
+			qWarning() << "Failed to drop tables with error:"
+					   << qPrintable(dropQuery.lastError().text());
+		} else
+			qInfo() << "Dropped all existing tables";
 #endif
 
-	if(!db.tables().contains(QStringLiteral("users"))) {
-		QSqlQuery createUsers(db);
-		if(!createUsers.exec(QStringLiteral("CREATE TABLE users ( "
-										   "	id			BIGSERIAL PRIMARY KEY NOT NULL, "
-										   "	keycount	INT NOT NULL DEFAULT 0 "
-										   ")"))) {
-			qCritical() << "Failed to create users table with error:"
-						<< qPrintable(createUsers.lastError().text());
-			emit databaseInitDone(false);
-			return;
+		if(!db.tables().contains(QStringLiteral("users"))) {
+			QSqlQuery createUsers(db);
+			if(!createUsers.exec(QStringLiteral("CREATE TABLE users ( "
+											   "	id			BIGSERIAL PRIMARY KEY NOT NULL, "
+											   "	keycount	INT NOT NULL DEFAULT 0 "
+											   ")"))) {
+				throw DatabaseException(createUsers);
+			}
 		}
-	}
 
 
-	if(!db.tables().contains(QStringLiteral("devices"))) {
-		QSqlQuery createDevices(db);
-		if(!createDevices.exec(QStringLiteral("CREATE TABLE devices ( "
-											  "		id			UUID PRIMARY KEY NOT NULL, "
-											  "		userid		BIGINT NOT NULL REFERENCES users(id), "
-											  "		name		TEXT NOT NULL, "
-											  "		signscheme	TEXT NOT NULL, "
-											  "		signkey		BYTEA NOT NULL, "
-											  "		cryptscheme	TEXT NOT NULL, "
-											  "		cryptkey	BYTEA NOT NULL, "
-											  "		lastlogin	DATE NOT NULL DEFAULT 'today' "
-											  ")"))) {
-			qCritical() << "Failed to create devices table with error:"
-						<< qPrintable(createDevices.lastError().text());
-			emit databaseInitDone(false);
-			return;
+		if(!db.tables().contains(QStringLiteral("devices"))) {
+			QSqlQuery createDevices(db);
+			if(!createDevices.exec(QStringLiteral("CREATE TABLE devices ( "
+												  "		id			UUID PRIMARY KEY NOT NULL, "
+												  "		userid		BIGINT NOT NULL REFERENCES users(id), "
+												  "		name		TEXT NOT NULL, "
+												  "		signscheme	TEXT NOT NULL, "
+												  "		signkey		BYTEA NOT NULL, "
+												  "		cryptscheme	TEXT NOT NULL, "
+												  "		cryptkey	BYTEA NOT NULL, "
+												  "		lastlogin	DATE NOT NULL DEFAULT 'today' "
+												  ")"))) {
+				throw DatabaseException(createDevices);
+			}
 		}
+
+		//TODO IMPLEMENT
+
+		emit databaseInitDone(true);
+	} catch(DatabaseException &e) {
+		qCritical().noquote() << "Failed to setup database. Error:" << e.errorString();
+		emit databaseInitDone(false);
 	}
-
-	//TODO IMPLEMENT
-
-	emit databaseInitDone(true);
-}
-
-QString DatabaseController::jsonToString(const QJsonObject &object) const
-{
-	return QString::fromUtf8(QJsonDocument(object).toJson(QJsonDocument::Compact));
-}
-
-QJsonObject DatabaseController::stringToJson(const QString &data) const
-{
-	return QJsonDocument::fromJson(data.toUtf8()).object();
 }
 
 
@@ -135,4 +178,67 @@ DatabaseController::DatabaseWrapper::~DatabaseWrapper()
 QSqlDatabase DatabaseController::DatabaseWrapper::database() const
 {
 	return QSqlDatabase::database(dbName);
+}
+
+
+
+DatabaseException::DatabaseException(const QSqlError &error) :
+	_error(error),
+	_msg(error.text().toUtf8())
+{}
+
+DatabaseException::DatabaseException(QSqlDatabase db) :
+	DatabaseException(db.lastError())
+{
+	db.rollback(); //to be safe
+}
+
+DatabaseException::DatabaseException(const QSqlQuery &query, QSqlDatabase db) :
+	DatabaseException(query.lastError())
+{
+	if(db.isValid())
+		db.rollback(); //to be safe
+}
+
+QSqlError DatabaseException::error() const
+{
+	return _error;
+}
+
+QString DatabaseException::errorString() const
+{
+	return _error.text();
+}
+
+const char *DatabaseException::what() const noexcept
+{
+	return _msg.constData();
+}
+
+void DatabaseException::raise() const
+{
+	throw (*this);
+}
+
+QException *DatabaseException::clone() const
+{
+	return new DatabaseException(_error);
+}
+
+
+
+Query::Query(QSqlDatabase db) :
+	QSqlQuery(db)
+{}
+
+void Query::prepare(const QString &query)
+{
+	if(!QSqlQuery::prepare(query))
+		throw DatabaseException(*this, _db);
+}
+
+void Query::exec()
+{
+	if(!QSqlQuery::exec())
+		throw DatabaseException(*this, _db);
 }

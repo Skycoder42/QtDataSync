@@ -74,7 +74,7 @@
                           </qlist>
                          </stereotypes>
                          <name>local database</name>
-                         <pos>x:105;y:590</pos>
+                         <pos>x:105;y:585</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -114,7 +114,7 @@
                          </base-DElement>
                          <object>{9303fbbe-e418-46e6-871d-0a807c0935c8}</object>
                          <name>SyncController</name>
-                         <pos>x:355;y:470</pos>
+                         <pos>x:360;y:480</pos>
                          <rect>x:-50;y:-30;w:100;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -339,7 +339,7 @@
                          </base-DElement>
                          <object>{c66b69bf-96a9-4d72-8fe9-e42709200c44}</object>
                          <name>RemoteConnector</name>
-                         <pos>x:760;y:395</pos>
+                         <pos>x:765;y:395</pos>
                          <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -394,7 +394,7 @@
                           </qlist>
                          </stereotypes>
                          <name>Server</name>
-                         <pos>x:1020;y:70</pos>
+                         <pos>x:1030;y:70</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -547,7 +547,7 @@
                          </base-DElement>
                          <object>{eb71fa83-8407-41e5-9525-f52d29f958c7}</object>
                          <name>SyncManager</name>
-                         <pos>x:725;y:70</pos>
+                         <pos>x:735;y:70</pos>
                          <rect>x:-45;y:-30;w:90;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -590,7 +590,7 @@
                          </base-DElement>
                          <object>{37410736-0fd8-4a41-b7f8-ec12190e4977}</object>
                          <name>DataStore</name>
-                         <pos>x:250;y:70</pos>
+                         <pos>x:255;y:70</pos>
                          <rect>x:-40;y:-30;w:80;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -640,7 +640,7 @@
                          </base-DElement>
                          <object>{f256c44d-a370-4546-ad4e-b1e5d500ccd7}</object>
                          <name>DataTypeStore</name>
-                         <pos>x:435;y:70</pos>
+                         <pos>x:440;y:70</pos>
                          <rect>x:-50;y:-30;w:100;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -689,9 +689,9 @@
                           </DElement>
                          </base-DElement>
                          <object>{53a61e00-872f-4796-a0e2-65a5573b815f}</object>
-                         <name>UserDataExchange</name>
-                         <pos>x:880;y:65</pos>
-                         <rect>x:-60;y:-30;w:120;h:60</rect>
+                         <name>AccountManager</name>
+                         <pos>x:880;y:70</pos>
+                         <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
                        </base-DObject>
@@ -772,29 +772,6 @@
                      </instance>
                     </item>
                     <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{7b505e3d-0d93-4a01-bf2e-66e3574658db}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{7a880560-8d49-4d02-894b-4a98bd02dd4a}</object>
-                         <a>{ebb7b149-8467-469f-b956-673a9bec234b}</a>
-                         <b>{49da69a3-26d9-47ba-b9ec-c3f3c5c84d0c}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <navigable>true</navigable>
-                        </DAssociationEnd>
-                       </a>
-                      </DAssociation>
-                     </instance>
-                    </item>
-                    <item>
                      <instance type="DClass">
                       <DClass>
                        <base-DObject>
@@ -856,7 +833,7 @@
                          </base-DElement>
                          <object>{78ee8c0f-a3b6-4e9f-a5ac-db4785b725fe}</object>
                          <name>CachingDataTypeStore</name>
-                         <pos>x:440;y:170</pos>
+                         <pos>x:440;y:175</pos>
                          <rect>x:-70;y:-30;w:140;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -1025,7 +1002,7 @@
                          </base-DElement>
                          <object>{60e8dd0c-4986-486b-b866-372acce0ed03}</object>
                          <name>Setup</name>
-                         <pos>x:580;y:65</pos>
+                         <pos>x:600;y:70</pos>
                          <rect>x:-40;y:-30;w:80;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -1072,7 +1049,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1512597158034</last-modified>
+                  <last-modified>1513190895689</last-modified>
                   <toolbarid>Classes</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1815,33 +1792,6 @@
                         </target>
                        </handle>
                       </item>
-                      <item>
-                       <handle>
-                        <uid>{7a880560-8d49-4d02-894b-4a98bd02dd4a}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{7a880560-8d49-4d02-894b-4a98bd02dd4a}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{eb71fa83-8407-41e5-9525-f52d29f958c7}</a>
-                             <b>{c66b69bf-96a9-4d72-8fe9-e42709200c44}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <navigable>true</navigable>
-                            </MAssociationEnd>
-                           </a>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
                      </qlist>
                     </handles>
                    </handles>
@@ -1992,7 +1942,7 @@
                     <uid>{53a61e00-872f-4796-a0e2-65a5573b815f}</uid>
                    </MElement>
                   </base-MElement>
-                  <name>UserDataExchange</name>
+                  <name>AccountManager</name>
                   <relations>
                    <handles>
                     <handles>

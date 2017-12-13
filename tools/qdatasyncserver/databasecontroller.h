@@ -7,8 +7,29 @@
 #include <QtCore/QThreadStorage>
 #include <QtCore/QUuid>
 #include <QtCore/QJsonObject>
+#include <QtCore/QException>
 
 #include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlError>
+
+class DatabaseException : public QException
+{
+public:
+	DatabaseException(const QSqlError &error);
+	DatabaseException(QSqlDatabase db);
+	DatabaseException(const QSqlQuery &query, QSqlDatabase db = {});
+
+	QSqlError error() const;
+	QString errorString() const;
+
+	const char *what() const noexcept override;
+	void raise() const override;
+	QException *clone() const override;
+
+private:
+	QSqlError _error;
+	const QByteArray _msg;
+};
 
 class DatabaseController : public QObject
 {
@@ -18,6 +39,12 @@ public:
 	explicit DatabaseController(QObject *parent = nullptr);
 
 	void cleanupDevices(quint64 offlineSinceDays);
+
+	QUuid addNewDevice(const QString &name,
+					   const QByteArray &signScheme,
+					   const QByteArray &signKey,
+					   const QByteArray &cryptScheme,
+					   const QByteArray &cryptKey);
 
 signals:
 	//TODO correct
@@ -46,9 +73,6 @@ private:
 	QThreadStorage<DatabaseWrapper> threadStore;
 
 	void initDatabase();
-
-	QString jsonToString(const QJsonObject &object) const;
-	QJsonObject stringToJson(const QString &data) const;
 };
 
 #endif // DATABASECONTROLLER_H

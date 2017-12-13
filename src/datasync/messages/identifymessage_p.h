@@ -11,19 +11,18 @@ class Q_DATASYNC_EXPORT IdentifyMessage
 {
 	Q_GADGET
 
-	Q_PROPERTY(quint32 nonce MEMBER nonce)
+	Q_PROPERTY(quint64 nonce MEMBER nonce)
 
 public:
-	IdentifyMessage(quint32 nonce = 0);
+	IdentifyMessage();
 
 	static IdentifyMessage createRandom(CryptoPP::RandomNumberGenerator &rng);
 
-	quint32 nonce;
+	quint64 nonce;
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const IdentifyMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, IdentifyMessage &message);
-Q_DATASYNC_EXPORT QDebug operator<<(QDebug debug, const IdentifyMessage &message);
 
 }
 

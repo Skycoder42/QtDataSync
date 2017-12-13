@@ -5,6 +5,8 @@
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 #include <QtCore/QThreadStorage>
+#include <QtCore/QMutex>
+#include <QtCore/QHash>
 
 #include <QtWebSockets/QWebSocket>
 
@@ -19,7 +21,7 @@ class Client : public QObject
 	Q_OBJECT
 
 public:
-	explicit Client(DatabaseController *database, QWebSocket *websocket, QObject *parent = nullptr);
+	explicit Client(DatabaseController *_database, QWebSocket *websocket, QObject *parent = nullptr);
 
 	QUuid deviceId() const;
 
@@ -40,13 +42,14 @@ private slots:
 private:
 	static QThreadStorage<CryptoPP::AutoSeededRandomPool> rngPool;
 
-	DatabaseController *database;
-	QWebSocket *socket;
-	QUuid userId;
-	QUuid devId;
+	DatabaseController *_database;
+	QWebSocket *_socket;
+	QUuid _deviceId;
 
-	QHostAddress socketAddress;
-	QAtomicInt runCount;
+	QAtomicInt _runCount;
+
+	QMutex _propMutex;
+	QHash<QByteArray, QVariant> _propHash;
 
 	void close();
 	void sendMessage(const QByteArray &message);

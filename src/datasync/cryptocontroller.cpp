@@ -112,7 +112,7 @@ bool CryptoController::loadKeyMaterial(const QUuid &deviceId)
 	}
 }
 
-void CryptoController::createPrivateKeys(quint32 nonce)
+void CryptoController::createPrivateKeys(quint64 nonce)
 {
 	try {
 		_fingerprint.clear();

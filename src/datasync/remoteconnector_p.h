@@ -25,6 +25,7 @@ public:
 	static const QString keyAccessKey;
 	static const QString keyHeaders;
 	static const QString keyDeviceId;
+	static const QString keyDeviceName;
 
 	//! Describes the current state of the connector
 	enum RemoteState {

@@ -11,37 +11,42 @@ using namespace QtDataSync;
 
 QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
 
+#define LOCK QMutexLocker _(&_propMutex)
+
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
-	database(database),
-	socket(websocket),
-	userId(),
-	devId(),
-	socketAddress(socket->peerAddress()),
-	runCount(0)
+	_database(database),
+	_socket(websocket),
+	_deviceId(),
+	_runCount(0),
+	_propMutex(),
+	_propHash()
 {
-	socket->setParent(this);
+	_socket->setParent(this);
 
-	connect(socket, &QWebSocket::disconnected,
+	connect(_socket, &QWebSocket::disconnected,
 			this, &Client::closeClient);
-	connect(socket, &QWebSocket::binaryMessageReceived,
+	connect(_socket, &QWebSocket::binaryMessageReceived,
 			this, &Client::binaryMessageReceived);
-	connect(socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
+	connect(_socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
 			this, &Client::error);
-	connect(socket, &QWebSocket::sslErrors,
+	connect(_socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
-	runCount++;
+	_runCount++;
 	QtConcurrent::run(qApp->threadPool(), [this]() {
+		LOCK;
 		//initialize connection by sending indent message
-		sendMessage(serializeMessage(IdentifyMessage::createRandom(rngPool.localData())));
-		runCount--;
+		auto msg = IdentifyMessage::createRandom(rngPool.localData());
+		_propHash.insert("nonce", msg.nonce);
+		sendMessage(serializeMessage(msg));
+		_runCount--;
 	});
 }
 
 QUuid Client::deviceId() const
 {
-	return devId;
+	return _deviceId;
 }
 
 void Client::notifyChanged(const QString &type, const QString &key, bool changed)
@@ -51,7 +56,7 @@ void Client::notifyChanged(const QString &type, const QString &key, bool changed
 
 void Client::binaryMessageReceived(const QByteArray &message)
 {
-	runCount++;
+	_runCount++;
 	QtConcurrent::run(qApp->threadPool(), [message, this]() {
 		try {
 			QDataStream stream(message);
@@ -71,46 +76,47 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				qWarning() << "Unknown message received: " << message;
 				close();
 			}
-		} catch(DataStreamException &e) {
-			qWarning() << "Client message error:" << e.what();
+		} catch(DatabaseException &e) {
+			qWarning().noquote() << "Internal database error:" << e.errorString()
+								 << "\nResettings connection in hopes to fix it.";
 			close();
-		} catch(CryptoPP::Exception &e) {
+		} catch(std::exception &e) {
 			qWarning() << "Client message error:" << e.what();
 			close();
 		}
 
-		runCount--;
+		_runCount--;
 	});
 }
 
 void Client::error()
 {
-	qWarning() << socket->peerAddress()
+	qWarning() << _socket->peerAddress()
 			   << "Socket error"
-			   << socket->errorString();
-	if(socket->state() == QAbstractSocket::ConnectedState)
-		socket->close();
+			   << _socket->errorString();
+	if(_socket->state() == QAbstractSocket::ConnectedState)
+		_socket->close();
 }
 
 void Client::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
-		qWarning() << socket->peerAddress()
+		qWarning() << _socket->peerAddress()
 				   << "SSL errors"
 				   << error.errorString();
 	}
-	if(socket->state() == QAbstractSocket::ConnectedState)
-		socket->close();
+	if(_socket->state() == QAbstractSocket::ConnectedState)
+		_socket->close();
 }
 
 void Client::closeClient()
 {
-	if(runCount == 0)//save close -> delete only if no parallel stuff anymore (check every 500 ms)
+	if(_runCount == 0)//save close -> delete only if no parallel stuff anymore (check every 500 ms)
 		deleteLater();
 	else {
 		auto destroyTimer = new QTimer(this);
 		connect(destroyTimer, &QTimer::timeout, this, [this](){
-			if(runCount == 0)
+			if(_runCount == 0)
 				deleteLater();
 		});
 		destroyTimer->start(500);
@@ -119,7 +125,7 @@ void Client::closeClient()
 
 void Client::close()
 {
-	QMetaObject::invokeMethod(socket, "close", Qt::QueuedConnection);
+	QMetaObject::invokeMethod(_socket, "close", Qt::QueuedConnection);
 }
 
 void Client::sendMessage(const QByteArray &message)
@@ -130,10 +136,24 @@ void Client::sendMessage(const QByteArray &message)
 
 void Client::doSend(const QByteArray &message)
 {
-	socket->sendBinaryMessage(message);
+	_socket->sendBinaryMessage(message);
 }
 
 void Client::onRegister(const RegisterMessage &message)
 {
-	qDebug() << Q_FUNC_INFO << message;
+	LOCK;
+	if(_propHash.take("nonce").toULongLong() != message.nonce) {
+		qWarning() << "Invalid nonce in register message";
+		close();
+		return;
+	}
+
+	_deviceId = _database->addNewDevice(message.deviceName,
+										message.signAlgorithm,
+										message.signKey,
+										message.cryptAlgorithm,
+										message.cryptKey);
+
+	//TODO send reply
+	qDebug() << "Created new device with id" << _deviceId;
 }

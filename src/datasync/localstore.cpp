@@ -53,7 +53,7 @@ quint64 LocalStore::count(const QByteArray &typeName)
 
 	QSqlQuery countQuery(_database);
 	countQuery.prepare(QStringLiteral("SELECT Count(Key) FROM %1").arg(table));
-	exec(countQuery, typeName);
+	exec(countQuery, typeName); //TODO add special method for prepare as well
 
 	if(countQuery.first())
 		return countQuery.value(0).toInt();

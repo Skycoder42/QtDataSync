@@ -2,13 +2,15 @@
 
 using namespace QtDataSync;
 
-IdentifyMessage::IdentifyMessage(quint32 nounce) :
-	nonce(nounce)
+IdentifyMessage::IdentifyMessage() :
+	nonce(0)
 {}
 
 IdentifyMessage IdentifyMessage::createRandom(CryptoPP::RandomNumberGenerator &rng)
 {
-	return (quint32)rng.GenerateWord32();
+	IdentifyMessage msg;
+	rng.GenerateBlock((byte*)&msg.nonce, sizeof(msg.nonce));
+	return msg;
 }
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const IdentifyMessage &message)
@@ -23,13 +25,4 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, IdentifyMessage &messag
 	stream >> message.nonce;
 	stream.commitTransaction();
 	return stream;
-}
-
-QDebug QtDataSync::operator<<(QDebug debug, const IdentifyMessage &message)
-{
-	QDebugStateSaver saver(debug);
-	debug.nospace() << "IdentifyMessage{"
-					<< "nonce: 0x" << hex << message.nonce
-					<< "}";
-	return debug;
 }

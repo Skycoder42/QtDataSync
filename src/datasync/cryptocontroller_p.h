@@ -119,7 +119,7 @@ public:
 	bool canAccessStore() const;
 	bool loadKeyMaterial(const QUuid &deviceId);
 
-	void createPrivateKeys(quint32 nonce);
+	void createPrivateKeys(quint64 nonce);
 
 	template <typename TMessage>
 	QByteArray serializeSignedMessage(const TMessage &message);

@@ -166,7 +166,7 @@
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>LOGIN(deviceId)</name>
+                         <name>LOGIN(deviceId, name)</name>
                          <pos>x:655;y:60</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -727,7 +727,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>LOGIN(deviceId)</name>
+                  <name>LOGIN(deviceId, name)</name>
                   <relations>
                    <handles>
                     <handles>
