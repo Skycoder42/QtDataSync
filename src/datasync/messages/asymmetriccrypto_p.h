@@ -18,6 +18,29 @@ class Q_DATASYNC_EXPORT AsymmetricCrypto : public QObject
 	Q_OBJECT
 
 public:
+	class Q_DATASYNC_EXPORT Scheme
+	{
+	public:
+		inline virtual ~Scheme() = default;
+
+		virtual QByteArray name() const = 0;
+		virtual QSharedPointer<CryptoPP::X509PublicKey> createNullKey() const = 0;
+	};
+
+	class Q_DATASYNC_EXPORT Signature : public Scheme
+	{
+	public:
+		virtual QSharedPointer<CryptoPP::PK_Signer> sign(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
+		virtual QSharedPointer<CryptoPP::PK_Verifier> verify(const CryptoPP::X509PublicKey &pubKey) const = 0;
+	};
+
+	class Q_DATASYNC_EXPORT Encryption : public Scheme
+	{
+	public:
+		virtual QSharedPointer<CryptoPP::PK_Encryptor> encrypt(const CryptoPP::X509PublicKey &pubKey) const = 0;
+		virtual QSharedPointer<CryptoPP::PK_Decryptor> decrypt(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
+	};
+
 	explicit AsymmetricCrypto(const QByteArray &signatureScheme,
 							  const QByteArray &encryptionScheme,
 							  QObject *parent = nullptr);
@@ -55,31 +78,8 @@ protected:
 	void setSignatureScheme(const QByteArray &name);
 	void setEncryptionScheme(const QByteArray &name);
 	void resetSchemes();
+
 private:
-
-	class Q_DATASYNC_EXPORT Scheme
-	{
-	public:
-		inline virtual ~Scheme() = default;
-
-		virtual QByteArray name() const = 0;
-		virtual QSharedPointer<CryptoPP::X509PublicKey> createNullKey() const = 0;
-	};
-
-	class Q_DATASYNC_EXPORT Signature : public Scheme
-	{
-	public:
-		virtual QSharedPointer<CryptoPP::PK_Signer> sign(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
-		virtual QSharedPointer<CryptoPP::PK_Verifier> verify(const CryptoPP::X509PublicKey &pubKey) const = 0;
-	};
-
-	class Q_DATASYNC_EXPORT Encryption : public Scheme
-	{
-	public:
-		virtual QSharedPointer<CryptoPP::PK_Encryptor> encrypt(const CryptoPP::X509PublicKey &pubKey) const = 0;
-		virtual QSharedPointer<CryptoPP::PK_Decryptor> decrypt(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
-	};
-
 	QScopedPointer<Signature> _signature;
 	QScopedPointer<Encryption> _encryption;
 };

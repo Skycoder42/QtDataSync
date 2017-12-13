@@ -43,6 +43,19 @@ class Q_DATASYNC_EXPORT ClientCrypto : public AsymmetricCrypto
 	Q_OBJECT
 
 public:
+	class Q_DATASYNC_EXPORT KeyScheme
+	{
+	public:
+		inline virtual ~KeyScheme() = default;
+
+		virtual QByteArray name() const = 0;
+		virtual void createPrivateKey(CryptoPP::RandomNumberGenerator &rng, const QVariant &keyParam) = 0;
+		virtual void loadPrivateKey(const QSslKey &key) = 0;
+		virtual QSslKey savePrivateKey() = 0;
+		virtual const CryptoPP::PKCS8PrivateKey &privateKeyRef() const = 0;
+		virtual QSharedPointer<CryptoPP::X509PublicKey> createPublicKey() const = 0;
+	};
+
 	ClientCrypto(QObject *parent = nullptr);
 
 	void generate(Setup::SignatureScheme signScheme,
@@ -78,19 +91,6 @@ public:
 	static CryptoPP::OID curveId(Setup::EllipticCurve curve);
 
 private:
-	class Q_DATASYNC_EXPORT KeyScheme
-	{
-	public:
-		inline virtual ~KeyScheme() = default;
-
-		virtual QByteArray name() const = 0;
-		virtual void createPrivateKey(CryptoPP::RandomNumberGenerator &rng, const QVariant &keyParam) = 0;
-		virtual void loadPrivateKey(const QSslKey &key) = 0;
-		virtual QSslKey savePrivateKey() = 0;
-		virtual const CryptoPP::PKCS8PrivateKey &privateKeyRef() const = 0;
-		virtual QSharedPointer<CryptoPP::X509PublicKey> createPublicKey() const = 0;
-	};
-
 	CryptoPP::AutoSeededRandomPool _rng;
 	QScopedPointer<KeyScheme> _signKey;
 	QScopedPointer<KeyScheme> _cryptKey;

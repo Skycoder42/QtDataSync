@@ -13,7 +13,7 @@ using namespace QtDataSync;
 using namespace CryptoPP;
 using Exception = QtDataSync::Exception;
 
-typedef QPluginObjectFactory<KeyStorePlugin, KeyStore> Factory; //TODO make class threadsafe!!!
+typedef QPluginObjectFactory<KeyStorePlugin, KeyStore> Factory;
 Q_GLOBAL_STATIC_WITH_ARGS(Factory, factory, (QLatin1String("keystores")))
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER

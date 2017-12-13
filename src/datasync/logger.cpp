@@ -18,13 +18,13 @@ const QLoggingCategory &Logger::loggingCategory() const
 void Logger::reportFatalError(const QString &error, const char *file, int line, const char *function)
 {
 	QMessageLogger logger(file, line, function, d->logCat.categoryName());
-	logger.critical(qUtf8Printable(error));
+	logger.critical("%s", qUtf8Printable(error));
 
 	auto engine = SetupPrivate::engine(d->setupName);
 	if(engine)
 		engine->enterFatalState(error, file, line, function, d->logCat.categoryName());
 	else
-		logger.fatal(qUtf8Printable(error));
+		logger.fatal("%s", qUtf8Printable(error));
 }
 
 void Logger::reportFatalError(const char *error, const char *file, int line, const char *function)
