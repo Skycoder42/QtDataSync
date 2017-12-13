@@ -1,3 +1,3 @@
-DISTFILES += $$PWD/*.qmodel \
+OTHER_FILES += $$PWD/*.qmodel \
 	$$PWD/*.dia \
 	$$PWD/*.txt
