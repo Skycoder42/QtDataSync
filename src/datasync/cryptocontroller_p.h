@@ -78,7 +78,9 @@ public:
 	QByteArray writeCryptKey() const;
 
 	const CryptoPP::PKCS8PrivateKey &privateSignKey() const;
+	QSslKey savePrivateSignKey() const;
 	const CryptoPP::PKCS8PrivateKey &privateCryptKey() const;
+	QSslKey savePrivateCryptKey() const;
 
 	QByteArray sign(const QByteArray &message);
 
@@ -117,9 +119,10 @@ public:
 	QByteArray fingerprint() const;
 
 	bool canAccessStore() const;
-	bool loadKeyMaterial(const QUuid &deviceId);
+	void loadKeyMaterial(const QUuid &deviceId);
 
 	void createPrivateKeys(quint64 nonce);
+	void storePrivateKeys(const QUuid &deviceId);
 
 	template <typename TMessage>
 	QByteArray serializeSignedMessage(const TMessage &message);
@@ -130,10 +133,12 @@ private:
 	static const QString keySignTemplate;
 	static const QString keyCryptTemplate;
 
-	KeyStore *_keyStore;
+	QPointer<KeyStore> _keyStore;
 	ClientCrypto *_crypto;
 
 	mutable QByteArray _fingerprint;
+
+	void ensureStoreAccess() const;
 };
 
 // ------------- Generic Implementation -------------

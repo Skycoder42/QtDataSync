@@ -12,7 +12,7 @@ class KWalletKeyStorePlugin : public QObject, public QtDataSync::KeyStorePlugin
 public:
 	KWalletKeyStorePlugin(QObject *parent = nullptr);
 
-	QtDataSync::KeyStore *createInstance(const QString &provider, QObject *parent) override;
+	QtDataSync::KeyStore *createInstance(const QString &provider, const QtDataSync::Defaults &defaults, QObject *parent) override;
 };
 
 #endif // KWALLETKEYSTOREPLUGIN_H

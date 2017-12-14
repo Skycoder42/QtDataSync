@@ -11,14 +11,14 @@ class PlainKeyStore : public QtDataSync::KeyStore
 	Q_OBJECT
 
 public:
-	explicit PlainKeyStore(QObject *parent = nullptr);
+	explicit PlainKeyStore(const QtDataSync::Defaults &defaults, QObject *parent = nullptr);
 
-	bool loadStore() override;
+	void loadStore() override;
 	void closeStore() override;
 	bool contains(const QString &key) const override;
-	bool storePrivateKey(const QString &key, const QSslKey &pKey) override;
+	void storePrivateKey(const QString &key, const QSslKey &pKey) override;
 	QSslKey loadPrivateKey(const QString &key) override;
-	bool remove(const QString &key) override;
+	void remove(const QString &key) override;
 
 private:
 	QPointer<QSettings> _settings;

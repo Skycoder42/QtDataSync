@@ -12,7 +12,7 @@ class PlainKeyStorePlugin : public QObject, public QtDataSync::KeyStorePlugin
 public:
 	PlainKeyStorePlugin(QObject *parent = nullptr);
 
-	QtDataSync::KeyStore *createInstance(const QString &provider, QObject *parent) override;
+	QtDataSync::KeyStore *createInstance(const QString &provider, const QtDataSync::Defaults &defaults, QObject *parent) override;
 };
 
 #endif // PLAINKEYSTOREPLUGIN_H

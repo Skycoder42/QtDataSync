@@ -109,7 +109,7 @@ void RemoteConnector::reloadState()
 void RemoteConnector::connected()
 {
 	logDebug() << "Successfully connected to remote server";
-	upState(RemoteLoadingState);
+	upState(RemoteConnected);
 }
 
 void RemoteConnector::disconnected()
@@ -150,6 +150,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 
 		if(isType<IdentifyMessage>(name))
 			onIdentify(deserializeMessage<IdentifyMessage>(stream));
+		else if(isType<AccountMessage>(name))
+			onAccount(deserializeMessage<AccountMessage>(stream));
 		else
 			logWarning() << "Unknown message received: " << message;
 	} catch(DataStreamException &e) {
@@ -232,7 +234,8 @@ bool RemoteConnector::loadIdentity()
 		if(_deviceId.isNull()) //no user -> nothing to be loaded
 			return true;
 
-		return _cryptoController->loadKeyMaterial(_deviceId);
+		_cryptoController->loadKeyMaterial(_deviceId);
+		return true;
 	} catch(Exception &e) {
 		logCritical() << e.what();
 		return false;
@@ -293,7 +296,7 @@ void RemoteConnector::upState(RemoteConnector::RemoteState state)
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	try {
-		if(_state != RemoteLoadingState)
+		if(_state != RemoteConnected)
 			logWarning() << "Unexpected identify message";
 		else {
 			if(!_deviceId.isNull()) {
@@ -308,7 +311,24 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
+				upState(RemoteRegistering);
 			}
+		}
+	} catch(Exception &e) {
+		logCritical() << e.what();
+	}
+}
+
+void RemoteConnector::onAccount(const AccountMessage &message)
+{
+	try {
+		if(_state != RemoteRegistering)
+			logWarning() << "Unexpected account message";
+		else {
+			_deviceId = message.deviceId;
+			settings()->setValue(keyDeviceId, _deviceId);
+			_cryptoController->storePrivateKeys(_deviceId);
+			logDebug() << "Saved user data stuff";
 		}
 	} catch(Exception &e) {
 		logCritical() << e.what();

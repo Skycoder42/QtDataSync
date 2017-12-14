@@ -16,11 +16,31 @@
 
 #include "registermessage_p.h"
 
+class ClientException : public QException
+{
+public:
+	ClientException(const QByteArray &what);
+
+	const char *what() const noexcept override;
+	void raise() const override;
+	QException *clone() const override;
+
+private:
+	const QByteArray _what;
+};
+
 class Client : public QObject
 {
 	Q_OBJECT
 
 public:
+	enum State {
+		Authenticating,
+		Idle,
+		Error
+	};
+	Q_ENUM(State)
+
 	explicit Client(DatabaseController *_database, QWebSocket *websocket, QObject *parent = nullptr);
 
 	QUuid deviceId() const;
@@ -48,8 +68,9 @@ private:
 
 	QAtomicInt _runCount;
 
-	QMutex _propMutex;
-	QHash<QByteArray, QVariant> _propHash;
+	QMutex _lock;
+	State _state;
+	QHash<QByteArray, QVariant> _properties;
 
 	void close();
 	void sendMessage(const QByteArray &message);

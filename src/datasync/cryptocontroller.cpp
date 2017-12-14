@@ -32,7 +32,7 @@ CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
 void CryptoController::initialize()
 {
 	auto provider = defaults().property(Defaults::KeyStoreProvider).toString();
-	_keyStore = factory->createInstance(provider, this);
+	_keyStore = factory->createInstance(provider, defaults(), this);
 	if(!_keyStore) {
 		logCritical() << "Failed to load keystore"
 					  << provider
@@ -75,36 +75,41 @@ QByteArray CryptoController::fingerprint() const
 
 bool CryptoController::canAccessStore() const
 {
-	return _keyStore && _keyStore->loadStore();
+	try {
+		ensureStoreAccess();
+		return true;
+	} catch(std::exception &e) {
+		logCritical() << "Failed to load keystore with error:" << e.what();
+		_keyStore->deleteLater();
+		return false;
+	}
 }
 
-bool CryptoController::loadKeyMaterial(const QUuid &deviceId)
+void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 {
-	if(!canAccessStore())
-		return false;
-
 	try {
+		ensureStoreAccess();
 		_fingerprint.clear();
 
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
 		auto signKey = _keyStore->loadPrivateKey(keySignTemplate.arg(deviceId.toString()));
 		if(signKey.isNull()) {
-			logCritical() << "Unable to load private signing key from keystore";
-			return false;
+			throw KeyStoreException(defaults(),
+									QString(), //TODO real name
+									QStringLiteral("Unable to load private signing key from keystore"));
 		}
 
 		auto cryptScheme = settings()->value(keyCryptScheme).toByteArray();
 		auto cryptKey = _keyStore->loadPrivateKey(keyCryptTemplate.arg(deviceId.toString()));
 		if(cryptKey.isNull()) {
-			logCritical() << "Unable to load private encryption key from keystore";
-			return false;
+			throw KeyStoreException(defaults(),
+									QString(), //TODO real name
+									QStringLiteral("Unable to load private encryption key from keystore"));
 		}
 
 		_crypto->load(signScheme, signKey, cryptScheme, cryptKey);
 
 		//NOTE load and decrypt shared secret
-
-		return true;
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to import private key"),
@@ -136,6 +141,33 @@ void CryptoController::createPrivateKeys(quint64 nonce)
 							  QStringLiteral("Failed to generate private key"),
 							  e);
 	}
+}
+
+void CryptoController::storePrivateKeys(const QUuid &deviceId)
+{
+	try {
+		ensureStoreAccess();
+
+		settings()->setValue(keySignScheme, _crypto->signatureScheme());
+		_keyStore->storePrivateKey(keySignTemplate.arg(deviceId.toString()),
+								   _crypto->savePrivateSignKey());
+
+		settings()->setValue(keyCryptScheme, _crypto->encryptionScheme());
+		_keyStore->storePrivateKey(keyCryptTemplate.arg(deviceId.toString()),
+								   _crypto->savePrivateCryptKey());
+	} catch(CryptoPP::Exception &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to generate private key"),
+							  e);
+	}
+}
+
+void CryptoController::ensureStoreAccess() const
+{
+	if(_keyStore)
+		_keyStore->loadStore();
+	else
+		throw KeyStoreException(defaults(), QString(), QStringLiteral("No keystore available"));
 }
 
 QStringList CryptoController::allKeystoreKeys()
@@ -271,9 +303,19 @@ const PKCS8PrivateKey &ClientCrypto::privateSignKey() const
 	return _signKey->privateKeyRef();
 }
 
+QSslKey ClientCrypto::savePrivateSignKey() const
+{
+	return _signKey->savePrivateKey();
+}
+
 const PKCS8PrivateKey &ClientCrypto::privateCryptKey() const
 {
 	return _cryptKey->privateKeyRef();
+}
+
+QSslKey ClientCrypto::savePrivateCryptKey() const
+{
+	return _cryptKey->savePrivateKey();
 }
 
 QByteArray ClientCrypto::sign(const QByteArray &message)
@@ -455,7 +497,7 @@ QSslKey EccKeyScheme<TScheme>::savePrivateKey()
 	QByteArray data;
 	QByteArraySink sink(data);
 	_key.DEREncodePrivateKey(sink);
-	return QSslKey(data, QSsl::Ec, QSsl::Der);
+	return QSslKey(data, QSsl::Opaque, QSsl::Der);
 }
 
 template <typename TScheme>

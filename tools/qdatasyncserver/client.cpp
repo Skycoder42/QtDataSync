@@ -12,7 +12,7 @@ using namespace QtDataSync;
 
 QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
 
-#define LOCK QMutexLocker _(&_propMutex)
+#define LOCK QMutexLocker _(&_lock)
 
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
@@ -20,8 +20,9 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_socket(websocket),
 	_deviceId(),
 	_runCount(0),
-	_propMutex(),
-	_propHash()
+	_lock(),
+	_state(Authenticating),
+	_properties()
 {
 	_socket->setParent(this);
 
@@ -39,7 +40,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 		LOCK;
 		//initialize connection by sending indent message
 		auto msg = IdentifyMessage::createRandom(rngPool.localData());
-		_propHash.insert("nonce", msg.nonce);
+		_properties.insert("nonce", msg.nonce);
 		sendMessage(serializeMessage(msg));
 		_runCount--;
 	});
@@ -77,11 +78,11 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				qWarning() << "Unknown message received: " << message;
 				close();
 			}
-		} catch(DatabaseException &e) {
+		} catch (DatabaseException &e) {
 			qWarning().noquote() << "Internal database error:" << e.errorString()
 								 << "\nResettings connection in hopes to fix it.";
 			close();
-		} catch(std::exception &e) {
+		} catch (std::exception &e) {
 			qWarning() << "Client message error:" << e.what();
 			close();
 		}
@@ -143,12 +144,11 @@ void Client::doSend(const QByteArray &message)
 void Client::onRegister(const RegisterMessage &message)
 {
 	LOCK;
-	if(_propHash.take("nonce").toULongLong() != message.nonce) {
-		qWarning() << "Invalid nonce in register message";
-		close();
-		return;
-	}
+	if(_state != Authenticating)
+		throw ClientException("Received RegisterMessage in invalid state");
 
+	if(_properties.take("nonce").toULongLong() != message.nonce)
+		throw ClientException("Invalid nonce in RegisterMessagee");
 	_deviceId = _database->addNewDevice(message.deviceName,
 										message.signAlgorithm,
 										message.signKey,
@@ -157,4 +157,25 @@ void Client::onRegister(const RegisterMessage &message)
 
 	qDebug() << "Created new device with id" << _deviceId;
 	sendMessage(serializeMessage<AccountMessage>(_deviceId));
+}
+
+
+
+ClientException::ClientException(const QByteArray &what) :
+	_what(what)
+{}
+
+const char *ClientException::what() const noexcept
+{
+	return _what.constData();
+}
+
+void ClientException::raise() const
+{
+	throw *this;
+}
+
+QException *ClientException::clone() const
+{
+	return new ClientException(_what);
 }

@@ -2,25 +2,26 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 
-PlainKeyStore::PlainKeyStore(QObject *parent) :
-	KeyStore(parent),
+#include <QtDataSync/defaults.h>
+
+PlainKeyStore::PlainKeyStore(const QtDataSync::Defaults &defaults, QObject *parent) :
+	KeyStore(defaults, parent),
 	_settings(nullptr)
 {}
 
-bool PlainKeyStore::loadStore()
+void PlainKeyStore::loadStore()
 {
 	if(!_settings) {
-		_settings = new QSettings(QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation))
-								  .absoluteFilePath(QStringLiteral("plain.keystore")),
+		_settings = new QSettings(defaults().storageDir().absoluteFilePath(QStringLiteral("plain.keystore")),
 								  QSettings::IniFormat,
 								  this);
 		if(!_settings->isWritable()) {
 			_settings->deleteLater();
-			return false;
+			throw QtDataSync::KeyStoreException(defaults(),
+												QStringLiteral("plain"),
+												QStringLiteral("Keystore file is not writable"));
 		}
 	}
-
-	return _settings;
 }
 
 void PlainKeyStore::closeStore()
@@ -33,36 +34,20 @@ void PlainKeyStore::closeStore()
 
 bool PlainKeyStore::contains(const QString &key) const
 {
-	if(_settings)
-		return _settings->contains(key);
-	else
-		return false;
+	return _settings->contains(key);
 }
 
-bool PlainKeyStore::storePrivateKey(const QString &key, const QSslKey &pKey)
+void PlainKeyStore::storePrivateKey(const QString &key, const QSslKey &pKey)
 {
-	if(!_settings)
-		return false;
-	else {
-		_settings->setValue(key, pKey.toDer());
-		return true;
-	}
+	_settings->setValue(key, pKey.toDer());
 }
 
 QSslKey PlainKeyStore::loadPrivateKey(const QString &key)
 {
-	if(!_settings)
-		return {};
-	else
-		return QSslKey(_settings->value(key).toByteArray(), QSsl::Rsa, QSsl::Der);
+	return QSslKey(_settings->value(key).toByteArray(), QSsl::Rsa, QSsl::Der);
 }
 
-bool PlainKeyStore::remove(const QString &key)
+void PlainKeyStore::remove(const QString &key)
 {
-	if(!_settings)
-		return false;
-	else {
-		_settings->remove(key);
-		return true;
-	}
+	_settings->remove(key);
 }

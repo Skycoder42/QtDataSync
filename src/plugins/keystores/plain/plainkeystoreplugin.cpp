@@ -6,10 +6,10 @@ PlainKeyStorePlugin::PlainKeyStorePlugin(QObject *parent) :
 	KeyStorePlugin()
 {}
 
-QtDataSync::KeyStore *PlainKeyStorePlugin::createInstance(const QString &provider, QObject *parent)
+QtDataSync::KeyStore *PlainKeyStorePlugin::createInstance(const QString &provider, const QtDataSync::Defaults &defaults, QObject *parent)
 {
 	if(provider == QStringLiteral("plain"))
-		return new PlainKeyStore(parent);
+		return new PlainKeyStore(defaults, parent);
 	else
 		return nullptr;
 }

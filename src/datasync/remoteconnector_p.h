@@ -12,6 +12,7 @@
 #include "cryptocontroller_p.h"
 
 #include "identifymessage_p.h"
+#include "accountmessage_p.h"
 
 namespace QtDataSync {
 
@@ -29,10 +30,12 @@ public:
 
 	//! Describes the current state of the connector
 	enum RemoteState {
-		RemoteDisconnected,//!< The remote server is "not available"
-		RemoteReconnecting,//!< The controller is currently trying to connect to the remote (may result in disconnected or loading states)
-		RemoteLoadingState,//!< The remote is available (or trying to connect to it), and the remote state is currently beeing loaded
-		RemoteReady//!< The remote state was successfully loaded and the connector is ready for synchronization
+		RemoteDisconnected,
+		RemoteReconnecting,
+		RemoteConnected,
+		RemoteRegistering,
+		RemoteLoading,
+		RemoteReady
 	};
 	Q_ENUM(RemoteState)
 
@@ -72,6 +75,7 @@ private:
 	void upState(RemoteState state);
 
 	void onIdentify(const IdentifyMessage &message);
+	void onAccount(const AccountMessage &message);
 };
 
 }
