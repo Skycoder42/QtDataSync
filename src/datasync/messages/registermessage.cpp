@@ -62,10 +62,3 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &messag
 	stream.commitTransaction();
 	return stream;
 }
-
-QDebug QtDataSync::operator<<(QDebug debug, const RegisterMessage &message)
-{
-	QDebugStateSaver saver(debug);
-	debug << message.deviceName << message.signAlgorithm << message.cryptAlgorithm;
-	return debug;
-}

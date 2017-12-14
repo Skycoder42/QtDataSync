@@ -6,8 +6,6 @@
 
 #include <functional>
 
-#include <QScopedPointer>
-
 #include <cryptopp/rsa.h>
 
 namespace QtDataSync {
@@ -45,7 +43,6 @@ public:
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RegisterMessage &message);
-Q_DATASYNC_EXPORT QDebug operator<<(QDebug debug, const RegisterMessage &message);
 
 }
 

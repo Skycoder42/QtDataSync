@@ -1,6 +1,7 @@
 #include "client.h"
 #include "app.h"
 #include "identifymessage_p.h"
+#include "accountmessage_p.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -154,6 +155,6 @@ void Client::onRegister(const RegisterMessage &message)
 										message.cryptAlgorithm,
 										message.cryptKey);
 
-	//TODO send reply
 	qDebug() << "Created new device with id" << _deviceId;
+	sendMessage(serializeMessage<AccountMessage>(_deviceId));
 }
