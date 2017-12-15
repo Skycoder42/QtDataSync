@@ -35,6 +35,8 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	connect(_socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
+	//TODO add disconnect timeout?
+
 	_runCount++;
 	QtConcurrent::run(qApp->threadPool(), [this]() {
 		LOCK;
@@ -147,7 +149,7 @@ void Client::onRegister(const RegisterMessage &message)
 	if(_state != Authenticating)
 		throw ClientException("Received RegisterMessage in invalid state");
 
-	if(_properties.take("nonce").toULongLong() != message.nonce)
+	if(_properties.take("nonce").toByteArray() != message.nonce)
 		throw ClientException("Invalid nonce in RegisterMessagee");
 	_deviceId = _database->addNewDevice(message.deviceName,
 										message.signAlgorithm,

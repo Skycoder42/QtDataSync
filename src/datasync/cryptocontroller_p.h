@@ -122,7 +122,7 @@ public:
 	bool canAccessStore() const;
 	void loadKeyMaterial(const QUuid &deviceId);
 
-	void createPrivateKeys(quint64 nonce);
+	void createPrivateKeys(const QByteArray &nonce);
 	void storePrivateKeys(const QUuid &deviceId);
 
 	template <typename TMessage>

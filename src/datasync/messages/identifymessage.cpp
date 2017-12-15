@@ -3,13 +3,14 @@
 using namespace QtDataSync;
 
 IdentifyMessage::IdentifyMessage() :
-	nonce(0)
+	nonce()
 {}
 
 IdentifyMessage IdentifyMessage::createRandom(CryptoPP::RandomNumberGenerator &rng)
 {
 	IdentifyMessage msg;
-	rng.GenerateBlock((byte*)&msg.nonce, sizeof(msg.nonce));
+	msg.nonce.resize(NonceSize);
+	rng.GenerateBlock((byte*)msg.nonce.data(), msg.nonce.size());
 	return msg;
 }
 
@@ -23,6 +24,9 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, IdentifyMessage &messag
 {
 	stream.startTransaction();
 	stream >> message.nonce;
-	stream.commitTransaction();
+	if(message.nonce.size() < IdentifyMessage::NonceSize)
+		stream.abortTransaction();
+	else
+		stream.commitTransaction();
 	return stream;
 }

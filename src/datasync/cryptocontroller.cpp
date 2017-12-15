@@ -117,13 +117,13 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 	}
 }
 
-void CryptoController::createPrivateKeys(quint64 nonce)
+void CryptoController::createPrivateKeys(const QByteArray &nonce)
 {
 	try {
 		_fingerprint.clear();
 
 		if(_crypto->rng().CanIncorporateEntropy())
-			_crypto->rng().IncorporateEntropy((byte*)&nonce, sizeof(nonce));
+			_crypto->rng().IncorporateEntropy((const byte*)nonce.constData(), nonce.size());
 
 		_crypto->generate((Setup::SignatureScheme)defaults().property(Defaults::SignScheme).toInt(),
 						  defaults().property(Defaults::SignKeyParam),

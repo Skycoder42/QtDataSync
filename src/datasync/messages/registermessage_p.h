@@ -19,12 +19,12 @@ class Q_DATASYNC_EXPORT RegisterMessage
 	Q_PROPERTY(QByteArray cryptAlgorithm MEMBER cryptAlgorithm)
 	Q_PROPERTY(QByteArray cryptKey MEMBER cryptKey)
 	Q_PROPERTY(QString deviceName MEMBER deviceName)
-	Q_PROPERTY(quint64 nonce MEMBER nonce)
+	Q_PROPERTY(QByteArray nonce MEMBER nonce)
 
 public:
 	RegisterMessage();
 	RegisterMessage(const QString &deviceName,
-					quint64 nonce,
+					const QByteArray &nonce,
 					const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
 					const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
 					AsymmetricCrypto *crypto);
@@ -34,7 +34,7 @@ public:
 	QByteArray cryptAlgorithm;
 	QByteArray cryptKey;
 	QString deviceName;
-	quint64 nonce;
+	QByteArray nonce;
 
 	AsymmetricCrypto *createCrypto(QObject *parent = nullptr);
 	QSharedPointer<CryptoPP::X509PublicKey> getSignKey(CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
