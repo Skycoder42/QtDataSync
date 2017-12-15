@@ -108,6 +108,7 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 		}
 
 		_crypto->load(signScheme, signKey, cryptScheme, cryptKey);
+		logDebug() << "Loaded private keys for" << deviceId;
 
 		//NOTE load and decrypt shared secret
 	} catch(CryptoPP::Exception &e) {
@@ -155,6 +156,7 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId)
 		settings()->setValue(keyCryptScheme, _crypto->encryptionScheme());
 		_keyStore->storePrivateKey(keyCryptTemplate.arg(deviceId.toString()),
 								   _crypto->savePrivateCryptKey());
+		logDebug() << "Stored private keys for" << deviceId;
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),

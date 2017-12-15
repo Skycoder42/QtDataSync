@@ -12,6 +12,8 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
 
+#include "asymmetriccrypto_p.h"
+
 class DatabaseException : public QException
 {
 public:
@@ -45,6 +47,11 @@ public:
 					   const QByteArray &signKey,
 					   const QByteArray &cryptScheme,
 					   const QByteArray &cryptKey);
+	QtDataSync::AsymmetricCryptoInfo *loadCrypto(const QUuid &deviceId,
+												 CryptoPP::RandomNumberGenerator &rng,
+												 QString &name,
+												 QObject *parent = nullptr);
+	void updateName(const QUuid &deviceId, const QString &name);
 
 signals:
 	//TODO correct

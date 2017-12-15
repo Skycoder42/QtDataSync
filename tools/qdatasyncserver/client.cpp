@@ -2,6 +2,7 @@
 #include "app.h"
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
+#include "welcomemessage_p.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -73,9 +74,10 @@ void Client::binaryMessageReceived(const QByteArray &message)
 
 			if(isType<RegisterMessage>(name)) {
 				auto msg = deserializeMessage<RegisterMessage>(stream);
-				QScopedPointer<AsymmetricCrypto> crypto(msg.createCrypto(nullptr));
-				verifySignature(stream, msg.getSignKey(rngPool.localData(), crypto.data()), crypto.data());
-				onRegister(msg);
+				onRegister(msg, stream);
+			} else if(isType<LoginMessage>(name)) {
+				auto msg = deserializeMessage<LoginMessage>(stream);
+				onLogin(msg, stream);
 			} else {
 				qWarning() << "Unknown message received: " << message;
 				close();
@@ -143,11 +145,14 @@ void Client::doSend(const QByteArray &message)
 	_socket->sendBinaryMessage(message);
 }
 
-void Client::onRegister(const RegisterMessage &message)
+void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 {
 	LOCK;
 	if(_state != Authenticating)
 		throw ClientException("Received RegisterMessage in invalid state");
+
+	QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
+	verifySignature(stream, crypto->signatureKey(), crypto.data());
 
 	if(_properties.take("nonce").toByteArray() != message.nonce)
 		throw ClientException("Invalid nonce in RegisterMessagee");
@@ -159,6 +164,29 @@ void Client::onRegister(const RegisterMessage &message)
 
 	qDebug() << "Created new device with id" << _deviceId;
 	sendMessage(serializeMessage<AccountMessage>(_deviceId));
+	_state = Idle;
+}
+
+void Client::onLogin(const LoginMessage &message, QDataStream &stream)
+{
+	LOCK;
+	if(_state != Authenticating)
+		throw ClientException("Received LoginMessage in invalid state");
+
+	//load public key to verify signature
+	QString name;
+	QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(message.deviceId, rngPool.localData(), name));
+	verifySignature(stream, crypto->signatureKey(), crypto.data());
+
+	if(_properties.take("nonce").toByteArray() != message.nonce)
+		throw ClientException("Invalid nonce in RegisterMessagee");
+	_deviceId = message.deviceId;
+
+	if(name != message.name)
+		_database->updateName(_deviceId, message.name);
+	qDebug() << "Device logged in with id" << _deviceId;
+	sendMessage(serializeMessage(WelcomeMessage()));
+	_state = Idle;
 }
 
 

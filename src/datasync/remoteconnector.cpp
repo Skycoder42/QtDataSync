@@ -4,6 +4,7 @@
 #include <QtCore/QSysInfo>
 
 #include "registermessage_p.h"
+#include "loginmessage_p.h"
 
 using namespace QtDataSync;
 
@@ -103,7 +104,7 @@ void RemoteConnector::reconnect()
 
 void RemoteConnector::reloadState()
 {
-
+	Q_UNIMPLEMENTED();
 }
 
 void RemoteConnector::connected()
@@ -152,6 +153,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onIdentify(deserializeMessage<IdentifyMessage>(stream));
 		else if(isType<AccountMessage>(name))
 			onAccount(deserializeMessage<AccountMessage>(stream));
+		else if(isType<WelcomeMessage>(name))
+			onWelcome(deserializeMessage<WelcomeMessage>(stream));
 		else
 			logWarning() << "Unknown message received: " << message;
 	} catch(DataStreamException &e) {
@@ -297,10 +300,16 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	try {
 		if(_state != RemoteConnected)
-			logWarning() << "Unexpected identify message";
+			logWarning() << "Unexpected IdentifyMessage";
 		else {
 			if(!_deviceId.isNull()) {
-				//TODO login
+				LoginMessage msg(_deviceId,
+								 sValue(keyDeviceName).toString(),
+								 message.nonce);
+				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				_socket->sendBinaryMessage(signedMsg);
+				logDebug() << "Sent login message for device id" << _deviceId;
+				upState(RemoteLoggingIn);
 			} else {
 				_cryptoController->createPrivateKeys(message.nonce);
 				RegisterMessage msg(sValue(keyDeviceName).toString(),
@@ -323,7 +332,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 {
 	try {
 		if(_state != RemoteRegistering)
-			logWarning() << "Unexpected account message";
+			logWarning() << "Unexpected AccountMessage";
 		else {
 			_deviceId = message.deviceId;
 			settings()->setValue(keyDeviceId, _deviceId);
@@ -332,5 +341,17 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 		}
 	} catch(Exception &e) {
 		logCritical() << e.what();
+	}
+}
+
+void RemoteConnector::onWelcome(const WelcomeMessage &message)
+{
+	Q_UNUSED(message);
+	if(_state != RemoteLoggingIn)
+		logWarning() << "Unexpected WelcomeMessage";
+	else {
+		logDebug() << "Login successful. Reloading states";
+		upState(RemoteLoading);
+		reloadState();
 	}
 }

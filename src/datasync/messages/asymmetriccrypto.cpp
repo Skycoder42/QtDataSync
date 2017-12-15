@@ -152,6 +152,24 @@ void AsymmetricCrypto::resetSchemes()
 	_encryption.reset();
 }
 
+// ------------- AsymmetricCryptoInfo Implementation -------------
+
+AsymmetricCryptoInfo::AsymmetricCryptoInfo(CryptoPP::RandomNumberGenerator &rng, const QByteArray &signatureScheme, const QByteArray &signatureKey, const QByteArray &encryptionScheme, const QByteArray &encryptionKey, QObject *parent) :
+	AsymmetricCrypto(signatureScheme, encryptionScheme, parent),
+	_signKey(readKey(true, rng, signatureKey)),
+	_cryptKey(readKey(false, rng, encryptionKey))
+{}
+
+const X509PublicKey &AsymmetricCryptoInfo::signatureKey() const
+{
+	return *(_signKey.data());
+}
+
+const X509PublicKey &AsymmetricCryptoInfo::encryptionKey() const
+{
+	return *(_cryptKey.data());
+}
+
 // ------------- Generic Implementation -------------
 
 template <typename TScheme>

@@ -1,12 +1,12 @@
 #ifndef REGISTERMESSAGE_H
 #define REGISTERMESSAGE_H
 
-#include "message_p.h"
-#include "asymmetriccrypto_p.h"
-
 #include <functional>
 
 #include <cryptopp/rsa.h>
+
+#include "message_p.h"
+#include "asymmetriccrypto_p.h"
 
 namespace QtDataSync {
 
@@ -36,9 +36,7 @@ public:
 	QString deviceName;
 	QByteArray nonce;
 
-	AsymmetricCrypto *createCrypto(QObject *parent = nullptr);
-	QSharedPointer<CryptoPP::X509PublicKey> getSignKey(CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
-	QSharedPointer<CryptoPP::X509PublicKey> getCryptKey(CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
+	AsymmetricCryptoInfo *createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent = nullptr) const;
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterMessage &message);

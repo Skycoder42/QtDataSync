@@ -1,9 +1,9 @@
 #ifndef IDENTIFYMESSAGE_H
 #define IDENTIFYMESSAGE_H
 
-#include "message_p.h"
-
 #include <cryptopp/rng.h>
+
+#include "message_p.h"
 
 namespace QtDataSync {
 

@@ -3,9 +3,9 @@
 
 #include <QtCore/QUuid>
 
-#include "message_p.h"
-
 #include <cryptopp/rng.h>
+
+#include "message_p.h"
 
 namespace QtDataSync {
 

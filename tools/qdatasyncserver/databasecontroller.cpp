@@ -6,6 +6,7 @@
 #include <QtSql/QSqlQuery>
 
 #include <QtConcurrent/QtConcurrentRun>
+using namespace QtDataSync;
 
 namespace {
 
@@ -80,9 +81,9 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 	createDeviceQuery.addBindValue(deviceId);
 	createDeviceQuery.addBindValue(userId);
 	createDeviceQuery.addBindValue(name);
-	createDeviceQuery.addBindValue(signScheme);
+	createDeviceQuery.addBindValue(QString::fromUtf8(signScheme));
 	createDeviceQuery.addBindValue(signKey);
-	createDeviceQuery.addBindValue(cryptScheme);
+	createDeviceQuery.addBindValue(QString::fromUtf8(cryptScheme));
 	createDeviceQuery.addBindValue(cryptKey);
 	createDeviceQuery.exec();
 
@@ -90,6 +91,41 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 		throw DatabaseException(db);
 
 	return deviceId;
+}
+
+QtDataSync::AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, CryptoPP::RandomNumberGenerator &rng, QString &name, QObject *parent)
+{
+	auto db = threadStore.localData().database();
+
+	Query loadCryptoQuery(db);
+	loadCryptoQuery.prepare(QStringLiteral("SELECT signscheme, signkey, cryptscheme, cryptkey, name "
+										   "FROM devices "
+										   "WHERE id = ?"));
+	loadCryptoQuery.addBindValue(deviceId);
+	loadCryptoQuery.exec();
+	if(!loadCryptoQuery.first())
+		throw DatabaseException(db); //TODO throw real error
+
+	name = loadCryptoQuery.value(4).toString();
+	return new AsymmetricCryptoInfo(rng,
+									loadCryptoQuery.value(0).toString().toUtf8(),
+									loadCryptoQuery.value(1).toByteArray(),
+									loadCryptoQuery.value(2).toString().toUtf8(),
+									loadCryptoQuery.value(3).toByteArray(),
+									parent);
+
+}
+
+void DatabaseController::updateName(const QUuid &deviceId, const QString &name)
+{
+	auto db = threadStore.localData().database();
+
+	Query updateNameQuery(db);
+	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?"
+										   "WHERE id = ?"));
+	updateNameQuery.addBindValue(name);
+	updateNameQuery.addBindValue(deviceId);
+	updateNameQuery.exec();
 }
 
 void DatabaseController::initDatabase()

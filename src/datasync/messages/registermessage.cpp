@@ -20,23 +20,14 @@ RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &no
 	nonce(nonce)
 {}
 
-AsymmetricCrypto *RegisterMessage::createCrypto(QObject *parent)
+AsymmetricCryptoInfo *RegisterMessage::createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent) const
 {
-	return new AsymmetricCrypto(signAlgorithm, cryptAlgorithm, parent);
-}
-
-QSharedPointer<CryptoPP::X509PublicKey> RegisterMessage::getSignKey(CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto)
-{
-	if(crypto->signatureScheme() != signAlgorithm)
-		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_ARGUMENT, "Signature scheme of passed crypto object does not match the messages scheme");
-	return crypto->readKey(true, rng, signKey);
-}
-
-QSharedPointer<CryptoPP::X509PublicKey> RegisterMessage::getCryptKey(CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto)
-{
-	if(crypto->encryptionScheme() != cryptAlgorithm)
-		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_ARGUMENT, "Encryption scheme of passed crypto object does not match the messages scheme");
-	return crypto->readKey(false, rng, cryptKey);
+	return new AsymmetricCryptoInfo(rng,
+									signAlgorithm,
+									signKey,
+									cryptAlgorithm,
+									cryptKey,
+									parent);
 }
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)

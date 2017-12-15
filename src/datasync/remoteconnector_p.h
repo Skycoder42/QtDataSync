@@ -13,6 +13,7 @@
 
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
+#include "welcomemessage_p.h"
 
 namespace QtDataSync {
 
@@ -34,6 +35,7 @@ public:
 		RemoteReconnecting,
 		RemoteConnected,
 		RemoteRegistering,
+		RemoteLoggingIn,
 		RemoteLoading,
 		RemoteReady
 	};
@@ -76,6 +78,7 @@ private:
 
 	void onIdentify(const IdentifyMessage &message);
 	void onAccount(const AccountMessage &message);
+	void onWelcome(const WelcomeMessage &message);
 };
 
 }

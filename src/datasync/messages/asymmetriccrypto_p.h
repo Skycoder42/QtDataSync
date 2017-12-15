@@ -84,6 +84,24 @@ private:
 	QScopedPointer<Encryption> _encryption;
 };
 
+class Q_DATASYNC_EXPORT AsymmetricCryptoInfo : public AsymmetricCrypto
+{
+public:
+	AsymmetricCryptoInfo(CryptoPP::RandomNumberGenerator &rng,
+						 const QByteArray &signatureScheme,
+						 const QByteArray &signatureKey,
+						 const QByteArray &encryptionScheme,
+						 const QByteArray &encryptionKey,
+						 QObject *parent = nullptr);
+
+	const CryptoPP::X509PublicKey &signatureKey() const;
+	const CryptoPP::X509PublicKey &encryptionKey() const;
+
+private:
+	QSharedPointer<CryptoPP::X509PublicKey> _signKey;
+	QSharedPointer<CryptoPP::X509PublicKey> _cryptKey;
+};
+
 }
 
 Q_DECLARE_METATYPE(CryptoPP::OID)

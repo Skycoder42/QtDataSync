@@ -15,6 +15,7 @@
 #include "databasecontroller.h"
 
 #include "registermessage_p.h"
+#include "loginmessage_p.h"
 
 class ClientException : public QException
 {
@@ -76,7 +77,8 @@ private:
 	void sendMessage(const QByteArray &message);
 	Q_INVOKABLE void doSend(const QByteArray &message);
 
-	void onRegister(const QtDataSync::RegisterMessage &message);
+	void onRegister(const QtDataSync::RegisterMessage &message, QDataStream &stream);
+	void onLogin(const QtDataSync::LoginMessage &message, QDataStream &stream);
 };
 
 #endif // CLIENT_H
