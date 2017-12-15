@@ -13,6 +13,7 @@ class PlainKeyStore : public QtDataSync::KeyStore
 public:
 	explicit PlainKeyStore(const QtDataSync::Defaults &defaults, QObject *parent = nullptr);
 
+	QString providerName() const override;
 	void loadStore() override;
 	void closeStore() override;
 	bool contains(const QString &key) const override;

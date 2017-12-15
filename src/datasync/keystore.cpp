@@ -46,9 +46,9 @@ KeyStorePrivate::KeyStorePrivate(const Defaults &defaults) :
 
 
 
-KeyStoreException::KeyStoreException(const Defaults &defaults, const QString keyStoreName, const QString &what) :
-	Exception(defaults, what),
-	_keyStoreName(keyStoreName)
+KeyStoreException::KeyStoreException(const KeyStore * const keyStore, const QString &what) :
+	Exception(keyStore->defaults(), what),
+	_keyStoreName(keyStore->providerName())
 {}
 
 KeyStoreException::KeyStoreException(const KeyStoreException * const other) :

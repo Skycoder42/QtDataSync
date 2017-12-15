@@ -10,10 +10,11 @@
 
 namespace QtDataSync {
 
+class KeyStore;
 class Q_DATASYNC_EXPORT KeyStoreException : public Exception
 {
 public:
-	KeyStoreException(const Defaults &defaults, const QString keyStoreName, const QString &what);
+	KeyStoreException(const KeyStore * const keyStore, const QString &what);
 
 	QString keyStoreName() const;
 
@@ -32,6 +33,7 @@ class KeyStorePrivate;
 class Q_DATASYNC_EXPORT KeyStore : public QObject
 {
 	Q_OBJECT
+	friend class QtDataSync::KeyStoreException;
 
 public:
 	explicit KeyStore(const Defaults &defaults, QObject *parent = nullptr);
@@ -39,6 +41,8 @@ public:
 
 	static QStringList listProviders();
 	static QString defaultProvider();
+
+	virtual QString providerName() const = 0;
 
 	virtual void loadStore() = 0;
 	virtual void closeStore() = 0;

@@ -94,17 +94,13 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
 		auto signKey = _keyStore->loadPrivateKey(keySignTemplate.arg(deviceId.toString()));
 		if(signKey.isNull()) {
-			throw KeyStoreException(defaults(),
-									QString(), //TODO real name
-									QStringLiteral("Unable to load private signing key from keystore"));
+			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private signing key from keystore"));
 		}
 
 		auto cryptScheme = settings()->value(keyCryptScheme).toByteArray();
 		auto cryptKey = _keyStore->loadPrivateKey(keyCryptTemplate.arg(deviceId.toString()));
 		if(cryptKey.isNull()) {
-			throw KeyStoreException(defaults(),
-									QString(), //TODO real name
-									QStringLiteral("Unable to load private encryption key from keystore"));
+			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private encryption key from keystore"));
 		}
 
 		_crypto->load(signScheme, signKey, cryptScheme, cryptKey);
@@ -169,7 +165,7 @@ void CryptoController::ensureStoreAccess() const
 	if(_keyStore)
 		_keyStore->loadStore();
 	else
-		throw KeyStoreException(defaults(), QString(), QStringLiteral("No keystore available"));
+		throw Exception(defaults(), QStringLiteral("No keystore available"));
 }
 
 QStringList CryptoController::allKeystoreKeys()

@@ -10,6 +10,11 @@ KWalletKeyStore::KWalletKeyStore(const QtDataSync::Defaults &defaults, QObject *
 	_wallet(nullptr)
 {}
 
+QString KWalletKeyStore::providerName() const
+{
+	return QStringLiteral("kwallet");
+}
+
 void KWalletKeyStore::loadStore()
 {
 	if(!_wallet) {
@@ -17,9 +22,7 @@ void KWalletKeyStore::loadStore()
 		if(_wallet) {
 			if(!_wallet->isOpen()) {
 				_wallet->deleteLater();
-				throw QtDataSync::KeyStoreException(defaults(),
-													QStringLiteral("kwallet"),
-													QStringLiteral("Failed to open KWallet instance"));
+				throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to open KWallet instance"));
 			} else {
 				auto sDir = QCoreApplication::applicationName();
 				if(!_wallet->hasFolder(sDir))
@@ -27,16 +30,11 @@ void KWalletKeyStore::loadStore()
 
 				if(!_wallet->setFolder(sDir)) {
 					_wallet->deleteLater();
-					throw QtDataSync::KeyStoreException(defaults(),
-														QStringLiteral("kwallet"),
-														QStringLiteral("Failed to enter application folder in KWallet"));
+					throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to enter application folder in KWallet"));
 				}
 			}
-		} else {
-			throw QtDataSync::KeyStoreException(defaults(),
-												QStringLiteral("kwallet"),
-												QStringLiteral("Failed to acquire KWallet instance"));
-		}
+		} else
+			throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to acquire KWallet instance"));
 	}
 }
 
@@ -55,11 +53,8 @@ bool KWalletKeyStore::contains(const QString &key) const
 
 void KWalletKeyStore::storePrivateKey(const QString &key, const QByteArray &pkey)
 {
-	if(_wallet->writeEntry(key, pkey) != 0) {
-		throw QtDataSync::KeyStoreException(defaults(),
-											QStringLiteral("kwallet"),
-											QStringLiteral("Failed to save key to KWallet"));
-	}
+	if(_wallet->writeEntry(key, pkey) != 0)
+		throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to save key to KWallet"));
 }
 
 QByteArray KWalletKeyStore::loadPrivateKey(const QString &key)
@@ -68,18 +63,12 @@ QByteArray KWalletKeyStore::loadPrivateKey(const QString &key)
 	auto res = _wallet->readEntry(key, secret);
 	if(res == 0)
 		return secret;
-	else {
-		throw QtDataSync::KeyStoreException(defaults(),
-											QStringLiteral("kwallet"),
-											QStringLiteral("Failed to load key from KWallet"));
-	}
+	else
+		throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to load key from KWallet"));
 }
 
 void KWalletKeyStore::remove(const QString &key)
 {
-	if(_wallet->removeEntry(key) != 0) {
-		throw QtDataSync::KeyStoreException(defaults(),
-											QStringLiteral("kwallet"),
-											QStringLiteral("Failed to remove key from KWallet"));
-	}
+	if(_wallet->removeEntry(key) != 0)
+		throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to remove key from KWallet"));
 }

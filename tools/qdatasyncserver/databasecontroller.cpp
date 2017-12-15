@@ -34,25 +34,21 @@ DatabaseController::DatabaseController(QObject *parent) :
 
 void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 {
-	//TODO work with exceptions etc.
 	QtConcurrent::run(qApp->threadPool(), [this, offlineSinceDays]() {
-		auto db = threadStore.localData().database();
-		if(!db.transaction()) {
-			emit cleanupOperationDone(-1,
-									  QStringLiteral("Failed to create transaction with error: %1")
-									  .arg(db.lastError().text()));
-			return;
-		}
+		try {
+			auto db = threadStore.localData().database();
+			if(!db.transaction())
+				throw DatabaseException(db);
 
-		//TODO IMPLEMENT
-		Q_UNIMPLEMENTED();
+			//TODO IMPLEMENT
+			Q_UNIMPLEMENTED();
 
-		if(db.commit())
-			emit cleanupOperationDone(0);
-		else {
-			emit cleanupOperationDone(-1,
-									  QStringLiteral("Failed to commit transaction with error: %1")
-									  .arg(db.lastError().text()));
+			if(db.commit())
+				emit cleanupOperationDone(0);
+			else
+				throw DatabaseException(db);
+		} catch (DatabaseException &e) {
+			emit cleanupOperationDone(-1, e.errorString());
 		}
 	});
 }

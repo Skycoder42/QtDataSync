@@ -3,6 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
+#include <QtCore/QPointer>
 
 #include <cryptopp/osrng.h>
 #include <cryptopp/oids.h>

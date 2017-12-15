@@ -9,6 +9,11 @@ PlainKeyStore::PlainKeyStore(const QtDataSync::Defaults &defaults, QObject *pare
 	_settings(nullptr)
 {}
 
+QString PlainKeyStore::providerName() const
+{
+	return QStringLiteral("plain");
+}
+
 void PlainKeyStore::loadStore()
 {
 	if(!_settings) {
@@ -17,9 +22,7 @@ void PlainKeyStore::loadStore()
 								  this);
 		if(!_settings->isWritable()) {
 			_settings->deleteLater();
-			throw QtDataSync::KeyStoreException(defaults(),
-												QStringLiteral("plain"),
-												QStringLiteral("Keystore file is not writable"));
+			throw QtDataSync::KeyStoreException(this, QStringLiteral("Keystore file is not writable"));
 		}
 	}
 }
