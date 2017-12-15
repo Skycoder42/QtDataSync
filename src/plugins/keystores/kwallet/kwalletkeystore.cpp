@@ -53,21 +53,21 @@ bool KWalletKeyStore::contains(const QString &key) const
 	return _wallet->hasEntry(key);
 }
 
-void KWalletKeyStore::storePrivateKey(const QString &key, const QSslKey &pkey)
+void KWalletKeyStore::storePrivateKey(const QString &key, const QByteArray &pkey)
 {
-	if(_wallet->writeEntry(key, pkey.toDer()) != 0) {
+	if(_wallet->writeEntry(key, pkey) != 0) {
 		throw QtDataSync::KeyStoreException(defaults(),
 											QStringLiteral("kwallet"),
 											QStringLiteral("Failed to save key to KWallet"));
 	}
 }
 
-QSslKey KWalletKeyStore::loadPrivateKey(const QString &key)
+QByteArray KWalletKeyStore::loadPrivateKey(const QString &key)
 {
 	QByteArray secret;
 	auto res = _wallet->readEntry(key, secret);
 	if(res == 0)
-		return QSslKey(secret, QSsl::Rsa, QSsl::Der);//TODO dont assume RSA
+		return secret;
 	else {
 		throw QtDataSync::KeyStoreException(defaults(),
 											QStringLiteral("kwallet"),

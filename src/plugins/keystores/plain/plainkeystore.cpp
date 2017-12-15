@@ -37,14 +37,14 @@ bool PlainKeyStore::contains(const QString &key) const
 	return _settings->contains(key);
 }
 
-void PlainKeyStore::storePrivateKey(const QString &key, const QSslKey &pKey)
+void PlainKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey)
 {
-	_settings->setValue(key, pKey.toDer());
+	_settings->setValue(key, pKey);
 }
 
-QSslKey PlainKeyStore::loadPrivateKey(const QString &key)
+QByteArray PlainKeyStore::loadPrivateKey(const QString &key)
 {
-	return QSslKey(_settings->value(key).toByteArray(), QSsl::Rsa, QSsl::Der);
+	return _settings->value(key).toByteArray();
 }
 
 void PlainKeyStore::remove(const QString &key)

@@ -183,9 +183,7 @@ class RsaKeyScheme : public ClientCrypto::KeyScheme
 public:
 	QByteArray name() const override;
 	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
-	void loadPrivateKey(const QSslKey &key) override;
-	QSslKey savePrivateKey() override;
-	const PKCS8PrivateKey &privateKeyRef() const override;
+	PKCS8PrivateKey &privateKeyRef() override;
 	QSharedPointer<X509PublicKey> createPublicKey() const override;
 
 private:
@@ -198,9 +196,7 @@ class EccKeyScheme : public ClientCrypto::KeyScheme
 public:
 	QByteArray name() const override;
 	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
-	void loadPrivateKey(const QSslKey &key) override;
-	QSslKey savePrivateKey() override;
-	const PKCS8PrivateKey &privateKeyRef() const override;
+	PKCS8PrivateKey &privateKeyRef() override;
 	QSharedPointer<X509PublicKey> createPublicKey() const override;
 
 private:
@@ -242,7 +238,7 @@ void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &s
 		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
 }
 
-void ClientCrypto::load(const QByteArray &signScheme, const QSslKey &signKey, const QByteArray &cryptScheme, const QSslKey &cryptKey)
+void ClientCrypto::load(const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey)
 {
 	//first: clean all
 	resetSchemes();
@@ -260,10 +256,10 @@ void ClientCrypto::load(const QByteArray &signScheme, const QSslKey &signKey, co
 	if(_cryptKey->name() != encryptionScheme())
 		throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Crypting key scheme does not match encryption scheme");
 
-	_signKey->loadPrivateKey(signKey);
+	loadKey(_signKey->privateKeyRef(), signKey);
 	if(!_signKey->privateKeyRef().Validate(_rng, 3))
 		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
-	_cryptKey->loadPrivateKey(cryptKey);
+	loadKey(_cryptKey->privateKeyRef(), cryptKey);
 	if(!_cryptKey->privateKeyRef().Validate(_rng, 3))
 		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
 }
@@ -303,9 +299,9 @@ const PKCS8PrivateKey &ClientCrypto::privateSignKey() const
 	return _signKey->privateKeyRef();
 }
 
-QSslKey ClientCrypto::savePrivateSignKey() const
+QByteArray ClientCrypto::savePrivateSignKey() const
 {
-	return _signKey->savePrivateKey();
+	return saveKey(_signKey->privateKeyRef());
 }
 
 const PKCS8PrivateKey &ClientCrypto::privateCryptKey() const
@@ -313,9 +309,9 @@ const PKCS8PrivateKey &ClientCrypto::privateCryptKey() const
 	return _cryptKey->privateKeyRef();
 }
 
-QSslKey ClientCrypto::savePrivateCryptKey() const
+QByteArray ClientCrypto::savePrivateCryptKey() const
 {
-	return _cryptKey->savePrivateKey();
+	return saveKey(_cryptKey->privateKeyRef());
 }
 
 QByteArray ClientCrypto::sign(const QByteArray &message)
@@ -369,6 +365,8 @@ OID ClientCrypto::curveId(Setup::EllipticCurve curve)
 	}
 }
 
+#undef CC_CURVE
+
 void ClientCrypto::setSignatureKey(const QByteArray &name)
 {
 	auto stdStr = name.toStdString();
@@ -421,7 +419,19 @@ void ClientCrypto::setEncryptionKey(Setup::EncryptionScheme scheme)
 	}
 }
 
-#undef CC_CURVE
+void ClientCrypto::loadKey(PKCS8PrivateKey &key, const QByteArray &data)
+{
+	QByteArraySource source(data, true);
+	key.Load(source);
+}
+
+QByteArray ClientCrypto::saveKey(const PKCS8PrivateKey &key) const
+{
+	QByteArray data;
+	QByteArraySink sink(data);
+	key.Save(sink);
+	return data;
+}
 
 // ------------- Generic KeyScheme Implementation -------------
 
@@ -440,23 +450,7 @@ void RsaKeyScheme<TScheme>::createPrivateKey(RandomNumberGenerator &rng, const Q
 }
 
 template <typename TScheme>
-void RsaKeyScheme<TScheme>::loadPrivateKey(const QSslKey &key)
-{
-	QByteArraySource source(key.toDer(), true);
-	_key.BERDecodePrivateKey(source, false, 0);
-}
-
-template<typename TScheme>
-QSslKey RsaKeyScheme<TScheme>::savePrivateKey()
-{
-	QByteArray data;
-	QByteArraySink sink(data);
-	_key.DEREncodePrivateKey(sink);
-	return QSslKey(data, QSsl::Rsa, QSsl::Der);
-}
-
-template <typename TScheme>
-const PKCS8PrivateKey &RsaKeyScheme<TScheme>::privateKeyRef() const
+PKCS8PrivateKey &RsaKeyScheme<TScheme>::privateKeyRef()
 {
 	return _key;
 }
@@ -485,23 +479,7 @@ void EccKeyScheme<TScheme>::createPrivateKey(RandomNumberGenerator &rng, const Q
 }
 
 template <typename TScheme>
-void EccKeyScheme<TScheme>::loadPrivateKey(const QSslKey &key)
-{
-	QByteArraySource source(key.toDer(), true);
-	_key.BERDecodePrivateKey(source, false, 0);
-}
-
-template<typename TScheme>
-QSslKey EccKeyScheme<TScheme>::savePrivateKey()
-{
-	QByteArray data;
-	QByteArraySink sink(data);
-	_key.DEREncodePrivateKey(sink);
-	return QSslKey(data, QSsl::Opaque, QSsl::Der);
-}
-
-template <typename TScheme>
-const PKCS8PrivateKey &EccKeyScheme<TScheme>::privateKeyRef() const
+PKCS8PrivateKey &EccKeyScheme<TScheme>::privateKeyRef()
 {
 	return _key;
 }
