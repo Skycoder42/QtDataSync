@@ -273,10 +273,11 @@ void Setup::create(const QString &name)
 
 // ------------- RemoteConfig -------------
 
-RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const QHash<QByteArray, QByteArray> &headers) :
+RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const QHash<QByteArray, QByteArray> &headers, int keepaliveTimeout) :
 	url(url),
 	accessKey(accessKey),
-	headers(headers)
+	headers(headers),
+	keepaliveTimeout(keepaliveTimeout)
 {}
 
 // ------------- Private Implementation -------------

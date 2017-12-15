@@ -14,6 +14,7 @@ const QString RemoteConnector::keyRemoteEnabled(QStringLiteral("enabled"));
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remote/url"));
 const QString RemoteConnector::keyAccessKey(QStringLiteral("remote/accessKey"));
 const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
+const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepaliveTimeout"));
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
 
@@ -21,6 +22,7 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
 	_cryptoController(new CryptoController(defaults, this)),
 	_socket(nullptr),
+	_pingTimer(new QTimer(this)),
 	_changingConnection(false),
 	_state(RemoteDisconnected),
 	_deviceId()
@@ -29,12 +31,18 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 void RemoteConnector::initialize()
 {
 	_cryptoController->initialize();
+
+	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
+	_pingTimer->setSingleShot(true);
+
 	//always "reconnect", because this loads keys etc. and if disabled, also does nothing
 	QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 }
 
 void RemoteConnector::finalize()
 {
+	_pingTimer->stop();
+
 	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
 		_changingConnection = true;
 		_socket->close();
@@ -85,6 +93,20 @@ void RemoteConnector::reconnect()
 		connect(_socket, &QWebSocket::disconnected,
 				this, &RemoteConnector::disconnected,
 				Qt::QueuedConnection);
+
+		//initialize keep alive pings (only do if sever pongs back)
+		auto tOut = sValue(keyKeepaliveTimeout).toInt();
+		if(tOut > 0) {
+			_pingTimer->setInterval(tOut);
+			connect(_socket, &QWebSocket::connected,
+					_pingTimer, QOverload<>::of(&QTimer::start));
+			connect(_socket, &QWebSocket::disconnected,
+					_pingTimer, &QTimer::stop);
+			connect(_socket, &QWebSocket::pong,
+					_pingTimer, QOverload<>::of(&QTimer::start));
+			connect(_pingTimer, &QTimer::timeout,
+					_socket, [this](){_socket->ping();});
+		}
 
 		QNetworkRequest request(remoteUrl);
 		request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
@@ -280,6 +302,8 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return config.accessKey;
 	else if(key == keyHeaders)
 		return QVariant::fromValue(config.headers);
+	else if(key == keyKeepaliveTimeout)
+		return QVariant::fromValue(config.keepaliveTimeout);
 	else if(key == keyRemoteEnabled)
 		return true;
 	else if(key == keyDeviceName)

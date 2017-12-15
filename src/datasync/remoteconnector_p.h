@@ -3,6 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
+#include <QtCore/QTimer>
 
 #include <QtWebSockets/QWebSocket>
 
@@ -26,6 +27,7 @@ public:
 	static const QString keyRemoteUrl;
 	static const QString keyAccessKey;
 	static const QString keyHeaders;
+	static const QString keyKeepaliveTimeout;
 	static const QString keyDeviceId;
 	static const QString keyDeviceName;
 
@@ -64,6 +66,7 @@ private:
 	CryptoController *_cryptoController;
 
 	QWebSocket *_socket;
+	QTimer *_pingTimer;
 	bool _changingConnection;
 	RemoteState _state;
 
