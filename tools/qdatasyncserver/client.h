@@ -7,6 +7,7 @@
 #include <QtCore/QThreadStorage>
 #include <QtCore/QMutex>
 #include <QtCore/QHash>
+#include <QtCore/QTimer>
 
 #include <QtWebSockets/QWebSocket>
 
@@ -59,13 +60,18 @@ private slots:
 	void error();
 	void sslErrors(const QList<QSslError> &errors);
 	void closeClient();
+	void ping();
 
 private:
+	static const QByteArray PingMessage;
 	static QThreadStorage<CryptoPP::AutoSeededRandomPool> rngPool;
 
 	DatabaseController *_database;
 	QWebSocket *_socket;
 	QUuid _deviceId;
+
+	QTimer *_pingTimer;
+	bool _awaitingPing;
 
 	QAtomicInt _runCount;
 

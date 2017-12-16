@@ -4,13 +4,17 @@
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QUuid>
-#include <QtConcurrent>
+#include <chrono>
+
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
+#include <QtCore/QUuid>
+
+#include <QtConcurrent/QtConcurrentRun>
 
 using namespace QtDataSync;
 
+const QByteArray Client::PingMessage(1, 0xFF);
 QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
 
 #define LOCK QMutexLocker _(&_lock)
@@ -20,6 +24,8 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_database(database),
 	_socket(websocket),
 	_deviceId(),
+	_pingTimer(nullptr),
+	_awaitingPing(false),
 	_runCount(0),
 	_lock(),
 	_state(Authenticating),
@@ -36,7 +42,14 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	connect(_socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
-	//TODO add disconnect timeout?
+	auto ping = qApp->configuration()->value(QStringLiteral("server/pingTimeout"), 60).toInt();
+	if(ping > 0) {
+		_pingTimer = new QTimer(this);
+		_pingTimer->setInterval(std::chrono::seconds(ping));
+		connect(_pingTimer, &QTimer::timeout,
+				this, &Client::ping);
+		_pingTimer->start();
+	}
 
 	_runCount++;
 	QtConcurrent::run(qApp->threadPool(), [this]() {
@@ -61,6 +74,13 @@ void Client::notifyChanged(const QString &type, const QString &key, bool changed
 
 void Client::binaryMessageReceived(const QByteArray &message)
 {
+	if(message == PingMessage) {
+		_awaitingPing = false;
+		if(_pingTimer)
+			_pingTimer->start();
+		return;
+	}
+
 	_runCount++;
 	QtConcurrent::run(qApp->threadPool(), [message, this]() {
 		try {
@@ -117,15 +137,30 @@ void Client::sslErrors(const QList<QSslError> &errors)
 
 void Client::closeClient()
 {
-	if(_runCount == 0)//save close -> delete only if no parallel stuff anymore (check every 500 ms)
+	if(_runCount == 0) {//save close -> delete only if no parallel stuff anymore (check every 500 ms)
+		qDebug() << "Client with id" << _deviceId << "disconnected";
 		deleteLater();
-	else {
+	} else {
 		auto destroyTimer = new QTimer(this);
 		connect(destroyTimer, &QTimer::timeout, this, [this](){
-			if(_runCount == 0)
+			if(_runCount == 0) {
+				qDebug() << "Client with id" << _deviceId << "disconnected";
 				deleteLater();
+			}
 		});
 		destroyTimer->start(500);
+	}
+}
+
+void Client::ping()
+{
+	if(_awaitingPing) {
+		qDebug() << "Disconnecting idle client" << _deviceId;
+		_pingTimer->stop();
+		_socket->close();
+	} else {
+		_awaitingPing = true;
+		_socket->sendBinaryMessage(PingMessage);
 	}
 }
 

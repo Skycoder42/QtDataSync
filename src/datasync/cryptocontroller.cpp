@@ -114,6 +114,13 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 	}
 }
 
+void CryptoController::clearKeyMaterial()
+{
+	_fingerprint.clear();
+	_crypto->reset();
+	logDebug() << "Cleared all key material";
+}
+
 void CryptoController::createPrivateKeys(const QByteArray &nonce)
 {
 	try {
@@ -213,9 +220,7 @@ ClientCrypto::ClientCrypto(QObject *parent) :
 void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &signKeyParam, Setup::EncryptionScheme cryptScheme, const QVariant &cryptKeyParam)
 {
 	//first: clean all
-	resetSchemes();
-	_signKey.reset();
-	_cryptKey.reset();
+	reset();
 
 	//load all schemes
 	setSignatureKey(signScheme);
@@ -239,9 +244,7 @@ void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &s
 void ClientCrypto::load(const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey)
 {
 	//first: clean all
-	resetSchemes();
-	_signKey.reset();
-	_cryptKey.reset();
+	reset();
 
 	//load all schemes
 	setSignatureKey(signScheme);
@@ -260,6 +263,13 @@ void ClientCrypto::load(const QByteArray &signScheme, const QByteArray &signKey,
 	loadKey(_cryptKey->privateKeyRef(), cryptKey);
 	if(!_cryptKey->privateKeyRef().Validate(_rng, 3))
 		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Signature key failed validation");
+}
+
+void ClientCrypto::reset()
+{
+	resetSchemes();
+	_signKey.reset();
+	_cryptKey.reset();
 }
 
 RandomNumberGenerator &ClientCrypto::rng()

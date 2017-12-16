@@ -1,6 +1,8 @@
 #include "remoteconnector_p.h"
 #include "logger.h"
 
+#include <chrono>
+
 #include <QtCore/QSysInfo>
 
 #include "registermessage_p.h"
@@ -17,12 +19,13 @@ const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
 const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepaliveTimeout"));
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
+const QByteArray RemoteConnector::PingMessage(1, 0xFF);
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
 	_cryptoController(new CryptoController(defaults, this)),
 	_socket(nullptr),
-	_pingTimer(new QTimer(this)),
+	_idleTimer(new QTimer(this)),
 	_changingConnection(false),
 	_state(RemoteDisconnected),
 	_deviceId()
@@ -32,8 +35,8 @@ void RemoteConnector::initialize()
 {
 	_cryptoController->initialize();
 
-	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
-	_pingTimer->setSingleShot(true);
+	_idleTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
+	_idleTimer->setSingleShot(true);
 
 	//always "reconnect", because this loads keys etc. and if disabled, also does nothing
 	QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
@@ -41,7 +44,7 @@ void RemoteConnector::initialize()
 
 void RemoteConnector::finalize()
 {
-	_pingTimer->stop();
+	_idleTimer->stop();
 
 	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
 		_changingConnection = true;
@@ -63,11 +66,14 @@ void RemoteConnector::reconnect()
 			QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 		} else if(_socket->state() == QAbstractSocket::ConnectedState) {
 			logDebug() << "Closing active connection with server to reconnect";
+			connect(_socket, &QWebSocket::destroyed,
+					this, &RemoteConnector::reconnect,
+					Qt::QueuedConnection);
 			_changingConnection = true;
 			_socket->close();
 			upState(RemoteReconnecting);
 		} else
-			logDebug() << "Delaying reconnect operation. Socket in changing state:" << _socket->state();
+			logDebug() << "Cannot reconnect. Socket in changing state:" << _socket->state(); //TODO not so stable...
 	} else {
 		upState(RemoteReconnecting);
 		QUrl remoteUrl;
@@ -94,18 +100,16 @@ void RemoteConnector::reconnect()
 				this, &RemoteConnector::disconnected,
 				Qt::QueuedConnection);
 
-		//initialize keep alive pings (only do if sever pongs back)
+		//initialize keep alive timeout
 		auto tOut = sValue(keyKeepaliveTimeout).toInt();
 		if(tOut > 0) {
-			_pingTimer->setInterval(tOut);
+			_idleTimer->setInterval(std::chrono::seconds(tOut));
 			connect(_socket, &QWebSocket::connected,
-					_pingTimer, QOverload<>::of(&QTimer::start));
+					_idleTimer, QOverload<>::of(&QTimer::start));
 			connect(_socket, &QWebSocket::disconnected,
-					_pingTimer, &QTimer::stop);
-			connect(_socket, &QWebSocket::pong,
-					_pingTimer, QOverload<>::of(&QTimer::start));
-			connect(_pingTimer, &QTimer::timeout,
-					_socket, [this](){_socket->ping();});
+					_idleTimer, &QTimer::stop);
+			connect(_idleTimer, &QTimer::timeout,
+					this, &RemoteConnector::timeout);
 		}
 
 		QNetworkRequest request(remoteUrl);
@@ -155,6 +159,7 @@ void RemoteConnector::disconnected()
 	if(_socket)//better be safe
 		_socket->deleteLater();
 	_socket = nullptr;
+	_cryptoController->clearKeyMaterial();
 
 	//always "disable" remote for the state changer
 	upState(RemoteDisconnected);
@@ -162,6 +167,12 @@ void RemoteConnector::disconnected()
 
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 {
+	if(message == PingMessage) {
+		_idleTimer->start();
+		_socket->sendBinaryMessage(PingMessage);
+		return;
+	}
+
 	try {
 		QDataStream stream(message);
 		setupStream(stream);
@@ -220,6 +231,12 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 
 	if(shouldClose)
 		tryClose();
+}
+
+void RemoteConnector::timeout()
+{
+	logDebug() << "Server connection idle. Reconnecting to server";
+	reconnect();
 }
 
 bool RemoteConnector::checkCanSync(QUrl &remoteUrl)

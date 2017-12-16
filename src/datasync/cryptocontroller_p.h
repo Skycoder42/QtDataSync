@@ -67,6 +67,8 @@ public:
 			  const QByteArray &cryptScheme,
 			  const QByteArray &cryptKey);
 
+	void reset();
+
 	CryptoPP::RandomNumberGenerator &rng();
 
 	QSharedPointer<CryptoPP::X509PublicKey> readKey(bool signKey, const QByteArray &data);
@@ -122,6 +124,7 @@ public:
 
 	bool canAccessStore() const;
 	void loadKeyMaterial(const QUuid &deviceId);
+	void clearKeyMaterial();
 
 	void createPrivateKeys(const QByteArray &nonce);
 	void storePrivateKeys(const QUuid &deviceId);

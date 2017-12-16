@@ -31,7 +31,7 @@ struct Q_DATASYNC_EXPORT RemoteConfig {
 	RemoteConfig(const QUrl &url = {},
 				 const QString &accessKey = {},
 				 const QHash<QByteArray, QByteArray> &headers = {},
-				 int keepaliveTimeout = 60 * 1000); //60 seconds, as nginx default timeout is 75 seconds
+				 int keepaliveTimeout = 120); //120 seconds, double the default server timeout
 };
 
 class SetupPrivate;
