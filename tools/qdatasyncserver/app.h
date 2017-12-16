@@ -21,7 +21,6 @@ public:
 	QThreadPool *threadPool() const;
 	QString absolutePath(const QString &path) const;
 
-	// App interface
 protected:
 	void setupParser(QCommandLineParser &parser, bool useShortOptions) override;
 	int startupApp(const QCommandLineParser &parser) override;

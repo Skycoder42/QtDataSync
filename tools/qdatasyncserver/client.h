@@ -1,6 +1,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <functional>
+
 #include <QtCore/QJsonValue>
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
@@ -77,6 +79,8 @@ private:
 	QMutex _lock;
 	State _state;
 	QHash<QByteArray, QVariant> _properties;
+
+	void run(const std::function<void()> &fn);
 
 	void close();
 	void sendMessage(const QByteArray &message);

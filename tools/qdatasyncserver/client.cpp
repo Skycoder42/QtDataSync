@@ -51,14 +51,12 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 		_idleTimer->start();
 	}
 
-	_runCount++;
-	QtConcurrent::run(qApp->threadPool(), [this]() {
+	run([this]() {
 		LOCK;
 		//initialize connection by sending indent message
 		auto msg = IdentifyMessage::createRandom(rngPool.localData());
 		_properties.insert("nonce", msg.nonce);
 		sendMessage(serializeMessage(msg));
-		_runCount--;
 	});
 }
 
@@ -81,37 +79,25 @@ void Client::binaryMessageReceived(const QByteArray &message)
 		return;
 	}
 
-	_runCount++;
-	QtConcurrent::run(qApp->threadPool(), [message, this]() {
-		try {
-			QDataStream stream(message);
-			setupStream(stream);
-			stream.startTransaction();
-			QByteArray name;
-			stream >> name;
-			if(!stream.commitTransaction())
-				throw DataStreamException(stream);
+	run([message, this]() {
+		QDataStream stream(message);
+		setupStream(stream);
+		stream.startTransaction();
+		QByteArray name;
+		stream >> name;
+		if(!stream.commitTransaction())
+			throw DataStreamException(stream);
 
-			if(isType<RegisterMessage>(name)) {
-				auto msg = deserializeMessage<RegisterMessage>(stream);
-				onRegister(msg, stream);
-			} else if(isType<LoginMessage>(name)) {
-				auto msg = deserializeMessage<LoginMessage>(stream);
-				onLogin(msg, stream);
-			} else {
-				qWarning() << "Unknown message received: " << message;
-				close();
-			}
-		} catch (DatabaseException &e) {
-			qWarning().noquote() << "Internal database error:" << e.errorString()
-								 << "\nResettings connection in hopes to fix it.";
-			close();
-		} catch (std::exception &e) {
-			qWarning() << "Client message error:" << e.what();
+		if(isType<RegisterMessage>(name)) {
+			auto msg = deserializeMessage<RegisterMessage>(stream);
+			onRegister(msg, stream);
+		} else if(isType<LoginMessage>(name)) {
+			auto msg = deserializeMessage<LoginMessage>(stream);
+			onLogin(msg, stream);
+		} else {
+			qWarning() << "Unknown message received: " << message;
 			close();
 		}
-
-		_runCount--;
 	});
 }
 
@@ -156,6 +142,29 @@ void Client::timeout()
 {
 	qDebug() << "Disconnecting idle client" << _deviceId;
 	_socket->close();
+}
+
+void Client::run(const std::function<void ()> &fn)
+{
+	_runCount++;
+	QtConcurrent::run(qApp->threadPool(), [fn, this]() {
+		try {
+			fn();
+			_runCount--;
+		} catch (DatabaseException &e) {
+			qWarning().noquote() << "Internal database error:" << e.errorString()
+								 << "\nResettings connection in hopes to fix it.";
+			close();
+			_runCount--;
+		} catch (std::exception &e) {
+			qWarning() << "Client message error:" << e.what();
+			close();
+			_runCount--;
+		} catch(...) {
+			_runCount--;
+			throw;
+		}
+	});
 }
 
 void Client::close()
