@@ -10,6 +10,7 @@
 #include <QtCore/QMutex>
 #include <QtCore/QHash>
 #include <QtCore/QTimer>
+#include <QtCore/QLoggingCategory>
 
 #include <QtWebSockets/QWebSocket>
 
@@ -68,6 +69,9 @@ private:
 	static const QByteArray PingMessage;
 	static QThreadStorage<CryptoPP::AutoSeededRandomPool> rngPool;
 
+	QByteArray _catStr;
+	QScopedPointer<QLoggingCategory> _logCat;
+
 	DatabaseController *_database;
 	QWebSocket *_socket;
 	QUuid _deviceId;
@@ -81,6 +85,7 @@ private:
 	QHash<QByteArray, QVariant> _properties;
 
 	void run(const std::function<void()> &fn);
+	const QLoggingCategory &logFn() const;
 
 	void close();
 	void sendMessage(const QByteArray &message);

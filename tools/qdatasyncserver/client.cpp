@@ -14,13 +14,24 @@
 
 using namespace QtDataSync;
 
-const QByteArray Client::PingMessage(1, 0xFF);
-QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
+#undef qDebug
+#define qDebug(...) qCDebug(logFn, __VA_ARGS__)
+#undef qInfo
+#define qInfo(...) qCInfo(logFn, __VA_ARGS__)
+#undef qWarning
+#define qWarning(...) qCWarning(logFn, __VA_ARGS__)
+#undef qCritical
+#define qCritical(...) qCCritical(logFn, __VA_ARGS__)
 
 #define LOCK QMutexLocker _(&_lock)
 
+const QByteArray Client::PingMessage(1, 0xFF);
+QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
+
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
+	_catStr(),
+	_logCat(new QLoggingCategory("client.unkown")),
 	_database(database),
 	_socket(websocket),
 	_deviceId(),
@@ -103,8 +114,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 
 void Client::error()
 {
-	qWarning() << _socket->peerAddress()
-			   << "Socket error"
+	qWarning() << "Socket error:"
 			   << _socket->errorString();
 	if(_socket->state() == QAbstractSocket::ConnectedState)
 		_socket->close();
@@ -113,8 +123,7 @@ void Client::error()
 void Client::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
-		qWarning() << _socket->peerAddress()
-				   << "SSL errors"
+		qWarning() << "SSL error:"
 				   << error.errorString();
 	}
 	if(_socket->state() == QAbstractSocket::ConnectedState)
@@ -124,13 +133,13 @@ void Client::sslErrors(const QList<QSslError> &errors)
 void Client::closeClient()
 {
 	if(_runCount == 0) {//save close -> delete only if no parallel stuff anymore (check every 500 ms)
-		qDebug() << "Client with id" << _deviceId << "disconnected";
+		qDebug() << "Client disconnected";
 		deleteLater();
 	} else {
 		auto destroyTimer = new QTimer(this);
 		connect(destroyTimer, &QTimer::timeout, this, [this](){
 			if(_runCount == 0) {
-				qDebug() << "Client with id" << _deviceId << "disconnected";
+				qDebug() << "Client disconnected";
 				deleteLater();
 			}
 		});
@@ -140,7 +149,7 @@ void Client::closeClient()
 
 void Client::timeout()
 {
-	qDebug() << "Disconnecting idle client" << _deviceId;
+	qDebug() << "Disconnecting idle client";
 	_socket->close();
 }
 
@@ -152,12 +161,12 @@ void Client::run(const std::function<void ()> &fn)
 			fn();
 			_runCount--;
 		} catch (DatabaseException &e) {
-			qWarning().noquote() << "Internal database error:" << e.errorString()
+			qWarning().noquote() << "Internal database error:" << e.errorString() //TODO print query?
 								 << "\nResettings connection in hopes to fix it.";
 			close();
 			_runCount--;
 		} catch (std::exception &e) {
-			qWarning() << "Client message error:" << e.what();
+			qWarning() << "Message error:" << e.what();
 			close();
 			_runCount--;
 		} catch(...) {
@@ -165,6 +174,11 @@ void Client::run(const std::function<void ()> &fn)
 			throw;
 		}
 	});
+}
+
+const QLoggingCategory &Client::logFn() const
+{
+	return (*(_logCat.data()));
 }
 
 void Client::close()
@@ -191,16 +205,18 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 
 	QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
 	verifySignature(stream, crypto->signatureKey(), crypto.data());
-
 	if(_properties.take("nonce").toByteArray() != message.nonce)
 		throw ClientException("Invalid nonce in RegisterMessagee");
+
 	_deviceId = _database->addNewDevice(message.deviceName,
 										message.signAlgorithm,
 										message.signKey,
 										message.cryptAlgorithm,
 										message.cryptKey);
+	_catStr = "client." + _deviceId.toByteArray();
+	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
-	qDebug() << "Created new device with id" << _deviceId;
+	qDebug() << "Created new device and user accounts";
 	sendMessage(serializeMessage<AccountMessage>(_deviceId));
 	_state = Idle;
 }
@@ -215,14 +231,16 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	QString name;
 	QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(message.deviceId, rngPool.localData(), name));
 	verifySignature(stream, crypto->signatureKey(), crypto.data());
-
 	if(_properties.take("nonce").toByteArray() != message.nonce)
 		throw ClientException("Invalid nonce in RegisterMessagee");
+
 	_deviceId = message.deviceId;
+	_catStr = "client." + _deviceId.toByteArray();
+	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
 	if(name != message.name)
 		_database->updateName(_deviceId, message.name);
-	qDebug() << "Device logged in with id" << _deviceId;
+	qDebug() << "Device successfully logged in";
 	sendMessage(serializeMessage(WelcomeMessage()));
 	_state = Idle;
 }

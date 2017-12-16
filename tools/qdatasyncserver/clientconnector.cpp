@@ -108,14 +108,14 @@ void ClientConnector::newConnection()
 
 void ClientConnector::serverError()
 {
-	qWarning() << "Server error"
+	qWarning() << "Server error:"
 			   << server->errorString();
 }
 
 void ClientConnector::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
-		qWarning() << "SSL errors"
+		qWarning() << "SSL error:"
 				   << error.errorString();
 	}
 }
