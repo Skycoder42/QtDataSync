@@ -1,8 +1,6 @@
 #include "remoteconnector_p.h"
 #include "logger.h"
 
-#include <chrono>
-
 #include <QtCore/QSysInfo>
 
 #include "registermessage_p.h"
@@ -20,6 +18,13 @@ const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepal
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
 const QByteArray RemoteConnector::PingMessage(1, 0xFF);
+const QVector<std::chrono::seconds> RemoteConnector::Timeouts = {
+	std::chrono::seconds(5),
+	std::chrono::seconds(10),
+	std::chrono::seconds(30),
+	std::chrono::minutes(1),
+	std::chrono::minutes(5)
+};
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
@@ -27,8 +32,9 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_socket(nullptr),
 	_pingTimer(new QTimer(this)),
 	_awaitingPing(false),
-	_changingConnection(false),
+	_disconnecting(false),
 	_state(RemoteDisconnected),
+	_retryIndex(0),
 	_deviceId()
 {}
 
@@ -47,7 +53,7 @@ void RemoteConnector::finalize()
 	_pingTimer->stop();
 
 	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
-		_changingConnection = true;
+		_disconnecting = true;
 		_socket->close();
 		//TODO wait for disconnect?
 	}
@@ -69,7 +75,7 @@ void RemoteConnector::reconnect()
 			connect(_socket, &QWebSocket::destroyed,
 					this, &RemoteConnector::reconnect,
 					Qt::QueuedConnection);
-			_changingConnection = true;
+			_disconnecting = true;
 			_socket->close();
 			upState(RemoteReconnecting);
 		} else
@@ -122,7 +128,6 @@ void RemoteConnector::reconnect()
 		for(auto it = keys.begin(); it != keys.end(); it++)
 			request.setRawHeader(it.key(), it.value());
 
-		_changingConnection = true;
 		_socket->open(request);
 		logDebug() << "Connecting to remote server...";
 	}
@@ -131,6 +136,7 @@ void RemoteConnector::reconnect()
 void RemoteConnector::reloadState()
 {
 	Q_UNIMPLEMENTED();
+	upState(RemoteLoading);
 }
 
 void RemoteConnector::connected()
@@ -141,18 +147,19 @@ void RemoteConnector::connected()
 
 void RemoteConnector::disconnected()
 {
-	if(!_changingConnection) {
-		logWarning().noquote() << "Unexpected disconnect from server with exit code"
-							   << _socket->closeCode()
-							   << "and reason:"
-							   << _socket->closeReason();
-		//TODO retry
-//		auto delta = retry();
-//		logDebug() << "Retrying to connect to server in"
-//				   << delta / 1000
-//				   << "seconds";
+	if(!_disconnecting) {
+		if(_state != RemoteReconnecting) {
+			logWarning().noquote() << "Unexpected disconnect from server with exit code"
+								   << _socket->closeCode()
+								   << "and reason:"
+								   << _socket->closeReason();
+		}
+		auto delta = retry();
+		logDebug() << "Retrying to connect to server in"
+				   << delta.count()
+				   << "seconds";
 	} else {
-		_changingConnection = false;
+		_disconnecting = false;
 		logDebug() << "Remote server has been disconnected";
 	}
 
@@ -197,14 +204,14 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 
 void RemoteConnector::error(QAbstractSocket::SocketError error)
 {
-	//TODO retryIndex
-//	if(retryIndex == 0) {
+	Q_UNUSED(error)
+	if(_retryIndex == 0) {
 		logWarning().noquote() << "Server connection socket error:"
 							   << _socket->errorString();
-//	} else {
-//		logDebug().noquote() << "Repeated server connection socket error:"
-//							 << _socket->errorString();
-//	}
+	} else {
+		logDebug().noquote() << "Repeated server connection socket error:"
+							 << _socket->errorString();
+	}
 
 	tryClose();
 }
@@ -219,14 +226,13 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 						  (defaults().property(Defaults::SslConfiguration)
 						   .value<QSslConfiguration>()
 						   .peerVerifyMode() >= QSslSocket::VerifyPeer);
-		//TODO retryIndex
-//		if(retryIndex == 0) {
+		if(_retryIndex == 0) {
 			logWarning().noquote() << "Server connection SSL error:"
 								   << error.errorString();
-//		} else {
-//			logDebug().noquote() << "Repeated server connection SSL error:"
-//								 << error.errorString();
-//		}
+		} else {
+			logDebug().noquote() << "Repeated server connection SSL error:"
+								 << error.errorString();
+		}
 	}
 
 	if(shouldClose)
@@ -292,12 +298,22 @@ bool RemoteConnector::loadIdentity()
 
 void RemoteConnector::tryClose()
 {
-	logDebug() << Q_FUNC_INFO << "socket state:" << _socket->state();
-	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
-		_changingConnection = true;
+	// do not set _disconnecting, because this is unexpected
+	if(_socket && _socket->state() == QAbstractSocket::ConnectedState)
 		_socket->close();
-	} else
-		upState(RemoteDisconnected);
+}
+
+std::chrono::seconds RemoteConnector::retry()
+{
+	std::chrono::seconds retryTimeout;
+	if(_retryIndex >= Timeouts.size())
+		retryTimeout = Timeouts.last();
+	else
+		retryTimeout = Timeouts[_retryIndex++];
+
+	QTimer::singleShot(retryTimeout, this, &RemoteConnector::reconnect);
+
+	return retryTimeout;
 }
 
 QVariant RemoteConnector::sValue(const QString &key) const
@@ -339,7 +355,7 @@ void RemoteConnector::upState(RemoteConnector::RemoteState state)
 {
 	if(state != _state) {
 		_state = state;
-		upState(state);
+		emit stateChanged(state);
 	}
 }
 
@@ -385,6 +401,10 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 			settings()->setValue(keyDeviceId, _deviceId);
 			_cryptoController->storePrivateKeys(_deviceId);
 			logDebug() << "Saved user data stuff";
+			// reset retry index only after successfuly account creation or login
+			_retryIndex = 0;
+
+			reloadState();
 		}
 	} catch(Exception &e) {
 		logCritical() << e.what();
@@ -398,7 +418,9 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		logWarning() << "Unexpected WelcomeMessage";
 	else {
 		logDebug() << "Login successful. Reloading states";
-		upState(RemoteLoading);
+		// reset retry index only after successfuly account creation or login
+		_retryIndex = 0;
+
 		reloadState();
 	}
 }

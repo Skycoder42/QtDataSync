@@ -1,6 +1,8 @@
 #ifndef REMOTECONNECTOR_P_H
 #define REMOTECONNECTOR_P_H
 
+#include <chrono>
+
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 #include <QtCore/QTimer>
@@ -65,20 +67,25 @@ private Q_SLOTS:
 
 private:
 	static const QByteArray PingMessage;
+	static const QVector<std::chrono::seconds> Timeouts;
 
 	CryptoController *_cryptoController;
 
 	QWebSocket *_socket;
+
 	QTimer *_pingTimer;
 	bool _awaitingPing;
-	bool _changingConnection;
+
+	bool _disconnecting;
 	RemoteState _state;
+	int _retryIndex;
 
 	QUuid _deviceId;
 
 	bool checkCanSync(QUrl &remoteUrl);
 	bool loadIdentity();
 	void tryClose();
+	std::chrono::seconds retry();
 
 	QVariant sValue(const QString &key) const;
 	void upState(RemoteState state);
