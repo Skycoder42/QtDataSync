@@ -24,8 +24,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_database(database),
 	_socket(websocket),
 	_deviceId(),
-	_pingTimer(nullptr),
-	_awaitingPing(false),
+	_idleTimer(nullptr),
 	_runCount(0),
 	_lock(),
 	_state(Authenticating),
@@ -42,13 +41,14 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	connect(_socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
-	auto ping = qApp->configuration()->value(QStringLiteral("server/pingTimeout"), 60).toInt();
-	if(ping > 0) {
-		_pingTimer = new QTimer(this);
-		_pingTimer->setInterval(std::chrono::seconds(ping));
-		connect(_pingTimer, &QTimer::timeout,
-				this, &Client::ping);
-		_pingTimer->start();
+	auto idleTimeout = qApp->configuration()->value(QStringLiteral("server/idleTimeout"), 5).toInt();
+	if(idleTimeout > 0) {
+		_idleTimer = new QTimer(this);
+		_idleTimer->setInterval(std::chrono::minutes(idleTimeout));
+		_idleTimer->setSingleShot(true);
+		connect(_idleTimer, &QTimer::timeout,
+				this, &Client::timeout);
+		_idleTimer->start();
 	}
 
 	_runCount++;
@@ -75,9 +75,9 @@ void Client::notifyChanged(const QString &type, const QString &key, bool changed
 void Client::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == PingMessage) {
-		_awaitingPing = false;
-		if(_pingTimer)
-			_pingTimer->start();
+		if(_idleTimer)
+			_idleTimer->start();
+		_socket->sendBinaryMessage(PingMessage);
 		return;
 	}
 
@@ -152,16 +152,10 @@ void Client::closeClient()
 	}
 }
 
-void Client::ping()
+void Client::timeout()
 {
-	if(_awaitingPing) {
-		qDebug() << "Disconnecting idle client" << _deviceId;
-		_pingTimer->stop();
-		_socket->close();
-	} else {
-		_awaitingPing = true;
-		_socket->sendBinaryMessage(PingMessage);
-	}
+	qDebug() << "Disconnecting idle client" << _deviceId;
+	_socket->close();
 }
 
 void Client::close()

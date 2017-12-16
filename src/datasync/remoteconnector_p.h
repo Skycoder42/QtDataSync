@@ -61,7 +61,7 @@ private Q_SLOTS:
 	void binaryMessageReceived(const QByteArray &message);
 	void error(QAbstractSocket::SocketError error);
 	void sslErrors(const QList<QSslError> &errors);
-	void timeout();
+	void ping();
 
 private:
 	static const QByteArray PingMessage;
@@ -69,7 +69,8 @@ private:
 	CryptoController *_cryptoController;
 
 	QWebSocket *_socket;
-	QTimer *_idleTimer;
+	QTimer *_pingTimer;
+	bool _awaitingPing;
 	bool _changingConnection;
 	RemoteState _state;
 

@@ -25,7 +25,8 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
 	_cryptoController(new CryptoController(defaults, this)),
 	_socket(nullptr),
-	_idleTimer(new QTimer(this)),
+	_pingTimer(new QTimer(this)),
+	_awaitingPing(false),
 	_changingConnection(false),
 	_state(RemoteDisconnected),
 	_deviceId()
@@ -35,8 +36,7 @@ void RemoteConnector::initialize()
 {
 	_cryptoController->initialize();
 
-	_idleTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
-	_idleTimer->setSingleShot(true);
+	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
 
 	//always "reconnect", because this loads keys etc. and if disabled, also does nothing
 	QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
@@ -44,7 +44,7 @@ void RemoteConnector::initialize()
 
 void RemoteConnector::finalize()
 {
-	_idleTimer->stop();
+	_pingTimer->stop();
 
 	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
 		_changingConnection = true;
@@ -103,13 +103,13 @@ void RemoteConnector::reconnect()
 		//initialize keep alive timeout
 		auto tOut = sValue(keyKeepaliveTimeout).toInt();
 		if(tOut > 0) {
-			_idleTimer->setInterval(std::chrono::seconds(tOut));
+			_pingTimer->setInterval(std::chrono::minutes(tOut));
 			connect(_socket, &QWebSocket::connected,
-					_idleTimer, QOverload<>::of(&QTimer::start));
+					_pingTimer, QOverload<>::of(&QTimer::start));
 			connect(_socket, &QWebSocket::disconnected,
-					_idleTimer, &QTimer::stop);
-			connect(_idleTimer, &QTimer::timeout,
-					this, &RemoteConnector::timeout);
+					_pingTimer, &QTimer::stop);
+			connect(_pingTimer, &QTimer::timeout,
+					this, &RemoteConnector::ping);
 		}
 
 		QNetworkRequest request(remoteUrl);
@@ -168,8 +168,8 @@ void RemoteConnector::disconnected()
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == PingMessage) {
-		_idleTimer->start();
-		_socket->sendBinaryMessage(PingMessage);
+		_awaitingPing = false;
+		_pingTimer->start();
 		return;
 	}
 
@@ -233,10 +233,16 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 		tryClose();
 }
 
-void RemoteConnector::timeout()
+void RemoteConnector::ping()
 {
-	logDebug() << "Server connection idle. Reconnecting to server";
-	reconnect();
+	if(_awaitingPing) {
+		_awaitingPing = false;
+		logDebug() << "Server connection idle. Reconnecting to server";
+		reconnect();
+	} else {
+		_awaitingPing = true;
+		_socket->sendBinaryMessage(PingMessage);
+	}
 }
 
 bool RemoteConnector::checkCanSync(QUrl &remoteUrl)

@@ -60,7 +60,7 @@ private slots:
 	void error();
 	void sslErrors(const QList<QSslError> &errors);
 	void closeClient();
-	void ping();
+	void timeout();
 
 private:
 	static const QByteArray PingMessage;
@@ -70,8 +70,7 @@ private:
 	QWebSocket *_socket;
 	QUuid _deviceId;
 
-	QTimer *_pingTimer;
-	bool _awaitingPing;
+	QTimer *_idleTimer;
 
 	QAtomicInt _runCount;
 
