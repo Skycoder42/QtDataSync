@@ -5,7 +5,7 @@
 #include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
 #include <QtCore/QException>
-#include <QtCore/QDebug>
+#include <QtCore/QSharedPointer>
 
 #include <cryptopp/rng.h>
 #include <cryptopp/asn.h>

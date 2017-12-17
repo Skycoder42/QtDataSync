@@ -88,6 +88,7 @@ private:
 	const QLoggingCategory &logFn() const;
 
 	void close();
+	void closeLater();
 	void sendMessage(const QByteArray &message);
 	Q_INVOKABLE void doSend(const QByteArray &message);
 

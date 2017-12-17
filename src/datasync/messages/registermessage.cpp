@@ -3,21 +3,21 @@
 using namespace QtDataSync;
 
 RegisterMessage::RegisterMessage() :
+	IdentifyMessage(),
 	signAlgorithm(),
 	signKey(),
 	cryptAlgorithm(),
 	cryptKey(),
-	deviceName(),
-	nonce()
+	deviceName()
 {}
 
 RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
+	IdentifyMessage(nonce),
 	signAlgorithm(crypto->signatureScheme()),
 	signKey(crypto->writeKey(signKey)),
 	cryptAlgorithm(crypto->encryptionScheme()),
 	cryptKey(crypto->writeKey(cryptKey)),
-	deviceName(deviceName),
-	nonce(nonce)
+	deviceName(deviceName)
 {}
 
 AsymmetricCryptoInfo *RegisterMessage::createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent) const
@@ -32,24 +32,24 @@ AsymmetricCryptoInfo *RegisterMessage::createCryptoInfo(CryptoPP::RandomNumberGe
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
 {
-	stream << message.signAlgorithm
+	stream << (IdentifyMessage)message
+		   << message.signAlgorithm
 		   << message.signKey
 		   << message.cryptAlgorithm
 		   << message.cryptKey
-		   << message.deviceName
-		   << message.nonce;
+		   << message.deviceName;
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
 {
 	stream.startTransaction();
-	stream >> message.signAlgorithm
+	stream >> (IdentifyMessage&)message
+		   >> message.signAlgorithm
 		   >> message.signKey
 		   >> message.cryptAlgorithm
 		   >> message.cryptKey
-		   >> message.deviceName
-		   >> message.nonce;
+		   >> message.deviceName;
 	stream.commitTransaction();
 	return stream;
 }

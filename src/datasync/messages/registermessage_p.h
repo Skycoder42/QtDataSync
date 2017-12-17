@@ -7,10 +7,11 @@
 
 #include "message_p.h"
 #include "asymmetriccrypto_p.h"
+#include "identifymessage_p.h"
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT RegisterMessage
+class Q_DATASYNC_EXPORT RegisterMessage : public IdentifyMessage
 {
 	Q_GADGET
 
@@ -19,7 +20,6 @@ class Q_DATASYNC_EXPORT RegisterMessage
 	Q_PROPERTY(QByteArray cryptAlgorithm MEMBER cryptAlgorithm)
 	Q_PROPERTY(QByteArray cryptKey MEMBER cryptKey)
 	Q_PROPERTY(QString deviceName MEMBER deviceName)
-	Q_PROPERTY(QByteArray nonce MEMBER nonce)
 
 public:
 	RegisterMessage();
@@ -34,7 +34,6 @@ public:
 	QByteArray cryptAlgorithm;
 	QByteArray cryptKey;
 	QString deviceName;
-	QByteArray nonce;
 
 	AsymmetricCryptoInfo *createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent = nullptr) const;
 };

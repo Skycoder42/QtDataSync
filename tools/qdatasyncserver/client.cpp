@@ -3,6 +3,7 @@
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
+#include "errormessage_p.h"
 
 #include <chrono>
 
@@ -91,23 +92,29 @@ void Client::binaryMessageReceived(const QByteArray &message)
 	}
 
 	run([message, this]() {
-		QDataStream stream(message);
-		setupStream(stream);
-		stream.startTransaction();
-		QByteArray name;
-		stream >> name;
-		if(!stream.commitTransaction())
-			throw DataStreamException(stream);
+		try {
+			QDataStream stream(message);
+			setupStream(stream);
+			stream.startTransaction();
+			QByteArray name;
+			stream >> name;
+			if(!stream.commitTransaction())
+				throw DataStreamException(stream);
 
-		if(isType<RegisterMessage>(name)) {
-			auto msg = deserializeMessage<RegisterMessage>(stream);
-			onRegister(msg, stream);
-		} else if(isType<LoginMessage>(name)) {
-			auto msg = deserializeMessage<LoginMessage>(stream);
-			onLogin(msg, stream);
-		} else {
-			qWarning() << "Unknown message received: " << message;
-			close();
+			if(isType<RegisterMessage>(name)) {
+				auto msg = deserializeMessage<RegisterMessage>(stream);
+				onRegister(msg, stream);
+			} else if(isType<LoginMessage>(name)) {
+				auto msg = deserializeMessage<LoginMessage>(stream);
+				onLogin(msg, stream);
+			} else {
+				qWarning() << "Unknown message received:" << name;
+				close();
+			}
+		} catch(IncompatibleVersionException &e) {
+			qWarning() << "Message error:" << e.what();
+			sendMessage(serializeMessage<ErrorMessage>(ErrorMessage::IncompatibleVersionError));
+			closeLater();
 		}
 	});
 }
@@ -143,7 +150,7 @@ void Client::closeClient()
 				deleteLater();
 			}
 		});
-		destroyTimer->start(500);
+		destroyTimer->start(std::chrono::seconds(5));
 	}
 }
 
@@ -157,12 +164,12 @@ void Client::run(const std::function<void ()> &fn)
 {
 	_runCount++;
 	QtConcurrent::run(qApp->threadPool(), [fn, this]() {
+		//TODO "log" (hashed) ip on error? to allow blocking???
 		try {
 			fn();
 			_runCount--;
 		} catch (DatabaseException &e) {
-			qWarning().noquote() << "Internal database error:" << e.errorString() //TODO print query?
-								 << "\nResettings connection in hopes to fix it.";
+			qWarning().noquote() << "Internal database error:" << e.errorString(); //TODO print query?
 			close();
 			_runCount--;
 		} catch (std::exception &e) {
@@ -184,6 +191,14 @@ const QLoggingCategory &Client::logFn() const
 void Client::close()
 {
 	QMetaObject::invokeMethod(_socket, "close", Qt::QueuedConnection);
+}
+
+void Client::closeLater()
+{
+	QTimer::singleShot(std::chrono::seconds(10), _socket, [this](){
+		if(_socket && _socket->state() == QAbstractSocket::ConnectedState)
+			_socket->close();
+	});
 }
 
 void Client::sendMessage(const QByteArray &message)
