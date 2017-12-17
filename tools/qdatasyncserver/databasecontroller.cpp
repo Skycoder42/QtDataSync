@@ -48,7 +48,7 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 			else
 				throw DatabaseException(db);
 		} catch (DatabaseException &e) {
-			emit cleanupOperationDone(-1, e.errorString());
+			emit cleanupOperationDone(-1, e.error().text());
 		}
 	});
 }
@@ -100,7 +100,7 @@ QtDataSync::AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &de
 	loadCryptoQuery.addBindValue(deviceId);
 	loadCryptoQuery.exec();
 	if(!loadCryptoQuery.first())
-		throw DatabaseException(db); //TODO throw real error
+		return nullptr;
 
 	name = loadCryptoQuery.value(4).toString();
 	return new AsymmetricCryptoInfo(rng,
@@ -174,7 +174,7 @@ void DatabaseController::initDatabase()
 
 		emit databaseInitDone(true);
 	} catch(DatabaseException &e) {
-		qCritical().noquote() << "Failed to setup database. Error:" << e.errorString();
+		qCritical() << "Failed to setup database:" << e.what();
 		emit databaseInitDone(false);
 	}
 }
@@ -216,7 +216,7 @@ QSqlDatabase DatabaseController::DatabaseWrapper::database() const
 
 DatabaseException::DatabaseException(const QSqlError &error) :
 	_error(error),
-	_msg(error.text().toUtf8())
+	_msg("\n ==> Error: " + error.text().toUtf8())
 {}
 
 DatabaseException::DatabaseException(QSqlDatabase db) :
@@ -226,7 +226,9 @@ DatabaseException::DatabaseException(QSqlDatabase db) :
 }
 
 DatabaseException::DatabaseException(const QSqlQuery &query, QSqlDatabase db) :
-	DatabaseException(query.lastError())
+	_error(query.lastError()),
+	_msg("\n ==> Query: " + query.executedQuery().toUtf8() +
+		 "\n ==> Error: " + query.lastError().text().toUtf8())
 {
 	if(db.isValid())
 		db.rollback(); //to be safe
@@ -235,11 +237,6 @@ DatabaseException::DatabaseException(const QSqlQuery &query, QSqlDatabase db) :
 QSqlError DatabaseException::error() const
 {
 	return _error;
-}
-
-QString DatabaseException::errorString() const
-{
-	return _error.text();
 }
 
 const char *DatabaseException::what() const noexcept

@@ -5,6 +5,8 @@
 
 using namespace QtDataSync;
 
+const QByteArray QtDataSync::PingMessage(1, 0xFF);
+
 void QtDataSync::setupStream(QDataStream &stream)
 {
 	static_assert(QDataStream::Qt_DefaultCompiledVersion == QDataStream::Qt_5_6, "update DS version");

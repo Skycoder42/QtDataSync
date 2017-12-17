@@ -12,23 +12,27 @@ class Q_DATASYNC_EXPORT ErrorMessage
 	Q_GADGET
 
 	Q_PROPERTY(ErrorType type MEMBER type)
-	Q_PROPERTY(bool canRecover MEMBER canRecover)
 	Q_PROPERTY(QString message MEMBER message)
+	Q_PROPERTY(bool canRecover MEMBER canRecover)
 
 public:
 	enum ErrorType {
 		UnknownError = 0,
-		IncompatibleVersionError
+		IncompatibleVersionError = 1,
+		UnexpectedMessageError = 2,
+		InternalError = 3,
+		ClientError = 4,
+		AuthenticationError = 5
 	};
 	Q_ENUM(ErrorType)
 
 	ErrorMessage(ErrorType type = UnknownError,
-				 bool canRecover = false,
-				 const QString &message = {});
+				 const QString &message = {},
+				 bool canRecover = false);
 
 	ErrorType type;
-	bool canRecover;
 	QString message;
+	bool canRecover;
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ErrorMessage &message);

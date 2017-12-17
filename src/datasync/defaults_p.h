@@ -29,7 +29,7 @@ private:
 	QSqlDatabase _database;
 };
 
-class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject //TODO split into 2 parts, to move out logger into 1 per Defaults instance
+class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject
 {
 	friend class Defaults;
 

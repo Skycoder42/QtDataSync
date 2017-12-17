@@ -14,6 +14,7 @@
 #include "defaults.h"
 #include "cryptocontroller_p.h"
 
+#include "errormessage_p.h"
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
@@ -66,7 +67,6 @@ private Q_SLOTS:
 	void ping();
 
 private:
-	static const QByteArray PingMessage;
 	static const QVector<std::chrono::seconds> Timeouts;
 
 	CryptoController *_cryptoController;
@@ -90,6 +90,7 @@ private:
 	QVariant sValue(const QString &key) const;
 	void upState(RemoteState state);
 
+	void onError(const ErrorMessage &message);
 	void onIdentify(const IdentifyMessage &message);
 	void onAccount(const AccountMessage &message);
 	void onWelcome(const WelcomeMessage &message);

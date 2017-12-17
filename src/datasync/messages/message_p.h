@@ -34,6 +34,8 @@ private:
 	QDataStream::Status _status;
 };
 
+extern Q_DATASYNC_EXPORT const QByteArray PingMessage;
+
 void Q_DATASYNC_EXPORT setupStream(QDataStream &stream);
 void Q_DATASYNC_EXPORT verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto);
 inline void verifySignature(QDataStream &stream, const QSharedPointer<CryptoPP::X509PublicKey> &key, AsymmetricCrypto *crypto) {

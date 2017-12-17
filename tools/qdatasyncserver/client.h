@@ -21,19 +21,6 @@
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
 
-class ClientException : public QException
-{
-public:
-	ClientException(const QByteArray &what);
-
-	const char *what() const noexcept override;
-	void raise() const override;
-	QException *clone() const override;
-
-private:
-	const QByteArray _what;
-};
-
 class Client : public QObject
 {
 	Q_OBJECT
@@ -66,7 +53,6 @@ private slots:
 	void timeout();
 
 private:
-	static const QByteArray PingMessage;
 	static QThreadStorage<CryptoPP::AutoSeededRandomPool> rngPool;
 
 	QByteArray _catStr;

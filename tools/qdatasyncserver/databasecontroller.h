@@ -22,7 +22,6 @@ public:
 	DatabaseException(const QSqlQuery &query, QSqlDatabase db = {});
 
 	QSqlError error() const;
-	QString errorString() const;
 
 	const char *what() const noexcept override;
 	void raise() const override;

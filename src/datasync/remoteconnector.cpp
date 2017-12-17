@@ -17,7 +17,6 @@ const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
 const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepaliveTimeout"));
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
-const QByteArray RemoteConnector::PingMessage(1, 0xFF);
 const QVector<std::chrono::seconds> RemoteConnector::Timeouts = {
 	std::chrono::seconds(5),
 	std::chrono::seconds(10),
@@ -189,7 +188,9 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		if(!stream.commitTransaction())
 			throw DataStreamException(stream);
 
-		if(isType<IdentifyMessage>(name))
+		if(isType<ErrorMessage>(name))
+			onError(deserializeMessage<ErrorMessage>(stream));
+		else if(isType<IdentifyMessage>(name))
 			onIdentify(deserializeMessage<IdentifyMessage>(stream));
 		else if(isType<AccountMessage>(name))
 			onAccount(deserializeMessage<AccountMessage>(stream));
@@ -357,6 +358,15 @@ void RemoteConnector::upState(RemoteConnector::RemoteState state)
 		_state = state;
 		emit stateChanged(state);
 	}
+}
+
+void RemoteConnector::onError(const ErrorMessage &message)
+{
+	logCritical() << message;
+	//TODO emit error to userspace (i.e. sync manager?)
+	//TODO special reaction on e.g. Auth Error
+	_disconnecting = !message.canRecover;
+	tryClose();
 }
 
 void RemoteConnector::onIdentify(const IdentifyMessage &message)

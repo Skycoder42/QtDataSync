@@ -26,13 +26,52 @@ using namespace QtDataSync;
 
 #define LOCK QMutexLocker _(&_lock)
 
-const QByteArray Client::PingMessage(1, 0xFF);
+// ------------- Exceptions Definitions -------------
+
+class MessageException : public QException
+{
+public:
+	MessageException(const QByteArray &message);
+
+	const char *what() const noexcept override;
+	void raise() const override;
+	QException *clone() const override;
+
+private:
+	const QByteArray _msg;
+};
+
+class ClientErrorException : public QException, public ErrorMessage
+{
+public:
+	ClientErrorException(ErrorType type = UnknownError,
+						 const QString &message = {},
+						 bool canRecover = false);
+
+	const char *what() const noexcept override;
+	void raise() const override;
+	QException *clone() const override;
+
+private:
+	mutable QByteArray _msg;
+};
+
+template <typename TMessage>
+class UnexpectedException : public ClientErrorException
+{
+	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
+public:
+	UnexpectedException();
+};
+
+// ------------- Client Implementation -------------
+
 QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
 
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
 	_catStr(),
-	_logCat(new QLoggingCategory("client.unkown")),
+	_logCat(new QLoggingCategory("client.unknown")),
 	_database(database),
 	_socket(websocket),
 	_deviceId(),
@@ -109,11 +148,20 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onLogin(msg, stream);
 			} else {
 				qWarning() << "Unknown message received:" << name;
-				close();
+				sendMessage(serializeMessage<ErrorMessage>({
+															   ErrorMessage::IncompatibleVersionError,
+															   QStringLiteral("Unknown message type \"%1\"").arg(QString::fromUtf8(name))
+														   }));
+				closeLater();
 			}
 		} catch(IncompatibleVersionException &e) {
 			qWarning() << "Message error:" << e.what();
-			sendMessage(serializeMessage<ErrorMessage>(ErrorMessage::IncompatibleVersionError));
+			sendMessage(serializeMessage<ErrorMessage>({
+														   ErrorMessage::IncompatibleVersionError,
+														   QStringLiteral("Version %1 is not compatible to server version %2")
+														   .arg(e.invalidVersion().toString())
+														   .arg(IdentifyMessage::CurrentVersion.toString())
+													   }));
 			closeLater();
 		}
 	});
@@ -169,16 +217,20 @@ void Client::run(const std::function<void ()> &fn)
 			fn();
 			_runCount--;
 		} catch (DatabaseException &e) {
-			qWarning().noquote() << "Internal database error:" << e.errorString(); //TODO print query?
-			close();
+			qCritical() << "Internal database error:" << e.what();
+			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::InternalError, QString(), true}));
+			closeLater();
+			_runCount--;
+		} catch (ClientErrorException &e) {
+			qCritical() << "Message error:" << e.what();
+			sendMessage(serializeMessage<ErrorMessage>(e));
+			closeLater();
 			_runCount--;
 		} catch (std::exception &e) {
 			qWarning() << "Message error:" << e.what();
-			close();
+			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::ClientError}));
+			closeLater();
 			_runCount--;
-		} catch(...) {
-			_runCount--;
-			throw;
 		}
 	});
 }
@@ -216,12 +268,17 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 {
 	LOCK;
 	if(_state != Authenticating)
-		throw ClientException("Received RegisterMessage in invalid state");
-
-	QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
-	verifySignature(stream, crypto->signatureKey(), crypto.data());
+		throw UnexpectedException<RegisterMessage>();
 	if(_properties.take("nonce").toByteArray() != message.nonce)
-		throw ClientException("Invalid nonce in RegisterMessagee");
+		throw MessageException("Invalid nonce in RegisterMessagee");
+
+	try {
+		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
+		verifySignature(stream, crypto->signatureKey(), crypto.data());
+	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+		qWarning() << "Authentication error:" << e.what();
+		throw ClientErrorException(ErrorMessage::AuthenticationError);
+	}
 
 	_deviceId = _database->addNewDevice(message.deviceName,
 										message.signAlgorithm,
@@ -240,14 +297,21 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 {
 	LOCK;
 	if(_state != Authenticating)
-		throw ClientException("Received LoginMessage in invalid state");
+		throw UnexpectedException<LoginMessage>();
+	if(_properties.take("nonce").toByteArray() != message.nonce)
+		throw MessageException("Invalid nonce in LoginMessage");
 
 	//load public key to verify signature
 	QString name;
-	QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(message.deviceId, rngPool.localData(), name));
-	verifySignature(stream, crypto->signatureKey(), crypto.data());
-	if(_properties.take("nonce").toByteArray() != message.nonce)
-		throw ClientException("Invalid nonce in RegisterMessagee");
+	try {
+		QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(message.deviceId, rngPool.localData(), name));
+		if(!crypto)
+			throw ClientErrorException(ErrorMessage::AuthenticationError);
+		verifySignature(stream, crypto->signatureKey(), crypto.data());
+	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+		qWarning() << "Authentication error:" << e.what();
+		throw ClientErrorException(ErrorMessage::AuthenticationError);
+	}
 
 	_deviceId = message.deviceId;
 	_catStr = "client." + _deviceId.toByteArray();
@@ -260,23 +324,57 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	_state = Idle;
 }
 
+// ------------- Exceptions Implementation -------------
 
-
-ClientException::ClientException(const QByteArray &what) :
-	_what(what)
+MessageException::MessageException(const QByteArray &message) :
+	_msg(message)
 {}
 
-const char *ClientException::what() const noexcept
+const char *MessageException::what() const noexcept
 {
-	return _what.constData();
+	return _msg.constData();
 }
 
-void ClientException::raise() const
+void MessageException::raise() const
+{
+	throw (*this);
+}
+
+QException *MessageException::clone() const
+{
+	return new MessageException(_msg);
+}
+
+
+
+ClientErrorException::ClientErrorException(ErrorMessage::ErrorType type, const QString &message, bool canRecover) :
+	QException(),
+	ErrorMessage(type, message, canRecover)
+{}
+
+const char *ClientErrorException::what() const noexcept
+{
+	QString s;
+	QDebug(&s) << ErrorMessage(*this);
+	_msg = s.toUtf8();
+	return _msg.constData();
+}
+
+void ClientErrorException::raise() const
 {
 	throw *this;
 }
 
-QException *ClientException::clone() const
+QException *ClientErrorException::clone() const
 {
-	return new ClientException(_what);
+	return new ClientErrorException(type, message, canRecover);
 }
+
+
+
+template<typename TMessage>
+UnexpectedException<TMessage>::UnexpectedException() :
+	ClientErrorException(UnexpectedMessageError,
+						 QStringLiteral("Received unexpected %1").arg(QString::fromUtf8(TMessage::staticMetaObject.className())),
+						 true)
+{}

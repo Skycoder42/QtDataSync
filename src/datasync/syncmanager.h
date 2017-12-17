@@ -21,7 +21,7 @@ public:
 		Uploading,
 		Synchronized,
 		Error,
-		Disconnected //TODO explicit reconnect ONLY an resync, not on normal sync
+		Disconnected //NOTE explicit reconnect ONLY an resync, not on normal sync
 	};
 	Q_ENUM(SyncState)
 
