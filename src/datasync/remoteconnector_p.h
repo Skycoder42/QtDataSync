@@ -41,8 +41,7 @@ public:
 		RemoteConnected,
 		RemoteRegistering,
 		RemoteLoggingIn,
-		RemoteLoading,
-		RemoteReady
+		RemoteIdle
 	};
 	Q_ENUM(RemoteState)
 
@@ -53,7 +52,7 @@ public:
 
 public Q_SLOTS:
 	void reconnect();
-	void reloadState();
+	void resync();
 
 Q_SIGNALS:
 	void stateChanged(RemoteState state);

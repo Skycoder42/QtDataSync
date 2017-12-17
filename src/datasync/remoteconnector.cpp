@@ -5,6 +5,7 @@
 
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
+#include "syncmessage_p.h"
 
 using namespace QtDataSync;
 
@@ -133,10 +134,11 @@ void RemoteConnector::reconnect()
 	}
 }
 
-void RemoteConnector::reloadState()
+void RemoteConnector::resync()
 {
-	Q_UNIMPLEMENTED();
-	upState(RemoteLoading);
+	if(_state != RemoteIdle)
+		return;
+	_socket->sendBinaryMessage(serializeMessage<SyncMessage>({}));
 }
 
 void RemoteConnector::connected()
@@ -203,7 +205,7 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		else if(isType<WelcomeMessage>(name))
 			onWelcome(deserializeMessage<WelcomeMessage>(stream));
 		else
-			logWarning() << "Unknown message received: " << message;
+			logWarning() << "Unknown message received: " << typeName(name);
 	} catch(DataStreamException &e) {
 		logCritical() << "Remote message error:" << e.what();
 	}
@@ -419,8 +421,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 			logDebug() << "Saved user data stuff";
 			// reset retry index only after successfuly account creation or login
 			_retryIndex = 0;
-
-			reloadState();
+			upState(RemoteIdle);
 		}
 	} catch(Exception &e) {
 		logCritical() << e.what();
@@ -436,7 +437,6 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		logDebug() << "Login successful. Reloading states";
 		// reset retry index only after successfuly account creation or login
 		_retryIndex = 0;
-
-		reloadState();
+		upState(RemoteIdle);
 	}
 }

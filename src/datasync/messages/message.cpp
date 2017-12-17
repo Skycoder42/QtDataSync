@@ -38,6 +38,11 @@ QByteArray QtDataSync::createSignature(const QByteArray &message, const CryptoPP
 	return crypto->sign(key, rng, message);
 }
 
+QByteArray QtDataSync::typeName(const QByteArray &messageName)
+{
+	return "QtDataSync::" + messageName + "Message";
+}
+
 
 
 DataStreamException::DataStreamException(QDataStream &stream) :

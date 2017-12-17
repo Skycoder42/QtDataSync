@@ -20,6 +20,7 @@
 
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
+#include "syncmessage_p.h"
 
 class Client : public QObject
 {
@@ -80,6 +81,7 @@ private:
 
 	void onRegister(const QtDataSync::RegisterMessage &message, QDataStream &stream);
 	void onLogin(const QtDataSync::LoginMessage &message, QDataStream &stream);
+	void onSync(const QtDataSync::SyncMessage &message);
 };
 
 #endif // CLIENT_H

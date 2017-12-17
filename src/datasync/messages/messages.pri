@@ -6,7 +6,8 @@ HEADERS += \
 	$$PWD/accountmessage_p.h \
 	$$PWD/loginmessage_p.h \
 	$$PWD/welcomemessage_p.h \
-    $$PWD/errormessage_p.h
+    $$PWD/errormessage_p.h \
+    $$PWD/syncmessage_p.h
 
 SOURCES += \
 	$$PWD/message.cpp \
@@ -16,7 +17,8 @@ SOURCES += \
 	$$PWD/accountmessage.cpp \
 	$$PWD/loginmessage.cpp \
 	$$PWD/welcomemessage.cpp \
-    $$PWD/errormessage.cpp
+    $$PWD/errormessage.cpp \
+    $$PWD/syncmessage.cpp
 
 INCLUDEPATH += $$PWD
 

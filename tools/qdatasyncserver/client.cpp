@@ -146,11 +146,14 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			} else if(isType<LoginMessage>(name)) {
 				auto msg = deserializeMessage<LoginMessage>(stream);
 				onLogin(msg, stream);
+			} else if(isType<SyncMessage>(name)) {
+				auto msg = deserializeMessage<SyncMessage>(stream);
+				onSync(msg);
 			} else {
-				qWarning() << "Unknown message received:" << name;
+				qWarning() << "Unknown message received:" << typeName(name);
 				sendMessage(serializeMessage<ErrorMessage>({
 															   ErrorMessage::IncompatibleVersionError,
-															   QStringLiteral("Unknown message type \"%1\"").arg(QString::fromUtf8(name))
+															   QStringLiteral("Unknown message type \"%1\"").arg(QString::fromUtf8(typeName(name)))
 														   }));
 				closeLater();
 			}
@@ -222,7 +225,7 @@ void Client::run(const std::function<void ()> &fn)
 			closeLater();
 			_runCount--;
 		} catch (ClientErrorException &e) {
-			qCritical() << "Message error:" << e.what();
+			qWarning() << "Message error:" << e.what();
 			sendMessage(serializeMessage<ErrorMessage>(e));
 			closeLater();
 			_runCount--;
@@ -322,6 +325,12 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	qDebug() << "Device successfully logged in";
 	sendMessage(serializeMessage(WelcomeMessage()));
 	_state = Idle;
+}
+
+void Client::onSync(const SyncMessage &message)
+{
+	Q_UNUSED(message)
+	Q_UNIMPLEMENTED();
 }
 
 // ------------- Exceptions Implementation -------------

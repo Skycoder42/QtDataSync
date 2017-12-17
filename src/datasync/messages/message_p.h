@@ -44,6 +44,10 @@ inline void verifySignature(QDataStream &stream, const QSharedPointer<CryptoPP::
 QByteArray Q_DATASYNC_EXPORT createSignature(const QByteArray &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
 
 template <typename TMessage>
+QByteArray messageName();
+QByteArray Q_DATASYNC_EXPORT typeName(const QByteArray &messageName);
+
+template <typename TMessage>
 void serializeMessage(QDataStream &stream, const TMessage &message, bool withName = true);
 template <typename TMessage>
 QByteArray serializeMessage(const TMessage &message);
@@ -60,12 +64,24 @@ TMessage deserializeMessage(QDataStream &stream);
 
 // ------------- Generic Implementation -------------
 
+template<typename TMessage>
+QByteArray messageName()
+{
+	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
+	auto name = QByteArray(TMessage::staticMetaObject.className());
+	Q_ASSERT_X(name.startsWith("QtDataSync::"), Q_FUNC_INFO, "Message is not in QtDataSync namespace");
+	Q_ASSERT_X(name.endsWith("Message"), Q_FUNC_INFO, "Message does not have the Message suffix");
+	name = name.mid(12); //strlen("QtDataSync::")
+	name.chop(7); //strlen("Message")
+	return name;
+}
+
 template <typename TMessage>
 void serializeMessage(QDataStream &stream, const TMessage &message, bool withName)
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
 	if(withName)
-		stream << QByteArray(TMessage::staticMetaObject.className());
+		stream << messageName<TMessage>();
 	stream << message;
 	if(stream.status() != QDataStream::Ok)
 		throw DataStreamException(stream);
@@ -98,7 +114,7 @@ template<typename TMessage>
 inline bool isType(const QByteArray &name)
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
-	return (TMessage::staticMetaObject.className() == name);
+	return (messageName<TMessage>() == name);
 }
 
 template <typename TMessage>
