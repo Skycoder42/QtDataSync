@@ -52,6 +52,9 @@ public:
 												 QObject *parent = nullptr);
 	void updateName(const QUuid &deviceId, const QString &name);
 
+	void *loadNextChange(const QUuid &deviceId);
+
+
 signals:
 	//TODO correct
 	void notifyChanged(const QUuid &userId,

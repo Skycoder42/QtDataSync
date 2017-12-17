@@ -138,7 +138,8 @@ void RemoteConnector::resync()
 {
 	if(_state != RemoteIdle)
 		return;
-	_socket->sendBinaryMessage(serializeMessage<SyncMessage>({}));
+	upState(RemoteDownloading);
+	_socket->sendBinaryMessage(serializeMessage<SyncMessage>(SyncMessage::TriggerAction));
 }
 
 void RemoteConnector::connected()
@@ -204,6 +205,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onAccount(deserializeMessage<AccountMessage>(stream));
 		else if(isType<WelcomeMessage>(name))
 			onWelcome(deserializeMessage<WelcomeMessage>(stream));
+		else if(isType<SyncMessage>(name))
+			onSync(deserializeMessage<SyncMessage>(stream));
 		else
 			logWarning() << "Unknown message received: " << typeName(name);
 	} catch(DataStreamException &e) {
@@ -376,12 +379,12 @@ void RemoteConnector::onError(const ErrorMessage &message)
 	_disconnecting = !message.canRecover;
 	tryClose();
 }
-
+//TODO reconnect instead of ignore?
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	try {
 		if(_state != RemoteConnected)
-			logWarning() << "Unexpected IdentifyMessage";
+			logWarning() << "Ignoring unexpected IdentifyMessage";
 		else {
 			if(!_deviceId.isNull()) {
 				LoginMessage msg(_deviceId,
@@ -413,7 +416,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 {
 	try {
 		if(_state != RemoteRegistering)
-			logWarning() << "Unexpected AccountMessage";
+			logWarning() << "Ignoring unexpected AccountMessage";
 		else {
 			_deviceId = message.deviceId;
 			settings()->setValue(keyDeviceId, _deviceId);
@@ -432,11 +435,38 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 {
 	Q_UNUSED(message);
 	if(_state != RemoteLoggingIn)
-		logWarning() << "Unexpected WelcomeMessage";
+		logWarning() << "Ignoring unexpected WelcomeMessage";
 	else {
-		logDebug() << "Login successful. Reloading states";
+		logDebug() << "Login successful";
 		// reset retry index only after successfuly account creation or login
 		_retryIndex = 0;
-		upState(RemoteIdle);
+		_state = RemoteIdle;//to allow syncing
+		onSync(message);
+	}
+}
+
+void RemoteConnector::onSync(const SyncMessage &message)
+{
+	switch (message.action) {
+	case SyncMessage::InitAction:
+		if(_state != RemoteIdle)
+			logWarning() << "Ignoring unexpected SyncMessage::InitAction";
+		else {
+			logDebug() << "Server has changes. Reloading states";
+			upState(RemoteDownloading);
+		}
+		break;
+	case SyncMessage::DoneAction:
+		if(_state != RemoteIdle && _state != RemoteDownloading)
+			logWarning() << "Ignoring unexpected SyncMessage::DoneAction";
+		else {
+			//TODO trigger local upload
+			logDebug() << "No more changes on server";
+			upState(RemoteIdle);
+		}
+		break;
+	default:
+		logWarning() << "Ignoring unsupported sync action" << message.action;
+		break;
 	}
 }

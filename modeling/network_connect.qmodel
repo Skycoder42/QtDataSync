@@ -476,7 +476,7 @@
                           </DElement>
                          </base-DElement>
                          <object>{337c5536-0e19-4c04-9e42-316dba0758f7}</object>
-                         <name>WELCOME(newId, newKey)</name>
+                         <name>WELCOME&lt;SYNC&gt;(newId, newKey)</name>
                          <pos>x:885;y:245</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -1058,7 +1058,7 @@
                     <uid>{337c5536-0e19-4c04-9e42-316dba0758f7}</uid>
                    </MElement>
                   </base-MElement>
-                  <name>WELCOME(newId, newKey)</name>
+                  <name>WELCOME&lt;SYNC&gt;(newId, newKey)</name>
                   <relations>
                    <handles>
                     <handles>

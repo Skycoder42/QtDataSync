@@ -30,6 +30,8 @@ public:
 	enum State {
 		Authenticating,
 		Idle,
+		PushingChanges,
+		PullingChanges,
 		Error
 	};
 	Q_ENUM(State)

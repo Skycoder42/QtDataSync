@@ -54,7 +54,7 @@
                           </qlist>
                          </stereotypes>
                          <name>CHANGES</name>
-                         <pos>x:55;y:65</pos>
+                         <pos>x:225;y:55</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -81,7 +81,7 @@
                           </qlist>
                          </stereotypes>
                          <name>CHANGED(count, keyId, change)</name>
-                         <pos>x:275;y:65</pos>
+                         <pos>x:605;y:55</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -108,7 +108,7 @@
                           </qlist>
                          </stereotypes>
                          <name>DONE(changeId)</name>
-                         <pos>x:540;y:65</pos>
+                         <pos>x:825;y:55</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -130,7 +130,7 @@
                          </base-DElement>
                          <object>{ff4ba79a-ef78-4805-ab55-7b94214dad7c}</object>
                          <name>has changes</name>
-                         <pos>x:540;y:235</pos>
+                         <pos>x:825;y:260</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -152,7 +152,7 @@
                          </base-DElement>
                          <object>{8b328ba0-0e43-4d3e-9372-466bc8acf5b4}</object>
                          <a>{1274efd0-90ad-429f-b314-19d39f317a09}</a>
-                         <b>{191b0511-3555-4f02-b033-4ee9b3299f38}</b>
+                         <b>{a167b1f2-916a-4692-bf97-7252acb7681f}</b>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -230,7 +230,7 @@
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:750;y:235</pos>
+                         <pos>x:605;y:395</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -252,7 +252,7 @@
                          </base-DElement>
                          <object>{dcd204e6-43ca-4014-a9ac-7fd371ce53d1}</object>
                          <a>{d4f1b436-3200-4442-9ca3-d87c63a8d5a0}</a>
-                         <b>{2165039a-2e3d-43e8-99ca-83d9f9e31137}</b>
+                         <b>{7e80ae95-ad9c-48ed-846e-08968b7bd84a}</b>
                          <name>no</name>
                         </DRelation>
                        </base-DRelation>
@@ -276,7 +276,7 @@
                           </qlist>
                          </stereotypes>
                          <name>CHANGES</name>
-                         <pos>x:60;y:415</pos>
+                         <pos>x:55;y:535</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -303,7 +303,7 @@
                           </qlist>
                          </stereotypes>
                          <name>CHANGED(change)</name>
-                         <pos>x:255;y:415</pos>
+                         <pos>x:250;y:535</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -348,7 +348,7 @@
                           </qlist>
                          </stereotypes>
                          <name>DONE(changeId)</name>
-                         <pos>x:515;y:415</pos>
+                         <pos>x:510;y:535</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -388,7 +388,7 @@
                          </base-DElement>
                          <object>{4f2e178d-a4c8-430b-81a2-8b3740a986a0}</object>
                          <name>has changes</name>
-                         <pos>x:515;y:585</pos>
+                         <pos>x:510;y:705</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -414,20 +414,6 @@
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DBoundary">
-                      <DBoundary>
-                       <base-DElement>
-                        <DElement>
-                         <uid>{efbc8158-1e86-4d06-914c-8ec4c2de09c3}</uid>
-                        </DElement>
-                       </base-DElement>
-                       <text>per device (parallel)</text>
-                       <pos>x:375;y:165</pos>
-                       <rect>x:-240;y:-155;w:480;h:310</rect>
-                      </DBoundary>
                      </instance>
                     </item>
                     <item>
@@ -466,7 +452,7 @@
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:705;y:585</pos>
+                         <pos>x:700;y:705</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -504,14 +490,268 @@
                         </DElement>
                        </base-DElement>
                        <text>triggers change event</text>
-                       <pos>x:555;y:400</pos>
+                       <pos>x:550;y:520</pos>
                        <rect>x:0;y:0;w:129.172;h:32</rect>
+                      </DAnnotation>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{a167b1f2-916a-4692-bf97-7252acb7681f}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{67290a11-4953-40c1-bc37-352d25553dbe}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>SYNC(init)</name>
+                         <pos>x:380;y:55</pos>
+                         <rect>x:-40;y:-20;w:80;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>activity</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{42a855ab-af8a-4190-a90d-2afc4571049d}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{50b6621d-041b-487c-abdb-1924b7a87924}</object>
+                         <a>{a167b1f2-916a-4692-bf97-7252acb7681f}</a>
+                         <b>{191b0511-3555-4f02-b033-4ee9b3299f38}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{7e80ae95-ad9c-48ed-846e-08968b7bd84a}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{ff074b48-5a84-4444-b6ad-4030981ff69a}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>SYNC(done)</name>
+                         <pos>x:605;y:260</pos>
+                         <rect>x:-40;y:-20;w:80;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>activity</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{5288be43-4911-450b-9d71-de2e041c4e0e}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{0ea793bc-f2e9-489d-8800-949099c7c3da}</object>
+                         <a>{7e80ae95-ad9c-48ed-846e-08968b7bd84a}</a>
+                         <b>{2165039a-2e3d-43e8-99ca-83d9f9e31137}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{511e3aef-c194-43cc-9e8a-dd4bf409cc9a}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{fbbab501-5c54-4334-892e-83ec32142b86}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>event</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>TRIGGER SYNC</name>
+                         <pos>x:60;y:260</pos>
+                         <rect>x:-20;y:-20;w:40;h:40</rect>
+                         <visual-role>6</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>start</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{c0955b26-9f1b-45f4-a297-cf9d2f08246b}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{6614a95a-5bc5-4743-a6d4-064a304b2eca}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>SYNC(trigger)</name>
+                         <pos>x:225;y:260</pos>
+                         <rect>x:-40;y:-20;w:80;h:40</rect>
+                         <visual-role>6</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>activity</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{7b855584-ed82-463f-a0c2-41e81b933c72}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{5fe18337-8e80-40b8-bc16-5a7145e5938d}</object>
+                         <a>{511e3aef-c194-43cc-9e8a-dd4bf409cc9a}</a>
+                         <b>{c0955b26-9f1b-45f4-a297-cf9d2f08246b}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{31ff913b-cead-4e26-b55c-c8a246e33627}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{f7c0ebed-2d66-4f4b-bdee-2b598a71f918}</object>
+                         <a>{c0955b26-9f1b-45f4-a297-cf9d2f08246b}</a>
+                         <b>{9256e3df-a570-4bc7-91d3-2b06a60a1f08}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{9256e3df-a570-4bc7-91d3-2b06a60a1f08}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{06c5d0bf-30d7-45d1-914b-0cfcadfc9ece}</object>
+                         <name>has changes</name>
+                         <pos>x:380;y:260</pos>
+                         <rect>x:-20;y:-20;w:40;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>condition</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{f71f4ccb-5145-419c-88d0-b227b2afbf11}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{63a94b4b-931d-4eff-a416-1eb8ea7ab2bf}</object>
+                         <a>{9256e3df-a570-4bc7-91d3-2b06a60a1f08}</a>
+                         <b>{a167b1f2-916a-4692-bf97-7252acb7681f}</b>
+                         <name>yes</name>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{a39d88e8-a11a-4f08-a25c-18abad629a2f}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{9c942a02-b161-46e4-952f-476a8b99a93c}</object>
+                         <a>{9256e3df-a570-4bc7-91d3-2b06a60a1f08}</a>
+                         <b>{7e80ae95-ad9c-48ed-846e-08968b7bd84a}</b>
+                         <name>no</name>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DAnnotation">
+                      <DAnnotation>
+                       <base-DElement>
+                        <DElement>
+                         <uid>{a14cab79-7c44-4aca-8277-de723f0ab850}</uid>
+                        </DElement>
+                       </base-DElement>
+                       <text>triggered per device</text>
+                       <pos>x:95;y:40</pos>
+                       <rect>x:0;y:0;w:120.375;h:32</rect>
                       </DAnnotation>
                      </instance>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1512139580301</last-modified>
+                  <last-modified>1513530368127</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -557,7 +797,7 @@
                               </MElement>
                              </base-MElement>
                              <a>{e4fa9473-f04e-403e-b307-cd909c777899}</a>
-                             <b>{12af09ec-2a10-4a42-b7a9-9134f1df6a4b}</b>
+                             <b>{67290a11-4953-40c1-bc37-352d25553dbe}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -773,7 +1013,7 @@
                              </base-MElement>
                              <name>no</name>
                              <a>{ff4ba79a-ef78-4805-ab55-7b94214dad7c}</a>
-                             <b>{6bb8239e-6dfd-4956-bc30-f3fdd926d79f}</b>
+                             <b>{ff074b48-5a84-4444-b6ad-4030981ff69a}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -1096,6 +1336,315 @@
                 </base-MObject>
                 <variety-editable>false</variety-editable>
                 <variety>termination</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{67290a11-4953-40c1-bc37-352d25553dbe}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{67290a11-4953-40c1-bc37-352d25553dbe}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>SYNC(init)</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{50b6621d-041b-487c-abdb-1924b7a87924}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{50b6621d-041b-487c-abdb-1924b7a87924}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{67290a11-4953-40c1-bc37-352d25553dbe}</a>
+                             <b>{12af09ec-2a10-4a42-b7a9-9134f1df6a4b}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>activity</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{ff074b48-5a84-4444-b6ad-4030981ff69a}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{ff074b48-5a84-4444-b6ad-4030981ff69a}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>SYNC(done)</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{0ea793bc-f2e9-489d-8800-949099c7c3da}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{0ea793bc-f2e9-489d-8800-949099c7c3da}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{ff074b48-5a84-4444-b6ad-4030981ff69a}</a>
+                             <b>{6bb8239e-6dfd-4956-bc30-f3fdd926d79f}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>activity</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{fbbab501-5c54-4334-892e-83ec32142b86}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{fbbab501-5c54-4334-892e-83ec32142b86}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>event</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>TRIGGER SYNC</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{5fe18337-8e80-40b8-bc16-5a7145e5938d}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{5fe18337-8e80-40b8-bc16-5a7145e5938d}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{fbbab501-5c54-4334-892e-83ec32142b86}</a>
+                             <b>{6614a95a-5bc5-4743-a6d4-064a304b2eca}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>start</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{6614a95a-5bc5-4743-a6d4-064a304b2eca}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{6614a95a-5bc5-4743-a6d4-064a304b2eca}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>SYNC(trigger)</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{f7c0ebed-2d66-4f4b-bdee-2b598a71f918}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{f7c0ebed-2d66-4f4b-bdee-2b598a71f918}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{6614a95a-5bc5-4743-a6d4-064a304b2eca}</a>
+                             <b>{06c5d0bf-30d7-45d1-914b-0cfcadfc9ece}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>activity</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{06c5d0bf-30d7-45d1-914b-0cfcadfc9ece}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{06c5d0bf-30d7-45d1-914b-0cfcadfc9ece}</uid>
+                   </MElement>
+                  </base-MElement>
+                  <name>has changes</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{63a94b4b-931d-4eff-a416-1eb8ea7ab2bf}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{63a94b4b-931d-4eff-a416-1eb8ea7ab2bf}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <name>yes</name>
+                             <a>{06c5d0bf-30d7-45d1-914b-0cfcadfc9ece}</a>
+                             <b>{67290a11-4953-40c1-bc37-352d25553dbe}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                      <item>
+                       <handle>
+                        <uid>{9c942a02-b161-46e4-952f-476a8b99a93c}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{9c942a02-b161-46e4-952f-476a8b99a93c}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <name>no</name>
+                             <a>{06c5d0bf-30d7-45d1-914b-0cfcadfc9ece}</a>
+                             <b>{ff074b48-5a84-4444-b6ad-4030981ff69a}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>condition</variety>
                </MItem>
               </instance>
              </target>

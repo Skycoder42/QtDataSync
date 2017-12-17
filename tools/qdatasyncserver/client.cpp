@@ -323,14 +323,20 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	if(name != message.name)
 		_database->updateName(_deviceId, message.name);
 	qDebug() << "Device successfully logged in";
-	sendMessage(serializeMessage(WelcomeMessage()));
+
+	auto change = _database->loadNextChange(_deviceId);
+	sendMessage(serializeMessage(WelcomeMessage(change)));
 	_state = Idle;
+
+	//TODO apply change
 }
 
 void Client::onSync(const SyncMessage &message)
 {
-	Q_UNUSED(message)
-	Q_UNIMPLEMENTED();
+	if(message.action == SyncMessage::TriggerAction) {
+		Q_UNIMPLEMENTED();
+	} else
+		qWarning() << "Ignoring unsupported sync action" << message.action;
 }
 
 // ------------- Exceptions Implementation -------------

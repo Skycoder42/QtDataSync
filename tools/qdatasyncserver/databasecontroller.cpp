@@ -124,6 +124,12 @@ void DatabaseController::updateName(const QUuid &deviceId, const QString &name)
 	updateNameQuery.exec();
 }
 
+void *DatabaseController::loadNextChange(const QUuid &deviceId)
+{
+	Q_UNIMPLEMENTED();
+	return nullptr;
+}
+
 void DatabaseController::initDatabase()
 {
 	auto db = threadStore.localData().database();

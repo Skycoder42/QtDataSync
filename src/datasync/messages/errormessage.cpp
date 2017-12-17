@@ -1,6 +1,6 @@
 #include "errormessage_p.h"
 
-#include <QtCore/QMetaProperty>
+#include <QtCore/QMetaEnum>
 
 using namespace QtDataSync;
 
