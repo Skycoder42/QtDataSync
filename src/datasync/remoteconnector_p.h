@@ -77,6 +77,7 @@ private:
 	bool _awaitingPing;
 
 	bool _disconnecting;
+	bool _reconnecting;
 	RemoteState _state;
 	int _retryIndex;
 

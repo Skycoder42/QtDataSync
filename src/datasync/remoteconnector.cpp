@@ -32,6 +32,7 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_pingTimer(new QTimer(this)),
 	_awaitingPing(false),
 	_disconnecting(false),
+	_reconnecting(false),
 	_state(RemoteDisconnected),
 	_retryIndex(0),
 	_deviceId()
@@ -71,14 +72,14 @@ void RemoteConnector::reconnect()
 			QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 		} else if(_socket->state() == QAbstractSocket::ConnectedState) {
 			logDebug() << "Closing active connection with server to reconnect";
-			connect(_socket, &QWebSocket::destroyed,
-					this, &RemoteConnector::reconnect,
-					Qt::QueuedConnection);
 			_disconnecting = true;
+			_reconnecting = true;
 			_socket->close();
 			upState(RemoteReconnecting);
-		} else
-			logDebug() << "Cannot reconnect. Socket in changing state:" << _socket->state(); //TODO not so stable...
+		} else {
+			_reconnecting = true;
+			logDebug() << "Delaying reconnect. Socket in changing state:" << _socket->state();
+		}
 	} else {
 		upState(RemoteReconnecting);
 		QUrl remoteUrl;
@@ -169,6 +170,11 @@ void RemoteConnector::disconnected()
 
 	//always "disable" remote for the state changer
 	upState(RemoteDisconnected);
+
+	if(_reconnecting) {
+		_reconnecting = false;
+		reconnect();
+	}
 }
 
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
