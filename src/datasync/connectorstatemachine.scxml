@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" name="ConnectorStateMachine" qt:editorversion="4.5.0">
+    <state id="Disconnected">
+        <qt:editorinfo scenegeometry="83.65;157.78;23.65;107.78;166;100" geometry="83.65;157.78;-60;-50;166;100"/>
+        <transition type="external" event="reconnect" target="Active">
+            <qt:editorinfo endTargetFactors="2.36;23.86"/>
+        </transition>
+    </state>
+    <state id="Active">
+        <qt:editorinfo scenegeometry="361.11;121.38;323.11;68.35;958.66;391.03" geometry="361.11;121.38;-38;-53.03;958.66;391.03"/>
+        <state id="Connecting">
+            <qt:editorinfo scenegeometry="432.51;193.82;372.51;143.82;120;100" geometry="71.40;72.44;-60;-50;120;100"/>
+            <transition type="external" event="connected" target="Connected"/>
+            <onentry>
+                <raise event="doConnect"/>
+            </onentry>
+        </state>
+        <state id="Registering">
+            <qt:editorinfo scenegeometry="898.69;187.69;838.69;137.69;120;100" geometry="537.58;66.31;-60;-50;120;100"/>
+            <transition type="external" event="account" target="Idle">
+                <qt:editorinfo endTargetFactors="26.75;35.94"/>
+            </transition>
+        </state>
+        <state id="Connected">
+            <qt:editorinfo scenegeometry="653.87;189.74;593.87;139.74;120;100" geometry="292.76;68.36;-60;-50;120;100"/>
+            <transition type="external" event="awaitRegister" target="Registering"/>
+            <transition type="external" event="awaitLogin" target="LoggingIn"/>
+        </state>
+        <state id="LoggingIn">
+            <qt:editorinfo scenegeometry="899.71;381.51;839.71;331.51;120;100" geometry="538.60;260.13;-60;-50;120;100"/>
+            <transition type="external" event="account" target="Idle"/>
+        </state>
+        <transition type="external" event="reconnect" target="Reconnecting">
+            <qt:editorinfo endTargetFactors="80.91;58.79"/>
+        </transition>
+        <state id="Idle">
+            <qt:editorinfo scenegeometry="1179.22;284.60;1119.22;234.60;120;100" geometry="818.11;163.22;-60;-50;120;100"/>
+        </state>
+        <transition type="external" event="disconnected" target="Retry">
+            <qt:editorinfo endTargetFactors="70.96;33.62"/>
+            <raise event="unexpectedDisconnect"/>
+        </transition>
+        <transition type="external" event="basicError" target="BasicError"/>
+        <transition type="external" event="fatalError" target="FatalError"/>
+    </state>
+    <state id="Reconnecting">
+        <qt:editorinfo scenegeometry="1060.89;613.08;1000.89;563.08;150;100" geometry="1060.89;613.08;-60;-50;150;100"/>
+        <transition type="external" event="disconnected" target="Active">
+            <qt:editorinfo endTargetFactors="90.39;89.68"/>
+        </transition>
+        <onentry>
+            <raise event="doDisconnect"/>
+        </onentry>
+    </state>
+    <state id="Retry">
+        <qt:editorinfo scenegeometry="478.44;613.08;418.44;563.08;120;100" geometry="478.44;613.08;-60;-50;120;100"/>
+        <transition type="external" event="reconnect" target="Active">
+            <qt:editorinfo endTargetFactors="17.91;89.43"/>
+        </transition>
+        <onentry>
+            <raise event="scheduleRetry"/>
+        </onentry>
+    </state>
+    <state id="BasicError">
+        <qt:editorinfo scenegeometry="791.58;613.08;731.58;563.08;120;100" geometry="791.58;613.08;-60;-50;120;100"/>
+        <transition type="external" event="disconnected" target="Retry">
+            <qt:editorinfo endTargetFactors="71.74;47.36"/>
+        </transition>
+        <onentry>
+            <raise event="doDisconnect"/>
+        </onentry>
+    </state>
+    <state id="FatalError">
+        <qt:editorinfo scenegeometry="106.65;356.01;46.65;306.01;120;100" geometry="106.65;356.01;-60;-50;120;100"/>
+        <transition type="external" event="disconnected" target="Disconnected"/>
+        <onentry>
+            <raise event="doDisconnect"/>
+        </onentry>
+    </state>
+</scxml>

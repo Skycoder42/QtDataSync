@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core jsonserializer sql websockets
+QT = core jsonserializer sql websockets scxml
 
 HEADERS += qtdatasync_global.h \
 	localstore_p.h \
@@ -45,6 +45,9 @@ SOURCES += \
 	cryptocontroller.cpp \
 	keystore.cpp \
 	controller.cpp
+
+STATECHARTS += \
+    connectorstatemachine.scxml
 
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)

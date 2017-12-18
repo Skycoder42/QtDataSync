@@ -19,6 +19,8 @@
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
 
+#include "connectorstatemachine.h"
+
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT RemoteConnector : public Controller
@@ -34,17 +36,13 @@ public:
 	static const QString keyDeviceId;
 	static const QString keyDeviceName;
 
-	//! Describes the current state of the connector
-	enum RemoteState {
+	enum RemoteEvent {
 		RemoteDisconnected,
 		RemoteReconnecting,
-		RemoteConnected,
-		RemoteRegistering,
-		RemoteLoggingIn,
-		RemoteIdle,
-		RemoteDownloading
+		RemoteReady,
+		RemoteSending
 	};
-	Q_ENUM(RemoteState)
+	Q_ENUM(RemoteEvent)
 
 	explicit RemoteConnector(const Defaults &defaults, QObject *parent = nullptr);
 
@@ -56,7 +54,7 @@ public Q_SLOTS:
 	void resync();
 
 Q_SIGNALS:
-	void stateChanged(RemoteState state);
+	void removeEvent(RemoteEvent event);
 
 private Q_SLOTS:
 	void connected();
@@ -74,6 +72,15 @@ private:
 		PlannedRetry
 	};
 
+	enum ConnectionState {
+		DisconnectedState,
+		ReconnectingState,
+		ConnectedState,
+		RegisteringState,
+		LoggingInState,
+		IdleState
+	};
+
 	static const QVector<std::chrono::seconds> Timeouts;
 
 	CryptoController *_cryptoController;
@@ -83,8 +90,9 @@ private:
 	QTimer *_pingTimer;
 	bool _awaitingPing;
 
+	ConnectorStateMachine *_stateMachine;
 	ConnectAction _connectAction;
-	RemoteState _state;
+	ConnectionState _state;
 	int _retryIndex;
 
 	QUuid _deviceId;
@@ -95,7 +103,7 @@ private:
 	std::chrono::seconds retry();
 
 	QVariant sValue(const QString &key) const;
-	void upState(RemoteState state);
+	void upState(ConnectionState state);
 
 	void onError(const ErrorMessage &message);
 	void onIdentify(const IdentifyMessage &message);

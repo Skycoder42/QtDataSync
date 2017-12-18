@@ -32,8 +32,9 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_socket(nullptr),
 	_pingTimer(new QTimer(this)),
 	_awaitingPing(false),
+	_stateMachine(new ConnectorStateMachine(this)),
 	_connectAction(UnexpectedDisconnect),
-	_state(RemoteDisconnected),
+	_state(DisconnectedState),
 	_retryIndex(0),
 	_deviceId()
 {}
@@ -68,19 +69,19 @@ void RemoteConnector::reconnect()
 			logDebug() << "Removing unconnected but still not deleted socket";
 			_socket->deleteLater();
 			_socket = nullptr;
-			upState(RemoteDisconnected);
+			upState(DisconnectedState);
 			QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 		} else if(_socket->state() == QAbstractSocket::ConnectedState) {
 			logDebug() << "Closing active connection with server to reconnect";
 			_connectAction = PlannedReconnect;
 			_socket->close();
-			upState(RemoteReconnecting);
+			upState(ReconnectingState);
 		} else {
 			_connectAction = PlannedReconnect;
 			logDebug() << "Delaying reconnect. Socket in changing state:" << _socket->state();
 		}
 	} else {
-		upState(RemoteReconnecting);
+		upState(ReconnectingState);
 		QUrl remoteUrl;
 		if(!checkCanSync(remoteUrl))
 			return;
@@ -135,9 +136,9 @@ void RemoteConnector::reconnect()
 
 void RemoteConnector::resync()
 {
-	if(_state != RemoteIdle)
+	if(_state != IdleState)
 		return;
-	upState(RemoteDownloading);
+	//TODO upState(RemoteDownloading);
 	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
 }
 
@@ -145,7 +146,7 @@ void RemoteConnector::connected()
 {
 	_connectAction = UnexpectedDisconnect;
 	logDebug() << "Successfully connected to remote server";
-	upState(RemoteConnected);
+	upState(ConnectedState);
 }
 
 void RemoteConnector::disconnected()
@@ -184,7 +185,7 @@ void RemoteConnector::disconnected()
 	_cryptoController->clearKeyMaterial();
 
 	//always "disable" remote for the state changer
-	upState(RemoteDisconnected);
+	upState(DisconnectedState);
 
 	if(recon)
 		reconnect();
@@ -276,7 +277,7 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 	//check if sync is enabled
 	if(!sValue(keyRemoteEnabled).toBool()) {
 		logDebug() << "Remote has been disabled. Not connecting";
-		upState(RemoteDisconnected);
+		upState(DisconnectedState);
 		return false;
 	}
 
@@ -284,14 +285,14 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 	remoteUrl = sValue(keyRemoteUrl).toUrl();
 	if(!remoteUrl.isValid()) {
 		logDebug() << "Cannot connect to remote - no URL defined";
-		upState(RemoteDisconnected);
+		upState(DisconnectedState);
 		return false;
 	}
 
 	//load crypto stuff
 	if(!loadIdentity()) {
 		logCritical() << "Unable to access private keys of user in keystore. Cannot synchronize";
-		upState(RemoteDisconnected);
+		upState(DisconnectedState);
 		return false;
 	}
 
@@ -371,11 +372,11 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return {};
 }
 
-void RemoteConnector::upState(RemoteConnector::RemoteState state)
+void RemoteConnector::upState(RemoteConnector::ConnectionState state)
 {
 	if(state != _state) {
 		_state = state;
-		emit stateChanged(state);
+		//TODO emit stateChanged(state);
 	}
 }
 
@@ -391,7 +392,7 @@ void RemoteConnector::onError(const ErrorMessage &message)
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	try {
-		if(_state != RemoteConnected)
+		if(_state != ConnectedState)
 			logWarning() << "Ignoring unexpected IdentifyMessage";
 		else {
 			if(!_deviceId.isNull()) {
@@ -401,7 +402,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent login message for device id" << _deviceId;
-				upState(RemoteLoggingIn);
+				upState(LoggingInState);
 			} else {
 				_cryptoController->createPrivateKeys(message.nonce);
 				RegisterMessage msg(sValue(keyDeviceName).toString(),
@@ -412,7 +413,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
-				upState(RemoteRegistering);
+				upState(RegisteringState);
 			}
 		}
 	} catch(Exception &e) {
@@ -423,7 +424,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 void RemoteConnector::onAccount(const AccountMessage &message)
 {
 	try {
-		if(_state != RemoteRegistering)
+		if(_state != RegisteringState)
 			logWarning() << "Ignoring unexpected AccountMessage";
 		else {
 			_deviceId = message.deviceId;
@@ -432,7 +433,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 			logDebug() << "Registration successful";
 			// reset retry index only after successfuly account creation or login
 			_retryIndex = 0;
-			upState(RemoteIdle);
+			upState(IdleState);
 		}
 	} catch(Exception &e) {
 		logCritical() << e.what();
@@ -442,7 +443,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 void RemoteConnector::onWelcome(const WelcomeMessage &message)
 {
 	Q_UNUSED(message);
-	if(_state != RemoteLoggingIn)
+	if(_state != LoggingInState)
 		logWarning() << "Ignoring unexpected WelcomeMessage";
 	else {
 		logDebug() << "Login successful";
@@ -450,8 +451,8 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		_retryIndex = 0;
 		if(message.hasChanges) {
 			logDebug() << "Server has changes. Reloading states";
-			upState(RemoteDownloading);
+			//TODO upState(RemoteDownloading);
 		} else
-			upState(RemoteIdle);
+			upState(IdleState);
 	}
 }
