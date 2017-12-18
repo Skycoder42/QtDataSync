@@ -138,7 +138,7 @@ void RemoteConnector::resync()
 	if(_state != RemoteIdle)
 		return;
 	upState(RemoteDownloading);
-	_socket->sendBinaryMessage(serializeMessage<SyncMessage>(SyncMessage::TriggerAction));
+	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
 }
 
 void RemoteConnector::connected()
@@ -215,8 +215,6 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onAccount(deserializeMessage<AccountMessage>(stream));
 		else if(isType<WelcomeMessage>(name))
 			onWelcome(deserializeMessage<WelcomeMessage>(stream));
-		else if(isType<SyncMessage>(name))
-			onSync(deserializeMessage<SyncMessage>(stream));
 		else
 			logWarning() << "Unknown message received: " << typeName(name);
 	} catch(DataStreamException &e) {
@@ -431,7 +429,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 			_deviceId = message.deviceId;
 			settings()->setValue(keyDeviceId, _deviceId);
 			_cryptoController->storePrivateKeys(_deviceId);
-			logDebug() << "Saved user data stuff";
+			logDebug() << "Registration successful";
 			// reset retry index only after successfuly account creation or login
 			_retryIndex = 0;
 			upState(RemoteIdle);
@@ -450,33 +448,10 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		logDebug() << "Login successful";
 		// reset retry index only after successfuly account creation or login
 		_retryIndex = 0;
-		_state = RemoteIdle;//to allow syncing
-		onSync(message);
-	}
-}
-
-void RemoteConnector::onSync(const SyncMessage &message)
-{
-	switch (message.action) {
-	case SyncMessage::InitAction:
-		if(_state != RemoteIdle)
-			logWarning() << "Ignoring unexpected SyncMessage::InitAction";
-		else {
+		if(message.hasChanges) {
 			logDebug() << "Server has changes. Reloading states";
 			upState(RemoteDownloading);
-		}
-		break;
-	case SyncMessage::DoneAction:
-		if(_state != RemoteIdle && _state != RemoteDownloading)
-			logWarning() << "Ignoring unexpected SyncMessage::DoneAction";
-		else {
-			//TODO trigger local upload
-			logDebug() << "No more changes on server";
+		} else
 			upState(RemoteIdle);
-		}
-		break;
-	default:
-		logWarning() << "Ignoring unsupported sync action" << message.action;
-		break;
 	}
 }

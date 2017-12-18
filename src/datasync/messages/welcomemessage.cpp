@@ -2,19 +2,19 @@
 using namespace QtDataSync;
 
 WelcomeMessage::WelcomeMessage(bool hasChanges) :
-	SyncMessage(hasChanges ? InitAction : DoneAction)
+	hasChanges(hasChanges)
 {}
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const WelcomeMessage &message)
 {
-	stream << (SyncMessage)message;
+	stream << message.hasChanges;
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, WelcomeMessage &message)
 {
 	stream.startTransaction();
-	stream >> (SyncMessage&)message;
+	stream >> message.hasChanges;
 	stream.commitTransaction();
 	return stream;
 }

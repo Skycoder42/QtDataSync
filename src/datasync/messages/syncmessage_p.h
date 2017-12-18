@@ -9,20 +9,8 @@ class Q_DATASYNC_EXPORT SyncMessage
 {
 	Q_GADGET
 
-	Q_PROPERTY(Action action MEMBER action)
-
 public:
-	enum Action {
-		InvalidAction = 0,
-		TriggerAction = 1,
-		InitAction = 2,
-		DoneAction = 3
-	};
-	Q_ENUM(Action)
-
-	SyncMessage(Action action = InvalidAction);
-
-	Action action;
+	SyncMessage();
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const SyncMessage &message);

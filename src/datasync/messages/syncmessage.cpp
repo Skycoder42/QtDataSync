@@ -4,23 +4,16 @@
 
 using namespace QtDataSync;
 
-SyncMessage::SyncMessage(Action action) :
-	action(action)
-{}
+SyncMessage::SyncMessage() {}
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const SyncMessage &message)
 {
-	stream << (int)message.action;
+	Q_UNUSED(message)
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, SyncMessage &message)
 {
-	stream.startTransaction();
-	stream >> (int&)message.action;
-	if(QMetaEnum::fromType<SyncMessage::Action>().valueToKey(message.action))
-		stream.commitTransaction();
-	else
-		stream.abortTransaction();
+	Q_UNUSED(message)
 	return stream;
 }

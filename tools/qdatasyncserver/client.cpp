@@ -333,10 +333,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 
 void Client::onSync(const SyncMessage &message)
 {
-	if(message.action == SyncMessage::TriggerAction) {
-		Q_UNIMPLEMENTED();
-	} else
-		qWarning() << "Ignoring unsupported sync action" << message.action;
+	Q_UNIMPLEMENTED();
 }
 
 // ------------- Exceptions Implementation -------------

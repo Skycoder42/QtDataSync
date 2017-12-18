@@ -18,7 +18,6 @@
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
-#include "syncmessage_p.h"
 
 namespace QtDataSync {
 
@@ -102,7 +101,6 @@ private:
 	void onIdentify(const IdentifyMessage &message);
 	void onAccount(const AccountMessage &message);
 	void onWelcome(const WelcomeMessage &message);
-	void onSync(const SyncMessage &message);
 };
 
 }
