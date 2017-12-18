@@ -32,8 +32,7 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_socket(nullptr),
 	_pingTimer(new QTimer(this)),
 	_awaitingPing(false),
-	_disconnecting(false),
-	_reconnecting(false),
+	_connectAction(UnexpectedDisconnect),
 	_state(RemoteDisconnected),
 	_retryIndex(0),
 	_deviceId()
@@ -54,7 +53,7 @@ void RemoteConnector::finalize()
 	_pingTimer->stop();
 
 	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
-		_disconnecting = true;
+		_connectAction = PlannedDisconnect;
 		_socket->close();
 		//TODO wait for disconnect?
 	}
@@ -73,12 +72,11 @@ void RemoteConnector::reconnect()
 			QMetaObject::invokeMethod(this, "reconnect", Qt::QueuedConnection);
 		} else if(_socket->state() == QAbstractSocket::ConnectedState) {
 			logDebug() << "Closing active connection with server to reconnect";
-			_disconnecting = true;
-			_reconnecting = true;
+			_connectAction = PlannedReconnect;
 			_socket->close();
 			upState(RemoteReconnecting);
 		} else {
-			_reconnecting = true;
+			_connectAction = PlannedReconnect;
 			logDebug() << "Delaying reconnect. Socket in changing state:" << _socket->state();
 		}
 	} else {
@@ -129,6 +127,7 @@ void RemoteConnector::reconnect()
 		for(auto it = keys.begin(); it != keys.end(); it++)
 			request.setRawHeader(it.key(), it.value());
 
+		_connectAction = PlannedRetry;
 		_socket->open(request);
 		logDebug() << "Connecting to remote server...";
 	}
@@ -144,28 +143,41 @@ void RemoteConnector::resync()
 
 void RemoteConnector::connected()
 {
+	_connectAction = UnexpectedDisconnect;
 	logDebug() << "Successfully connected to remote server";
 	upState(RemoteConnected);
 }
 
 void RemoteConnector::disconnected()
 {
-	if(!_disconnecting) {
-		if(_state != RemoteReconnecting) {
-			logWarning().noquote() << "Unexpected disconnect from server with exit code"
-								   << _socket->closeCode()
-								   << "and reason:"
-								   << _socket->closeReason();
-		}
+	auto recon = false;
+	switch (_connectAction) {
+	case UnexpectedDisconnect:
+		logWarning().noquote() << "Unexpected disconnect from server with exit code"
+							   << _socket->closeCode()
+							   << "and reason:"
+							   << _socket->closeReason();
+		Q_FALLTHROUGH();
+	case PlannedRetry:
+	{
 		auto delta = retry();
 		logDebug() << "Retrying to connect to server in"
 				   << delta.count()
 				   << "seconds";
-	} else {
-		_disconnecting = false;
+		break;
+	}
+	case PlannedReconnect:
+		recon = true;
+		Q_FALLTHROUGH();
+	case PlannedDisconnect:
 		logDebug() << "Remote server has been disconnected";
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
 	}
 
+	_connectAction = UnexpectedDisconnect;
 	if(_socket)//better be safe
 		_socket->deleteLater();
 	_socket = nullptr;
@@ -174,10 +186,8 @@ void RemoteConnector::disconnected()
 	//always "disable" remote for the state changer
 	upState(RemoteDisconnected);
 
-	if(_reconnecting) {
-		_reconnecting = false;
+	if(recon)
 		reconnect();
-	}
 }
 
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
@@ -376,7 +386,7 @@ void RemoteConnector::onError(const ErrorMessage &message)
 	logCritical() << message;
 	//TODO emit error to userspace (i.e. sync manager?)
 	//TODO special reaction on e.g. Auth Error
-	_disconnecting = !message.canRecover;
+	_connectAction = message.canRecover ? PlannedRetry : PlannedDisconnect;
 	tryClose();
 }
 //TODO reconnect instead of ignore?

@@ -68,6 +68,13 @@ private Q_SLOTS:
 	void ping();
 
 private:
+	enum ConnectAction {
+		UnexpectedDisconnect,
+		PlannedDisconnect,
+		PlannedReconnect,
+		PlannedRetry
+	};
+
 	static const QVector<std::chrono::seconds> Timeouts;
 
 	CryptoController *_cryptoController;
@@ -77,8 +84,7 @@ private:
 	QTimer *_pingTimer;
 	bool _awaitingPing;
 
-	bool _disconnecting;
-	bool _reconnecting;
+	ConnectAction _connectAction;
 	RemoteState _state;
 	int _retryIndex;
 
