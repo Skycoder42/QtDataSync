@@ -54,7 +54,7 @@ SyncManagerPrivate::SyncManagerPrivate(const QString &setupName, SyncManager *q_
 	defaults(setupName),
 	settings(defaults.createSettings(q_ptr)),
 	cEnabled(true),
-	cState(SyncManager::Disconnected)
+	cState(SyncManager::Initializing)
 {
 	auto engine = SetupPrivate::engine(defaults.setupName());
 	auto rCon = engine->remoteConnector();

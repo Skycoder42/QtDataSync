@@ -45,10 +45,9 @@ public Q_SLOTS:
 	void runInitFunc(const QtDataSync::ExchangeEngine::RunFn &fn);
 
 Q_SIGNALS:
-	void stateChanged(SyncManager::SyncState state);
+	void stateChanged(QtDataSync::SyncManager::SyncState state);
 
 private Q_SLOTS:
-	void localDataChange();
 	void remoteEvent(RemoteConnector::RemoteEvent event);
 
 private:

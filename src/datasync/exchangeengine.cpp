@@ -49,8 +49,6 @@ void ExchangeEngine::initialize()
 {
 	try {
 		//change controller
-		connect(_changeController, &ChangeController::changeTriggered,
-				this, &ExchangeEngine::localDataChange);
 
 		//remote controller
 		connect(_remoteConnector, &RemoteConnector::remoteEvent,
@@ -85,14 +83,37 @@ void ExchangeEngine::runInitFunc(const RunFn &fn)
 	fn(this);
 }
 
-void ExchangeEngine::localDataChange()
-{
-	logDebug() << Q_FUNC_INFO;
-}
-
 void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 {
-	logDebug() << Q_FUNC_INFO << event;
+	switch (event) {
+	case RemoteConnector::RemoteDisconnected:
+		if(_state != SyncManager::Disconnected) {
+			_state = SyncManager::Disconnected;
+			emit stateChanged(_state);
+		}
+		break;
+	case RemoteConnector::RemoteConnecting:
+		if(_state != SyncManager::Initializing) {
+			_state = SyncManager::Initializing;
+			emit stateChanged(_state);
+		}
+		break;
+	case RemoteConnector::RemoteReady: //TODO could also be error or uploading
+		if(_state != SyncManager::Synchronized) {
+			_state = SyncManager::Synchronized;
+			emit stateChanged(_state);
+		}
+		break;
+	case RemoteConnector::RemoteReadyWithChanges: //TODO always?
+		if(_state != SyncManager::Downloading) {
+			_state = SyncManager::Downloading;
+			emit stateChanged(_state);
+		}
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
 }
 
 void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)

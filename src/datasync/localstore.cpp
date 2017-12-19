@@ -52,7 +52,7 @@ quint64 LocalStore::count(const QByteArray &typeName)
 		return 0;
 
 	QSqlQuery countQuery(_database);
-	countQuery.prepare(QStringLiteral("SELECT Count(Key) FROM %1").arg(table));
+	countQuery.prepare(QStringLiteral("SELECT Count(Key) FROM %1 WHERE File IS NOT NULL").arg(table));
 	exec(countQuery, typeName); //TODO add special method for prepare as well
 
 	if(countQuery.first())
@@ -70,7 +70,7 @@ QStringList LocalStore::keys(const QByteArray &typeName)
 		return {};
 
 	QSqlQuery keysQuery(_database);
-	keysQuery.prepare(QStringLiteral("SELECT Key FROM %1").arg(table));
+	keysQuery.prepare(QStringLiteral("SELECT Key FROM %1 WHERE File IS NOT NULL").arg(table));
 	exec(keysQuery, typeName);
 
 	QStringList resList;
@@ -88,7 +88,7 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 		return {};
 
 	QSqlQuery loadQuery(_database);
-	loadQuery.prepare(QStringLiteral("SELECT Key, File FROM %1").arg(table));
+	loadQuery.prepare(QStringLiteral("SELECT Key, File FROM %1 WHERE File IS NOT NULL").arg(table));
 	exec(loadQuery, typeName);
 
 	QList<QJsonObject> array;
@@ -116,7 +116,7 @@ QJsonObject LocalStore::load(const ObjectKey &key)
 		throw NoDataException(_defaults, key);
 
 	QSqlQuery loadQuery(_database);
-	loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ?").arg(table));
+	loadQuery.prepare(QStringLiteral("SELECT File FROM %1 WHERE Key = ? AND File IS NOT NULL").arg(table));
 	loadQuery.addBindValue(key.id);
 	exec(loadQuery, key);
 
@@ -148,15 +148,16 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			existQuery.addBindValue(key.id);
 			exec(existQuery, key);
 
-			auto notExisting = false;
 			QScopedPointer<QFileDevice> device;
 			std::function<bool(QFileDevice*)> commitFn;
 
 			//create the file device to write to
 			quint64 version = 1ull;
-			if(existQuery.first()) {
+			bool existing = existQuery.first();
+			if(existing)
 				version = existQuery.value(0).toULongLong() + 1ull;
 
+			if(existing && !existQuery.value(1).isNull()) {
 				auto file = new QSaveFile(tableDir.absoluteFilePath(existQuery.value(1).toString() + QStringLiteral(".dat")));
 				device.reset(file);
 				if(!file->open(QIODevice::WriteOnly))
@@ -165,8 +166,6 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 					return static_cast<QSaveFile*>(d)->commit();
 				};
 			} else {
-				notExisting = true;
-
 				auto fileName = QString::fromUtf8(QUuid::createUuid().toRfc4122().toHex());
 				fileName = tableDir.absoluteFilePath(QStringLiteral("%1XXXXXX.dat")).arg(fileName);
 				auto file = new QTemporaryFile(fileName);
@@ -198,7 +197,15 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 
 			//save key in database
 			QFileInfo info(device->fileName());
-			if(notExisting) {
+			if(existing) {
+				QSqlQuery updateQuery(_database);
+				updateQuery.prepare(QStringLiteral("UPDATE %1 SET Version = ?, File = ?, Checksum = ? WHERE Key = ?").arg(table));
+				updateQuery.addBindValue(version);
+				updateQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName())); //still update file, in case it was set to NULL
+				updateQuery.addBindValue(hashPipe.hash());
+				updateQuery.addBindValue(key.id);
+				exec(updateQuery, key);
+			} else {
 				QSqlQuery insertQuery(_database);
 				insertQuery.prepare(QStringLiteral("INSERT INTO %1 (Key, Version, File, Checksum) VALUES(?, ?, ?, ?)").arg(table));
 				insertQuery.addBindValue(key.id);
@@ -206,13 +213,6 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				insertQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName()));
 				insertQuery.addBindValue(hashPipe.hash());
 				exec(insertQuery, key);
-			} else {
-				QSqlQuery updateQuery(_database);
-				updateQuery.prepare(QStringLiteral("UPDATE %1 SET Version = ?, Checksum = ? WHERE Key = ?").arg(table));
-				updateQuery.addBindValue(version);
-				updateQuery.addBindValue(hashPipe.hash());
-				updateQuery.addBindValue(key.id);
-				exec(updateQuery, key);
 			}
 
 			//notify change controller
@@ -257,7 +257,7 @@ bool LocalStore::remove(const ObjectKey &key)
 		try {
 			//load data of existing entry
 			QSqlQuery loadQuery(_database);
-			loadQuery.prepare(QStringLiteral("SELECT Version, File FROM %1 WHERE Key = ?").arg(table));
+			loadQuery.prepare(QStringLiteral("SELECT Version, File FROM %1 WHERE Key = ? AND File IS NOT NULL").arg(table));
 			loadQuery.addBindValue(key.id);
 			exec(loadQuery, key);
 
@@ -266,9 +266,10 @@ bool LocalStore::remove(const ObjectKey &key)
 				auto tableDir = typeDirectory(table, key);
 				auto fileName = tableDir.absoluteFilePath(loadQuery.value(1).toString() + QStringLiteral(".dat"));
 
-				//remove from db
+				//"remove" from db
 				QSqlQuery removeQuery(_database);
-				removeQuery.prepare(QStringLiteral("DELETE FROM %1 WHERE Key = ?").arg(table));
+				removeQuery.prepare(QStringLiteral("UPDATE %1 SET Version = ?, File = NULL WHERE Key = ?").arg(table));
+				removeQuery.addBindValue(version);
 				removeQuery.addBindValue(key.id);
 				exec(removeQuery, key);
 
@@ -319,7 +320,7 @@ QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &q
 	searchQuery.replace(QLatin1Char('?'), QLatin1Char('_'));
 
 	QSqlQuery findQuery(_database);
-	findQuery.prepare(QStringLiteral("SELECT Key, File FROM %1 WHERE Key LIKE ?").arg(table));
+	findQuery.prepare(QStringLiteral("SELECT Key, File FROM %1 WHERE Key LIKE ? AND File IS NOT NULL").arg(table));
 	findQuery.addBindValue(searchQuery);
 	exec(findQuery, typeName);
 
@@ -495,7 +496,7 @@ QString LocalStore::getTable(const QByteArray &typeName, bool allowCreate)
 				createQuery.prepare(QStringLiteral("CREATE TABLE %1 ("
 												   "Key			TEXT NOT NULL,"
 												   "Version		INTEGER NOT NULL,"
-												   "File		TEXT NOT NULL,"
+												   "File		TEXT,"
 												   "Checksum	BLOB NOT NULL,"
 												   "PRIMARY KEY(Key)"
 												   ");").arg(tableName));

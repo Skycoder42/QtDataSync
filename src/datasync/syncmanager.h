@@ -42,7 +42,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void syncEnabledChanged(bool syncEnabled);
-	void syncStateChanged(SyncState syncState);
+	void syncStateChanged(QtDataSync::SyncManager::SyncState syncState);
 
 private:
 	SyncManagerPrivate *d;

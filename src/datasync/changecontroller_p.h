@@ -40,7 +40,13 @@ public:
 	QByteArrayList loadClears();
 	void clearCleared(const QByteArray &typeName);
 
+public Q_SLOTS:
+	void setUploadingEnabled(bool uploading);
+
 Q_SIGNALS:
+	void uploadingChanged(bool uploading);
+
+private Q_SLOTS:
 	void changeTriggered();
 
 private:
@@ -49,6 +55,7 @@ private:
 	static QHash<QString, bool> _initialized;
 
 	DatabaseRef _database;
+	bool _uploadingEnabled;
 
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 	static void exec(Defaults defaults, QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"});

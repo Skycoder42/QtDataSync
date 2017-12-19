@@ -15,7 +15,8 @@ QHash<QString, bool> ChangeController::_initialized;
 
 ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	Controller("change", defaults, parent),
-	_database()
+	_database(),
+	_uploadingEnabled(false)
 {}
 
 void ChangeController::initialize()
@@ -40,11 +41,12 @@ bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bo
 
 		QSqlQuery createQuery(database);
 		createQuery.prepare(QStringLiteral("CREATE TABLE ChangeStore ("
+										   "Id			INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
 										   "Type		TEXT NOT NULL,"
-										   "Id			TEXT NOT NULL,"
+										   "Key			TEXT NOT NULL,"
 										   "Version		INTEGER NOT NULL,"
 										   "Checksum	BLOB,"
-										   "PRIMARY KEY(Type, Id)"
+										   "UNIQUE(Type, Key)"
 										   ");"));
 		exec(defaults, createQuery);
 	}
@@ -69,7 +71,7 @@ bool ChangeController::createTables(Defaults defaults, QSqlDatabase database, bo
 void ChangeController::triggerDataChange(Defaults defaults, QSqlDatabase database, const ChangeInfo &changeInfo, const QWriteLocker &)
 {
 	QSqlQuery changeQuery(database);
-	changeQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO ChangeStore (Type, Id, Version, Checksum) VALUES(?, ?, ?, ?)"));
+	changeQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO ChangeStore (Type, Key, Version, Checksum) VALUES(?, ?, ?, ?)"));
 	changeQuery.addBindValue(changeInfo.key.typeName);
 	changeQuery.addBindValue(changeInfo.key.id);
 	changeQuery.addBindValue(changeInfo.version);
@@ -105,7 +107,7 @@ QList<ChangeController::ChangeInfo> ChangeController::loadChanges()
 		return {};
 
 	QSqlQuery loadQuery(_database);
-	loadQuery.prepare(QStringLiteral("SELECT Type, Id, Version, Checksum FROM ChangeStore"));
+	loadQuery.prepare(QStringLiteral("SELECT Type, Key, Version, Checksum FROM ChangeStore"));
 	exec(loadQuery);
 
 	QList<ChangeInfo> result;
@@ -128,7 +130,7 @@ void ChangeController::clearChanged(const ObjectKey &key, quint64 version)
 		return;
 
 	QSqlQuery clearQuery(_database);
-	clearQuery.prepare(QStringLiteral("DELETE FROM ChangeStore WHERE Type = ? AND Id = ? AND version = ?"));
+	clearQuery.prepare(QStringLiteral("DELETE FROM ChangeStore WHERE Type = ? AND Key = ? AND version = ?"));
 	clearQuery.addBindValue(key.typeName);
 	clearQuery.addBindValue(key.id);
 	clearQuery.addBindValue(version);
@@ -163,6 +165,21 @@ void ChangeController::clearCleared(const QByteArray &typeName)
 	clearQuery.prepare(QStringLiteral("DELETE FROM ClearStore WHERE Type = ?"));
 	clearQuery.addBindValue(typeName);
 	exec(clearQuery, typeName);
+}
+
+void ChangeController::setUploadingEnabled(bool uploading)
+{
+	_uploadingEnabled = uploading;
+	//TODO check if changes ar available
+	emit uploadingChanged(false);
+}
+
+void ChangeController::changeTriggered()
+{
+	if(_uploadingEnabled) {
+		emit uploadingChanged(true);
+		//TODO implement
+	}
 }
 
 void ChangeController::exec(QSqlQuery &query, const ObjectKey &key) const
