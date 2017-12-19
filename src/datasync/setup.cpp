@@ -310,7 +310,11 @@ void SetupPrivate::cleanupHandler()
 ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 {
 	QMutexLocker _(&setupMutex);
-	return engines.value(setupName).engine;
+	auto engine = engines.value(setupName).engine;
+	if(!engine)
+		throw SetupDoesNotExistException(setupName);
+	else
+		return engine;
 }
 
 SetupPrivate::SetupPrivate() :

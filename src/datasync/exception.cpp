@@ -59,3 +59,29 @@ QException *Exception::clone() const
 {
 	return new Exception(this);
 }
+
+
+
+SetupDoesNotExistException::SetupDoesNotExistException(const QString &setupName) :
+	Exception(setupName, QStringLiteral("The requested setup does not exist! Create it with Setup::create"))
+{}
+
+SetupDoesNotExistException::SetupDoesNotExistException(const SetupDoesNotExistException * const other) :
+	Exception(other)
+{}
+
+QByteArray SetupDoesNotExistException::className() const noexcept
+{
+	return QTDATASYNC_EXCEPTION_NAME(SetupDoesNotExistException);
+}
+
+void SetupDoesNotExistException::raise() const
+{
+	throw (*this);
+}
+
+QException *SetupDoesNotExistException::clone() const
+{
+	return new SetupDoesNotExistException(this);
+}
+

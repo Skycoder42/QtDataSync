@@ -21,6 +21,8 @@ class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 	Q_PROPERTY(SyncManager::SyncState state READ state NOTIFY stateChanged)
 
 public:
+	typedef std::function<void(ExchangeEngine*)> RunFn;
+
 	explicit ExchangeEngine(const QString &setupName,
 							const Setup::FatalErrorHandler &errorHandler);
 
@@ -39,6 +41,9 @@ public Q_SLOTS:
 	void initialize();
 	void finalize();
 
+	//helper class initializer
+	void runInitFunc(const QtDataSync::ExchangeEngine::RunFn &fn);
+
 Q_SIGNALS:
 	void stateChanged(SyncManager::SyncState state);
 
@@ -47,39 +52,20 @@ private Q_SLOTS:
 	void remoteEvent(RemoteConnector::RemoteEvent event);
 
 private:
-	template <typename T>
-	class AtomicPointer : public QAtomicPointer<T>
-	{
-	public:
-		inline AtomicPointer(T *ptr = nullptr);
-		inline T *operator->() const;
-	};
-
 	SyncManager::SyncState _state;
 
 	Defaults _defaults;
 	Logger *_logger;
 	Setup::FatalErrorHandler _fatalErrorHandler;
 
-	AtomicPointer<ChangeController> _changeController;
-	AtomicPointer<RemoteConnector> _remoteConnector;
+	ChangeController *_changeController;
+	RemoteConnector *_remoteConnector;
 
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 };
 
-// ------------- Generic Implementation -------------
-
-template<typename T>
-inline ExchangeEngine::AtomicPointer<T>::AtomicPointer(T *ptr) :
-	QAtomicPointer<T>(ptr)
-{}
-
-template<typename T>
-inline T *ExchangeEngine::AtomicPointer<T>::operator->() const
-{
-	return this->loadAcquire();
 }
 
-}
+Q_DECLARE_METATYPE(QtDataSync::ExchangeEngine::RunFn)
 
 #endif // EXCHANGEENGINE_P_H

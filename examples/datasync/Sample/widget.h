@@ -2,6 +2,7 @@
 #define WIDGET_H
 
 #include <QWidget>
+#include <QtDataSync/syncmanager.h>
 #include <QtDataSync/datastoremodel.h>
 
 namespace Ui {
@@ -18,6 +19,7 @@ public:
 
 private slots:
 	void selectionChange(const QModelIndex &index);
+	void updateState(QtDataSync::SyncManager::SyncState state);
 
 	void on_addButton_clicked();
 	void on_deleteButton_clicked();
@@ -25,6 +27,7 @@ private slots:
 
 private:
 	Ui::Widget *ui;
+	QtDataSync::SyncManager *_manager;
 	QtDataSync::DataStoreModel *_model;
 };
 

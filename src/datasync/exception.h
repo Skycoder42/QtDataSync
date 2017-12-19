@@ -32,6 +32,19 @@ protected:
 	QString _message;
 };
 
+class Q_DATASYNC_EXPORT SetupDoesNotExistException : public Exception
+{
+public:
+	SetupDoesNotExistException(const QString &setupName);
+
+	QByteArray className() const noexcept override;
+	void raise() const override;
+	QException *clone() const override;
+
+protected:
+	SetupDoesNotExistException(const SetupDoesNotExistException * const other);
+};
+
 }
 
 #define __QTDATASYNC_EXCEPTION_NAME_IMPL(x) #x

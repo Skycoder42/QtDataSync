@@ -33,9 +33,9 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
 	_cryptoController(new CryptoController(defaults, this)),
 	_socket(nullptr),
-	_pingTimer(new QTimer(this)),
+	_pingTimer(nullptr),
 	_awaitingPing(false),
-	_stateMachine(new ConnectorStateMachine(this)),
+	_stateMachine(nullptr),
 	_retryIndex(0),
 	_deviceId()
 {}
@@ -44,9 +44,11 @@ void RemoteConnector::initialize()
 {
 	_cryptoController->initialize();
 
+	_pingTimer = new QTimer(this);
 	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
 
 	//setup SM
+	_stateMachine = new ConnectorStateMachine(this);
 	_stateMachine->connectToState(QStringLiteral("Connecting"),
 								  this, ConnectorStateMachine::onEntry(this, &RemoteConnector::doConnect));
 	_stateMachine->connectToState(QStringLiteral("Retry"),
@@ -110,6 +112,11 @@ void RemoteConnector::finalize()
 		emit finalized();
 }
 
+bool RemoteConnector::isSyncEnabled() const
+{
+	return sValue(keyRemoteEnabled).toBool();
+}
+
 void RemoteConnector::reconnect()
 {
 	_stateMachine->submitEvent(QStringLiteral("reconnect"));
@@ -121,6 +128,16 @@ void RemoteConnector::resync()
 		return;
 	emit remoteEvent(RemoteReadyWithChanges);//TODO needs a reply in case no changes are there
 	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
+}
+
+void RemoteConnector::setSyncEnabled(bool syncEnabled)
+{
+	if (sValue(keyRemoteEnabled).toBool() == syncEnabled)
+		return;
+
+	settings()->setValue(keyRemoteEnabled, syncEnabled);
+	reconnect();
+	emit syncEnabledChanged(syncEnabled);
 }
 
 void RemoteConnector::connected()
@@ -457,9 +474,9 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 								 sValue(keyDeviceName).toString(),
 								 message.nonce);
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				_stateMachine->submitEvent(QStringLiteral("awaitLogin"));
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent login message for device id" << _deviceId;
-				_stateMachine->submitEvent(QStringLiteral("awaitLogin"));
 			} else {
 				_cryptoController->createPrivateKeys(message.nonce);
 				RegisterMessage msg(sValue(keyDeviceName).toString(),
@@ -468,9 +485,9 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 									_cryptoController->crypto()->cryptKey(),
 									_cryptoController->crypto());
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
-				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
 			}
 		}
 	} catch(Exception &e) {

@@ -27,6 +27,8 @@ class Q_DATASYNC_EXPORT RemoteConnector : public Controller
 {
 	Q_OBJECT
 
+	Q_PROPERTY(bool syncEnabled READ isSyncEnabled WRITE setSyncEnabled NOTIFY syncEnabledChanged)
+
 public:
 	static const QString keyRemoteEnabled;
 	static const QString keyRemoteUrl;
@@ -49,13 +51,19 @@ public:
 	void initialize() final;
 	void finalize() final;
 
+	Q_INVOKABLE bool isSyncEnabled() const;
+
 public Q_SLOTS:
 	void reconnect();
 	void resync();
 
+	void setSyncEnabled(bool syncEnabled);
+
 Q_SIGNALS:
 	void finalized();
 	void remoteEvent(RemoteEvent event);
+
+	void syncEnabledChanged(bool syncEnabled);
 
 private Q_SLOTS:
 	void connected();

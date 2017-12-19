@@ -963,10 +963,15 @@
                           </DElement>
                          </base-DElement>
                          <object>{17183438-8880-47b9-82e4-d6175d96239c}</object>
-                         <name>StandardKeyStore</name>
+                         <stereotypes>
+                          <qlist>
+                           <item>plugin</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>*KeyStore</name>
                          <pos>x:940;y:395</pos>
-                         <rect>x:-55;y:-30;w:110;h:60</rect>
-                         <visual-role>5</visual-role>
+                         <rect>x:-40;y:-35;w:80;h:70</rect>
+                         <visual-role>9</visual-role>
                         </DObject>
                        </base-DObject>
                       </DClass>
@@ -1049,7 +1054,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1513190895689</last-modified>
+                  <last-modified>1513702284405</last-modified>
                   <toolbarid>Classes</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -2185,9 +2190,14 @@
                   <base-MElement>
                    <MElement>
                     <uid>{17183438-8880-47b9-82e4-d6175d96239c}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>plugin</item>
+                     </qlist>
+                    </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>StandardKeyStore</name>
+                  <name>*KeyStore</name>
                   <relations>
                    <handles>
                     <handles>

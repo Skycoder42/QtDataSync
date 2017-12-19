@@ -2,15 +2,32 @@
 #include "ui_widget.h"
 #include "sampledata.h"
 #include <QDebug>
+#include <QMetaEnum>
 
 #include "modeltest.h"
 
 Widget::Widget(QWidget *parent) :
 	QWidget(parent),
 	ui(new Ui::Widget),
+	_manager(new QtDataSync::SyncManager(this)),
 	_model(new QtDataSync::DataStoreModel(this))
 {
 	ui->setupUi(this);
+
+	connect(ui->syncButton, &QPushButton::clicked,
+			_manager, &QtDataSync::SyncManager::synchronize);
+	connect(ui->reconnectButton, &QPushButton::clicked,
+			_manager, &QtDataSync::SyncManager::reconnect);
+	connect(ui->syncCheckBox, &QCheckBox::clicked,
+			_manager, &QtDataSync::SyncManager::setSyncEnabled);
+
+	connect(_manager, &QtDataSync::SyncManager::syncEnabledChanged,
+			ui->syncCheckBox, &QCheckBox::setChecked);
+	connect(_manager, &QtDataSync::SyncManager::syncStateChanged,
+			this, &Widget::updateState);
+
+	ui->syncCheckBox->setChecked(_manager->isSyncEnabled());
+	updateState(_manager->syncState());
 
 	new ModelTest(_model, this);
 	_model->setTypeId<SampleData>();
@@ -40,6 +57,12 @@ void Widget::selectionChange(const QModelIndex &index)
 	} catch(QException &e) {
 		qCritical() << e.what();
 	}
+}
+
+void Widget::updateState(QtDataSync::SyncManager::SyncState state)
+{
+	ui->stateLabel->setText(QStringLiteral("State: %1")
+							.arg(QString::fromUtf8(QMetaEnum::fromType<QtDataSync::SyncManager::SyncState>().valueToKey(state))));
 }
 
 void Widget::on_addButton_clicked()

@@ -20,11 +20,11 @@ void Logger::reportFatalError(const QString &error, const char *file, int line, 
 	QMessageLogger logger(file, line, function, d->logCat.categoryName());
 	logger.critical("%s", qUtf8Printable(error));
 
-	auto engine = SetupPrivate::engine(d->setupName);
-	if(engine)
-		engine->enterFatalState(error, file, line, function, d->logCat.categoryName());
-	else
+	try {
+		SetupPrivate::engine(d->setupName)->enterFatalState(error, file, line, function, d->logCat.categoryName());
+	} catch(...) {
 		logger.fatal("%s", qUtf8Printable(error));
+	}
 }
 
 void Logger::reportFatalError(const char *error, const char *file, int line, const char *function)

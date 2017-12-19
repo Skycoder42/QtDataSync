@@ -76,12 +76,8 @@ void ChangeController::triggerDataChange(Defaults defaults, QSqlDatabase databas
 	changeQuery.addBindValue(changeInfo.checksum);
 	exec(defaults, changeQuery, changeInfo.key);
 
-	auto engine = SetupPrivate::engine(defaults.setupName());
-	if(engine) {
-		auto instance = engine->changeController();
-		if(instance)
-			QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
-	}
+	auto instance = SetupPrivate::engine(defaults.setupName())->changeController();
+	QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
 }
 
 void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName, const QWriteLocker &)
@@ -97,12 +93,8 @@ void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database
 	clearQuery.addBindValue(typeName);
 	exec(defaults, clearQuery, typeName);
 
-	auto engine = SetupPrivate::engine(defaults.setupName());
-	if(engine) {
-		auto instance =engine->changeController();
-		if(instance)
-			QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
-	}
+	auto instance = SetupPrivate::engine(defaults.setupName())->changeController();
+	QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
 }
 
 QList<ChangeController::ChangeInfo> ChangeController::loadChanges()

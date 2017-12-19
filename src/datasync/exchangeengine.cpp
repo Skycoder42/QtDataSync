@@ -17,8 +17,8 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_defaults(setupName),
 	_logger(_defaults.createLogger("engine", this)),
 	_fatalErrorHandler(errorHandler),
-	_changeController(nullptr),
-	_remoteConnector(nullptr)
+	_changeController(new ChangeController(_defaults, this)),
+	_remoteConnector(new RemoteConnector(_defaults, this))
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
@@ -48,11 +48,11 @@ SyncManager::SyncState ExchangeEngine::state() const
 void ExchangeEngine::initialize()
 {
 	try {
-		_changeController = new ChangeController(_defaults, this);
+		//change controller
 		connect(_changeController, &ChangeController::changeTriggered,
 				this, &ExchangeEngine::localDataChange);
 
-		_remoteConnector = new RemoteConnector(_defaults, this);
+		//remote controller
 		connect(_remoteConnector, &RemoteConnector::remoteEvent,
 				this, &ExchangeEngine::remoteEvent);
 
@@ -78,6 +78,11 @@ void ExchangeEngine::finalize()
 
 	_remoteConnector->finalize();
 	_changeController->finalize();
+}
+
+void ExchangeEngine::runInitFunc(const RunFn &fn)
+{
+	fn(this);
 }
 
 void ExchangeEngine::localDataChange()
