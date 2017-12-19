@@ -47,12 +47,10 @@ void RemoteConnector::initialize()
 	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
 
 	//setup SM
-	//states
 	_stateMachine->connectToState(QStringLiteral("Connecting"),
 								  ConnectorStateMachine::onEntry(this, &RemoteConnector::doConnect));
 	_stateMachine->connectToState(QStringLiteral("Retry"),
 								  ConnectorStateMachine::onEntry(this, &RemoteConnector::scheduleRetry));
-	//events
 	_stateMachine->connectToEvent(QStringLiteral("doDisconnect"),
 								  this, &RemoteConnector::doDisconnect);
 #ifndef QT_NO_DEBUG
@@ -70,15 +68,28 @@ void RemoteConnector::initialize()
 void RemoteConnector::finalize()
 {
 	_pingTimer->stop();
-
-	if(_socket && _socket->state() == QAbstractSocket::ConnectedState) {
-		_stateMachine->submitEvent(QStringLiteral("close"));
-		//TODO wait for finished signal
-	}
-
-	if(_stateMachine->isRunning())
-		_stateMachine->stop();
 	_cryptoController->finalize();
+
+	if(_stateMachine->isRunning()) {
+		connect(_stateMachine, &ConnectorStateMachine::finished,
+				this, [this](){
+			emit finalized();
+		});
+		_stateMachine->dataModel()->setScxmlProperty(QStringLiteral("isClosing"),
+													 true,
+													 QStringLiteral("close"));
+		//send "dummy" event to revalute the changed properties and trigger the changes
+		_stateMachine->submitEvent(QStringLiteral("close"));
+
+		//TODO proper timeout?
+		QTimer::singleShot(std::chrono::seconds(2), this, [this](){
+			if(_stateMachine->isRunning())
+				_stateMachine->stop();
+			if(_socket)
+				_socket->close();
+			emit finalized();
+		});
+	}
 }
 
 void RemoteConnector::reconnect()
@@ -112,7 +123,7 @@ void RemoteConnector::disconnected()
 								   << _socket->closeReason();
 		}
 	} else
-		logRetry() << "Remote server has been disconnected";
+		logDebug() << "Remote server has been disconnected";
 	if(_socket) { //better be safe
 		_socket->disconnect(this);
 		_socket->deleteLater();
@@ -299,8 +310,20 @@ bool RemoteConnector::isIdle() const
 	return _stateMachine->isActive(QStringLiteral("Idle"));
 }
 
+void RemoteConnector::triggerError(bool canRecover)
+{
+	if(canRecover)
+		_stateMachine->submitEvent(QStringLiteral("basicError"));
+	else
+		_stateMachine->submitEvent(QStringLiteral("fatalError"));
+}
+
 bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 {
+	//test not closing
+	if(_stateMachine->dataModel()->scxmlProperty(QStringLiteral("isClosing")).toBool())
+		return false;
+
 	//check if sync is enabled
 	if(!sValue(keyRemoteEnabled).toBool()) {
 		logDebug() << "Remote has been disabled. Not connecting";
@@ -401,19 +424,16 @@ void RemoteConnector::onError(const ErrorMessage &message)
 	logCritical() << message;
 	//TODO emit error to userspace (i.e. sync manager?)
 	//TODO special reaction on e.g. Auth Error
-	if(message.canRecover)
-		_stateMachine->submitEvent(QStringLiteral("basicError"));
-	else
-		_stateMachine->submitEvent(QStringLiteral("fatalError"));
+	triggerError(message.canRecover);
 }
 
-//TODO reconnect instead of ignore?
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	try {
-		if(!_stateMachine->isActive(QStringLiteral("Connected")))
-			logWarning() << "Ignoring unexpected IdentifyMessage";
-		else {
+		if(!_stateMachine->isActive(QStringLiteral("Connected"))) {
+			logWarning() << "Unexpected IdentifyMessage";
+			triggerError(true);
+		} else {
 			if(!_deviceId.isNull()) {
 				LoginMessage msg(_deviceId,
 								 sValue(keyDeviceName).toString(),
@@ -443,9 +463,10 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 void RemoteConnector::onAccount(const AccountMessage &message)
 {
 	try {
-		if(!_stateMachine->isActive(QStringLiteral("Registering")))
-			logWarning() << "Ignoring unexpected AccountMessage";
-		else {
+		if(!_stateMachine->isActive(QStringLiteral("Registering"))) {
+			logWarning() << "Unexpected AccountMessage";
+			triggerError(true);
+		} else {
 			_deviceId = message.deviceId;
 			settings()->setValue(keyDeviceId, _deviceId);
 			_cryptoController->storePrivateKeys(_deviceId);
@@ -461,10 +482,10 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 
 void RemoteConnector::onWelcome(const WelcomeMessage &message)
 {
-	Q_UNUSED(message);
-	if(!_stateMachine->isActive(QStringLiteral("LoggingIn")))
-		logWarning() << "Ignoring unexpected WelcomeMessage";
-	else {
+	if(!_stateMachine->isActive(QStringLiteral("LoggingIn"))) {
+		logWarning() << "Unexpected WelcomeMessage";
+		triggerError(true);
+	} else {
 		logDebug() << "Login successful";
 		// reset retry index only after successfuly account creation or login
 		_retryIndex = 0;

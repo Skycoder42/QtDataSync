@@ -54,6 +54,7 @@ public Q_SLOTS:
 	void resync();
 
 Q_SIGNALS:
+	void finalized();
 	void remoteEvent(RemoteEvent event);
 
 private Q_SLOTS:
@@ -85,6 +86,8 @@ private:
 	QUuid _deviceId;
 
 	bool isIdle() const;
+	void triggerError(bool canRecover);
+
 	bool checkCanSync(QUrl &remoteUrl);
 	bool loadIdentity();
 	void tryClose();

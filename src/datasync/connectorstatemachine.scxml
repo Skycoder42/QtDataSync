@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" name="ConnectorStateMachine" qt:editorversion="4.5.0">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" datamodel="ecmascript" name="ConnectorStateMachine" qt:editorversion="4.5.0">
+    <datamodel>
+        <data id="isClosing" expr="false"/>
+    </datamodel>
     <state id="Active">
         <qt:editorinfo geometry="361.11;121.38;-38;-53.03;958.66;391.03" scenegeometry="361.11;121.38;323.11;68.35;958.66;391.03"/>
         <state id="Connecting">
@@ -8,7 +11,7 @@
                 <qt:editorinfo endTargetFactors="15.44;48.34"/>
             </transition>
             <transition type="external" event="noConnect" target="Disconnected">
-                <qt:editorinfo endTargetFactors="14.71;85.09" movePoint="-14.28;6.12"/>
+                <qt:editorinfo endTargetFactors="92.31;52.89" movePoint="-14.28;6.12"/>
             </transition>
         </state>
         <transition type="external" event="reconnect" target="Reconnecting">
@@ -19,9 +22,6 @@
         </transition>
         <transition type="external" event="basicError" target="BasicError"/>
         <transition type="external" event="fatalError" target="FatalError"/>
-        <transition type="external" event="close" target="Closing">
-            <qt:editorinfo endTargetFactors="77.34;56.16"/>
-        </transition>
         <state id="Registering">
             <qt:editorinfo geometry="537.58;66.31;-60;-50;120;100" scenegeometry="898.69;187.69;838.69;137.69;120;100"/>
             <transition type="external" event="account" target="Idle">
@@ -40,12 +40,16 @@
             <transition type="external" event="awaitRegister" target="Registering"/>
             <transition type="external" event="awaitLogin" target="LoggingIn"/>
         </state>
+        <transition type="external" target="Closing" cond="isClosing">
+            <qt:editorinfo endTargetFactors="79.59;42.09"/>
+        </transition>
     </state>
     <state id="Disconnected">
-        <qt:editorinfo geometry="83.65;190.43;-60;-50;166;100" scenegeometry="83.65;190.43;23.65;140.43;166;100"/>
+        <qt:editorinfo geometry="83.65;263.87;-60;-50;166;100" scenegeometry="83.65;263.87;23.65;213.87;166;100"/>
         <transition type="external" event="reconnect" target="Active">
-            <qt:editorinfo endTargetFactors="52.22;17.66"/>
+            <qt:editorinfo endTargetFactors="2.46;67.17"/>
         </transition>
+        <transition type="external" target="Final_2" cond="isClosing"/>
     </state>
     <state id="Reconnecting">
         <qt:editorinfo geometry="1040.49;613.08;-60;-50;150;100" scenegeometry="1040.49;613.08;980.49;563.08;150;100"/>
@@ -61,6 +65,9 @@
         <transition type="external" event="reconnect" target="Active">
             <qt:editorinfo endTargetFactors="88.97;25.15"/>
         </transition>
+        <transition type="external" target="Final" cond="isClosing">
+            <qt:editorinfo movePoint="0;-1.02"/>
+        </transition>
     </state>
     <state id="BasicError">
         <qt:editorinfo geometry="791.58;613.08;-60;-50;120;100" scenegeometry="791.58;613.08;731.58;563.08;120;100"/>
@@ -72,7 +79,7 @@
         </onentry>
     </state>
     <state id="FatalError">
-        <qt:editorinfo geometry="106.65;380.49;-60;-50;120;100" scenegeometry="106.65;380.49;46.65;330.49;120;100"/>
+        <qt:editorinfo geometry="106.65;432.51;-60;-50;120;100" scenegeometry="106.65;432.51;46.65;382.51;120;100"/>
         <transition type="external" event="disconnected" target="Disconnected"/>
         <onentry>
             <send event="doDisconnect"/>
@@ -87,5 +94,8 @@
     </state>
     <final id="Final">
         <qt:editorinfo geometry="143.37;751.80;-20;-20;40;40" scenegeometry="143.37;751.80;123.37;731.80;40;40"/>
+    </final>
+    <final id="Final_2">
+        <qt:editorinfo geometry="106.65;64.27;-20;-20;40;40" scenegeometry="106.65;64.27;86.65;44.27;40;40"/>
     </final>
 </scxml>

@@ -66,11 +66,16 @@ void ExchangeEngine::initialize()
 
 void ExchangeEngine::finalize()
 {
+	logDebug() << Q_FUNC_INFO;
+
+	//TODO make generic for ALL controls classes
+	connect(_remoteConnector, &RemoteConnector::finalized,
+			this, [this](){
+		thread()->quit(); //TODO not threadsafe???
+	});
+
 	_remoteConnector->finalize();
 	_changeController->finalize();
-
-	logDebug() << Q_FUNC_INFO;
-	thread()->quit();
 }
 
 void ExchangeEngine::localDataChange()
