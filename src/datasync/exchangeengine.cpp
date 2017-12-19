@@ -53,6 +53,8 @@ void ExchangeEngine::initialize()
 				this, &ExchangeEngine::localDataChange);
 
 		_remoteConnector = new RemoteConnector(_defaults, this);
+		connect(_remoteConnector, &RemoteConnector::remoteEvent,
+				this, &ExchangeEngine::remoteEvent);
 
 		//initialize all
 		_changeController->initialize();
@@ -81,6 +83,11 @@ void ExchangeEngine::finalize()
 void ExchangeEngine::localDataChange()
 {
 	logDebug() << Q_FUNC_INFO;
+}
+
+void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
+{
+	logDebug() << Q_FUNC_INFO << event;
 }
 
 void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)

@@ -38,9 +38,9 @@ public:
 
 	enum RemoteEvent {
 		RemoteDisconnected,
-		RemoteReconnecting,
+		RemoteConnecting,
 		RemoteReady,
-		RemoteSending
+		RemoteReadyWithChanges
 	};
 	Q_ENUM(RemoteEvent)
 
@@ -82,6 +82,7 @@ private:
 
 	ConnectorStateMachine *_stateMachine;
 	int _retryIndex;
+	bool _expectChanges;
 
 	QUuid _deviceId;
 

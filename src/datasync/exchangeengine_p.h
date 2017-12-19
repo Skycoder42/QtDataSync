@@ -9,10 +9,10 @@
 #include "defaults.h"
 #include "setup.h"
 
-namespace QtDataSync {
+#include "changecontroller_p.h"
+#include "remoteconnector_p.h"
 
-class ChangeController;
-class RemoteConnector;
+namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 {
@@ -44,6 +44,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
 	void localDataChange();
+	void remoteEvent(RemoteConnector::RemoteEvent event);
 
 private:
 	template <typename T>

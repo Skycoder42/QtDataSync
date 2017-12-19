@@ -48,11 +48,29 @@ void RemoteConnector::initialize()
 
 	//setup SM
 	_stateMachine->connectToState(QStringLiteral("Connecting"),
-								  ConnectorStateMachine::onEntry(this, &RemoteConnector::doConnect));
+								  this, ConnectorStateMachine::onEntry(this, &RemoteConnector::doConnect));
 	_stateMachine->connectToState(QStringLiteral("Retry"),
-								  ConnectorStateMachine::onEntry(this, &RemoteConnector::scheduleRetry));
+								  this, ConnectorStateMachine::onEntry(this, &RemoteConnector::scheduleRetry));
 	_stateMachine->connectToEvent(QStringLiteral("doDisconnect"),
 								  this, &RemoteConnector::doDisconnect);
+	//remote events
+	_stateMachine->connectToState(QStringLiteral("Connecting"),
+								  this, ConnectorStateMachine::onEntry([this](){
+		emit remoteEvent(RemoteConnecting);
+	}));
+	_stateMachine->connectToState(QStringLiteral("Idle"),
+								  this, ConnectorStateMachine::onEntry([this](){
+		if(_expectChanges) {
+			_expectChanges = false;
+			logDebug() << "Server has changes. Reloading states";
+			remoteEvent(RemoteReadyWithChanges);
+		} else
+			emit remoteEvent(RemoteReady);
+	}));
+	_stateMachine->connectToState(QStringLiteral("Active"),
+								  this, ConnectorStateMachine::onExit([this](){
+		emit remoteEvent(RemoteDisconnected);
+	}));
 #ifndef QT_NO_DEBUG
 	connect(_stateMachine, &ConnectorStateMachine::reachedStableState, this, [this](){
 		logDebug() << "Reached stable states:" << _stateMachine->activeStateNames(false);
@@ -101,7 +119,7 @@ void RemoteConnector::resync()
 {
 	if(!isIdle())
 		return;
-	//TODO enter "downloading" state
+	emit remoteEvent(RemoteReadyWithChanges);//TODO needs a reply in case no changes are there
 	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
 }
 
@@ -489,12 +507,7 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		logDebug() << "Login successful";
 		// reset retry index only after successfuly account creation or login
 		_retryIndex = 0;
+		_expectChanges = message.hasChanges;
 		_stateMachine->submitEvent(QStringLiteral("account"));
-		if(message.hasChanges) {
-			logDebug() << "Server has changes. Reloading states";
-			//TODO enter "downloading" state
-		} else {
-
-		}
 	}
 }
