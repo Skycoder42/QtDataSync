@@ -54,7 +54,7 @@ public Q_SLOTS:
 	void resync();
 
 Q_SIGNALS:
-	void removeEvent(RemoteEvent event);
+	void remoteEvent(RemoteEvent event);
 
 private Q_SLOTS:
 	void connected();
@@ -64,23 +64,12 @@ private Q_SLOTS:
 	void sslErrors(const QList<QSslError> &errors);
 	void ping();
 
+	//statemachine
+	void doConnect();
+	void doDisconnect();
+	void scheduleRetry();
+
 private:
-	enum ConnectAction {
-		UnexpectedDisconnect,
-		PlannedDisconnect,
-		PlannedReconnect,
-		PlannedRetry
-	};
-
-	enum ConnectionState {
-		DisconnectedState,
-		ReconnectingState,
-		ConnectedState,
-		RegisteringState,
-		LoggingInState,
-		IdleState
-	};
-
 	static const QVector<std::chrono::seconds> Timeouts;
 
 	CryptoController *_cryptoController;
@@ -91,19 +80,17 @@ private:
 	bool _awaitingPing;
 
 	ConnectorStateMachine *_stateMachine;
-	ConnectAction _connectAction;
-	ConnectionState _state;
 	int _retryIndex;
 
 	QUuid _deviceId;
 
+	bool isIdle() const;
 	bool checkCanSync(QUrl &remoteUrl);
 	bool loadIdentity();
 	void tryClose();
 	std::chrono::seconds retry();
 
 	QVariant sValue(const QString &key) const;
-	void upState(ConnectionState state);
 
 	void onError(const ErrorMessage &message);
 	void onIdentify(const IdentifyMessage &message);
