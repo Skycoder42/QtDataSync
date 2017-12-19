@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "defaults_p.h"
+#include "datastore.h"
 
 #include <QtCore/QThread>
 #include <QtCore/QStandardPaths>
@@ -7,10 +8,7 @@
 #include <QtCore/QEvent>
 
 #include <QtSql/QSqlError>
-
-#ifndef QT_NO_DEBUG
-#include <iostream>
-#endif
+#include <QtSql/QSqlQuery>
 
 using namespace QtDataSync;
 
@@ -136,6 +134,45 @@ DatabaseRef::operator QSqlDatabase() const
 QSqlDatabase *DatabaseRef::operator->() const
 {
 	return &(d->db());
+}
+
+void DatabaseRef::createGlobalScheme(Defaults defaults)
+{
+	QWriteLocker _(defaults.databaseLock());
+
+	if(!d->db().tables().contains(QStringLiteral("DataIndex"))) {
+		QSqlQuery createQuery(d->db());
+		createQuery.prepare(QStringLiteral("CREATE TABLE DataIndex ("
+										   "	Id			INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+										   "	Type		TEXT NOT NULL,"
+										   "	Key			TEXT NOT NULL,"
+										   "	Version		INTEGER NOT NULL,"
+										   "	File		TEXT,"
+										   "	Checksum	BLOB,"
+										   "	Changed		INTEGER NOT NULL DEFAULT 1,"
+										   "	UNIQUE(Type, Key)"
+										   ");"));
+		if(!createQuery.exec()) {
+			throw LocalStoreException(defaults,
+									  QByteArrayLiteral("any"),
+									  createQuery.executedQuery().simplified(),
+									  createQuery.lastError().text());
+		}
+	}
+
+	if(!d->db().tables().contains(QStringLiteral("ClearStore"))) {
+		QSqlQuery createQuery(d->db());
+		createQuery.prepare(QStringLiteral("CREATE TABLE ClearStore ("
+										   "	Type	TEXT NOT NULL,"
+										   "	PRIMARY KEY(Type)"
+										   ");"));
+		if(!createQuery.exec()) {
+			throw LocalStoreException(defaults,
+									  QByteArrayLiteral("any"),
+									  createQuery.executedQuery().simplified(),
+									  createQuery.lastError().text());
+		}
+	}
 }
 
 // ------------- PRIVAZE IMPLEMENTATION Defaults -------------

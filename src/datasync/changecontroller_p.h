@@ -2,6 +2,7 @@
 #define CHANGECONTROLLER_P_H
 
 #include <QtCore/QObject>
+#include <QtCore/QMutex>
 
 #include <QtSql/QSqlDatabase>
 
@@ -29,16 +30,8 @@ public:
 
 	void initialize() final;
 
-	static bool createTables(Defaults defaults, QSqlDatabase database, bool canWrite = false);
-
-	static void triggerDataChange(Defaults defaults, QSqlDatabase database, const ChangeInfo &changeInfo, const QWriteLocker &);
+	static void triggerDataChange(Defaults defaults, const QWriteLocker &);
 	static void triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName, const QWriteLocker &);
-
-	QList<ChangeInfo> loadChanges();
-	void clearChanged(const ObjectKey &key, quint64 version);
-
-	QByteArrayList loadClears();
-	void clearCleared(const QByteArray &typeName);
 
 public Q_SLOTS:
 	void setUploadingEnabled(bool uploading);
@@ -50,10 +43,6 @@ private Q_SLOTS:
 	void changeTriggered();
 
 private:
-	//app global lock, since the init cache is shared by all setups
-	static QReadWriteLock _initLock;
-	static QHash<QString, bool> _initialized;
-
 	DatabaseRef _database;
 	bool _uploadingEnabled;
 

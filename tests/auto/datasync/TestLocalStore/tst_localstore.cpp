@@ -155,7 +155,7 @@ void TestLocalStore::testClear()
 		store->clear(TestLib::TypeName);
 		QCOMPARE(store->count(TestLib::TypeName), 0ull);
 
-		//rest
+		//reset
 		store->save(TestLib::generateKey(42), TestLib::generateDataJson(42));
 		QCOMPARE(store->count(TestLib::TypeName), 1ull);
 		store->reset();

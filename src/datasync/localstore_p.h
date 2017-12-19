@@ -77,9 +77,8 @@ private:
 	QCache<ObjectKey, QJsonObject> _dataCache;
 
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
-	QString getTable(const QByteArray &typeName, bool allowCreate = false);
-	QDir typeDirectory(const QString &tableName, const ObjectKey &key);
-	QJsonObject readJson(const QString &tableName, const QString &fileName, const ObjectKey &key, int *costs = nullptr);
+	QDir typeDirectory(const ObjectKey &key);
+	QJsonObject readJson(const ObjectKey &key, const QString &fileName, int *costs = nullptr);
 };
 
 }
