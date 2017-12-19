@@ -61,8 +61,7 @@ void RemoteConnector::initialize()
 	if(!_stateMachine->init())
 		throw Exception(defaults(), QStringLiteral("Failed to initialize RemoteConnector statemachine"));
 
-	//always "reconnect", because this loads keys etc. and if disabled, also does nothing
-	QMetaObject::invokeMethod(_stateMachine, "start", Qt::QueuedConnection);
+	_stateMachine->start();
 }
 
 void RemoteConnector::finalize()
@@ -89,7 +88,8 @@ void RemoteConnector::finalize()
 				_socket->close();
 			emit finalized();
 		});
-	}
+	} else
+		emit finalized();
 }
 
 void RemoteConnector::reconnect()

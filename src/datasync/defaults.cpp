@@ -175,8 +175,13 @@ void DefaultsPrivate::removeDefaults(const QString &setupName)
 		if(ref)
 			weakRef = ref.toWeakRef();
 	}
-	if(weakRef)
-		std::cerr << "Defaults for setup" << setupName.toStdString() << "still in user after setup was deleted!" << std::endl;
+	if(weakRef) {
+#undef QTDATASYNC_LOG
+#define QTDATASYNC_LOG weakRef.toStrongRef()->logger
+		logCritical() << "Defaults for setup still in user after setup was deleted!";
+#undef QTDATASYNC_LOG
+#define QTDATASYNC_LOG logger
+	}
 #else
 	setupDefaults.remove(setupName);
 #endif
@@ -191,8 +196,12 @@ void DefaultsPrivate::clearDefaults()
 		weakRefs.append({it.key(), it.value().toWeakRef()});
 	setupDefaults.clear();
 	foreach(auto ref, weakRefs) {
+#undef QTDATASYNC_LOG
+#define QTDATASYNC_LOG ref.second.toStrongRef()->logger
 		if(ref.second)
-			std::cerr << "Defaults for setup" << ref.first.toStdString() << "still in user after setup was deleted!" << std::endl;
+			logCritical() << "Defaults for setup still in user after setup was deleted!";
+#undef QTDATASYNC_LOG
+#define QTDATASYNC_LOG logger
 	}
 #else
 	setupDefaults.clear();

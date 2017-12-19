@@ -8,6 +8,9 @@ void TestLib::init()
 {
 	qRegisterMetaType<TestData>();
 	QJsonSerializer::registerListConverters<TestData>();
+#ifdef VERBOSE_TESTS
+	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
+#endif
 }
 
 Setup &TestLib::setup(Setup &setup)

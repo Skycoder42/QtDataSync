@@ -47,7 +47,7 @@ SOURCES += \
 	controller.cpp
 
 STATECHARTS += \
-    connectorstatemachine.scxml
+	connectorstatemachine.scxml
 
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)

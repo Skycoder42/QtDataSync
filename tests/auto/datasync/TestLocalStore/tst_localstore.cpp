@@ -36,6 +36,7 @@ private:
 void TestLocalStore::initTestCase()
 {
 	try {
+		TestLib::init();
 		Setup setup;
 		TestLib::setup(setup);
 		setup.create();
@@ -48,9 +49,9 @@ void TestLocalStore::initTestCase()
 
 void TestLocalStore::cleanupTestCase()
 {
-	store->deleteLater();
+	delete store;
 	store = nullptr;
-	Setup::removeSetup(DefaultSetup);
+	Setup::removeSetup(DefaultSetup, true);
 }
 
 void TestLocalStore::testEmpty()
@@ -115,10 +116,9 @@ void TestLocalStore::testFind()
 
 void TestLocalStore::testUncached()
 {
-	auto second = new LocalStore(this);
-	second->setCacheSize(0);
-	testAllImpl(second);
-	second->deleteLater();
+	LocalStore second;
+	second.setCacheSize(0);
+	testAllImpl(&second);
 }
 
 void TestLocalStore::testRemove_data()
@@ -170,15 +170,15 @@ void TestLocalStore::testChangeSignals()
 	const auto key = TestLib::generateKey(77);
 	auto data = TestLib::generateDataJson(77);
 
-	auto second = new LocalStore(this);
+	LocalStore second;
 
 	QSignalSpy store1Spy(store, &LocalStore::dataChanged);
-	QSignalSpy store2Spy(second, &LocalStore::dataChanged);
+	QSignalSpy store2Spy(&second, &LocalStore::dataChanged);
 
 	try {
 		store->save(key, data);
 		QCOMPARE(store->load(key), data);
-		QCOMPARE(second->load(key), data);
+		QCOMPARE(second.load(key), data);
 
 		QCOMPARE(store1Spy.size(), 1);
 		auto sig = store1Spy.takeFirst();
@@ -192,8 +192,8 @@ void TestLocalStore::testChangeSignals()
 		QCOMPARE(sig[1].toBool(), false);
 
 		data.insert(QStringLiteral("baum"), 42);
-		second->save(key, data);
-		QCOMPARE(second->load(key), data);
+		second.save(key, data);
+		QCOMPARE(second.load(key), data);
 		QCOMPARE(store->load(key), data);
 
 		QCOMPARE(store2Spy.size(), 1);
@@ -209,7 +209,7 @@ void TestLocalStore::testChangeSignals()
 
 		QVERIFY(store->remove(key));
 		QVERIFY_EXCEPTION_THROWN(store->load(key), NoDataException);
-		QVERIFY_EXCEPTION_THROWN(second->load(key), NoDataException);
+		QVERIFY_EXCEPTION_THROWN(second.load(key), NoDataException);
 
 		QCOMPARE(store1Spy.size(), 1);
 		sig = store1Spy.takeFirst();
@@ -224,8 +224,6 @@ void TestLocalStore::testChangeSignals()
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
-
-	second->deleteLater();
 }
 
 void TestLocalStore::testAsync()

@@ -5,12 +5,14 @@ CONFIG += static
 
 HEADERS += \
 	testlib.h \
-    testdata.h \
-    tst.h \
-    testobject.h
+	testdata.h \
+	tst.h \
+	testobject.h
 
 SOURCES += \
 	testlib.cpp \
-    testdata.cpp \
-    tst.cpp \
-    testobject.cpp
+	testdata.cpp \
+	tst.cpp \
+	testobject.cpp
+
+verbose_tests: DEFINES += VERBOSE_TESTS

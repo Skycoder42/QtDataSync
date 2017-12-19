@@ -28,6 +28,7 @@ private:
 void TestDataTypeStore::initTestCase()
 {
 	try {
+		TestLib::init();
 		Setup setup;
 		TestLib::setup(setup);
 		setup.create();
@@ -40,9 +41,9 @@ void TestDataTypeStore::initTestCase()
 
 void TestDataTypeStore::cleanupTestCase()
 {
-	dataStore->deleteLater();
+	delete dataStore;
 	dataStore = nullptr;
-	Setup::removeSetup(DefaultSetup);
+	Setup::removeSetup(DefaultSetup, true);
 }
 
 void TestDataTypeStore::testSimple()

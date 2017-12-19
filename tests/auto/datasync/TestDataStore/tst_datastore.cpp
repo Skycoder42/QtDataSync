@@ -35,6 +35,7 @@ private:
 void TestDataStore::initTestCase()
 {
 	try {
+		TestLib::init();
 		Setup setup;
 		TestLib::setup(setup);
 		setup.create();
@@ -47,9 +48,9 @@ void TestDataStore::initTestCase()
 
 void TestDataStore::cleanupTestCase()
 {
-	store->deleteLater();
+	delete store;
 	store = nullptr;
-	Setup::removeSetup(DefaultSetup);
+	Setup::removeSetup(DefaultSetup, true);
 }
 
 void TestDataStore::testEmpty()
@@ -217,15 +218,15 @@ void TestDataStore::testChangeSignals()
 	const auto key = 77;
 	auto data = TestLib::generateData(77);
 
-	auto second = new DataStore(this);
+	DataStore second(this);
 
 	QSignalSpy store1Spy(store, &DataStore::dataChanged);
-	QSignalSpy store2Spy(second, &DataStore::dataChanged);
+	QSignalSpy store2Spy(&second, &DataStore::dataChanged);
 
 	try {
 		store->save(data);
 		QCOMPARE(store->load<TestData>(key), data);
-		QCOMPARE(second->load<TestData>(key), data);
+		QCOMPARE(second.load<TestData>(key), data);
 
 		QCOMPARE(store1Spy.size(), 1);
 		auto sig = store1Spy.takeFirst();
@@ -241,8 +242,8 @@ void TestDataStore::testChangeSignals()
 		QCOMPARE(sig[2].toBool(), false);
 
 		data.text = QStringLiteral("Some other text");
-		second->save(data);
-		QCOMPARE(second->load<TestData>(key), data);
+		second.save(data);
+		QCOMPARE(second.load<TestData>(key), data);
 		QCOMPARE(store->load<TestData>(key), data);
 
 		QCOMPARE(store2Spy.size(), 1);
@@ -260,7 +261,7 @@ void TestDataStore::testChangeSignals()
 
 		QVERIFY(store->remove<TestData>(key));
 		QVERIFY_EXCEPTION_THROWN(store->load<TestData>(key), NoDataException);
-		QVERIFY_EXCEPTION_THROWN(second->load<TestData>(key), NoDataException);
+		QVERIFY_EXCEPTION_THROWN(second.load<TestData>(key), NoDataException);
 
 		QCOMPARE(store1Spy.size(), 1);
 		sig = store1Spy.takeFirst();
@@ -277,8 +278,6 @@ void TestDataStore::testChangeSignals()
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
-
-	second->deleteLater();
 }
 QTEST_MAIN(TestDataStore)
 

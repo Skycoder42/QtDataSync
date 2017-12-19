@@ -57,6 +57,7 @@ void ExchangeEngine::initialize()
 		//initialize all
 		_changeController->initialize();
 		_remoteConnector->initialize();
+		logDebug() << "Initialization completed";
 	} catch (Exception &e) {
 		logFatal(e.qWhat());
 	} catch (std::exception &e) {
@@ -66,11 +67,10 @@ void ExchangeEngine::initialize()
 
 void ExchangeEngine::finalize()
 {
-	logDebug() << Q_FUNC_INFO;
-
 	//TODO make generic for ALL controls classes
 	connect(_remoteConnector, &RemoteConnector::finalized,
 			this, [this](){
+		logDebug() << "Finalization completed";
 		thread()->quit(); //TODO not threadsafe???
 	});
 
