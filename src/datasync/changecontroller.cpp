@@ -28,16 +28,6 @@ void ChangeController::triggerDataChange(Defaults defaults, const QWriteLocker &
 	QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
 }
 
-void ChangeController::triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName, const QWriteLocker &_)
-{
-	QSqlQuery changeQuery(database);
-	changeQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO ClearStore (Type) VALUES(?)"));
-	changeQuery.addBindValue(typeName);
-	exec(defaults, changeQuery, typeName);
-
-	triggerDataChange(defaults, _);
-}
-
 void ChangeController::setUploadingEnabled(bool uploading)
 {
 	_uploadingEnabled = uploading;

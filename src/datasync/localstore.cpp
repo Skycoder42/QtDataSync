@@ -51,7 +51,7 @@ quint64 LocalStore::count(const QByteArray &typeName)
 	QReadLocker _(_defaults.databaseLock());
 
 	QSqlQuery countQuery(_database);
-	countQuery.prepare(QStringLiteral("SELECT Count(Id) FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
+	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
 	countQuery.addBindValue(typeName);
 	exec(countQuery, typeName); //TODO add special method for prepare as well
 
@@ -334,12 +334,14 @@ void LocalStore::clear(const QByteArray &typeName)
 
 		try {
 			QSqlQuery clearQuery(_database);
-			clearQuery.prepare(QStringLiteral("DELETE FROM DataIndex WHERE Type = ?"));
+			clearQuery.prepare(QStringLiteral("UPDATE DataIndex "
+											  "SET Version = Version + 1, File = NULL, Checksum = NULL, Changed = 1 "
+											  "WHERE Type = ? AND File IS NOT NULL"));
 			clearQuery.addBindValue(typeName);
 			exec(clearQuery, typeName);
 
 			//notify change controller
-			ChangeController::triggerDataClear(_defaults, _database, typeName, _);
+			ChangeController::triggerDataChange(_defaults, _);
 
 			auto tableDir = typeDirectory(typeName);
 			if(!tableDir.removeRecursively()) {

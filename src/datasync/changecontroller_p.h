@@ -31,7 +31,6 @@ public:
 	void initialize() final;
 
 	static void triggerDataChange(Defaults defaults, const QWriteLocker &);
-	static void triggerDataClear(Defaults defaults, QSqlDatabase database, const QByteArray &typeName, const QWriteLocker &);
 
 public Q_SLOTS:
 	void setUploadingEnabled(bool uploading);

@@ -143,29 +143,14 @@ void DatabaseRef::createGlobalScheme(Defaults defaults)
 	if(!d->db().tables().contains(QStringLiteral("DataIndex"))) {
 		QSqlQuery createQuery(d->db());
 		createQuery.prepare(QStringLiteral("CREATE TABLE DataIndex ("
-										   "	Id			INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
 										   "	Type		TEXT NOT NULL,"
 										   "	Key			TEXT NOT NULL,"
 										   "	Version		INTEGER NOT NULL,"
 										   "	File		TEXT,"
 										   "	Checksum	BLOB,"
 										   "	Changed		INTEGER NOT NULL DEFAULT 1,"
-										   "	UNIQUE(Type, Key)"
-										   ");"));
-		if(!createQuery.exec()) {
-			throw LocalStoreException(defaults,
-									  QByteArrayLiteral("any"),
-									  createQuery.executedQuery().simplified(),
-									  createQuery.lastError().text());
-		}
-	}
-
-	if(!d->db().tables().contains(QStringLiteral("ClearStore"))) {
-		QSqlQuery createQuery(d->db());
-		createQuery.prepare(QStringLiteral("CREATE TABLE ClearStore ("
-										   "	Type	TEXT NOT NULL,"
-										   "	PRIMARY KEY(Type)"
-										   ");"));
+										   "	PRIMARY KEY(Type, Key)"
+										   ") WITHOUT ROWID;"));
 		if(!createQuery.exec()) {
 			throw LocalStoreException(defaults,
 									  QByteArrayLiteral("any"),
