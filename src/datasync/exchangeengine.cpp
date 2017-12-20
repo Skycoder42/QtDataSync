@@ -49,6 +49,8 @@ void ExchangeEngine::initialize()
 {
 	try {
 		//change controller
+		connect(_changeController, &ChangeController::uploadingChanged,
+				this, &ExchangeEngine::uploadingChanged);
 
 		//remote controller
 		connect(_remoteConnector, &RemoteConnector::remoteEvent,
@@ -87,33 +89,33 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 {
 	switch (event) {
 	case RemoteConnector::RemoteDisconnected:
-		if(_state != SyncManager::Disconnected) {
-			_state = SyncManager::Disconnected;
-			emit stateChanged(_state);
-		}
+		upstate(SyncManager::Disconnected);
+		_changeController->clearUploads();
 		break;
 	case RemoteConnector::RemoteConnecting:
-		if(_state != SyncManager::Initializing) {
-			_state = SyncManager::Initializing;
-			emit stateChanged(_state);
-		}
+		upstate(SyncManager::Initializing);
+		_changeController->clearUploads();
 		break;
-	case RemoteConnector::RemoteReady: //TODO could also be error or uploading
-		if(_state != SyncManager::Synchronized) {
-			_state = SyncManager::Synchronized;
-			emit stateChanged(_state);
-		}
+	case RemoteConnector::RemoteReady: //TODO could also be error
+		upstate(SyncManager::Uploading); //always assume uploading first, so no uploads can change to synced
+		_changeController->setUploadingEnabled(true); //will emit "uploadingChanged" and thus change the thate
 		break;
-	case RemoteConnector::RemoteReadyWithChanges: //TODO always?
-		if(_state != SyncManager::Downloading) {
-			_state = SyncManager::Downloading;
-			emit stateChanged(_state);
-		}
+	case RemoteConnector::RemoteReadyWithChanges: //TODO always? could also be error
+		upstate(SyncManager::Downloading);
+		_changeController->setUploadingEnabled(false);
 		break;
 	default:
 		Q_UNREACHABLE();
 		break;
 	}
+}
+
+void ExchangeEngine::uploadingChanged(bool uploading)
+{
+	if(uploading)
+		upstate(SyncManager::Uploading);
+	else if(_state == SyncManager::Uploading)
+		upstate(SyncManager::Synchronized);
 }
 
 void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)
@@ -124,4 +126,12 @@ void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, cons
 			.fatal("Unrecoverable error for \"%s\" - killing application. Error Message:\n\t%s",
 				   name.constData(),
 				   msg.constData());
+}
+
+void ExchangeEngine::upstate(SyncManager::SyncState state)
+{
+	if(_state != state) {
+		_state = state;
+		emit stateChanged(state);
+	}
 }

@@ -40,6 +40,9 @@ public:
 	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);
 	~LocalStore();
 
+	static QDir typeDirectory(Defaults defaults, const ObjectKey &key);
+	static QJsonObject readJson(Defaults defaults, const ObjectKey &key, const QString &fileName, int *costs = nullptr);
+
 	quint64 count(const QByteArray &typeName);
 	QStringList keys(const QByteArray &typeName);
 	QList<QJsonObject> loadAll(const QByteArray &typeName);

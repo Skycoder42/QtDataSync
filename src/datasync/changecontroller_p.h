@@ -34,20 +34,35 @@ public:
 
 public Q_SLOTS:
 	void setUploadingEnabled(bool uploading);
+	void clearUploads();
+
+	void uploadDone(const QByteArray &key);
 
 Q_SIGNALS:
 	void uploadingChanged(bool uploading);
+	void uploadChange(const QByteArray &key, quint64 version, const QJsonObject &data, const QByteArray &checksum);
+	void uploadDelete(const QByteArray &key, quint64 version);
 
 private Q_SLOTS:
 	void changeTriggered();
+	void uploadNext();
 
 private:
+	struct UploadInfo {
+		ObjectKey key;
+		quint64 version;
+		bool isDelete;
+	};
+
+	static const int UploadLimit;
+
 	DatabaseRef _database;
 	bool _uploadingEnabled;
 
+	QHash<QByteArray, UploadInfo> _activeUploads;
+
+	bool canUpload();
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
-	static void exec(Defaults defaults, QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"});
-	bool createTables();
 };
 
 }

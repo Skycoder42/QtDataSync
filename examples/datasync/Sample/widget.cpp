@@ -29,6 +29,10 @@ Widget::Widget(QWidget *parent) :
 	ui->syncCheckBox->setChecked(_manager->isSyncEnabled());
 	updateState(_manager->syncState());
 
+	connect(_model, &QtDataSync::DataStoreModel::storeError, this, [](const QException &e){
+		qCritical() << e.what();
+	});
+
 	new ModelTest(_model, this);
 	_model->setTypeId<SampleData>();
 	ui->dataTreeView->setModel(_model);

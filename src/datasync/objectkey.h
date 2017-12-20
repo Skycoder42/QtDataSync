@@ -17,6 +17,8 @@ struct Q_DATASYNC_EXPORT ObjectKey
 
 	ObjectKey(const QByteArray &typeName = {}, const QString &id = {});
 
+	QByteArray hashed() const;
+
 	bool operator==(const ObjectKey &other) const;
 	bool operator!=(const ObjectKey &other) const;
 };

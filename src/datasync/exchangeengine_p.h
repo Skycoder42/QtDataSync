@@ -9,6 +9,7 @@
 #include "defaults.h"
 #include "setup.h"
 
+#include "localstore_p.h"
 #include "changecontroller_p.h"
 #include "remoteconnector_p.h"
 
@@ -49,6 +50,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
 	void remoteEvent(RemoteConnector::RemoteEvent event);
+	void uploadingChanged(bool uploading);
 
 private:
 	SyncManager::SyncState _state;
@@ -61,6 +63,8 @@ private:
 	RemoteConnector *_remoteConnector;
 
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
+
+	void upstate(SyncManager::SyncState state);
 };
 
 }

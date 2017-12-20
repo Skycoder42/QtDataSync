@@ -2,6 +2,7 @@
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDebug>
+#include <QtCore/QCryptographicHash>
 
 using namespace QtDataSync;
 
@@ -9,6 +10,14 @@ ObjectKey::ObjectKey(const QByteArray &typeName, const QString &id) :
 	typeName(typeName),
 	id(id)
 {}
+
+QByteArray ObjectKey::hashed() const
+{
+	QCryptographicHash hash(QCryptographicHash::Sha3_256);
+	hash.addData(typeName);
+	hash.addData(id.toUtf8());
+	return hash.result();
+}
 
 bool ObjectKey::operator==(const QtDataSync::ObjectKey &other) const
 {

@@ -46,6 +46,34 @@ LocalStore::LocalStore(const QString &setupName, QObject *parent) :
 
 LocalStore::~LocalStore() {}
 
+QDir LocalStore::typeDirectory(Defaults defaults, const ObjectKey &key)
+{
+	auto encName = QUrl::toPercentEncoding(QString::fromUtf8(key.typeName))
+				   .replace('%', '_');
+	auto tName = QStringLiteral("store/data_%1").arg(QString::fromUtf8(encName));
+	auto tableDir = defaults.storageDir();
+	if(!tableDir.mkpath(tName) || !tableDir.cd(tName)) {
+		throw LocalStoreException(defaults, key, tName, QStringLiteral("Failed to create directory"));
+	} else
+		return tableDir;
+}
+
+QJsonObject LocalStore::readJson(Defaults defaults, const ObjectKey &key, const QString &fileName, int *costs)
+{
+	QFile file(typeDirectory(defaults, key).absoluteFilePath(fileName + QStringLiteral(".dat")));
+	if(!file.open(QIODevice::ReadOnly))
+		throw LocalStoreException(defaults, key, file.fileName(), file.errorString());
+
+	auto doc = QJsonDocument::fromBinaryData(file.readAll());
+	if(costs)
+		*costs = file.size();
+	file.close();
+
+	if(!doc.isObject())
+		throw LocalStoreException(defaults, key, file.fileName(), QStringLiteral("File contains invalid json data"));
+	return doc.object();
+}
+
 quint64 LocalStore::count(const QByteArray &typeName)
 {
 	QReadLocker _(_defaults.databaseLock());
@@ -66,7 +94,7 @@ QStringList LocalStore::keys(const QByteArray &typeName)
 	QReadLocker _(_defaults.databaseLock());
 
 	QSqlQuery keysQuery(_database);
-	keysQuery.prepare(QStringLiteral("SELECT Key FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
+	keysQuery.prepare(QStringLiteral("SELECT Id FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
 	keysQuery.addBindValue(typeName);
 	exec(keysQuery, typeName);
 
@@ -81,7 +109,7 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 	QReadLocker _(_defaults.databaseLock());
 
 	QSqlQuery loadQuery(_database);
-	loadQuery.prepare(QStringLiteral("SELECT Key, File FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
+	loadQuery.prepare(QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
 	loadQuery.addBindValue(typeName);
 	exec(loadQuery, typeName);
 
@@ -106,7 +134,7 @@ QJsonObject LocalStore::load(const ObjectKey &key)
 		return *data;
 
 	QSqlQuery loadQuery(_database);
-	loadQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Key = ? AND File IS NOT NULL"));
+	loadQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Id = ? AND File IS NOT NULL"));
 	loadQuery.addBindValue(key.typeName);
 	loadQuery.addBindValue(key.id);
 	exec(loadQuery, key);
@@ -134,7 +162,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 		try {
 			//check if the file exists
 			QSqlQuery existQuery(_database);
-			existQuery.prepare(QStringLiteral("SELECT Version, File FROM DataIndex WHERE Type = ? AND Key = ?"));
+			existQuery.prepare(QStringLiteral("SELECT Version, File FROM DataIndex WHERE Type = ? AND Id = ?"));
 			existQuery.addBindValue(key.typeName);
 			existQuery.addBindValue(key.id);
 			exec(existQuery, key);
@@ -190,7 +218,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			QFileInfo info(device->fileName());
 			if(existing) {
 				QSqlQuery updateQuery(_database);
-				updateQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, File = ?, Checksum = ?, Changed = 1 WHERE Type = ? AND Key = ?"));
+				updateQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, File = ?, Checksum = ?, Changed = 1 WHERE Type = ? AND Id = ?"));
 				updateQuery.addBindValue(version);
 				updateQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName())); //still update file, in case it was set to NULL
 				updateQuery.addBindValue(hashPipe.hash());
@@ -199,7 +227,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				exec(updateQuery, key);
 			} else {
 				QSqlQuery insertQuery(_database);
-				insertQuery.prepare(QStringLiteral("INSERT INTO DataIndex (Type, Key, Version, File, Checksum) VALUES(?, ?, ?, ?, ?)"));
+				insertQuery.prepare(QStringLiteral("INSERT INTO DataIndex (Type, Id, Version, File, Checksum) VALUES(?, ?, ?, ?, ?)"));
 				insertQuery.addBindValue(key.typeName);
 				insertQuery.addBindValue(key.id);
 				insertQuery.addBindValue(version);
@@ -246,7 +274,7 @@ bool LocalStore::remove(const ObjectKey &key)
 		try {
 			//load data of existing entry
 			QSqlQuery loadQuery(_database);
-			loadQuery.prepare(QStringLiteral("SELECT Version, File FROM DataIndex WHERE Type = ? AND Key = ? AND File IS NOT NULL"));
+			loadQuery.prepare(QStringLiteral("SELECT Version, File FROM DataIndex WHERE Type = ? AND Id = ? AND File IS NOT NULL"));
 			loadQuery.addBindValue(key.typeName);
 			loadQuery.addBindValue(key.id);
 			exec(loadQuery, key);
@@ -258,7 +286,7 @@ bool LocalStore::remove(const ObjectKey &key)
 
 				//"remove" from db
 				QSqlQuery removeQuery(_database);
-				removeQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, File = NULL, Checksum = NULL, Changed = 1 WHERE Type = ? AND Key = ?"));
+				removeQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, File = NULL, Checksum = NULL, Changed = 1 WHERE Type = ? AND Id = ?"));
 				removeQuery.addBindValue(version);
 				removeQuery.addBindValue(key.typeName);
 				removeQuery.addBindValue(key.id);
@@ -307,7 +335,7 @@ QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &q
 	searchQuery.replace(QLatin1Char('?'), QLatin1Char('_'));
 
 	QSqlQuery findQuery(_database);
-	findQuery.prepare(QStringLiteral("SELECT Key, File FROM DataIndex WHERE Type = ? AND Key LIKE ? AND File IS NOT NULL"));
+	findQuery.prepare(QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND Id LIKE ? AND File IS NOT NULL"));
 	findQuery.addBindValue(typeName);
 	findQuery.addBindValue(searchQuery);
 	exec(findQuery, typeName);
@@ -466,30 +494,12 @@ void LocalStore::exec(QSqlQuery &query, const ObjectKey &key) const
 
 QDir LocalStore::typeDirectory(const ObjectKey &key)
 {
-	auto encName = QUrl::toPercentEncoding(QString::fromUtf8(key.typeName))
-				   .replace('%', '_');
-	auto tName = QStringLiteral("store/data_%1").arg(QString::fromUtf8(encName));
-	auto tableDir = _defaults.storageDir();
-	if(!tableDir.mkpath(tName) || !tableDir.cd(tName)) {
-		throw LocalStoreException(_defaults, key, tName, QStringLiteral("Failed to create directory"));
-	} else
-		return tableDir;
+	return typeDirectory(_defaults, key);
 }
 
 QJsonObject LocalStore::readJson(const ObjectKey &key, const QString &fileName, int *costs)
 {
-	QFile file(typeDirectory(key).absoluteFilePath(fileName + QStringLiteral(".dat")));
-	if(!file.open(QIODevice::ReadOnly))
-		throw LocalStoreException(_defaults, key, file.fileName(), file.errorString());
-
-	auto doc = QJsonDocument::fromBinaryData(file.readAll());
-	if(costs)
-		*costs = file.size();
-	file.close();
-
-	if(!doc.isObject())
-		throw LocalStoreException(_defaults, key, file.fileName(), QStringLiteral("File contains invalid json data"));
-	return doc.object();
+	return readJson(_defaults, key, fileName, costs);
 }
 
 // ------------- Emitter -------------

@@ -144,12 +144,12 @@ void DatabaseRef::createGlobalScheme(Defaults defaults)
 		QSqlQuery createQuery(d->db());
 		createQuery.prepare(QStringLiteral("CREATE TABLE DataIndex ("
 										   "	Type		TEXT NOT NULL,"
-										   "	Key			TEXT NOT NULL,"
+										   "	Id			TEXT NOT NULL,"
 										   "	Version		INTEGER NOT NULL,"
 										   "	File		TEXT,"
 										   "	Checksum	BLOB,"
 										   "	Changed		INTEGER NOT NULL DEFAULT 1,"
-										   "	PRIMARY KEY(Type, Key)"
+										   "	PRIMARY KEY(Type, Id)"
 										   ") WITHOUT ROWID;"));
 		if(!createQuery.exec()) {
 			throw LocalStoreException(defaults,
