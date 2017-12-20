@@ -71,7 +71,7 @@ QByteArray AsymmetricCrypto::writeKey(const X509PublicKey &key) const
 	return data;
 }
 
-void AsymmetricCrypto::verify(const X509PublicKey &key, const QByteArray &message, const QByteArray &signature)
+void AsymmetricCrypto::verify(const X509PublicKey &key, const QByteArray &message, const QByteArray &signature) const
 {
 	auto verifier = _signature->verify(key);
 
@@ -83,7 +83,7 @@ void AsymmetricCrypto::verify(const X509PublicKey &key, const QByteArray &messag
 	); // QByteArraySource
 }
 
-QByteArray AsymmetricCrypto::sign(const PKCS8PrivateKey &key, RandomNumberGenerator &rng, const QByteArray &message)
+QByteArray AsymmetricCrypto::sign(const PKCS8PrivateKey &key, RandomNumberGenerator &rng, const QByteArray &message) const
 {
 	auto signer = _signature->sign(key);
 
@@ -96,7 +96,7 @@ QByteArray AsymmetricCrypto::sign(const PKCS8PrivateKey &key, RandomNumberGenera
 	return signature;
 }
 
-QByteArray AsymmetricCrypto::encrypt(const X509PublicKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message)
+QByteArray AsymmetricCrypto::encrypt(const X509PublicKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message) const
 {
 	auto encryptor = _encryption->encrypt(key);
 
@@ -109,7 +109,7 @@ QByteArray AsymmetricCrypto::encrypt(const X509PublicKey &key, CryptoPP::RandomN
 	return cipher;
 }
 
-QByteArray AsymmetricCrypto::decrypt(const PKCS8PrivateKey &key, RandomNumberGenerator &rng, const QByteArray &message)
+QByteArray AsymmetricCrypto::decrypt(const PKCS8PrivateKey &key, RandomNumberGenerator &rng, const QByteArray &message) const
 {
 	auto decryptor = _encryption->decrypt(key);
 

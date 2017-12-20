@@ -52,6 +52,8 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(QVariant signatureKeyParam READ signatureKeyParam WRITE setSignatureKeyParam RESET resetSignatureKeyParam)
 	Q_PROPERTY(EncryptionScheme encryptionScheme READ encryptionScheme WRITE setEncryptionScheme RESET resetEncryptionScheme)
 	Q_PROPERTY(QVariant encryptionKeyParam READ encryptionKeyParam WRITE setEncryptionKeyParam RESET resetEncryptionKeyParam)
+	Q_PROPERTY(CipherScheme cipherScheme READ cipherScheme WRITE setCipherScheme RESET resetCipherScheme)
+	Q_PROPERTY(qint32 cipherKeySize READ cipherKeySize WRITE setCipherKeySize RESET resetCipherKeySize)
 
 public:
 	typedef std::function<void (QString, QString, const QMessageLogContext &)> FatalErrorHandler;
@@ -67,6 +69,18 @@ public:
 		RSA_OAEP_SHA3_512
 	};
 	Q_ENUM(EncryptionScheme)
+
+	enum CipherScheme
+	{
+		AES_EAX,
+		AES_GCM,
+		TWOFISH_EAX,
+		TWOFISH_GCM,
+		SERPENT_EAX,
+		SERPENT_GCM,
+		IDEA_EAX,
+	};
+	Q_ENUM(CipherScheme)
 
 	enum EllipticCurve {
 		secp112r1,
@@ -123,6 +137,8 @@ public:
 	QVariant signatureKeyParam() const;
 	EncryptionScheme encryptionScheme() const;
 	QVariant encryptionKeyParam() const;
+	CipherScheme cipherScheme() const;
+	qint32 cipherKeySize() const;
 
 	//! Sets the setups local directory
 	Setup &setLocalDir(QString localDir);
@@ -138,6 +154,8 @@ public:
 	Setup &setSignatureKeyParam(QVariant signatureKeyParam);
 	Setup &setEncryptionScheme(EncryptionScheme encryptionScheme);
 	Setup &setEncryptionKeyParam(QVariant encryptionKeyParam);
+	Setup &setCipherScheme(CipherScheme cipherScheme);
+	Setup &setCipherKeySize(qint32 cipherKeySize);
 
 	Setup &resetLocalDir();
 	Setup &resetFatalErrorHandler();
@@ -148,6 +166,8 @@ public:
 	Setup &resetSignatureKeyParam();
 	Setup &resetEncryptionScheme();
 	Setup &resetEncryptionKeyParam();
+	Setup &resetCipherScheme();
+	Setup &resetCipherKeySize();
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);

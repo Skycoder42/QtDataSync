@@ -58,7 +58,9 @@ public:
 		SignScheme,
 		SignKeyParam,
 		CryptScheme,
-		CryptKeyParam
+		CryptKeyParam,
+		SymScheme,
+		SymKeyParam
 	};
 	Q_ENUM(PropertyKey)
 

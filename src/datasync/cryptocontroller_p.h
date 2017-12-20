@@ -18,25 +18,77 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT CryptoException : public Exception
+class ClientCrypto;
+class SymmetricCrypto;
+
+class Q_DATASYNC_EXPORT CryptoController : public Controller
 {
+	Q_OBJECT
+
 public:
-	CryptoException(const Defaults &defaults,
-					const QString &message,
-					const CryptoPP::Exception &cExcept);
+	class Q_DATASYNC_EXPORT CipherScheme
+	{
+	public:
+		inline virtual ~CipherScheme() = default;
 
-	CryptoPP::Exception cryptoPPException() const;
-	QString error() const;
-	CryptoPP::Exception::ErrorType type() const;
+		virtual QByteArray name() const = 0;
+		virtual quint32 defaultKeyLength() const = 0;
+		virtual quint32 ivLength() const = 0;
+		virtual quint32 toKeyLength(quint32 length) const = 0;
+		virtual QSharedPointer<CryptoPP::AuthenticatedSymmetricCipher> encryptor() const = 0;
+		virtual QSharedPointer<CryptoPP::AuthenticatedSymmetricCipher> decryptor() const = 0;
+	};
 
-	QByteArray className() const noexcept override;
-	QString qWhat() const override;
-	void raise() const override;
-	QException *clone() const override;
+	explicit CryptoController(const Defaults &defaults, QObject *parent = nullptr);
 
-protected:
-	CryptoException(const CryptoException * const other);
-	CryptoPP::Exception _exception;
+	static QStringList allKeystoreKeys();
+
+	void initialize() final;
+	void finalize() final;
+
+	ClientCrypto *crypto() const;
+	QByteArray fingerprint() const;
+
+	bool canAccessStore() const;
+	void loadKeyMaterial(const QUuid &deviceId);
+	void clearKeyMaterial();
+
+	void createPrivateKeys(const QByteArray &nonce);
+	void storePrivateKeys(const QUuid &deviceId) const;
+
+	template <typename TMessage>
+	QByteArray serializeSignedMessage(const TMessage &message);
+
+private:
+	struct CipherInfo {
+		QSharedPointer<CipherScheme> scheme;
+		CryptoPP::SecByteBlock key;
+	};
+
+	static const QString keySignScheme;
+	static const QString keyCryptScheme;
+	static const QString keyLocalSymKey;
+	static const QString keySymKeysTemplate;
+
+	static const QString keySignKeyTemplate;
+	static const QString keyCryptKeyTemplate;
+	static const QString keyKeyFileTemplate;
+
+	QPointer<KeyStore> _keyStore;
+	ClientCrypto *_asymCrypto;
+	mutable QHash<quint32, CipherInfo> _loadedChiphers;
+	quint32 _localCipher;
+
+	mutable QByteArray _fingerprint;
+
+	static void createScheme(const QByteArray &name, QSharedPointer<CipherScheme> &ptr);
+	static void createScheme(Setup::CipherScheme scheme, QSharedPointer<CipherScheme> &ptr);
+
+	void ensureStoreAccess() const;
+	void storeCipherKey(quint32 keyIndex) const;
+
+	const CipherInfo &getInfo(quint32 keyIndex) const;
+	QDir keysDir() const;
 };
 
 class Q_DATASYNC_EXPORT ClientCrypto : public AsymmetricCrypto
@@ -103,47 +155,29 @@ private:
 	void setEncryptionKey(const QByteArray &name);
 	void setEncryptionKey(Setup::EncryptionScheme scheme);
 
-	void loadKey(CryptoPP::PKCS8PrivateKey &key, const QByteArray &data);
+	void loadKey(CryptoPP::PKCS8PrivateKey &key, const QByteArray &data) const;
 	QByteArray saveKey(const CryptoPP::PKCS8PrivateKey &key) const;
 };
 
-class Q_DATASYNC_EXPORT CryptoController : public Controller
+class Q_DATASYNC_EXPORT CryptoException : public Exception
 {
-	Q_OBJECT
-
 public:
-	explicit CryptoController(const Defaults &defaults, QObject *parent = nullptr);
+	CryptoException(const Defaults &defaults,
+					const QString &message,
+					const CryptoPP::Exception &cExcept);
 
-	static QStringList allKeystoreKeys();
+	CryptoPP::Exception cryptoPPException() const;
+	QString error() const;
+	CryptoPP::Exception::ErrorType type() const;
 
-	void initialize() final;
-	void finalize() final;
+	QByteArray className() const noexcept override;
+	QString qWhat() const override;
+	void raise() const override;
+	QException *clone() const override;
 
-	ClientCrypto *crypto() const;
-	QByteArray fingerprint() const;
-
-	bool canAccessStore() const;
-	void loadKeyMaterial(const QUuid &deviceId);
-	void clearKeyMaterial();
-
-	void createPrivateKeys(const QByteArray &nonce);
-	void storePrivateKeys(const QUuid &deviceId);
-
-	template <typename TMessage>
-	QByteArray serializeSignedMessage(const TMessage &message);
-
-private:
-	static const QString keySignScheme;
-	static const QString keyCryptScheme;
-	static const QString keySignTemplate;
-	static const QString keyCryptTemplate;
-
-	QPointer<KeyStore> _keyStore;
-	ClientCrypto *_crypto;
-
-	mutable QByteArray _fingerprint;
-
-	void ensureStoreAccess() const;
+protected:
+	CryptoException(const CryptoException * const other);
+	CryptoPP::Exception _exception;
 };
 
 // ------------- Generic Implementation -------------
@@ -153,9 +187,9 @@ QByteArray CryptoController::serializeSignedMessage(const TMessage &message)
 {
 	try {
 		return QtDataSync::serializeSignedMessage<TMessage>(message,
-															_crypto->privateSignKey(),
-															_crypto->rng(),
-															_crypto);
+															_asymCrypto->privateSignKey(),
+															_asymCrypto->rng(),
+															_asymCrypto);
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to sign message"),

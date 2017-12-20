@@ -465,7 +465,11 @@ void RemoteConnector::onError(const ErrorMessage &message)
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
 	try {
-		if(!_stateMachine->isActive(QStringLiteral("Connected"))) {
+		// allow connecting too, because possible event order: [Connecting] -> connected -> onIdentify -> [Connected] -> ...
+		// instead of the "clean" order: [Connecting] -> connected -> [Connected] -> onIdentify -> ...
+		// can happen when the message is received before the connected event has been sent
+		if(!_stateMachine->isActive(QStringLiteral("Connected")) &&
+		   !_stateMachine->isActive(QStringLiteral("Connecting"))) {
 			logWarning() << "Unexpected IdentifyMessage";
 			triggerError(true);
 		} else {

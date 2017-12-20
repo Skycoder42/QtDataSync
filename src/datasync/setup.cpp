@@ -103,6 +103,16 @@ QVariant Setup::encryptionKeyParam() const
 	return d->properties.value(Defaults::CryptKeyParam);
 }
 
+Setup::CipherScheme Setup::cipherScheme() const
+{
+	return (CipherScheme)d->properties.value(Defaults::SymScheme).toInt();
+}
+
+qint32 Setup::cipherKeySize() const
+{
+	return d->properties.value(Defaults::SymKeyParam).toUInt();
+}
+
 Setup &Setup::setLocalDir(QString localDir)
 {
 	d->localDir = localDir;
@@ -169,6 +179,18 @@ Setup &Setup::setEncryptionKeyParam(QVariant encryptionKeyParam)
 	return *this;
 }
 
+Setup &Setup::setCipherScheme(Setup::CipherScheme cipherScheme)
+{
+	d->properties.insert(Defaults::SymScheme, cipherScheme);
+	return *this;
+}
+
+Setup &Setup::setCipherKeySize(qint32 cipherKeySize)
+{
+	d->properties.insert(Defaults::SymKeyParam, cipherKeySize);
+	return *this;
+}
+
 Setup &Setup::resetLocalDir()
 {
 	d->localDir = SetupPrivate::DefaultLocalDir;
@@ -219,6 +241,18 @@ Setup &Setup::resetEncryptionScheme()
 Setup &Setup::resetEncryptionKeyParam()
 {
 	d->properties.remove(Defaults::CryptKeyParam);
+	return *this;
+}
+
+Setup &Setup::resetCipherScheme()
+{
+	d->properties.insert(Defaults::SymScheme, AES_EAX);
+	return *this;
+}
+
+Setup &Setup::resetCipherKeySize()
+{
+	d->properties.remove(Defaults::SymKeyParam);
 	return *this;
 }
 
@@ -326,7 +360,8 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::RemoteConfiguration, QVariant()},
 		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()},
 		{Defaults::SignScheme, Setup::RSA_PSS_SHA3_512},
-		{Defaults::CryptScheme, Setup::RSA_OAEP_SHA3_512}
+		{Defaults::CryptScheme, Setup::RSA_OAEP_SHA3_512},
+		{Defaults::SymScheme, Setup::AES_EAX}
 	}),
 	fatalErrorHandler()
 {}

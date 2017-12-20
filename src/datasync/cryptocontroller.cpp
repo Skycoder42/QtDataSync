@@ -5,6 +5,13 @@
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QDataStream>
 
+#include <cryptopp/eax.h>
+#include <cryptopp/gcm.h>
+#include <cryptopp/aes.h>
+#include <cryptopp/idea.h>
+#include <cryptopp/twofish.h>
+#include <cryptopp/serpent.h>
+
 #include <qiodevicesink.h>
 #include <qiodevicesource.h>
 #include <qpluginfactory.h>
@@ -13,21 +20,80 @@ using namespace QtDataSync;
 using namespace CryptoPP;
 using Exception = QtDataSync::Exception;
 
+//TODO static plugin support
+//TODO move this global static def to lib
 typedef QPluginObjectFactory<KeyStorePlugin, KeyStore> Factory;
 Q_GLOBAL_STATIC_WITH_ARGS(Factory, factory, (QLatin1String("keystores")))
+
+// ------------- CipherScheme class definitions -------------
+
+template <template<class> class TScheme, class TCipher>
+class StandardCipherScheme : public CryptoController::CipherScheme
+{
+public:
+	typedef TScheme<TCipher> Scheme;
+
+	QByteArray name() const override;
+	quint32 defaultKeyLength() const override;
+	quint32 ivLength() const override;
+	quint32 toKeyLength(quint32 length) const override;
+	QSharedPointer<AuthenticatedSymmetricCipher> encryptor() const override;
+	QSharedPointer<AuthenticatedSymmetricCipher> decryptor() const override;
+};
+
+// ------------- KeyScheme class definitions -------------
+
+template <typename TScheme>
+class RsaKeyScheme : public ClientCrypto::KeyScheme
+{
+public:
+	QByteArray name() const override;
+	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
+	PKCS8PrivateKey &privateKeyRef() override;
+	QSharedPointer<X509PublicKey> createPublicKey() const override;
+
+private:
+	typename TScheme::PrivateKey _key;
+};
+
+template <typename TScheme>
+class EccKeyScheme : public ClientCrypto::KeyScheme
+{
+public:
+	QByteArray name() const override;
+	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
+	PKCS8PrivateKey &privateKeyRef() override;
+	QSharedPointer<X509PublicKey> createPublicKey() const override;
+
+private:
+	typename TScheme::PrivateKey _key;
+};
+
+// ------------- CryptoController Implementation -------------
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
 const QString CryptoController::keySignScheme(QStringLiteral("scheme/signing"));
 const QString CryptoController::keyCryptScheme(QStringLiteral("scheme/encryption"));
-const QString CryptoController::keySignTemplate(QStringLiteral("device/%1/sign-key"));
-const QString CryptoController::keyCryptTemplate(QStringLiteral("device/%1/crypt-key"));
+const QString CryptoController::keyLocalSymKey(QStringLiteral("localkey"));
+const QString CryptoController::keySymKeysTemplate(QStringLiteral("scheme/key/%1"));
+
+const QString CryptoController::keySignKeyTemplate(QStringLiteral("%1/signing"));
+const QString CryptoController::keyCryptKeyTemplate(QStringLiteral("%1/encryption"));
+const QString CryptoController::keyKeyFileTemplate(QStringLiteral("key_%1.enc"));
 
 CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
 	Controller("crypto", defaults, parent),
 	_keyStore(nullptr),
-	_crypto(nullptr)
+	_asymCrypto(nullptr),
+	_loadedChiphers(),
+	_localCipher(0)
 {}
+
+QStringList CryptoController::allKeystoreKeys()
+{
+	return factory->allKeys();
+}
 
 void CryptoController::initialize()
 {
@@ -39,7 +105,7 @@ void CryptoController::initialize()
 					  << "- synchronization will be temporarily disabled";
 	}
 
-	_crypto = new ClientCrypto(this);
+	_asymCrypto = new ClientCrypto(this);
 }
 
 void CryptoController::finalize()
@@ -50,7 +116,7 @@ void CryptoController::finalize()
 
 ClientCrypto *CryptoController::crypto() const
 {
-	return _crypto;
+	return _asymCrypto;
 }
 
 QByteArray CryptoController::fingerprint() const
@@ -58,10 +124,10 @@ QByteArray CryptoController::fingerprint() const
 	if(_fingerprint.isEmpty()) {
 		try {
 			QCryptographicHash hash(QCryptographicHash::Sha3_256);
-			hash.addData(_crypto->signatureScheme());
-			hash.addData(_crypto->writeSignKey());
-			hash.addData(_crypto->encryptionScheme());
-			hash.addData(_crypto->writeCryptKey());
+			hash.addData(_asymCrypto->signatureScheme());
+			hash.addData(_asymCrypto->writeSignKey());
+			hash.addData(_asymCrypto->encryptionScheme());
+			hash.addData(_asymCrypto->writeCryptKey());
 			_fingerprint = hash.result();
 		} catch(CryptoPP::Exception &e) {
 			throw CryptoException(defaults(),
@@ -92,19 +158,23 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 		_fingerprint.clear();
 
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
-		auto signKey = _keyStore->loadPrivateKey(keySignTemplate.arg(deviceId.toString()));
+		auto signKey = _keyStore->loadPrivateKey(keySignKeyTemplate.arg(deviceId.toString()));
 		if(signKey.isNull()) {
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private signing key from keystore"));
 		}
 
 		auto cryptScheme = settings()->value(keyCryptScheme).toByteArray();
-		auto cryptKey = _keyStore->loadPrivateKey(keyCryptTemplate.arg(deviceId.toString()));
+		auto cryptKey = _keyStore->loadPrivateKey(keyCryptKeyTemplate.arg(deviceId.toString()));
 		if(cryptKey.isNull()) {
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private encryption key from keystore"));
 		}
 
-		_crypto->load(signScheme, signKey, cryptScheme, cryptKey);
-		logDebug() << "Loaded private keys for" << deviceId;
+		_asymCrypto->load(signScheme, signKey, cryptScheme, cryptKey);
+
+		_localCipher = settings()->value(keyLocalSymKey, 0).toUInt();
+		getInfo(_localCipher);
+
+		logDebug() << "Loaded keys for" << deviceId;
 
 		//NOTE load and decrypt shared secret
 	} catch(CryptoPP::Exception &e) {
@@ -117,7 +187,9 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 void CryptoController::clearKeyMaterial()
 {
 	_fingerprint.clear();
-	_crypto->reset();
+	_asymCrypto->reset();
+	_loadedChiphers.clear();
+	_localCipher = 0;
 	logDebug() << "Cleared all key material";
 }
 
@@ -126,19 +198,34 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 	try {
 		_fingerprint.clear();
 
-		if(_crypto->rng().CanIncorporateEntropy())
-			_crypto->rng().IncorporateEntropy((const byte*)nonce.constData(), nonce.size());
+		if(_asymCrypto->rng().CanIncorporateEntropy())
+			_asymCrypto->rng().IncorporateEntropy((const byte*)nonce.constData(), nonce.size());
 
-		_crypto->generate((Setup::SignatureScheme)defaults().property(Defaults::SignScheme).toInt(),
+		//generate private signature and encryption keys
+		_asymCrypto->generate((Setup::SignatureScheme)defaults().property(Defaults::SignScheme).toInt(),
 						  defaults().property(Defaults::SignKeyParam),
 						  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
 						  defaults().property(Defaults::CryptKeyParam));
 
+		//create symmetric cipher and the key
+		CipherInfo info;
+		createScheme((Setup::CipherScheme)defaults().property(Defaults::SymScheme).toInt(),
+					 info.scheme);
+		auto keySize = defaults().property(Defaults::SymKeyParam).toUInt();
+		if(keySize == 0)
+			keySize = info.scheme->defaultKeyLength();
+		else
+			keySize = info.scheme->toKeyLength(keySize);
+		info.key.CleanNew(keySize);
+		_asymCrypto->rng().GenerateBlock(info.key.data(), info.key.size());
+		_localCipher = 0;
+		_loadedChiphers.insert(_localCipher, info);
+
 #ifndef QT_NO_DEBUG
-		logDebug().noquote() << "Generated new private keys. Fingerprint:"
+		logDebug().noquote() << "Generated new keys. Public keys fingerprint:"
 							 << fingerprint().toHex();
 #else
-		logDebug() << "Generated new private keys";
+		logDebug() << "Generated new keys";
 #endif
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
@@ -147,23 +234,78 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 	}
 }
 
-void CryptoController::storePrivateKeys(const QUuid &deviceId)
+void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 {
 	try {
 		ensureStoreAccess();
 
-		settings()->setValue(keySignScheme, _crypto->signatureScheme());
-		_keyStore->storePrivateKey(keySignTemplate.arg(deviceId.toString()),
-								   _crypto->savePrivateSignKey());
+		settings()->setValue(keySignScheme, _asymCrypto->signatureScheme());
+		_keyStore->storePrivateKey(keySignKeyTemplate.arg(deviceId.toString()),
+								   _asymCrypto->savePrivateSignKey());
 
-		settings()->setValue(keyCryptScheme, _crypto->encryptionScheme());
-		_keyStore->storePrivateKey(keyCryptTemplate.arg(deviceId.toString()),
-								   _crypto->savePrivateCryptKey());
-		logDebug() << "Stored private keys for" << deviceId;
+		settings()->setValue(keyCryptScheme, _asymCrypto->encryptionScheme());
+		_keyStore->storePrivateKey(keyCryptKeyTemplate.arg(deviceId.toString()),
+								   _asymCrypto->savePrivateCryptKey());
+
+		//store with key index 0, as the initial key, that will never be managed by the server. Server will always start counting at 1
+		storeCipherKey(_localCipher);
+		settings()->setValue(keyLocalSymKey, _localCipher);
+		logDebug() << "Stored keys for" << deviceId;
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),
 							  e);
+	}
+}
+
+void CryptoController::createScheme(const QByteArray &name, QSharedPointer<CipherScheme> &ptr)
+{
+	auto stdStr = name.toStdString();
+	if(stdStr == EAX<AES>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<EAX, AES>());
+	else if(stdStr == GCM<AES>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<GCM, AES>());
+	else if(stdStr == EAX<Twofish>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<EAX, Twofish>());
+	else if(stdStr == GCM<Twofish>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<GCM, Twofish>());
+	else if(stdStr == EAX<Serpent>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<EAX, Serpent>());
+	else if(stdStr == GCM<Serpent>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<GCM, Serpent>());
+	else if(stdStr == EAX<IDEA>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<EAX, IDEA>());
+	else
+		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Symmetric Cipher Scheme \"" + stdStr + "\" not supported");
+}
+
+void CryptoController::createScheme(Setup::CipherScheme scheme, QSharedPointer<CipherScheme> &ptr)
+{
+	switch (scheme) {
+	case Setup::AES_EAX:
+		createScheme(QByteArray::fromStdString(EAX<AES>::Encryption::StaticAlgorithmName()), ptr);
+		break;
+	case Setup::AES_GCM:
+		createScheme(QByteArray::fromStdString(GCM<AES>::Encryption::StaticAlgorithmName()), ptr);
+		break;
+	case Setup::TWOFISH_EAX:
+		createScheme(QByteArray::fromStdString(EAX<Twofish>::Encryption::StaticAlgorithmName()), ptr);
+		break;
+	case Setup::TWOFISH_GCM:
+		createScheme(QByteArray::fromStdString(EAX<Twofish>::Encryption::StaticAlgorithmName()), ptr);
+		break;
+	case Setup::SERPENT_EAX:
+		createScheme(QByteArray::fromStdString(EAX<Serpent>::Encryption::StaticAlgorithmName()), ptr);
+		break;
+	case Setup::SERPENT_GCM:
+		createScheme(QByteArray::fromStdString(EAX<Serpent>::Encryption::StaticAlgorithmName()), ptr);
+		break;
+	case Setup::IDEA_EAX:
+		createScheme(QByteArray::fromStdString(EAX<IDEA>::Encryption::StaticAlgorithmName()), ptr);
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
 	}
 }
 
@@ -175,44 +317,62 @@ void CryptoController::ensureStoreAccess() const
 		throw Exception(defaults(), QStringLiteral("No keystore available"));
 }
 
-QStringList CryptoController::allKeystoreKeys()
+void CryptoController::storeCipherKey(quint32 keyIndex) const
 {
-	return factory->allKeys();
+	auto keyDir = keysDir();
+	auto info = getInfo(keyIndex);
+	auto encData = _asymCrypto->encrypt(_asymCrypto->cryptKey(),
+										QByteArray::fromRawData((const char*)info.key.data(), info.key.size()));
+	QFile keyFile(keyDir.absoluteFilePath(keyKeyFileTemplate.arg(keyIndex)));
+	if(!keyFile.open(QIODevice::WriteOnly))
+		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, keyFile.errorString().toStdString());
+	keyFile.write(encData);
+	keyFile.close();
+
+	settings()->setValue(keySymKeysTemplate.arg(keyIndex), info.scheme->name());
 }
 
-// ------------- KeyScheme class definitions -------------
-
-template <typename TScheme>
-class RsaKeyScheme : public ClientCrypto::KeyScheme
+const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) const
 {
-public:
-	QByteArray name() const override;
-	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
-	PKCS8PrivateKey &privateKeyRef() override;
-	QSharedPointer<X509PublicKey> createPublicKey() const override;
+	if(!_loadedChiphers.contains(keyIndex)) {
+		auto keyDir = keysDir();
+		CipherInfo info;
 
-private:
-	typename TScheme::PrivateKey _key;
-};
+		createScheme(settings()->value(keySymKeysTemplate.arg(keyIndex)).toByteArray(), info.scheme);
 
-template <typename TScheme>
-class EccKeyScheme : public ClientCrypto::KeyScheme
+		QFile keyFile(keyDir.absoluteFilePath(keyKeyFileTemplate.arg(keyIndex)));
+		if(!keyFile.open(QIODevice::ReadOnly))
+			throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, keyFile.errorString().toStdString());
+		auto encData = keyFile.readAll();
+		keyFile.close();
+
+		auto key = _asymCrypto->decrypt(encData);
+		info.key.Assign((const byte*)key.constData(), key.size());
+		memset(key.data(), 0, key.size());
+
+		//test if the key is of valid length
+		if(info.key.size() != info.scheme->toKeyLength(info.key.size()))
+			throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Key size is not valid for cipher scheme " + info.scheme->name().toStdString());
+		_loadedChiphers.insert(keyIndex, info);
+	}
+
+	return _loadedChiphers[keyIndex];
+}
+
+QDir CryptoController::keysDir() const
 {
-public:
-	QByteArray name() const override;
-	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
-	PKCS8PrivateKey &privateKeyRef() override;
-	QSharedPointer<X509PublicKey> createPublicKey() const override;
-
-private:
-	typename TScheme::PrivateKey _key;
-};
+	auto keyDirName = QStringLiteral("keys");
+	auto keyDir = defaults().storageDir();
+	if(!keyDir.mkpath(keyDirName) || !keyDir.cd(keyDirName))
+		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, "Failed to create keys directory");
+	return keyDir;
+}
 
 // ------------- ClientCrypto Implementation -------------
 
 ClientCrypto::ClientCrypto(QObject *parent) :
 	AsymmetricCrypto(parent),
-	_rng(true),
+	_rng(true, 64),
 	_signKey(nullptr),
 	_cryptKey(nullptr)
 {}
@@ -427,7 +587,7 @@ void ClientCrypto::setEncryptionKey(Setup::EncryptionScheme scheme)
 	}
 }
 
-void ClientCrypto::loadKey(PKCS8PrivateKey &key, const QByteArray &data)
+void ClientCrypto::loadKey(PKCS8PrivateKey &key, const QByteArray &data) const
 {
 	QByteArraySource source(data, true);
 	key.Load(source);
@@ -439,6 +599,44 @@ QByteArray ClientCrypto::saveKey(const PKCS8PrivateKey &key) const
 	QByteArraySink sink(data);
 	key.Save(sink);
 	return data;
+}
+
+// ------------- (Generic) CipherScheme Implementation -------------
+
+template <template<class> class TScheme, class TCipher>
+QByteArray StandardCipherScheme<TScheme, TCipher>::name() const
+{
+	return QByteArray::fromStdString(Scheme::Encryption::StaticAlgorithmName());
+}
+
+template <template<class> class TScheme, class TCipher>
+quint32 StandardCipherScheme<TScheme, TCipher>::defaultKeyLength() const
+{
+	return TCipher::MAX_KEYLENGTH;
+}
+
+template <template<class> class TScheme, class TCipher>
+quint32 StandardCipherScheme<TScheme, TCipher>::ivLength() const
+{
+	return TCipher::IV_LENGTH;
+}
+
+template <template<class> class TScheme, class TCipher>
+quint32 StandardCipherScheme<TScheme, TCipher>::toKeyLength(quint32 length) const
+{
+	return TCipher::StaticGetValidKeyLength(length);
+}
+
+template <template<class> class TScheme, class TCipher>
+QSharedPointer<AuthenticatedSymmetricCipher> StandardCipherScheme<TScheme, TCipher>::encryptor() const
+{
+	return QSharedPointer<typename Scheme::Encryption>::create();
+}
+
+template <template<class> class TScheme, class TCipher>
+QSharedPointer<AuthenticatedSymmetricCipher> StandardCipherScheme<TScheme, TCipher>::decryptor() const
+{
+	return QSharedPointer<typename Scheme::Decryption>::create();
 }
 
 // ------------- Generic KeyScheme Implementation -------------
