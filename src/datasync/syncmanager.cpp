@@ -26,6 +26,11 @@ SyncManager::SyncState SyncManager::syncState() const
 	return d->cState;
 }
 
+QString SyncManager::lastError() const
+{
+	return d->cError;
+}
+
 void SyncManager::setSyncEnabled(bool syncEnabled)
 {
 	QMetaObject::invokeMethod(d->remoteConnector(), "setSyncEnabled",
@@ -54,26 +59,34 @@ SyncManagerPrivate::SyncManagerPrivate(const QString &setupName, SyncManager *q_
 	defaults(setupName),
 	settings(defaults.createSettings(q_ptr)),
 	cEnabled(true),
-	cState(SyncManager::Initializing)
+	cState(SyncManager::Initializing),
+	cError()
 {
 	auto engine = SetupPrivate::engine(defaults.setupName());
 	auto rCon = engine->remoteConnector();
 
+	connect(engine, &ExchangeEngine::lastErrorChanged,
+			this, &SyncManagerPrivate::updateLastError);
 	connect(engine, &ExchangeEngine::stateChanged,
 			this, &SyncManagerPrivate::updateSyncState);
 	connect(rCon, &RemoteConnector::syncEnabledChanged,
 			this, &SyncManagerPrivate::updateSyncEnabled);
 
 	if(blockingConstruct) {
-		QMetaObject::invokeMethod(rCon, "isSyncEnabled",
+		QMetaObject::invokeMethod(engine, "lastError",
 								  Qt::BlockingQueuedConnection,
-								  Q_RETURN_ARG(bool, cEnabled));
+								  Q_RETURN_ARG(QString, cError));
 		QMetaObject::invokeMethod(engine, "state",
 								  Qt::BlockingQueuedConnection,
 								  Q_RETURN_ARG(QtDataSync::SyncManager::SyncState, cState));
+		QMetaObject::invokeMethod(rCon, "isSyncEnabled",
+								  Qt::BlockingQueuedConnection,
+								  Q_RETURN_ARG(bool, cEnabled));
 	} else {
 		auto runFn = [this](ExchangeEngine *engine) {
 			auto rCon = engine->remoteConnector();
+			QMetaObject::invokeMethod(this, "updateLastError",
+									  Q_ARG(QString, engine->lastError()));
 			QMetaObject::invokeMethod(this, "updateSyncState",
 									  Q_ARG(QtDataSync::SyncManager::SyncState, engine->state()));
 			QMetaObject::invokeMethod(this, "updateSyncEnabled",
@@ -102,5 +115,13 @@ void SyncManagerPrivate::updateSyncState(SyncManager::SyncState state)
 	if(cState != state) {
 		cState = state;
 		emit q->syncStateChanged(state);
+	}
+}
+
+void SyncManagerPrivate::updateLastError(const QString &error)
+{
+	if(cError != error) {
+		cError = error;
+		emit q->lastErrorChanged(error);
 	}
 }

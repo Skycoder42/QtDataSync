@@ -22,6 +22,9 @@ public:
 	virtual void initialize();
 	virtual void finalize();
 
+Q_SIGNALS:
+	void controllerError(const QString &error);
+
 protected:
 	Defaults defaults() const;
 	Logger *logger() const;

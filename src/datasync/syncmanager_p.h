@@ -25,10 +25,12 @@ public:
 	//chached stuff
 	bool cEnabled;
 	SyncManager::SyncState cState;
+	QString cError;
 
 public Q_SLOTS:
 	void updateSyncEnabled(bool syncEnabled);
 	void updateSyncState(QtDataSync::SyncManager::SyncState state);
+	void updateLastError(const QString &error);
 };
 
 }

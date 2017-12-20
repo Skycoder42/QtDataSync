@@ -221,7 +221,7 @@ void Client::run(const std::function<void ()> &fn)
 			_runCount--;
 		} catch (DatabaseException &e) {
 			qCritical() << "Internal database error:" << e.what();
-			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::InternalError, QString(), true}));
+			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::ServerError, QString(), true}));
 			closeLater();
 			_runCount--;
 		} catch (ClientErrorException &e) {
@@ -328,7 +328,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	sendMessage(serializeMessage(WelcomeMessage(change)));
 	_state = Idle;
 
-	//TODO apply change
+	//TODO implement changes
 }
 
 void Client::onSync(const SyncMessage &message)

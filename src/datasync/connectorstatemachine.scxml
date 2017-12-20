@@ -4,9 +4,9 @@
         <data id="isClosing" expr="false"/>
     </datamodel>
     <state id="Active">
-        <qt:editorinfo geometry="361.11;121.38;-38;-53.03;958.66;391.03" scenegeometry="361.11;121.38;323.11;68.35;958.66;391.03"/>
+        <qt:editorinfo scenegeometry="361.11;121.38;323.11;68.35;958.66;391.03" geometry="361.11;121.38;-38;-53.03;958.66;391.03"/>
         <state id="Connecting">
-            <qt:editorinfo geometry="63.24;69.05;-60;-50;152;100" scenegeometry="424.35;190.43;364.35;140.43;152;100"/>
+            <qt:editorinfo scenegeometry="424.35;190.43;364.35;140.43;152;100" geometry="63.24;69.05;-60;-50;152;100"/>
             <transition type="external" event="connected" target="Connected">
                 <qt:editorinfo endTargetFactors="15.44;48.34"/>
             </transition>
@@ -18,59 +18,61 @@
             <qt:editorinfo endTargetFactors="28.54;12.93"/>
         </transition>
         <transition type="external" event="disconnected" target="Retry">
-            <qt:editorinfo endTargetFactors="38.86;12.93"/>
+            <qt:editorinfo endTargetFactors="73.83;12.07"/>
         </transition>
         <transition type="external" event="basicError" target="BasicError"/>
-        <transition type="external" event="fatalError" target="FatalError"/>
+        <transition type="external" event="fatalError" target="FatalError">
+            <qt:editorinfo endTargetFactors="80.03;62.93"/>
+        </transition>
         <state id="Registering">
-            <qt:editorinfo geometry="537.58;66.31;-60;-50;120;100" scenegeometry="898.69;187.69;838.69;137.69;120;100"/>
+            <qt:editorinfo scenegeometry="898.69;187.69;838.69;137.69;120;100" geometry="537.58;66.31;-60;-50;120;100"/>
             <transition type="external" event="account" target="Idle">
                 <qt:editorinfo endTargetFactors="26.75;35.94"/>
             </transition>
         </state>
         <state id="LoggingIn">
-            <qt:editorinfo geometry="538.60;260.13;-60;-50;120;100" scenegeometry="899.71;381.51;839.71;331.51;120;100"/>
+            <qt:editorinfo scenegeometry="899.71;381.51;839.71;331.51;120;100" geometry="538.60;260.13;-60;-50;120;100"/>
             <transition type="external" event="account" target="Idle"/>
         </state>
         <state id="Idle">
-            <qt:editorinfo geometry="818.11;163.22;-60;-50;120;100" scenegeometry="1179.22;284.60;1119.22;234.60;120;100"/>
+            <qt:editorinfo scenegeometry="1179.22;284.60;1119.22;234.60;120;100" geometry="818.11;163.22;-60;-50;120;100"/>
         </state>
         <state id="Connected">
-            <qt:editorinfo geometry="292.76;68.36;-60;-50;120;100" scenegeometry="653.87;189.74;593.87;139.74;120;100"/>
+            <qt:editorinfo scenegeometry="653.87;189.74;593.87;139.74;120;100" geometry="292.76;68.36;-60;-50;120;100"/>
             <transition type="external" event="awaitRegister" target="Registering"/>
             <transition type="external" event="awaitLogin" target="LoggingIn"/>
         </state>
         <transition type="external" target="Closing" cond="isClosing">
-            <qt:editorinfo endTargetFactors="79.59;42.09"/>
+            <qt:editorinfo endTargetFactors="49.26;23.13"/>
         </transition>
     </state>
     <state id="Disconnected">
-        <qt:editorinfo geometry="83.65;263.87;-60;-50;166;100" scenegeometry="83.65;263.87;23.65;213.87;166;100"/>
+        <qt:editorinfo scenegeometry="83.65;263.87;23.65;213.87;166;100" geometry="83.65;263.87;-60;-50;166;100"/>
         <transition type="external" event="reconnect" target="Active">
             <qt:editorinfo endTargetFactors="2.46;67.17"/>
         </transition>
         <transition type="external" target="Final_2" cond="isClosing"/>
     </state>
     <state id="Reconnecting">
-        <qt:editorinfo geometry="1040.49;613.08;-60;-50;150;100" scenegeometry="1040.49;613.08;980.49;563.08;150;100"/>
+        <qt:editorinfo scenegeometry="1123.12;613.08;1063.12;563.08;150;100" geometry="1123.12;613.08;-60;-50;150;100"/>
         <transition type="external" event="disconnected" target="Active">
-            <qt:editorinfo endTargetFactors="86.92;97.79"/>
+            <qt:editorinfo endTargetFactors="92.53;96.31"/>
         </transition>
         <onentry>
             <send event="doDisconnect"/>
         </onentry>
     </state>
     <state id="Retry">
-        <qt:editorinfo geometry="478.44;613.08;-60;-50;120;100" scenegeometry="478.44;613.08;418.44;563.08;120;100"/>
+        <qt:editorinfo scenegeometry="667.16;613.08;607.16;563.08;120;100" geometry="667.16;613.08;-60;-50;120;100"/>
         <transition type="external" event="reconnect" target="Active">
-            <qt:editorinfo endTargetFactors="88.97;25.15"/>
+            <qt:editorinfo endTargetFactors="28.02;94.35"/>
         </transition>
         <transition type="external" target="Final" cond="isClosing">
             <qt:editorinfo movePoint="0;-1.02"/>
         </transition>
     </state>
     <state id="BasicError">
-        <qt:editorinfo geometry="791.58;613.08;-60;-50;120;100" scenegeometry="791.58;613.08;731.58;563.08;120;100"/>
+        <qt:editorinfo scenegeometry="890.53;613.08;830.53;563.08;120;100" geometry="890.53;613.08;-60;-50;120;100"/>
         <transition type="external" event="disconnected" target="Retry">
             <qt:editorinfo endTargetFactors="71.74;47.36"/>
         </transition>
@@ -79,23 +81,23 @@
         </onentry>
     </state>
     <state id="FatalError">
-        <qt:editorinfo geometry="106.65;432.51;-60;-50;120;100" scenegeometry="106.65;432.51;46.65;382.51;120;100"/>
+        <qt:editorinfo scenegeometry="106.65;462.09;46.65;412.09;120;100" geometry="106.65;462.09;-60;-50;120;100"/>
         <transition type="external" event="disconnected" target="Disconnected"/>
         <onentry>
             <send event="doDisconnect"/>
         </onentry>
     </state>
     <state id="Closing">
-        <qt:editorinfo geometry="143.37;582.47;-60;-50;120;100" scenegeometry="143.37;582.47;83.37;532.47;120;100"/>
+        <qt:editorinfo scenegeometry="387.17;588.59;327.17;538.59;120;100" geometry="387.17;588.59;-60;-50;120;100"/>
         <onentry>
             <send event="doDisconnect"/>
         </onentry>
         <transition type="external" event="disconnected" target="Final"/>
     </state>
     <final id="Final">
-        <qt:editorinfo geometry="143.37;751.80;-20;-20;40;40" scenegeometry="143.37;751.80;123.37;731.80;40;40"/>
+        <qt:editorinfo scenegeometry="387.17;776.28;367.17;756.28;40;40" geometry="387.17;776.28;-20;-20;40;40"/>
     </final>
     <final id="Final_2">
-        <qt:editorinfo geometry="106.65;64.27;-20;-20;40;40" scenegeometry="106.65;64.27;86.65;44.27;40;40"/>
+        <qt:editorinfo scenegeometry="106.65;64.27;86.65;44.27;40;40" geometry="106.65;64.27;-20;-20;40;40"/>
     </final>
 </scxml>

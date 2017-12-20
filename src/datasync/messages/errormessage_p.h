@@ -20,7 +20,7 @@ public:
 		UnknownError = 0,
 		IncompatibleVersionError = 1,
 		UnexpectedMessageError = 2,
-		InternalError = 3,
+		ServerError = 3,
 		ClientError = 4,
 		AuthenticationError = 5
 	};

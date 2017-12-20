@@ -25,9 +25,12 @@ Widget::Widget(QWidget *parent) :
 			ui->syncCheckBox, &QCheckBox::setChecked);
 	connect(_manager, &QtDataSync::SyncManager::syncStateChanged,
 			this, &Widget::updateState);
+	connect(_manager, &QtDataSync::SyncManager::lastErrorChanged,
+			ui->errorLabel, &QLabel::setText);
 
 	ui->syncCheckBox->setChecked(_manager->isSyncEnabled());
 	updateState(_manager->syncState());
+	ui->errorLabel->setText(_manager->lastError());
 
 	connect(_model, &QtDataSync::DataStoreModel::storeError, this, [](const QException &e){
 		qCritical() << e.what();

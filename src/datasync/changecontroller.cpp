@@ -65,13 +65,14 @@ void ChangeController::uploadDone(const QByteArray &key)
 		completeQuery.addBindValue(info.key.id);
 		completeQuery.addBindValue(info.version);
 		exec(completeQuery);
+		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
+
+		if(_activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
+			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection);
 	} catch(Exception &e) {
 		logCritical() << "Failed to complete upload with error:" << e.what();
-		//TODO enter error state
+		emit controllerError(tr("Failed to upload changes to server."));
 	}
-
-	if(_activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
-		QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection);
 }
 
 void ChangeController::changeTriggered()
@@ -105,13 +106,15 @@ void ChangeController::uploadNext()
 			auto version = readChangesQuery.value(2).toULongLong();
 			auto isDelete = readChangesQuery.value(3).isNull();
 			_activeUploads.insert(keyHash, {key, version, isDelete});
-			if(isDelete) //deleted
+			if(isDelete) {//deleted
 				emit uploadDelete(keyHash, version);
-			else { //changed
+				logDebug() << "Started upload of deleted" << key << "( Active uploads:" << _activeUploads.size() << ")";
+			} else { //changed
 				try {
 					auto json = LocalStore::readJson(defaults(), key, readChangesQuery.value(3).toString());
 					auto checksum = readChangesQuery.value(4).toByteArray();
 					emit uploadChange(keyHash, version, json, checksum);
+					logDebug() << "Started upload of changed" << key << "( Active uploads:" << _activeUploads.size() << ")";
 				} catch (Exception &e) {
 					logWarning() << "Failed to read json for upload. Assuming unchanged. Error:" << e.what();
 					QMetaObject::invokeMethod(this, "uploadDone", Qt::QueuedConnection,
@@ -121,7 +124,7 @@ void ChangeController::uploadNext()
 		}
 	} catch(Exception &e) {
 		logCritical() << "Error when trying to upload change:" << e.what();
-		//TODO enter error state
+		emit controllerError(tr("Failed to upload changes to server."));
 	}
 }
 
@@ -139,7 +142,7 @@ bool ChangeController::canUpload()
 			return checkQuery.first();
 		} catch(Exception &e) {
 			logCritical() << "Failed to check changes with error:" << e.what();
-			//TODO enter error state
+			emit controllerError(tr("Failed to upload changes to server."));
 			return false;
 		}
 	}

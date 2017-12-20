@@ -14,6 +14,7 @@ using namespace QtDataSync;
 ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalErrorHandler &errorHandler) :
 	QObject(),
 	_state(SyncManager::Initializing),
+	_lastError(),
 	_defaults(setupName),
 	_logger(_defaults.createLogger("engine", this)),
 	_fatalErrorHandler(errorHandler),
@@ -45,14 +46,23 @@ SyncManager::SyncState ExchangeEngine::state() const
 	return _state;
 }
 
+QString ExchangeEngine::lastError() const
+{
+	return _lastError;
+}
+
 void ExchangeEngine::initialize()
 {
 	try {
 		//change controller
+		connect(_changeController, &ChangeController::controllerError,
+				this, &ExchangeEngine::controllerError);
 		connect(_changeController, &ChangeController::uploadingChanged,
 				this, &ExchangeEngine::uploadingChanged);
 
 		//remote controller
+		connect(_remoteConnector, &RemoteConnector::controllerError,
+				this, &ExchangeEngine::controllerError);
 		connect(_remoteConnector, &RemoteConnector::remoteEvent,
 				this, &ExchangeEngine::remoteEvent);
 
@@ -85,8 +95,22 @@ void ExchangeEngine::runInitFunc(const RunFn &fn)
 	fn(this);
 }
 
+void ExchangeEngine::controllerError(const QString &errorMessage)
+{
+	_lastError = errorMessage;
+	emit lastErrorChanged(errorMessage); //first error, that state (so someone that reacts to states can read the error)
+	upstate(SyncManager::Error);
+
+	//stop up/downloading etc.
+	_changeController->clearUploads();
+}
+
 void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 {
+	if(_state == SyncManager::Error &&
+	   event != RemoteConnector::RemoteConnecting) //only a reconnect event can get the system out of the error state
+		return;
+
 	switch (event) {
 	case RemoteConnector::RemoteDisconnected:
 		upstate(SyncManager::Disconnected);
@@ -94,13 +118,14 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 		break;
 	case RemoteConnector::RemoteConnecting:
 		upstate(SyncManager::Initializing);
+		clearError();
 		_changeController->clearUploads();
 		break;
-	case RemoteConnector::RemoteReady: //TODO could also be error
+	case RemoteConnector::RemoteReady:
 		upstate(SyncManager::Uploading); //always assume uploading first, so no uploads can change to synced
 		_changeController->setUploadingEnabled(true); //will emit "uploadingChanged" and thus change the thate
 		break;
-	case RemoteConnector::RemoteReadyWithChanges: //TODO always? could also be error
+	case RemoteConnector::RemoteReadyWithChanges:
 		upstate(SyncManager::Downloading);
 		_changeController->setUploadingEnabled(false);
 		break;
@@ -112,7 +137,9 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 
 void ExchangeEngine::uploadingChanged(bool uploading)
 {
-	if(uploading)
+	if(_state == SyncManager::Error)
+		return;
+	else if(uploading)
 		upstate(SyncManager::Uploading);
 	else if(_state == SyncManager::Uploading)
 		upstate(SyncManager::Synchronized);
@@ -133,5 +160,13 @@ void ExchangeEngine::upstate(SyncManager::SyncState state)
 	if(_state != state) {
 		_state = state;
 		emit stateChanged(state);
+	}
+}
+
+void ExchangeEngine::clearError()
+{
+	if(!_lastError.isNull()) {
+		_lastError.clear();
+		emit lastErrorChanged(QString());
 	}
 }

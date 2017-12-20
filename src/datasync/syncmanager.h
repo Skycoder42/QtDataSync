@@ -15,6 +15,7 @@ class Q_DATASYNC_EXPORT SyncManager : public QObject
 
 	Q_PROPERTY(bool syncEnabled READ isSyncEnabled WRITE setSyncEnabled NOTIFY syncEnabledChanged)
 	Q_PROPERTY(SyncState syncState READ syncState NOTIFY syncStateChanged)
+	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
 	enum SyncState {
@@ -23,7 +24,7 @@ public:
 		Uploading,
 		Synchronized,
 		Error,
-		Disconnected //NOTE explicit reconnect ONLY an resync, not on normal sync
+		Disconnected
 	};
 	Q_ENUM(SyncState)
 
@@ -33,6 +34,7 @@ public:
 
 	bool isSyncEnabled() const;
 	SyncState syncState() const;
+	QString lastError() const;
 
 public Q_SLOTS:
 	void setSyncEnabled(bool syncEnabled);
@@ -43,6 +45,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void syncEnabledChanged(bool syncEnabled);
 	void syncStateChanged(QtDataSync::SyncManager::SyncState syncState);
+	void lastErrorChanged(const QString &lastError);
 
 private:
 	SyncManagerPrivate *d;

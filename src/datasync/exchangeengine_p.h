@@ -20,6 +20,7 @@ class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(SyncManager::SyncState state READ state NOTIFY stateChanged)
+	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
 	typedef std::function<void(ExchangeEngine*)> RunFn;
@@ -36,7 +37,8 @@ public:
 	ChangeController *changeController() const;
 	RemoteConnector *remoteConnector() const;
 
-	SyncManager::SyncState state() const;
+	Q_INVOKABLE SyncManager::SyncState state() const;
+	Q_INVOKABLE QString lastError() const;
 
 public Q_SLOTS:
 	void initialize();
@@ -47,13 +49,16 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void stateChanged(QtDataSync::SyncManager::SyncState state);
+	void lastErrorChanged(const QString &lastError);
 
 private Q_SLOTS:
+	void controllerError(const QString &errorMessage);
 	void remoteEvent(RemoteConnector::RemoteEvent event);
 	void uploadingChanged(bool uploading);
 
 private:
 	SyncManager::SyncState _state;
+	QString _lastError;
 
 	Defaults _defaults;
 	Logger *_logger;
@@ -65,6 +70,7 @@ private:
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 
 	void upstate(SyncManager::SyncState state);
+	void clearError();
 };
 
 }

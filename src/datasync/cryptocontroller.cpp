@@ -176,7 +176,6 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 
 		logDebug() << "Loaded keys for" << deviceId;
 
-		//NOTE load and decrypt shared secret
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to import private key"),

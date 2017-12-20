@@ -37,6 +37,7 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_awaitingPing(false),
 	_stateMachine(nullptr),
 	_retryIndex(0),
+	_expectChanges(false),
 	_deviceId()
 {}
 
@@ -457,9 +458,28 @@ QVariant RemoteConnector::sValue(const QString &key) const
 void RemoteConnector::onError(const ErrorMessage &message)
 {
 	logCritical() << message;
-	//TODO emit error to userspace (i.e. sync manager?)
-	//TODO special reaction on e.g. Auth Error
 	triggerError(message.canRecover);
+
+	//
+	if(!message.canRecover) {
+		switch(message.type) {
+		case ErrorMessage::IncompatibleVersionError:
+			emit controllerError(tr("Server is not compatibel with your application version."));
+			break;
+		case ErrorMessage::AuthenticationError: //TODO special treatment? (or better description)
+			emit controllerError(tr("Authentication failed. Try to remove and add your device again, or reset your account!"));
+			break;
+		case ErrorMessage::ClientError:
+		case ErrorMessage::ServerError:
+		case ErrorMessage::UnexpectedMessageError:
+			emit controllerError(tr("Internal application error. Check the logs for details."));
+			break;
+		case ErrorMessage::UnknownError:
+		default:
+			emit controllerError(tr("Unknown error occured."));
+			break;
+		}
+	}
 }
 
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
@@ -512,6 +532,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 			logDebug() << "Registration successful";
 			// reset retry index only after successfuly account creation or login
 			_retryIndex = 0;
+			_expectChanges = false;
 			_stateMachine->submitEvent(QStringLiteral("account"));
 		}
 	} catch(Exception &e) {
