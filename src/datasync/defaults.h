@@ -52,6 +52,7 @@ class Q_DATASYNC_EXPORT Defaults
 public:
 	enum PropertyKey {
 		CacheSize,
+		PersistDeleted,
 		SslConfiguration,
 		RemoteConfiguration,
 		KeyStoreProvider,

@@ -1,6 +1,7 @@
 #include "localstore_p.h"
 #include "datastore.h"
 #include "changecontroller_p.h"
+#include "synchelper_p.h"
 
 #include <QtCore/QUrl>
 #include <QtCore/QJsonDocument>
@@ -12,8 +13,6 @@
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
-
-#include <qhashpipe.h>
 
 using namespace QtDataSync;
 
@@ -203,14 +202,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 			}
 
 			//write the data & get the hash
-			QJsonDocument doc(data);
-			QHashPipe hashPipe(QCryptographicHash::Sha3_256);
-			hashPipe.setAutoOpen(false);
-			hashPipe.setAutoClose(false);
-			hashPipe.pipeTo(device.data());
-			hashPipe.open();
-			hashPipe.write(doc.toBinaryData());
-			hashPipe.close();
+			device->write(QJsonDocument(data).toBinaryData());
 			if(device->error() != QFile::NoError)
 				throw LocalStoreException(_defaults, key, device->fileName(), device->errorString());
 
@@ -221,7 +213,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				updateQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, File = ?, Checksum = ?, Changed = 1 WHERE Type = ? AND Id = ?"));
 				updateQuery.addBindValue(version);
 				updateQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName())); //still update file, in case it was set to NULL
-				updateQuery.addBindValue(hashPipe.hash());
+				updateQuery.addBindValue(SyncHelper::jsonHash(data));
 				updateQuery.addBindValue(key.typeName);
 				updateQuery.addBindValue(key.id);
 				exec(updateQuery, key);
@@ -232,7 +224,7 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				insertQuery.addBindValue(key.id);
 				insertQuery.addBindValue(version);
 				insertQuery.addBindValue(tableDir.relativeFilePath(info.completeBaseName()));
-				insertQuery.addBindValue(hashPipe.hash());
+				insertQuery.addBindValue(SyncHelper::jsonHash(data));
 				exec(insertQuery, key);
 			}
 

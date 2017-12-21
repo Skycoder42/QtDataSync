@@ -17,7 +17,7 @@ class Q_DATASYNC_EXPORT ChangeController : public Controller
 	Q_OBJECT
 
 public:
-	struct ChangeInfo {
+	struct Q_DATASYNC_EXPORT ChangeInfo {
 		ObjectKey key;
 		quint64 version;
 		QByteArray checksum;
@@ -40,21 +40,20 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void uploadingChanged(bool uploading);
-	void uploadChange(const QByteArray &key, quint64 version, const QJsonObject &data, const QByteArray &checksum);
-	void uploadDelete(const QByteArray &key, quint64 version);
+	void uploadChange(const QByteArray &key, const QJsonObject &changeData);
 
 private Q_SLOTS:
 	void changeTriggered();
 	void uploadNext();
 
 private:
-	struct UploadInfo {
+	struct Q_DATASYNC_EXPORT UploadInfo {
 		ObjectKey key;
 		quint64 version;
 		bool isDelete;
 	};
 
-	class CachedObjectKey : public ObjectKey {
+	class Q_DATASYNC_EXPORT CachedObjectKey : public ObjectKey {
 	public:
 		CachedObjectKey();
 		CachedObjectKey(const ObjectKey &other);

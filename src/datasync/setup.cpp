@@ -68,6 +68,11 @@ int Setup::cacheSize() const
 	return d->properties.value(Defaults::CacheSize).toInt();
 }
 
+bool Setup::persistDeletedVersion() const
+{
+	return d->properties.value(Defaults::PersistDeleted).toBool();
+}
+
 QSslConfiguration Setup::sslConfiguration() const
 {
 	return d->properties.value(Defaults::SslConfiguration).value<QSslConfiguration>();
@@ -134,6 +139,12 @@ Setup &Setup::setFatalErrorHandler(const FatalErrorHandler &fatalErrorHandler)
 Setup &Setup::setCacheSize(int cacheSize)
 {
 	d->properties.insert(Defaults::CacheSize, cacheSize);
+	return *this;
+}
+
+Setup &Setup::setPersistDeletedVersion(bool persistDeletedVersion)
+{
+	d->properties.insert(Defaults::PersistDeleted, persistDeletedVersion);
 	return *this;
 }
 
@@ -356,6 +367,7 @@ SetupPrivate::SetupPrivate() :
 	serializer(new QJsonSerializer()),
 	properties({
 		{Defaults::CacheSize, MB(10)},
+		{Defaults::PersistDeleted, false},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
 		{Defaults::RemoteConfiguration, QVariant()},
 		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()},

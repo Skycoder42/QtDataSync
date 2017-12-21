@@ -45,6 +45,7 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer)
 	Q_PROPERTY(FatalErrorHandler fatalErrorHandler READ fatalErrorHandler WRITE setFatalErrorHandler RESET resetFatalErrorHandler)
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
+	Q_PROPERTY(bool persistDeletedVersion READ persistDeletedVersion WRITE setPersistDeletedVersion)
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
 	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration)
 	Q_PROPERTY(QString keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
@@ -130,6 +131,7 @@ public:
 	//! Returns the fatal error handler to be used by the Logger
 	FatalErrorHandler fatalErrorHandler() const;
 	int cacheSize() const;
+	bool persistDeletedVersion() const;
 	QSslConfiguration sslConfiguration() const;
 	RemoteConfig remoteConfiguration() const;
 	QString keyStoreProvider() const;
@@ -147,6 +149,7 @@ public:
 	//! Sets the fatal error handler to be used by the Logger
 	Setup &setFatalErrorHandler(const FatalErrorHandler &fatalErrorHandler);
 	Setup &setCacheSize(int cacheSize);
+	Setup &setPersistDeletedVersion(bool persistDeletedVersion);
 	Setup &setSslConfiguration(QSslConfiguration sslConfiguration);
 	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
 	Setup &setKeyStoreProvider(QString keyStoreProvider);

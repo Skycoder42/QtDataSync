@@ -2,6 +2,7 @@
 #include "datastore.h"
 #include "setup_p.h"
 #include "exchangeengine_p.h"
+#include "synchelper_p.h"
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -57,7 +58,7 @@ void ChangeController::uploadDone(const QByteArray &key)
 
 		auto info = _activeUploads.take(key);
 		QSqlQuery completeQuery(_database);
-		if(info.isDelete)
+		if(info.isDelete && !defaults().property(Defaults::PersistDeleted).toBool())
 			completeQuery.prepare(QStringLiteral("DELETE FROM DataIndex WHERE Type = ? AND Id = ? AND Version = ? AND File IS NULL"));
 		else
 			completeQuery.prepare(QStringLiteral("UPDATE DataIndex SET Changed = 0 WHERE Type = ? AND Id = ? AND Version = ?"));
@@ -91,7 +92,7 @@ void ChangeController::uploadNext()
 	try {
 		QReadLocker _(defaults().databaseLock());
 		QSqlQuery readChangesQuery(_database);
-		readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File, Checksum FROM DataIndex WHERE CHANGED = 1 LIMIT ?"));
+		readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File FROM DataIndex WHERE CHANGED = 1 LIMIT ?"));
 		readChangesQuery.addBindValue(UploadLimit); //always select max, since they could already be sheduled
 		exec(readChangesQuery);
 
@@ -107,13 +108,12 @@ void ChangeController::uploadNext()
 			auto isDelete = readChangesQuery.value(3).isNull();
 			_activeUploads.insert(key, {key, version, isDelete});
 			if(isDelete) {//deleted
-				emit uploadDelete(keyHash, version);
+				emit uploadChange(keyHash, SyncHelper::combine(key, version));
 				logDebug() << "Started upload of deleted" << key << "( Active uploads:" << _activeUploads.size() << ")";
 			} else { //changed
 				try {
 					auto json = LocalStore::readJson(defaults(), key, readChangesQuery.value(3).toString());
-					auto checksum = readChangesQuery.value(4).toByteArray();
-					emit uploadChange(keyHash, version, json, checksum);
+					emit uploadChange(keyHash, SyncHelper::combine(key, version, json));
 					logDebug() << "Started upload of changed" << key << "( Active uploads:" << _activeUploads.size() << ")";
 				} catch (Exception &e) {
 					logWarning() << "Failed to read json for upload. Assuming unchanged. Error:" << e.what();
