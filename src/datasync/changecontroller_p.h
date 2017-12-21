@@ -54,12 +54,27 @@ private:
 		bool isDelete;
 	};
 
+	class CachedObjectKey : public ObjectKey {
+	public:
+		CachedObjectKey();
+		CachedObjectKey(const ObjectKey &other);
+		CachedObjectKey(const QByteArray &hash);
+
+		QByteArray hashed() const;
+
+		bool operator==(const CachedObjectKey &other) const;
+		bool operator!=(const CachedObjectKey &other) const;
+
+	private:
+		mutable QByteArray _hash;
+	};
+
 	static const int UploadLimit;
 
 	DatabaseRef _database;
 	bool _uploadingEnabled;
 
-	QHash<QByteArray, UploadInfo> _activeUploads;
+	QHash<CachedObjectKey, UploadInfo> _activeUploads;
 
 	bool canUpload();
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;

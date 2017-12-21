@@ -102,6 +102,7 @@ void ExchangeEngine::controllerError(const QString &errorMessage)
 	upstate(SyncManager::Error);
 
 	//stop up/downloading etc.
+	_remoteConnector->disconnect();
 	_changeController->clearUploads();
 }
 

@@ -55,6 +55,7 @@ public:
 
 public Q_SLOTS:
 	void reconnect();
+	void disconnect();
 	void resync();
 
 	void setSyncEnabled(bool syncEnabled);

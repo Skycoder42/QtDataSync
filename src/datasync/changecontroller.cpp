@@ -96,16 +96,16 @@ void ChangeController::uploadNext()
 		exec(readChangesQuery);
 
 		while(_activeUploads.size() < UploadLimit && readChangesQuery.next()) {
-			ObjectKey key;
+			CachedObjectKey key;
 			key.typeName = readChangesQuery.value(0).toByteArray();
 			key.id = readChangesQuery.value(1).toString();
-			auto keyHash = key.hashed();
-			if(_activeUploads.contains(keyHash))
+			if(_activeUploads.contains(key))
 				continue;
 
+			auto keyHash = key.hashed();
 			auto version = readChangesQuery.value(2).toULongLong();
 			auto isDelete = readChangesQuery.value(3).isNull();
-			_activeUploads.insert(keyHash, {key, version, isDelete});
+			_activeUploads.insert(key, {key, version, isDelete});
 			if(isDelete) {//deleted
 				emit uploadDelete(keyHash, version);
 				logDebug() << "Started upload of deleted" << key << "( Active uploads:" << _activeUploads.size() << ")";
@@ -171,3 +171,43 @@ ChangeController::ChangeInfo::ChangeInfo(const ObjectKey &key, quint64 version, 
 	version(version),
 	checksum(checksum)
 {}
+
+
+
+ChangeController::CachedObjectKey::CachedObjectKey() :
+	ObjectKey(),
+	_hash()
+{}
+
+ChangeController::CachedObjectKey::CachedObjectKey(const ObjectKey &other) :
+	ObjectKey(other),
+	_hash()
+{}
+
+ChangeController::CachedObjectKey::CachedObjectKey(const QByteArray &hash) :
+	ObjectKey(),
+	_hash(hash)
+{}
+
+QByteArray ChangeController::CachedObjectKey::hashed() const
+{
+	if(_hash.isEmpty())
+		_hash = ObjectKey::hashed();
+	return _hash;
+}
+
+bool ChangeController::CachedObjectKey::operator==(const CachedObjectKey &other) const
+{
+	if(!_hash.isEmpty() && !other._hash.isEmpty())
+		return _hash == other._hash;
+	else
+		return ((ObjectKey)(*this) == (ObjectKey)other);
+}
+
+bool ChangeController::CachedObjectKey::operator!=(const CachedObjectKey &other) const
+{
+	if(!_hash.isEmpty() && !other._hash.isEmpty())
+		return _hash != other._hash;
+	else
+		return ((ObjectKey)(*this) != (ObjectKey)other);
+}

@@ -123,6 +123,11 @@ void RemoteConnector::reconnect()
 	_stateMachine->submitEvent(QStringLiteral("reconnect"));
 }
 
+void RemoteConnector::disconnect()
+{
+	triggerError(false);
+}
+
 void RemoteConnector::resync()
 {
 	if(!isIdle())
