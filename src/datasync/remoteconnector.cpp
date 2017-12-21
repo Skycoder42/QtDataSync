@@ -6,6 +6,7 @@
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
 #include "syncmessage_p.h"
+#include "changemessage_p.h"
 
 using namespace QtDataSync;
 
@@ -144,6 +145,19 @@ void RemoteConnector::setSyncEnabled(bool syncEnabled)
 	settings()->setValue(keyRemoteEnabled, syncEnabled);
 	reconnect();
 	emit syncEnabledChanged(syncEnabled);
+}
+
+void RemoteConnector::uploadData(const QByteArray &key, const QJsonObject &changeData)
+{
+	if(!isIdle()) {
+		logWarning() << "Can't upload when not in idle state. Ignoring request";
+		return;
+	}
+
+	//TODO use std::tie for client as well
+	ChangeMessage message(key);
+	std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
+	_socket->sendBinaryMessage(serializeMessage(message));
 }
 
 void RemoteConnector::connected()

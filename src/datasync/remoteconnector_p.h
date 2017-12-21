@@ -60,6 +60,8 @@ public Q_SLOTS:
 
 	void setSyncEnabled(bool syncEnabled);
 
+	void uploadData(const QByteArray &key, const QJsonObject &changeData);
+
 Q_SIGNALS:
 	void finalized();
 	void remoteEvent(RemoteEvent event);

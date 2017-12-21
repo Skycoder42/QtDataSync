@@ -1,6 +1,8 @@
 #ifndef CRYPTOCONTROLLER_P_H
 #define CRYPTOCONTROLLER_P_H
 
+#include <tuple>
+
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 #include <QtCore/QPointer>
@@ -59,8 +61,11 @@ public:
 	template <typename TMessage>
 	QByteArray serializeSignedMessage(const TMessage &message);
 
+	std::tuple<quint32, QByteArray, QByteArray> encrypt(const QJsonObject &data);
+	QJsonObject decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const;
+
 private:
-	struct CipherInfo {
+	struct Q_DATASYNC_EXPORT CipherInfo {
 		QSharedPointer<CipherScheme> scheme;
 		CryptoPP::SecByteBlock key;
 	};

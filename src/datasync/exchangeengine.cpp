@@ -59,6 +59,8 @@ void ExchangeEngine::initialize()
 				this, &ExchangeEngine::controllerError);
 		connect(_changeController, &ChangeController::uploadingChanged,
 				this, &ExchangeEngine::uploadingChanged);
+		connect(_changeController, &ChangeController::uploadChange,
+				_remoteConnector, &RemoteConnector::uploadData);
 
 		//remote controller
 		connect(_remoteConnector, &RemoteConnector::controllerError,

@@ -302,7 +302,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>CHANGED(keyId, dataId, salt, enc{change})</name>
+                         <name>CHANGE(dataId, keyIndex, salt, enc{data})</name>
                          <pos>x:275;y:700</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -880,7 +880,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1513621848893</last-modified>
+                  <last-modified>1513897529032</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1267,7 +1267,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>CHANGED(keyId, dataId, salt, enc{change})</name>
+                  <name>CHANGE(dataId, keyIndex, salt, enc{data})</name>
                   <relations>
                    <handles>
                     <handles>

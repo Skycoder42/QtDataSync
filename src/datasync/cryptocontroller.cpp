@@ -4,6 +4,7 @@
 
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QDataStream>
+#include <QtCore/QJsonDocument>
 
 #include <cryptopp/eax.h>
 #include <cryptopp/gcm.h>
@@ -253,6 +254,65 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),
+							  e);
+	}
+}
+
+std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QJsonObject &data)
+{
+	try {
+		auto info = getInfo(_localCipher);
+		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
+		_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
+
+		auto plain = QJsonDocument(data).toJson(QJsonDocument::Compact);
+
+		auto enc = info.scheme->encryptor();
+		enc->SetKeyWithIV(info.key.data(), info.key.size(),
+						  (const byte*)salt.constData(), salt.size());
+
+		QByteArray cipher;
+		QByteArraySource(plain, true,
+			new AuthenticatedEncryptionFilter(*(enc.data()),
+				new QByteArraySink(cipher)
+			) // AuthenticatedEncryptionFilter
+		); // QByteArraySource
+
+		return std::make_tuple(_localCipher, salt, cipher);
+	} catch(CryptoPP::Exception &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to encrypt data for upload"),
+							  e);
+	}
+}
+
+QJsonObject CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const
+{
+	try {
+		auto info = getInfo(keyIndex);
+
+		auto dec = info.scheme->decryptor();
+		dec->SetKeyWithIV(info.key.data(), info.key.size(),
+						  (const byte*)salt.constData(), salt.size());
+
+		QByteArray plain;
+		QByteArraySource(cipher, true,
+			new AuthenticatedDecryptionFilter(*(dec.data()),
+				new QByteArraySink(plain)
+			) // AuthenticatedDecryptionFilter
+		); // QByteArraySource
+
+		QJsonParseError error;
+		auto doc = QJsonDocument::fromJson(plain, &error);
+		if(error.error != QJsonParseError::NoError)
+			throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, error.errorString().toStdString());
+		if(!doc.isObject())
+			throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Data is valid json, but not a json object");
+
+		return doc.object();
+	} catch(CryptoPP::Exception &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to decrypt downloaded data"),
 							  e);
 	}
 }
