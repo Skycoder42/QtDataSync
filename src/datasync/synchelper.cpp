@@ -2,6 +2,7 @@
 
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QVariant>
+#include <QtCore/QLocale>
 
 using namespace QtDataSync;
 using namespace QtDataSync::SyncHelper;
@@ -59,7 +60,7 @@ void hashNext(QCryptographicHash &hash, const QJsonValue &value)
 		hash.addData(value.toBool() ? "true" : "false");
 		break;
 	case QJsonValue::Double:
-		hash.addData(QByteArray::number(value.toDouble()));
+		hash.addData(QByteArray::number(value.toDouble(), 'g', QLocale::FloatingPointShortest));
 		break;
 	case QJsonValue::String:
 		hash.addData(value.toString().toUtf8());
@@ -71,9 +72,9 @@ void hashNext(QCryptographicHash &hash, const QJsonValue &value)
 	case QJsonValue::Object:
 	{
 		auto obj = value.toObject();
-		foreach(auto key, obj.keys()) { //only member explicitly stated to be sorted
-			hash.addData(key.toUtf8());
-			hashNext(hash, obj.value(key));
+		for(auto it = obj.begin(); it != obj.end(); it++) { //if "keys" is sorted, this must be as well
+			hash.addData(it.key().toUtf8());
+			hashNext(hash, it.value());
 		}
 		break;
 	}
