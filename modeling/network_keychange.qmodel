@@ -81,7 +81,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>KEYCHANGE</name>
+                         <name>KEYCHANGE(newIndex)</name>
                          <pos>x:215;y:75</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -126,8 +126,8 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>DEVICES(&lt;deviceId, pubKey&gt;, ...)</name>
-                         <pos>x:420;y:75</pos>
+                         <name>DEVICES(&lt;deviceId, pubKey, cmac&gt;, ...)</name>
+                         <pos>x:425;y:260</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -149,7 +149,7 @@
                          </base-DElement>
                          <object>{f287aad9-14d5-42e8-885c-32a976f6b1fa}</object>
                          <a>{c2d61fb8-ccc7-443e-8346-dd87e7c007aa}</a>
-                         <b>{36b1ab87-ca2c-4453-8684-50612c28cf4f}</b>
+                         <b>{5de3aa21-32f0-4aa9-b9b7-a71d7e6282c8}</b>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -168,11 +168,11 @@
                          <object>{faaadac9-3588-406f-8699-be30c0f7d659}</object>
                          <stereotypes>
                           <qlist>
-                           <item>encrypted message</item>
+                           <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>NEWKEY(newKey)</name>
-                         <pos>x:650;y:75</pos>
+                         <name>NEWKEY(enc{newKey})</name>
+                         <pos>x:665;y:260</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -217,7 +217,7 @@
                           </qlist>
                          </stereotypes>
                          <name>disconnect given device</name>
-                         <pos>x:880;y:75</pos>
+                         <pos>x:895;y:260</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -254,23 +254,9 @@
                         </DElement>
                        </base-DElement>
                        <text>done per device</text>
-                       <pos>x:760;y:80</pos>
+                       <pos>x:775;y:265</pos>
                        <rect>x:-190;y:-65;w:380;h:130</rect>
                       </DBoundary>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DAnnotation">
-                      <DAnnotation>
-                       <base-DElement>
-                        <DElement>
-                         <uid>{eafb8f29-34d2-4968-894d-e26cd775449d}</uid>
-                        </DElement>
-                       </base-DElement>
-                       <text>server generates a new key id</text>
-                       <pos>x:340;y:20</pos>
-                       <rect>x:0;y:0;w:169.25;h:32</rect>
-                      </DAnnotation>
                      </instance>
                     </item>
                     <item>
@@ -281,15 +267,101 @@
                          <uid>{9bcd368e-5f3c-4f7e-a777-e2453c338a6d}</uid>
                         </DElement>
                        </base-DElement>
-                       <text>sym+asym enc</text>
-                       <pos>x:605;y:30</pos>
-                       <rect>x:0;y:0;w:91.8281;h:32</rect>
+                       <text>asym enc + cmac</text>
+                       <pos>x:620;y:215</pos>
+                       <rect>x:0;y:0;w:103.344;h:32</rect>
                       </DAnnotation>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{5de3aa21-32f0-4aa9-b9b7-a71d7e6282c8}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{2d1b35b6-47bf-4c5f-89d3-e24764fa62d8}</object>
+                         <name>newIndex == currentIndex + 1</name>
+                         <pos>x:425;y:75</pos>
+                         <rect>x:-20;y:-20;w:40;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>condition</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{833ec52f-6a38-4c36-949a-9a911685c19f}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{b14fb7ad-351f-4c02-b928-e2c5642d7849}</object>
+                         <a>{5de3aa21-32f0-4aa9-b9b7-a71d7e6282c8}</a>
+                         <b>{36b1ab87-ca2c-4453-8684-50612c28cf4f}</b>
+                         <name>true</name>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{167e7092-d34c-4e0f-a9ea-7b23dc1cca73}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>error</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>KeyIndexError</name>
+                         <pos>x:665;y:75</pos>
+                         <rect>x:-20;y:-20;w:40;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>termination</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{537f949b-18d3-4a14-8c86-7f0672188886}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{c0b90e10-6140-46d3-9cef-1d9237691cb1}</object>
+                         <a>{5de3aa21-32f0-4aa9-b9b7-a71d7e6282c8}</a>
+                         <b>{167e7092-d34c-4e0f-a9ea-7b23dc1cca73}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
                      </instance>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1513007020403</last-modified>
+                  <last-modified>1513944825248</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -374,7 +446,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>KEYCHANGE</name>
+                  <name>KEYCHANGE(newIndex)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -393,7 +465,7 @@
                               </MElement>
                              </base-MElement>
                              <a>{9e5ce5a0-e776-4b94-bbed-b1414e852dfa}</a>
-                             <b>{a714f0e9-d8aa-4223-bbde-6f8e597646fc}</b>
+                             <b>{2d1b35b6-47bf-4c5f-89d3-e24764fa62d8}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -432,7 +504,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>DEVICES(&lt;deviceId, pubKey&gt;, ...)</name>
+                  <name>DEVICES(&lt;deviceId, pubKey, cmac&gt;, ...)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -485,12 +557,12 @@
                     <uid>{faaadac9-3588-406f-8699-be30c0f7d659}</uid>
                     <stereotypes>
                      <qlist>
-                      <item>encrypted message</item>
+                      <item>message</item>
                      </qlist>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>NEWKEY(newKey)</name>
+                  <name>NEWKEY(enc{newKey})</name>
                   <relations>
                    <handles>
                     <handles>
@@ -553,6 +625,110 @@
                 </base-MObject>
                 <variety-editable>false</variety-editable>
                 <variety>activity</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{2d1b35b6-47bf-4c5f-89d3-e24764fa62d8}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{2d1b35b6-47bf-4c5f-89d3-e24764fa62d8}</uid>
+                   </MElement>
+                  </base-MElement>
+                  <name>newIndex == currentIndex + 1</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{b14fb7ad-351f-4c02-b928-e2c5642d7849}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{b14fb7ad-351f-4c02-b928-e2c5642d7849}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <name>true</name>
+                             <a>{2d1b35b6-47bf-4c5f-89d3-e24764fa62d8}</a>
+                             <b>{a714f0e9-d8aa-4223-bbde-6f8e597646fc}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                      <item>
+                       <handle>
+                        <uid>{c0b90e10-6140-46d3-9cef-1d9237691cb1}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{c0b90e10-6140-46d3-9cef-1d9237691cb1}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{2d1b35b6-47bf-4c5f-89d3-e24764fa62d8}</a>
+                             <b>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>condition</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>error</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>KeyIndexError</name>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>termination</variety>
                </MItem>
               </instance>
              </target>

@@ -147,7 +147,7 @@ void RemoteConnector::setSyncEnabled(bool syncEnabled)
 	emit syncEnabledChanged(syncEnabled);
 }
 
-void RemoteConnector::uploadData(const QByteArray &key, const QJsonObject &changeData)
+void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
 {
 	if(!isIdle()) {
 		logWarning() << "Can't upload when not in idle state. Ignoring request";

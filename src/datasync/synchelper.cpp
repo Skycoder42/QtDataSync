@@ -3,6 +3,10 @@
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QVariant>
 #include <QtCore/QLocale>
+#include <QtCore/QJsonDocument>
+
+#include "message_p.h"
+
 
 using namespace QtDataSync;
 using namespace QtDataSync::SyncHelper;
@@ -18,34 +22,68 @@ QByteArray SyncHelper::jsonHash(const QJsonObject &object)
 	return hash.result();
 }
 
-QJsonObject SyncHelper::combine(const ObjectKey &key, quint64 version, const QJsonObject &data)
+QByteArray SyncHelper::combine(const ObjectKey &key, quint64 version, const QJsonObject &data)
 {
-	QJsonObject res;
-	res.insert(QStringLiteral("type"), QString::fromUtf8(key.typeName));
-	res.insert(QStringLiteral("id"), key.id);
-	res.insert(QStringLiteral("version"), QString::number(version, 36));//encode as string to not loose precision
-	res.insert(QStringLiteral("data"), data);
-	return res;
+	QByteArray out;
+	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
+	setupStream(stream);
+
+	stream << key
+		   << version
+		   << QJsonDocument(data).toJson(QJsonDocument::Compact);
+
+	if(stream.status() != QDataStream::Ok)
+		throw DataStreamException(stream);
+	return out;
 }
 
-QJsonObject SyncHelper::combine(const ObjectKey &key, quint64 version)
+QByteArray SyncHelper::combine(const ObjectKey &key, quint64 version)
 {
-	QJsonObject res;
-	res.insert(QStringLiteral("type"), QString::fromUtf8(key.typeName));
-	res.insert(QStringLiteral("id"), key.id);
-	res.insert(QStringLiteral("version"), QString::number(version, 36));//encode as string to not loose precision
-	res.insert(QStringLiteral("data"), QJsonValue(QJsonValue::Null));
-	return res;
+	QByteArray out;
+	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
+	setupStream(stream);
+
+	stream << key
+		   << version
+		   << QByteArray();
+
+	if(stream.status() != QDataStream::Ok)
+		throw DataStreamException(stream);
+	return out;
 }
 
-SyncData SyncHelper::extract(const QJsonObject &data)
+SyncData SyncHelper::extract(const QByteArray &data)
 {
-	auto type = data.value(QStringLiteral("type")).toString().toUtf8();
-	auto id = data.value(QStringLiteral("id")).toString();
-	auto version = data.value(QStringLiteral("version")).toString().toULongLong(nullptr, 36);
-	auto jData = data.value(QStringLiteral("data"));
+	ObjectKey key;
+	quint64 version;
+	QByteArray jData;
 
-	return std::make_tuple(jData.isNull(), ObjectKey{type, id}, version, jData.toObject());
+	QDataStream stream(data);
+	setupStream(stream);
+
+	stream.startTransaction();
+	stream >> key
+		   >> version
+		   >> jData;
+
+	QJsonObject obj;
+	if(jData.isNull())
+		stream.commitTransaction();
+	else {
+		QJsonParseError error;
+		auto doc = QJsonDocument::fromJson(jData, &error);
+		if(error.error != QJsonParseError::NoError || !doc.isObject())
+			stream.abortTransaction();
+		else {
+			obj = doc.object();
+			stream.commitTransaction();
+		}
+	}
+
+	if(stream.status() != QDataStream::Ok)
+		throw DataStreamException(stream);
+
+	return {jData.isNull(), key, version, obj};
 }
 
 namespace {

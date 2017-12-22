@@ -62,8 +62,8 @@ public:
 	template <typename TMessage>
 	QByteArray serializeSignedMessage(const TMessage &message);
 
-	std::tuple<quint32, QByteArray, QByteArray> encrypt(const QJsonObject &data);
-	QJsonObject decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const;
+	std::tuple<quint32, QByteArray, QByteArray> encrypt(const QByteArray &data);
+	QByteArray decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const;
 
 	std::tuple<quint32, QByteArray> createCmac(const QByteArray &data) const;
 	void verifyCmac(quint32 keyIndex, const QByteArray &data, const QByteArray &mac) const;

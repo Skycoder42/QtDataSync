@@ -60,7 +60,7 @@ public Q_SLOTS:
 
 	void setSyncEnabled(bool syncEnabled);
 
-	void uploadData(const QByteArray &key, const QJsonObject &changeData);
+	void uploadData(const QByteArray &key, const QByteArray &changeData);
 
 Q_SIGNALS:
 	void finalized();

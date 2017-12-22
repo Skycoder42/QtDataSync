@@ -1,5 +1,5 @@
 Environment:
-	action{[changed,noexists,cachedDelete]<->[changed,deleted]}
+	action{[exists,noexists,cachedDelete]<->[changed,deleted]}
 	policy{[changed,deleted]}
 
 Parameters:
@@ -7,7 +7,7 @@ Parameters:
 	chksum{c*}
 	data{d*} (on demand)
 
-action(changed<->changed):
+action(exists<->changed):
 	switch(v1,c1; v2,c2):
 		case v1 != v2:
 			choose max(v1, v2)
@@ -30,7 +30,7 @@ action(noexists<->deleted):
 action(cachedDelete<->deleted):
 	done
 
-action(changed<->deleted):
+action(exists<->deleted):
 	switch(v1, v2):
 		case v2 > v1:
 			choose v2

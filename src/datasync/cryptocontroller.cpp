@@ -259,14 +259,12 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 	}
 }
 
-std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QJsonObject &data)
+std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByteArray &plain)
 {
 	try {
 		auto info = getInfo(_localCipher);
 		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
 		_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
-
-		auto plain = QJsonDocument(data).toJson(QJsonDocument::Compact);
 
 		auto enc = info.scheme->encryptor();
 		enc->SetKeyWithIV(info.key.data(), info.key.size(),
@@ -287,7 +285,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QJso
 	}
 }
 
-QJsonObject CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const
+QByteArray CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const
 {
 	try {
 		auto info = getInfo(keyIndex);
@@ -303,14 +301,7 @@ QJsonObject CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, 
 			) // AuthenticatedDecryptionFilter
 		); // QByteArraySource
 
-		QJsonParseError error;
-		auto doc = QJsonDocument::fromJson(plain, &error);
-		if(error.error != QJsonParseError::NoError)
-			throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, error.errorString().toStdString());
-		if(!doc.isObject())
-			throw CryptoPP::Exception(CryptoPP::Exception::INVALID_DATA_FORMAT, "Data is valid json, but not a json object");
-
-		return doc.object();
+		return plain;
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to decrypt downloaded data"),

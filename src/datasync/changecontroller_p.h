@@ -40,7 +40,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void uploadingChanged(bool uploading);
-	void uploadChange(const QByteArray &key, const QJsonObject &changeData);
+	void uploadChange(const QByteArray &key, const QByteArray &changeData);
 
 private Q_SLOTS:
 	void changeTriggered();
