@@ -40,6 +40,7 @@ public:
 	quint32 toKeyLength(quint32 length) const override;
 	QSharedPointer<AuthenticatedSymmetricCipher> encryptor() const override;
 	QSharedPointer<AuthenticatedSymmetricCipher> decryptor() const override;
+	QSharedPointer<MessageAuthenticationCode> cmac() const override;
 };
 
 // ------------- KeyScheme class definitions -------------
@@ -278,7 +279,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QJso
 			) // AuthenticatedEncryptionFilter
 		); // QByteArraySource
 
-		return std::make_tuple(_localCipher, salt, cipher);
+		return {_localCipher, salt, cipher};
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt data for upload"),
@@ -313,6 +314,47 @@ QJsonObject CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, 
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to decrypt downloaded data"),
+							  e);
+	}
+}
+
+std::tuple<quint32, QByteArray> CryptoController::createCmac(const QByteArray &data) const
+{
+	try {
+		auto info = getInfo(_localCipher);
+
+		auto cmac = info.scheme->cmac();
+		cmac->SetKey(info.key.data(), info.key.size());
+
+		QByteArray mac;
+		QByteArraySource (data, true,
+			new HashFilter(*(cmac.data()),
+				new QByteArraySink(mac)
+			) // HashFilter
+		); // QByteArraySource
+
+		return {_localCipher, mac};
+	} catch(CryptoPP::Exception &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to create CMAC"),
+							  e);
+	}
+}
+
+void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, const QByteArray &mac) const
+{
+	try {
+		auto info = getInfo(keyIndex);
+
+		auto cmac = info.scheme->cmac();
+		cmac->SetKey(info.key.data(), info.key.size());
+
+		QByteArraySource (data + mac, true,
+			new HashVerificationFilter(*(cmac.data()), nullptr, HashVerificationFilter::THROW_EXCEPTION | HashVerificationFilter::HASH_AT_END) // HashFilter
+		); // QByteArraySource
+	} catch(CryptoPP::Exception &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to verify CMAC"),
 							  e);
 	}
 }
@@ -696,6 +738,12 @@ template <template<class> class TScheme, class TCipher>
 QSharedPointer<AuthenticatedSymmetricCipher> StandardCipherScheme<TScheme, TCipher>::decryptor() const
 {
 	return QSharedPointer<typename Scheme::Decryption>::create();
+}
+
+template <template<class> class TScheme, class TCipher>
+QSharedPointer<MessageAuthenticationCode> StandardCipherScheme<TScheme, TCipher>::cmac() const
+{
+	return QSharedPointer<CMAC<TCipher>>::create();
 }
 
 // ------------- Generic KeyScheme Implementation -------------
