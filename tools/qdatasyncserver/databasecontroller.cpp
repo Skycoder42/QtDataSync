@@ -29,6 +29,19 @@ DatabaseController::DatabaseController(QObject *parent) :
 	multiThreaded(false),
 	threadStore()
 {
+	connect(this, &DatabaseController::databaseInitDone, this, [this](bool ok) {
+		if(ok) { //done on the main thread to make sure the connection does not die with threads
+			//TODO keepalive
+			auto driver = threadStore.localData().database().driver();
+			connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
+					this, &DatabaseController::onNotify);
+			if(!driver->subscribeToNotification(QStringLiteral("deviceDataEvent")))
+				qCritical() << "Unabled to notify to change events. Devices will not receive updates!";
+			else
+				qDebug() << "Event subscription active";
+		}
+	}, Qt::QueuedConnection);
+
 	QtConcurrent::run(qApp->threadPool(), this, &DatabaseController::initDatabase);
 }
 
@@ -70,7 +83,7 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 
 	//create a device entry
 	auto deviceId = QUuid::createUuid();
-	QSqlQuery createDeviceQuery(db);
+	Query createDeviceQuery(db);
 	createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
 											 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey) "
 											 "VALUES(?, ?, ?, ?, ?, ?, ?) "));
@@ -89,12 +102,12 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 	return deviceId;
 }
 
-QtDataSync::AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, CryptoPP::RandomNumberGenerator &rng, QString &name, QObject *parent)
+AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, CryptoPP::RandomNumberGenerator &rng, QObject *parent)
 {
 	auto db = threadStore.localData().database();
 
 	Query loadCryptoQuery(db);
-	loadCryptoQuery.prepare(QStringLiteral("SELECT signscheme, signkey, cryptscheme, cryptkey, name "
+	loadCryptoQuery.prepare(QStringLiteral("SELECT signscheme, signkey, cryptscheme, cryptkey "
 										   "FROM devices "
 										   "WHERE id = ?"));
 	loadCryptoQuery.addBindValue(deviceId);
@@ -102,22 +115,20 @@ QtDataSync::AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &de
 	if(!loadCryptoQuery.first())
 		return nullptr;
 
-	name = loadCryptoQuery.value(4).toString();
 	return new AsymmetricCryptoInfo(rng,
 									loadCryptoQuery.value(0).toString().toUtf8(),
 									loadCryptoQuery.value(1).toByteArray(),
 									loadCryptoQuery.value(2).toString().toUtf8(),
 									loadCryptoQuery.value(3).toByteArray(),
 									parent);
-
 }
 
-void DatabaseController::updateName(const QUuid &deviceId, const QString &name)
+void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 {
 	auto db = threadStore.localData().database();
 
 	Query updateNameQuery(db);
-	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?"
+	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?, lastlogin = 'today'"
 										   "WHERE id = ?"));
 	updateNameQuery.addBindValue(name);
 	updateNameQuery.addBindValue(deviceId);
@@ -128,6 +139,66 @@ void *DatabaseController::loadNextChange(const QUuid &deviceId)
 {
 	Q_UNIMPLEMENTED();
 	return nullptr;
+}
+
+void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
+{
+	auto db = threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
+
+	// add the data change
+	Query addChangeQuery(db);
+	addChangeQuery.prepare(QStringLiteral("INSERT INTO datachanges (deviceid, dataid, keyid, salt, data) VALUES(?, ?, ?, ?, ?)"));
+	addChangeQuery.addBindValue(deviceId);
+	addChangeQuery.addBindValue(dataId);
+	addChangeQuery.addBindValue(keyIndex);
+	addChangeQuery.addBindValue(salt);
+	addChangeQuery.addBindValue(data);
+	addChangeQuery.exec();
+	auto nId = addChangeQuery.lastInsertId();
+	if(!nId.isValid()){
+		db.rollback();
+		throw DatabaseException(QSqlError(QString(), QStringLiteral("Unable to get id of last inserted data change")));
+	}
+
+	// update device changes
+	Query updateDevicesQuery(db);
+	updateDevicesQuery.prepare(QStringLiteral("INSERT INTO devicechanges(dataid, deviceid) "
+											  "SELECT ? AS dataid, devices.id AS deviceid FROM devices "
+											  "INNER JOIN users ON devices.userid = users.id "
+											  "WHERE devices.id != ? "
+											  "AND devices.userid = ( "
+											  "	SELECT userid FROM devices "
+											  "	WHERE id = ? "
+											  ")"));
+	updateDevicesQuery.addBindValue(nId);
+	updateDevicesQuery.addBindValue(deviceId);
+	updateDevicesQuery.addBindValue(deviceId);
+	updateDevicesQuery.exec();
+	auto affected = updateDevicesQuery.numRowsAffected();
+
+	if(affected == 0) { //no devices to be notified -> remove the data again
+		Query removeChangeQuery(db);
+		removeChangeQuery.prepare(QStringLiteral("DELETE FROM datachanges WHERE id = ?"));
+		removeChangeQuery.addBindValue(nId);
+		removeChangeQuery.exec();
+	}
+
+	if(!db.commit())
+		throw DatabaseException(db);
+}
+
+void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
+{
+	Q_UNUSED(source)
+	if(name == QStringLiteral("deviceDataEvent")) {
+		auto device = payload.toUuid();
+		if(device.isNull())
+			qWarning() << "Invalid event data for deviceDataEvent:" << payload;
+		else
+			emit notifyChanged(device);
+	}
 }
 
 void DatabaseController::initDatabase()
@@ -142,12 +213,26 @@ void DatabaseController::initDatabase()
 //#define AUTO_DROP_TABLES
 #ifdef AUTO_DROP_TABLES
 		QSqlQuery dropQuery(db);
-		if(!dropQuery.exec(QStringLiteral("DROP TABLE IF EXISTS devices, users CASCADE"))) {
+		if(!dropQuery.exec(QStringLiteral("DROP TABLE IF EXISTS devicechanges, datachanges, devices, users CASCADE"))) {
 			qWarning() << "Failed to drop tables with error:"
 					   << qPrintable(dropQuery.lastError().text());
 		} else
 			qInfo() << "Dropped all existing tables";
 #endif
+
+		static const auto features = {
+			QSqlDriver::Transactions,
+			QSqlDriver::BLOB,
+			QSqlDriver::PreparedQueries,
+			QSqlDriver::PositionalPlaceholders,
+			QSqlDriver::LastInsertId,
+			QSqlDriver::EventNotifications
+		};
+		auto driver = db.driver(); //TODO create
+		foreach(auto feature, features) {
+			if(!driver->hasFeature(feature))
+				throw DatabaseException(QSqlError(QStringLiteral("Driver does not support feature %1").arg(feature)));
+		}
 
 		if(!db.tables().contains(QStringLiteral("users"))) {
 			QSqlQuery createUsers(db);
@@ -158,7 +243,6 @@ void DatabaseController::initDatabase()
 				throw DatabaseException(createUsers);
 			}
 		}
-
 
 		if(!db.tables().contains(QStringLiteral("devices"))) {
 			QSqlQuery createDevices(db);
@@ -176,7 +260,52 @@ void DatabaseController::initDatabase()
 			}
 		}
 
-		//TODO IMPLEMENT
+		if(!db.tables().contains(QStringLiteral("datachanges"))) {
+			QSqlQuery createDataChanges(db);
+			if(!createDataChanges.exec(QStringLiteral("CREATE TABLE datachanges ( "
+													  "		id			BIGSERIAL PRIMARY KEY NOT NULL, "
+													  "		deviceid	UUID NOT NULL REFERENCES devices(id), "
+													  "		dataid		BYTEA NOT NULL, "
+													  "		keyid		INT NOT NULL, "
+													  "		salt		BYTEA NOT NULL, "
+													  "		data		BYTEA NOT NULL, "
+													  "		UNIQUE(deviceid, dataid) "
+													  ")"))) {
+				throw DatabaseException(createDataChanges);
+			}
+		}
+
+		if(!db.tables().contains(QStringLiteral("devicechanges"))) {
+			QSqlQuery createDeviceChanges(db);
+			if(!createDeviceChanges.exec(QStringLiteral("CREATE TABLE devicechanges ( "
+														"	deviceid	UUID NOT NULL REFERENCES devices(id), "
+														"	dataid		BIGINT NOT NULL REFERENCES datachanges(id) ON DELETE CASCADE, "
+														"	PRIMARY KEY(deviceid, dataid) "
+														")"))) {
+				throw DatabaseException(createDeviceChanges);
+			}
+
+			QSqlQuery createNotifyFn(db);
+			if(!createNotifyFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION notifyDeviceChange() RETURNS trigger AS "
+												   "$BODY$ "
+												   "BEGIN "
+												   "	PERFORM pg_notify('deviceDataEvent', NEW.deviceid::text); "
+												   "	RETURN new; "
+												   "END; "
+												   "$BODY$ "
+												   "LANGUAGE plpgsql VOLATILE;"))) {
+				throw DatabaseException(createNotifyFn);
+			}
+
+			QSqlQuery createNotifyTrigger(db);
+			if(!createNotifyTrigger.exec(QStringLiteral("CREATE TRIGGER device_change_trigger "
+														"AFTER INSERT "
+														"ON devicechanges "
+														"FOR EACH ROW "
+														"EXECUTE PROCEDURE notifyDeviceChange();"))) {
+				throw DatabaseException(createNotifyTrigger);
+			}
+		}
 
 		emit databaseInitDone(true);
 	} catch(DatabaseException &e) {

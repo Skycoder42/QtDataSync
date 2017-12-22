@@ -18,6 +18,7 @@
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
+#include "donemessage_p.h"
 
 #include "connectorstatemachine.h"
 
@@ -65,6 +66,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void finalized();
 	void remoteEvent(RemoteEvent event);
+	void uploadDone(const QByteArray &key);
 
 	void syncEnabledChanged(bool syncEnabled);
 
@@ -111,6 +113,7 @@ private:
 	void onIdentify(const IdentifyMessage &message);
 	void onAccount(const AccountMessage &message);
 	void onWelcome(const WelcomeMessage &message);
+	void onDone(const DoneMessage &message);
 };
 
 }

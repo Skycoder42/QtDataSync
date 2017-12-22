@@ -8,7 +8,8 @@ HEADERS += \
 	$$PWD/welcomemessage_p.h \
     $$PWD/errormessage_p.h \
     $$PWD/syncmessage_p.h \
-    $$PWD/changemessage_p.h
+    $$PWD/changemessage_p.h \
+    $$PWD/donemessage_p.h
 
 SOURCES += \
 	$$PWD/message.cpp \
@@ -20,7 +21,8 @@ SOURCES += \
 	$$PWD/welcomemessage.cpp \
     $$PWD/errormessage.cpp \
     $$PWD/syncmessage.cpp \
-    $$PWD/changemessage.cpp
+    $$PWD/changemessage.cpp \
+    $$PWD/donemessage.cpp
 
 INCLUDEPATH += $$PWD
 

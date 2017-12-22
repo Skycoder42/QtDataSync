@@ -213,8 +213,12 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onAccount(deserializeMessage<AccountMessage>(stream));
 		else if(isType<WelcomeMessage>(name))
 			onWelcome(deserializeMessage<WelcomeMessage>(stream));
-		else
+		else if(isType<DoneMessage>(name))
+			onDone(deserializeMessage<DoneMessage>(stream));
+		else {
 			logWarning() << "Unknown message received: " << typeName(name);
+			triggerError(true);
+		}
 	} catch(DataStreamException &e) {
 		logCritical() << "Remote message error:" << e.what();
 	}
@@ -571,4 +575,13 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		_expectChanges = message.hasChanges;
 		_stateMachine->submitEvent(QStringLiteral("account"));
 	}
+}
+
+void RemoteConnector::onDone(const DoneMessage &message)
+{
+	if(!isIdle()) {
+		logWarning() << "Unexpected DoneMessage";
+		triggerError(true);
+	} else
+		emit uploadDone(message.dataId);
 }

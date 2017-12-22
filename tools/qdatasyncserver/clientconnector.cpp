@@ -75,13 +75,14 @@ bool ClientConnector::listen()
 	}
 }
 
-void ClientConnector::notifyChanged(const QUuid &userId, const QUuid &excludedDeviceId, const QString &type, const QString &key, bool changed)
+void ClientConnector::notifyChanged(const QUuid &deviceId)
 {
-	auto devices = clients.values(userId);
-	foreach (auto device, devices) {
-		if(device->deviceId() != excludedDeviceId)
-			device->notifyChanged(type, key, changed);
-	}
+	Q_UNIMPLEMENTED();
+//	auto devices = clients.values(userId);
+//	foreach (auto device, devices) {
+//		if(device->deviceId() != excludedDeviceId)
+//			device->notifyChanged(type, key, changed);
+//	}
 }
 
 void ClientConnector::verifySecret(QWebSocketCorsAuthenticator *authenticator)

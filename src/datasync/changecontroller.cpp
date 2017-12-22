@@ -50,8 +50,10 @@ void ChangeController::clearUploads()
 
 void ChangeController::uploadDone(const QByteArray &key)
 {
-	if(!_activeUploads.contains(key))
+	if(!_activeUploads.contains(key)) {
+		logWarning() << "Unknown key completed:" << key.toHex();
 		return;
+	}
 
 	try {
 		QWriteLocker _(defaults().databaseLock());

@@ -1,6 +1,8 @@
 #ifndef DATABASECONTROLLER_H
 #define DATABASECONTROLLER_H
 
+#include <tuple>
+
 #include <QtCore/QObject>
 #include <QtCore/QSharedPointer>
 #include <QtCore/QThreadPool>
@@ -11,6 +13,7 @@
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
+#include <QtSql/QSqlDriver>
 
 #include "asymmetriccrypto_p.h"
 
@@ -47,24 +50,25 @@ public:
 					   const QByteArray &cryptScheme,
 					   const QByteArray &cryptKey);
 	QtDataSync::AsymmetricCryptoInfo *loadCrypto(const QUuid &deviceId,
-												 CryptoPP::RandomNumberGenerator &rng,
-												 QString &name,
-												 QObject *parent = nullptr);
-	void updateName(const QUuid &deviceId, const QString &name);
+																	  CryptoPP::RandomNumberGenerator &rng,
+																	  QObject *parent = nullptr);
+	void updateLogin(const QUuid &deviceId, const QString &name);
 
 	void *loadNextChange(const QUuid &deviceId);
+	void addChange(const QUuid &deviceId,
+				   const QByteArray &dataId,
+				   const quint32 keyIndex,
+				   const QByteArray &salt,
+				   const QByteArray &data);
 
-
-signals:
-	//TODO correct
-	void notifyChanged(const QUuid &userId,
-					   const QUuid &excludedDeviceId,
-					   const QString &type,
-					   const QString &key,
-					   bool changed);
+Q_SIGNALS:
+	void notifyChanged(const QUuid &deviceId);
 
 	void databaseInitDone(bool success);
 	void cleanupOperationDone(int rowsAffected, const QString &error = {});
+
+private Q_SLOTS:
+	void onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload);
 
 private:
 	class DatabaseWrapper

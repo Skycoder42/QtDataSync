@@ -17,11 +17,7 @@ public:
 	bool listen();
 
 public slots:
-	void notifyChanged(const QUuid &userId,
-					   const QUuid &excludedDeviceId,
-					   const QString &type,
-					   const QString &key,
-					   bool changed);
+	void notifyChanged(const QUuid &deviceId);
 
 private slots:
 	void verifySecret(QWebSocketCorsAuthenticator *authenticator);

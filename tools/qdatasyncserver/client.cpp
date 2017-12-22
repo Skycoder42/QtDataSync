@@ -1,9 +1,10 @@
 #include "client.h"
 #include "app.h"
+#include "errormessage_p.h"
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
-#include "errormessage_p.h"
+#include "donemessage_p.h"
 
 #include <chrono>
 
@@ -140,16 +141,15 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			if(!stream.commitTransaction())
 				throw DataStreamException(stream);
 
-			if(isType<RegisterMessage>(name)) {
-				auto msg = deserializeMessage<RegisterMessage>(stream);
-				onRegister(msg, stream);
-			} else if(isType<LoginMessage>(name)) {
-				auto msg = deserializeMessage<LoginMessage>(stream);
-				onLogin(msg, stream);
-			} else if(isType<SyncMessage>(name)) {
-				auto msg = deserializeMessage<SyncMessage>(stream);
-				onSync(msg);
-			} else {
+			if(isType<RegisterMessage>(name))
+				onRegister(deserializeMessage<RegisterMessage>(stream), stream);
+			else if(isType<LoginMessage>(name))
+				onLogin(deserializeMessage<LoginMessage>(stream), stream);
+			else if(isType<SyncMessage>(name))
+				onSync(deserializeMessage<SyncMessage>(stream));
+			else if(isType<ChangeMessage>(name))
+				onChange(deserializeMessage<ChangeMessage>(stream));
+			else {
 				qWarning() << "Unknown message received:" << typeName(name);
 				sendMessage(serializeMessage<ErrorMessage>({
 															   ErrorMessage::IncompatibleVersionError,
@@ -305,9 +305,8 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 		throw MessageException("Invalid nonce in LoginMessage");
 
 	//load public key to verify signature
-	QString name;
 	try {
-		QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(message.deviceId, rngPool.localData(), name));
+		QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(message.deviceId, rngPool.localData()));
 		if(!crypto)
 			throw ClientErrorException(ErrorMessage::AuthenticationError);
 		verifySignature(stream, crypto->signatureKey(), crypto.data());
@@ -320,8 +319,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	_catStr = "client." + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
-	if(name != message.name)
-		_database->updateName(_deviceId, message.name);
+	_database->updateLogin(_deviceId, message.name);
 	qDebug() << "Device successfully logged in";
 
 	auto change = _database->loadNextChange(_deviceId);
@@ -334,6 +332,20 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 void Client::onSync(const SyncMessage &message)
 {
 	Q_UNIMPLEMENTED();
+}
+
+void Client::onChange(const ChangeMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<ChangeMessage>();
+
+	_database->addChange(_deviceId,
+						 message.dataId,
+						 message.keyIndex,
+						 message.salt,
+						 message.data);
+
+	sendMessage(serializeMessage<DoneMessage>(message.dataId));
 }
 
 // ------------- Exceptions Implementation -------------
