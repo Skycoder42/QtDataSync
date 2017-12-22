@@ -102,7 +102,15 @@ void ChangeController::uploadNext()
 			CachedObjectKey key;
 			key.typeName = readChangesQuery.value(0).toByteArray();
 			key.id = readChangesQuery.value(1).toString();
-			if(_activeUploads.contains(key))
+
+			auto skip = false;
+			foreach(auto mKey, _activeUploads.keys()) {
+				if(key == mKey) {
+					skip = true;
+					break;
+				}
+			}
+			if(skip)
 				continue;
 
 			auto keyHash = key.hashed();
@@ -212,4 +220,9 @@ bool ChangeController::CachedObjectKey::operator!=(const CachedObjectKey &other)
 		return _hash != other._hash;
 	else
 		return ((ObjectKey)(*this) != (ObjectKey)other);
+}
+
+uint QtDataSync::qHash(const ChangeController::CachedObjectKey &key, uint seed)
+{
+	return qHash(key.hashed(), seed);
 }

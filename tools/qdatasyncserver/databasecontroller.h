@@ -22,7 +22,7 @@ class DatabaseException : public QException
 public:
 	DatabaseException(const QSqlError &error);
 	DatabaseException(QSqlDatabase db);
-	DatabaseException(const QSqlQuery &query, QSqlDatabase db = {});
+	DatabaseException(const QSqlQuery &query);
 
 	QSqlError error() const;
 

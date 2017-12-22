@@ -53,13 +53,18 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 			if(!db.transaction())
 				throw DatabaseException(db);
 
-			//TODO IMPLEMENT
-			Q_UNIMPLEMENTED();
+			try {
+				//TODO IMPLEMENT
+				Q_UNIMPLEMENTED();
 
-			if(db.commit())
-				emit cleanupOperationDone(0);
-			else
-				throw DatabaseException(db);
+				if(db.commit())
+					emit cleanupOperationDone(0);
+				else
+					throw DatabaseException(db);
+			} catch(...) {
+				db.rollback();
+				throw;
+			}
 		} catch (DatabaseException &e) {
 			emit cleanupOperationDone(-1, e.error().text());
 		}
@@ -72,34 +77,39 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 	if(!db.transaction())
 		throw DatabaseException(db);
 
-	//create a new user
-	Query createIdentityQuery(db);
-	createIdentityQuery.prepare(QStringLiteral("INSERT INTO users DEFAULT VALUES "
-											   "RETURNING id"));
-	createIdentityQuery.exec();
-	if(!createIdentityQuery.first())
-		throw DatabaseException(db);
-	auto userId = createIdentityQuery.value(0).toLongLong();
+	try {
+		//create a new user
+		Query createIdentityQuery(db);
+		createIdentityQuery.prepare(QStringLiteral("INSERT INTO users DEFAULT VALUES "
+												   "RETURNING id"));
+		createIdentityQuery.exec();
+		if(!createIdentityQuery.first())
+			throw DatabaseException(db);
+		auto userId = createIdentityQuery.value(0).toLongLong();
 
-	//create a device entry
-	auto deviceId = QUuid::createUuid();
-	Query createDeviceQuery(db);
-	createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
-											 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey) "
-											 "VALUES(?, ?, ?, ?, ?, ?, ?) "));
-	createDeviceQuery.addBindValue(deviceId);
-	createDeviceQuery.addBindValue(userId);
-	createDeviceQuery.addBindValue(name);
-	createDeviceQuery.addBindValue(QString::fromUtf8(signScheme));
-	createDeviceQuery.addBindValue(signKey);
-	createDeviceQuery.addBindValue(QString::fromUtf8(cryptScheme));
-	createDeviceQuery.addBindValue(cryptKey);
-	createDeviceQuery.exec();
+		//create a device entry
+		auto deviceId = QUuid::createUuid();
+		Query createDeviceQuery(db);
+		createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
+												 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey) "
+												 "VALUES(?, ?, ?, ?, ?, ?, ?) "));
+		createDeviceQuery.addBindValue(deviceId);
+		createDeviceQuery.addBindValue(userId);
+		createDeviceQuery.addBindValue(name);
+		createDeviceQuery.addBindValue(QString::fromUtf8(signScheme));
+		createDeviceQuery.addBindValue(signKey);
+		createDeviceQuery.addBindValue(QString::fromUtf8(cryptScheme));
+		createDeviceQuery.addBindValue(cryptKey);
+		createDeviceQuery.exec();
 
-	if(!db.commit())
-		throw DatabaseException(db);
+		if(!db.commit())
+			throw DatabaseException(db);
 
-	return deviceId;
+		return deviceId;
+	} catch(...) {
+		db.rollback();
+		throw;
+	}
 }
 
 AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, CryptoPP::RandomNumberGenerator &rng, QObject *parent)
@@ -147,46 +157,58 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 	if(!db.transaction())
 		throw DatabaseException(db);
 
-	// add the data change
-	Query addChangeQuery(db);
-	addChangeQuery.prepare(QStringLiteral("INSERT INTO datachanges (deviceid, dataid, keyid, salt, data) VALUES(?, ?, ?, ?, ?)"));
-	addChangeQuery.addBindValue(deviceId);
-	addChangeQuery.addBindValue(dataId);
-	addChangeQuery.addBindValue(keyIndex);
-	addChangeQuery.addBindValue(salt);
-	addChangeQuery.addBindValue(data);
-	addChangeQuery.exec();
-	auto nId = addChangeQuery.lastInsertId();
-	if(!nId.isValid()){
+	try {
+		// delete the entry, in case it already exists. Will do nothing if nothing exists
+		Query deleteOldQuery(db);
+		deleteOldQuery.prepare(QStringLiteral("DELETE FROM datachanges WHERE deviceid = ? AND dataid = ?"));
+		deleteOldQuery.addBindValue(deviceId);
+		deleteOldQuery.addBindValue(dataId);
+		deleteOldQuery.exec();
+
+		// add the data change
+		Query addChangeQuery(db);
+		addChangeQuery.prepare(QStringLiteral("INSERT INTO datachanges (deviceid, dataid, keyid, salt, data) VALUES(?, ?, ?, ?, ?)"));
+		addChangeQuery.addBindValue(deviceId);
+		addChangeQuery.addBindValue(dataId);
+		addChangeQuery.addBindValue(keyIndex);
+		addChangeQuery.addBindValue(salt);
+		addChangeQuery.addBindValue(data);
+		addChangeQuery.exec();
+		auto nId = addChangeQuery.lastInsertId();
+		if(!nId.isValid()){
+			db.rollback();
+			throw DatabaseException(QSqlError(QString(), QStringLiteral("Unable to get id of last inserted data change")));
+		}
+
+		// update device changes
+		Query updateDevicesQuery(db);
+		updateDevicesQuery.prepare(QStringLiteral("INSERT INTO devicechanges(dataid, deviceid) "
+												  "SELECT ? AS dataid, devices.id AS deviceid FROM devices "
+												  "INNER JOIN users ON devices.userid = users.id "
+												  "WHERE devices.id != ? "
+												  "AND devices.userid = ( "
+												  "	SELECT userid FROM devices "
+												  "	WHERE id = ? "
+												  ")"));
+		updateDevicesQuery.addBindValue(nId);
+		updateDevicesQuery.addBindValue(deviceId);
+		updateDevicesQuery.addBindValue(deviceId);
+		updateDevicesQuery.exec();
+		auto affected = updateDevicesQuery.numRowsAffected();
+
+		if(affected == 0) { //no devices to be notified -> remove the data again
+			Query removeChangeQuery(db);
+			removeChangeQuery.prepare(QStringLiteral("DELETE FROM datachanges WHERE id = ?"));
+			removeChangeQuery.addBindValue(nId);
+			removeChangeQuery.exec();
+		}
+
+		if(!db.commit())
+			throw DatabaseException(db);
+	} catch(...) {
 		db.rollback();
-		throw DatabaseException(QSqlError(QString(), QStringLiteral("Unable to get id of last inserted data change")));
+		throw;
 	}
-
-	// update device changes
-	Query updateDevicesQuery(db);
-	updateDevicesQuery.prepare(QStringLiteral("INSERT INTO devicechanges(dataid, deviceid) "
-											  "SELECT ? AS dataid, devices.id AS deviceid FROM devices "
-											  "INNER JOIN users ON devices.userid = users.id "
-											  "WHERE devices.id != ? "
-											  "AND devices.userid = ( "
-											  "	SELECT userid FROM devices "
-											  "	WHERE id = ? "
-											  ")"));
-	updateDevicesQuery.addBindValue(nId);
-	updateDevicesQuery.addBindValue(deviceId);
-	updateDevicesQuery.addBindValue(deviceId);
-	updateDevicesQuery.exec();
-	auto affected = updateDevicesQuery.numRowsAffected();
-
-	if(affected == 0) { //no devices to be notified -> remove the data again
-		Query removeChangeQuery(db);
-		removeChangeQuery.prepare(QStringLiteral("DELETE FROM datachanges WHERE id = ?"));
-		removeChangeQuery.addBindValue(nId);
-		removeChangeQuery.exec();
-	}
-
-	if(!db.commit())
-		throw DatabaseException(db);
 }
 
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
@@ -356,18 +378,13 @@ DatabaseException::DatabaseException(const QSqlError &error) :
 
 DatabaseException::DatabaseException(QSqlDatabase db) :
 	DatabaseException(db.lastError())
-{
-	db.rollback(); //to be safe
-}
+{}
 
-DatabaseException::DatabaseException(const QSqlQuery &query, QSqlDatabase db) :
+DatabaseException::DatabaseException(const QSqlQuery &query) :
 	_error(query.lastError()),
 	_msg("\n ==> Query: " + query.executedQuery().toUtf8() +
 		 "\n ==> Error: " + query.lastError().text().toUtf8())
-{
-	if(db.isValid())
-		db.rollback(); //to be safe
-}
+{}
 
 QSqlError DatabaseException::error() const
 {
@@ -398,11 +415,11 @@ Query::Query(QSqlDatabase db) :
 void Query::prepare(const QString &query)
 {
 	if(!QSqlQuery::prepare(query))
-		throw DatabaseException(*this, _db);
+		throw DatabaseException(*this);
 }
 
 void Query::exec()
 {
 	if(!QSqlQuery::exec())
-		throw DatabaseException(*this, _db);
+		throw DatabaseException(*this);
 }
