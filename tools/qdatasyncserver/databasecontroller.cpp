@@ -248,33 +248,32 @@ QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::
 void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex)
 {
 	auto db = threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
 
-	// explanation, see https://stackoverflow.com/a/15810159/3767076
-	Query deleteChangeQuery(db);
-	deleteChangeQuery.prepare(QStringLiteral("WITH lock_parent AS ( "
-											 "	SELECT p.id, c.deviceid "
-											 "	FROM devicechanges c "
-											 "	JOIN datachanges p ON p.id = c.dataid "
-											 "	WHERE c.deviceid = ? AND c.dataid = ?"
-											 "	FOR NO KEY UPDATE "
-											 "), del_child AS ( "
-											 "	DELETE FROM devicechanges c "
-											 "	USING lock_parent l "
-											 "	WHERE c.deviceid = l.deviceid AND c.dataid = l.id "
-											 ") "
-											 "DELETE FROM datachanges p "
-											 "USING lock_parent l "
-											 "WHERE p.id = l.id "
-											 "AND NOT EXISTS ( "
-											 "	SELECT 1 "
-											 "	FROM devicechanges c "
-											 "	WHERE c.dataid = l.id "
-											 "	AND c.deviceid <> l.deviceid"
-											 ");"));
-	//deleteChangeQuery.prepare(QStringLiteral("DELETE FROM devicechanges WHERE deviceid = ? AND dataid = ?"));
-	deleteChangeQuery.addBindValue(deviceId);
-	deleteChangeQuery.addBindValue(dataIndex);
-	deleteChangeQuery.exec();
+	try {
+		Query deleteChangeQuery(db);
+		deleteChangeQuery.prepare(QStringLiteral("DELETE FROM devicechanges WHERE deviceid = ? AND dataid = ?"));
+		deleteChangeQuery.addBindValue(deviceId);
+		deleteChangeQuery.addBindValue(dataIndex);
+		deleteChangeQuery.exec();
+
+		Query deleteDataQuery(db);
+		deleteDataQuery.prepare(QStringLiteral("DELETE FROM datachanges WHERE id = ? "
+											   "AND NOT EXISTS ( "
+											   "	SELECT 1 FROM devicechanges "
+											   "	WHERE dataid = ? "
+											   ")"));
+		deleteDataQuery.addBindValue(dataIndex);
+		deleteDataQuery.addBindValue(dataIndex);
+		deleteDataQuery.exec();
+
+		if(!db.commit())
+			throw DatabaseException(db);
+	} catch(...) {
+		db.rollback();
+		throw;
+	}
 }
 
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
@@ -352,7 +351,7 @@ void DatabaseController::initDatabase()
 			QSqlQuery createDataChanges(db);
 			if(!createDataChanges.exec(QStringLiteral("CREATE TABLE datachanges ( "
 													  "		id			BIGSERIAL PRIMARY KEY NOT NULL, "
-													  "		deviceid	UUID NOT NULL REFERENCES devices(id), "
+													  "		deviceid	UUID NOT NULL REFERENCES devices(id) ON DELETE CASCADE, "
 													  "		dataid		BYTEA NOT NULL, "
 													  "		keyid		INT NOT NULL, "
 													  "		salt		BYTEA NOT NULL, "
@@ -366,7 +365,7 @@ void DatabaseController::initDatabase()
 		if(!db.tables().contains(QStringLiteral("devicechanges"))) {
 			QSqlQuery createDeviceChanges(db);
 			if(!createDeviceChanges.exec(QStringLiteral("CREATE TABLE devicechanges ( "
-														"	deviceid	UUID NOT NULL REFERENCES devices(id), "
+														"	deviceid	UUID NOT NULL REFERENCES devices(id) ON DELETE CASCADE, "
 														"	dataid		BIGINT NOT NULL REFERENCES datachanges(id) ON DELETE CASCADE, "
 														"	PRIMARY KEY(deviceid, dataid) "
 														")"))) {
