@@ -23,11 +23,27 @@ public:
 	QByteArray data;
 };
 
+class Q_DATASYNC_EXPORT ChangeAckMessage
+{
+	Q_GADGET
+
+	Q_PROPERTY(QByteArray dataId MEMBER dataId)
+
+public:
+	ChangeAckMessage(const QByteArray &dataId = {});
+
+	QByteArray dataId;
+};
+
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ChangeMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ChangeMessage &message);
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ChangeAckMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ChangeAckMessage &message);
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ChangeMessage)
+Q_DECLARE_METATYPE(QtDataSync::ChangeAckMessage)
 
 #endif // CHANGEMESSAGE_P_H

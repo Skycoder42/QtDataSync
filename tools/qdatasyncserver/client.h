@@ -22,6 +22,7 @@
 #include "loginmessage_p.h"
 #include "syncmessage_p.h"
 #include "changemessage_p.h"
+#include "changedmessage_p.h"
 
 class Client : public QObject
 {
@@ -70,9 +71,12 @@ private:
 
 	QAtomicInt _runCount;
 
+	//TODO check threadsafety on all methods? or enforce "single thread"
 	QMutex _lock;
 	State _state;
-	QHash<QByteArray, QVariant> _properties;
+	QByteArray _loginNonce;
+	quint64 _cachedChanges;
+	QList<quint64> _activeDownloads;
 
 	void run(const std::function<void()> &fn);
 	const QLoggingCategory &logFn() const;
@@ -86,6 +90,9 @@ private:
 	void onLogin(const QtDataSync::LoginMessage &message, QDataStream &stream);
 	void onSync(const QtDataSync::SyncMessage &message);
 	void onChange(const QtDataSync::ChangeMessage &message);
+	void onChangedAck(const QtDataSync::ChangedAckMessage &message);
+
+	void triggerDownload(bool forceUpdate = false);
 };
 
 #endif // CLIENT_H

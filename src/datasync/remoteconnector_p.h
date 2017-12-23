@@ -18,7 +18,8 @@
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
-#include "donemessage_p.h"
+#include "changemessage_p.h"
+#include "changedmessage_p.h"
 
 #include "connectorstatemachine.h"
 
@@ -113,7 +114,7 @@ private:
 	void onIdentify(const IdentifyMessage &message);
 	void onAccount(const AccountMessage &message);
 	void onWelcome(const WelcomeMessage &message);
-	void onDone(const DoneMessage &message);
+	void onChangeAck(const ChangeAckMessage &message);
 };
 
 }

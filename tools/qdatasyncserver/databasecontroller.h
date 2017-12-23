@@ -54,12 +54,15 @@ public:
 																	  QObject *parent = nullptr);
 	void updateLogin(const QUuid &deviceId, const QString &name);
 
-	void *loadNextChange(const QUuid &deviceId);
 	void addChange(const QUuid &deviceId,
 				   const QByteArray &dataId,
 				   const quint32 keyIndex,
 				   const QByteArray &salt,
 				   const QByteArray &data);
+
+	quint64 changeCount(const QUuid &deviceId);
+	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip);
+	void completeChange(const QUuid &deviceId, quint64 dataIndex);
 
 Q_SIGNALS:
 	void notifyChanged(const QUuid &deviceId);

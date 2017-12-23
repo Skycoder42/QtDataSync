@@ -9,7 +9,7 @@ HEADERS += \
     $$PWD/errormessage_p.h \
     $$PWD/syncmessage_p.h \
     $$PWD/changemessage_p.h \
-    $$PWD/donemessage_p.h
+    $$PWD/changedmessage_p.h
 
 SOURCES += \
 	$$PWD/message.cpp \
@@ -22,7 +22,7 @@ SOURCES += \
     $$PWD/errormessage.cpp \
     $$PWD/syncmessage.cpp \
     $$PWD/changemessage.cpp \
-    $$PWD/donemessage.cpp
+    $$PWD/changedmessage.cpp
 
 INCLUDEPATH += $$PWD
 

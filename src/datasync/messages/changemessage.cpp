@@ -8,6 +8,10 @@ ChangeMessage::ChangeMessage(const QByteArray &dataId) :
 	data()
 {}
 
+ChangeAckMessage::ChangeAckMessage(const QByteArray &dataId) :
+	dataId(dataId)
+{}
+
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const ChangeMessage &message)
 {
 	stream << message.dataId
@@ -27,3 +31,18 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, ChangeMessage &message)
 	stream.commitTransaction();
 	return stream;
 }
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const ChangeAckMessage &message)
+{
+	stream << message.dataId;
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, ChangeAckMessage &message)
+{
+	stream.startTransaction();
+	stream >> message.dataId;
+	stream.commitTransaction();
+	return stream;
+}
+

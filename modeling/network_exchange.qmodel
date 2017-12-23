@@ -53,7 +53,7 @@
                            <item>event</item>
                           </qlist>
                          </stereotypes>
-                         <name>CHANGES</name>
+                         <name>CHANGES/CONNECTED</name>
                          <pos>x:180;y:245</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
@@ -129,7 +129,7 @@
                           </DElement>
                          </base-DElement>
                          <object>{ff4ba79a-ef78-4805-ab55-7b94214dad7c}</object>
-                         <name>next is last change</name>
+                         <name>has changes</name>
                          <pos>x:355;y:245</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
@@ -207,7 +207,7 @@
                          <object>{e6f2213d-8b7d-4606-837b-74a6591098de}</object>
                          <a>{d4f1b436-3200-4442-9ca3-d87c63a8d5a0}</a>
                          <b>{6ef0f7d7-2ba1-4124-8c27-4bca2695da20}</b>
-                         <name>no</name>
+                         <name>yes</name>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -253,7 +253,7 @@
                          <object>{dcd204e6-43ca-4014-a9ac-7fd371ce53d1}</object>
                          <a>{d4f1b436-3200-4442-9ca3-d87c63a8d5a0}</a>
                          <b>{7e80ae95-ad9c-48ed-846e-08968b7bd84a}</b>
-                         <name>yes</name>
+                         <name>no</name>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -511,7 +511,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>LASTCHANGE&lt;CHANGE&gt;()</name>
+                         <name>LASTCHANGED()</name>
                          <pos>x:555;y:450</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -880,7 +880,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1513897529032</last-modified>
+                  <last-modified>1513981507666</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -907,7 +907,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>CHANGES</name>
+                  <name>CHANGES/CONNECTED</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1099,7 +1099,7 @@
                     <uid>{ff4ba79a-ef78-4805-ab55-7b94214dad7c}</uid>
                    </MElement>
                   </base-MElement>
-                  <name>next is last change</name>
+                  <name>has changes</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1117,7 +1117,7 @@
                                <uid>{e6f2213d-8b7d-4606-837b-74a6591098de}</uid>
                               </MElement>
                              </base-MElement>
-                             <name>no</name>
+                             <name>yes</name>
                              <a>{ff4ba79a-ef78-4805-ab55-7b94214dad7c}</a>
                              <b>{f7204e9b-a52e-46fe-9fd7-e3250e3b4b20}</b>
                             </MRelation>
@@ -1140,7 +1140,7 @@
                                <uid>{dcd204e6-43ca-4014-a9ac-7fd371ce53d1}</uid>
                               </MElement>
                              </base-MElement>
-                             <name>yes</name>
+                             <name>no</name>
                              <a>{ff4ba79a-ef78-4805-ab55-7b94214dad7c}</a>
                              <b>{ff074b48-5a84-4444-b6ad-4030981ff69a}</b>
                             </MRelation>
@@ -1488,7 +1488,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>LASTCHANGE&lt;CHANGE&gt;()</name>
+                  <name>LASTCHANGED()</name>
                   <relations>
                    <handles>
                     <handles>

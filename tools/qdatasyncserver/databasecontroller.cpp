@@ -145,12 +145,6 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	updateNameQuery.exec();
 }
 
-void *DatabaseController::loadNextChange(const QUuid &deviceId)
-{
-	Q_UNIMPLEMENTED();
-	return nullptr;
-}
-
 void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
 {
 	auto db = threadStore.localData().database();
@@ -211,6 +205,78 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 	}
 }
 
+quint64 DatabaseController::changeCount(const QUuid &deviceId)
+{
+	auto db = threadStore.localData().database();
+	Query countChangesQuery(db);
+	countChangesQuery.prepare(QStringLiteral("SELECT COUNT(*) FROM devicechanges WHERE deviceid = ?"));
+	countChangesQuery.addBindValue(deviceId);
+	countChangesQuery.exec();
+	if(countChangesQuery.first())
+		return countChangesQuery.value(0).toULongLong();
+	else
+		return 0;
+}
+
+QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip)
+{
+	auto db = threadStore.localData().database();
+
+	Query loadChangesQuery(db);
+	loadChangesQuery.prepare(QStringLiteral("SELECT id, keyid, salt, data FROM datachanges "
+											"INNER JOIN devicechanges ON datachanges.id = devicechanges.dataid "
+											"WHERE devicechanges.deviceid = ? "
+											"ORDER BY datachanges.id "
+											"LIMIT ? OFFSET ?"));
+	loadChangesQuery.addBindValue(deviceId);
+	loadChangesQuery.addBindValue(count);
+	loadChangesQuery.addBindValue(skip);
+	loadChangesQuery.exec();
+
+	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> resList;
+	while(loadChangesQuery.next()) {
+		resList.append({
+						   loadChangesQuery.value(0).toULongLong(),
+						   loadChangesQuery.value(1).toUInt(),
+						   loadChangesQuery.value(2).toByteArray(),
+						   loadChangesQuery.value(3).toByteArray()
+					   });
+	}
+	return resList;
+}
+
+void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex)
+{
+	auto db = threadStore.localData().database();
+
+	// explanation, see https://stackoverflow.com/a/15810159/3767076
+	Query deleteChangeQuery(db);
+	deleteChangeQuery.prepare(QStringLiteral("WITH lock_parent AS ( "
+											 "	SELECT p.id, c.deviceid "
+											 "	FROM devicechanges c "
+											 "	JOIN datachanges p ON p.id = c.dataid "
+											 "	WHERE c.deviceid = ? AND c.dataid = ?"
+											 "	FOR NO KEY UPDATE "
+											 "), del_child AS ( "
+											 "	DELETE FROM devicechanges c "
+											 "	USING lock_parent l "
+											 "	WHERE c.deviceid = l.deviceid AND c.dataid = l.id "
+											 ") "
+											 "DELETE FROM datachanges p "
+											 "USING lock_parent l "
+											 "WHERE p.id = l.id "
+											 "AND NOT EXISTS ( "
+											 "	SELECT 1 "
+											 "	FROM devicechanges c "
+											 "	WHERE c.dataid = l.id "
+											 "	AND c.deviceid <> l.deviceid"
+											 ");"));
+	//deleteChangeQuery.prepare(QStringLiteral("DELETE FROM devicechanges WHERE deviceid = ? AND dataid = ?"));
+	deleteChangeQuery.addBindValue(deviceId);
+	deleteChangeQuery.addBindValue(dataIndex);
+	deleteChangeQuery.exec();
+}
+
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
 {
 	Q_UNUSED(source)
@@ -250,7 +316,7 @@ void DatabaseController::initDatabase()
 			QSqlDriver::LastInsertId,
 			QSqlDriver::EventNotifications
 		};
-		auto driver = db.driver(); //TODO create
+		auto driver = db.driver();
 		foreach(auto feature, features) {
 			if(!driver->hasFeature(feature))
 				throw DatabaseException(QSqlError(QStringLiteral("Driver does not support feature %1").arg(feature)));

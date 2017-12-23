@@ -4,7 +4,6 @@
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
-#include "donemessage_p.h"
 
 #include <chrono>
 
@@ -78,9 +77,11 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_deviceId(),
 	_idleTimer(nullptr),
 	_runCount(0),
-	_lock(),
+	_lock(QMutex::Recursive),
 	_state(Authenticating),
-	_properties()
+	_loginNonce(),
+	_cachedChanges(0),
+	_activeDownloads()
 {
 	_socket->setParent(this);
 
@@ -107,7 +108,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 		LOCK;
 		//initialize connection by sending indent message
 		auto msg = IdentifyMessage::createRandom(rngPool.localData());
-		_properties.insert("nonce", msg.nonce);
+		_loginNonce = msg.nonce;
 		sendMessage(serializeMessage(msg));
 	});
 }
@@ -149,6 +150,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onSync(deserializeMessage<SyncMessage>(stream));
 			else if(isType<ChangeMessage>(name))
 				onChange(deserializeMessage<ChangeMessage>(stream));
+			else if(isType<ChangedAckMessage>(name))
+				onChangedAck(deserializeMessage<ChangedAckMessage>(stream));
 			else {
 				qWarning() << "Unknown message received:" << typeName(name);
 				sendMessage(serializeMessage<ErrorMessage>({
@@ -272,8 +275,9 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 	LOCK;
 	if(_state != Authenticating)
 		throw UnexpectedException<RegisterMessage>();
-	if(_properties.take("nonce").toByteArray() != message.nonce)
+	if(_loginNonce != message.nonce)
 		throw MessageException("Invalid nonce in RegisterMessagee");
+	_loginNonce.clear();
 
 	try {
 		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
@@ -301,8 +305,9 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	LOCK;
 	if(_state != Authenticating)
 		throw UnexpectedException<LoginMessage>();
-	if(_properties.take("nonce").toByteArray() != message.nonce)
+	if(_loginNonce != message.nonce)
 		throw MessageException("Invalid nonce in LoginMessage");
+	_loginNonce.clear();
 
 	//load public key to verify signature
 	try {
@@ -322,16 +327,21 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	_database->updateLogin(_deviceId, message.name);
 	qDebug() << "Device successfully logged in";
 
-	auto change = _database->loadNextChange(_deviceId);
-	sendMessage(serializeMessage(WelcomeMessage(change)));
+	//load changecount early to find out if data changed
+	_cachedChanges = _database->changeCount(_deviceId);
+	sendMessage(serializeMessage(WelcomeMessage(_cachedChanges > 0)));
 	_state = Idle;
 
-	//TODO implement changes
+	// send changed, always send info msg first, because count was preloaded (no force)
+	triggerDownload(true);
 }
 
 void Client::onSync(const SyncMessage &message)
 {
-	Q_UNIMPLEMENTED();
+	if(_state != Idle)
+		throw UnexpectedException<SyncMessage>();
+	Q_UNUSED(message)
+	triggerDownload();
 }
 
 void Client::onChange(const ChangeMessage &message)
@@ -345,7 +355,53 @@ void Client::onChange(const ChangeMessage &message)
 						 message.salt,
 						 message.data);
 
-	sendMessage(serializeMessage<DoneMessage>(message.dataId));
+	sendMessage(serializeMessage<ChangeAckMessage>(message.dataId));
+}
+
+void Client::onChangedAck(const ChangedAckMessage &message)
+{
+	_database->completeChange(_deviceId, message.dataIndex);
+	_activeDownloads.removeOne(message.dataIndex);
+	//trigger next download. method itself decides when and how etc.
+	triggerDownload();
+}
+
+void Client::triggerDownload(bool forceUpdate)
+{
+	LOCK;
+
+	auto updateChange = forceUpdate;
+
+	//TODO via settings?
+	static const quint32 limit = 20;
+	static const quint32 threshold = 10;
+	auto cnt = limit - _activeDownloads.size();
+	if(cnt >= threshold) {
+		auto changes = _database->loadNextChanges(_deviceId, cnt, _activeDownloads.size());
+		foreach(auto change, changes) {
+			if(_cachedChanges == 0) {
+				updateChange = true;
+				_cachedChanges = _database->changeCount(_deviceId) - _activeDownloads.size();
+			}
+
+			if(updateChange) {
+				ChangedInfoMessage message;
+				message.changeEstimate = _cachedChanges;
+				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
+				sendMessage(serializeMessage<ChangedInfoMessage>(message));
+				updateChange = false; //only the first message has that info
+			} else {
+				ChangedMessage message;
+				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
+				sendMessage(serializeMessage<ChangedMessage>(message));
+			}
+			_activeDownloads.append(std::get<0>(change));
+			_cachedChanges--;
+		}
+	}
+
+	if(_activeDownloads.isEmpty())
+		sendMessage(serializeMessage<LastChangedMessage>({}));
 }
 
 // ------------- Exceptions Implementation -------------

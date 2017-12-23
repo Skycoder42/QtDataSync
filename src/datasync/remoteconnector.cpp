@@ -6,7 +6,6 @@
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
 #include "syncmessage_p.h"
-#include "changemessage_p.h"
 
 using namespace QtDataSync;
 
@@ -154,7 +153,6 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 		return;
 	}
 
-	//TODO use std::tie for client as well
 	ChangeMessage message(key);
 	std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
 	_socket->sendBinaryMessage(serializeMessage(message));
@@ -213,8 +211,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onAccount(deserializeMessage<AccountMessage>(stream));
 		else if(isType<WelcomeMessage>(name))
 			onWelcome(deserializeMessage<WelcomeMessage>(stream));
-		else if(isType<DoneMessage>(name))
-			onDone(deserializeMessage<DoneMessage>(stream));
+		else if(isType<ChangeAckMessage>(name))
+			onChangeAck(deserializeMessage<ChangeAckMessage>(stream));
 		else {
 			logWarning() << "Unknown message received: " << typeName(name);
 			triggerError(true);
@@ -577,7 +575,7 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 	}
 }
 
-void RemoteConnector::onDone(const DoneMessage &message)
+void RemoteConnector::onChangeAck(const ChangeAckMessage &message)
 {
 	if(!isIdle()) {
 		logWarning() << "Unexpected DoneMessage";
