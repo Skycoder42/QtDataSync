@@ -88,7 +88,7 @@ private:
 	void onChange(const QtDataSync::ChangeMessage &message);
 	void onChangedAck(const QtDataSync::ChangedAckMessage &message);
 
-	void triggerDownload(bool forceUpdate = false);
+	void triggerDownload(bool forceUpdate = false, bool skipNoChanges = false);
 };
 
 #endif // CLIENT_H

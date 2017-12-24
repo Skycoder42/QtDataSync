@@ -325,7 +325,9 @@ void DatabaseController::initDatabase()
 			QSqlQuery createUsers(db);
 			if(!createUsers.exec(QStringLiteral("CREATE TABLE users ( "
 											   "	id			BIGSERIAL PRIMARY KEY NOT NULL, "
-											   "	keycount	INT NOT NULL DEFAULT 0 "
+											   "	keycount	INT NOT NULL DEFAULT 0, "
+											   "	quota		BIGINT NOT NULL DEFAULT 0, "
+											   "	CHECK(quota < 10000000) " //TODO make dynamic
 											   ")"))) {
 				throw DatabaseException(createUsers);
 			}
@@ -360,6 +362,52 @@ void DatabaseController::initDatabase()
 													  ")"))) {
 				throw DatabaseException(createDataChanges);
 			}
+
+			QSqlQuery createUpquotaFn(db);
+			if(!createUpquotaFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION upquota() RETURNS TRIGGER AS "
+													"$BODY$ "
+													"BEGIN "
+													"	UPDATE users SET quota = quota + octet_length(NEW.data) WHERE id = ( "
+													"		SELECT userid FROM devices WHERE id = NEW.deviceid "
+													"	); "
+													"	RETURN NEW; "
+													"END; "
+													"$BODY$ "
+													"LANGUAGE plpgsql;"))) {
+				throw DatabaseException(createUpquotaFn);
+			}
+
+			QSqlQuery createUpquotaTrigger(db);
+			if(!createUpquotaTrigger.exec(QStringLiteral("CREATE TRIGGER add_data_trigger "
+														 "AFTER INSERT "
+														 "ON datachanges "
+														 "FOR EACH ROW "
+														 "EXECUTE PROCEDURE upquota();"))) {
+				throw DatabaseException(createUpquotaTrigger);
+			}
+
+			QSqlQuery createDownquotaFn(db);
+			if(!createDownquotaFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION downquota() RETURNS TRIGGER AS "
+													  "$BODY$ "
+													  "BEGIN "
+													  "		UPDATE users SET quota = GREATEST(quota - octet_length(OLD.data), 0) WHERE id = ( "
+													  "			SELECT userid FROM devices WHERE id = OLD.deviceid "
+													  "		); "
+													  "		RETURN OLD; "
+													  "END; "
+													  "$BODY$ "
+													  "LANGUAGE plpgsql;"))) {
+				throw DatabaseException(createDownquotaFn);
+			}
+
+			QSqlQuery createDownquotaTrigger(db);
+			if(!createDownquotaTrigger.exec(QStringLiteral("CREATE TRIGGER remove_data_trigger "
+														   "AFTER DELETE "
+														   "ON datachanges "
+														   "FOR EACH ROW "
+														   "EXECUTE PROCEDURE downquota();"))) {
+				throw DatabaseException(createDownquotaTrigger);
+			}
 		}
 
 		if(!db.tables().contains(QStringLiteral("devicechanges"))) {
@@ -373,11 +421,11 @@ void DatabaseController::initDatabase()
 			}
 
 			QSqlQuery createNotifyFn(db);
-			if(!createNotifyFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION notifyDeviceChange() RETURNS trigger AS "
+			if(!createNotifyFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION notifyDeviceChange() RETURNS TRIGGER AS "
 												   "$BODY$ "
 												   "BEGIN "
 												   "	PERFORM pg_notify('deviceDataEvent', NEW.deviceid::text); "
-												   "	RETURN new; "
+												   "	RETURN NEW; "
 												   "END; "
 												   "$BODY$ "
 												   "LANGUAGE plpgsql VOLATILE;"))) {

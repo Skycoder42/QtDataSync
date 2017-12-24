@@ -333,7 +333,8 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	emit connected(_deviceId);
 
 	// send changed, always send info msg first, because count was preloaded (no force)
-	triggerDownload(true);
+	// in case of no changes, send nothing if no changes
+	triggerDownload(true, _cachedChanges == 0);
 }
 
 void Client::onSync(const SyncMessage &message)
@@ -366,7 +367,7 @@ void Client::onChangedAck(const ChangedAckMessage &message)
 	triggerDownload();
 }
 
-void Client::triggerDownload(bool forceUpdate)
+void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 {
 	LOCK;
 
@@ -400,7 +401,7 @@ void Client::triggerDownload(bool forceUpdate)
 		}
 	}
 
-	if(_activeDownloads.isEmpty())
+	if(_activeDownloads.isEmpty() && !skipNoChanges)
 		sendMessage(serializeMessage<LastChangedMessage>({}));
 }
 
