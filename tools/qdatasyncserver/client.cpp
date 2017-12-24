@@ -113,14 +113,12 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	});
 }
 
-QUuid Client::deviceId() const
+void Client::notifyChanged()
 {
-	return _deviceId;
-}
-
-void Client::notifyChanged(const QString &type, const QString &key, bool changed)
-{
-	Q_UNIMPLEMENTED();
+	run([this]() {
+		if(_state == Idle) //silently ignore other states
+			triggerDownload();
+	});
 }
 
 void Client::binaryMessageReceived(const QByteArray &message)
@@ -298,6 +296,7 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 	qDebug() << "Created new device and user accounts";
 	sendMessage(serializeMessage<AccountMessage>(_deviceId));
 	_state = Idle;
+	emit connected(_deviceId);
 }
 
 void Client::onLogin(const LoginMessage &message, QDataStream &stream)
@@ -331,6 +330,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	_cachedChanges = _database->changeCount(_deviceId);
 	sendMessage(serializeMessage(WelcomeMessage(_cachedChanges > 0)));
 	_state = Idle;
+	emit connected(_deviceId);
 
 	// send changed, always send info msg first, because count was preloaded (no force)
 	triggerDownload(true);

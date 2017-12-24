@@ -40,17 +40,13 @@ public:
 
 	explicit Client(DatabaseController *_database, QWebSocket *websocket, QObject *parent = nullptr);
 
-	QUuid deviceId() const;
+public Q_SLOTS:
+	void notifyChanged();
 
-public slots:
-	void notifyChanged(const QString &type,
-					   const QString &key,
-					   bool changed);
+Q_SIGNALS:
+	void connected(const QUuid &deviceId);
 
-signals:
-	void connected(const QUuid &userId, bool addClient);
-
-private slots:
+private Q_SLOTS:
 	void binaryMessageReceived(const QByteArray &message);
 	void error();
 	void sslErrors(const QList<QSslError> &errors);

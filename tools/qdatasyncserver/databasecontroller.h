@@ -58,7 +58,7 @@ public:
 				   const QByteArray &dataId,
 				   const quint32 keyIndex,
 				   const QByteArray &salt,
-				   const QByteArray &data);
+				   const QByteArray &data); //TODO add upload quota via triggers
 
 	quint64 changeCount(const QUuid &deviceId);
 	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip);

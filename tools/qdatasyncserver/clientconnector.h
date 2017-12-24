@@ -30,7 +30,7 @@ private:
 	QWebSocketServer *server;
 	QString secret;
 
-	QMultiHash<QUuid, Client*> clients;
+	QHash<QUuid, Client*> clients;
 };
 
 #endif // CLIENTCONNECTOR_H

@@ -77,12 +77,9 @@ bool ClientConnector::listen()
 
 void ClientConnector::notifyChanged(const QUuid &deviceId)
 {
-	Q_UNIMPLEMENTED();
-//	auto devices = clients.values(userId);
-//	foreach (auto device, devices) {
-//		if(device->deviceId() != excludedDeviceId)
-//			device->notifyChanged(type, key, changed);
-//	}
+	auto client = clients.value(deviceId);
+	if(client)
+		client->notifyChanged();
 }
 
 void ClientConnector::verifySecret(QWebSocketCorsAuthenticator *authenticator)
@@ -98,10 +95,10 @@ void ClientConnector::newConnection()
 	while (server->hasPendingConnections()) {
 		auto socket = server->nextPendingConnection();
 		auto client = new Client(database, socket, this);
-		connect(client, &Client::connected, this, [=](QUuid userId){
-			clients.insert(userId, client);
+		connect(client, &Client::connected, this, [=](QUuid deviceId){
+			clients.insert(deviceId, client);
 			connect(client, &Client::destroyed, this, [=](){
-				clients.remove(userId, client);
+				clients.remove(deviceId);
 			});
 		});
 	}
