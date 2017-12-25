@@ -4,11 +4,11 @@ QT += KWallet datasync-private
 QT -= gui
 
 HEADERS += \
-		kwalletkeystoreplugin.h \
+	kwalletkeystoreplugin.h \
 	kwalletkeystore.h
 
 SOURCES += \
-		kwalletkeystoreplugin.cpp \
+	kwalletkeystoreplugin.cpp \
 	kwalletkeystore.cpp
 
 DISTFILES += kwallet.json

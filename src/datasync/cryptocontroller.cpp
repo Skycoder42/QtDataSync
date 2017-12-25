@@ -98,7 +98,7 @@ void CryptoController::initialize()
 {
 	auto provider = defaults().property(Defaults::KeyStoreProvider).toString();
 	_keyStore = factory->createInstance(provider, defaults(), this);
-	if(!_keyStore) {
+	if(!_keyStore) { //TODO clear load/unload pattern!!!
 		logCritical() << "Failed to load keystore"
 					  << provider
 					  << "- synchronization will be temporarily disabled";
