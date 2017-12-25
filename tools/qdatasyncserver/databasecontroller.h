@@ -10,6 +10,7 @@
 #include <QtCore/QUuid>
 #include <QtCore/QJsonObject>
 #include <QtCore/QException>
+#include <QtCore/QTimer>
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
@@ -58,7 +59,7 @@ public:
 				   const QByteArray &dataId,
 				   const quint32 keyIndex,
 				   const QByteArray &salt,
-				   const QByteArray &data); //TODO add upload quota via triggers
+				   const QByteArray &data);
 
 	quint64 changeCount(const QUuid &deviceId);
 	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip);
@@ -72,6 +73,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
 	void onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload);
+	void timeout();
 
 private:
 	class DatabaseWrapper
@@ -85,8 +87,8 @@ private:
 		QString dbName;
 	};
 
-	bool multiThreaded;
-	QThreadStorage<DatabaseWrapper> threadStore;
+	QThreadStorage<DatabaseWrapper> _threadStore;
+	QTimer *_keepAliveTimer;
 
 	void initDatabase();
 };

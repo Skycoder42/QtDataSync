@@ -38,7 +38,7 @@ private:
 	static unsigned long timeout;
 
 	QString localDir;
-	QScopedPointer<QJsonSerializer> serializer;//TODO use normal pointer instead
+	QScopedPointer<QJsonSerializer> serializer;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 	Setup::FatalErrorHandler fatalErrorHandler;
 

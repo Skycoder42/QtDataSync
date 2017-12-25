@@ -47,6 +47,7 @@ void RemoteConnector::initialize()
 
 	_pingTimer = new QTimer(this);
 	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
+	_pingTimer->setTimerType(Qt::VeryCoarseTimer);
 
 	//setup SM
 	_stateMachine = new ConnectorStateMachine(this);
@@ -132,7 +133,7 @@ void RemoteConnector::resync()
 {
 	if(!isIdle())
 		return;
-	emit remoteEvent(RemoteReadyWithChanges);//TODO needs a reply in case no changes are there
+	emit remoteEvent(RemoteReadyWithChanges);
 	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
 }
 

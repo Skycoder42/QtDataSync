@@ -5,9 +5,9 @@ system_cryptopp:unix {
 	# debug
 	INCLUDEPATH += $$PWD/include
 } else {
-	win32:!win32-g++:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lcryptlib
-	else:win32:!win32-g++:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lcryptlibd
-	else: LIBS += -L$$PWD/lib/ -lcryptopp
+	win32:!win32-g++:CONFIG(release, debug|release): LIBS_PRIVATE += -L$$PWD/lib/ -lcryptlib
+	else:win32:!win32-g++:CONFIG(debug, debug|release): LIBS_PRIVATE += -L$$PWD/lib/ -lcryptlibd
+	else: LIBS_PRIVATE += -L$$PWD/lib/ -lcryptopp
 
 	INCLUDEPATH += $$PWD/include
 	DEPENDPATH += $$PWD/include

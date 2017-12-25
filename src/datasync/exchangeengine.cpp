@@ -87,7 +87,7 @@ void ExchangeEngine::finalize()
 	connect(_remoteConnector, &RemoteConnector::finalized,
 			this, [this](){
 		logDebug() << "Finalization completed";
-		thread()->quit(); //TODO not threadsafe???
+		thread()->quit();
 	});
 
 	_remoteConnector->finalize();

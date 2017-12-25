@@ -76,6 +76,8 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_socket(websocket),
 	_deviceId(),
 	_idleTimer(nullptr),
+	_downLimit(20),
+	_downThreshold(10),
 	_runCount(0),
 	_lock(QMutex::Recursive),
 	_state(Authenticating),
@@ -94,10 +96,13 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	connect(_socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
+	_downLimit = qApp->configuration()->value(QStringLiteral("server/downloads/limit"), _downLimit).toUInt();
+	_downThreshold = qApp->configuration()->value(QStringLiteral("server/downloads/threshold"), _downThreshold).toUInt();
 	auto idleTimeout = qApp->configuration()->value(QStringLiteral("server/idleTimeout"), 5).toInt();
 	if(idleTimeout > 0) {
 		_idleTimer = new QTimer(this);
 		_idleTimer->setInterval(std::chrono::minutes(idleTimeout));
+		_idleTimer->setTimerType(Qt::VeryCoarseTimer);
 		_idleTimer->setSingleShot(true);
 		connect(_idleTimer, &QTimer::timeout,
 				this, &Client::timeout);
@@ -196,6 +201,7 @@ void Client::closeClient()
 		deleteLater();
 	} else {
 		auto destroyTimer = new QTimer(this);
+		destroyTimer->setTimerType(Qt::VeryCoarseTimer);
 		connect(destroyTimer, &QTimer::timeout, this, [this](){
 			if(_runCount == 0) {
 				qDebug() << "Client disconnected";
@@ -373,11 +379,8 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 
 	auto updateChange = forceUpdate;
 
-	//TODO via settings?
-	static const quint32 limit = 20;
-	static const quint32 threshold = 10;
-	auto cnt = limit - _activeDownloads.size();
-	if(cnt >= threshold) {
+	auto cnt = _downLimit - _activeDownloads.size();
+	if(cnt >= _downThreshold) {
 		auto changes = _database->loadNextChanges(_deviceId, cnt, _activeDownloads.size());
 		foreach(auto change, changes) {
 			if(_cachedChanges == 0) {

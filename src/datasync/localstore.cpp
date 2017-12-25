@@ -80,7 +80,7 @@ quint64 LocalStore::count(const QByteArray &typeName)
 	QSqlQuery countQuery(_database);
 	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
 	countQuery.addBindValue(typeName);
-	exec(countQuery, typeName); //TODO add special method for prepare as well
+	exec(countQuery, typeName);
 
 	if(countQuery.first())
 		return countQuery.value(0).toInt();

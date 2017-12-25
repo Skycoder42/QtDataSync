@@ -64,6 +64,8 @@ private:
 	QUuid _deviceId;
 
 	QTimer *_idleTimer;
+	quint32 _downLimit;
+	quint32 _downThreshold;
 
 	QAtomicInt _runCount;
 

@@ -21,10 +21,7 @@ using namespace QtDataSync;
 using namespace CryptoPP;
 using Exception = QtDataSync::Exception;
 
-//TODO static plugin support
-//TODO move this global static def to lib
-typedef QPluginObjectFactory<KeyStorePlugin, KeyStore> Factory;
-Q_GLOBAL_STATIC_WITH_ARGS(Factory, factory, (QLatin1String("keystores")))
+Q_GLOBAL_PLUGIN_OBJECT_FACTORY(KeyStorePlugin, KeyStore, "keystores", factory)
 
 // ------------- CipherScheme class definitions -------------
 

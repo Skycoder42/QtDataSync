@@ -26,19 +26,28 @@ private:
 
 DatabaseController::DatabaseController(QObject *parent) :
 	QObject(parent),
-	multiThreaded(false),
-	threadStore()
+	_threadStore(),
+	_keepAliveTimer(nullptr)
 {
 	connect(this, &DatabaseController::databaseInitDone, this, [this](bool ok) {
 		if(ok) { //done on the main thread to make sure the connection does not die with threads
-			//TODO keepalive
-			auto driver = threadStore.localData().database().driver();
+			auto driver = _threadStore.localData().database().driver();
 			connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
 					this, &DatabaseController::onNotify);
 			if(!driver->subscribeToNotification(QStringLiteral("deviceDataEvent")))
 				qCritical() << "Unabled to notify to change events. Devices will not receive updates!";
 			else
 				qDebug() << "Event subscription active";
+
+			auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
+			if(delay > 0) {
+				_keepAliveTimer = new QTimer(this);
+				_keepAliveTimer->setInterval(std::chrono::minutes(delay));
+				_keepAliveTimer->setTimerType(Qt::VeryCoarseTimer);
+				connect(_keepAliveTimer, &QTimer::timeout,
+						this, &DatabaseController::timeout);
+				_keepAliveTimer->start();
+			}
 		}
 	}, Qt::QueuedConnection);
 
@@ -49,7 +58,7 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 {
 	QtConcurrent::run(qApp->threadPool(), [this, offlineSinceDays]() {
 		try {
-			auto db = threadStore.localData().database();
+			auto db = _threadStore.localData().database();
 			if(!db.transaction())
 				throw DatabaseException(db);
 
@@ -73,7 +82,7 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 
 QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey)
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 	if(!db.transaction())
 		throw DatabaseException(db);
 
@@ -114,7 +123,7 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 
 AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, CryptoPP::RandomNumberGenerator &rng, QObject *parent)
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 
 	Query loadCryptoQuery(db);
 	loadCryptoQuery.prepare(QStringLiteral("SELECT signscheme, signkey, cryptscheme, cryptkey "
@@ -135,7 +144,7 @@ AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, Cryp
 
 void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 
 	Query updateNameQuery(db);
 	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?, lastlogin = 'today'"
@@ -147,7 +156,7 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 
 void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 	if(!db.transaction())
 		throw DatabaseException(db);
 
@@ -207,7 +216,7 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 
 quint64 DatabaseController::changeCount(const QUuid &deviceId)
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 	Query countChangesQuery(db);
 	countChangesQuery.prepare(QStringLiteral("SELECT COUNT(*) FROM devicechanges WHERE deviceid = ?"));
 	countChangesQuery.addBindValue(deviceId);
@@ -220,7 +229,7 @@ quint64 DatabaseController::changeCount(const QUuid &deviceId)
 
 QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip)
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 
 	Query loadChangesQuery(db);
 	loadChangesQuery.prepare(QStringLiteral("SELECT id, keyid, salt, data FROM datachanges "
@@ -247,7 +256,7 @@ QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::
 
 void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex)
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 	if(!db.transaction())
 		throw DatabaseException(db);
 
@@ -288,9 +297,21 @@ void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationS
 	}
 }
 
+void DatabaseController::timeout()
+{
+	auto db = _threadStore.localData().database();
+	QSqlQuery query(db);
+	if(!query.exec(QStringLiteral("SELECT NULL"))) {
+		qCritical().noquote() << "Keepalive query failed! Server might needs to be restarted in order to make live updates work again."
+								 "\nDatabase Error:"
+							  << query.lastError().text();
+	} else
+		qDebug() << "Keepalive succeeded";
+}
+
 void DatabaseController::initDatabase()
 {
-	auto db = threadStore.localData().database();
+	auto db = _threadStore.localData().database();
 	if(!db.isOpen()) {
 		emit databaseInitDone(false);
 		return;
@@ -327,7 +348,7 @@ void DatabaseController::initDatabase()
 											   "	id			BIGSERIAL PRIMARY KEY NOT NULL, "
 											   "	keycount	INT NOT NULL DEFAULT 0, "
 											   "	quota		BIGINT NOT NULL DEFAULT 0, "
-											   "	CHECK(quota < 10000000) " //TODO make dynamic
+											   "	CHECK(quota < 10000000) " //10 MB
 											   ")"))) {
 				throw DatabaseException(createUsers);
 			}
