@@ -78,7 +78,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_idleTimer(nullptr),
 	_downLimit(20),
 	_downThreshold(10),
-	_runCount(0),
+	_queue(new SingleTaskQueue(qApp->threadPool(), this)),
 	_lock(QMutex::Recursive),
 	_state(Authenticating),
 	_loginNonce(),
@@ -196,14 +196,14 @@ void Client::sslErrors(const QList<QSslError> &errors)
 
 void Client::closeClient()
 {
-	if(_runCount == 0) {//save close -> delete only if no parallel stuff anymore (check every 500 ms)
+	if(_queue->clear()) {//save close -> delete only if no parallel stuff anymore (check every 5s)
 		qDebug() << "Client disconnected";
 		deleteLater();
 	} else {
 		auto destroyTimer = new QTimer(this);
 		destroyTimer->setTimerType(Qt::VeryCoarseTimer);
 		connect(destroyTimer, &QTimer::timeout, this, [this](){
-			if(_runCount == 0) {
+			if(_queue->isFinished()) {
 				qDebug() << "Client disconnected";
 				deleteLater();
 			}
@@ -220,27 +220,22 @@ void Client::timeout()
 
 void Client::run(const std::function<void ()> &fn)
 {
-	_runCount++;
-	QtConcurrent::run(qApp->threadPool(), [fn, this]() {
+	_queue->enqueue([fn, this]() {
 		//TODO "log" (hashed) ip on error? to allow blocking???
 		try {
 			fn();
-			_runCount--;
 		} catch (DatabaseException &e) {
 			qCritical() << "Internal database error:" << e.what();
 			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::ServerError, QString(), true}));
 			closeLater();
-			_runCount--;
 		} catch (ClientErrorException &e) {
 			qWarning() << "Message error:" << e.what();
 			sendMessage(serializeMessage<ErrorMessage>(e));
 			closeLater();
-			_runCount--;
 		} catch (std::exception &e) {
 			qWarning() << "Message error:" << e.what();
 			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::ClientError}));
 			closeLater();
-			_runCount--;
 		}
 	});
 }

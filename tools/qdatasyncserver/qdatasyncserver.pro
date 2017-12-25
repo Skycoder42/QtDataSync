@@ -24,13 +24,15 @@ HEADERS += \
 	clientconnector.h \
 	app.h \
 	client.h \
-	databasecontroller.h
+	databasecontroller.h \
+    singletaskqueue.h
 
 SOURCES += \
 	clientconnector.cpp \
 	app.cpp \
 	client.cpp \
-	databasecontroller.cpp
+	databasecontroller.cpp \
+    singletaskqueue.cpp
 
 DISTFILES += \
 	setup.conf \

@@ -17,6 +17,7 @@
 #include <cryptopp/osrng.h>
 
 #include "databasecontroller.h"
+#include "singletaskqueue.h"
 
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
@@ -67,7 +68,7 @@ private:
 	quint32 _downLimit;
 	quint32 _downThreshold;
 
-	QAtomicInt _runCount;
+	SingleTaskQueue *_queue;
 
 	//TODO check threadsafety on all methods? or enforce "single thread"
 	QMutex _lock;
