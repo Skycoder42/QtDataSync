@@ -57,22 +57,25 @@ private Q_SLOTS:
 private:
 	static QThreadStorage<CryptoPP::AutoSeededRandomPool> rngPool;
 
+	//logging stuff
 	QByteArray _catStr;
 	QScopedPointer<QLoggingCategory> _logCat;
 
-	DatabaseController *_database;
-	QWebSocket *_socket;
-	QUuid _deviceId;
+	// "global" stuff
+	DatabaseController *_database; //is threadsafe
+	QWebSocket *_socket; //must only be accessed from the main thread
 
+	// "constant" members, that wont change after the constructor
 	QTimer *_idleTimer;
 	quint32 _downLimit;
 	quint32 _downThreshold;
 
+	// thread safe task queue, ensures only 1 task per client is run at the same time
 	SingleTaskQueue *_queue;
 
-	//TODO check threadsafety on all methods? or enforce "single thread"
-	QMutex _lock;
+	//following members must only be accessed from within a task (to ensure thread safety)
 	State _state;
+	QUuid _deviceId;
 	QByteArray _loginNonce;
 	quint64 _cachedChanges;
 	QList<quint64> _activeDownloads;

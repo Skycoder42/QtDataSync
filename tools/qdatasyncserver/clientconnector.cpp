@@ -100,7 +100,7 @@ void ClientConnector::newConnection()
 			connect(client, &Client::destroyed, this, [=](){
 				clients.remove(deviceId);
 			});
-		});
+		}, Qt::QueuedConnection);
 	}
 }
 

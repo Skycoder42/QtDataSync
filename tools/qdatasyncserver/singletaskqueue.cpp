@@ -62,7 +62,7 @@ void SingleTaskQueue::nextTask(QMutexLocker &lock)
 {
 	if(!_tasks.isEmpty()) {
 		auto task = _tasks.head();
-		//WARNING: explicit unlock of mutex to not include the (heavy) starting. mutex must not be relocked if used again
+		//explicit unlock of mutex to not include the (heavy) starting. mutex must not be relocked if used again
 		lock.unlock();
 		_pool->start(task);
 	}

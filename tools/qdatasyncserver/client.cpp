@@ -24,8 +24,6 @@ using namespace QtDataSync;
 #undef qCritical
 #define qCritical(...) qCCritical(logFn, __VA_ARGS__)
 
-#define LOCK QMutexLocker _(&_lock)
-
 // ------------- Exceptions Definitions -------------
 
 class MessageException : public QException
@@ -74,13 +72,12 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_logCat(new QLoggingCategory("client.unknown")),
 	_database(database),
 	_socket(websocket),
-	_deviceId(),
 	_idleTimer(nullptr),
 	_downLimit(20),
 	_downThreshold(10),
 	_queue(new SingleTaskQueue(qApp->threadPool(), this)),
-	_lock(QMutex::Recursive),
 	_state(Authenticating),
+	_deviceId(),
 	_loginNonce(),
 	_cachedChanges(0),
 	_activeDownloads()
@@ -110,7 +107,6 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	}
 
 	run([this]() {
-		LOCK;
 		//initialize connection by sending indent message
 		auto msg = IdentifyMessage::createRandom(rngPool.localData());
 		_loginNonce = msg.nonce;
@@ -271,7 +267,6 @@ void Client::doSend(const QByteArray &message)
 
 void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 {
-	LOCK;
 	if(_state != Authenticating)
 		throw UnexpectedException<RegisterMessage>();
 	if(_loginNonce != message.nonce)
@@ -302,7 +297,6 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 
 void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 {
-	LOCK;
 	if(_state != Authenticating)
 		throw UnexpectedException<LoginMessage>();
 	if(_loginNonce != message.nonce)
@@ -370,8 +364,6 @@ void Client::onChangedAck(const ChangedAckMessage &message)
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 {
-	LOCK;
-
 	auto updateChange = forceUpdate;
 
 	auto cnt = _downLimit - _activeDownloads.size();
