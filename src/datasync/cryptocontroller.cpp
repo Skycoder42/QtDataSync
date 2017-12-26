@@ -94,8 +94,10 @@ QStringList CryptoController::allKeystoreKeys()
 	return factory->allKeys();
 }
 
-void CryptoController::initialize()
+void CryptoController::initialize(const QVariantHash &params)
 {
+	Q_UNUSED(params)
+
 	auto provider = defaults().property(Defaults::KeyStoreProvider).toString();
 	_keyStore = factory->createInstance(provider, defaults(), this);
 	if(!_keyStore) { //TODO clear load/unload pattern!!!
@@ -461,7 +463,7 @@ QDir CryptoController::keysDir() const
 
 ClientCrypto::ClientCrypto(QObject *parent) :
 	AsymmetricCrypto(parent),
-	_rng(true, 64),
+	_rng(true, 32),
 	_signKey(nullptr),
 	_cryptKey(nullptr)
 {}

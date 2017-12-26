@@ -136,30 +136,6 @@ QSqlDatabase *DatabaseRef::operator->() const
 	return &(d->db());
 }
 
-void DatabaseRef::createGlobalScheme(Defaults defaults)
-{
-	QWriteLocker _(defaults.databaseLock());
-
-	if(!d->db().tables().contains(QStringLiteral("DataIndex"))) {
-		QSqlQuery createQuery(d->db());
-		createQuery.prepare(QStringLiteral("CREATE TABLE DataIndex ("
-										   "	Type		TEXT NOT NULL,"
-										   "	Id			TEXT NOT NULL,"
-										   "	Version		INTEGER NOT NULL,"
-										   "	File		TEXT,"
-										   "	Checksum	BLOB,"
-										   "	Changed		INTEGER NOT NULL DEFAULT 1,"
-										   "	PRIMARY KEY(Type, Id)"
-										   ") WITHOUT ROWID;"));
-		if(!createQuery.exec()) {
-			throw LocalStoreException(defaults,
-									  QByteArrayLiteral("any"),
-									  createQuery.executedQuery().simplified(),
-									  createQuery.lastError().text());
-		}
-	}
-}
-
 // ------------- PRIVAZE IMPLEMENTATION Defaults -------------
 
 #undef QTDATASYNC_LOG

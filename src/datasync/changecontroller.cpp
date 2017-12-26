@@ -4,9 +4,6 @@
 #include "exchangeengine_p.h"
 #include "synchelper_p.h"
 
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlError>
-
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
@@ -15,15 +12,15 @@ const int ChangeController::UploadLimit = 10;
 
 ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	Controller("change", defaults, parent),
-	_database(),
+	_store(nullptr),
 	_uploadingEnabled(false),
 	_activeUploads()
 {}
 
-void ChangeController::initialize()
+void ChangeController::initialize(const QVariantHash &params)
 {
-	_database = defaults().aquireDatabase(this);
-	_database.createGlobalScheme(defaults());
+	_store = params.value(QStringLiteral("store")).value<LocalStore*>();
+	Q_ASSERT_X(_store, Q_FUNC_INFO, "Missing parameter: store (LocalStore)");
 }
 
 void ChangeController::triggerDataChange(Defaults defaults, const QWriteLocker &)
@@ -56,18 +53,8 @@ void ChangeController::uploadDone(const QByteArray &key)
 	}
 
 	try {
-		QWriteLocker _(defaults().databaseLock());
-
 		auto info = _activeUploads.take(key);
-		QSqlQuery completeQuery(_database);
-		if(info.isDelete && !defaults().property(Defaults::PersistDeleted).toBool())
-			completeQuery.prepare(QStringLiteral("DELETE FROM DataIndex WHERE Type = ? AND Id = ? AND Version = ? AND File IS NULL"));
-		else
-			completeQuery.prepare(QStringLiteral("UPDATE DataIndex SET Changed = 0 WHERE Type = ? AND Id = ? AND Version = ?"));
-		completeQuery.addBindValue(info.key.typeName);
-		completeQuery.addBindValue(info.key.id);
-		completeQuery.addBindValue(info.version);
-		exec(completeQuery);
+		_store->markUnchanged(info.key, info.version, info.isDelete);
 		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
 
 		if(_activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
@@ -92,16 +79,8 @@ void ChangeController::uploadNext()
 		return;
 
 	try {
-		QReadLocker _(defaults().databaseLock());
-		QSqlQuery readChangesQuery(_database);
-		readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File FROM DataIndex WHERE CHANGED = 1 LIMIT ?"));
-		readChangesQuery.addBindValue(UploadLimit); //always select max, since they could already be sheduled
-		exec(readChangesQuery);
-
-		while(_activeUploads.size() < UploadLimit && readChangesQuery.next()) {
-			CachedObjectKey key;
-			key.typeName = readChangesQuery.value(0).toByteArray();
-			key.id = readChangesQuery.value(1).toString();
+		_store->loadChanges(UploadLimit, [this](ObjectKey objKey, quint64 version, QString file) {
+			CachedObjectKey key(objKey);
 
 			auto skip = false;
 			foreach(auto mKey, _activeUploads.keys()) {
@@ -111,18 +90,17 @@ void ChangeController::uploadNext()
 				}
 			}
 			if(skip)
-				continue;
+				return true;
 
 			auto keyHash = key.hashed();
-			auto version = readChangesQuery.value(2).toULongLong();
-			auto isDelete = readChangesQuery.value(3).isNull();
+			auto isDelete = file.isNull();
 			_activeUploads.insert(key, {key, version, isDelete});
 			if(isDelete) {//deleted
 				emit uploadChange(keyHash, SyncHelper::combine(key, version));
 				logDebug() << "Started upload of deleted" << key << "( Active uploads:" << _activeUploads.size() << ")";
 			} else { //changed
 				try {
-					auto json = LocalStore::readJson(defaults(), key, readChangesQuery.value(3).toString());
+					auto json = _store->readJson(key, file);
 					emit uploadChange(keyHash, SyncHelper::combine(key, version, json));
 					logDebug() << "Started upload of changed" << key << "( Active uploads:" << _activeUploads.size() << ")";
 				} catch (Exception &e) {
@@ -131,7 +109,9 @@ void ChangeController::uploadNext()
 											  Q_ARG(QByteArray, keyHash));
 				}
 			}
-		}
+
+			return _activeUploads.size() < UploadLimit; //only continue as long as there is free space
+		});
 	} catch(Exception &e) {
 		logCritical() << "Error when trying to upload change:" << e.what();
 		emit controllerError(tr("Failed to upload changes to server."));
@@ -144,12 +124,7 @@ bool ChangeController::canUpload()
 		return true;
 	else {
 		try {
-			QReadLocker _(defaults().databaseLock());
-
-			QSqlQuery checkQuery(_database);
-			checkQuery.prepare(QStringLiteral("SELECT 1 FROM DataIndex WHERE CHANGED = 1 LIMIT 1"));
-			exec(checkQuery);
-			return checkQuery.first();
+			return _store->hasChanges();
 		} catch(Exception &e) {
 			logCritical() << "Failed to check changes with error:" << e.what();
 			emit controllerError(tr("Failed to upload changes to server."));
@@ -157,17 +132,6 @@ bool ChangeController::canUpload()
 		}
 	}
 }
-
-void ChangeController::exec(QSqlQuery &query, const ObjectKey &key) const
-{
-	if(!query.exec()) {
-		throw LocalStoreException(defaults(),
-								  key,
-								  query.executedQuery().simplified(),
-								  query.lastError().text());
-	}
-}
-
 
 
 ChangeController::ChangeInfo::ChangeInfo() :

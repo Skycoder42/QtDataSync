@@ -4,11 +4,10 @@
 #include <QtCore/QObject>
 #include <QtCore/QMutex>
 
-#include <QtSql/QSqlDatabase>
-
 #include "qtdatasync_global.h"
 #include "objectkey.h"
 #include "controller_p.h"
+#include "localstore_p.h"
 
 namespace QtDataSync {
 
@@ -28,7 +27,7 @@ public:
 
 	explicit ChangeController(const Defaults &defaults, QObject *parent = nullptr);
 
-	void initialize() final;
+	void initialize(const QVariantHash &params) final;
 
 	static void triggerDataChange(Defaults defaults, const QWriteLocker &);
 
@@ -71,13 +70,11 @@ private:
 
 	static const int UploadLimit; //TODO get from server instead
 
-	DatabaseRef _database;
+	LocalStore *_store;
 	bool _uploadingEnabled;
-
 	QHash<CachedObjectKey, UploadInfo> _activeUploads;
 
 	bool canUpload();
-	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 };
 
 uint Q_DATASYNC_EXPORT qHash(const ChangeController::CachedObjectKey &key, uint seed);

@@ -37,8 +37,6 @@ public:
 	operator QSqlDatabase() const;
 	QSqlDatabase *operator->() const;
 
-	void createGlobalScheme(Defaults defaults);
-
 private:
 	QScopedPointer<DatabaseRefPrivate> d;
 };

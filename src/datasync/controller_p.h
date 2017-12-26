@@ -19,7 +19,7 @@ public:
 						QObject *parent = nullptr);
 
 	//exceptions are allowed!
-	virtual void initialize();
+	virtual void initialize(const QVariantHash &params);
 	virtual void finalize();
 
 Q_SIGNALS:

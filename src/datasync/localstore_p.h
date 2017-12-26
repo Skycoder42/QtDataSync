@@ -1,6 +1,8 @@
 #ifndef LOCALSTORE_P_H
 #define LOCALSTORE_P_H
 
+#include <functional>
+
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 #include <QtCore/QCache>
@@ -40,9 +42,10 @@ public:
 	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);
 	~LocalStore();
 
-	static QDir typeDirectory(Defaults defaults, const ObjectKey &key);
-	static QJsonObject readJson(Defaults defaults, const ObjectKey &key, const QString &fileName, int *costs = nullptr);
+	QDir typeDirectory(const ObjectKey &key);
+	QJsonObject readJson(const ObjectKey &key, const QString &fileName, int *costs = nullptr);
 
+	// normal store access
 	quint64 count(const QByteArray &typeName);
 	QStringList keys(const QByteArray &typeName);
 	QList<QJsonObject> loadAll(const QByteArray &typeName);
@@ -54,6 +57,11 @@ public:
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
 	void clear(const QByteArray &typeName);
 	void reset();
+
+	// change access
+	bool hasChanges();
+	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor);
+	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
 
 	int cacheSize() const;
 
@@ -80,8 +88,6 @@ private:
 	QCache<ObjectKey, QJsonObject> _dataCache;
 
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
-	QDir typeDirectory(const ObjectKey &key);
-	QJsonObject readJson(const ObjectKey &key, const QString &fileName, int *costs = nullptr);
 };
 
 }

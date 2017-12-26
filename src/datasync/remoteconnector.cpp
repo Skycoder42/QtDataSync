@@ -41,9 +41,9 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_deviceId()
 {}
 
-void RemoteConnector::initialize()
+void RemoteConnector::initialize(const QVariantHash &params)
 {
-	_cryptoController->initialize();
+	_cryptoController->initialize(params);
 
 	_pingTimer = new QTimer(this);
 	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());

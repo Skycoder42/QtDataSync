@@ -8,7 +8,10 @@ QtDataSync::Controller::Controller(const QByteArray &name, Defaults defaults, QO
 	_settings(defaults.createSettings(this, QString::fromUtf8(name)))
 {}
 
-void Controller::initialize() {}
+void Controller::initialize(const QVariantHash &params)
+{
+	Q_UNUSED(params)
+}
 
 void Controller::finalize() {}
 

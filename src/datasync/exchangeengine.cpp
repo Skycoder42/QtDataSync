@@ -18,6 +18,7 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_defaults(setupName),
 	_logger(_defaults.createLogger("engine", this)),
 	_fatalErrorHandler(errorHandler),
+	_localStore(nullptr), //create in init thread!
 	_changeController(new ChangeController(_defaults, this)),
 	_remoteConnector(new RemoteConnector(_defaults, this))
 {}
@@ -54,6 +55,8 @@ QString ExchangeEngine::lastError() const
 void ExchangeEngine::initialize()
 {
 	try {
+		_localStore = new LocalStore(_defaults.setupName(), this);
+
 		//change controller
 		connect(_changeController, &ChangeController::controllerError,
 				this, &ExchangeEngine::controllerError);
@@ -77,8 +80,10 @@ void ExchangeEngine::initialize()
 		});
 
 		//initialize all
-		_changeController->initialize();
-		_remoteConnector->initialize();
+		QVariantHash params;
+		params.insert(QStringLiteral("store"), QVariant::fromValue(_localStore));
+		_changeController->initialize(params);
+		_remoteConnector->initialize(params);
 		logDebug() << "Initialization completed";
 	} catch (Exception &e) {
 		logFatal(e.qWhat());

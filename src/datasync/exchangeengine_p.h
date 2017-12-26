@@ -64,6 +64,8 @@ private:
 	Logger *_logger;
 	Setup::FatalErrorHandler _fatalErrorHandler;
 
+	LocalStore *_localStore;
+
 	ChangeController *_changeController;
 	RemoteConnector *_remoteConnector;
 

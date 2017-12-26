@@ -46,7 +46,7 @@ public:
 
 	static QStringList allKeystoreKeys();
 
-	void initialize() final;
+	void initialize(const QVariantHash &params) final;
 	void finalize() final;
 
 	ClientCrypto *crypto() const;

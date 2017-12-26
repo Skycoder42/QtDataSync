@@ -50,7 +50,7 @@ public:
 
 	explicit RemoteConnector(const Defaults &defaults, QObject *parent = nullptr);
 
-	void initialize() final;
+	void initialize(const QVariantHash &params) final;
 	void finalize() final;
 
 	Q_INVOKABLE bool isSyncEnabled() const;

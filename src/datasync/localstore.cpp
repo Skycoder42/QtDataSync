@@ -40,28 +40,46 @@ LocalStore::LocalStore(const QString &setupName, QObject *parent) :
 			Qt::DirectConnection);
 
 	//make shure the primary table exists
-	_database.createGlobalScheme(_defaults);
+	QWriteLocker _(_defaults.databaseLock());
+	if(!_database->tables().contains(QStringLiteral("DataIndex"))) {
+		QSqlQuery createQuery(_database);
+		createQuery.prepare(QStringLiteral("CREATE TABLE DataIndex ("
+										   "	Type		TEXT NOT NULL,"
+										   "	Id			TEXT NOT NULL,"
+										   "	Version		INTEGER NOT NULL,"
+										   "	File		TEXT,"
+										   "	Checksum	BLOB,"
+										   "	Changed		INTEGER NOT NULL DEFAULT 1,"
+										   "	PRIMARY KEY(Type, Id)"
+										   ") WITHOUT ROWID;"));
+		if(!createQuery.exec()) {
+			throw LocalStoreException(_defaults,
+									  QByteArrayLiteral("any"),
+									  createQuery.executedQuery().simplified(),
+									  createQuery.lastError().text());
+		}
+	}
 }
 
 LocalStore::~LocalStore() {}
 
-QDir LocalStore::typeDirectory(Defaults defaults, const ObjectKey &key)
+QDir LocalStore::typeDirectory(const ObjectKey &key)
 {
 	auto encName = QUrl::toPercentEncoding(QString::fromUtf8(key.typeName))
 				   .replace('%', '_');
 	auto tName = QStringLiteral("store/data_%1").arg(QString::fromUtf8(encName));
-	auto tableDir = defaults.storageDir();
+	auto tableDir = _defaults.storageDir();
 	if(!tableDir.mkpath(tName) || !tableDir.cd(tName)) {
-		throw LocalStoreException(defaults, key, tName, QStringLiteral("Failed to create directory"));
+		throw LocalStoreException(_defaults, key, tName, QStringLiteral("Failed to create directory"));
 	} else
 		return tableDir;
 }
 
-QJsonObject LocalStore::readJson(Defaults defaults, const ObjectKey &key, const QString &fileName, int *costs)
+QJsonObject LocalStore::readJson(const ObjectKey &key, const QString &fileName, int *costs)
 {
-	QFile file(typeDirectory(defaults, key).absoluteFilePath(fileName + QStringLiteral(".dat")));
+	QFile file(typeDirectory(key).absoluteFilePath(fileName + QStringLiteral(".dat")));
 	if(!file.open(QIODevice::ReadOnly))
-		throw LocalStoreException(defaults, key, file.fileName(), file.errorString());
+		throw LocalStoreException(_defaults, key, file.fileName(), file.errorString());
 
 	auto doc = QJsonDocument::fromBinaryData(file.readAll());
 	if(costs)
@@ -69,7 +87,7 @@ QJsonObject LocalStore::readJson(Defaults defaults, const ObjectKey &key, const 
 	file.close();
 
 	if(!doc.isObject())
-		throw LocalStoreException(defaults, key, file.fileName(), QStringLiteral("File contains invalid json data"));
+		throw LocalStoreException(_defaults, key, file.fileName(), QStringLiteral("File contains invalid json data"));
 	return doc.object();
 }
 
@@ -421,6 +439,47 @@ void LocalStore::reset()
 	emit dataResetted();
 }
 
+bool LocalStore::hasChanges()
+{
+	QReadLocker _(_defaults.databaseLock());
+
+	QSqlQuery checkQuery(_database);
+	checkQuery.prepare(QStringLiteral("SELECT 1 FROM DataIndex WHERE CHANGED = 1 LIMIT 1"));
+	exec(checkQuery);
+	return checkQuery.first();
+}
+
+void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor)
+{
+	QReadLocker _(_defaults.databaseLock());
+	QSqlQuery readChangesQuery(_database);
+	readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File FROM DataIndex WHERE CHANGED = 1 LIMIT ?"));
+	readChangesQuery.addBindValue(limit);
+	exec(readChangesQuery);
+
+	while(readChangesQuery.next()) {
+		if(!visitor({readChangesQuery.value(0).toByteArray(), readChangesQuery.value(1).toString()},
+					readChangesQuery.value(2).toULongLong(),
+					readChangesQuery.value(3).toString()))
+			break;
+	}
+}
+
+void LocalStore::markUnchanged(const ObjectKey &key, quint64 version, bool isDelete)
+{
+	QWriteLocker _(_defaults.databaseLock());
+
+	QSqlQuery completeQuery(_database);
+	if(isDelete && !_defaults.property(Defaults::PersistDeleted).toBool())
+		completeQuery.prepare(QStringLiteral("DELETE FROM DataIndex WHERE Type = ? AND Id = ? AND Version = ? AND File IS NULL"));
+	else
+		completeQuery.prepare(QStringLiteral("UPDATE DataIndex SET Changed = 0 WHERE Type = ? AND Id = ? AND Version = ?"));
+	completeQuery.addBindValue(key.typeName);
+	completeQuery.addBindValue(key.id);
+	completeQuery.addBindValue(version);
+	exec(completeQuery);
+}
+
 int LocalStore::cacheSize() const
 {
 	return _dataCache.maxCost();
@@ -482,16 +541,6 @@ void LocalStore::exec(QSqlQuery &query, const ObjectKey &key) const
 								  query.executedQuery().simplified(),
 								  query.lastError().text());
 	}
-}
-
-QDir LocalStore::typeDirectory(const ObjectKey &key)
-{
-	return typeDirectory(_defaults, key);
-}
-
-QJsonObject LocalStore::readJson(const ObjectKey &key, const QString &fileName, int *costs)
-{
-	return readJson(_defaults, key, fileName, costs);
 }
 
 // ------------- Emitter -------------
