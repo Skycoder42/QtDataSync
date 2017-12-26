@@ -4,7 +4,7 @@ Environment:
 
 Parameters:
 	version{v*}
-	chksum{c*}
+	chksum{c*} (on demand)
 	data{d*} (on demand)
 
 action(exists<->changed):

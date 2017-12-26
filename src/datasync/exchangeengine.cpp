@@ -70,6 +70,12 @@ void ExchangeEngine::initialize()
 		connect(_remoteConnector, &RemoteConnector::uploadDone,
 				_changeController, &ChangeController::uploadDone);
 
+		//DEBUG
+		connect(_remoteConnector, &RemoteConnector::downloadData,
+				this, [this](int k, QByteArray v) {
+			logDebug() << k << v;
+		});
+
 		//initialize all
 		_changeController->initialize();
 		_remoteConnector->initialize();

@@ -149,14 +149,19 @@ void RemoteConnector::setSyncEnabled(bool syncEnabled)
 
 void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
 {
-	if(!isIdle()) {
-		logWarning() << "Can't upload when not in idle state. Ignoring request";
-		return;
-	}
+	try {
+		if(!isIdle()) {
+			logWarning() << "Can't upload when not in idle state. Ignoring request";
+			return;
+		}
 
-	ChangeMessage message(key);
-	std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
-	_socket->sendBinaryMessage(serializeMessage(message));
+		ChangeMessage message(key);
+		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
+		_socket->sendBinaryMessage(serializeMessage(message));
+	} catch(Exception &e) {
+		logCritical() << e.what();
+		triggerError(false);
+	}
 }
 
 void RemoteConnector::connected()
@@ -214,12 +219,22 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onWelcome(deserializeMessage<WelcomeMessage>(stream));
 		else if(isType<ChangeAckMessage>(name))
 			onChangeAck(deserializeMessage<ChangeAckMessage>(stream));
+		else if(isType<ChangedMessage>(name))
+			onChanged(deserializeMessage<ChangedMessage>(stream));
+		else if(isType<ChangedInfoMessage>(name))
+			onChangedInfo(deserializeMessage<ChangedInfoMessage>(stream));
+		else if(isType<LastChangedMessage>(name))
+			onLastChanged(deserializeMessage<LastChangedMessage>(stream));
 		else {
-			logWarning() << "Unknown message received: " << typeName(name);
+			logWarning().noquote() << "Unknown message received:" << typeName(name);
 			triggerError(true);
 		}
 	} catch(DataStreamException &e) {
 		logCritical() << "Remote message error:" << e.what();
+		triggerError(true);
+	} catch(Exception &e) {
+		logCritical() << e.what();
+		triggerError(false);
 	}
 }
 
@@ -482,7 +497,6 @@ void RemoteConnector::onError(const ErrorMessage &message)
 	logCritical() << message;
 	triggerError(message.canRecover);
 
-	//
 	if(!message.canRecover) {
 		switch(message.type) {
 		case ErrorMessage::IncompatibleVersionError:
@@ -506,59 +520,51 @@ void RemoteConnector::onError(const ErrorMessage &message)
 
 void RemoteConnector::onIdentify(const IdentifyMessage &message)
 {
-	try {
-		// allow connecting too, because possible event order: [Connecting] -> connected -> onIdentify -> [Connected] -> ...
-		// instead of the "clean" order: [Connecting] -> connected -> [Connected] -> onIdentify -> ...
-		// can happen when the message is received before the connected event has been sent
-		if(!_stateMachine->isActive(QStringLiteral("Connected")) &&
-		   !_stateMachine->isActive(QStringLiteral("Connecting"))) {
-			logWarning() << "Unexpected IdentifyMessage";
-			triggerError(true);
+	// allow connecting too, because possible event order: [Connecting] -> connected -> onIdentify -> [Connected] -> ...
+	// instead of the "clean" order: [Connecting] -> connected -> [Connected] -> onIdentify -> ...
+	// can happen when the message is received before the connected event has been sent
+	if(!_stateMachine->isActive(QStringLiteral("Connected")) &&
+	   !_stateMachine->isActive(QStringLiteral("Connecting"))) {
+		logWarning() << "Unexpected IdentifyMessage";
+		triggerError(true);
+	} else {
+		if(!_deviceId.isNull()) {
+			LoginMessage msg(_deviceId,
+							 sValue(keyDeviceName).toString(),
+							 message.nonce);
+			auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+			_stateMachine->submitEvent(QStringLiteral("awaitLogin"));
+			_socket->sendBinaryMessage(signedMsg);
+			logDebug() << "Sent login message for device id" << _deviceId;
 		} else {
-			if(!_deviceId.isNull()) {
-				LoginMessage msg(_deviceId,
-								 sValue(keyDeviceName).toString(),
-								 message.nonce);
-				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
-				_stateMachine->submitEvent(QStringLiteral("awaitLogin"));
-				_socket->sendBinaryMessage(signedMsg);
-				logDebug() << "Sent login message for device id" << _deviceId;
-			} else {
-				_cryptoController->createPrivateKeys(message.nonce);
-				RegisterMessage msg(sValue(keyDeviceName).toString(),
-									message.nonce,
-									_cryptoController->crypto()->signKey(),
-									_cryptoController->crypto()->cryptKey(),
-									_cryptoController->crypto());
-				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
-				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
-				_socket->sendBinaryMessage(signedMsg);
-				logDebug() << "Sent registration message for new id";
-			}
+			_cryptoController->createPrivateKeys(message.nonce);
+			RegisterMessage msg(sValue(keyDeviceName).toString(),
+								message.nonce,
+								_cryptoController->crypto()->signKey(),
+								_cryptoController->crypto()->cryptKey(),
+								_cryptoController->crypto());
+			auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+			_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
+			_socket->sendBinaryMessage(signedMsg);
+			logDebug() << "Sent registration message for new id";
 		}
-	} catch(Exception &e) {
-		logCritical() << e.what();
 	}
 }
 
 void RemoteConnector::onAccount(const AccountMessage &message)
 {
-	try {
-		if(!_stateMachine->isActive(QStringLiteral("Registering"))) {
-			logWarning() << "Unexpected AccountMessage";
-			triggerError(true);
-		} else {
-			_deviceId = message.deviceId;
-			settings()->setValue(keyDeviceId, _deviceId);
-			_cryptoController->storePrivateKeys(_deviceId);
-			logDebug() << "Registration successful";
-			// reset retry index only after successfuly account creation or login
-			_retryIndex = 0;
-			_expectChanges = false;
-			_stateMachine->submitEvent(QStringLiteral("account"));
-		}
-	} catch(Exception &e) {
-		logCritical() << e.what();
+	if(!_stateMachine->isActive(QStringLiteral("Registering"))) {
+		logWarning() << "Unexpected AccountMessage";
+		triggerError(true);
+	} else {
+		_deviceId = message.deviceId;
+		settings()->setValue(keyDeviceId, _deviceId);
+		_cryptoController->storePrivateKeys(_deviceId);
+		logDebug() << "Registration successful";
+		// reset retry index only after successfuly account creation or login
+		_retryIndex = 0;
+		_expectChanges = false;
+		_stateMachine->submitEvent(QStringLiteral("account"));
 	}
 }
 
@@ -583,4 +589,42 @@ void RemoteConnector::onChangeAck(const ChangeAckMessage &message)
 		triggerError(true);
 	} else
 		emit uploadDone(message.dataId);
+}
+
+void RemoteConnector::onChanged(const ChangedMessage &message)
+{
+	if(!isIdle()) {
+		logWarning() << "Unexpected ChangedMessage";
+		triggerError(true);
+	} else {
+		auto data = _cryptoController->decrypt(message.keyIndex,
+											   message.salt,
+											   message.data);
+		emit downloadData(message.dataIndex, data);
+	}
+}
+
+void RemoteConnector::onChangedInfo(const ChangedInfoMessage &message)
+{
+	if(!isIdle()) {
+		logWarning() << "Unexpected ChangedInfoMessage";
+		triggerError(true);
+	} else {
+		//emit event to enter downloading state
+		emit remoteEvent(RemoteReadyWithChanges);
+		//TODO make use of change count
+		//parse as usual
+		onChanged(message);
+	}
+}
+
+void RemoteConnector::onLastChanged(const LastChangedMessage &message)
+{
+	Q_UNUSED(message)
+
+	if(!isIdle()) {
+		logWarning() << "Unexpected LastChangedMessage";
+		triggerError(true);
+	} else
+		emit remoteEvent(RemoteReady); //back to normal
 }

@@ -69,7 +69,7 @@ private:
 	};
 	friend uint qHash(const ChangeController::CachedObjectKey &key, uint seed);
 
-	static const int UploadLimit;
+	static const int UploadLimit; //TODO get from server instead
 
 	DatabaseRef _database;
 	bool _uploadingEnabled;

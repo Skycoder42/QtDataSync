@@ -391,8 +391,10 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 		}
 	}
 
-	if(_activeDownloads.isEmpty() && !skipNoChanges)
+	if(_activeDownloads.isEmpty() && !skipNoChanges) {
+		_cachedChanges = 0; //to make shure the next message is a ChangedInfoMessage
 		sendMessage(serializeMessage<LastChangedMessage>({}));
+	}
 }
 
 // ------------- Exceptions Implementation -------------

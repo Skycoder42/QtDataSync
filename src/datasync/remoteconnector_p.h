@@ -68,6 +68,7 @@ Q_SIGNALS:
 	void finalized();
 	void remoteEvent(RemoteEvent event);
 	void uploadDone(const QByteArray &key);
+	void downloadData(const quint64 key, const QByteArray &changeData);
 
 	void syncEnabledChanged(bool syncEnabled);
 
@@ -115,6 +116,9 @@ private:
 	void onAccount(const AccountMessage &message);
 	void onWelcome(const WelcomeMessage &message);
 	void onChangeAck(const ChangeAckMessage &message);
+	void onChanged(const ChangedMessage &message);
+	void onChangedInfo(const ChangedInfoMessage &message);
+	void onLastChanged(const LastChangedMessage &message);
 };
 
 }
