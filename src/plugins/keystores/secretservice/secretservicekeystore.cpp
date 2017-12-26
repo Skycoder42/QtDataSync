@@ -1,18 +1,19 @@
-#include "gsecretkeystore.h"
+#include "secretservicekeystore.h"
 
 #include <QtCore/QCoreApplication>
 
-GSecretKeyStore::GSecretKeyStore(const QtDataSync::Defaults &defaults, QObject *parent) :
+SecretServiceKeyStore::SecretServiceKeyStore(const QtDataSync::Defaults &defaults, const QString &providerName, QObject *parent) :
 	KeyStore(defaults, parent),
+	_providerName(providerName),
 	_libSecret(new LibSecretWrapper(QCoreApplication::applicationName().toUtf8()))
 {}
 
-QString GSecretKeyStore::providerName() const
+QString SecretServiceKeyStore::providerName() const
 {
-	return QStringLiteral("gsecret");
+	return _providerName;
 }
 
-void GSecretKeyStore::loadStore()
+void SecretServiceKeyStore::loadStore()
 {
 	try {
 		_libSecret->setup();
@@ -21,12 +22,12 @@ void GSecretKeyStore::loadStore()
 	}
 }
 
-void GSecretKeyStore::closeStore()
+void SecretServiceKeyStore::closeStore()
 {
 	_libSecret->cleanup();
 }
 
-bool GSecretKeyStore::contains(const QString &key) const
+bool SecretServiceKeyStore::contains(const QString &key) const
 {
 	try {
 		if(_libSecret->loadSecret(key.toUtf8()).isEmpty())
@@ -38,7 +39,7 @@ bool GSecretKeyStore::contains(const QString &key) const
 	}
 }
 
-void GSecretKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey)
+void SecretServiceKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey)
 {
 	try {
 		_libSecret->storeSecret(key.toUtf8(), pKey);
@@ -47,7 +48,7 @@ void GSecretKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey
 	}
 }
 
-QByteArray GSecretKeyStore::loadPrivateKey(const QString &key)
+QByteArray SecretServiceKeyStore::loadPrivateKey(const QString &key)
 {
 	try {
 		return _libSecret->loadSecret(key.toUtf8());
@@ -56,7 +57,7 @@ QByteArray GSecretKeyStore::loadPrivateKey(const QString &key)
 	}
 }
 
-void GSecretKeyStore::remove(const QString &key)
+void SecretServiceKeyStore::remove(const QString &key)
 {
 	try {
 		_libSecret->removeSecret(key.toUtf8());

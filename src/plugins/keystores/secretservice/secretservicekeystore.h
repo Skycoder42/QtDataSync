@@ -1,5 +1,5 @@
-#ifndef GSECRETKEYSTORE_H
-#define GSECRETKEYSTORE_H
+#ifndef SECRETSERVICEKEYSTORE_H
+#define SECRETSERVICEKEYSTORE_H
 
 #include <QtCore/QScopedPointer>
 
@@ -7,12 +7,14 @@
 
 #include "libsecretwrapper.h"
 
-class GSecretKeyStore : public QtDataSync::KeyStore
+class SecretServiceKeyStore : public QtDataSync::KeyStore
 {
 	Q_OBJECT
 
 public:
-	explicit GSecretKeyStore(const QtDataSync::Defaults &defaults, QObject *parent = nullptr);
+	explicit SecretServiceKeyStore(const QtDataSync::Defaults &defaults,
+								   const QString &providerName,
+								   QObject *parent = nullptr);
 
 	QString providerName() const override;
 	void loadStore() override;
@@ -23,7 +25,8 @@ public:
 	void remove(const QString &key) override;
 
 private:
+	const QString _providerName;
 	QScopedPointer<LibSecretWrapper> _libSecret;
 };
 
-#endif // GSECRETKEYSTORE_H
+#endif // SECRETSERVICEKEYSTORE_H
