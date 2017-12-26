@@ -17,6 +17,7 @@
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG _logger
+#define SCOPE_ASSERT() Q_ASSERT_X(scope.database.isValid(), Q_FUNC_INFO, "Cannot use SyncScope after committing it")
 
 Q_GLOBAL_STATIC(LocalStoreEmitter, emitter)
 
@@ -480,6 +481,42 @@ void LocalStore::markUnchanged(const ObjectKey &key, quint64 version, bool isDel
 	exec(completeQuery);
 }
 
+LocalStore::SyncScope LocalStore::startSync(const ObjectKey &key)
+{
+	return SyncScope(_defaults, key, this);
+}
+
+std::tuple<LocalStore::ChangeType, quint64> LocalStore::loadChangeInfo(const SyncScope &scope)
+{
+	SCOPE_ASSERT();
+	//no lock needed, passed as parameter
+	QSqlQuery loadChangeQuery(scope.database);
+	loadChangeQuery.prepare(QStringLiteral("SELECT Version, Checksum FROM DataIndex WHERE Type = ? AND Id = ?"));
+	loadChangeQuery.addBindValue(scope.key.typeName);
+	loadChangeQuery.addBindValue(scope.key.id);
+	exec(loadChangeQuery);
+
+	if(loadChangeQuery.first()) {
+		auto version = loadChangeQuery.value(0).toULongLong();
+		auto checksum = loadChangeQuery.value(1).toByteArray();
+		if(checksum.isEmpty())
+			return {ExistsDeleted, version};
+		else
+			return {Exists, version};
+	} else
+		return {NoExists, 0};
+}
+
+void LocalStore::commitSync(SyncScope &scope)
+{
+	SCOPE_ASSERT();
+	//no lock needed, passed as parameter
+	if(!scope.database->commit())
+		throw LocalStoreException(_defaults, scope.key, scope.database->databaseName(), scope.database->lastError().text());
+	scope.database = DatabaseRef(); //clear the ref, so it won't rollback
+	scope.lock.unlock(); //unlock, wont be used anymore
+}
+
 int LocalStore::cacheSize() const
 {
 	return _dataCache.maxCost();
@@ -541,6 +578,23 @@ void LocalStore::exec(QSqlQuery &query, const ObjectKey &key) const
 								  query.executedQuery().simplified(),
 								  query.lastError().text());
 	}
+}
+
+// ------------- SyncScope -------------
+
+LocalStore::SyncScope::SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
+	key(key),
+	database(defaults.aquireDatabase(owner)),
+	lock(defaults.databaseLock())
+{
+	if(!database->transaction())
+		throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
+}
+
+LocalStore::SyncScope::~SyncScope()
+{
+	if(database.isValid())
+		database->rollback();
 }
 
 // ------------- Emitter -------------

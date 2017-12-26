@@ -2,6 +2,7 @@
 #define LOCALSTORE_P_H
 
 #include <functional>
+#include <tuple>
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
@@ -38,6 +39,28 @@ class Q_DATASYNC_EXPORT LocalStore : public QObject //TODO use const where usefu
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 
 public:
+	enum ChangeType {
+		Exists,
+		ExistsDeleted,
+		NoExists
+	};
+	Q_ENUM(ChangeType)
+
+	class SyncScope {
+		friend class LocalStore;
+		Q_DISABLE_COPY(SyncScope)
+
+	public:
+		~SyncScope();
+
+	private:
+		ObjectKey key;
+		DatabaseRef database;
+		QWriteLocker lock;
+
+		SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
+	};
+
 	explicit LocalStore(QObject *parent = nullptr);
 	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);
 	~LocalStore();
@@ -62,6 +85,11 @@ public:
 	bool hasChanges();
 	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor);
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
+
+	// sync access
+	SyncScope startSync(const ObjectKey &key);
+	std::tuple<ChangeType, quint64> loadChangeInfo(const SyncScope &scope);
+	void commitSync(SyncScope &scope);
 
 	int cacheSize() const;
 

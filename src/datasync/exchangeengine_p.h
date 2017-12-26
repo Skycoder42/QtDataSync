@@ -11,6 +11,7 @@
 
 #include "localstore_p.h"
 #include "changecontroller_p.h"
+#include "synccontroller_p.h"
 #include "remoteconnector_p.h"
 
 namespace QtDataSync {
@@ -67,6 +68,7 @@ private:
 	LocalStore *_localStore;
 
 	ChangeController *_changeController;
+	SyncController *_syncController;
 	RemoteConnector *_remoteConnector;
 
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);

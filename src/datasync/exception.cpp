@@ -45,7 +45,7 @@ QString Exception::qWhat() const
 
 const char *Exception::what() const noexcept
 {
-	static QByteArray bCache;
+	static QByteArray bCache; //TODO VERY unsafe, make per instance or per thread!!!
 	bCache = qWhat().toUtf8();
 	return bCache.constData();
 }

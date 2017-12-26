@@ -63,6 +63,7 @@ public Q_SLOTS:
 	void setSyncEnabled(bool syncEnabled);
 
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
+	void downloadDone(const quint64 key);
 
 Q_SIGNALS:
 	void finalized();

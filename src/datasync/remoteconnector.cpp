@@ -164,6 +164,22 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 	}
 }
 
+void RemoteConnector::downloadDone(const quint64 key)
+{
+	try {
+		if(!isIdle()) {
+			logWarning() << "Can't download when not in idle state. Ignoring request";
+			return;
+		}
+
+		ChangedAckMessage message(key);
+		_socket->sendBinaryMessage(serializeMessage(message));
+	} catch(Exception &e) {
+		logCritical() << e.what();
+		triggerError(false);
+	}
+}
+
 void RemoteConnector::connected()
 {
 	logDebug() << "Successfully connected to remote server";

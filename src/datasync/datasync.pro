@@ -26,7 +26,8 @@ HEADERS += qtdatasync_global.h \
 	keystore.h \
 	controller_p.h \
 	syncmanager_p.h \
-	synchelper_p.h
+	synchelper_p.h \
+    synccontroller_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -46,7 +47,8 @@ SOURCES += \
 	cryptocontroller.cpp \
 	keystore.cpp \
 	controller.cpp \
-	synchelper.cpp
+	synchelper.cpp \
+    synccontroller.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml

@@ -33,6 +33,7 @@ public:
 	DatabaseRef(DatabaseRef &&other);
 	DatabaseRef &operator=(DatabaseRef &&other);
 
+	bool isValid() const;
 	QSqlDatabase database() const;
 	operator QSqlDatabase() const;
 	QSqlDatabase *operator->() const;

@@ -20,6 +20,7 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_fatalErrorHandler(errorHandler),
 	_localStore(nullptr), //create in init thread!
 	_changeController(new ChangeController(_defaults, this)),
+	_syncController(new SyncController(_defaults, this)),
 	_remoteConnector(new RemoteConnector(_defaults, this))
 {}
 
@@ -65,6 +66,12 @@ void ExchangeEngine::initialize()
 		connect(_changeController, &ChangeController::uploadChange,
 				_remoteConnector, &RemoteConnector::uploadData);
 
+		//sync controller
+		connect(_syncController, &ChangeController::controllerError,
+				this, &ExchangeEngine::controllerError);
+		connect(_syncController, &SyncController::syncDone,
+				_remoteConnector, &RemoteConnector::downloadDone);
+
 		//remote controller
 		connect(_remoteConnector, &RemoteConnector::controllerError,
 				this, &ExchangeEngine::controllerError);
@@ -72,17 +79,14 @@ void ExchangeEngine::initialize()
 				this, &ExchangeEngine::remoteEvent);
 		connect(_remoteConnector, &RemoteConnector::uploadDone,
 				_changeController, &ChangeController::uploadDone);
-
-		//DEBUG
 		connect(_remoteConnector, &RemoteConnector::downloadData,
-				this, [this](int k, QByteArray v) {
-			logDebug() << k << v;
-		});
+				_syncController, &SyncController::syncChange);
 
 		//initialize all
 		QVariantHash params;
 		params.insert(QStringLiteral("store"), QVariant::fromValue(_localStore));
 		_changeController->initialize(params);
+		_syncController->initialize(params);
 		_remoteConnector->initialize(params);
 		logDebug() << "Initialization completed";
 	} catch (Exception &e) {
@@ -102,6 +106,7 @@ void ExchangeEngine::finalize()
 	});
 
 	_remoteConnector->finalize();
+	_syncController->finalize();
 	_changeController->finalize();
 }
 

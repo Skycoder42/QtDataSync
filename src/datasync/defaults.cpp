@@ -121,6 +121,11 @@ DatabaseRef &DatabaseRef::operator=(DatabaseRef &&other)
 	return (*this);
 }
 
+bool DatabaseRef::isValid() const
+{
+	return d && d->db().isValid();
+}
+
 QSqlDatabase DatabaseRef::database() const
 {
 	return d->db();
