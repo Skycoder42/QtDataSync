@@ -486,10 +486,10 @@ LocalStore::SyncScope LocalStore::startSync(const ObjectKey &key)
 	return SyncScope(_defaults, key, this);
 }
 
-std::tuple<LocalStore::ChangeType, quint64> LocalStore::loadChangeInfo(const SyncScope &scope)
+std::tuple<LocalStore::ChangeType, quint64, QByteArray> LocalStore::loadChangeInfo(const SyncScope &scope)
 {
 	SCOPE_ASSERT();
-	//no lock needed, passed as parameter
+
 	QSqlQuery loadChangeQuery(scope.database);
 	loadChangeQuery.prepare(QStringLiteral("SELECT Version, Checksum FROM DataIndex WHERE Type = ? AND Id = ?"));
 	loadChangeQuery.addBindValue(scope.key.typeName);
@@ -500,17 +500,75 @@ std::tuple<LocalStore::ChangeType, quint64> LocalStore::loadChangeInfo(const Syn
 		auto version = loadChangeQuery.value(0).toULongLong();
 		auto checksum = loadChangeQuery.value(1).toByteArray();
 		if(checksum.isEmpty())
-			return {ExistsDeleted, version};
+			return {ExistsDeleted, version, QByteArray()};
 		else
-			return {Exists, version};
+			return {Exists, version, checksum};
 	} else
-		return {NoExists, 0};
+		return {NoExists, 0, QByteArray()};
+}
+
+void LocalStore::storeDeleted(const SyncScope &scope, quint64 version, bool changed, ChangeType localState)
+{
+	SCOPE_ASSERT();
+
+	QString rmFile;
+	bool existing;
+	switch (localState) {
+	case Exists:
+	{
+		QSqlQuery loadQuery(scope.database);
+		loadQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Id = ? AND File IS NOT NULL"));
+		loadQuery.addBindValue(scope.key.typeName);
+		loadQuery.addBindValue(scope.key.id);
+		exec(loadQuery, scope.key);
+
+		if(loadQuery.first())
+			rmFile = loadQuery.value(0).toString();
+		Q_FALLTHROUGH();
+	}
+	case ExistsDeleted:
+		existing = true;
+		break;
+	case NoExists:
+		existing = false;
+		break;
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+
+	if(existing) {
+		QSqlQuery updateQuery(scope.database);
+		updateQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, File = NULL, Checksum = NULL, Changed = ? WHERE Type = ? AND Id = ?"));
+		updateQuery.addBindValue(version);
+		updateQuery.addBindValue(changed);
+		updateQuery.addBindValue(scope.key.typeName);
+		updateQuery.addBindValue(scope.key.id);
+		exec(updateQuery, scope.key);
+	} else {
+		QSqlQuery insertQuery(scope.database);
+		insertQuery.prepare(QStringLiteral("INSERT INTO DataIndex (Type, Id, Version, File, Checksum, Changed) VALUES(?, ?, ?, NULL, NULL, ?)"));
+		insertQuery.addBindValue(scope.key.typeName);
+		insertQuery.addBindValue(scope.key.id);
+		insertQuery.addBindValue(version);
+		insertQuery.addBindValue(changed);
+		exec(insertQuery, scope.key);
+	}
+
+	//notify change controller
+	ChangeController::triggerDataChange(_defaults, scope.lock);
+
+	//update cache
+	_dataCache.remove(scope.key);
+
+	//notify others
+	emit emitter->dataChanged(this, scope.key, {}, 0);
 }
 
 void LocalStore::commitSync(SyncScope &scope)
 {
 	SCOPE_ASSERT();
-	//no lock needed, passed as parameter
+
 	if(!scope.database->commit())
 		throw LocalStoreException(_defaults, scope.key, scope.database->databaseName(), scope.database->lastError().text());
 	scope.database = DatabaseRef(); //clear the ref, so it won't rollback

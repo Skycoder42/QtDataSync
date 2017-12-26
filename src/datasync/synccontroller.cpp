@@ -19,21 +19,52 @@ void SyncController::initialize(const QVariantHash &params)
 void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 {
 	try {
-		bool remoteState;
-		ObjectKey key;
+		bool remoteDeleted;
+		ObjectKey objKey;
 		quint64 remoteVersion;
 		QJsonObject remoteData;
-		std::tie(remoteState, key, remoteVersion, remoteData) = SyncHelper::extract(changeData);
+		std::tie(remoteDeleted, objKey, remoteVersion, remoteData) = SyncHelper::extract(changeData);
 
-		auto scope = _store->startSync(key);
+		auto scope = _store->startSync(objKey);
 		LocalStore::ChangeType localState;
 		quint64 localVersion;
-		std::tie(localState, localVersion) = _store->loadChangeInfo(scope);
+		QByteArray localChecksum;
+		std::tie(localState, localVersion, localChecksum) = _store->loadChangeInfo(scope);
+
+		switch (localState) {
+		case LocalStore::Exists:
+			if(remoteDeleted) { // exists<->deleted
+
+			} else { // exists<->changed
+
+			}
+			break;
+		case LocalStore::ExistsDeleted:
+			if(remoteDeleted) { // cachedDelete<->deleted
+
+			} else { // cachedDelete<->changed
+
+			}
+			break;
+		case LocalStore::NoExists:
+			if(remoteDeleted) { // noexists<->deleted
+				if(defaults().property(Defaults::PersistDeleted).toBool())
+					_store->storeDeleted(scope, remoteVersion, false, localState);
+				//else: do nothing
+				logDebug() << "Synced as action(noexists<->deleted)";
+			} else { // noexists<->changed
+
+			}
+			break;
+		default:
+			Q_UNREACHABLE();
+			break;
+		}
 
 		//TODO implement
 
 		_store->commitSync(scope);
-		logDebug() << "IT WORKED!!!";
+		emit syncDone(key);
 	} catch (QException &e) {
 		logCritical() << "Failed to synchronize data:" << e.what();
 		emit controllerError(tr("Data downloaded from server is invalid."));

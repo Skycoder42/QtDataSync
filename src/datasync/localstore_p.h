@@ -88,7 +88,8 @@ public:
 
 	// sync access
 	SyncScope startSync(const ObjectKey &key);
-	std::tuple<ChangeType, quint64> loadChangeInfo(const SyncScope &scope);
+	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QByteArray> loadChangeInfo(const SyncScope &scope);
+	void storeDeleted(const SyncScope &scope, quint64 version, bool changed, ChangeType localState);
 	void commitSync(SyncScope &scope);
 
 	int cacheSize() const;
