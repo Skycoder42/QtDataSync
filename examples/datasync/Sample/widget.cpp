@@ -41,6 +41,14 @@ Widget::Widget(QWidget *parent) :
 	ui->dataTreeView->setModel(_model);
 	connect(ui->dataTreeView->selectionModel(), &QItemSelectionModel::currentChanged,
 			this, &Widget::selectionChange);
+
+	//dbg
+	_manager->runOnDownloaded([](QtDataSync::SyncManager::SyncState state) {
+		qDebug() << "Completed download in state:" << state;
+	});
+	_manager->runOnSynchronized([](QtDataSync::SyncManager::SyncState state) {
+		qDebug() << "Completed sync in state:" << state;
+	});
 }
 
 Widget::~Widget()

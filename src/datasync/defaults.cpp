@@ -168,7 +168,8 @@ void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &stora
 {
 	QMutexLocker _(&setupDefaultsMutex);
 	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, properties, serializer, resolver);
-	d->resolver->setDefaults(d);
+	if(d->resolver)
+		d->resolver->setDefaults(d);
 
 	//create the default propertie values if unset
 	if(!d->properties.contains(Defaults::SignKeyParam))
@@ -236,11 +237,13 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
 	serializer(serializer),
+	resolver(resolver),
 	properties(properties),
 	lock(QReadWriteLock::NonRecursive)
 {
 	serializer->setParent(this);
-	resolver->setParent(this);
+	if(resolver)
+		resolver->setParent(this);
 }
 
 DefaultsPrivate::~DefaultsPrivate()
