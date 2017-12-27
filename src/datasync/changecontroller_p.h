@@ -43,7 +43,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
 	void changeTriggered();
-	void uploadNext();
+	void uploadNext(bool emitStarted = false);
 
 private:
 	struct Q_DATASYNC_EXPORT UploadInfo {
@@ -73,8 +73,6 @@ private:
 	LocalStore *_store;
 	bool _uploadingEnabled;
 	QHash<CachedObjectKey, UploadInfo> _activeUploads;
-
-	bool canUpload();
 };
 
 uint Q_DATASYNC_EXPORT qHash(const ChangeController::CachedObjectKey &key, uint seed);

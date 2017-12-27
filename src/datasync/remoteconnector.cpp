@@ -627,6 +627,7 @@ void RemoteConnector::onChangedInfo(const ChangedInfoMessage &message)
 		logWarning() << "Unexpected ChangedInfoMessage";
 		triggerError(true);
 	} else {
+		logDebug() << "Started downloading, estimated changes:" << message.changeEstimate;
 		//emit event to enter downloading state
 		emit remoteEvent(RemoteReadyWithChanges);
 		//TODO make use of change count
@@ -642,6 +643,8 @@ void RemoteConnector::onLastChanged(const LastChangedMessage &message)
 	if(!isIdle()) {
 		logWarning() << "Unexpected LastChangedMessage";
 		triggerError(true);
-	} else
+	} else {
+		logDebug() << "Completed downloading changes";
 		emit remoteEvent(RemoteReady); //back to normal
+	}
 }

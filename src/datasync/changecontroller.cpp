@@ -32,10 +32,9 @@ void ChangeController::triggerDataChange(Defaults defaults, const QWriteLocker &
 void ChangeController::setUploadingEnabled(bool uploading)
 {
 	_uploadingEnabled = uploading;
-	if(uploading && canUpload()) {
-		emit uploadingChanged(true);
-		uploadNext();
-	} else
+	if(uploading)
+		uploadNext(true);
+	else
 		emit uploadingChanged(false);
 }
 
@@ -57,8 +56,9 @@ void ChangeController::uploadDone(const QByteArray &key)
 		_store->markUnchanged(info.key, info.version, info.isDelete);
 		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
 
-		if(_activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
-			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection);
+		if(_uploadingEnabled && _activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
+			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection,
+									  Q_ARG(bool, false));
 	} catch(Exception &e) {
 		logCritical() << "Failed to complete upload with error:" << e.what();
 		emit controllerError(tr("Failed to upload changes to server."));
@@ -67,19 +67,23 @@ void ChangeController::uploadDone(const QByteArray &key)
 
 void ChangeController::changeTriggered()
 {
-	if(_uploadingEnabled && canUpload()) {
-		emit uploadingChanged(true);
-		uploadNext();
-	}
+	if(_uploadingEnabled)
+		uploadNext(_activeUploads.isEmpty());
 }
 
-void ChangeController::uploadNext()
+void ChangeController::uploadNext(bool emitStarted)
 {
+	//uploads already exists: emit started no matter whether any are actually started from this call
+	if(emitStarted && !_activeUploads.isEmpty()) {
+		emitStarted = false;
+		emit uploadingChanged(true);
+	}
+
 	if(_activeUploads.size() >= UploadLimit)
 		return;
 
 	try {
-		_store->loadChanges(UploadLimit, [this](ObjectKey objKey, quint64 version, QString file) {
+		_store->loadChanges(UploadLimit, [this, &emitStarted](ObjectKey objKey, quint64 version, QString file) {
 			CachedObjectKey key(objKey);
 
 			auto skip = false;
@@ -91,6 +95,12 @@ void ChangeController::uploadNext()
 			}
 			if(skip)
 				return true;
+
+			//signale that uploading has started
+			if(emitStarted) {
+				emitStarted = false;
+				emit uploadingChanged(true);
+			}
 
 			auto keyHash = key.hashed();
 			auto isDelete = file.isNull();
@@ -112,26 +122,15 @@ void ChangeController::uploadNext()
 
 			return _activeUploads.size() < UploadLimit; //only continue as long as there is free space
 		});
+
+		if(_activeUploads.isEmpty())
+			emit uploadingChanged(false);
 	} catch(Exception &e) {
 		logCritical() << "Error when trying to upload change:" << e.what();
 		emit controllerError(tr("Failed to upload changes to server."));
 	}
 }
 
-bool ChangeController::canUpload()
-{
-	if(!_activeUploads.isEmpty())
-		return true;
-	else {
-		try {
-			return _store->hasChanges();
-		} catch(Exception &e) {
-			logCritical() << "Failed to check changes with error:" << e.what();
-			emit controllerError(tr("Failed to upload changes to server."));
-			return false;
-		}
-	}
-}
 
 
 ChangeController::ChangeInfo::ChangeInfo() :
