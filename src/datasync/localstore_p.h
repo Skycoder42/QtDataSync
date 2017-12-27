@@ -57,6 +57,7 @@ public:
 		ObjectKey key;
 		DatabaseRef database;
 		QWriteLocker lock;
+		std::function<void()> afterCommit;
 
 		SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
 	};
@@ -81,28 +82,27 @@ public:
 	void reset();
 
 	// change access
-	bool hasChanges();
 	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor);
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
 
 	// sync access
 	SyncScope startSync(const ObjectKey &key);
-	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QString, QByteArray> loadChangeInfo(const SyncScope &scope);
-	void updateVersion(const SyncScope &scope,
+	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QString, QByteArray> loadChangeInfo(SyncScope &scope);
+	void updateVersion(SyncScope &scope,
 					   quint64 oldVersion,
 					   quint64 newVersion,
 					   bool changed);
-	void storeChanged(const SyncScope &scope,
+	void storeChanged(SyncScope &scope,
 					  quint64 version,
 					  const QString &filePath,
 					  const QJsonObject &data,
 					  bool changed,
 					  ChangeType localState);
-	void storeDeleted(const SyncScope &scope,
+	void storeDeleted(SyncScope &scope,
 					  quint64 version,
 					  bool changed,
 					  ChangeType localState);
-	void markUnchanged(const SyncScope &scope,
+	void markUnchanged(SyncScope &scope,
 					   quint64 oldVersion,
 					   bool isDelete);
 	void commitSync(SyncScope &scope);
@@ -137,14 +137,14 @@ private:
 
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 
-	void storeChangedImpl(const DatabaseRef &db,
-						  const ObjectKey &key,
-						  quint64 version,
-						  const QString &filePath,
-						  const QJsonObject &data,
-						  bool changed,
-						  bool existing,
-						  const QWriteLocker &lock);
+	Q_REQUIRED_RESULT std::function<void()> storeChangedImpl(const DatabaseRef &db,
+															 const ObjectKey &key,
+															 quint64 version,
+															 const QString &filePath,
+															 const QJsonObject &data,
+															 bool changed,
+															 bool existing,
+															 const QWriteLocker &lock);
 	void markUnchangedImpl(const DatabaseRef &db,
 						   const ObjectKey &key,
 						   quint64 version,

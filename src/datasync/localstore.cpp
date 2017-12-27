@@ -178,18 +178,21 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 				version = existQuery.value(0).toULongLong() + 1ull;
 
 			//perform store operation
-			storeChangedImpl(_database,
-							 key,
-							 version,
-							 existing ? existQuery.value(1).toString() : QString(),
-							 data,
-							 true,
-							 existing,
-							 _);
+			auto resFn = storeChangedImpl(_database,
+										  key,
+										  version,
+										  existing ? existQuery.value(1).toString() : QString(),
+										  data,
+										  true,
+										  existing,
+										  _);
 
 			//commit database changes
 			if(!_database->commit())
 				throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
+
+			//after commit action
+			resFn();
 		} catch(...) {
 			_database->rollback();
 			throw;
@@ -365,16 +368,6 @@ void LocalStore::reset()
 	emit dataResetted();
 }
 
-bool LocalStore::hasChanges()
-{
-	QReadLocker _(_defaults.databaseLock());
-
-	QSqlQuery checkQuery(_database);
-	checkQuery.prepare(QStringLiteral("SELECT 1 FROM DataIndex WHERE CHANGED = 1 LIMIT 1"));
-	exec(checkQuery);
-	return checkQuery.first();
-}
-
 void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor)
 {
 	QReadLocker _(_defaults.databaseLock());
@@ -402,7 +395,7 @@ LocalStore::SyncScope LocalStore::startSync(const ObjectKey &key)
 	return SyncScope(_defaults, key, this);
 }
 
-std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loadChangeInfo(const SyncScope &scope)
+std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loadChangeInfo(SyncScope &scope)
 {
 	SCOPE_ASSERT();
 
@@ -424,7 +417,7 @@ std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loa
 		return {NoExists, 0, QString(), QByteArray()};
 }
 
-void LocalStore::updateVersion(const LocalStore::SyncScope &scope, quint64 oldVersion, quint64 newVersion, bool changed)
+void LocalStore::updateVersion(SyncScope &scope, quint64 oldVersion, quint64 newVersion, bool changed)
 {
 	SCOPE_ASSERT();
 	QSqlQuery updateQuery(scope.database);
@@ -441,13 +434,14 @@ void LocalStore::updateVersion(const LocalStore::SyncScope &scope, quint64 oldVe
 		ChangeController::triggerDataChange(_defaults, scope.lock);
 }
 
-void LocalStore::storeChanged(const LocalStore::SyncScope &scope, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, LocalStore::ChangeType localState)
+void LocalStore::storeChanged(SyncScope &scope, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, LocalStore::ChangeType localState)
 {
 	SCOPE_ASSERT();
-	storeChangedImpl(scope.database, scope.key, version, fileName, data, changed, localState == Exists, scope.lock);
+	Q_ASSERT_X(!scope.afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
+	scope.afterCommit = storeChangedImpl(scope.database, scope.key, version, fileName, data, changed, localState != NoExists, scope.lock);
 }
 
-void LocalStore::storeDeleted(const SyncScope &scope, quint64 version, bool changed, ChangeType localState)
+void LocalStore::storeDeleted(SyncScope &scope, quint64 version, bool changed, ChangeType localState)
 {
 	SCOPE_ASSERT();
 
@@ -502,19 +496,23 @@ void LocalStore::storeDeleted(const SyncScope &scope, quint64 version, bool chan
 			throw LocalStoreException(_defaults, scope.key, rmFile.fileName(), rmFile.errorString());
 	}
 
-	if(localState == Exists) {
-		//update cache
-		_dataCache.remove(scope.key);
-		//notify others
-		emit emitter->dataChanged(this, scope.key, {}, 0);
-	}
-
 	//notify change controller
 	if(changed)
 		ChangeController::triggerDataChange(_defaults, scope.lock);
+
+	if(localState == Exists) {
+		Q_ASSERT_X(!scope.afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
+		auto key = scope.key;
+		scope.afterCommit = [this, key]() {
+			//update cache
+			_dataCache.remove(key);
+			//notify others
+			emit emitter->dataChanged(this, key, {}, 0);
+		};
+	}
 }
 
-void LocalStore::markUnchanged(const LocalStore::SyncScope &scope, quint64 oldVersion, bool isDelete)
+void LocalStore::markUnchanged(SyncScope &scope, quint64 oldVersion, bool isDelete)
 {
 	SCOPE_ASSERT();
 	markUnchangedImpl(scope.database, scope.key, oldVersion, isDelete, scope.lock);
@@ -526,6 +524,10 @@ void LocalStore::commitSync(SyncScope &scope)
 
 	if(!scope.database->commit())
 		throw LocalStoreException(_defaults, scope.key, scope.database->databaseName(), scope.database->lastError().text());
+
+	if(scope.afterCommit)
+		scope.afterCommit();
+
 	scope.database = DatabaseRef(); //clear the ref, so it won't rollback
 	scope.lock.unlock(); //unlock, wont be used anymore
 }
@@ -615,7 +617,7 @@ void LocalStore::exec(QSqlQuery &query, const ObjectKey &key) const
 	}
 }
 
-void LocalStore::storeChangedImpl(const DatabaseRef &db, const ObjectKey &key, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, bool existing, const QWriteLocker &lock)
+std::function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const ObjectKey &key, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, bool existing, const QWriteLocker &lock)
 {
 	auto tableDir = typeDirectory(key);
 	QScopedPointer<QFileDevice> device;
@@ -680,15 +682,16 @@ void LocalStore::storeChangedImpl(const DatabaseRef &db, const ObjectKey &key, q
 	if(!commitFn(device.data()))
 		throw LocalStoreException(_defaults, key, device->fileName(), device->errorString());
 
-	//update cache
-	_dataCache.insert(key, new QJsonObject(data), info.size());
-
-	//notify others
-	emit emitter->dataChanged(this, key, data, info.size());
-
 	//notify change controller
 	if(changed)
 		ChangeController::triggerDataChange(_defaults, lock);
+
+	return [this, key, data, info]() {
+		//update cache
+		_dataCache.insert(key, new QJsonObject(data), info.size());
+		//notify others
+		emit emitter->dataChanged(this, key, data, info.size());
+	};
 }
 
 void LocalStore::markUnchangedImpl(const DatabaseRef &db, const ObjectKey &key, quint64 version, bool isDelete, const QWriteLocker &)
@@ -709,7 +712,8 @@ void LocalStore::markUnchangedImpl(const DatabaseRef &db, const ObjectKey &key, 
 LocalStore::SyncScope::SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
 	key(key),
 	database(defaults.aquireDatabase(owner)),
-	lock(defaults.databaseLock())
+	lock(defaults.databaseLock()),
+	afterCommit()
 {
 	if(!database->transaction())
 		throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
