@@ -46,19 +46,22 @@ public:
 	};
 	Q_ENUM(ChangeType)
 
-	class SyncScope {
+	class Q_DATASYNC_EXPORT SyncScope {
 		friend class LocalStore;
 		Q_DISABLE_COPY(SyncScope)
 
 	public:
-		SyncScope(SyncScope &&other) = default;
+		SyncScope(SyncScope &&other);
 		~SyncScope();
 
 	private:
-		ObjectKey key;
-		DatabaseRef database;
-		QWriteLocker lock;
-		std::function<void()> afterCommit;
+		struct Q_DATASYNC_EXPORT Private {
+			ObjectKey key;
+			DatabaseRef database;
+			QWriteLocker lock;
+			std::function<void()> afterCommit;
+		};
+		QScopedPointer<Private> d;
 
 		SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
 	};

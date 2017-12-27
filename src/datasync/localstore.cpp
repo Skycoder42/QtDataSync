@@ -17,7 +17,7 @@
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG _logger
-#define SCOPE_ASSERT() Q_ASSERT_X(scope.database.isValid(), Q_FUNC_INFO, "Cannot use SyncScope after committing it")
+#define SCOPE_ASSERT() Q_ASSERT_X(scope.d->database.isValid(), Q_FUNC_INFO, "Cannot use SyncScope after committing it")
 
 Q_GLOBAL_STATIC(LocalStoreEmitter, emitter)
 
@@ -399,10 +399,10 @@ std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loa
 {
 	SCOPE_ASSERT();
 
-	QSqlQuery loadChangeQuery(scope.database);
+	QSqlQuery loadChangeQuery(scope.d->database);
 	loadChangeQuery.prepare(QStringLiteral("SELECT Version, File, Checksum FROM DataIndex WHERE Type = ? AND Id = ?"));
-	loadChangeQuery.addBindValue(scope.key.typeName);
-	loadChangeQuery.addBindValue(scope.key.id);
+	loadChangeQuery.addBindValue(scope.d->key.typeName);
+	loadChangeQuery.addBindValue(scope.d->key.id);
 	exec(loadChangeQuery);
 
 	if(loadChangeQuery.first()) {
@@ -420,25 +420,25 @@ std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loa
 void LocalStore::updateVersion(SyncScope &scope, quint64 oldVersion, quint64 newVersion, bool changed)
 {
 	SCOPE_ASSERT();
-	QSqlQuery updateQuery(scope.database);
+	QSqlQuery updateQuery(scope.d->database);
 	updateQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, Changed = ? WHERE Type = ? AND Id = ? AND Version = ?"));
 	updateQuery.addBindValue(newVersion);
 	updateQuery.addBindValue(changed);
-	updateQuery.addBindValue(scope.key.typeName);
-	updateQuery.addBindValue(scope.key.id);
+	updateQuery.addBindValue(scope.d->key.typeName);
+	updateQuery.addBindValue(scope.d->key.id);
 	updateQuery.addBindValue(oldVersion);
-	exec(updateQuery, scope.key);
+	exec(updateQuery, scope.d->key);
 
 	//notify change controller
 	if(changed)
-		ChangeController::triggerDataChange(_defaults, scope.lock);
+		ChangeController::triggerDataChange(_defaults, scope.d->lock);
 }
 
 void LocalStore::storeChanged(SyncScope &scope, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, LocalStore::ChangeType localState)
 {
 	SCOPE_ASSERT();
-	Q_ASSERT_X(!scope.afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
-	scope.afterCommit = storeChangedImpl(scope.database, scope.key, version, fileName, data, changed, localState != NoExists, scope.lock);
+	Q_ASSERT_X(!scope.d->afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
+	scope.d->afterCommit = storeChangedImpl(scope.d->database, scope.d->key, version, fileName, data, changed, localState != NoExists, scope.d->lock);
 }
 
 void LocalStore::storeDeleted(SyncScope &scope, quint64 version, bool changed, ChangeType localState)
@@ -450,14 +450,14 @@ void LocalStore::storeDeleted(SyncScope &scope, quint64 version, bool changed, C
 	switch (localState) {
 	case Exists:
 	{
-		QSqlQuery loadQuery(scope.database);
+		QSqlQuery loadQuery(scope.d->database);
 		loadQuery.prepare(QStringLiteral("SELECT File FROM DataIndex WHERE Type = ? AND Id = ? AND File IS NOT NULL"));
-		loadQuery.addBindValue(scope.key.typeName);
-		loadQuery.addBindValue(scope.key.id);
-		exec(loadQuery, scope.key);
+		loadQuery.addBindValue(scope.d->key.typeName);
+		loadQuery.addBindValue(scope.d->key.id);
+		exec(loadQuery, scope.d->key);
 
 		if(loadQuery.first())
-			fileName = filePath(scope.key, loadQuery.value(0).toString());
+			fileName = filePath(scope.d->key, loadQuery.value(0).toString());
 		Q_FALLTHROUGH();
 	}
 	case ExistsDeleted:
@@ -472,38 +472,38 @@ void LocalStore::storeDeleted(SyncScope &scope, quint64 version, bool changed, C
 	}
 
 	if(existing) {
-		QSqlQuery updateQuery(scope.database);
+		QSqlQuery updateQuery(scope.d->database);
 		updateQuery.prepare(QStringLiteral("UPDATE DataIndex SET Version = ?, File = NULL, Checksum = NULL, Changed = ? WHERE Type = ? AND Id = ?"));
 		updateQuery.addBindValue(version);
 		updateQuery.addBindValue(changed);
-		updateQuery.addBindValue(scope.key.typeName);
-		updateQuery.addBindValue(scope.key.id);
-		exec(updateQuery, scope.key);
+		updateQuery.addBindValue(scope.d->key.typeName);
+		updateQuery.addBindValue(scope.d->key.id);
+		exec(updateQuery, scope.d->key);
 	} else {
-		QSqlQuery insertQuery(scope.database);
+		QSqlQuery insertQuery(scope.d->database);
 		insertQuery.prepare(QStringLiteral("INSERT INTO DataIndex (Type, Id, Version, File, Checksum, Changed) VALUES(?, ?, ?, NULL, NULL, ?)"));
-		insertQuery.addBindValue(scope.key.typeName);
-		insertQuery.addBindValue(scope.key.id);
+		insertQuery.addBindValue(scope.d->key.typeName);
+		insertQuery.addBindValue(scope.d->key.id);
 		insertQuery.addBindValue(version);
 		insertQuery.addBindValue(changed);
-		exec(insertQuery, scope.key);
+		exec(insertQuery, scope.d->key);
 	}
 
 	//delete the file, if one exists
 	if(!fileName.isNull()) {
 		QFile rmFile(fileName);
 		if(!rmFile.remove())
-			throw LocalStoreException(_defaults, scope.key, rmFile.fileName(), rmFile.errorString());
+			throw LocalStoreException(_defaults, scope.d->key, rmFile.fileName(), rmFile.errorString());
 	}
 
 	//notify change controller
 	if(changed)
-		ChangeController::triggerDataChange(_defaults, scope.lock);
+		ChangeController::triggerDataChange(_defaults, scope.d->lock);
 
 	if(localState == Exists) {
-		Q_ASSERT_X(!scope.afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
-		auto key = scope.key;
-		scope.afterCommit = [this, key]() {
+		Q_ASSERT_X(!scope.d->afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
+		auto key = scope.d->key;
+		scope.d->afterCommit = [this, key]() {
 			//update cache
 			_dataCache.remove(key);
 			//notify others
@@ -515,21 +515,21 @@ void LocalStore::storeDeleted(SyncScope &scope, quint64 version, bool changed, C
 void LocalStore::markUnchanged(SyncScope &scope, quint64 oldVersion, bool isDelete)
 {
 	SCOPE_ASSERT();
-	markUnchangedImpl(scope.database, scope.key, oldVersion, isDelete, scope.lock);
+	markUnchangedImpl(scope.d->database, scope.d->key, oldVersion, isDelete, scope.d->lock);
 }
 
 void LocalStore::commitSync(SyncScope &scope)
 {
 	SCOPE_ASSERT();
 
-	if(!scope.database->commit())
-		throw LocalStoreException(_defaults, scope.key, scope.database->databaseName(), scope.database->lastError().text());
+	if(!scope.d->database->commit())
+		throw LocalStoreException(_defaults, scope.d->key, scope.d->database->databaseName(), scope.d->database->lastError().text());
 
-	if(scope.afterCommit)
-		scope.afterCommit();
+	if(scope.d->afterCommit)
+		scope.d->afterCommit();
 
-	scope.database = DatabaseRef(); //clear the ref, so it won't rollback
-	scope.lock.unlock(); //unlock, wont be used anymore
+	scope.d->database = DatabaseRef(); //clear the ref, so it won't rollback
+	scope.d->lock.unlock(); //unlock, wont be used anymore
 }
 
 int LocalStore::cacheSize() const
@@ -710,19 +710,27 @@ void LocalStore::markUnchangedImpl(const DatabaseRef &db, const ObjectKey &key, 
 // ------------- SyncScope -------------
 
 LocalStore::SyncScope::SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
-	key(key),
-	database(defaults.aquireDatabase(owner)),
-	lock(defaults.databaseLock()),
-	afterCommit()
+	d(new Private{
+		key,
+		defaults.aquireDatabase(owner),
+		defaults.databaseLock(),
+		{}
+	})
 {
-	if(!database->transaction())
-		throw LocalStoreException(defaults, key, database->databaseName(), database->lastError().text());
+	if(!d->database->transaction())
+		throw LocalStoreException(defaults, key, d->database->databaseName(), d->database->lastError().text());
+}
+
+LocalStore::SyncScope::SyncScope(LocalStore::SyncScope &&other) :
+	d()
+{
+	d.swap(other.d);
 }
 
 LocalStore::SyncScope::~SyncScope()
 {
-	if(database.isValid())
-		database->rollback();
+	if(d->database.isValid())
+		d->database->rollback();
 }
 
 // ------------- Emitter -------------

@@ -66,7 +66,7 @@ private:
 	private:
 		mutable QByteArray _hash;
 	};
-	friend uint qHash(const ChangeController::CachedObjectKey &key, uint seed);
+	friend uint Q_DATASYNC_EXPORT qHash(const ChangeController::CachedObjectKey &key, uint seed);
 
 	static const int UploadLimit; //TODO get from server instead
 
