@@ -18,7 +18,8 @@ public:
 		friend class SingleTaskQueue;
 	public:
 		Task(SingleTaskQueue *queue);
-		~Task();
+		virtual void safeRun() = 0;
+		void run() final;
 
 	private:
 		QWeakPointer<QMutex> _lockRef;
@@ -29,7 +30,7 @@ public:
 	class GenericTask : public Task {
 	public:
 		GenericTask(const TFunction &fn, SingleTaskQueue *queue);
-		void run() final;
+		void safeRun() final;
 
 	private:
 		const TFunction _fn;
@@ -64,7 +65,7 @@ SingleTaskQueue::GenericTask<TFunction>::GenericTask(const TFunction &fn, Single
 {}
 
 template<typename TFunction>
-void SingleTaskQueue::GenericTask<TFunction>::run()
+void SingleTaskQueue::GenericTask<TFunction>::safeRun()
 {
 	_fn();
 }

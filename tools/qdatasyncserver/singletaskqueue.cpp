@@ -84,8 +84,10 @@ SingleTaskQueue::Task::Task(SingleTaskQueue *queue) :
 	setAutoDelete(true);
 }
 
-SingleTaskQueue::Task::~Task()
+void SingleTaskQueue::Task::run()
 {
+	safeRun();
+	// done here instead of destructor, as it leads to a deadlock. See QTBUG-65486
 	auto _lock = _lockRef.toStrongRef();
 	if(_lock) {
 		LOCK;
