@@ -27,7 +27,9 @@ HEADERS += qtdatasync_global.h \
 	controller_p.h \
 	syncmanager_p.h \
 	synchelper_p.h \
-    synccontroller_p.h
+    synccontroller_p.h \
+    conflictresolver.h \
+    conflictresolver_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -48,7 +50,8 @@ SOURCES += \
 	keystore.cpp \
 	controller.cpp \
 	synchelper.cpp \
-    synccontroller.cpp
+    synccontroller.cpp \
+    conflictresolver.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml

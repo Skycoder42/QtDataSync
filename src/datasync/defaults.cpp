@@ -14,6 +14,14 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger
 
+Defaults::Defaults() :
+	d(nullptr)
+{}
+
+Defaults::Defaults(const QSharedPointer<DefaultsPrivate> &d) :
+	d(d)
+{}
+
 Defaults::Defaults(const QString &setupName) :
 	d(DefaultsPrivate::obtainDefaults(setupName))
 {
@@ -54,6 +62,11 @@ QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 const QJsonSerializer *Defaults::serializer() const
 {
 	return d->serializer;
+}
+
+const ConflictResolver *Defaults::conflictResolver() const
+{
+	return d->resolver;
 }
 
 QVariant Defaults::property(Defaults::PropertyKey key) const
@@ -151,10 +164,11 @@ QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
 QThreadStorage<QHash<QString, quint64>> DefaultsPrivate::dbRefHash;
 
-void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer)
+void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver)
 {
 	QMutexLocker _(&setupDefaultsMutex);
-	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, properties, serializer);
+	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, properties, serializer, resolver);
+	d->resolver->setDefaults(d);
 
 	//create the default propertie values if unset
 	if(!d->properties.contains(Defaults::SignKeyParam))
@@ -217,7 +231,7 @@ QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &s
 	return setupDefaults.value(setupName);
 }
 
-DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer) :
+DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
 	setupName(setupName),
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
@@ -226,6 +240,7 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	lock(QReadWriteLock::NonRecursive)
 {
 	serializer->setParent(this);
+	resolver->setParent(this);
 }
 
 DefaultsPrivate::~DefaultsPrivate()

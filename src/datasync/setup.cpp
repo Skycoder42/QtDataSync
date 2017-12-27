@@ -56,6 +56,11 @@ QJsonSerializer *Setup::serializer() const
 	return d->serializer.data();
 }
 
+ConflictResolver *Setup::conflictResolver() const
+{
+	return d->resolver.data();
+}
+
 Setup::FatalErrorHandler Setup::fatalErrorHandler() const
 {
 	return d->fatalErrorHandler;
@@ -129,7 +134,14 @@ Setup &Setup::setLocalDir(QString localDir)
 
 Setup &Setup::setSerializer(QJsonSerializer *serializer)
 {
+	Q_ASSERT_X(serializer, Q_FUNC_INFO, "Serializer must not be null");
 	d->serializer.reset(serializer);
+	return *this;
+}
+
+Setup &Setup::setConflictResolver(ConflictResolver *conflictResolver)
+{
+	d->resolver.reset(conflictResolver);
 	return *this;
 }
 
@@ -220,6 +232,12 @@ Setup &Setup::resetLocalDir()
 Setup &Setup::resetSerializer()
 {
 	return setSerializer(new QJsonSerializer());
+}
+
+Setup &Setup::resetConflictResolver()
+{
+	d->resolver.reset();
+	return *this;
 }
 
 Setup &Setup::resetFatalErrorHandler()
@@ -320,7 +338,11 @@ void Setup::create(const QString &name)
 		throw SetupLockedException(lockFile, name);
 
 	// create defaults + engine
-	DefaultsPrivate::createDefaults(name, storageDir, d->properties, d->serializer.take());
+	DefaultsPrivate::createDefaults(name,
+									storageDir,
+									d->properties,
+									d->serializer.take(),
+									d->resolver.take());
 	auto engine = new ExchangeEngine(name, d->fatalErrorHandler);
 
 	// create and connect the new thread
@@ -397,6 +419,7 @@ ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 SetupPrivate::SetupPrivate() :
 	localDir(DefaultLocalDir),
 	serializer(new QJsonSerializer()),
+	resolver(nullptr),
 	properties({
 		{Defaults::CacheSize, MB(10)},
 		{Defaults::PersistDeleted, false},

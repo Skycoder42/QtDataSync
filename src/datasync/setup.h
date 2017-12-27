@@ -22,6 +22,8 @@ class QJsonSerializer;
 
 namespace QtDataSync {
 
+class ConflictResolver;
+
 struct Q_DATASYNC_EXPORT RemoteConfig {
 	QUrl url;
 	QString accessKey;
@@ -43,6 +45,7 @@ class Q_DATASYNC_EXPORT Setup
 
 	Q_PROPERTY(QString localDir READ localDir WRITE setLocalDir RESET resetLocalDir)
 	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer RESET resetSerializer)
+	Q_PROPERTY(ConflictResolver* conflictResolver READ conflictResolver WRITE setConflictResolver RESET resetConflictResolver)
 	Q_PROPERTY(FatalErrorHandler fatalErrorHandler READ fatalErrorHandler WRITE setFatalErrorHandler RESET resetFatalErrorHandler)
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 	Q_PROPERTY(bool persistDeletedVersion READ persistDeletedVersion WRITE setPersistDeletedVersion RESET resetPersistDeletedVersion)
@@ -134,6 +137,7 @@ public:
 	QString localDir() const;
 	//! Returns the setups json serializer
 	QJsonSerializer *serializer() const;
+	ConflictResolver* conflictResolver() const;
 	//! Returns the fatal error handler to be used by the Logger
 	FatalErrorHandler fatalErrorHandler() const;
 	int cacheSize() const;
@@ -153,6 +157,7 @@ public:
 	Setup &setLocalDir(QString localDir);
 	//! Sets the setups json serializer
 	Setup &setSerializer(QJsonSerializer *serializer);
+	Setup &setConflictResolver(ConflictResolver* conflictResolver);
 	//! Sets the fatal error handler to be used by the Logger
 	Setup &setFatalErrorHandler(const FatalErrorHandler &fatalErrorHandler);
 	Setup &setCacheSize(int cacheSize);
@@ -170,6 +175,7 @@ public:
 
 	Setup &resetLocalDir();
 	Setup &resetSerializer();
+	Setup &resetConflictResolver();
 	Setup &resetFatalErrorHandler();
 	Setup &resetCacheSize();
 	Setup &resetPersistDeletedVersion();

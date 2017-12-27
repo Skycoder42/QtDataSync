@@ -47,6 +47,7 @@ class DefaultsPrivate;
 class Q_DATASYNC_EXPORT Defaults
 {
 	Q_GADGET
+	friend class DefaultsPrivate;
 
 public:
 	enum PropertyKey {
@@ -65,7 +66,7 @@ public:
 	};
 	Q_ENUM(PropertyKey)
 
-	//! Copy constructor
+	Defaults();
 	Defaults(const QString &setupName); //TODO check try/catch where used
 	Defaults(const Defaults &other);
 	~Defaults();
@@ -81,6 +82,7 @@ public:
 	QSettings *createSettings(QObject *parent = nullptr, const QString &group = {}) const;
 	//! Returns the serializer of the current setup
 	const QJsonSerializer *serializer() const;
+	const ConflictResolver *conflictResolver() const;
 	QVariant property(PropertyKey key) const;
 
 	static QVariant defaultParam(Setup::SignatureScheme scheme);
@@ -92,6 +94,8 @@ public:
 
 private:
 	QSharedPointer<DefaultsPrivate> d;
+
+	Defaults(const QSharedPointer<DefaultsPrivate> &d);
 };
 
 }

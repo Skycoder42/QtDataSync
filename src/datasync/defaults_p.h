@@ -11,6 +11,7 @@
 #include "qtdatasync_global.h"
 #include "defaults.h"
 #include "logger.h"
+#include "conflictresolver.h"
 
 namespace QtDataSync {
 
@@ -39,7 +40,8 @@ public:
 	static void createDefaults(const QString &setupName,
 							   const QDir &storageDir,
 							   const QHash<Defaults::PropertyKey, QVariant> &properties,
-							   QJsonSerializer *serializer);
+							   QJsonSerializer *serializer,
+							   ConflictResolver *resolver);
 	static void removeDefaults(const QString &setupName);
 	static void clearDefaults();
 	static QSharedPointer<DefaultsPrivate> obtainDefaults(const QString &setupName);
@@ -47,7 +49,8 @@ public:
 	DefaultsPrivate(const QString &setupName,
 					const QDir &storageDir,
 					const QHash<Defaults::PropertyKey, QVariant> &properties,
-					QJsonSerializer *serializer);
+					QJsonSerializer *serializer,
+					ConflictResolver *resolver);
 	~DefaultsPrivate();
 
 	QSqlDatabase acquireDatabase();
@@ -62,6 +65,7 @@ private:
 	QDir storageDir;
 	Logger *logger;
 	QJsonSerializer *serializer;
+	ConflictResolver *resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 	QReadWriteLock lock;
 };

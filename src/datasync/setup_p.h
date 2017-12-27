@@ -39,6 +39,7 @@ private:
 
 	QString localDir;
 	QScopedPointer<QJsonSerializer> serializer;
+	QScopedPointer<ConflictResolver> resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 	Setup::FatalErrorHandler fatalErrorHandler;
 

@@ -1,5 +1,6 @@
 #include "synccontroller_p.h"
 #include "synchelper_p.h"
+#include "conflictresolver.h"
 
 using namespace QtDataSync;
 
@@ -58,8 +59,15 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 				else if(localVersion == remoteVersion) {
 					auto remoteChecksum = SyncHelper::jsonHash(remoteData);
 					if(localChecksum != remoteChecksum) { //conflict!
-						//TODO implement chooser
+						QJsonObject resolvedData;
+						auto resolver = defaults().conflictResolver();
+						if(resolver) {
+							auto localData = _store->readJson(objKey, localFileName);
+							resolvedData = resolver->resolveConflict(QMetaType::type(objKey.typeName.constData()), localData, remoteData);
+						}
 						//deterministic alg the chooses 1 dataset no matter which one is local
+						if(!resolvedData.isEmpty())
+							_store->storeChanged(scope, localVersion + 1ull, localFileName, resolvedData, true, localState); //store as "v2 + 1"
 						if(localChecksum > remoteChecksum)
 							_store->updateVersion(scope, localVersion, localVersion + 1ull, true); //keep as "v1 + 1"
 						else
