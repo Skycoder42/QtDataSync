@@ -10,6 +10,7 @@
 #include "setup.h"
 #include "defaults.h"
 #include "exchangeengine_p.h"
+#include "conflictresolver.h"
 
 namespace QtDataSync {
 

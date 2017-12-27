@@ -25,6 +25,22 @@ public:
 		ChangeInfo(const ObjectKey &key, quint64 version, const QByteArray &checksum = {});
 	};
 
+	//INTERNAL USE ONLY
+	class Q_DATASYNC_EXPORT CachedObjectKey : public ObjectKey {
+	public:
+		CachedObjectKey();
+		CachedObjectKey(const ObjectKey &other);
+		CachedObjectKey(const QByteArray &hash);
+
+		QByteArray hashed() const;
+
+		bool operator==(const CachedObjectKey &other) const;
+		bool operator!=(const CachedObjectKey &other) const;
+
+	private:
+		mutable QByteArray _hash;
+	};
+
 	explicit ChangeController(const Defaults &defaults, QObject *parent = nullptr);
 
 	void initialize(const QVariantHash &params) final;
@@ -51,22 +67,6 @@ private:
 		quint64 version;
 		bool isDelete;
 	};
-
-	class Q_DATASYNC_EXPORT CachedObjectKey : public ObjectKey {
-	public:
-		CachedObjectKey();
-		CachedObjectKey(const ObjectKey &other);
-		CachedObjectKey(const QByteArray &hash);
-
-		QByteArray hashed() const;
-
-		bool operator==(const CachedObjectKey &other) const;
-		bool operator!=(const CachedObjectKey &other) const;
-
-	private:
-		mutable QByteArray _hash;
-	};
-	friend uint Q_DATASYNC_EXPORT qHash(const ChangeController::CachedObjectKey &key, uint seed);
 
 	static const int UploadLimit; //TODO get from server instead
 
