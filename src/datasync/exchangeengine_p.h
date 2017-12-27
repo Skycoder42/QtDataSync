@@ -16,6 +16,22 @@
 
 namespace QtDataSync {
 
+class Q_DATASYNC_EXPORT SyncResultObject : public QObject
+{
+	Q_OBJECT
+	friend class ExchangeEngine;
+
+public:
+	SyncResultObject(const std::function<void(SyncManager::SyncState)> &resFn, QObject *parent);
+
+public Q_SLOTS:
+	void triggerResult(QtDataSync::SyncManager::SyncState res);
+
+private:
+	bool _dOnly;
+	std::function<void(SyncManager::SyncState)> _fn;
+};
+
 class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 {
 	Q_OBJECT
@@ -45,8 +61,10 @@ public Q_SLOTS:
 	void initialize();
 	void finalize();
 
+	void syncForResult(SyncResultObject *receiver, bool downloadOnly, bool triggerSync);
+
 	//helper class initializer
-	void runInitFunc(const QtDataSync::ExchangeEngine::RunFn &fn);
+	void runInitFunc(QtDataSync::ExchangeEngine::RunFn fn);
 
 Q_SIGNALS:
 	void stateChanged(QtDataSync::SyncManager::SyncState state);

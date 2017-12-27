@@ -51,6 +51,22 @@ void SyncManager::reconnect()
 	QMetaObject::invokeMethod(d->remoteConnector(), "reconnect");
 }
 
+void SyncManager::runOnDownloaded(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
+{
+	QMetaObject::invokeMethod(d->engine(), "syncForResult",
+							  Q_ARG(SyncResultObject*, new SyncResultObject(resultFn, this)),
+							  Q_ARG(bool, true),
+							  Q_ARG(bool, triggerSync));
+}
+
+void SyncManager::runOnSynchronized(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
+{
+	QMetaObject::invokeMethod(d->engine(), "syncForResult",
+							  Q_ARG(SyncResultObject*, new SyncResultObject(resultFn, this)),
+							  Q_ARG(bool, false),
+							  Q_ARG(bool, triggerSync));
+}
+
 // ------------- Private Implementation -------------
 
 SyncManagerPrivate::SyncManagerPrivate(const QString &setupName, SyncManager *q_ptr, bool blockingConstruct) :
@@ -62,21 +78,21 @@ SyncManagerPrivate::SyncManagerPrivate(const QString &setupName, SyncManager *q_
 	cState(SyncManager::Initializing),
 	cError()
 {
-	auto engine = SetupPrivate::engine(defaults.setupName());
-	auto rCon = engine->remoteConnector();
+	auto ngine = engine();
+	auto rCon = ngine->remoteConnector();
 
-	connect(engine, &ExchangeEngine::lastErrorChanged,
+	connect(ngine, &ExchangeEngine::lastErrorChanged,
 			this, &SyncManagerPrivate::updateLastError);
-	connect(engine, &ExchangeEngine::stateChanged,
+	connect(ngine, &ExchangeEngine::stateChanged,
 			this, &SyncManagerPrivate::updateSyncState);
 	connect(rCon, &RemoteConnector::syncEnabledChanged,
 			this, &SyncManagerPrivate::updateSyncEnabled);
 
 	if(blockingConstruct) {
-		QMetaObject::invokeMethod(engine, "lastError",
+		QMetaObject::invokeMethod(ngine, "lastError",
 								  Qt::BlockingQueuedConnection,
 								  Q_RETURN_ARG(QString, cError));
-		QMetaObject::invokeMethod(engine, "state",
+		QMetaObject::invokeMethod(ngine, "state",
 								  Qt::BlockingQueuedConnection,
 								  Q_RETURN_ARG(QtDataSync::SyncManager::SyncState, cState));
 		QMetaObject::invokeMethod(rCon, "isSyncEnabled",
@@ -97,9 +113,14 @@ SyncManagerPrivate::SyncManagerPrivate(const QString &setupName, SyncManager *q_
 	}
 }
 
+ExchangeEngine *SyncManagerPrivate::engine() const
+{
+	return SetupPrivate::engine(defaults.setupName());
+}
+
 RemoteConnector *SyncManagerPrivate::remoteConnector() const
 {
-	return SetupPrivate::engine(defaults.setupName())->remoteConnector();
+	return engine()->remoteConnector();
 }
 
 void SyncManagerPrivate::updateSyncEnabled(bool syncEnabled)

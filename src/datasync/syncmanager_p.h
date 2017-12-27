@@ -6,6 +6,7 @@
 #include "defaults.h"
 
 #include "remoteconnector_p.h"
+#include "exchangeengine_p.h"
 
 namespace QtDataSync {
 
@@ -16,6 +17,7 @@ class Q_DATASYNC_EXPORT SyncManagerPrivate : public QObject
 public:
 	SyncManagerPrivate(const QString &setupName, SyncManager *q_ptr, bool blockingConstruct);
 
+	ExchangeEngine *engine() const;
 	RemoteConnector *remoteConnector() const;
 
 	SyncManager *q;

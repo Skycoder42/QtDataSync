@@ -1,6 +1,8 @@
 #ifndef SYNCMANAGER_H
 #define SYNCMANAGER_H
 
+#include <functional>
+
 #include <QtCore/qobject.h>
 
 #include "QtDataSync/qtdatasync_global.h"
@@ -41,6 +43,9 @@ public Q_SLOTS:
 
 	void synchronize();
 	void reconnect();
+
+	void runOnDownloaded(const std::function<void(SyncState)> &resultFn, bool triggerSync = true);
+	void runOnSynchronized(const std::function<void(SyncState)> &resultFn, bool triggerSync = true);
 
 Q_SIGNALS:
 	void syncEnabledChanged(bool syncEnabled);
