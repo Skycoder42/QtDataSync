@@ -42,12 +42,13 @@ class Q_DATASYNC_EXPORT Setup
 	Q_DISABLE_COPY(Setup)
 
 	Q_PROPERTY(QString localDir READ localDir WRITE setLocalDir RESET resetLocalDir)
-	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer)
+	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer RESET resetSerializer)
 	Q_PROPERTY(FatalErrorHandler fatalErrorHandler READ fatalErrorHandler WRITE setFatalErrorHandler RESET resetFatalErrorHandler)
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
-	Q_PROPERTY(bool persistDeletedVersion READ persistDeletedVersion WRITE setPersistDeletedVersion)
+	Q_PROPERTY(bool persistDeletedVersion READ persistDeletedVersion WRITE setPersistDeletedVersion RESET resetPersistDeletedVersion)
+	Q_PROPERTY(SyncPolicy syncPolicy READ syncPolicy WRITE setSyncPolicy RESET resetSyncPolicy)
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
-	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration)
+	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration RESET resetRemoteConfiguration)
 	Q_PROPERTY(QString keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
 	Q_PROPERTY(SignatureScheme signatureScheme READ signatureScheme WRITE setSignatureScheme RESET resetSignatureScheme)
 	Q_PROPERTY(QVariant signatureKeyParam READ signatureKeyParam WRITE setSignatureKeyParam RESET resetSignatureKeyParam)
@@ -58,6 +59,12 @@ class Q_DATASYNC_EXPORT Setup
 
 public:
 	typedef std::function<void (QString, QString, const QMessageLogContext &)> FatalErrorHandler;
+
+	enum SyncPolicy {
+		PreferChanged,
+		PreferDeleted
+	};
+	Q_ENUM(SyncPolicy)
 
 	enum SignatureScheme {
 		RSA_PSS_SHA3_512,
@@ -71,8 +78,7 @@ public:
 	};
 	Q_ENUM(EncryptionScheme)
 
-	enum CipherScheme
-	{
+	enum CipherScheme {
 		AES_EAX,
 		AES_GCM,
 		TWOFISH_EAX,
@@ -132,6 +138,7 @@ public:
 	FatalErrorHandler fatalErrorHandler() const;
 	int cacheSize() const;
 	bool persistDeletedVersion() const;
+	SyncPolicy syncPolicy() const;
 	QSslConfiguration sslConfiguration() const;
 	RemoteConfig remoteConfiguration() const;
 	QString keyStoreProvider() const;
@@ -150,6 +157,7 @@ public:
 	Setup &setFatalErrorHandler(const FatalErrorHandler &fatalErrorHandler);
 	Setup &setCacheSize(int cacheSize);
 	Setup &setPersistDeletedVersion(bool persistDeletedVersion);
+	Setup &setSyncPolicy(SyncPolicy syncPolicy);
 	Setup &setSslConfiguration(QSslConfiguration sslConfiguration);
 	Setup &setRemoteConfiguration(RemoteConfig remoteConfiguration);
 	Setup &setKeyStoreProvider(QString keyStoreProvider);
@@ -161,9 +169,13 @@ public:
 	Setup &setCipherKeySize(qint32 cipherKeySize);
 
 	Setup &resetLocalDir();
+	Setup &resetSerializer();
 	Setup &resetFatalErrorHandler();
 	Setup &resetCacheSize();
+	Setup &resetPersistDeletedVersion();
+	Setup &resetSyncPolicy();
 	Setup &resetSslConfiguration();
+	Setup &resetRemoteConfiguration();
 	Setup &resetKeyStoreProvider();
 	Setup &resetSignatureScheme();
 	Setup &resetSignatureKeyParam();

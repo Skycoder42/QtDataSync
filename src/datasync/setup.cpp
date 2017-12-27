@@ -42,9 +42,7 @@ void Setup::removeSetup(const QString &name, bool waitForFinished)
 
 Setup::Setup() :
 	d(new SetupPrivate())
-{
-	d->serializer->setAllowDefaultNull(true);//support null gadgets
-}
+{}
 
 Setup::~Setup() {}
 
@@ -71,6 +69,11 @@ int Setup::cacheSize() const
 bool Setup::persistDeletedVersion() const
 {
 	return d->properties.value(Defaults::PersistDeleted).toBool();
+}
+
+Setup::SyncPolicy Setup::syncPolicy() const
+{
+	return (SyncPolicy)d->properties.value(Defaults::ConflictPolicy).toInt();
 }
 
 QSslConfiguration Setup::sslConfiguration() const
@@ -148,6 +151,12 @@ Setup &Setup::setPersistDeletedVersion(bool persistDeletedVersion)
 	return *this;
 }
 
+Setup &Setup::setSyncPolicy(Setup::SyncPolicy syncPolicy)
+{
+	d->properties.insert(Defaults::ConflictPolicy, syncPolicy);
+	return *this;
+}
+
 Setup &Setup::setSslConfiguration(QSslConfiguration sslConfiguration)
 {
 	d->properties.insert(Defaults::SslConfiguration, QVariant::fromValue(sslConfiguration));
@@ -208,6 +217,11 @@ Setup &Setup::resetLocalDir()
 	return *this;
 }
 
+Setup &Setup::resetSerializer()
+{
+	return setSerializer(new QJsonSerializer());
+}
+
 Setup &Setup::resetFatalErrorHandler()
 {
 	d->fatalErrorHandler = FatalErrorHandler();
@@ -220,9 +234,27 @@ Setup &Setup::resetCacheSize()
 	return *this;
 }
 
+Setup &Setup::resetPersistDeletedVersion()
+{
+	d->properties.insert(Defaults::PersistDeleted, false);
+	return *this;
+}
+
+Setup &Setup::resetSyncPolicy()
+{
+	d->properties.insert(Defaults::ConflictPolicy, PreferChanged);
+	return *this;
+}
+
 Setup &Setup::resetSslConfiguration()
 {
 	return setSslConfiguration(QSslConfiguration::defaultConfiguration());
+}
+
+Setup &Setup::resetRemoteConfiguration()
+{
+	d->properties.remove(Defaults::RemoteConfiguration);
+	return *this;
 }
 
 Setup &Setup::resetKeyStoreProvider()
@@ -368,8 +400,8 @@ SetupPrivate::SetupPrivate() :
 	properties({
 		{Defaults::CacheSize, MB(10)},
 		{Defaults::PersistDeleted, false},
+		{Defaults::ConflictPolicy, Setup::PreferChanged},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
-		{Defaults::RemoteConfiguration, QVariant()},
 		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()},
 		{Defaults::SignScheme, Setup::RSA_PSS_SHA3_512},
 		{Defaults::CryptScheme, Setup::RSA_OAEP_SHA3_512},

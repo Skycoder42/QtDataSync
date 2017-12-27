@@ -63,7 +63,8 @@ void RemoteConnector::initialize(const QVariantHash &params)
 		emit remoteEvent(RemoteConnecting);
 	}));
 	_stateMachine->connectToState(QStringLiteral("Idle"),
-								  this, ConnectorStateMachine::onEntry([this](){
+								  this, ConnectorStateMachine::onEntry([this](){ //TODO as real member
+		_retryIndex = 0;
 		if(_expectChanges) {
 			_expectChanges = false;
 			logDebug() << "Server has changes. Reloading states";
@@ -468,7 +469,10 @@ std::chrono::seconds RemoteConnector::retry()
 	else
 		retryTimeout = Timeouts[_retryIndex++];
 
-	QTimer::singleShot(retryTimeout, this, &RemoteConnector::reconnect);
+	QTimer::singleShot(retryTimeout, this, [this](){
+		if(_retryIndex != 0)
+			reconnect();
+	});
 
 	return retryTimeout;
 }
@@ -577,8 +581,6 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 		settings()->setValue(keyDeviceId, _deviceId);
 		_cryptoController->storePrivateKeys(_deviceId);
 		logDebug() << "Registration successful";
-		// reset retry index only after successfuly account creation or login
-		_retryIndex = 0;
 		_expectChanges = false;
 		_stateMachine->submitEvent(QStringLiteral("account"));
 	}
@@ -592,7 +594,6 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 	} else {
 		logDebug() << "Login successful";
 		// reset retry index only after successfuly account creation or login
-		_retryIndex = 0;
 		_expectChanges = message.hasChanges;
 		_stateMachine->submitEvent(QStringLiteral("account"));
 	}

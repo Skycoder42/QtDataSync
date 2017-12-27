@@ -65,8 +65,7 @@ public:
 	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);
 	~LocalStore();
 
-	QDir typeDirectory(const ObjectKey &key);
-	QJsonObject readJson(const ObjectKey &key, const QString &fileName, int *costs = nullptr);
+	QJsonObject readJson(const ObjectKey &key, const QString &filePath, int *costs = nullptr) const;
 
 	// normal store access
 	quint64 count(const QByteArray &typeName);
@@ -88,8 +87,24 @@ public:
 
 	// sync access
 	SyncScope startSync(const ObjectKey &key);
-	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QByteArray> loadChangeInfo(const SyncScope &scope);
-	void storeDeleted(const SyncScope &scope, quint64 version, bool changed, ChangeType localState);
+	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QString, QByteArray> loadChangeInfo(const SyncScope &scope);
+	void updateVersion(const SyncScope &scope,
+					   quint64 oldVersion,
+					   quint64 newVersion,
+					   bool changed);
+	void storeChanged(const SyncScope &scope,
+					  quint64 version,
+					  const QString &filePath,
+					  const QJsonObject &data,
+					  bool changed,
+					  ChangeType localState);
+	void storeDeleted(const SyncScope &scope,
+					  quint64 version,
+					  bool changed,
+					  ChangeType localState);
+	void markUnchanged(const SyncScope &scope,
+					   quint64 oldVersion,
+					   bool isDelete);
 	void commitSync(SyncScope &scope);
 
 	int cacheSize() const;
@@ -116,7 +131,25 @@ private:
 	QHash<QByteArray, QString> _tableNameCache;
 	QCache<ObjectKey, QJsonObject> _dataCache;
 
+	QDir typeDirectory(const ObjectKey &key) const;
+	QString filePath(const QDir &typeDir, const QString &baseName) const;
+	QString filePath(const ObjectKey &key, const QString &baseName) const;
+
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
+
+	void storeChangedImpl(const DatabaseRef &db,
+						  const ObjectKey &key,
+						  quint64 version,
+						  const QString &filePath,
+						  const QJsonObject &data,
+						  bool changed,
+						  bool existing,
+						  const QWriteLocker &lock);
+	void markUnchangedImpl(const DatabaseRef &db,
+						   const ObjectKey &key,
+						   quint64 version,
+						   bool isDelete,
+						   const QWriteLocker &);
 };
 
 }

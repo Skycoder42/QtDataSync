@@ -52,6 +52,7 @@ public:
 	enum PropertyKey {
 		CacheSize,
 		PersistDeleted,
+		ConflictPolicy,
 		SslConfiguration,
 		RemoteConfiguration,
 		KeyStoreProvider,
