@@ -710,12 +710,7 @@ void LocalStore::markUnchangedImpl(const DatabaseRef &db, const ObjectKey &key, 
 // ------------- SyncScope -------------
 
 LocalStore::SyncScope::SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
-	d(new Private{
-		key,
-		defaults.aquireDatabase(owner),
-		defaults.databaseLock(),
-		{}
-	})
+	d(new Private(defaults, key, owner))
 {
 	if(!d->database->transaction())
 		throw LocalStoreException(defaults, key, d->database->databaseName(), d->database->lastError().text());
@@ -742,3 +737,10 @@ LocalStoreEmitter::LocalStoreEmitter(QObject *parent) :
 	if(thread() != coreThread)
 		moveToThread(coreThread);
 }
+
+LocalStore::SyncScope::Private::Private(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
+	key(key),
+	database(defaults.aquireDatabase(owner)),
+	lock(defaults.databaseLock()),
+	afterCommit()
+{}

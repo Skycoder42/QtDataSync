@@ -60,6 +60,8 @@ public:
 			DatabaseRef database;
 			QWriteLocker lock;
 			std::function<void()> afterCommit;
+
+			Private(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
 		};
 		QScopedPointer<Private> d;
 
