@@ -244,7 +244,7 @@ QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::
 
 	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> resList;
 	while(loadChangesQuery.next()) {
-		resList.append({
+		resList.append(std::tuple<quint64, quint32, QByteArray, QByteArray> {
 						   loadChangesQuery.value(0).toULongLong(),
 						   loadChangesQuery.value(1).toUInt(),
 						   loadChangesQuery.value(2).toByteArray(),

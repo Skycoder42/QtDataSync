@@ -40,6 +40,9 @@ public:
 	QSharedPointer<MessageAuthenticationCode> cmac() const override;
 };
 
+template <typename T>
+using GCM1 = GCM<T>;
+
 // ------------- KeyScheme class definitions -------------
 
 template <typename TScheme>
@@ -276,7 +279,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByt
 			) // AuthenticatedEncryptionFilter
 		); // QByteArraySource
 
-		return {_localCipher, salt, cipher};
+		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, salt, cipher};
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt data for upload"),
@@ -323,7 +326,7 @@ std::tuple<quint32, QByteArray> CryptoController::createCmac(const QByteArray &d
 			) // HashFilter
 		); // QByteArraySource
 
-		return {_localCipher, mac};
+		return std::tuple<quint32, QByteArray>{_localCipher, mac};
 	} catch(CryptoPP::Exception &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to create CMAC"),
@@ -351,19 +354,20 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 
 void CryptoController::createScheme(const QByteArray &name, QSharedPointer<CipherScheme> &ptr)
 {
+
 	auto stdStr = name.toStdString();
 	if(stdStr == EAX<AES>::Encryption::StaticAlgorithmName())
 		ptr.reset(new StandardCipherScheme<EAX, AES>());
-	else if(stdStr == GCM<AES>::Encryption::StaticAlgorithmName())
-		ptr.reset(new StandardCipherScheme<GCM, AES>());
+	else if(stdStr == GCM1<AES>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<GCM1, AES>());
 	else if(stdStr == EAX<Twofish>::Encryption::StaticAlgorithmName())
 		ptr.reset(new StandardCipherScheme<EAX, Twofish>());
-	else if(stdStr == GCM<Twofish>::Encryption::StaticAlgorithmName())
-		ptr.reset(new StandardCipherScheme<GCM, Twofish>());
+	else if(stdStr == GCM1<Twofish>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<GCM1, Twofish>());
 	else if(stdStr == EAX<Serpent>::Encryption::StaticAlgorithmName())
 		ptr.reset(new StandardCipherScheme<EAX, Serpent>());
-	else if(stdStr == GCM<Serpent>::Encryption::StaticAlgorithmName())
-		ptr.reset(new StandardCipherScheme<GCM, Serpent>());
+	else if(stdStr == GCM1<Serpent>::Encryption::StaticAlgorithmName())
+		ptr.reset(new StandardCipherScheme<GCM1, Serpent>());
 	else if(stdStr == EAX<IDEA>::Encryption::StaticAlgorithmName())
 		ptr.reset(new StandardCipherScheme<EAX, IDEA>());
 	else

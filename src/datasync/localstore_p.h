@@ -51,6 +51,7 @@ public:
 		Q_DISABLE_COPY(SyncScope)
 
 	public:
+		SyncScope(SyncScope &&other) = default;
 		~SyncScope();
 
 	private:

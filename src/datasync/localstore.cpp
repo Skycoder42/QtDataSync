@@ -410,11 +410,11 @@ std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loa
 		auto file = loadChangeQuery.value(1).toString();
 		auto checksum = loadChangeQuery.value(2).toByteArray();
 		if(file.isNull())
-			return {ExistsDeleted, version, QString(), QByteArray()};
+			return std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray>{ExistsDeleted, version, QString(), QByteArray()};
 		else
-			return {Exists, version, file, checksum};
+			return std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray>{Exists, version, file, checksum};
 	} else
-		return {NoExists, 0, QString(), QByteArray()};
+		return std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray>{NoExists, 0, QString(), QByteArray()};
 }
 
 void LocalStore::updateVersion(SyncScope &scope, quint64 oldVersion, quint64 newVersion, bool changed)
