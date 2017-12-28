@@ -21,7 +21,7 @@
 #include "changemessage_p.h"
 #include "changedmessage_p.h"
 
-#include "connectorstatemachine.h"
+class ConnectorStateMachine;
 
 namespace QtDataSync {
 

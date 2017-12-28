@@ -7,6 +7,8 @@
 #include "loginmessage_p.h"
 #include "syncmessage_p.h"
 
+#include "connectorstatemachine.h"
+
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER

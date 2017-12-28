@@ -4,6 +4,7 @@ SUBDIRS += \
 	TestLib \
 	TestLocalStore \
     TestDataStore \
-    TestDataTypeStore
+    TestDataTypeStore \
+    TestChangeController
 
 CONFIG += ordered

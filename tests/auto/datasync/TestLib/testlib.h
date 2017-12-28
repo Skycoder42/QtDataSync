@@ -18,7 +18,7 @@ public:
 	static TestData generateData(int index);
 	static QList<TestData> generateData(int from, int to);
 	static QStringList generateDataKeys(int from, int to);
-	static QJsonObject generateDataJson(int index);
+	static QJsonObject generateDataJson(int index, const QString &specialText = {});
 	static DataSet generateDataJson(int from, int to);
 	static QJsonArray dataListJson(const DataSet &data);
 

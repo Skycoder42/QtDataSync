@@ -86,6 +86,7 @@ void ChangeController::uploadNext(bool emitStarted)
 		_store->loadChanges(UploadLimit, [this, &emitStarted](ObjectKey objKey, quint64 version, QString file) {
 			CachedObjectKey key(objKey);
 
+			//skip stuff already beeing uploaded (could still have changed, but to prevent errors)
 			auto skip = false;
 			foreach(auto mKey, _activeUploads.keys()) {
 				if(key == mKey) {

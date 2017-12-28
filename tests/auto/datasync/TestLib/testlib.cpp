@@ -46,11 +46,11 @@ QStringList TestLib::generateDataKeys(int from, int to)
 	return list;
 }
 
-QJsonObject TestLib::generateDataJson(int index)
+QJsonObject TestLib::generateDataJson(int index, const QString &specialText)
 {
 	QJsonObject data;
 	data[QStringLiteral("id")] = index;
-	data[QStringLiteral("text")] = QString::number(index);
+	data[QStringLiteral("text")] = specialText.isNull() ? QString::number(index) : specialText;
 	return data;
 }
 

@@ -114,8 +114,12 @@ void CryptoController::initialize(const QVariantHash &params)
 
 void CryptoController::finalize()
 {
-	if(_keyStore)
-		_keyStore->closeStore();
+	try {
+		if(_keyStore)
+			_keyStore->closeStore();
+	} catch(QException &e) {
+		logCritical() << "Failed to finalize with error:" << e.what();
+	}
 }
 
 ClientCrypto *CryptoController::crypto() const
