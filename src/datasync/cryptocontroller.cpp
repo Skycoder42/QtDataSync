@@ -471,7 +471,11 @@ QDir CryptoController::keysDir() const
 
 ClientCrypto::ClientCrypto(QObject *parent) :
 	AsymmetricCrypto(parent),
+#ifdef QT_NO_DEBUG
 	_rng(true, 32),
+#else //fast rng pooling for debug builds
+	_rng(false),
+#endif
 	_signKey(nullptr),
 	_cryptKey(nullptr)
 {}

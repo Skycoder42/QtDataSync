@@ -6,7 +6,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 //fake QT_HAS_INCLUDE macro for QTimer in msvc2015
-#if defined(_MSC_VER) && (_MSC_VER <= 1900) && !QT_HAS_INCLUDE(<chrono>)
+#if defined(_MSC_VER) && (_MSC_VER == 1900)
 #define needs_redef
 #undef QT_HAS_INCLUDE
 #define QT_HAS_INCLUDE(x) 1

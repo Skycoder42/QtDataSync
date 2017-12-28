@@ -17,7 +17,11 @@ Setup &TestLib::setup(Setup &setup)
 {
 	tDir.setAutoRemove(false);
 	return setup.setLocalDir(tDir.path())
-			.setKeyStoreProvider(QStringLiteral("plain"));
+			.setKeyStoreProvider(QStringLiteral("plain"))
+			.setSignatureScheme(Setup::RSA_PSS_SHA3_512)
+			.setSignatureKeyParam(2048)
+			.setEncryptionScheme(Setup::RSA_OAEP_SHA3_512)
+			.setEncryptionKeyParam(2048);
 }
 
 ObjectKey TestLib::generateKey(int index)

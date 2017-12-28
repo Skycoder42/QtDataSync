@@ -5,6 +5,7 @@ SUBDIRS += \
 	TestLocalStore \
     TestDataStore \
     TestDataTypeStore \
-    TestChangeController
+    TestChangeController \
+    TestCryptoController
 
 CONFIG += ordered
