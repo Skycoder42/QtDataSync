@@ -16,5 +16,5 @@ system_cryptopp:unix {
 	else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/cryptlibd.lib
 	else: PRE_TARGETDEPS += $$PWD/lib/libcryptopp.a
 
-	win32: DEFINES += OS_RNG_AVAILABLE
+	win32: DEFINES += QTDATASYNC_OSRNG_OVERWRITE
 }

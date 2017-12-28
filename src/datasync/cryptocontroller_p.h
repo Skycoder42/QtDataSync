@@ -7,6 +7,12 @@
 #include <QtCore/QUuid>
 #include <QtCore/QPointer>
 
+#include <cryptopp/config.h>
+#ifndef OS_RNG_AVAILABLE
+#ifdef QTDATASYNC_OSRNG_OVERWRITE
+DEFINES += OS_RNG_AVAILABLE
+#endif
+#endif
 #include <cryptopp/osrng.h>
 #include <cryptopp/oids.h>
 
