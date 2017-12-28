@@ -4,6 +4,8 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qscopedpointer.h>
 
+#include <QtJsonSerializer/QJsonSerializer>
+
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
 

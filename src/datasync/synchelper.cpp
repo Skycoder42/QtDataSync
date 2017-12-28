@@ -4,6 +4,7 @@
 #include <QtCore/QVariant>
 #include <QtCore/QLocale>
 #include <QtCore/QJsonDocument>
+#include <QtCore/QJsonArray>
 
 #include "message_p.h"
 
@@ -52,7 +53,7 @@ QByteArray SyncHelper::combine(const ObjectKey &key, quint64 version)
 	return out;
 }
 
-SyncData SyncHelper::extract(const QByteArray &data)
+std::tuple<bool, ObjectKey, quint64, QJsonObject> SyncHelper::extract(const QByteArray &data)
 {
 	ObjectKey key;
 	quint64 version;
@@ -83,7 +84,7 @@ SyncData SyncHelper::extract(const QByteArray &data)
 	if(stream.status() != QDataStream::Ok)
 		throw DataStreamException(stream);
 
-	return {jData.isNull(), key, version, obj};
+	return std::tuple<bool, ObjectKey, quint64, QJsonObject>{jData.isNull(), key, version, obj};
 }
 
 namespace {

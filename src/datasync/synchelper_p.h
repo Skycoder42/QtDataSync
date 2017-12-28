@@ -12,13 +12,11 @@ namespace QtDataSync {
 
 namespace SyncHelper {
 
-typedef std::tuple<bool, ObjectKey, quint64, QJsonObject> SyncData;
-
 Q_DATASYNC_EXPORT QByteArray jsonHash(const QJsonObject &object);
 
 Q_DATASYNC_EXPORT QByteArray combine(const ObjectKey &key, quint64 version, const QJsonObject &data);
 Q_DATASYNC_EXPORT QByteArray combine(const ObjectKey &key, quint64 version);
-Q_DATASYNC_EXPORT SyncData extract(const QByteArray &data);
+Q_DATASYNC_EXPORT std::tuple<bool, ObjectKey, quint64, QJsonObject> extract(const QByteArray &data);
 
 }
 
