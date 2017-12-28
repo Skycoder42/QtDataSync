@@ -10,7 +10,7 @@
 #include <cryptopp/config.h>
 #ifndef OS_RNG_AVAILABLE
 #ifdef QTDATASYNC_OSRNG_OVERWRITE
-DEFINES += OS_RNG_AVAILABLE
+#define OS_RNG_AVAILABLE
 #endif
 #endif
 #include <cryptopp/osrng.h>

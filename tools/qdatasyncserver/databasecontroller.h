@@ -10,7 +10,17 @@
 #include <QtCore/QUuid>
 #include <QtCore/QJsonObject>
 #include <QtCore/QException>
+//fake QT_HAS_INCLUDE macro for QTimer in msvc2015
+#if defined(_MSC_VER) && (_MSC_VER <= 1900) && !QT_HAS_INCLUDE(<chrono>)
+#define needs_redef
+#undef QT_HAS_INCLUDE
+#define QT_HAS_INCLUDE(x) 1
+#endif
 #include <QtCore/QTimer>
+#ifdef needs_redef
+#undef QT_HAS_INCLUDE
+#define QT_HAS_INCLUDE(x) 0
+#endif
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>

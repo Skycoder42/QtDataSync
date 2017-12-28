@@ -5,8 +5,6 @@
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
 
-#include <chrono>
-
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QUuid>

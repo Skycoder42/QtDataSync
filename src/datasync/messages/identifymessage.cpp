@@ -2,8 +2,8 @@
 
 using namespace QtDataSync;
 
-const QVersionNumber IdentifyMessage::CurrentVersion = QVersionNumber::fromString(QStringLiteral(DS_PROTO_VERSION));
-const QVersionNumber IdentifyMessage::CompatVersion(4, 0, 0);
+const QVersionNumber IdentifyMessage::CurrentVersion(1, 0, 0); //NOTE update accordingly
+const QVersionNumber IdentifyMessage::CompatVersion(1, 0, 0);
 
 IdentifyMessage::IdentifyMessage() :
 	IdentifyMessage(QByteArray())

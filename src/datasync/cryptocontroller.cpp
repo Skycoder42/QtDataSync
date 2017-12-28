@@ -421,7 +421,7 @@ void CryptoController::storeCipherKey(quint32 keyIndex) const
 	auto keyDir = keysDir();
 	auto info = getInfo(keyIndex);
 	auto encData = _asymCrypto->encrypt(_asymCrypto->cryptKey(),
-										QByteArray::fromRawData((const char*)info.key.data(), info.key.size()));
+										QByteArray::fromRawData((const char*)info.key.data(), (int)info.key.size()));
 	QFile keyFile(keyDir.absoluteFilePath(keyKeyFileTemplate.arg(keyIndex)));
 	if(!keyFile.open(QIODevice::WriteOnly))
 		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, keyFile.errorString().toStdString());
@@ -450,7 +450,7 @@ const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) 
 		memset(key.data(), 0, key.size());
 
 		//test if the key is of valid length
-		if(info.key.size() != info.scheme->toKeyLength(info.key.size()))
+		if(info.key.size() != info.scheme->toKeyLength((quint32)info.key.size()))
 			throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Key size is not valid for cipher scheme " + info.scheme->name().toStdString());
 		_loadedChiphers.insert(keyIndex, info);
 	}
@@ -723,7 +723,7 @@ quint32 StandardCipherScheme<TScheme, TCipher>::ivLength() const
 template <template<class> class TScheme, class TCipher>
 quint32 StandardCipherScheme<TScheme, TCipher>::toKeyLength(quint32 length) const
 {
-	return TCipher::StaticGetValidKeyLength(length);
+	return (quint32)TCipher::StaticGetValidKeyLength(length);
 }
 
 template <template<class> class TScheme, class TCipher>
