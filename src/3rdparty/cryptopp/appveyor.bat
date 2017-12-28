@@ -2,7 +2,10 @@
 
 set version=5_6_5
 
-echo %PLATFORM% | findstr /C:"winrt" > nul && (
+echo %PLATFORM% | findstr /C:"winrt_x64" > nul && (
+	set pkgName=%PLATFORM:~10%_64
+)
+echo %PLATFORM% | findstr /C:"winrt_x86" > nul && (
 	set pkgName=%PLATFORM:~10%
 )
 if "%PLATFORM%" == "mingw53_32" (
