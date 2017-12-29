@@ -68,7 +68,7 @@ public:
 
 // ------------- Client Implementation -------------
 
-QThreadStorage<CryptoPP::AutoSeededRandomPool> Client::rngPool;
+QThreadStorage<Client::Rng> Client::rngPool;
 
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),

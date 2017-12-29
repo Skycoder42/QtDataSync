@@ -56,7 +56,19 @@ private Q_SLOTS:
 	void timeout();
 
 private:
-	static QThreadStorage<CryptoPP::AutoSeededRandomPool> rngPool;
+	//workaround because of alignment errors on msvc2015
+	class Rng {
+	public:
+		inline Rng() :
+			d(new CryptoPP::AutoSeededRandomPool())
+		{}
+		inline operator CryptoPP::RandomNumberGenerator&() {
+			return *(d.data());
+		}
+	private:
+		QScopedPointer<CryptoPP::AutoSeededRandomPool> d;
+	};
+	static QThreadStorage<Rng> rngPool;
 
 	//logging stuff
 	QByteArray _catStr;
