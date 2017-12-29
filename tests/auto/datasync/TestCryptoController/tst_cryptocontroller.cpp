@@ -196,12 +196,15 @@ void TestCryptoController::testSymCrypto()
 		std::tie(index, salt, cipher) = controller->encrypt(message);
 		QCOMPARE(controller->decrypt(index, salt, cipher), message);
 
+		qDebug() << "e1";
 		QVERIFY_EXCEPTION_THROWN(controller->decrypt(index + 1, salt, cipher), CryptoException);
 		auto fakeSalt = salt;
 		fakeSalt[2] = fakeSalt[2] + (char)1;
+		qDebug() << "e2";
 		QVERIFY_EXCEPTION_THROWN(controller->decrypt(index, fakeSalt, cipher), CryptoException);
 		auto fakeMsg = cipher;
 		fakeMsg[2] = fakeMsg[2] + (char)1;
+		qDebug() << "e3";
 		QVERIFY_EXCEPTION_THROWN(controller->decrypt(index, salt, fakeMsg), CryptoException);
 
 		//cmac
@@ -209,7 +212,9 @@ void TestCryptoController::testSymCrypto()
 		std::tie(index, mac) = controller->createCmac(message);
 		controller->verifyCmac(index, message, mac);
 
+		qDebug() << "e4";
 		QVERIFY_EXCEPTION_THROWN(controller->verifyCmac(index + 1, message, mac), CryptoException);
+		qDebug() << "e5";
 		QVERIFY_EXCEPTION_THROWN(controller->verifyCmac(index, message + "a", mac), CryptoException);
 
 	} catch(QException &e) {

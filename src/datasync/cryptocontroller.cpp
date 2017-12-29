@@ -102,7 +102,7 @@ void CryptoController::initialize(const QVariantHash &params)
 	Q_UNUSED(params)
 
 	auto provider = defaults().property(Defaults::KeyStoreProvider).toString();
-	_keyStore = factory->createInstance(provider, defaults(), this);
+	_keyStore = factory->createInstance(provider, defaults(), this); //TODO catch early?
 	if(!_keyStore) { //TODO clear load/unload pattern!!!
 		logCritical() << "Failed to load keystore"
 					  << provider
@@ -358,7 +358,6 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 
 void CryptoController::createScheme(const QByteArray &name, QSharedPointer<CipherScheme> &ptr)
 {
-
 	auto stdStr = name.toStdString();
 	if(stdStr == EAX<AES>::Encryption::StaticAlgorithmName())
 		ptr.reset(new StandardCipherScheme<EAX, AES>());
@@ -721,7 +720,7 @@ quint32 StandardCipherScheme<TScheme, TCipher>::defaultKeyLength() const
 template <template<class> class TScheme, class TCipher>
 quint32 StandardCipherScheme<TScheme, TCipher>::ivLength() const
 {
-	return TCipher::IV_LENGTH;
+	return TCipher::BLOCKSIZE;
 }
 
 template <template<class> class TScheme, class TCipher>

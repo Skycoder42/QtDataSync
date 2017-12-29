@@ -7,16 +7,13 @@
 #include <QtCore/QtGlobal>
 #ifdef Q_OS_WIN
 #pragma message("It's win!")
-#ifndef _MSC_VER
-#pragma message("_MSC_VER not defined")
+#ifdef _MSC_VER
+#define Stringize( L )     #L
+#define MakeString( M, L ) M(L)
+#define MSC_VER_NAME MakeString( Stringize, _MSC_VER )
+#pragma message("_MSC_VER = " MSC_VER_NAME)
 #else
-#if _MSC_VER < 1900
-#pragma message("_MSC_VER < 1900")
-#elif _MSC_VER < 1900
-#pragma message("_MSC_VER > 1900")
-#else
-#pragma message("_MSC_VER == 1900")
-#endif
+#pragma message("Not msvc")
 #endif
 #endif
 
