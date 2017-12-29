@@ -39,9 +39,6 @@ public:
 	explicit KeyStore(const Defaults &defaults, QObject *parent = nullptr);
 	~KeyStore();
 
-	static QStringList listProviders();
-	static QString defaultProvider();
-
 	virtual QString providerName() const = 0;
 
 	virtual void loadStore() = 0;
@@ -64,6 +61,7 @@ class Q_DATASYNC_EXPORT KeyStorePlugin
 public:
 	virtual inline ~KeyStorePlugin() = default;
 
+	virtual bool keystoreAvailable(const QString &provider) const = 0;
 	virtual KeyStore *createInstance(const QString &provider, const Defaults &defaults, QObject *parent = nullptr) = 0;
 };
 

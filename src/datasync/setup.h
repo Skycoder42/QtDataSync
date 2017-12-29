@@ -128,6 +128,11 @@ public:
 	//! Stops the datasync instance and removes it
 	static void removeSetup(const QString &name, bool waitForFinished = false);
 
+	static QStringList keystoreProviders();
+	static QStringList availableKeystores();
+	static bool keystoreAvailable(const QString &provider);
+	static QString defaultKeystoreProvider();
+
 	//! Constructor
 	Setup();
 	//! Destructor

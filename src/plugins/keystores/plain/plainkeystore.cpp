@@ -20,9 +20,9 @@ void PlainKeyStore::loadStore()
 		_settings = new QSettings(defaults().storageDir().absoluteFilePath(QStringLiteral("plain.keystore")),
 								  QSettings::IniFormat,
 								  this);
-		if(!_settings->isWritable()) {
+		if(_settings->status() != QSettings::NoError) {
 			_settings->deleteLater();
-			throw QtDataSync::KeyStoreException(this, QStringLiteral("Keystore file is not writable"));
+			throw QtDataSync::KeyStoreException(this, QStringLiteral("Keystore file is not accessible"));
 		}
 	}
 }
@@ -43,6 +43,9 @@ bool PlainKeyStore::contains(const QString &key) const
 void PlainKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey)
 {
 	_settings->setValue(key, pKey);
+	_settings->sync();
+	if(_settings->status() != QSettings::NoError)
+		throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to write to keystore file"));
 }
 
 QByteArray PlainKeyStore::loadPrivateKey(const QString &key)
@@ -53,4 +56,7 @@ QByteArray PlainKeyStore::loadPrivateKey(const QString &key)
 void PlainKeyStore::remove(const QString &key)
 {
 	_settings->remove(key);
+	_settings->sync();
+	if(_settings->status() != QSettings::NoError)
+		throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to delete from keystore file"));
 }

@@ -18,21 +18,6 @@ KeyStore::KeyStore(const Defaults &defaults, QObject *parent) :
 
 KeyStore::~KeyStore() {}
 
-QStringList KeyStore::listProviders()
-{
-	return CryptoController::allKeystoreKeys();
-}
-
-QString KeyStore::defaultProvider()
-{
-#ifdef Q_OS_LINUX
-	auto kwallet = QStringLiteral("kwallet");
-	if(CryptoController::allKeystoreKeys().contains(kwallet))
-		return kwallet;
-#endif
-	return QStringLiteral("plain");
-}
-
 Defaults KeyStore::defaults() const
 {
 	return d->defaults;

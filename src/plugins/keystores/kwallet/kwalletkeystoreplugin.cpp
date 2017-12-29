@@ -8,8 +8,16 @@ KWalletKeyStorePlugin::KWalletKeyStorePlugin(QObject *parent) :
 
 QtDataSync::KeyStore *KWalletKeyStorePlugin::createInstance(const QString &provider, const QtDataSync::Defaults &defaults, QObject *parent)
 {
-	if(provider == QStringLiteral("kwallet") && KWallet::Wallet::isEnabled()) //only create if actually enabled
+	if(provider == QStringLiteral("kwallet"))
 		return new KWalletKeyStore(defaults, parent);
 	else
 		return nullptr;
+}
+
+bool KWalletKeyStorePlugin::keystoreAvailable(const QString &provider) const
+{
+	if(provider == QStringLiteral("kwallet"))
+		return KWallet::Wallet::isEnabled();
+	else
+		return false;
 }

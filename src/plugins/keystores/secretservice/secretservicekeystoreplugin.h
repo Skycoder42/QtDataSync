@@ -13,6 +13,7 @@ class SecretServiceKeyStorePlugin : public QObject, public QtDataSync::KeyStoreP
 public:
 	SecretServiceKeyStorePlugin(QObject *parent = nullptr);
 
+	bool keystoreAvailable(const QString &provider) const override;
 	QtDataSync::KeyStore *createInstance(const QString &provider, const QtDataSync::Defaults &defaults, QObject *parent) override;
 };
 

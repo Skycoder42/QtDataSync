@@ -51,6 +51,8 @@ public:
 	explicit CryptoController(const Defaults &defaults, QObject *parent = nullptr);
 
 	static QStringList allKeystoreKeys();
+	static QStringList availableKeystoreKeys();
+	static bool keystoreAvailable(const QString &provider);
 
 	void initialize(const QVariantHash &params) final;
 	void finalize() final;

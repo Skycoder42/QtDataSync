@@ -26,7 +26,19 @@ using CppException = CryptoPP::Exception;
 using CppException = std::exception;
 #endif
 
-Q_GLOBAL_PLUGIN_OBJECT_FACTORY(KeyStorePlugin, KeyStore, "keystores", factory)
+namespace {
+
+class ExtendedFactory : public QPluginObjectFactory<KeyStorePlugin, KeyStore>
+{
+public:
+	ExtendedFactory();
+
+	bool isAvailable(const QString &provider);
+};
+
+}
+
+Q_GLOBAL_STATIC(ExtendedFactory, factory)
 
 // ------------- CipherScheme class definitions -------------
 
@@ -102,12 +114,27 @@ QStringList CryptoController::allKeystoreKeys()
 	return factory->allKeys();
 }
 
+QStringList CryptoController::availableKeystoreKeys()
+{
+	QStringList keys;
+	foreach(auto key, factory->allKeys()) {
+		if(factory->isAvailable(key))
+			keys.append(key);
+	}
+	return keys;
+}
+
+bool CryptoController::keystoreAvailable(const QString &provider)
+{
+	return factory->isAvailable(provider);
+}
+
 void CryptoController::initialize(const QVariantHash &params)
 {
 	Q_UNUSED(params)
 
 	auto provider = defaults().property(Defaults::KeyStoreProvider).toString();
-	_keyStore = factory->createInstance(provider, defaults(), this); //TODO catch early?
+	_keyStore = factory->createInstance(provider, defaults(), this); //TODO check in settings for store to use for last device...
 	if(!_keyStore) { //TODO clear load/unload pattern!!!
 		logCritical() << "Failed to load keystore"
 					  << provider
@@ -865,4 +892,29 @@ void CryptoException::raise() const
 QException *CryptoException::clone() const
 {
 	return new CryptoException(this);
+}
+
+namespace {
+
+ExtendedFactory::ExtendedFactory() :
+	QPluginObjectFactory(QStringLiteral("keystores"))
+{}
+
+bool ExtendedFactory::isAvailable(const QString &provider)
+{
+	if(!allKeys().contains(provider))
+		return false;
+	auto instance = plugin(provider);
+	if(instance) {
+		auto wasLoaded = isLoaded(provider);
+		auto res = instance->keystoreAvailable(provider);
+		if(!wasLoaded) {
+			pluginObj(provider)->deleteLater();
+			unload(provider);
+		}
+		return res;
+	} else
+		return false;
+}
+
 }

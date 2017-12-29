@@ -3,7 +3,6 @@
 #include <QLoggingCategory>
 #include <QtDataSync/syncmanager.h>
 #include <QtDataSync/setup.h>
-#include <QtDataSync/keystore.h>
 #include "sampledata.h"
 
 int main(int argc, char *argv[])
@@ -20,7 +19,8 @@ int main(int argc, char *argv[])
 									  "%{if-category}\033[34m%{category}:\033[0m %{endif}"
 									  "%{message}"));
 
-	qDebug() << "Available keystores:" << QtDataSync::KeyStore::listProviders();
+	qDebug() << "Available keystores:" << QtDataSync::Setup::keystoreProviders();
+	qDebug() << "Active keystores:" << QtDataSync::Setup::availableKeystores();
 
 	//setup datasync
 	QtDataSync::Setup()

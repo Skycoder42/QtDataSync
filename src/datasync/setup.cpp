@@ -40,6 +40,34 @@ void Setup::removeSetup(const QString &name, bool waitForFinished)
 	}
 }
 
+QStringList Setup::keystoreProviders()
+{
+	return CryptoController::allKeystoreKeys();
+}
+
+QStringList Setup::availableKeystores()
+{
+	return CryptoController::availableKeystoreKeys();
+}
+
+bool Setup::keystoreAvailable(const QString &provider)
+{
+	return CryptoController::keystoreAvailable(provider);
+}
+
+QString Setup::defaultKeystoreProvider()
+{
+#ifdef Q_OS_LINUX
+	if(CryptoController::keystoreAvailable(QStringLiteral("secretservice")))
+		return QStringLiteral("secretservice");
+	if(CryptoController::keystoreAvailable(QStringLiteral("kwallet")))
+		return QStringLiteral("kwallet");
+	if(CryptoController::keystoreAvailable(QStringLiteral("gnome-keyring")))
+		return QStringLiteral("gnome-keyring");
+#endif
+	return QStringLiteral("plain");
+}
+
 Setup::Setup() :
 	d(new SetupPrivate())
 {}
@@ -277,7 +305,7 @@ Setup &Setup::resetRemoteConfiguration()
 
 Setup &Setup::resetKeyStoreProvider()
 {
-	d->properties.insert(Defaults::KeyStoreProvider, KeyStore::defaultProvider());
+	d->properties.insert(Defaults::KeyStoreProvider, defaultKeystoreProvider());
 	return *this;
 }
 
@@ -425,7 +453,7 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::PersistDeleted, false},
 		{Defaults::ConflictPolicy, Setup::PreferChanged},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
-		{Defaults::KeyStoreProvider, KeyStore::defaultProvider()},
+		{Defaults::KeyStoreProvider, Setup::defaultKeystoreProvider()},
 		{Defaults::SignScheme, Setup::RSA_PSS_SHA3_512},
 		{Defaults::CryptScheme, Setup::RSA_OAEP_SHA3_512},
 		{Defaults::SymScheme, Setup::AES_EAX}
