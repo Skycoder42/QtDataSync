@@ -3,6 +3,23 @@
 
 #include <chrono>
 
+//debugging:
+#include <QtCore/QtGlobal>
+#ifdef Q_OS_WIN
+#pragma message("It's win!")
+#ifndef _MSC_VER
+#pragma message("_MSC_VER not defined")
+#else
+#if _MSC_VER < 1900
+#pragma message("_MSC_VER < 1900")
+#elif _MSC_VER < 1900
+#pragma message("_MSC_VER > 1900")
+#else
+#pragma message("_MSC_VER == 1900")
+#endif
+#endif
+#endif
+
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 //fake QT_HAS_INCLUDE macro for QTimer in msvc2015

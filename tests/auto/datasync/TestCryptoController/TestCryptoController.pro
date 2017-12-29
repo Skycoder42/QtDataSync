@@ -9,3 +9,5 @@ SOURCES += \
 		tst_cryptocontroller.cpp
 
 INCLUDEPATH += ../../../../src/datasync/messages
+
+DEFINES += PLUGIN_DIR=\\\"$$OUT_PWD/../../../../plugins/keystores/\\\"

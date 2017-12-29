@@ -32,6 +32,8 @@ private:
 
 void TestCryptoController::initTestCase()
 {
+	QVERIFY(qputenv("PLUGIN_KEYSTORES_PATH", PLUGIN_DIR));
+
 	try {
 		TestLib::init();
 		Setup setup;
