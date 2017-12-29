@@ -177,10 +177,10 @@ private:
 class Q_DATASYNC_EXPORT CryptoException : public Exception
 {
 public:
-#ifdef __clang__
-	using CppException = std::exception;
-#else
+#ifndef __clang__
 	using CppException = CryptoPP::Exception;
+#else
+	using CppException = std::exception;
 #endif
 
 	CryptoException(const Defaults &defaults,

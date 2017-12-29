@@ -20,10 +20,10 @@
 using namespace QtDataSync;
 using namespace CryptoPP;
 using Exception = QtDataSync::Exception;
-#ifdef __clang__
-using CppException = std::exception;
-#else
+#ifndef __clang__
 using CppException = CryptoPP::Exception;
+#else
+using CppException = std::exception;
 #endif
 
 Q_GLOBAL_PLUGIN_OBJECT_FACTORY(KeyStorePlugin, KeyStore, "keystores", factory)
@@ -172,15 +172,13 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
 		auto signKey = _keyStore->loadPrivateKey(keySignKeyTemplate.arg(deviceId.toString()));
-		if(signKey.isNull()) {
+		if(signKey.isNull())
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private signing key from keystore"));
-		}
 
 		auto cryptScheme = settings()->value(keyCryptScheme).toByteArray();
 		auto cryptKey = _keyStore->loadPrivateKey(keyCryptKeyTemplate.arg(deviceId.toString()));
-		if(cryptKey.isNull()) {
+		if(cryptKey.isNull())
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private encryption key from keystore"));
-		}
 
 		_asymCrypto->load(signScheme, signKey, cryptScheme, cryptKey);
 
@@ -188,7 +186,10 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 		getInfo(_localCipher);
 
 		logDebug() << "Loaded keys for" << deviceId;
-
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to import private key"),
@@ -215,9 +216,9 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 
 		//generate private signature and encryption keys
 		_asymCrypto->generate((Setup::SignatureScheme)defaults().property(Defaults::SignScheme).toInt(),
-						  defaults().property(Defaults::SignKeyParam),
-						  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
-						  defaults().property(Defaults::CryptKeyParam));
+							  defaults().property(Defaults::SignKeyParam),
+							  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
+							  defaults().property(Defaults::CryptKeyParam));
 
 		//create symmetric cipher and the key
 		CipherInfo info;
@@ -815,10 +816,10 @@ QSharedPointer<X509PublicKey> EccKeyScheme<TScheme>::createPublicKey() const
 
 CryptoException::CryptoException(const Defaults &defaults, const QString &message, const CppException &cExcept) :
 	Exception(defaults, message),
-#ifdef __clang__
-	_exception(static_cast<const CryptoPP::Exception &>(cExcept)) //TODO dirty hack, find real solution
-#else
+#ifndef __clang__
 	_exception(cExcept)
+#else
+	_exception(static_cast<const CryptoPP::Exception &>(cExcept)) //NOTE clang hack. It is a CryptoPP::Exception, but for whatever reason without any type information
 #endif
 {}
 
