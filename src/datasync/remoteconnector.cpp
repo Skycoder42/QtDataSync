@@ -1,15 +1,3 @@
-//fake QT_HAS_INCLUDE macro for QTimer in msvc2015
-#if defined(_MSC_VER) && (_MSC_VER == 1900)
-#ifdef QTIMER_H
-#error QTimer already included... HOW!?!
-#else
-#ifdef __has_include
-#undef __has_include
-#endif
-#define __has_include(x) 1
-#endif
-#endif
-
 #include "remoteconnector_p.h"
 #include "logger.h"
 
@@ -20,6 +8,12 @@
 #include "syncmessage_p.h"
 
 #include "connectorstatemachine.h"
+
+#if QT_HAS_INCLUDE(<chrono>)
+#define scdtime(x) x
+#else
+#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#endif
 
 using namespace QtDataSync;
 
@@ -118,7 +112,7 @@ void RemoteConnector::finalize()
 		_stateMachine->submitEvent(QStringLiteral("close"));
 
 		//TODO proper timeout?
-		QTimer::singleShot(std::chrono::seconds(2), this, [this](){
+		QTimer::singleShot(scdtime(std::chrono::seconds(2)), this, [this](){
 			if(_stateMachine->isRunning())
 				_stateMachine->stop();
 			if(_socket)
@@ -344,7 +338,7 @@ void RemoteConnector::doConnect()
 	//initialize keep alive timeout
 	auto tOut = sValue(keyKeepaliveTimeout).toInt();
 	if(tOut > 0) {
-		_pingTimer->setInterval(std::chrono::minutes(tOut));
+		_pingTimer->setInterval(scdtime(std::chrono::minutes(tOut)));
 		connect(_socket, &QWebSocket::connected,
 				_pingTimer, QOverload<>::of(&QTimer::start));
 		connect(_socket, &QWebSocket::disconnected,
@@ -483,7 +477,7 @@ std::chrono::seconds RemoteConnector::retry()
 	else
 		retryTimeout = Timeouts[_retryIndex++];
 
-	QTimer::singleShot(retryTimeout, this, [this](){
+	QTimer::singleShot(scdtime(retryTimeout), this, [this](){
 		if(_retryIndex != 0)
 			reconnect();
 	});

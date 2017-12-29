@@ -1,15 +1,3 @@
-//fake QT_HAS_INCLUDE macro for QTimer in msvc2015
-#if defined(_MSC_VER) && (_MSC_VER == 1900)
-#ifdef QTIMER_H
-#error QTimer already included... HOW!?!
-#else
-#ifdef __has_include
-#undef __has_include
-#endif
-#define __has_include(x) 1
-#endif
-#endif
-
 #include "databasecontroller.h"
 #include "app.h"
 
@@ -18,6 +6,13 @@
 #include <QtSql/QSqlQuery>
 
 #include <QtConcurrent/QtConcurrentRun>
+
+#if QT_HAS_INCLUDE(<chrono>)
+#define scdtime(x) x
+#else
+#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#endif
+
 using namespace QtDataSync;
 
 namespace {
@@ -54,7 +49,7 @@ DatabaseController::DatabaseController(QObject *parent) :
 			auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
 			if(delay > 0) {
 				_keepAliveTimer = new QTimer(this);
-				_keepAliveTimer->setInterval(std::chrono::minutes(delay));
+				_keepAliveTimer->setInterval(scdtime(std::chrono::minutes(delay)));
 				_keepAliveTimer->setTimerType(Qt::VeryCoarseTimer);
 				connect(_keepAliveTimer, &QTimer::timeout,
 						this, &DatabaseController::timeout);

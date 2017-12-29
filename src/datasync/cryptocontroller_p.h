@@ -177,9 +177,15 @@ private:
 class Q_DATASYNC_EXPORT CryptoException : public Exception
 {
 public:
+#ifdef __clang__
+	using CppException = std::exception;
+#else
+	using CppException = CryptoPP::Exception;
+#endif
+
 	CryptoException(const Defaults &defaults,
 					const QString &message,
-					const CryptoPP::Exception &cExcept);
+					const CppException &cExcept);
 
 	CryptoPP::Exception cryptoPPException() const;
 	QString error() const;

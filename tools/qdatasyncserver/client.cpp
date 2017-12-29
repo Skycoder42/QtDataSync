@@ -1,15 +1,3 @@
-//fake QT_HAS_INCLUDE macro for QTimer in msvc2015
-#if defined(_MSC_VER) && (_MSC_VER == 1900)
-#ifdef QTIMER_H
-#error QTimer already included... HOW!?!
-#else
-#ifdef __has_include
-#undef __has_include
-#endif
-#define __has_include(x) 1
-#endif
-#endif
-
 #include "client.h"
 #include "app.h"
 #include "errormessage_p.h"
@@ -22,6 +10,12 @@
 #include <QtCore/QUuid>
 
 #include <QtConcurrent/QtConcurrentRun>
+
+#if QT_HAS_INCLUDE(<chrono>)
+#define scdtime(x) x
+#else
+#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#endif
 
 using namespace QtDataSync;
 
@@ -108,7 +102,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	auto idleTimeout = qApp->configuration()->value(QStringLiteral("server/idleTimeout"), 5).toInt();
 	if(idleTimeout > 0) {
 		_idleTimer = new QTimer(this);
-		_idleTimer->setInterval(std::chrono::minutes(idleTimeout));
+		_idleTimer->setInterval(scdtime(std::chrono::minutes(idleTimeout)));
 		_idleTimer->setTimerType(Qt::VeryCoarseTimer);
 		_idleTimer->setSingleShot(true);
 		connect(_idleTimer, &QTimer::timeout,
@@ -214,7 +208,7 @@ void Client::closeClient()
 				deleteLater();
 			}
 		});
-		destroyTimer->start(std::chrono::seconds(5));
+		destroyTimer->start(scdtime(std::chrono::seconds(5)));
 	}
 }
 
@@ -258,7 +252,7 @@ void Client::close()
 
 void Client::closeLater()
 {
-	QTimer::singleShot(std::chrono::seconds(10), _socket, [this](){
+	QTimer::singleShot(scdtime(std::chrono::seconds(10)), _socket, [this](){
 		if(_socket && _socket->state() == QAbstractSocket::ConnectedState)
 			_socket->close();
 	});

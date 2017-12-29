@@ -20,6 +20,11 @@
 using namespace QtDataSync;
 using namespace CryptoPP;
 using Exception = QtDataSync::Exception;
+#ifdef __clang__
+using CppException = std::exception;
+#else
+using CppException = CryptoPP::Exception;
+#endif
 
 Q_GLOBAL_PLUGIN_OBJECT_FACTORY(KeyStorePlugin, KeyStore, "keystores", factory)
 
@@ -137,7 +142,7 @@ QByteArray CryptoController::fingerprint() const
 			hash.addData(_asymCrypto->encryptionScheme());
 			hash.addData(_asymCrypto->writeCryptKey());
 			_fingerprint = hash.result();
-		} catch(CryptoPP::Exception &e) {
+		} catch(CppException &e) {
 			throw CryptoException(defaults(),
 								  QStringLiteral("Failed to generate device fingerprint"),
 								  e);
@@ -184,7 +189,7 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 
 		logDebug() << "Loaded keys for" << deviceId;
 
-	} catch(CryptoPP::Exception &e) {
+	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to import private key"),
 							  e);
@@ -234,7 +239,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 #else
 		logDebug() << "Generated new keys";
 #endif
-	} catch(CryptoPP::Exception &e) {
+	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),
 							  e);
@@ -258,7 +263,7 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 		storeCipherKey(_localCipher);
 		settings()->setValue(keyLocalSymKey, _localCipher);
 		logDebug() << "Stored keys for" << deviceId;
-	} catch(CryptoPP::Exception &e) {
+	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),
 							  e);
@@ -284,7 +289,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByt
 		); // QByteArraySource
 
 		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, salt, cipher};
-	} catch(CryptoPP::Exception &e) {
+	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt data for upload"),
 							  e);
@@ -308,7 +313,7 @@ QByteArray CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, c
 		); // QByteArraySource
 
 		return plain;
-	} catch(CryptoPP::Exception &e) {
+	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to decrypt downloaded data"),
 							  e);
@@ -331,7 +336,7 @@ std::tuple<quint32, QByteArray> CryptoController::createCmac(const QByteArray &d
 		); // QByteArraySource
 
 		return std::tuple<quint32, QByteArray>{_localCipher, mac};
-	} catch(CryptoPP::Exception &e) {
+	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to create CMAC"),
 							  e);
@@ -349,7 +354,7 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 		QByteArraySource (data + mac, true,
 			new HashVerificationFilter(*(cmac.data()), nullptr, HashVerificationFilter::THROW_EXCEPTION | HashVerificationFilter::HASH_AT_END) // HashFilter
 		); // QByteArraySource
-	} catch(CryptoPP::Exception &e) {
+	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify CMAC"),
 							  e);
@@ -808,9 +813,13 @@ QSharedPointer<X509PublicKey> EccKeyScheme<TScheme>::createPublicKey() const
 
 // ------------- Exceptions Implementation -------------
 
-CryptoException::CryptoException(const Defaults &defaults, const QString &message, const CryptoPP::Exception &cExcept) :
+CryptoException::CryptoException(const Defaults &defaults, const QString &message, const CppException &cExcept) :
 	Exception(defaults, message),
+#ifdef __clang__
+	_exception(static_cast<const CryptoPP::Exception &>(cExcept)) //TODO dirty hack, find real solution
+#else
 	_exception(cExcept)
+#endif
 {}
 
 CryptoPP::Exception CryptoException::cryptoPPException() const
