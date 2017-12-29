@@ -1,3 +1,15 @@
+//fake QT_HAS_INCLUDE macro for QTimer in msvc2015
+#if defined(_MSC_VER) && (_MSC_VER == 1900)
+#ifdef QTIMER_H
+#error QTimer already included... HOW!?!
+#else
+#ifdef __has_include
+#undef __has_include
+#endif
+#define __has_include(x) 1
+#endif
+#endif
+
 #include "remoteconnector_p.h"
 #include "logger.h"
 

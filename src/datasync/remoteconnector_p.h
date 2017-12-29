@@ -3,33 +3,9 @@
 
 #include <chrono>
 
-//debugging:
-#include <QtCore/QtGlobal>
-#ifdef Q_OS_WIN
-#pragma message("It's win!")
-#ifdef _MSC_VER
-#define Stringize( L )     #L
-#define MakeString( M, L ) M(L)
-#define MSC_VER_NAME MakeString( Stringize, _MSC_VER )
-#pragma message("_MSC_VER = " MSC_VER_NAME)
-#else
-#pragma message("Not msvc")
-#endif
-#endif
-
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
-//fake QT_HAS_INCLUDE macro for QTimer in msvc2015
-#if defined(_MSC_VER) && (_MSC_VER == 1900)
-#define needs_redef
-#undef QT_HAS_INCLUDE
-#define QT_HAS_INCLUDE(x) 1
-#endif
 #include <QtCore/QTimer>
-#ifdef needs_redef
-#undef QT_HAS_INCLUDE
-#define QT_HAS_INCLUDE(x) 0
-#endif
 
 #include <QtWebSockets/QWebSocket>
 
