@@ -7,6 +7,7 @@ SUBDIRS += \
     TestDataTypeStore \
     TestChangeController \
     TestCryptoController \
-    TestSyncController
+    TestSyncController \
+    TestRoThreadedBackend
 
 CONFIG += ordered

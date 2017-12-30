@@ -1,0 +1,6 @@
+class TestClass
+{
+	PROP(bool currState=false);
+	SLOT(serverDo(int id));
+	SIGNAL(serverDone(int id));
+};
