@@ -15,7 +15,7 @@ QString SecretServiceKeyStore::providerName() const
 
 bool SecretServiceKeyStore::isOpen() const
 {
-
+	return _libSecret->isOpen();
 }
 
 void SecretServiceKeyStore::openStore()

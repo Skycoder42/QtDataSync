@@ -25,6 +25,24 @@ LibSecretWrapper::~LibSecretWrapper()
 	cleanup();
 }
 
+bool LibSecretWrapper::testAvailable()
+{
+	GError *error = nullptr;
+	auto secret = secret_service_get_sync(SECRET_SERVICE_OPEN_SESSION,
+										  nullptr,
+										  &error);
+	auto ok = true;
+	if(error) {
+		ok = false;
+		g_error_free(error);
+	}
+	if(secret)
+		g_object_unref(secret);
+	else
+		ok = false;
+	return ok;
+}
+
 bool LibSecretWrapper::isOpen() const
 {
 	return _secret;

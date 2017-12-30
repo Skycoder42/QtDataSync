@@ -24,6 +24,8 @@ public:
 	LibSecretWrapper(const QByteArray &appName);
 	~LibSecretWrapper();
 
+	static bool testAvailable();
+
 	bool isOpen() const;
 	void setup();
 	void cleanup();

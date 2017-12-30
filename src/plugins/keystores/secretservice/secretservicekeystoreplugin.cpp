@@ -10,15 +10,17 @@ SecretServiceKeyStorePlugin::SecretServiceKeyStorePlugin(QObject *parent) :
 
 bool SecretServiceKeyStorePlugin::keystoreAvailable(const QString &provider) const
 {
-	//TODO implement
-	Q_UNIMPLEMENTED();
-	return false;
+	if(provider == QStringLiteral("secretservice") ||
+	   provider == QStringLiteral("gnome-keyring"))
+		return LibSecretWrapper::testAvailable();
+	else
+		return false;
 }
 
 QtDataSync::KeyStore *SecretServiceKeyStorePlugin::createInstance(const QString &provider, const QtDataSync::Defaults &defaults, QObject *parent)
 {
 	if(provider == QStringLiteral("secretservice") ||
-	   provider == QStringLiteral("gnome-keyring")) //only create if actually enabled
+	   provider == QStringLiteral("gnome-keyring"))
 		return new SecretServiceKeyStore(defaults, provider, parent);
 	else
 		return nullptr;
