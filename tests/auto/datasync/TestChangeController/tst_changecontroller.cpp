@@ -2,14 +2,14 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <testlib.h>
+#include <QtDataSync/private/changecontroller_p.h>
+#include <QtDataSync/private/synchelper_p.h>
 
 //DIRTY HACK: allow access for test
 #define private public
 #include <QtDataSync/private/exchangeengine_p.h>
 #undef private
 
-#include <QtDataSync/private/changecontroller_p.h>
-#include <QtDataSync/private/synchelper_p.h>
 #include <QtDataSync/private/setup_p.h>
 using namespace QtDataSync;
 

@@ -69,7 +69,7 @@ public:
 	};
 
 	explicit LocalStore(QObject *parent = nullptr);
-	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);
+	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);//TODO pass defaults directly
 	~LocalStore();
 
 	QJsonObject readJson(const ObjectKey &key, const QString &filePath, int *costs = nullptr) const;

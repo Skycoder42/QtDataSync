@@ -68,7 +68,7 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 						//deterministic alg the chooses 1 dataset no matter which one is local
 						if(!resolvedData.isEmpty())
 							_store->storeChanged(scope, localVersion + 1ull, localFileName, resolvedData, true, localState); //store as "v2 + 1"
-						if(localChecksum > remoteChecksum)
+						else if(localChecksum > remoteChecksum)
 							_store->updateVersion(scope, localVersion, localVersion + 1ull, true); //keep as "v1 + 1"
 						else
 							_store->storeChanged(scope, remoteVersion + 1ull, localFileName, remoteData, true, localState); //store as "v2 + 1"

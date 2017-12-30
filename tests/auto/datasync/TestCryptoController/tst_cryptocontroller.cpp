@@ -3,6 +3,11 @@
 #include <QCoreApplication>
 #include <testlib.h>
 #include <QtDataSync/private/cryptocontroller_p.h>
+
+//fake private
+#define private public
+#include <QtDataSync/private/defaults_p.h>
+#undef private
 using namespace QtDataSync;
 
 class TestCryptoController : public QObject
@@ -20,8 +25,8 @@ private Q_SLOTS:
 	void testClientCryptoOperations_data();
 	void testClientCryptoOperations();
 
-	//TODO test with all cipherschemes?
 	void testKeyAccess();
+	void testSymCrypto_data();
 	void testSymCrypto();
 
 private:
@@ -181,12 +186,31 @@ void TestCryptoController::testKeyAccess()
 	}
 }
 
+void TestCryptoController::testSymCrypto_data()
+{
+	QTest::addColumn<Setup::CipherScheme>("scheme");
+
+	QTest::newRow("AES_EAX") << Setup::AES_EAX;
+	QTest::newRow("AES_GCM") << Setup::AES_GCM;
+	QTest::newRow("TWOFISH_EAX") << Setup::TWOFISH_EAX;
+	QTest::newRow("TWOFISH_GCM") << Setup::TWOFISH_GCM;
+	QTest::newRow("SERPENT_EAX") << Setup::SERPENT_EAX;
+	QTest::newRow("SERPENT_GCM") << Setup::SERPENT_GCM;
+	QTest::newRow("IDEA_EAX") << Setup::IDEA_EAX;
+}
+
 void TestCryptoController::testSymCrypto()
 {
+	QFETCH(Setup::CipherScheme, scheme);
+
 	QByteArray message("another message to be processed");
 
 	try {
 		controller->clearKeyMaterial();
+
+		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
+		dPriv->properties.insert(Defaults::SymScheme, scheme);
+
 		controller->createPrivateKeys("nonce");
 
 		//encryption
