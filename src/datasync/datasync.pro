@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core jsonserializer sql websockets scxml
+QT = core jsonserializer sql websockets scxml remoteobjects
 
 HEADERS += qtdatasync_global.h \
 	localstore_p.h \
@@ -27,9 +27,9 @@ HEADERS += qtdatasync_global.h \
 	controller_p.h \
 	syncmanager_p.h \
 	synchelper_p.h \
-    synccontroller_p.h \
-    conflictresolver.h \
-    conflictresolver_p.h
+	synccontroller_p.h \
+	conflictresolver.h \
+	conflictresolver_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -50,12 +50,13 @@ SOURCES += \
 	keystore.cpp \
 	controller.cpp \
 	synchelper.cpp \
-    synccontroller.cpp \
-    conflictresolver.cpp
+	synccontroller.cpp \
+	conflictresolver.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
 
+include(rothreadedbackend/rothreadedbackend.pri)
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)
 include(../3rdparty/cryptoqq/cryptoqq.pri) #TODO qpmx
