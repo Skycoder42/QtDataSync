@@ -10,8 +10,8 @@ osx_image: xcode9.1
 env:
   global:
     - QT_VER=5.10.0
-    - EXTRA_MODULES=".skycoder42.jsonserializer .skycoder42.backgroundprocess"
-    - STATIC_QT_MODS=qttools
+    - EXTRA_MODULES=".qtremoteobjects .skycoder42.jsonserializer .skycoder42.backgroundprocess"
+    - STATIC_QT_MODS="qttools qtwebsockets qtscxml qtremoteobjects"
     - STATIC_EXTRA_MODS="qtjsonserializer qtbackgroundprocess"
 
 matrix:
