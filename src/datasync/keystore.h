@@ -41,7 +41,8 @@ public:
 
 	virtual QString providerName() const = 0;
 
-	virtual void loadStore() = 0;
+	virtual bool isOpen() const = 0;
+	virtual void openStore() = 0;
 	virtual void closeStore() = 0;
 
 	virtual bool contains(const QString &key) const = 0;

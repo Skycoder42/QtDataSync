@@ -13,7 +13,12 @@ QString SecretServiceKeyStore::providerName() const
 	return _providerName;
 }
 
-void SecretServiceKeyStore::loadStore()
+bool SecretServiceKeyStore::isOpen() const
+{
+
+}
+
+void SecretServiceKeyStore::openStore()
 {
 	try {
 		_libSecret->setup();

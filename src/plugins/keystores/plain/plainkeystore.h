@@ -14,7 +14,8 @@ public:
 	explicit PlainKeyStore(const QtDataSync::Defaults &defaults, QObject *parent = nullptr);
 
 	QString providerName() const override;
-	void loadStore() override;
+	bool isOpen() const override;
+	void openStore() override;
 	void closeStore() override;
 	bool contains(const QString &key) const override;
 	void storePrivateKey(const QString &key, const QByteArray &pKey) override;
@@ -22,7 +23,7 @@ public:
 	void remove(const QString &key) override;
 
 private:
-	QPointer<QSettings> _settings;
+	QSettings *_settings;
 };
 
 #endif // PLAINKEYSTORE_H

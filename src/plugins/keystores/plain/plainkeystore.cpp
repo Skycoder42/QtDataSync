@@ -14,7 +14,12 @@ QString PlainKeyStore::providerName() const
 	return QStringLiteral("plain");
 }
 
-void PlainKeyStore::loadStore()
+bool PlainKeyStore::isOpen() const
+{
+	return _settings;
+}
+
+void PlainKeyStore::openStore()
 {
 	if(!_settings) {
 		_settings = new QSettings(defaults().storageDir().absoluteFilePath(QStringLiteral("plain.keystore")),
@@ -22,6 +27,7 @@ void PlainKeyStore::loadStore()
 								  this);
 		if(_settings->status() != QSettings::NoError) {
 			_settings->deleteLater();
+			_settings = nullptr;
 			throw QtDataSync::KeyStoreException(this, QStringLiteral("Keystore file is not accessible"));
 		}
 	}
@@ -32,6 +38,7 @@ void PlainKeyStore::closeStore()
 	if(_settings) {
 		_settings->sync();
 		_settings->deleteLater();
+		_settings = nullptr;
 	}
 }
 

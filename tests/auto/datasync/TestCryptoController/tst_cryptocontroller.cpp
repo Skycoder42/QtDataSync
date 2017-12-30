@@ -58,7 +58,7 @@ void TestCryptoController::cleanupTestCase()
 void TestCryptoController::testBasic()
 {
 	QVERIFY(CryptoController::allKeystoreKeys().contains(QStringLiteral("plain")));
-	QVERIFY(controller->canAccessStore());
+	QVERIFY(controller->acquireStore(false));
 }
 
 void TestCryptoController::testClientCryptoKeys_data()

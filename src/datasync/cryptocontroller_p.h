@@ -60,7 +60,7 @@ public:
 	ClientCrypto *crypto() const;
 	QByteArray fingerprint() const;
 
-	bool canAccessStore() const;
+	bool acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);
 	void clearKeyMaterial();
 
@@ -82,6 +82,7 @@ private:
 		CryptoPP::SecByteBlock key;
 	};
 
+	static const QString keyKeystore;
 	static const QString keySignScheme;
 	static const QString keyCryptScheme;
 	static const QString keyLocalSymKey;
@@ -101,7 +102,8 @@ private:
 	static void createScheme(const QByteArray &name, QSharedPointer<CipherScheme> &ptr);
 	static void createScheme(Setup::CipherScheme scheme, QSharedPointer<CipherScheme> &ptr);
 
-	void ensureStoreAccess() const;
+	void ensureStoreOpen() const;
+	void closeStore() const;
 	void storeCipherKey(quint32 keyIndex) const;
 
 	const CipherInfo &getInfo(quint32 keyIndex) const;

@@ -28,12 +28,13 @@ using CppException = std::exception;
 
 namespace {
 
-class ExtendedFactory : public QPluginObjectFactory<KeyStorePlugin, KeyStore>
+class ExtendedFactory : public QPluginFactory<KeyStorePlugin>
 {
 public:
 	ExtendedFactory();
 
 	bool isAvailable(const QString &provider);
+	KeyStore *createInstance(const QString &key, const Defaults &defaults, QObject *parent = nullptr);
 };
 
 }
@@ -92,6 +93,7 @@ private:
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
+const QString CryptoController::keyKeystore(QStringLiteral("keystore"));
 const QString CryptoController::keySignScheme(QStringLiteral("scheme/signing"));
 const QString CryptoController::keyCryptScheme(QStringLiteral("scheme/encryption"));
 const QString CryptoController::keyLocalSymKey(QStringLiteral("localkey"));
@@ -132,26 +134,12 @@ bool CryptoController::keystoreAvailable(const QString &provider)
 void CryptoController::initialize(const QVariantHash &params)
 {
 	Q_UNUSED(params)
-
-	auto provider = defaults().property(Defaults::KeyStoreProvider).toString();
-	_keyStore = factory->createInstance(provider, defaults(), this); //TODO check in settings for store to use for last device...
-	if(!_keyStore) { //TODO clear load/unload pattern!!!
-		logCritical() << "Failed to load keystore"
-					  << provider
-					  << "- synchronization will be temporarily disabled";
-	}
-
 	_asymCrypto = new ClientCrypto(this);
 }
 
 void CryptoController::finalize()
 {
-	try {
-		if(_keyStore)
-			_keyStore->closeStore();
-	} catch(QException &e) {
-		logCritical() << "Failed to finalize with error:" << e.what();
-	}
+	closeStore();
 }
 
 ClientCrypto *CryptoController::crypto() const
@@ -179,22 +167,42 @@ QByteArray CryptoController::fingerprint() const
 	return _fingerprint;
 }
 
-bool CryptoController::canAccessStore() const
+bool CryptoController::acquireStore(bool existing)
 {
-	try {
-		ensureStoreAccess();
-		return true;
-	} catch(std::exception &e) {
-		logCritical() << "Failed to load keystore with error:" << e.what();
-		_keyStore->deleteLater();
+	closeStore();
+	QString provider;
+	if(existing)
+		provider = settings()->value(keyKeystore).toString();
+	else {
+		provider = defaults().property(Defaults::KeyStoreProvider).toString();
+		if(provider.isNull())
+			provider = Setup::defaultKeystoreProvider();
+	}
+
+	if(_keyStore) {
+		if(_keyStore->providerName() == provider) //keystore is already loaded - no need to delete and load again
+			return true;
+		else {
+			_keyStore->deleteLater();
+			_keyStore = nullptr;
+		}
+	}
+
+	_keyStore = factory->createInstance(provider, defaults(), this);
+	if(!_keyStore) {
+		logCritical() << "Keystore"
+					  << provider
+					  << "not available - synchronization will be temporarily disabled";
 		return false;
 	}
+
+	return true;
 }
 
 void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 {
 	try {
-		ensureStoreAccess();
+		ensureStoreOpen();
 		_fingerprint.clear();
 
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
@@ -213,11 +221,13 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 		getInfo(_localCipher);
 
 		logDebug() << "Loaded keys for" << deviceId;
+		closeStore();
 #ifdef __clang__
 	} catch(QException &e) { //prevent catching the std::exception
 		throw;
 #endif
 	} catch(CppException &e) {
+		closeStore();
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to import private key"),
 							  e);
@@ -230,6 +240,7 @@ void CryptoController::clearKeyMaterial()
 	_asymCrypto->reset();
 	_loadedChiphers.clear();
 	_localCipher = 0;
+	closeStore();
 	logDebug() << "Cleared all key material";
 }
 
@@ -277,7 +288,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 {
 	try {
-		ensureStoreAccess();
+		ensureStoreOpen();
 
 		settings()->setValue(keySignScheme, _asymCrypto->signatureScheme());
 		_keyStore->storePrivateKey(keySignKeyTemplate.arg(deviceId.toString()),
@@ -291,7 +302,9 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 		storeCipherKey(_localCipher);
 		settings()->setValue(keyLocalSymKey, _localCipher);
 		logDebug() << "Stored keys for" << deviceId;
+		closeStore();
 	} catch(CppException &e) {
+		closeStore();
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),
 							  e);
@@ -440,12 +453,23 @@ void CryptoController::createScheme(Setup::CipherScheme scheme, QSharedPointer<C
 	}
 }
 
-void CryptoController::ensureStoreAccess() const
+void CryptoController::ensureStoreOpen() const
 {
-	if(_keyStore)
-		_keyStore->loadStore();
-	else
+	if(_keyStore) {
+		if(!_keyStore->isOpen())
+			_keyStore->openStore();
+	} else
 		throw Exception(defaults(), QStringLiteral("No keystore available"));
+}
+
+void CryptoController::closeStore() const
+{
+	try {
+		if(_keyStore && _keyStore->isOpen())
+			_keyStore->closeStore();
+	} catch(QException &e) {
+		logCritical() << "Failed to close keystore with error:" << e.what();
+	}
 }
 
 void CryptoController::storeCipherKey(quint32 keyIndex) const
@@ -897,7 +921,7 @@ QException *CryptoException::clone() const
 namespace {
 
 ExtendedFactory::ExtendedFactory() :
-	QPluginObjectFactory(QStringLiteral("keystores"))
+	QPluginFactory(QStringLiteral("keystores"))
 {}
 
 bool ExtendedFactory::isAvailable(const QString &provider)
@@ -915,6 +939,15 @@ bool ExtendedFactory::isAvailable(const QString &provider)
 		return res;
 	} else
 		return false;
+}
+
+KeyStore *ExtendedFactory::createInstance(const QString &key, const Defaults &defaults, QObject *parent)
+{
+	auto plg = plugin(key);
+	if(plg && plg->keystoreAvailable(key))
+		return plg->createInstance(key, defaults, parent);
+	else
+		return nullptr;
 }
 
 }

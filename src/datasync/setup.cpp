@@ -305,7 +305,7 @@ Setup &Setup::resetRemoteConfiguration()
 
 Setup &Setup::resetKeyStoreProvider()
 {
-	d->properties.insert(Defaults::KeyStoreProvider, defaultKeystoreProvider());
+	d->properties.remove(Defaults::KeyStoreProvider);
 	return *this;
 }
 
@@ -453,7 +453,6 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::PersistDeleted, false},
 		{Defaults::ConflictPolicy, Setup::PreferChanged},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
-		{Defaults::KeyStoreProvider, Setup::defaultKeystoreProvider()},
 		{Defaults::SignScheme, Setup::RSA_PSS_SHA3_512},
 		{Defaults::CryptScheme, Setup::RSA_OAEP_SHA3_512},
 		{Defaults::SymScheme, Setup::AES_EAX}

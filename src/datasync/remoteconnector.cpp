@@ -447,10 +447,11 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 bool RemoteConnector::loadIdentity()
 {
 	try {
-		if(!_cryptoController->canAccessStore()) //no keystore -> can neither save nor load...
+		_deviceId = sValue(keyDeviceId).toUuid();
+
+		if(!_cryptoController->acquireStore(!_deviceId.isNull())) //no keystore -> can neither save nor load...
 			return false;
 
-		_deviceId = sValue(keyDeviceId).toUuid();
 		if(_deviceId.isNull()) //no user -> nothing to be loaded
 			return true;
 

@@ -15,13 +15,19 @@ QString KWalletKeyStore::providerName() const
 	return QStringLiteral("kwallet");
 }
 
-void KWalletKeyStore::loadStore()
+bool KWalletKeyStore::isOpen() const
+{
+	return _wallet;
+}
+
+void KWalletKeyStore::openStore()
 {
 	if(!_wallet) {
 		_wallet = KWallet::Wallet::openWallet(KWallet::Wallet::NetworkWallet(), 0);
 		if(_wallet) {
 			if(!_wallet->isOpen()) {
 				_wallet->deleteLater();
+				_wallet = nullptr;
 				throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to open KWallet instance"));
 			} else {
 				auto sDir = QCoreApplication::applicationName();
@@ -30,6 +36,7 @@ void KWalletKeyStore::loadStore()
 
 				if(!_wallet->setFolder(sDir)) {
 					_wallet->deleteLater();
+					_wallet = nullptr;
 					throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to enter application folder in KWallet"));
 				}
 			}
@@ -43,6 +50,7 @@ void KWalletKeyStore::closeStore()
 	if(_wallet) {
 		_wallet->sync();
 		_wallet->deleteLater();
+		_wallet = nullptr;
 	}
 }
 

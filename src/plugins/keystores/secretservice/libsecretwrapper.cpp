@@ -25,22 +25,31 @@ LibSecretWrapper::~LibSecretWrapper()
 	cleanup();
 }
 
+bool LibSecretWrapper::isOpen() const
+{
+	return _secret;
+}
+
 void LibSecretWrapper::setup()
 {
 	GError *error = nullptr;
 	_secret = secret_service_get_sync(SECRET_SERVICE_OPEN_SESSION,
 									  nullptr,
 									  &error);
-	if(error)
+	if(error) {
+		cleanup();
 		throw LibSecretException(error);
+	}
 	if(!_secret)
 		throw LibSecretException();
 }
 
 void LibSecretWrapper::cleanup()
 {
-	if(_secret)
+	if(_secret) {
 		g_object_unref(_secret);
+		_secret = nullptr;
+	}
 }
 
 QByteArray LibSecretWrapper::loadSecret(const QByteArray &key)
@@ -54,8 +63,11 @@ QByteArray LibSecretWrapper::loadSecret(const QByteArray &key)
 											&error);
 
 	g_hash_table_destroy(att);
-	if(error)
+	if(error) {
+		if(value)
+			secret_value_unref(value);
 		throw LibSecretException(error);
+	}
 
 	if(value) {
 		auto res = QByteArray::fromBase64(secret_value_get_text(value));

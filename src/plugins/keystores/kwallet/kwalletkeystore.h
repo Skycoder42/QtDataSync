@@ -15,7 +15,8 @@ public:
 	explicit KWalletKeyStore(const QtDataSync::Defaults &defaults, QObject *parent = nullptr);
 
 	QString providerName() const override;
-	void loadStore() override;
+	bool isOpen() const override;
+	void openStore() override;
 	void closeStore() override;
 	bool contains(const QString &key) const override;
 	void storePrivateKey(const QString &key, const QByteArray &pKey) override;
