@@ -50,6 +50,11 @@ QDir Defaults::storageDir() const
 	return d->storageDir;
 }
 
+QRemoteObjectNode *Defaults::remoteNode() const
+{
+	return d->node;
+}
+
 QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 {
 	auto path = d->storageDir.absoluteFilePath(QStringLiteral("config.ini"));
@@ -164,10 +169,10 @@ QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
 QThreadStorage<QHash<QString, quint64>> DefaultsPrivate::dbRefHash;
 
-void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver)
+void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver)
 {
 	QMutexLocker _(&setupDefaultsMutex);
-	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, properties, serializer, resolver);
+	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, roAddress, properties, serializer, resolver);
 	if(d->resolver)
 		d->resolver->setDefaults(d);
 
@@ -232,15 +237,18 @@ QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &s
 	return setupDefaults.value(setupName);
 }
 
-DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
+DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
 	setupName(setupName),
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
+	node(new QRemoteObjectNode(this)),
 	serializer(serializer),
 	resolver(resolver),
 	properties(properties),
 	lock(QReadWriteLock::NonRecursive)
 {
+	if(!node->connectToNode(roAddress))
+		logWarning() << "Failed to connect to engine remote object host node";
 	serializer->setParent(this);
 	if(resolver)
 		resolver->setParent(this);

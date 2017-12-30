@@ -8,9 +8,11 @@
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
 
+class QRemoteObjectNode;
+class SyncManagerPrivateReplica;
+
 namespace QtDataSync {
 
-class SyncManagerPrivate;
 class Q_DATASYNC_EXPORT SyncManager : public QObject
 {
 	Q_OBJECT
@@ -30,8 +32,9 @@ public:
 	};
 	Q_ENUM(SyncState)
 
-	explicit SyncManager(QObject *parent = nullptr, bool blockingConstruct = false);
-	explicit SyncManager(const QString &setupName, QObject *parent = nullptr, bool blockingConstruct = false);
+	explicit SyncManager(QObject *parent = nullptr, int timeout = 0);
+	explicit SyncManager(const QString &setupName, QObject *parent = nullptr, int timeout = 0);
+	explicit SyncManager(QRemoteObjectNode *node, QObject *parent = nullptr, int timeout = 0);
 	~SyncManager();
 
 	bool isSyncEnabled() const;
@@ -53,8 +56,13 @@ Q_SIGNALS:
 	void lastErrorChanged(const QString &lastError);
 
 private:
-	SyncManagerPrivate *d;
+	SyncManagerPrivateReplica *d;
+
+	void runImp(bool downloadOnly, bool triggerSync, const std::function<void(SyncState)> &resultFn);
 };
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const QtDataSync::SyncManager::SyncState &state);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, QtDataSync::SyncManager::SyncState &state);
 
 }
 

@@ -9,6 +9,8 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qreadwritelock.h>
 
+#include <QtRemoteObjects/qremoteobjectnode.h>
+
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
 #include "QtDataSync/setup.h"
@@ -78,6 +80,7 @@ public:
 	QString setupName() const;
 	//! Returns the storage directory
 	QDir storageDir() const;
+	QRemoteObjectNode *remoteNode() const;
 	//! Returns a new instance of QSettings for this setup
 	QSettings *createSettings(QObject *parent = nullptr, const QString &group = {}) const;
 	//! Returns the serializer of the current setup

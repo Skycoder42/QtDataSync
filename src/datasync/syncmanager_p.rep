@@ -1,0 +1,10 @@
+#include "qtdatasync_global.h"
+#include "syncmanager.h"
+
+class SyncManagerPrivate {
+	PROP(bool syncEnabled=true);
+	PROP(QtDataSync::SyncManager::SyncState syncState READONLY);
+	PROP(QString lastError READONLY);
+	SLOT(void synchronize());
+	SLOT(void reconnect());
+};

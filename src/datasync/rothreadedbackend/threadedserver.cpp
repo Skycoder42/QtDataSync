@@ -8,14 +8,14 @@ QHash<QString, ThreadedServer*> ThreadedServer::_servers;
 bool ThreadedServer::connectTo(const QUrl &url, ExchangeBuffer *clientBuffer)
 {
 	if(url.scheme() != UrlScheme || !url.isValid()) {
-		qCCritical(rothreadedbackend) << "Unsupported URL-Scheme:" << url.scheme();
+		qCCritical(rothreadedbackend).noquote() << "Unsupported URL-Scheme:" << url.scheme();
 		return false;
 	}
 
 	QMutexLocker _(&_lock);
 	auto server = _servers.value(url.path());
 	if(!server) {
-		qCCritical(rothreadedbackend) << "No threaded server found for URL:" << url;
+		qCWarning(rothreadedbackend).noquote() << "No threaded server found for URL:" << url.toString(); //TODO prevent spamming when unable to connect...
 		return false;
 	} else {
 		return QMetaObject::invokeMethod(server, "addConnection", Qt::QueuedConnection,

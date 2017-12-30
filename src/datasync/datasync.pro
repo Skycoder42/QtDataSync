@@ -56,6 +56,9 @@ SOURCES += \
 STATECHARTS += \
 	connectorstatemachine.scxml
 
+REPC_SOURCE += syncmanager_p.rep
+REPC_REPLICA += $$REPC_SOURCE
+
 include(rothreadedbackend/rothreadedbackend.pri)
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)

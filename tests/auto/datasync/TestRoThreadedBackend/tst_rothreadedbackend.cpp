@@ -80,7 +80,7 @@ void TestRoThreadedBackend::testExchangeDevice()
 
 void TestRoThreadedBackend::testRemoteObjects()
 {
-	QUrl url(QStringLiteral("threaded://some_path"));
+	QUrl url(QStringLiteral("threaded:///some/path"));
 
 	QRemoteObjectHost host(url);
 	host.enableRemoting(new TestClass(&host));

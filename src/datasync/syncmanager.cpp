@@ -1,148 +1,143 @@
 #include "syncmanager.h"
-#include "syncmanager_p.h"
+#include "rep_syncmanager_p_replica.h"
 #include "remoteconnector_p.h"
 #include "setup_p.h"
 #include "exchangeengine_p.h"
 using namespace QtDataSync;
 
-SyncManager::SyncManager(QObject *parent, bool blockingConstruct) :
-	SyncManager(DefaultSetup, parent, blockingConstruct)
+SyncManager::SyncManager(QObject *parent, int timeout) :
+	SyncManager(DefaultSetup, parent, timeout)
 {}
 
-SyncManager::SyncManager(const QString &setupName, QObject *parent, bool blockingConstruct) :
-	QObject(parent),
-	d(new SyncManagerPrivate(setupName, this, blockingConstruct))
+SyncManager::SyncManager(const QString &setupName, QObject *parent, int timeout) :
+	SyncManager(Defaults(setupName).remoteNode(), parent, timeout)
 {}
+
+SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent, int timeout) :
+	QObject(parent),
+	d(node->acquire<SyncManagerPrivateReplica>())
+{
+	if(!d)
+		throw nullptr;//TODO exception
+
+	d->setParent(this); //TODO use state, init, etc.
+	connect(d, &SyncManagerPrivateReplica::syncEnabledChanged,
+			this, &SyncManager::syncEnabledChanged);
+	connect(d, &SyncManagerPrivateReplica::syncStateChanged,
+			this, &SyncManager::syncStateChanged);
+	connect(d, &SyncManagerPrivateReplica::lastErrorChanged,
+			this, &SyncManager::lastErrorChanged);
+	if(timeout != 0 && !d->isInitialized()) {
+		if(!d->waitForSource(timeout))
+			throw nullptr;//TODO exception
+	}
+}
 
 SyncManager::~SyncManager() {}
 
 bool SyncManager::isSyncEnabled() const
 {
-	return d->cEnabled;
+	return d->syncEnabled();
 }
 
 SyncManager::SyncState SyncManager::syncState() const
 {
-	return d->cState;
+	return d->syncState();
 }
 
 QString SyncManager::lastError() const
 {
-	return d->cError;
+	return d->lastError();
 }
 
 void SyncManager::setSyncEnabled(bool syncEnabled)
 {
-	QMetaObject::invokeMethod(d->remoteConnector(), "setSyncEnabled",
-							  Q_ARG(bool, syncEnabled));
-	if(d->cEnabled != syncEnabled) {
-		d->cEnabled = syncEnabled;
-		emit syncEnabledChanged(syncEnabled);
-	}
+	d->pushSyncEnabled(syncEnabled);
 }
 
 void SyncManager::synchronize()
 {
-	QMetaObject::invokeMethod(d->remoteConnector(), "resync");
+	d->synchronize();
 }
 
 void SyncManager::reconnect()
 {
-	QMetaObject::invokeMethod(d->remoteConnector(), "reconnect");
+	d->reconnect();
 }
 
 void SyncManager::runOnDownloaded(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
 {
-	QMetaObject::invokeMethod(d->engine(), "syncForResult",
-							  Q_ARG(SyncResultObject*, new SyncResultObject(resultFn, this)),
-							  Q_ARG(bool, true),
-							  Q_ARG(bool, triggerSync));
+	runImp(true, triggerSync, resultFn);
 }
 
 void SyncManager::runOnSynchronized(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
 {
-	QMetaObject::invokeMethod(d->engine(), "syncForResult",
-							  Q_ARG(SyncResultObject*, new SyncResultObject(resultFn, this)),
-							  Q_ARG(bool, false),
-							  Q_ARG(bool, triggerSync));
+	runImp(false, triggerSync, resultFn);
 }
 
-// ------------- Private Implementation -------------
-
-SyncManagerPrivate::SyncManagerPrivate(const QString &setupName, SyncManager *q_ptr, bool blockingConstruct) :
-	QObject(q_ptr),
-	q(q_ptr),
-	defaults(setupName),
-	settings(defaults.createSettings(q_ptr)),
-	cEnabled(true),
-	cState(SyncManager::Initializing),
-	cError()
+void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::function<void (SyncManager::SyncState)> &resultFn)
 {
-	auto ngine = engine();
-	auto rCon = ngine->remoteConnector();
+	auto state = d->syncState();
 
-	connect(ngine, &ExchangeEngine::lastErrorChanged,
-			this, &SyncManagerPrivate::updateLastError);
-	connect(ngine, &ExchangeEngine::stateChanged,
-			this, &SyncManagerPrivate::updateSyncState);
-	connect(rCon, &RemoteConnector::syncEnabledChanged,
-			this, &SyncManagerPrivate::updateSyncEnabled);
-
-	if(blockingConstruct) {
-		QMetaObject::invokeMethod(ngine, "lastError",
-								  Qt::BlockingQueuedConnection,
-								  Q_RETURN_ARG(QString, cError));
-		QMetaObject::invokeMethod(ngine, "state",
-								  Qt::BlockingQueuedConnection,
-								  Q_RETURN_ARG(QtDataSync::SyncManager::SyncState, cState));
-		QMetaObject::invokeMethod(rCon, "isSyncEnabled",
-								  Qt::BlockingQueuedConnection,
-								  Q_RETURN_ARG(bool, cEnabled));
-	} else {
-		auto runFn = [this](ExchangeEngine *engine) {
-			auto rCon = engine->remoteConnector();
-			QMetaObject::invokeMethod(this, "updateLastError",
-									  Q_ARG(QString, engine->lastError()));
-			QMetaObject::invokeMethod(this, "updateSyncState",
-									  Q_ARG(QtDataSync::SyncManager::SyncState, engine->state()));
-			QMetaObject::invokeMethod(this, "updateSyncEnabled",
-									  Q_ARG(bool, rCon->isSyncEnabled()));
-		};
-		QMetaObject::invokeMethod(SetupPrivate::engine(defaults.setupName()), "runInitFunc",
-								  Q_ARG(QtDataSync::ExchangeEngine::RunFn, runFn));
+	switch (state) {
+	case Error: //wont sync -> simply complete
+	case Disconnected:
+		resultFn(state);
+		break;
+	case Uploading: //if download only -> done
+		if(downloadOnly) {
+			resultFn(state);
+			break;
+		}
+		Q_FALLTHROUGH();
+	case Synchronized: //if wants sync -> trigger it, then...
+		if(triggerSync)
+			d->synchronize();
+		Q_FALLTHROUGH();
+	case Initializing: //conntect to react to result
+	case Downloading:
+	{
+		auto resObj = new QObject(this);
+		connect(d, &SyncManagerPrivateReplica::syncStateChanged, resObj, [resObj, resultFn, downloadOnly](SyncState state) {
+			switch (state) {
+			case Initializing: // do nothing
+			case Downloading:
+				break;
+			case Uploading: // download only -> done, else do nothing
+				if(!downloadOnly)
+					break;
+				Q_FALLTHROUGH();
+			case Synchronized: //done
+			case Error:
+			case Disconnected:
+				resultFn(state);
+				resObj->deleteLater();
+				break;
+			default:
+				Q_UNREACHABLE();
+				break;
+			}
+		});
+		break;
+	}
+	default:
+		Q_UNREACHABLE();
+		break;
 	}
 }
 
-ExchangeEngine *SyncManagerPrivate::engine() const
+
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const SyncManager::SyncState &state)
 {
-	return SetupPrivate::engine(defaults.setupName());
+	stream << (int)state;
+	return stream;
 }
 
-RemoteConnector *SyncManagerPrivate::remoteConnector() const
+QDataStream &QtDataSync::operator>>(QDataStream &stream, SyncManager::SyncState &state)
 {
-	return engine()->remoteConnector();
-}
-
-void SyncManagerPrivate::updateSyncEnabled(bool syncEnabled)
-{
-	if(cEnabled != syncEnabled) {
-		cEnabled = syncEnabled;
-		emit q->syncEnabledChanged(syncEnabled);
-	}
-}
-
-void SyncManagerPrivate::updateSyncState(SyncManager::SyncState state)
-{
-	if(cState != state) {
-		cState = state;
-		emit q->syncStateChanged(state);
-	}
-}
-
-void SyncManagerPrivate::updateLastError(const QString &error)
-{
-	if(cError != error) {
-		cError = error;
-		emit q->lastErrorChanged(error);
-	}
+	stream.startTransaction();
+	stream >> (int&)state;
+	stream.commitTransaction();
+	return stream;
 }

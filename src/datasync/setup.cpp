@@ -9,6 +9,8 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QThreadStorage>
 
+#include "threadedserver_p.h"
+
 using namespace QtDataSync;
 
 static void initCleanupHandlers();
@@ -77,6 +79,11 @@ Setup::~Setup() {}
 QString Setup::localDir() const
 {
 	return d->localDir;
+}
+
+QUrl Setup::remoteObjectHost() const
+{
+	return d->roAddress;
 }
 
 QJsonSerializer *Setup::serializer() const
@@ -157,6 +164,12 @@ qint32 Setup::cipherKeySize() const
 Setup &Setup::setLocalDir(QString localDir)
 {
 	d->localDir = localDir;
+	return *this;
+}
+
+Setup &Setup::setRemoteObjectHost(QUrl remoteObjectHost)
+{
+	d->roAddress = remoteObjectHost;
 	return *this;
 }
 
@@ -254,6 +267,12 @@ Setup &Setup::setCipherKeySize(qint32 cipherKeySize)
 Setup &Setup::resetLocalDir()
 {
 	d->localDir = SetupPrivate::DefaultLocalDir;
+	return *this;
+}
+
+Setup &Setup::resetRemoteObjectHost()
+{
+	d->roAddress.clear();
 	return *this;
 }
 
@@ -365,9 +384,17 @@ void Setup::create(const QString &name)
 	if(!lockFile->tryLock())
 		throw SetupLockedException(lockFile, name);
 
+	//determine the ro address
+	if(!d->roAddress.isValid()) {
+		d->roAddress.clear();
+		d->roAddress.setScheme(ThreadedServer::UrlScheme);
+		d->roAddress.setPath(QStringLiteral("/qtdatasync/%2/enginenode").arg(name));
+	}
+
 	// create defaults + engine
 	DefaultsPrivate::createDefaults(name,
 									storageDir,
+									d->roAddress,
 									d->properties,
 									d->serializer.take(),
 									d->resolver.take());
@@ -446,6 +473,7 @@ ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 
 SetupPrivate::SetupPrivate() :
 	localDir(DefaultLocalDir),
+	roAddress(),
 	serializer(new QJsonSerializer()),
 	resolver(nullptr),
 	properties({

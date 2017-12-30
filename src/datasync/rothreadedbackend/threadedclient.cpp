@@ -45,7 +45,7 @@ void ThreadedClientIoDevice::connectToServer()
 		_buffer->close();
 
 	if(url().scheme() != ThreadedServer::UrlScheme) {
-		qCCritical(rothreadedbackend) << "Unsupported URL-Scheme:" << url().scheme();
+		qCCritical(rothreadedbackend).noquote() << "Unsupported URL-Scheme:" << url().scheme();
 		return;
 	}
 	if(ThreadedServer::connectTo(url(), _buffer))

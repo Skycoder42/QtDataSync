@@ -39,6 +39,7 @@ public:
 
 	static void createDefaults(const QString &setupName,
 							   const QDir &storageDir,
+							   const QUrl &roAddress,
 							   const QHash<Defaults::PropertyKey, QVariant> &properties,
 							   QJsonSerializer *serializer,
 							   ConflictResolver *resolver);
@@ -48,6 +49,7 @@ public:
 
 	DefaultsPrivate(const QString &setupName,
 					const QDir &storageDir,
+					const QUrl &roAddress,
 					const QHash<Defaults::PropertyKey, QVariant> &properties,
 					QJsonSerializer *serializer,
 					ConflictResolver *resolver);
@@ -64,6 +66,7 @@ private:
 	QString setupName;
 	QDir storageDir;
 	Logger *logger;
+	QRemoteObjectNode *node;
 	QJsonSerializer *serializer;
 	ConflictResolver *resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;

@@ -39,6 +39,7 @@ private:
 	static unsigned long timeout;
 
 	QString localDir;
+	QUrl roAddress;
 	QScopedPointer<QJsonSerializer> serializer;
 	QScopedPointer<ConflictResolver> resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;

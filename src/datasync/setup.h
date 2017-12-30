@@ -44,6 +44,7 @@ class Q_DATASYNC_EXPORT Setup
 	Q_DISABLE_COPY(Setup)
 
 	Q_PROPERTY(QString localDir READ localDir WRITE setLocalDir RESET resetLocalDir)
+	Q_PROPERTY(QUrl remoteObjectHost READ remoteObjectHost WRITE setRemoteObjectHost RESET resetRemoteObjectHost)
 	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer RESET resetSerializer)
 	Q_PROPERTY(ConflictResolver* conflictResolver READ conflictResolver WRITE setConflictResolver RESET resetConflictResolver)
 	Q_PROPERTY(FatalErrorHandler fatalErrorHandler READ fatalErrorHandler WRITE setFatalErrorHandler RESET resetFatalErrorHandler)
@@ -140,6 +141,7 @@ public:
 
 	//! Returns the setups local directory
 	QString localDir() const;
+	QUrl remoteObjectHost() const;
 	//! Returns the setups json serializer
 	QJsonSerializer *serializer() const;
 	ConflictResolver* conflictResolver() const;
@@ -160,6 +162,7 @@ public:
 
 	//! Sets the setups local directory
 	Setup &setLocalDir(QString localDir);
+	Setup &setRemoteObjectHost(QUrl remoteObjectHost);
 	//! Sets the setups json serializer
 	Setup &setSerializer(QJsonSerializer *serializer);
 	Setup &setConflictResolver(ConflictResolver* conflictResolver);
@@ -179,6 +182,7 @@ public:
 	Setup &setCipherKeySize(qint32 cipherKeySize);
 
 	Setup &resetLocalDir();
+	Setup &resetRemoteObjectHost();
 	Setup &resetSerializer();
 	Setup &resetConflictResolver();
 	Setup &resetFatalErrorHandler();

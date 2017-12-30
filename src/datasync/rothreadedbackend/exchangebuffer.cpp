@@ -1,7 +1,7 @@
 #include "exchangebuffer_p.h"
 using namespace QtDataSync;
 
-Q_LOGGING_CATEGORY(rothreadedbackend, "datasync.rothreadedbackend", QtWarningMsg)
+Q_LOGGING_CATEGORY(rothreadedbackend, "qtdatasync.rothreadedbackend", QtWarningMsg)
 
 ExchangeBuffer::ExchangeBuffer(QObject *parent) :
 	QIODevice(parent),
