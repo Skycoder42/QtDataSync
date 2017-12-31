@@ -30,6 +30,7 @@ protected:
 
 	QString _setupName;
 	QString _message;
+	mutable QByteArray _qWhat;
 };
 
 class Q_DATASYNC_EXPORT SetupDoesNotExistException : public Exception

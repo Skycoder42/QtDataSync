@@ -63,27 +63,14 @@ void RemoteConnector::initialize(const QVariantHash &params)
 								  this, ConnectorStateMachine::onEntry(this, &RemoteConnector::doConnect));
 	_stateMachine->connectToState(QStringLiteral("Retry"),
 								  this, ConnectorStateMachine::onEntry(this, &RemoteConnector::scheduleRetry));
-	_stateMachine->connectToEvent(QStringLiteral("doDisconnect"),
-								  this, &RemoteConnector::doDisconnect);
-	//remote events
-	_stateMachine->connectToState(QStringLiteral("Connecting"),
-								  this, ConnectorStateMachine::onEntry([this](){
-		emit remoteEvent(RemoteConnecting);
-	}));
 	_stateMachine->connectToState(QStringLiteral("Idle"),
-								  this, ConnectorStateMachine::onEntry([this](){ //TODO as real member
-		_retryIndex = 0;
-		if(_expectChanges) {
-			_expectChanges = false;
-			logDebug() << "Server has changes. Reloading states";
-			remoteEvent(RemoteReadyWithChanges);
-		} else
-			emit remoteEvent(RemoteReady);
-	}));
+								  this, ConnectorStateMachine::onEntry(this, &RemoteConnector::onEntryIdleState));
 	_stateMachine->connectToState(QStringLiteral("Active"),
 								  this, ConnectorStateMachine::onExit([this](){
 		emit remoteEvent(RemoteDisconnected);
 	}));
+	_stateMachine->connectToEvent(QStringLiteral("doDisconnect"),
+								  this, &RemoteConnector::doDisconnect);
 #ifndef QT_NO_DEBUG
 	connect(_stateMachine, &ConnectorStateMachine::reachedStableState, this, [this](){
 		logDebug() << "Reached stable states:" << _stateMachine->activeStateNames(false);
@@ -304,6 +291,7 @@ void RemoteConnector::ping()
 
 void RemoteConnector::doConnect()
 {
+	emit remoteEvent(RemoteConnecting);
 	QUrl remoteUrl;
 	if(!checkCanSync(remoteUrl)) {
 		_stateMachine->submitEvent(QStringLiteral("noConnect"));
@@ -401,6 +389,17 @@ void RemoteConnector::scheduleRetry()
 	logDebug() << "Retrying to connect to server in"
 			   << std::chrono::duration_cast<std::chrono::seconds>(delta).count()
 			   << "seconds";
+}
+
+void RemoteConnector::onEntryIdleState()
+{
+	_retryIndex = 0;
+	if(_expectChanges) {
+		_expectChanges = false;
+		logDebug() << "Server has changes. Reloading states";
+		remoteEvent(RemoteReadyWithChanges);
+	} else
+		emit remoteEvent(RemoteReady);
 }
 
 bool RemoteConnector::isIdle() const

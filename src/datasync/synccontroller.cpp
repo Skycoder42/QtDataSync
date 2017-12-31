@@ -123,8 +123,6 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 			break;
 		}
 
-		//TODO implement
-
 		_store->commitSync(scope);
 		emit syncDone(key);
 	} catch (QException &e) {

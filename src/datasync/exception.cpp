@@ -5,7 +5,8 @@ using namespace QtDataSync;
 Exception::Exception(const QString &setupName, const QString &message) :
 	QException(),
 	_setupName(setupName),
-	_message(message)
+	_message(message),
+	_qWhat()
 {}
 
 Exception::Exception(const Defaults &defaults, const QString &message) :
@@ -45,9 +46,9 @@ QString Exception::qWhat() const
 
 const char *Exception::what() const noexcept
 {
-	static QByteArray bCache; //TODO VERY unsafe, make per instance or per thread!!!
-	bCache = qWhat().toUtf8();
-	return bCache.constData();
+	if(_qWhat.isEmpty())
+		_qWhat = qWhat().toUtf8();
+	return _qWhat.constData();
 }
 
 void Exception::raise() const

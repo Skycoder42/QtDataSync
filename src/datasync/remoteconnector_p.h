@@ -85,6 +85,7 @@ private Q_SLOTS:
 	void doConnect();
 	void doDisconnect();
 	void scheduleRetry();
+	void onEntryIdleState();
 
 private:
 	static const QVector<std::chrono::seconds> Timeouts;
