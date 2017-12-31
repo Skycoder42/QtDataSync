@@ -59,7 +59,7 @@ QString ExchangeEngine::lastError() const
 void ExchangeEngine::initialize()
 {
 	try {
-		_localStore = new LocalStore(_defaults.setupName(), this);
+		_localStore = new LocalStore(_defaults, this);
 
 		//change controller
 		connect(_changeController, &ChangeController::controllerError,

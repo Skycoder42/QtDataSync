@@ -81,7 +81,7 @@ public:
 	//! Returns the storage directory
 	QDir storageDir() const;
 	QUrl remoteAddress() const;
-	QRemoteObjectNode *remoteNode() const; //TODO not threadsafe
+	QRemoteObjectNode *remoteNode() const;
 	//! Returns a new instance of QSettings for this setup
 	QSettings *createSettings(QObject *parent = nullptr, const QString &group = {}) const;
 	//! Returns the serializer of the current setup

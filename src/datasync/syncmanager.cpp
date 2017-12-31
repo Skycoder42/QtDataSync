@@ -5,35 +5,31 @@
 #include "exchangeengine_p.h"
 using namespace QtDataSync;
 
-SyncManager::SyncManager(QObject *parent, int timeout) :
-	SyncManager(DefaultSetup, parent, timeout)
+SyncManager::SyncManager(QObject *parent) :
+	SyncManager(DefaultSetup, parent)
 {}
 
-SyncManager::SyncManager(const QString &setupName, QObject *parent, int timeout) :
-	SyncManager(Defaults(setupName).remoteNode(), parent, timeout)
+SyncManager::SyncManager(const QString &setupName, QObject *parent) :
+	SyncManager(Defaults(setupName).remoteNode(), parent)
 {}
 
-SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent, int timeout) :
+SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent) :
 	QObject(parent),
 	d(node->acquire<SyncManagerPrivateReplica>())
 {
-	if(!d)
-		throw nullptr;//TODO exception
-
-	d->setParent(this); //TODO use state, init, etc.
+	d->setParent(this);
 	connect(d, &SyncManagerPrivateReplica::syncEnabledChanged,
 			this, &SyncManager::syncEnabledChanged);
 	connect(d, &SyncManagerPrivateReplica::syncStateChanged,
 			this, &SyncManager::syncStateChanged);
 	connect(d, &SyncManagerPrivateReplica::lastErrorChanged,
 			this, &SyncManager::lastErrorChanged);
-	if(timeout != 0 && !d->isInitialized()) {
-		if(!d->waitForSource(timeout))
-			throw nullptr;//TODO exception
-	}
 }
 
-SyncManager::~SyncManager() {}
+QRemoteObjectReplica *SyncManager::replica() const
+{
+	return d;
+}
 
 bool SyncManager::isSyncEnabled() const
 {

@@ -24,10 +24,7 @@ Defaults::Defaults(const QSharedPointer<DefaultsPrivate> &d) :
 
 Defaults::Defaults(const QString &setupName) :
 	d(DefaultsPrivate::obtainDefaults(setupName))
-{
-	if(!d)
-		throw SetupDoesNotExistException(setupName);
-}
+{}
 
 Defaults::Defaults(const Defaults &other) :
 	d(other.d)
@@ -57,7 +54,23 @@ QUrl Defaults::remoteAddress() const
 
 QRemoteObjectNode *Defaults::remoteNode() const
 {
-	return d->node;
+	auto cThread = QThread::currentThread();
+	if(!cThread)
+		throw Exception(d->setupName, QStringLiteral("Cannot access replicated classes from a non-Qt thread"));
+
+	QMutexLocker _(&d->roMutex);
+	auto node = d->roNodes.value(cThread);
+	if(!node) {
+		node = new QRemoteObjectNode();
+		if(!node->connectToNode(d->roAddress))
+			throw Exception(d->setupName, QStringLiteral("Unable to connect to remote object host"));
+		QObject::connect(cThread, &QThread::finished,
+						 d.data(), &DefaultsPrivate::roThreadDone,
+						 Qt::DirectConnection); //direct connect
+		d->roNodes.insert(cThread, node);
+	}
+
+	return node;
 }
 
 QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
@@ -116,7 +129,7 @@ DatabaseRef Defaults::aquireDatabase(QObject *object) const
 
 QReadWriteLock *Defaults::databaseLock() const
 {
-	return &(d->lock);
+	return &(d->dbLock);
 }
 
 // ------------- DatabaseRef -------------
@@ -239,7 +252,11 @@ void DefaultsPrivate::clearDefaults()
 QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &setupName)
 {
 	QMutexLocker _(&setupDefaultsMutex);
-	return setupDefaults.value(setupName);
+	auto d = setupDefaults.value(setupName);
+	if(d)
+		return d;
+	else
+		throw SetupDoesNotExistException(setupName);
 }
 
 DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
@@ -247,14 +264,13 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
 	roAddress(roAddress),
-	node(new QRemoteObjectNode(this)),
 	serializer(serializer),
 	resolver(resolver),
 	properties(properties),
-	lock(QReadWriteLock::NonRecursive)
+	dbLock(),
+	roMutex(),
+	roNodes()
 {
-	if(!node->connectToNode(roAddress))
-		logWarning() << "Failed to connect to engine remote object host node";
 	serializer->setParent(this);
 	if(resolver)
 		resolver->setParent(this);
@@ -262,9 +278,10 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 
 DefaultsPrivate::~DefaultsPrivate()
 {
-	auto cnt = dbRefHash.localData().value(setupName);
-	if(cnt > 0)
-		logWarning() << "Defaults destroyed with" << cnt << "open database connections!";
+	QMutexLocker _(&roMutex);
+	foreach(auto node, roNodes)
+		node->deleteLater();
+	roNodes.clear();
 }
 
 QSqlDatabase DefaultsPrivate::acquireDatabase()
@@ -292,6 +309,17 @@ void DefaultsPrivate::releaseDatabase()
 					.arg(QString::number((quint64)QThread::currentThread(), 16));
 		QSqlDatabase::database(name).close();
 		QSqlDatabase::removeDatabase(name);
+	}
+}
+
+void DefaultsPrivate::roThreadDone()
+{
+	auto cThread = qobject_cast<QThread*>(sender());
+	if(cThread) {
+		QMutexLocker _(&roMutex);
+		auto node = roNodes.take(cThread);
+		if(node)
+			node->deleteLater();
 	}
 }
 

@@ -173,7 +173,7 @@ DataStorePrivate::DataStorePrivate(DataStore *q, const QString &setupName) :
 	defaults(setupName),
 	logger(defaults.createLogger("datastore", q)),
 	serializer(defaults.serializer()),
-	store(new LocalStore(setupName, q))
+	store(new LocalStore(defaults, q))
 {}
 
 QByteArray DataStorePrivate::typeName(int metaTypeId) const

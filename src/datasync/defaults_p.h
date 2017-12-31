@@ -58,6 +58,9 @@ public:
 	QSqlDatabase acquireDatabase();
 	void releaseDatabase();
 
+public Q_SLOTS:
+	void roThreadDone();
+
 private:
 	static QMutex setupDefaultsMutex;
 	static QHash<QString, QSharedPointer<DefaultsPrivate>> setupDefaults;
@@ -67,11 +70,13 @@ private:
 	QDir storageDir;
 	Logger *logger;
 	QUrl roAddress;
-	QRemoteObjectNode *node;
 	QJsonSerializer *serializer;
 	ConflictResolver *resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;
-	QReadWriteLock lock;
+	QReadWriteLock dbLock;
+
+	QMutex roMutex;
+	QHash<QThread*, QRemoteObjectNode*> roNodes;
 };
 
 }

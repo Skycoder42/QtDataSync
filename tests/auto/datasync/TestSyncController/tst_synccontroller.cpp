@@ -24,7 +24,6 @@ private Q_SLOTS:
 	void testSyncOperation_data();
 	void testSyncOperation();
 
-	//TODO special test conflict resolver
 	void testResolver_data();
 	void testResolver();
 

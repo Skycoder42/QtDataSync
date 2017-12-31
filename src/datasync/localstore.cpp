@@ -25,12 +25,11 @@ LocalStore::LocalStore(QObject *parent) :
 	LocalStore(DefaultSetup, parent)
 {}
 
-LocalStore::LocalStore(const QString &setupName, QObject *parent) :
+LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 	QObject(parent),
-	_defaults(setupName),
+	_defaults(defaults),
 	_logger(_defaults.createLogger(staticMetaObject.className(), this)),
 	_database(_defaults.aquireDatabase(this)),
-	_tableNameCache(),
 	_dataCache(_defaults.property(Defaults::CacheSize).toInt())
 {
 	connect(emitter, &LocalStoreEmitter::dataChanged,
@@ -80,7 +79,7 @@ QJsonObject LocalStore::readJson(const ObjectKey &key, const QString &fileName, 
 	return doc.object();
 }
 
-quint64 LocalStore::count(const QByteArray &typeName)
+quint64 LocalStore::count(const QByteArray &typeName) const
 {
 	QReadLocker _(_defaults.databaseLock());
 
@@ -95,7 +94,7 @@ quint64 LocalStore::count(const QByteArray &typeName)
 		return 0;
 }
 
-QStringList LocalStore::keys(const QByteArray &typeName)
+QStringList LocalStore::keys(const QByteArray &typeName) const
 {
 	QReadLocker _(_defaults.databaseLock());
 
@@ -110,7 +109,7 @@ QStringList LocalStore::keys(const QByteArray &typeName)
 	return resList;
 }
 
-QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
+QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName) const
 {
 	QReadLocker _(_defaults.databaseLock());
 
@@ -130,7 +129,7 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName)
 	return array;
 }
 
-QJsonObject LocalStore::load(const ObjectKey &key)
+QJsonObject LocalStore::load(const ObjectKey &key) const
 {
 	QReadLocker _(_defaults.databaseLock());
 
@@ -265,7 +264,7 @@ bool LocalStore::remove(const ObjectKey &key)
 	return true;
 }
 
-QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &query)
+QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &query) const
 {
 	QReadLocker _(_defaults.databaseLock());
 
@@ -368,7 +367,7 @@ void LocalStore::reset()
 	emit dataResetted();
 }
 
-void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor)
+void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor) const
 {
 	QReadLocker _(_defaults.databaseLock());
 	QSqlQuery readChangesQuery(_database);
@@ -390,12 +389,12 @@ void LocalStore::markUnchanged(const ObjectKey &key, quint64 version, bool isDel
 	markUnchangedImpl(_database, key, version, isDelete, _);
 }
 
-LocalStore::SyncScope LocalStore::startSync(const ObjectKey &key)
+LocalStore::SyncScope LocalStore::startSync(const ObjectKey &key) const
 {
-	return SyncScope(_defaults, key, this);
+	return SyncScope(_defaults, key, const_cast<LocalStore*>(this));
 }
 
-std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loadChangeInfo(SyncScope &scope)
+std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loadChangeInfo(SyncScope &scope) const
 {
 	SCOPE_ASSERT();
 
@@ -518,7 +517,7 @@ void LocalStore::markUnchanged(SyncScope &scope, quint64 oldVersion, bool isDele
 	markUnchangedImpl(scope.d->database, scope.d->key, oldVersion, isDelete, scope.d->lock);
 }
 
-void LocalStore::commitSync(SyncScope &scope)
+void LocalStore::commitSync(SyncScope &scope) const
 {
 	SCOPE_ASSERT();
 
@@ -566,13 +565,11 @@ void LocalStore::onDataChange(QObject *origin, const ObjectKey &key, const QJson
 void LocalStore::onDataReset(QObject *origin, const QByteArray &typeName)
 {
 	if(typeName.isNull()) {
-		_tableNameCache.clear();
 		_dataCache.clear();
 
 		if(origin != this)
 			QMetaObject::invokeMethod(this, "dataResetted", Qt::QueuedConnection);
 	} else {
-		_tableNameCache.remove(typeName);
 		foreach(auto key, _dataCache.keys()) {
 			if(key.typeName == typeName)
 				_dataCache.remove(key);

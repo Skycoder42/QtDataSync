@@ -9,6 +9,7 @@
 #include "QtDataSync/exception.h"
 
 class QRemoteObjectNode;
+class QRemoteObjectReplica;
 class SyncManagerPrivateReplica;
 
 namespace QtDataSync {
@@ -33,10 +34,11 @@ public:
 	};
 	Q_ENUM(SyncState)
 
-	explicit SyncManager(QObject *parent = nullptr, int timeout = 0);
-	explicit SyncManager(const QString &setupName, QObject *parent = nullptr, int timeout = 0);
-	explicit SyncManager(QRemoteObjectNode *node, QObject *parent = nullptr, int timeout = 0);
-	~SyncManager();
+	explicit SyncManager(QObject *parent = nullptr);
+	explicit SyncManager(const QString &setupName, QObject *parent = nullptr);
+	explicit SyncManager(QRemoteObjectNode *node, QObject *parent = nullptr);
+
+	QRemoteObjectReplica *replica() const;
 
 	bool isSyncEnabled() const;
 	SyncState syncState() const;

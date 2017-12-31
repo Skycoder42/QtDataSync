@@ -15,7 +15,7 @@ bool ThreadedServer::connectTo(const QUrl &url, ExchangeBuffer *clientBuffer)
 	QMutexLocker _(&_lock);
 	auto server = _servers.value(url.path());
 	if(!server) {
-		qCWarning(rothreadedbackend).noquote() << "No threaded server found for URL:" << url.toString(); //TODO prevent spamming when unable to connect...
+		qCDebug(rothreadedbackend).noquote() << "No threaded server found for URL:" << url.toString();
 		return false;
 	} else {
 		return QMetaObject::invokeMethod(server, "addConnection", Qt::QueuedConnection,

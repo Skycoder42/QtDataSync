@@ -32,7 +32,7 @@ Q_SIGNALS:
 	void dataResetted(QObject *origin, const QByteArray &typeName = {});
 };
 
-class Q_DATASYNC_EXPORT LocalStore : public QObject //TODO use const where useful
+class Q_DATASYNC_EXPORT LocalStore : public QObject
 {
 	Q_OBJECT
 
@@ -69,31 +69,31 @@ public:
 	};
 
 	explicit LocalStore(QObject *parent = nullptr);
-	explicit LocalStore(const QString &setupName, QObject *parent = nullptr);//TODO pass defaults directly
+	explicit LocalStore(const Defaults &defaults, QObject *parent = nullptr);
 	~LocalStore();
 
 	QJsonObject readJson(const ObjectKey &key, const QString &filePath, int *costs = nullptr) const;
 
 	// normal store access
-	quint64 count(const QByteArray &typeName);
-	QStringList keys(const QByteArray &typeName);
-	QList<QJsonObject> loadAll(const QByteArray &typeName);
+	quint64 count(const QByteArray &typeName) const;
+	QStringList keys(const QByteArray &typeName) const;
+	QList<QJsonObject> loadAll(const QByteArray &typeName) const;
 
-	QJsonObject load(const ObjectKey &key);
+	QJsonObject load(const ObjectKey &key) const;
 	void save(const ObjectKey &key, const QJsonObject &data);
 	bool remove(const ObjectKey &key);
 
-	QList<QJsonObject> find(const QByteArray &typeName, const QString &query);
+	QList<QJsonObject> find(const QByteArray &typeName, const QString &query) const;
 	void clear(const QByteArray &typeName);
 	void reset();
 
 	// change access
-	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor);
+	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor) const;
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
 
 	// sync access
-	SyncScope startSync(const ObjectKey &key);
-	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QString, QByteArray> loadChangeInfo(SyncScope &scope);
+	SyncScope startSync(const ObjectKey &key) const;
+	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QString, QByteArray> loadChangeInfo(SyncScope &scope) const;
 	void updateVersion(SyncScope &scope,
 					   quint64 oldVersion,
 					   quint64 newVersion,
@@ -111,7 +111,7 @@ public:
 	void markUnchanged(SyncScope &scope,
 					   quint64 oldVersion,
 					   bool isDelete);
-	void commitSync(SyncScope &scope);
+	void commitSync(SyncScope &scope) const;
 
 	int cacheSize() const;
 
@@ -133,9 +133,7 @@ private:
 	Logger *_logger;
 
 	DatabaseRef _database;
-
-	QHash<QByteArray, QString> _tableNameCache;
-	QCache<ObjectKey, QJsonObject> _dataCache;
+	mutable QCache<ObjectKey, QJsonObject> _dataCache;
 
 	QDir typeDirectory(const ObjectKey &key) const;
 	QString filePath(const QDir &typeDir, const QString &baseName) const;
