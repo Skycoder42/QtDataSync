@@ -8,9 +8,9 @@ ChangedMessage::ChangedMessage() :
 	data()
 {}
 
-ChangedInfoMessage::ChangedInfoMessage() :
+ChangedInfoMessage::ChangedInfoMessage(quint32 changeEstimate) :
 	ChangedMessage(),
-	changeEstimate(0)
+	changeEstimate(changeEstimate)
 {}
 
 LastChangedMessage::LastChangedMessage() {}

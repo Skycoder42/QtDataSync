@@ -25,6 +25,7 @@ class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(SyncManager::SyncState state READ state NOTIFY stateChanged)
+	Q_PROPERTY(qreal progress READ progress NOTIFY progressChanged)
 	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
@@ -41,6 +42,7 @@ public:
 	RemoteConnector *remoteConnector() const;
 
 	SyncManager::SyncState state() const;
+	qreal progress() const;
 	QString lastError() const;
 
 public Q_SLOTS:
@@ -49,6 +51,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void stateChanged(QtDataSync::SyncManager::SyncState state);
+	void progressChanged(qreal progress);
 	void lastErrorChanged(const QString &lastError);
 
 private Q_SLOTS:
@@ -56,8 +59,14 @@ private Q_SLOTS:
 	void remoteEvent(RemoteConnector::RemoteEvent event);
 	void uploadingChanged(bool uploading);
 
+	void addProgress(quint32 estimate);
+	void incrementProgress();
+
 private:
 	SyncManager::SyncState _state;
+	quint32 _progressCurrent;
+	quint32 _progressMax;
+	QPointer<Controller> _progressAllowed;
 	QString _lastError;
 
 	Defaults _defaults;
@@ -75,8 +84,10 @@ private:
 
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 
-	void upstate(SyncManager::SyncState state);
+	void connectController(Controller *controller);
+	bool upstate(SyncManager::SyncState state);
 	void clearError();
+	void resetProgress(Controller *controller = nullptr);
 };
 
 }

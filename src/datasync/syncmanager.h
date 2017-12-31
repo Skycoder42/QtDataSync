@@ -20,8 +20,8 @@ class Q_DATASYNC_EXPORT SyncManager : public QObject
 
 	Q_PROPERTY(bool syncEnabled READ isSyncEnabled WRITE setSyncEnabled NOTIFY syncEnabledChanged)
 	Q_PROPERTY(SyncState syncState READ syncState NOTIFY syncStateChanged)
+	Q_PROPERTY(qreal syncProgress READ syncProgress NOTIFY syncProgressChanged)
 	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
-	//TODO add progress
 
 public:
 	enum SyncState {
@@ -42,6 +42,7 @@ public:
 
 	bool isSyncEnabled() const;
 	SyncState syncState() const;
+	qreal syncProgress() const;
 	QString lastError() const;
 
 public Q_SLOTS:
@@ -56,6 +57,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void syncEnabledChanged(bool syncEnabled);
 	void syncStateChanged(QtDataSync::SyncManager::SyncState syncState);
+	void syncProgressChanged(qreal syncProgress);
 	void lastErrorChanged(const QString &lastError);
 
 private:

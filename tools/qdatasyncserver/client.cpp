@@ -380,8 +380,7 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 			}
 
 			if(updateChange) {
-				ChangedInfoMessage message;
-				message.changeEstimate = _cachedChanges;
+				ChangedInfoMessage message(_cachedChanges);
 				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
 				sendMessage(serializeMessage<ChangedInfoMessage>(message));
 				updateChange = false; //only the first message has that info

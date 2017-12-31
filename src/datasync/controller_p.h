@@ -24,6 +24,8 @@ public:
 
 Q_SIGNALS:
 	void controllerError(const QString &error);
+	void progressAdded(quint32 delta);
+	void progressIncrement();
 
 protected:
 	Defaults defaults() const;

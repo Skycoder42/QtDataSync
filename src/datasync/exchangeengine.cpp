@@ -16,6 +16,9 @@ using namespace QtDataSync;
 ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalErrorHandler &errorHandler) :
 	QObject(),
 	_state(SyncManager::Initializing),
+	_progressCurrent(0),
+	_progressMax(0),
+	_progressAllowed(nullptr),
 	_lastError(),
 	_defaults(DefaultsPrivate::obtainDefaults(setupName)),
 	_logger(_defaults.createLogger("engine", this)),
@@ -52,6 +55,14 @@ SyncManager::SyncState ExchangeEngine::state() const
 	return _state;
 }
 
+qreal ExchangeEngine::progress() const
+{
+	if(_progressMax == 0)
+		return -1.0;
+	else
+		return (qreal)_progressCurrent/(qreal)_progressMax;
+}
+
 QString ExchangeEngine::lastError() const
 {
 	return _lastError;
@@ -63,22 +74,19 @@ void ExchangeEngine::initialize()
 		_localStore = new LocalStore(_defaults, this);
 
 		//change controller
-		connect(_changeController, &ChangeController::controllerError,
-				this, &ExchangeEngine::controllerError);
+		connectController(_changeController);
 		connect(_changeController, &ChangeController::uploadingChanged,
 				this, &ExchangeEngine::uploadingChanged);
 		connect(_changeController, &ChangeController::uploadChange,
 				_remoteConnector, &RemoteConnector::uploadData);
 
 		//sync controller
-		connect(_syncController, &ChangeController::controllerError,
-				this, &ExchangeEngine::controllerError);
+		connectController(_syncController);
 		connect(_syncController, &SyncController::syncDone,
 				_remoteConnector, &RemoteConnector::downloadDone);
 
 		//remote controller
-		connect(_remoteConnector, &RemoteConnector::controllerError,
-				this, &ExchangeEngine::controllerError);
+		connectController(_remoteConnector);
 		connect(_remoteConnector, &RemoteConnector::remoteEvent,
 				this, &ExchangeEngine::remoteEvent);
 		connect(_remoteConnector, &RemoteConnector::uploadDone,
@@ -139,19 +147,23 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 	switch (event) {
 	case RemoteConnector::RemoteDisconnected:
 		upstate(SyncManager::Disconnected);
+		resetProgress();
 		_changeController->clearUploads();
 		break;
 	case RemoteConnector::RemoteConnecting:
 		upstate(SyncManager::Initializing);
+		resetProgress();
 		clearError();
 		_changeController->clearUploads();
 		break;
 	case RemoteConnector::RemoteReady:
 		upstate(SyncManager::Uploading); //always assume uploading first, so no uploads can change to synced
+		resetProgress(_changeController); //allows ccon changes
 		_changeController->setUploadingEnabled(true); //will emit "uploadingChanged" and thus change the thate
 		break;
 	case RemoteConnector::RemoteReadyWithChanges:
-		upstate(SyncManager::Downloading);
+		if(upstate(SyncManager::Downloading))
+			resetProgress(_remoteConnector); //allows rcon changes
 		_changeController->setUploadingEnabled(false);
 		break;
 	default:
@@ -164,10 +176,29 @@ void ExchangeEngine::uploadingChanged(bool uploading)
 {
 	if(_state == SyncManager::Error)
 		return;
-	else if(uploading)
-		upstate(SyncManager::Uploading);
-	else if(_state == SyncManager::Uploading)
+	else if(uploading) {
+		if(upstate(SyncManager::Uploading))
+			resetProgress(_changeController); //allows ccon changes
+	} else if(_state == SyncManager::Uploading) {
 		upstate(SyncManager::Synchronized);
+		resetProgress();
+	}
+}
+
+void ExchangeEngine::addProgress(quint32 estimate)
+{
+	if(sender() == _progressAllowed) {
+		_progressMax += estimate;
+		emit progressChanged(progress());
+	}
+}
+
+void ExchangeEngine::incrementProgress()
+{
+	if(sender() == _progressAllowed) {
+		_progressCurrent++;
+		emit progressChanged(progress());
+	}
 }
 
 void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)
@@ -180,12 +211,24 @@ void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, cons
 				   msg.constData());
 }
 
-void ExchangeEngine::upstate(SyncManager::SyncState state)
+void ExchangeEngine::connectController(Controller *controller)
+{
+	connect(controller, &Controller::controllerError,
+			this, &ExchangeEngine::controllerError);
+	connect(controller, &Controller::progressAdded,
+			this, &ExchangeEngine::addProgress);
+	connect(controller, &Controller::progressIncrement,
+			this, &ExchangeEngine::incrementProgress);
+}
+
+bool ExchangeEngine::upstate(SyncManager::SyncState state)
 {
 	if(_state != state) {
 		_state = state;
 		emit stateChanged(state);
-	}
+		return true;
+	} else
+		return false;
 }
 
 void ExchangeEngine::clearError()
@@ -194,4 +237,14 @@ void ExchangeEngine::clearError()
 		_lastError.clear();
 		emit lastErrorChanged(QString());
 	}
+}
+
+void ExchangeEngine::resetProgress(Controller *controller)
+{
+	const auto changed = (_progressMax != 0);
+	_progressCurrent = 0;
+	_progressMax = 0;
+	if(changed)
+		emit progressChanged(progress());
+	_progressAllowed = controller;
 }

@@ -221,7 +221,7 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 	}
 }
 
-quint64 DatabaseController::changeCount(const QUuid &deviceId)
+quint32 DatabaseController::changeCount(const QUuid &deviceId)
 {
 	auto db = _threadStore.localData().database();
 	Query countChangesQuery(db);
@@ -229,7 +229,7 @@ quint64 DatabaseController::changeCount(const QUuid &deviceId)
 	countChangesQuery.addBindValue(deviceId);
 	countChangesQuery.exec();
 	if(countChangesQuery.first())
-		return countChangesQuery.value(0).toULongLong();
+		return countChangesQuery.value(0).toUInt();
 	else
 		return 0;
 }

@@ -4,6 +4,7 @@
 class SyncManagerPrivate {
 	PROP(bool syncEnabled=true);
 	PROP(QtDataSync::SyncManager::SyncState syncState=QtDataSync::SyncManager::Initializing READONLY);
+	PROP(qreal syncProgress=-1.0 READONLY);
 	PROP(QString lastError READONLY);
 	SLOT(void synchronize());
 	SLOT(void reconnect());

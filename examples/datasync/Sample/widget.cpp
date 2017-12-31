@@ -25,6 +25,15 @@ Widget::Widget(QWidget *parent) :
 			ui->syncCheckBox, &QCheckBox::setChecked);
 	connect(_manager, &QtDataSync::SyncManager::syncStateChanged,
 			this, &Widget::updateState);
+	connect(_manager, &QtDataSync::SyncManager::syncProgressChanged,
+			this, [this](qreal progress) {
+		if(progress == -1)
+			ui->progressBar->setVisible(false);
+		else {
+			ui->progressBar->setVisible(true);
+			ui->progressBar->setValue(progress * 1000);
+		}
+	});
 	connect(_manager, &QtDataSync::SyncManager::lastErrorChanged,
 			ui->errorLabel, &QLabel::setText);
 

@@ -85,7 +85,7 @@ quint64 LocalStore::count(const QByteArray &typeName) const
 	exec(countQuery, typeName);
 
 	if(countQuery.first())
-		return countQuery.value(0).toInt();
+		return countQuery.value(0).toULongLong();
 	else
 		return 0;
 }
@@ -363,11 +363,25 @@ void LocalStore::reset()
 	emit dataResetted();
 }
 
+quint32 LocalStore::changeCount() const
+{
+	QReadLocker _(_defaults.databaseLock());
+
+	QSqlQuery countQuery(_database);
+	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM DataIndex WHERE Changed = 1"));
+	exec(countQuery);
+
+	if(countQuery.first())
+		return countQuery.value(0).toUInt();
+	else
+		return 0;
+}
+
 void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor) const
 {
 	QReadLocker _(_defaults.databaseLock());
 	QSqlQuery readChangesQuery(_database);
-	readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File FROM DataIndex WHERE CHANGED = 1 LIMIT ?"));
+	readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File FROM DataIndex WHERE Changed = 1 LIMIT ?"));
 	readChangesQuery.addBindValue(limit);
 	exec(readChangesQuery);
 

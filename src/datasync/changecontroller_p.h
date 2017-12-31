@@ -73,6 +73,7 @@ private:
 	LocalStore *_store;
 	bool _uploadingEnabled;
 	QHash<CachedObjectKey, UploadInfo> _activeUploads;
+	quint32 _changeEstimate;
 };
 
 uint Q_DATASYNC_EXPORT qHash(const ChangeController::CachedObjectKey &key, uint seed);

@@ -27,12 +27,12 @@ class Q_DATASYNC_EXPORT ChangedInfoMessage : public ChangedMessage
 {
 	Q_GADGET
 
-	Q_PROPERTY(quint64 changeEstimate MEMBER changeEstimate)
+	Q_PROPERTY(quint32 changeEstimate MEMBER changeEstimate)
 
 public:
-	ChangedInfoMessage();
+	ChangedInfoMessage(quint32 changeEstimate = 0);
 
-	quint64 changeEstimate;
+	quint32 changeEstimate;
 };
 
 class Q_DATASYNC_EXPORT LastChangedMessage

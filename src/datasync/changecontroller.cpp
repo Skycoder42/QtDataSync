@@ -14,7 +14,8 @@ ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	Controller("change", defaults, parent),
 	_store(nullptr),
 	_uploadingEnabled(false),
-	_activeUploads()
+	_activeUploads(),
+	_changeEstimate(0)
 {}
 
 void ChangeController::initialize(const QVariantHash &params)
@@ -42,6 +43,7 @@ void ChangeController::clearUploads()
 {
 	setUploadingEnabled(false);
 	_activeUploads.clear();
+	_changeEstimate = 0;
 }
 
 void ChangeController::uploadDone(const QByteArray &key)
@@ -54,6 +56,8 @@ void ChangeController::uploadDone(const QByteArray &key)
 	try {
 		auto info = _activeUploads.take(key);
 		_store->markUnchanged(info.key, info.version, info.isDelete);
+		_changeEstimate--;
+		emit progressIncrement();
 		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
 
 		if(_uploadingEnabled && _activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
@@ -83,7 +87,19 @@ void ChangeController::uploadNext(bool emitStarted)
 		return;
 
 	try {
-		_store->loadChanges(UploadLimit, [this, &emitStarted](ObjectKey objKey, quint64 version, QString file) {
+		//update change estimate, if neccessary
+		auto emitProgress = false;
+		if(_changeEstimate == 0) {
+			_changeEstimate = _store->changeCount();
+			if(_changeEstimate > 0) {
+				if(emitStarted)
+					emitProgress = true;
+				else
+					emit progressAdded(_changeEstimate);
+			}
+		}
+
+		_store->loadChanges(UploadLimit, [this, emitProgress, &emitStarted](ObjectKey objKey, quint64 version, QString file) {
 			CachedObjectKey key(objKey);
 
 			//skip stuff already beeing uploaded (could still have changed, but to prevent errors)
@@ -101,6 +117,8 @@ void ChangeController::uploadNext(bool emitStarted)
 			if(emitStarted) {
 				emitStarted = false;
 				emit uploadingChanged(true);
+				if(emitProgress)
+					emit progressAdded(_changeEstimate);
 			}
 
 			auto keyHash = key.hashed();

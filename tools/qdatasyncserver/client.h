@@ -90,7 +90,7 @@ private:
 	State _state;
 	QUuid _deviceId;
 	QByteArray _loginNonce;
-	quint64 _cachedChanges;
+	quint32 _cachedChanges;
 	QList<quint64> _activeDownloads;
 
 	void run(const std::function<void()> &fn);

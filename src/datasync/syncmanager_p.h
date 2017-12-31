@@ -23,7 +23,9 @@ public:
 
 	bool syncEnabled() const override;
 	SyncManager::SyncState syncState() const override;
+	qreal syncProgress() const override;
 	QString lastError() const override;
+
 	void setSyncEnabled(bool syncEnabled) override;
 
 public Q_SLOTS:

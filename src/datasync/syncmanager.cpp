@@ -23,6 +23,8 @@ SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent) :
 			this, &SyncManager::syncEnabledChanged);
 	connect(d, &SyncManagerPrivateReplica::syncStateChanged,
 			this, &SyncManager::syncStateChanged);
+	connect(d, &SyncManagerPrivateReplica::syncProgressChanged,
+			this, &SyncManager::syncProgressChanged);
 	connect(d, &SyncManagerPrivateReplica::lastErrorChanged,
 			this, &SyncManager::lastErrorChanged);
 }
@@ -40,6 +42,11 @@ bool SyncManager::isSyncEnabled() const
 SyncManager::SyncState SyncManager::syncState() const
 {
 	return d->syncState();
+}
+
+qreal SyncManager::syncProgress() const
+{
+	return d->syncProgress();
 }
 
 QString SyncManager::lastError() const

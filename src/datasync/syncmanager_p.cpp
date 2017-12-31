@@ -7,6 +7,8 @@ SyncManagerPrivate::SyncManagerPrivate(ExchangeEngine *engineParent) :
 {
 	connect(_engine, &ExchangeEngine::stateChanged,
 			this, &SyncManagerPrivate::syncStateChanged);
+	connect(_engine, &ExchangeEngine::progressChanged,
+			this, &SyncManagerPrivate::syncProgressChanged);
 	connect(_engine, &ExchangeEngine::lastErrorChanged,
 			this, &SyncManagerPrivate::lastErrorChanged);
 	connect(_engine->remoteConnector(), &RemoteConnector::syncEnabledChanged,
@@ -21,6 +23,11 @@ bool SyncManagerPrivate::syncEnabled() const
 SyncManager::SyncState SyncManagerPrivate::syncState() const
 {
 	return _engine->state();
+}
+
+qreal SyncManagerPrivate::syncProgress() const
+{
+	return _engine->progress();
 }
 
 QString SyncManagerPrivate::lastError() const

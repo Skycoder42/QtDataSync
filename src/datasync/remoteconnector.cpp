@@ -170,6 +170,7 @@ void RemoteConnector::downloadDone(const quint64 key)
 
 		ChangedAckMessage message(key);
 		_socket->sendBinaryMessage(serializeMessage(message));
+		emit progressIncrement();
 	} catch(Exception &e) {
 		logCritical() << e.what();
 		triggerError(false);
@@ -638,6 +639,7 @@ void RemoteConnector::onChangedInfo(const ChangedInfoMessage &message)
 		logDebug() << "Started downloading, estimated changes:" << message.changeEstimate;
 		//emit event to enter downloading state
 		emit remoteEvent(RemoteReadyWithChanges);
+		emit progressAdded(message.changeEstimate);
 		//TODO make use of change count
 		//parse as usual
 		onChanged(message);

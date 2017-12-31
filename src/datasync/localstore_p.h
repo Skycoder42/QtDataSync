@@ -87,6 +87,7 @@ public:
 	void reset();
 
 	// change access
+	quint32 changeCount() const;
 	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor) const;
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
 
