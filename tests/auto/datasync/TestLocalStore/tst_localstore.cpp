@@ -4,6 +4,7 @@
 #include <QtConcurrent>
 #include <testlib.h>
 #include <QtDataSync/private/localstore_p.h>
+#include <QtDataSync/private/defaults_p.h>
 using namespace QtDataSync;
 
 class TestLocalStore : public QObject
@@ -41,7 +42,7 @@ void TestLocalStore::initTestCase()
 		TestLib::setup(setup);
 		setup.create();
 
-		store = new LocalStore(this);
+		store = new LocalStore(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -116,7 +117,7 @@ void TestLocalStore::testFind()
 
 void TestLocalStore::testUncached()
 {
-	LocalStore second;
+	LocalStore second(DefaultsPrivate::obtainDefaults(DefaultSetup));
 	second.setCacheSize(0);
 	testAllImpl(&second);
 }
@@ -170,7 +171,7 @@ void TestLocalStore::testChangeSignals()
 	const auto key = TestLib::generateKey(77);
 	auto data = TestLib::generateDataJson(77);
 
-	LocalStore second;
+	LocalStore second(DefaultsPrivate::obtainDefaults(DefaultSetup));
 
 	QSignalSpy store1Spy(store, &LocalStore::dataChanged);
 	QSignalSpy store2Spy(&second, &LocalStore::dataChanged);
@@ -233,7 +234,7 @@ void TestLocalStore::testAsync()
 	QList<QFuture<void>> futures;
 	for(auto i = 0; i < cnt; i++) {
 		futures.append(QtConcurrent::run([&](){
-			LocalStore lStore;//thread without eventloop!
+			LocalStore lStore(DefaultsPrivate::obtainDefaults(DefaultSetup));//thread without eventloop!
 			auto key = TestLib::generateKey(66);
 			auto data = TestLib::generateDataJson(66);
 

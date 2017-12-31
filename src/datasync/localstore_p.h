@@ -68,7 +68,6 @@ public:
 		SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
 	};
 
-	explicit LocalStore(QObject *parent = nullptr);
 	explicit LocalStore(const Defaults &defaults, QObject *parent = nullptr);
 	~LocalStore();
 

@@ -40,8 +40,8 @@ void TestSyncController::initTestCase()
 		TestLib::setup(setup);
 		setup.create();
 
-		store = new LocalStore(this);
-		controller = new SyncController(DefaultSetup, this);
+		store = new LocalStore(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
+		controller = new SyncController(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 		controller->initialize({{QStringLiteral("store"), QVariant::fromValue(store)}});
 	} catch(QException &e) {
 		QFAIL(e.what());
@@ -517,7 +517,7 @@ void TestSyncController::testResolver()
 		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
 		auto oldRes = dPriv->resolver;
 		dPriv->resolver = new TestResolver(controller);
-		dPriv->resolver->setDefaults(DefaultSetup);
+		dPriv->resolver->setDefaults(dPriv);
 
 		//step 1: setup the local store
 		{

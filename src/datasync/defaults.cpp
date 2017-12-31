@@ -6,6 +6,7 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDebug>
 #include <QtCore/QEvent>
+#include <QtCore/QCoreApplication>
 
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
@@ -20,10 +21,6 @@ Defaults::Defaults() :
 
 Defaults::Defaults(const QSharedPointer<DefaultsPrivate> &d) :
 	d(d)
-{}
-
-Defaults::Defaults(const QString &setupName) :
-	d(DefaultsPrivate::obtainDefaults(setupName))
 {}
 
 Defaults::Defaults(const Defaults &other) :
@@ -203,6 +200,8 @@ void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &stora
 		d->properties.insert(Defaults::CryptKeyParam,
 							 Defaults::defaultParam((Setup::EncryptionScheme)d->properties.value(Defaults::CryptScheme).toInt()));
 
+	if(d->thread() != qApp->thread())
+		d->moveToThread(qApp->thread());
 	setupDefaults.insert(setupName, d);
 }
 

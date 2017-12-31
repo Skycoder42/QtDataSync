@@ -4,6 +4,7 @@
 #include <testlib.h>
 #include <QtDataSync/private/changecontroller_p.h>
 #include <QtDataSync/private/synchelper_p.h>
+#include <QtDataSync/private/defaults_p.h>
 
 //DIRTY HACK: allow access for test
 #define private public
@@ -40,8 +41,8 @@ void TestChangeController::initTestCase()
 		TestLib::setup(setup);
 		setup.create();
 
-		store = new LocalStore(this);
-		controller = new ChangeController(DefaultSetup, this);
+		store = new LocalStore(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
+		controller = new ChangeController(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 		controller->initialize({{QStringLiteral("store"), QVariant::fromValue(store)}});
 	} catch(QException &e) {
 		QFAIL(e.what());

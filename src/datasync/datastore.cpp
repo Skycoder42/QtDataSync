@@ -1,5 +1,6 @@
 #include "datastore.h"
 #include "datastore_p.h"
+#include "defaults_p.h"
 
 #include <QtJsonSerializer/QJsonSerializer>
 
@@ -170,7 +171,7 @@ void DataStore::resetCacheSize()
 // ------------- PRIVATE IMPLEMENTATION -------------
 
 DataStorePrivate::DataStorePrivate(DataStore *q, const QString &setupName) :
-	defaults(setupName),
+	defaults(DefaultsPrivate::obtainDefaults(setupName)),
 	logger(defaults.createLogger("datastore", q)),
 	serializer(defaults.serializer()),
 	store(new LocalStore(defaults, q))

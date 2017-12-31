@@ -45,7 +45,7 @@ void TestCryptoController::initTestCase()
 		TestLib::setup(setup);
 		setup.create();
 
-		controller = new CryptoController(DefaultSetup, this);
+		controller = new CryptoController(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 		controller->initialize({});
 	} catch(QException &e) {
 		QFAIL(e.what());

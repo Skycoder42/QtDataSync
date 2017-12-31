@@ -21,10 +21,6 @@ using namespace QtDataSync;
 
 Q_GLOBAL_STATIC(LocalStoreEmitter, emitter)
 
-LocalStore::LocalStore(QObject *parent) :
-	LocalStore(DefaultSetup, parent)
-{}
-
 LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 	QObject(parent),
 	_defaults(defaults),

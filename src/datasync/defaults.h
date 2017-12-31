@@ -69,7 +69,7 @@ public:
 	Q_ENUM(PropertyKey)
 
 	Defaults();
-	Defaults(const QString &setupName); //TODO check try/catch where used
+	Defaults(const QSharedPointer<DefaultsPrivate> &d);
 	Defaults(const Defaults &other);
 	~Defaults();
 
@@ -98,8 +98,6 @@ public:
 
 private:
 	QSharedPointer<DefaultsPrivate> d;
-
-	Defaults(const QSharedPointer<DefaultsPrivate> &d);
 };
 
 }

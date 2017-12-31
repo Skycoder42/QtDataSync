@@ -1,6 +1,7 @@
 #include "exchangeengine_p.h"
 #include "logger.h"
 #include "setup_p.h"
+#include "defaults_p.h"
 
 #include "changecontroller_p.h"
 #include "remoteconnector_p.h"
@@ -16,7 +17,7 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	QObject(),
 	_state(SyncManager::Initializing),
 	_lastError(),
-	_defaults(setupName),
+	_defaults(DefaultsPrivate::obtainDefaults(setupName)),
 	_logger(_defaults.createLogger("engine", this)),
 	_fatalErrorHandler(errorHandler),
 	_localStore(nullptr), //create in init thread!

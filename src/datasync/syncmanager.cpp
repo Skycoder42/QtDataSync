@@ -3,6 +3,7 @@
 #include "remoteconnector_p.h"
 #include "setup_p.h"
 #include "exchangeengine_p.h"
+#include "defaults_p.h"
 using namespace QtDataSync;
 
 SyncManager::SyncManager(QObject *parent) :
@@ -10,7 +11,7 @@ SyncManager::SyncManager(QObject *parent) :
 {}
 
 SyncManager::SyncManager(const QString &setupName, QObject *parent) :
-	SyncManager(Defaults(setupName).remoteNode(), parent)
+	SyncManager(Defaults(DefaultsPrivate::obtainDefaults(setupName)).remoteNode(), parent)
 {}
 
 SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent) :
