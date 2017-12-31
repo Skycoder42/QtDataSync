@@ -51,13 +51,16 @@ SOURCES += \
 	controller.cpp \
 	synchelper.cpp \
 	synccontroller.cpp \
-	conflictresolver.cpp
+	conflictresolver.cpp \
+    syncmanager_p.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
 
 REPC_SOURCE += syncmanager_p.rep
 REPC_REPLICA += $$REPC_SOURCE
+
+# TODO add rep and statemachine headers to syncqt.pl
 
 include(rothreadedbackend/rothreadedbackend.pri)
 include(messages/messages.pri)

@@ -4,6 +4,7 @@
 #include <QtCore/QIODevice>
 #include <QtCore/QQueue>
 #include <QtCore/QLoggingCategory>
+#include <QtCore/QPointer>
 
 #include "qtdatasync_global.h"
 

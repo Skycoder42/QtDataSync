@@ -4,6 +4,8 @@
 #include <QtCore/QObject>
 #include <QtCore/QAtomicPointer>
 
+#include <QtRemoteObjects/QRemoteObjectHost>
+
 #include "qtdatasync_global.h"
 #include "syncmanager.h"
 #include "defaults.h"
@@ -16,21 +18,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT SyncResultObject : public QObject
-{
-	Q_OBJECT
-	friend class ExchangeEngine;
-
-public:
-	SyncResultObject(const std::function<void(SyncManager::SyncState)> &resFn, QObject *parent);
-
-public Q_SLOTS:
-	void triggerResult(QtDataSync::SyncManager::SyncState res);
-
-private:
-	bool _dOnly;
-	std::function<void(SyncManager::SyncState)> _fn;
-};
+class SyncManagerPrivate;
 
 class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 {
@@ -40,8 +28,6 @@ class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
-	typedef std::function<void(ExchangeEngine*)> RunFn;
-
 	explicit ExchangeEngine(const QString &setupName,
 							const Setup::FatalErrorHandler &errorHandler);
 
@@ -54,17 +40,12 @@ public:
 	ChangeController *changeController() const;
 	RemoteConnector *remoteConnector() const;
 
-	Q_INVOKABLE SyncManager::SyncState state() const;
-	Q_INVOKABLE QString lastError() const;
+	SyncManager::SyncState state() const;
+	QString lastError() const;
 
 public Q_SLOTS:
 	void initialize();
 	void finalize();
-
-	void syncForResult(SyncResultObject *receiver, bool downloadOnly, bool triggerSync);
-
-	//helper class initializer
-	void runInitFunc(QtDataSync::ExchangeEngine::RunFn fn);
 
 Q_SIGNALS:
 	void stateChanged(QtDataSync::SyncManager::SyncState state);
@@ -89,6 +70,9 @@ private:
 	SyncController *_syncController;
 	RemoteConnector *_remoteConnector;
 
+	QRemoteObjectHost *_roHost;
+	SyncManagerPrivate *_syncManager;
+
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 
 	void upstate(SyncManager::SyncState state);
@@ -96,7 +80,5 @@ private:
 };
 
 }
-
-Q_DECLARE_METATYPE(QtDataSync::ExchangeEngine::RunFn)
 
 #endif // EXCHANGEENGINE_P_H

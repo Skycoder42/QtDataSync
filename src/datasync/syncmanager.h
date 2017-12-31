@@ -20,6 +20,7 @@ class Q_DATASYNC_EXPORT SyncManager : public QObject
 	Q_PROPERTY(bool syncEnabled READ isSyncEnabled WRITE setSyncEnabled NOTIFY syncEnabledChanged)
 	Q_PROPERTY(SyncState syncState READ syncState NOTIFY syncStateChanged)
 	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
+	//TODO add progress
 
 public:
 	enum SyncState {

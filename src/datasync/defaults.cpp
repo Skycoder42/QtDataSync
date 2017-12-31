@@ -50,6 +50,11 @@ QDir Defaults::storageDir() const
 	return d->storageDir;
 }
 
+QUrl Defaults::remoteAddress() const
+{
+	return d->roAddress;
+}
+
 QRemoteObjectNode *Defaults::remoteNode() const
 {
 	return d->node;
@@ -241,6 +246,7 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	setupName(setupName),
 	storageDir(storageDir),
 	logger(new Logger("defaults", setupName, this)),
+	roAddress(roAddress),
 	node(new QRemoteObjectNode(this)),
 	serializer(serializer),
 	resolver(resolver),

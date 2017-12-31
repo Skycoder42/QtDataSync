@@ -66,6 +66,7 @@ private:
 	QString setupName;
 	QDir storageDir;
 	Logger *logger;
+	QUrl roAddress;
 	QRemoteObjectNode *node;
 	QJsonSerializer *serializer;
 	ConflictResolver *resolver;

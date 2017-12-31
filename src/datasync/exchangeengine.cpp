@@ -4,6 +4,7 @@
 
 #include "changecontroller_p.h"
 #include "remoteconnector_p.h"
+#include "syncmanager_p.h"
 
 #include <QtCore/QThread>
 
@@ -21,7 +22,9 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_localStore(nullptr), //create in init thread!
 	_changeController(new ChangeController(_defaults, this)),
 	_syncController(new SyncController(_defaults, this)),
-	_remoteConnector(new RemoteConnector(_defaults, this))
+	_remoteConnector(new RemoteConnector(_defaults, this)),
+	_roHost(nullptr),
+	_syncManager(nullptr)
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
@@ -89,6 +92,11 @@ void ExchangeEngine::initialize()
 		_syncController->initialize(params);
 		_remoteConnector->initialize(params);
 		logDebug() << "Initialization completed";
+
+		//create remote object stuff
+		_roHost = new QRemoteObjectHost(_defaults.remoteAddress(), this);
+		_syncManager = new SyncManagerPrivate(this);
+		_roHost->enableRemoting(_syncManager);
 	} catch (Exception &e) {
 		logFatal(e.qWhat());
 	} catch (std::exception &e) {
@@ -108,43 +116,6 @@ void ExchangeEngine::finalize()
 	_remoteConnector->finalize();
 	_syncController->finalize();
 	_changeController->finalize();
-}
-
-void ExchangeEngine::syncForResult(SyncResultObject *receiver, bool downloadOnly, bool triggerSync)
-{
-	receiver->_dOnly = downloadOnly;
-
-	switch (_state) {
-	case SyncManager::Error: //wont sync -> simply complete
-	case SyncManager::Disconnected:
-		QMetaObject::invokeMethod(receiver, "triggerResult",
-								  Q_ARG(QtDataSync::SyncManager::SyncState, _state));
-		break;
-	case SyncManager::Uploading: //if download only -> done
-		if(downloadOnly) {
-			QMetaObject::invokeMethod(receiver, "triggerResult",
-									  Q_ARG(QtDataSync::SyncManager::SyncState, _state));
-			break;
-		}
-		Q_FALLTHROUGH();
-	case SyncManager::Synchronized: //if wants sync -> trigger it, then...
-		if(triggerSync)
-			_remoteConnector->resync();
-		Q_FALLTHROUGH();
-	case SyncManager::Initializing: //conntect to react to result
-	case SyncManager::Downloading:
-		connect(this, &ExchangeEngine::stateChanged,
-				receiver, &SyncResultObject::triggerResult);
-		break;
-	default:
-		Q_UNREACHABLE();
-		break;
-	}
-}
-
-void ExchangeEngine::runInitFunc(RunFn fn)
-{
-	fn(this);
 }
 
 void ExchangeEngine::controllerError(const QString &errorMessage)
@@ -221,35 +192,5 @@ void ExchangeEngine::clearError()
 	if(!_lastError.isNull()) {
 		_lastError.clear();
 		emit lastErrorChanged(QString());
-	}
-}
-
-
-
-SyncResultObject::SyncResultObject(const std::function<void (SyncManager::SyncState)> &resFn, QObject *parent) :
-	QObject(parent),
-	_dOnly(false),
-	_fn(resFn)
-{}
-
-void SyncResultObject::triggerResult(SyncManager::SyncState res)
-{
-	switch (res) {
-	case SyncManager::Initializing: // do nothing
-	case SyncManager::Downloading:
-		break;
-	case SyncManager::Uploading: // download only -> done, else do nothing
-		if(!_dOnly)
-			break;
-		Q_FALLTHROUGH();
-	case SyncManager::Synchronized: //done
-	case SyncManager::Error:
-	case SyncManager::Disconnected:
-		_fn(res);
-		deleteLater();
-		break;
-	default:
-		Q_UNREACHABLE();
-		break;
 	}
 }
