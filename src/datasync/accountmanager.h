@@ -42,8 +42,8 @@ public:
 private:
 	QSharedDataPointer<DeviceInfoPrivate> d;
 
-	friend QDataStream &operator<<(QDataStream &stream, const DeviceInfo &deviceInfo);
-	friend QDataStream &operator>>(QDataStream &stream, DeviceInfo &deviceInfo);
+	friend Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DeviceInfo &deviceInfo);
+	friend Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DeviceInfo &deviceInfo);
 };
 
 class LoginRequestPrivate;
