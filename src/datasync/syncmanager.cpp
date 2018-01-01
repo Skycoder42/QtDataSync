@@ -82,21 +82,27 @@ void SyncManager::runOnSynchronized(const std::function<void (SyncManager::SyncS
 void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::function<void (SyncManager::SyncState)> &resultFn)
 {
 	auto state = d->syncState();
+	auto skipDOnly = false;
 
-	switch (state) {
+	switch(state) {
 	case Error: //wont sync -> simply complete
 	case Disconnected:
 		resultFn(state);
 		break;
-	case Uploading: //if download only -> done
-		if(downloadOnly) {
+	case Synchronized: //if wants sync -> trigger it, then...
+		if(triggerSync) {
+			d->synchronize();
+			skipDOnly = true; //fallthrough in the uploading state
+		} else {
 			resultFn(state);
 			break;
 		}
 		Q_FALLTHROUGH();
-	case Synchronized: //if wants sync -> trigger it, then...
-		if(triggerSync)
-			d->synchronize();
+	case Uploading: //if download only -> done
+		if(downloadOnly && !skipDOnly) {
+			resultFn(state);
+			break;
+		}
 		Q_FALLTHROUGH();
 	case Initializing: //conntect to react to result
 	case Downloading:
@@ -104,10 +110,10 @@ void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::functio
 		auto resObj = new QObject(this);
 		connect(d, &SyncManagerPrivateReplica::syncStateChanged, resObj, [resObj, resultFn, downloadOnly](SyncState state) {
 			switch (state) {
-			case Initializing: // do nothing
+			case Initializing: //do nothing
 			case Downloading:
 				break;
-			case Uploading: // download only -> done, else do nothing
+			case Uploading: //download only -> done, else do nothing
 				if(!downloadOnly)
 					break;
 				Q_FALLTHROUGH();
