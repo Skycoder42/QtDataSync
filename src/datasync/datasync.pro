@@ -29,7 +29,8 @@ HEADERS += qtdatasync_global.h \
 	synchelper_p.h \
 	synccontroller_p.h \
 	conflictresolver.h \
-	conflictresolver_p.h
+	conflictresolver_p.h \
+    accountmanager.h
 
 SOURCES += \
 	localstore.cpp \
@@ -52,12 +53,13 @@ SOURCES += \
 	synchelper.cpp \
 	synccontroller.cpp \
 	conflictresolver.cpp \
-    syncmanager_p.cpp
+	syncmanager_p.cpp \
+    accountmanager.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
 
-REPC_SOURCE += syncmanager_p.rep
+REPC_SOURCE += syncmanager_p.rep accountmanager_p.rep
 REPC_REPLICA += $$REPC_SOURCE
 
 # TODO add rep and statemachine headers to syncqt.pl

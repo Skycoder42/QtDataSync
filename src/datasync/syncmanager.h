@@ -66,8 +66,8 @@ private:
 	void runImp(bool downloadOnly, bool triggerSync, const std::function<void(SyncState)> &resultFn);
 };
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const QtDataSync::SyncManager::SyncState &state);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, QtDataSync::SyncManager::SyncState &state);
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const SyncManager::SyncState &state);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, SyncManager::SyncState &state);
 
 }
 
