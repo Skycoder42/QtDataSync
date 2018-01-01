@@ -33,6 +33,13 @@ AccountDialog::AccountDialog(QWidget *parent) :
 
 	ui->deviceNameLineEdit->setText(_manager->deviceName());
 	ui->fingerprintLineEdit->setText(printFingerprint(_manager->deviceFingerprint()));
+
+	if(_manager->replica()->isInitialized())
+		_manager->listDevices();
+	else {
+		connect(_manager->replica(), &QRemoteObjectReplica::initialized,
+				_manager, &QtDataSync::AccountManager::listDevices);
+	}
 }
 
 AccountDialog::~AccountDialog()
@@ -48,12 +55,18 @@ void AccountDialog::exec(QWidget *parent)
 
 void AccountDialog::updateDevices(const QList<QtDataSync::DeviceInfo> &devices)
 {
-
+	ui->treeWidget->clear();
+	foreach(auto device, devices) {
+		auto item = new QTreeWidgetItem(ui->treeWidget);
+		item->setText(0, device.name());
+		item->setText(1, printFingerprint(device.fingerprint()));
+		item->setData(1, Qt::UserRole, device.fingerprint());
+	}
 }
 
 void AccountDialog::login(QtDataSync::LoginRequest * const request)
 {
-
+	Q_UNIMPLEMENTED();
 }
 
 QString AccountDialog::printFingerprint(const QByteArray &fingerprint)

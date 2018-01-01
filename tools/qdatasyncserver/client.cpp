@@ -155,6 +155,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onChange(deserializeMessage<ChangeMessage>(stream));
 			else if(isType<ChangedAckMessage>(name))
 				onChangedAck(deserializeMessage<ChangedAckMessage>(stream));
+			else if(isType<ListDevicesMessage>(name))
+				onListDevices(deserializeMessage<ListDevicesMessage>(stream));
 			else {
 				qWarning() << "Unknown message received:" << typeName(name);
 				sendMessage(serializeMessage<ErrorMessage>({
@@ -280,16 +282,18 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 	try {
 		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
 		verifySignature(stream, crypto->signatureKey(), crypto.data());
+
+		_deviceId = _database->addNewDevice(message.deviceName,
+											message.signAlgorithm,
+											message.signKey,
+											message.cryptAlgorithm,
+											message.cryptKey,
+											crypto->ownFingerprint());
 	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}
 
-	_deviceId = _database->addNewDevice(message.deviceName,
-										message.signAlgorithm,
-										message.signKey,
-										message.cryptAlgorithm,
-										message.cryptKey);
 	_catStr = "client." + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
@@ -364,6 +368,22 @@ void Client::onChangedAck(const ChangedAckMessage &message)
 	_activeDownloads.removeOne(message.dataIndex);
 	//trigger next download. method itself decides when and how etc.
 	triggerDownload();
+}
+
+void Client::onListDevices(const ListDevicesMessage &message)
+{
+	Q_UNUSED(message);
+	if(_state != Idle)
+		throw UnexpectedException<ListDevicesMessage>();
+
+	DevicesMessage devMessage;
+	foreach (auto device, _database->listDevices(_deviceId)) {
+		DevicesMessage::DeviceInfo info;
+		std::tie(info.first, info.second) = device;
+		devMessage.devices.append(info);
+	}
+
+	sendMessage(serializeMessage(devMessage));
 }
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)

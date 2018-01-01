@@ -1,5 +1,7 @@
 #include "asymmetriccrypto_p.h"
 
+#include <QtCore/QCryptographicHash>
+
 #include <qiodevicesource.h>
 #include <qiodevicesink.h>
 
@@ -49,6 +51,16 @@ QByteArray AsymmetricCrypto::signatureScheme() const
 QByteArray AsymmetricCrypto::encryptionScheme() const
 {
 	return _encryption->name();
+}
+
+QByteArray AsymmetricCrypto::fingerprint(const X509PublicKey &signingKey, const X509PublicKey &encryptionKey) const
+{
+	QCryptographicHash hash(QCryptographicHash::Sha3_256);
+	hash.addData(signatureScheme());
+	hash.addData(writeKey(signingKey));
+	hash.addData(encryptionScheme());
+	hash.addData(writeKey(encryptionKey));
+	return hash.result();
 }
 
 QSharedPointer<X509PublicKey> AsymmetricCrypto::readKey(bool signKey, CryptoPP::RandomNumberGenerator &rng, const QByteArray &data) const
@@ -168,6 +180,21 @@ const X509PublicKey &AsymmetricCryptoInfo::signatureKey() const
 const X509PublicKey &AsymmetricCryptoInfo::encryptionKey() const
 {
 	return *(_cryptKey.data());
+}
+
+QByteArray AsymmetricCryptoInfo::ownFingerprint() const
+{
+	return fingerprint(_signKey, _cryptKey);
+}
+
+void AsymmetricCryptoInfo::verify(const QByteArray &message, const QByteArray &signature) const
+{
+	return AsymmetricCrypto::verify(_signKey, message, signature);
+}
+
+QByteArray AsymmetricCryptoInfo::encrypt(RandomNumberGenerator &rng, const QByteArray &message) const
+{
+	return AsymmetricCrypto::encrypt(_cryptKey, rng, message);
 }
 
 // ------------- Generic Implementation -------------

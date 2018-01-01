@@ -107,7 +107,6 @@ private:
 	static void createScheme(const QByteArray &name, QSharedPointer<CipherScheme> &ptr);
 	static void createScheme(Setup::CipherScheme scheme, QSharedPointer<CipherScheme> &ptr);
 
-	void updateFingerprint();
 	void ensureStoreOpen() const;
 	void closeStore() const;
 	void storeCipherKey(quint32 keyIndex) const;
@@ -147,6 +146,8 @@ public:
 	void reset();
 
 	CryptoPP::RandomNumberGenerator &rng();
+
+	QByteArray ownFingerprint() const;
 
 	QSharedPointer<CryptoPP::X509PublicKey> readKey(bool signKey, const QByteArray &data);
 

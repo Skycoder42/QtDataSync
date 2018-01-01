@@ -49,11 +49,13 @@ public:
 					   const QByteArray &signScheme,
 					   const QByteArray &signKey,
 					   const QByteArray &cryptScheme,
-					   const QByteArray &cryptKey);
+					   const QByteArray &cryptKey,
+					   const QByteArray &fingerprint);
 	QtDataSync::AsymmetricCryptoInfo *loadCrypto(const QUuid &deviceId,
-																	  CryptoPP::RandomNumberGenerator &rng,
-																	  QObject *parent = nullptr);
+												 CryptoPP::RandomNumberGenerator &rng,
+												 QObject *parent = nullptr);
 	void updateLogin(const QUuid &deviceId, const QString &name);
+	QList<std::tuple<QString, QByteArray>> listDevices(const QUuid &deviceId);
 
 	void addChange(const QUuid &deviceId,
 				   const QByteArray &dataId,

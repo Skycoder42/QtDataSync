@@ -9,6 +9,8 @@ AccountManagerPrivate::AccountManagerPrivate(ExchangeEngine *engineParent) :
 			this, &AccountManagerPrivate::deviceNameChanged);
 	connect(_engine->cryptoController(), &CryptoController::fingerprintChanged,
 			this, &AccountManagerPrivate::deviceFingerprintChanged);
+	connect(_engine->remoteConnector(), &RemoteConnector::devicesListed,
+			this, &AccountManagerPrivate::accountDevices);
 }
 
 QString AccountManagerPrivate::deviceName() const
@@ -31,7 +33,7 @@ void AccountManagerPrivate::setDeviceName(QString deviceName)
 
 void AccountManagerPrivate::listDevices()
 {
-
+	_engine->remoteConnector()->listDevices();
 }
 
 void AccountManagerPrivate::removeDevice(const QByteArray &fingerprint)

@@ -25,6 +25,7 @@
 #include "syncmessage_p.h"
 #include "changemessage_p.h"
 #include "changedmessage_p.h"
+#include "devicesmessage_p.h"
 
 class Client : public QObject
 {
@@ -106,6 +107,7 @@ private:
 	void onSync(const QtDataSync::SyncMessage &message);
 	void onChange(const QtDataSync::ChangeMessage &message);
 	void onChangedAck(const QtDataSync::ChangedAckMessage &message);
+	void onListDevices(const QtDataSync::ListDevicesMessage &message);
 
 	void triggerDownload(bool forceUpdate = false, bool skipNoChanges = false);
 };

@@ -13,6 +13,7 @@
 #include "controller_p.h"
 #include "defaults.h"
 #include "cryptocontroller_p.h"
+#include "accountmanager.h"
 
 #include "errormessage_p.h"
 #include "identifymessage_p.h"
@@ -20,6 +21,7 @@
 #include "welcomemessage_p.h"
 #include "changemessage_p.h"
 #include "changedmessage_p.h"
+#include "devicesmessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -63,7 +65,9 @@ public:
 public Q_SLOTS:
 	void reconnect();
 	void disconnect();
+
 	void resync();
+	void listDevices();
 
 	void setSyncEnabled(bool syncEnabled);
 
@@ -81,6 +85,7 @@ Q_SIGNALS:
 
 	void syncEnabledChanged(bool syncEnabled);
 	void deviceNameChanged(const QString &deviceName);
+	void devicesListed(const QList<DeviceInfo> &devices);
 
 private Q_SLOTS:
 	void connected();
@@ -130,6 +135,7 @@ private:
 	void onChanged(const ChangedMessage &message);
 	void onChangedInfo(const ChangedInfoMessage &message);
 	void onLastChanged(const LastChangedMessage &message);
+	void onDevices(const DevicesMessage &message);
 };
 
 }

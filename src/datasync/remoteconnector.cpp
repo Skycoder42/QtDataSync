@@ -143,6 +143,13 @@ void RemoteConnector::resync()
 	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
 }
 
+void RemoteConnector::listDevices()
+{
+	if(!isIdle())
+		return;
+	_socket->sendBinaryMessage(serializeMessage(ListDevicesMessage()));
+}
+
 void RemoteConnector::setSyncEnabled(bool syncEnabled)
 {
 	if (sValue(keyRemoteEnabled).toBool() == syncEnabled)
@@ -266,6 +273,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onChangedInfo(deserializeMessage<ChangedInfoMessage>(stream));
 		else if(isType<LastChangedMessage>(name))
 			onLastChanged(deserializeMessage<LastChangedMessage>(stream));
+		else if(isType<DevicesMessage>(name))
+			onDevices(deserializeMessage<DevicesMessage>(stream));
 		else {
 			logWarning().noquote() << "Unknown message received:" << typeName(name);
 			triggerError(true);
@@ -684,5 +693,19 @@ void RemoteConnector::onLastChanged(const LastChangedMessage &message)
 	} else {
 		logDebug() << "Completed downloading changes";
 		emit remoteEvent(RemoteReady); //back to normal
+	}
+}
+
+void RemoteConnector::onDevices(const DevicesMessage &message)
+{
+	if(!isIdle()) {
+		logWarning() << "Unexpected DevicesMessage";
+		triggerError(true);
+	} else {
+		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
+		QList<DeviceInfo> infoList;
+		foreach(auto device, message.devices)
+			infoList.append({device.first, device.second});
+		emit devicesListed(infoList);
 	}
 }

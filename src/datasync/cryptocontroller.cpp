@@ -201,7 +201,8 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private encryption key from keystore"));
 
 		_asymCrypto->load(signScheme, signKey, cryptScheme, cryptKey);
-		updateFingerprint();
+		_fingerprint = _asymCrypto->ownFingerprint();
+		emit fingerprintChanged(_fingerprint);
 
 		_localCipher = settings()->value(keyLocalSymKey, 0).toUInt();
 		getInfo(_localCipher);
@@ -242,7 +243,8 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 							  defaults().property(Defaults::SignKeyParam),
 							  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
 							  defaults().property(Defaults::CryptKeyParam));
-		updateFingerprint();
+		_fingerprint = _asymCrypto->ownFingerprint();
+		emit fingerprintChanged(_fingerprint);
 
 		//create symmetric cipher and the key
 		CipherInfo info;
@@ -285,6 +287,8 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 		settings()->setValue(keyLocalSymKey, _localCipher);
 		logDebug() << "Stored keys for" << deviceId;
 		closeStore();
+
+		settings()->setValue(keyKeystore, _keyStore->providerName());
 	} catch(CppException &e) {
 		closeStore();
 		throw CryptoException(defaults(),
@@ -435,17 +439,6 @@ void CryptoController::createScheme(Setup::CipherScheme scheme, QSharedPointer<C
 	}
 }
 
-void CryptoController::updateFingerprint()
-{
-	QCryptographicHash hash(QCryptographicHash::Sha3_256);
-	hash.addData(_asymCrypto->signatureScheme());
-	hash.addData(_asymCrypto->writeSignKey());
-	hash.addData(_asymCrypto->encryptionScheme());
-	hash.addData(_asymCrypto->writeCryptKey());
-	_fingerprint = hash.result();
-	emit fingerprintChanged(_fingerprint);
-}
-
 void CryptoController::ensureStoreOpen() const
 {
 	if(_keyStore) {
@@ -587,6 +580,11 @@ void ClientCrypto::reset()
 RandomNumberGenerator &ClientCrypto::rng()
 {
 	return _rng;
+}
+
+QByteArray ClientCrypto::ownFingerprint() const
+{
+	return fingerprint(signKey(), cryptKey());
 }
 
 QSharedPointer<X509PublicKey> ClientCrypto::readKey(bool signKey, const QByteArray &data)

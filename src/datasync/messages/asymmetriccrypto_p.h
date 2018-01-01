@@ -48,6 +48,13 @@ public:
 	QByteArray signatureScheme() const;
 	QByteArray encryptionScheme() const;
 
+	QByteArray fingerprint(const CryptoPP::X509PublicKey &signingKey,
+						   const CryptoPP::X509PublicKey &encryptionKey) const;
+	inline QByteArray fingerprint(const QSharedPointer<CryptoPP::X509PublicKey> &signingKey,
+								  const QSharedPointer<CryptoPP::X509PublicKey> &encryptionKey) const {
+		return fingerprint(*(signingKey.data()), *(encryptionKey.data()));
+	}
+
 	QSharedPointer<CryptoPP::X509PublicKey> readKey(bool signKey, CryptoPP::RandomNumberGenerator &rng, const QByteArray &data) const;
 	QByteArray writeKey(const CryptoPP::X509PublicKey &key) const;
 	inline QByteArray writeKey(const QSharedPointer<CryptoPP::X509PublicKey> &key) const {
@@ -96,6 +103,10 @@ public:
 
 	const CryptoPP::X509PublicKey &signatureKey() const;
 	const CryptoPP::X509PublicKey &encryptionKey() const;
+	QByteArray ownFingerprint() const;
+
+	void verify(const QByteArray &message, const QByteArray &signature) const;
+	QByteArray encrypt(CryptoPP::RandomNumberGenerator &rng, const QByteArray &message) const;
 
 private:
 	QSharedPointer<CryptoPP::X509PublicKey> _signKey;

@@ -87,7 +87,7 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 	});
 }
 
-QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey)
+QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey, const QByteArray &fingerprint)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -107,8 +107,8 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 		auto deviceId = QUuid::createUuid();
 		Query createDeviceQuery(db);
 		createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
-												 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey) "
-												 "VALUES(?, ?, ?, ?, ?, ?, ?) "));
+												 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey, fingerprint) "
+												 "VALUES(?, ?, ?, ?, ?, ?, ?, ?) "));
 		createDeviceQuery.addBindValue(deviceId);
 		createDeviceQuery.addBindValue(userId);
 		createDeviceQuery.addBindValue(name);
@@ -116,6 +116,7 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 		createDeviceQuery.addBindValue(signKey);
 		createDeviceQuery.addBindValue(QString::fromUtf8(cryptScheme));
 		createDeviceQuery.addBindValue(cryptKey);
+		createDeviceQuery.addBindValue(fingerprint);
 		createDeviceQuery.exec();
 
 		if(!db.commit())
@@ -159,6 +160,33 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	updateNameQuery.addBindValue(name);
 	updateNameQuery.addBindValue(deviceId);
 	updateNameQuery.exec();
+}
+
+QList<std::tuple<QString, QByteArray>> DatabaseController::listDevices(const QUuid &deviceId)
+{
+	auto db = _threadStore.localData().database();
+
+	Query loadDevicesQuery(db);
+	loadDevicesQuery.prepare(QStringLiteral("SELECT name, fingerprint "
+											"FROM devices "
+											"INNER JOIN users ON devices.userid = users.id "
+											"WHERE devices.id != ? "
+											"AND devices.userid = ( "
+											"	SELECT userid FROM devices "
+											"	WHERE id = ? "
+											")"));
+	loadDevicesQuery.addBindValue(deviceId);
+	loadDevicesQuery.addBindValue(deviceId);
+	loadDevicesQuery.exec();
+
+	QList<std::tuple<QString, QByteArray>> resList;
+	while(loadDevicesQuery.next()) {
+		resList.append(std::tuple<QString, QByteArray> {
+						   loadDevicesQuery.value(0).toString(),
+						   loadDevicesQuery.value(1).toByteArray()
+					   });
+	}
+	return resList;
 }
 
 void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
@@ -371,6 +399,7 @@ void DatabaseController::initDatabase()
 												  "		signkey		BYTEA NOT NULL, "
 												  "		cryptscheme	TEXT NOT NULL, "
 												  "		cryptkey	BYTEA NOT NULL, "
+												  "		fingerprint	BYTEA NOT NULL, "
 												  "		lastlogin	DATE NOT NULL DEFAULT 'today' "
 												  ")"))) {
 				throw DatabaseException(createDevices);
