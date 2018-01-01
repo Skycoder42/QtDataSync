@@ -150,6 +150,11 @@ void AccountManager::setDeviceName(const QString &deviceName)
 	d->replica->setDeviceName(deviceName);
 }
 
+void AccountManager::resetDeviceName()
+{
+	d->replica->setDeviceName(QString());
+}
+
 void AccountManager::accountExportReady(quint32 id, const QByteArray &exportData)
 {
 	auto completeFn = d->exportActions.take(id);

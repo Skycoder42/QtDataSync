@@ -70,7 +70,7 @@ class Q_DATASYNC_EXPORT AccountManager : public QObject
 {
 	Q_OBJECT
 
-	Q_PROPERTY(QString deviceName READ deviceName WRITE setDeviceName NOTIFY deviceNameChanged)
+	Q_PROPERTY(QString deviceName READ deviceName WRITE setDeviceName RESET resetDeviceName NOTIFY deviceNameChanged)
 	Q_PROPERTY(QByteArray deviceFingerprint READ deviceFingerprint NOTIFY deviceFingerprintChanged)
 
 public:
@@ -99,6 +99,7 @@ public Q_SLOTS:
 	void updateExchangeKey();
 
 	void setDeviceName(const QString &deviceName);
+	void resetDeviceName();
 
 Q_SIGNALS:
 	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices);

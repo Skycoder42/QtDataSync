@@ -6,15 +6,18 @@ TARGET = Sample
 
 HEADERS += \
 		widget.h \
-	sampledata.h
+	sampledata.h \
+    accountdialog.h
 
 SOURCES += \
 		main.cpp \
 		widget.cpp \
-	sampledata.cpp
+	sampledata.cpp \
+    accountdialog.cpp
 
 FORMS += \
-		widget.ui
+		widget.ui \
+    accountdialog.ui
 
 include(../../3rdparty/modeltest.pri)
 

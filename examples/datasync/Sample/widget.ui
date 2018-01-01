@@ -6,149 +6,102 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>601</width>
-    <height>398</height>
+    <width>608</width>
+    <height>413</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Widget</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QTreeView" name="dataTreeView">
-     <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-     <property name="rootIsDecorated">
-      <bool>false</bool>
-     </property>
-     <property name="itemsExpandable">
-      <bool>false</bool>
-     </property>
-     <property name="animated">
-      <bool>true</bool>
-     </property>
-     <property name="expandsOnDoubleClick">
-      <bool>false</bool>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,1,0,0,0">
+   <item row="1" column="0">
+    <widget class="QSpinBox" name="idSpinBox"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="titleLineEdit">
+     <property name="placeholderText">
+      <string>Title</string>
      </property>
     </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QSpinBox" name="idSpinBox"/>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="titleLineEdit">
-       <property name="placeholderText">
-        <string>Title</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="detailsLineEdit">
-       <property name="placeholderText">
-        <string>Description</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="addButton">
-       <property name="text">
-        <string>&amp;Add/Update</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="deleteButton">
-       <property name="text">
-        <string>&amp;Delete</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="clearButton">
-       <property name="text">
-        <string>&amp;Clear</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+   <item row="1" column="2">
+    <widget class="QLineEdit" name="detailsLineEdit">
+     <property name="placeholderText">
+      <string>Description</string>
+     </property>
+    </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QCheckBox" name="syncCheckBox">
-       <property name="text">
-        <string>Sync &amp;Enabled</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="syncButton">
-       <property name="text">
-        <string>&amp;Sync</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="reconnectButton">
-       <property name="text">
-        <string>&amp;Reconnect</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+   <item row="1" column="3">
+    <widget class="QPushButton" name="addButton">
+     <property name="text">
+      <string>&amp;Add/Update</string>
+     </property>
+    </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QLabel" name="stateLabel">
-       <property name="text">
-        <string>State: ???</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QProgressBar" name="progressBar">
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
+   <item row="1" column="4">
+    <widget class="QPushButton" name="deleteButton">
+     <property name="text">
+      <string>&amp;Delete</string>
+     </property>
+    </widget>
    </item>
-   <item>
+   <item row="1" column="5">
+    <widget class="QPushButton" name="clearButton">
+     <property name="text">
+      <string>&amp;Clear</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QCheckBox" name="syncCheckBox">
+     <property name="text">
+      <string>Sync &amp;Enabled</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <widget class="QPushButton" name="syncButton">
+     <property name="text">
+      <string>&amp;Sync</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="5">
+    <widget class="QPushButton" name="reconnectButton">
+     <property name="text">
+      <string>&amp;Reconnect</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QLabel" name="stateLabel">
+     <property name="text">
+      <string>State: ???</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="5">
+    <widget class="QPushButton" name="accountButton">
+     <property name="text">
+      <string>Acco&amp;unt</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QProgressBar" name="progressBar">
+     <property name="maximum">
+      <number>1000</number>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2" colspan="4">
     <widget class="QLabel" name="errorLabel">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
+     </property>
      <property name="palette">
       <palette>
        <active>
@@ -188,6 +141,54 @@
      </property>
      <property name="text">
       <string>Loading errors…</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" colspan="3">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>318</width>
+       <height>23</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="2" colspan="2">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>232</width>
+       <height>23</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="0" column="0" colspan="6">
+    <widget class="QTreeView" name="dataTreeView">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="rootIsDecorated">
+      <bool>false</bool>
+     </property>
+     <property name="itemsExpandable">
+      <bool>false</bool>
+     </property>
+     <property name="animated">
+      <bool>true</bool>
+     </property>
+     <property name="expandsOnDoubleClick">
+      <bool>false</bool>
      </property>
     </widget>
    </item>

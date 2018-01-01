@@ -108,7 +108,8 @@ CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
 	_keyStore(nullptr),
 	_asymCrypto(nullptr),
 	_loadedChiphers(),
-	_localCipher(0)
+	_localCipher(0),
+	_fingerprint()
 {}
 
 QStringList CryptoController::allKeystoreKeys()
@@ -149,21 +150,6 @@ ClientCrypto *CryptoController::crypto() const
 
 QByteArray CryptoController::fingerprint() const
 {
-	if(_fingerprint.isEmpty()) {
-		try {
-			QCryptographicHash hash(QCryptographicHash::Sha3_256);
-			hash.addData(_asymCrypto->signatureScheme());
-			hash.addData(_asymCrypto->writeSignKey());
-			hash.addData(_asymCrypto->encryptionScheme());
-			hash.addData(_asymCrypto->writeCryptKey());
-			_fingerprint = hash.result();
-		} catch(CppException &e) {
-			throw CryptoException(defaults(),
-								  QStringLiteral("Failed to generate device fingerprint"),
-								  e);
-		}
-	}
-
 	return _fingerprint;
 }
 
@@ -203,7 +189,6 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 {
 	try {
 		ensureStoreOpen();
-		_fingerprint.clear();
 
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
 		auto signKey = _keyStore->loadPrivateKey(keySignKeyTemplate.arg(deviceId.toString()));
@@ -216,6 +201,7 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private encryption key from keystore"));
 
 		_asymCrypto->load(signScheme, signKey, cryptScheme, cryptKey);
+		updateFingerprint();
 
 		_localCipher = settings()->value(keyLocalSymKey, 0).toUInt();
 		getInfo(_localCipher);
@@ -242,13 +228,12 @@ void CryptoController::clearKeyMaterial()
 	_localCipher = 0;
 	closeStore();
 	logDebug() << "Cleared all key material";
+	emit fingerprintChanged(QByteArray());
 }
 
 void CryptoController::createPrivateKeys(const QByteArray &nonce)
 {
 	try {
-		_fingerprint.clear();
-
 		if(_asymCrypto->rng().CanIncorporateEntropy())
 			_asymCrypto->rng().IncorporateEntropy((const byte*)nonce.constData(), nonce.size());
 
@@ -257,6 +242,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 							  defaults().property(Defaults::SignKeyParam),
 							  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
 							  defaults().property(Defaults::CryptKeyParam));
+		updateFingerprint();
 
 		//create symmetric cipher and the key
 		CipherInfo info;
@@ -272,12 +258,8 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 		_localCipher = 0;
 		_loadedChiphers.insert(_localCipher, info);
 
-#ifndef QT_NO_DEBUG
 		logDebug().noquote() << "Generated new keys. Public keys fingerprint:"
-							 << fingerprint().toHex();
-#else
-		logDebug() << "Generated new keys";
-#endif
+							 << _fingerprint.toHex();
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate private key"),
@@ -451,6 +433,17 @@ void CryptoController::createScheme(Setup::CipherScheme scheme, QSharedPointer<C
 		Q_UNREACHABLE();
 		break;
 	}
+}
+
+void CryptoController::updateFingerprint()
+{
+	QCryptographicHash hash(QCryptographicHash::Sha3_256);
+	hash.addData(_asymCrypto->signatureScheme());
+	hash.addData(_asymCrypto->writeSignKey());
+	hash.addData(_asymCrypto->encryptionScheme());
+	hash.addData(_asymCrypto->writeCryptKey());
+	_fingerprint = hash.result();
+	emit fingerprintChanged(_fingerprint);
 }
 
 void CryptoController::ensureStoreOpen() const

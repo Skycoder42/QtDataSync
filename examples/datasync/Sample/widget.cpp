@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QMetaEnum>
 
+#include "accountdialog.h"
 #include "modeltest.h"
 
 Widget::Widget(QWidget *parent) :
@@ -28,11 +29,9 @@ Widget::Widget(QWidget *parent) :
 	connect(_manager, &QtDataSync::SyncManager::syncProgressChanged,
 			this, [this](qreal progress) {
 		if(progress == -1)
-			ui->progressBar->setVisible(false);
-		else {
-			ui->progressBar->setVisible(true);
+			ui->progressBar->reset();
+		else
 			ui->progressBar->setValue(progress * 1000);
-		}
 	});
 	connect(_manager, &QtDataSync::SyncManager::lastErrorChanged,
 			ui->errorLabel, &QLabel::setText);
@@ -106,4 +105,9 @@ void Widget::on_deleteButton_clicked()
 void Widget::on_clearButton_clicked()
 {
 	_model->store()->clear<SampleData>();
+}
+
+void Widget::on_accountButton_clicked()
+{
+	AccountDialog::exec(this);
 }

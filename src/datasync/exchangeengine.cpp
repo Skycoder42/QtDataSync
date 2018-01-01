@@ -3,6 +3,7 @@
 #include "setup_p.h"
 #include "defaults_p.h"
 
+#include "accountmanager_p.h"
 #include "changecontroller_p.h"
 #include "remoteconnector_p.h"
 #include "syncmanager_p.h"
@@ -28,7 +29,8 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_syncController(new SyncController(_defaults, this)),
 	_remoteConnector(new RemoteConnector(_defaults, this)),
 	_roHost(nullptr),
-	_syncManager(nullptr)
+	_syncManager(nullptr),
+	_accountManager(nullptr)
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
@@ -48,6 +50,11 @@ ChangeController *ExchangeEngine::changeController() const
 RemoteConnector *ExchangeEngine::remoteConnector() const
 {
 	return _remoteConnector;
+}
+
+CryptoController *ExchangeEngine::cryptoController() const
+{
+	return _remoteConnector->cryptoController();
 }
 
 SyncManager::SyncState ExchangeEngine::state() const
@@ -106,6 +113,8 @@ void ExchangeEngine::initialize()
 		_roHost = new QRemoteObjectHost(_defaults.remoteAddress(), this);
 		_syncManager = new SyncManagerPrivate(this);
 		_roHost->enableRemoting(_syncManager);
+		_accountManager = new AccountManagerPrivate(this);
+		_roHost->enableRemoting(_accountManager);
 	} catch (Exception &e) {
 		logFatal(e.qWhat());
 	} catch (std::exception &e) {

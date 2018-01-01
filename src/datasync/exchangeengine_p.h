@@ -19,6 +19,7 @@
 namespace QtDataSync {
 
 class SyncManagerPrivate;
+class AccountManagerPrivate;
 
 class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 {
@@ -40,6 +41,7 @@ public:
 
 	ChangeController *changeController() const;
 	RemoteConnector *remoteConnector() const;
+	CryptoController *cryptoController() const;
 
 	SyncManager::SyncState state() const;
 	qreal progress() const;
@@ -81,6 +83,7 @@ private:
 
 	QRemoteObjectHost *_roHost;
 	SyncManagerPrivate *_syncManager;
+	AccountManagerPrivate *_accountManager;
 
 	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
 

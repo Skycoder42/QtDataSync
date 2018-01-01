@@ -30,7 +30,8 @@ HEADERS += qtdatasync_global.h \
 	synccontroller_p.h \
 	conflictresolver.h \
 	conflictresolver_p.h \
-    accountmanager.h
+    accountmanager.h \
+    accountmanager_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -54,7 +55,8 @@ SOURCES += \
 	synccontroller.cpp \
 	conflictresolver.cpp \
 	syncmanager_p.cpp \
-    accountmanager.cpp
+    accountmanager.cpp \
+    accountmanager_p.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml

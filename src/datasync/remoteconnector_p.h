@@ -30,6 +30,7 @@ class Q_DATASYNC_EXPORT RemoteConnector : public Controller
 	Q_OBJECT
 
 	Q_PROPERTY(bool syncEnabled READ isSyncEnabled WRITE setSyncEnabled NOTIFY syncEnabledChanged)
+	Q_PROPERTY(QString deviceName READ deviceName WRITE setDeviceName RESET resetDeviceName NOTIFY deviceNameChanged)
 
 public:
 	static const QString keyRemoteEnabled;
@@ -50,10 +51,14 @@ public:
 
 	explicit RemoteConnector(const Defaults &defaults, QObject *parent = nullptr);
 
+	CryptoController *cryptoController() const;
+
 	void initialize(const QVariantHash &params) final;
 	void finalize() final;
 
 	Q_INVOKABLE bool isSyncEnabled() const;
+
+	QString deviceName() const;
 
 public Q_SLOTS:
 	void reconnect();
@@ -65,6 +70,9 @@ public Q_SLOTS:
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
 	void downloadDone(const quint64 key);
 
+	void setDeviceName(const QString &deviceName);
+	void resetDeviceName();
+
 Q_SIGNALS:
 	void finalized();
 	void remoteEvent(RemoteEvent event);
@@ -72,6 +80,7 @@ Q_SIGNALS:
 	void downloadData(const quint64 key, const QByteArray &changeData);
 
 	void syncEnabledChanged(bool syncEnabled);
+	void deviceNameChanged(const QString &deviceName);
 
 private Q_SLOTS:
 	void connected();

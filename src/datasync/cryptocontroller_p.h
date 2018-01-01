@@ -33,6 +33,8 @@ class Q_DATASYNC_EXPORT CryptoController : public Controller
 {
 	Q_OBJECT
 
+	Q_PROPERTY(QByteArray fingerprint READ fingerprint NOTIFY fingerprintChanged)
+
 public:
 	class Q_DATASYNC_EXPORT CipherScheme
 	{
@@ -76,6 +78,9 @@ public:
 	std::tuple<quint32, QByteArray> createCmac(const QByteArray &data) const;
 	void verifyCmac(quint32 keyIndex, const QByteArray &data, const QByteArray &mac) const;
 
+Q_SIGNALS:
+	void fingerprintChanged(const QByteArray &fingerprint);
+
 private:
 	struct Q_DATASYNC_EXPORT CipherInfo {
 		QSharedPointer<CipherScheme> scheme;
@@ -97,11 +102,12 @@ private:
 	mutable QHash<quint32, CipherInfo> _loadedChiphers;
 	quint32 _localCipher;
 
-	mutable QByteArray _fingerprint;
+	QByteArray _fingerprint;
 
 	static void createScheme(const QByteArray &name, QSharedPointer<CipherScheme> &ptr);
 	static void createScheme(Setup::CipherScheme scheme, QSharedPointer<CipherScheme> &ptr);
 
+	void updateFingerprint();
 	void ensureStoreOpen() const;
 	void closeStore() const;
 	void storeCipherKey(quint32 keyIndex) const;

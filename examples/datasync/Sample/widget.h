@@ -25,6 +25,8 @@ private slots:
 	void on_deleteButton_clicked();
 	void on_clearButton_clicked();
 
+	void on_accountButton_clicked();
+
 private:
 	Ui::Widget *ui;
 	QtDataSync::SyncManager *_manager;

@@ -49,6 +49,11 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_deviceId()
 {}
 
+CryptoController *RemoteConnector::cryptoController() const
+{
+	return _cryptoController;
+}
+
 void RemoteConnector::initialize(const QVariantHash &params)
 {
 	_cryptoController->initialize(params);
@@ -115,6 +120,11 @@ bool RemoteConnector::isSyncEnabled() const
 	return sValue(keyRemoteEnabled).toBool();
 }
 
+QString RemoteConnector::deviceName() const
+{
+	return sValue(keyDeviceName).toString();
+}
+
 void RemoteConnector::reconnect()
 {
 	_stateMachine->submitEvent(QStringLiteral("reconnect"));
@@ -174,6 +184,24 @@ void RemoteConnector::downloadDone(const quint64 key)
 	} catch(Exception &e) {
 		logCritical() << e.what();
 		triggerError(false);
+	}
+}
+
+void RemoteConnector::setDeviceName(const QString &deviceName)
+{
+	if(sValue(keyDeviceName).toString() != deviceName) {
+		settings()->setValue(keyDeviceName, deviceName);
+		emit deviceNameChanged(deviceName);
+		reconnect();
+	}
+}
+
+void RemoteConnector::resetDeviceName()
+{
+	if(settings()->contains(keyDeviceName)) {
+		settings()->remove(keyDeviceName);
+		emit deviceNameChanged(deviceName());
+		reconnect();
 	}
 }
 

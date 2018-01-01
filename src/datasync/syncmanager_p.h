@@ -4,10 +4,6 @@
 #include <QtCore/QPointer>
 
 #include "qtdatasync_global.h"
-#include "syncmanager.h"
-#include "defaults.h"
-
-#include "remoteconnector_p.h"
 #include "exchangeengine_p.h"
 
 #include "rep_syncmanager_p_source.h"
