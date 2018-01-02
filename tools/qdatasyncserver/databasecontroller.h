@@ -55,7 +55,7 @@ public:
 												 CryptoPP::RandomNumberGenerator &rng,
 												 QObject *parent = nullptr);
 	void updateLogin(const QUuid &deviceId, const QString &name);
-	QList<std::tuple<QString, QByteArray>> listDevices(const QUuid &deviceId);
+	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId);
 
 	void addChange(const QUuid &deviceId,
 				   const QByteArray &dataId,

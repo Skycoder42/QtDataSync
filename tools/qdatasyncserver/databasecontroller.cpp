@@ -162,12 +162,12 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	updateNameQuery.exec();
 }
 
-QList<std::tuple<QString, QByteArray>> DatabaseController::listDevices(const QUuid &deviceId)
+QList<std::tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(const QUuid &deviceId)
 {
 	auto db = _threadStore.localData().database();
 
 	Query loadDevicesQuery(db);
-	loadDevicesQuery.prepare(QStringLiteral("SELECT name, fingerprint "
+	loadDevicesQuery.prepare(QStringLiteral("SELECT devices.id, name, fingerprint "
 											"FROM devices "
 											"INNER JOIN users ON devices.userid = users.id "
 											"WHERE devices.id != ? "
@@ -179,11 +179,12 @@ QList<std::tuple<QString, QByteArray>> DatabaseController::listDevices(const QUu
 	loadDevicesQuery.addBindValue(deviceId);
 	loadDevicesQuery.exec();
 
-	QList<std::tuple<QString, QByteArray>> resList;
+	QList<std::tuple<QUuid, QString, QByteArray>> resList;
 	while(loadDevicesQuery.next()) {
-		resList.append(std::tuple<QString, QByteArray> {
-						   loadDevicesQuery.value(0).toString(),
-						   loadDevicesQuery.value(1).toByteArray()
+		resList.append(std::tuple<QUuid, QString, QByteArray> {
+						   loadDevicesQuery.value(0).toUuid(),
+						   loadDevicesQuery.value(1).toString(),
+						   loadDevicesQuery.value(2).toByteArray()
 					   });
 	}
 	return resList;

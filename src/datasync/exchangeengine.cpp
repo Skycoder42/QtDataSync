@@ -157,22 +157,26 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 	case RemoteConnector::RemoteDisconnected:
 		upstate(SyncManager::Disconnected);
 		resetProgress();
+		_syncController->setSyncEnabled(false);
 		_changeController->clearUploads();
 		break;
 	case RemoteConnector::RemoteConnecting:
 		upstate(SyncManager::Initializing);
 		resetProgress();
 		clearError();
+		_syncController->setSyncEnabled(false);
 		_changeController->clearUploads();
 		break;
 	case RemoteConnector::RemoteReady:
 		upstate(SyncManager::Uploading); //always assume uploading first, so no uploads can change to synced
 		resetProgress(_changeController); //allows ccon changes
+		_syncController->setSyncEnabled(true);
 		_changeController->setUploadingEnabled(true); //will emit "uploadingChanged" and thus change the thate
 		break;
 	case RemoteConnector::RemoteReadyWithChanges:
 		if(upstate(SyncManager::Downloading))
 			resetProgress(_remoteConnector); //allows rcon changes
+		_syncController->setSyncEnabled(true);
 		_changeController->setUploadingEnabled(false);
 		break;
 	default:

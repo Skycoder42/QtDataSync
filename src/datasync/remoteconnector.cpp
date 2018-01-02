@@ -705,7 +705,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
 		QList<DeviceInfo> infoList;
 		foreach(auto device, message.devices)
-			infoList.append({device.first, device.second});
+			infoList.append(device);
 		emit devicesListed(infoList);
 	}
 }

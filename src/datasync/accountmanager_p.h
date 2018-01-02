@@ -23,13 +23,13 @@ public:
 
 public Q_SLOTS:
 	void listDevices() override;
-	void removeDevice(const QByteArray &fingerprint) override;
+	void removeDevice(const QUuid &deviceId) override;
 	void updateDeviceKey() override;
 	void updateExchangeKey() override;
 	void exportAccount(quint32 id, bool includeServer) override;
 	void exportAccountTrusted(quint32 id, bool includeServer, const QString &password) override;
 	void importAccount(quint32 id, const QByteArray &importData) override;
-	void replyToLogin(const QByteArray &fingerprint, bool accept) override;
+	void replyToLogin(const QUuid &deviceId, bool accept) override;
 
 private:
 	QPointer<ExchangeEngine> _engine;

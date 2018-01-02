@@ -10,9 +10,10 @@ namespace QtDataSync {
 class DeviceInfoPrivate : public QSharedData
 {
 public:
-	DeviceInfoPrivate(const QString &name = {}, const QByteArray &fingerprint = {});
+	DeviceInfoPrivate(const QUuid &deviceId = {}, const QString &name = {}, const QByteArray &fingerprint = {});
 	DeviceInfoPrivate(const DeviceInfoPrivate &other);
 
+	QUuid deviceId;
 	QString name;
 	QByteArray fingerprint;
 };
@@ -20,7 +21,7 @@ public:
 class LoginRequestPrivate
 {
 public:
-	LoginRequestPrivate(const QString &name, const QByteArray &fingerprint);
+	LoginRequestPrivate(const DeviceInfo &deviceInfo);
 	DeviceInfo device;
 	bool acted;
 	bool accepted;
@@ -130,9 +131,9 @@ void AccountManager::listDevices()
 	d->replica->listDevices();
 }
 
-void AccountManager::removeDevice(const QByteArray &fingerprint)
+void AccountManager::removeDevice(const QUuid &deviceId)
 {
-	d->replica->removeDevice(fingerprint);
+	d->replica->removeDevice(deviceId);
 }
 
 void AccountManager::updateDeviceKey()
@@ -169,12 +170,12 @@ void AccountManager::accountImportResult(quint32 id, bool success, const QString
 		completeFn(success, error);
 }
 
-void AccountManager::loginRequestedImpl(const QString &name, const QByteArray &fingerprint)
+void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
 {
-	LoginRequest request(new LoginRequestPrivate(name, fingerprint));
+	LoginRequest request(new LoginRequestPrivate(deviceInfo));
 	emit loginRequested(&request);
 	if(request.d->acted) //if any slot connected actually did something
-		d->replica->replyToLogin(fingerprint, request.d->accepted);
+		d->replica->replyToLogin(deviceInfo.deviceId(), request.d->accepted);
 }
 
 
@@ -235,8 +236,8 @@ void LoginRequest::reject()
 
 
 
-LoginRequestPrivate::LoginRequestPrivate(const QString &name, const QByteArray &fingerprint) :
-	device(name, fingerprint),
+LoginRequestPrivate::LoginRequestPrivate(const DeviceInfo &deviceInfo) :
+	device(deviceInfo),
 	acted(false),
 	accepted(false)
 {}
@@ -247,8 +248,12 @@ DeviceInfo::DeviceInfo() :
 	d(new DeviceInfoPrivate())
 {}
 
-DeviceInfo::DeviceInfo(const QString &name, const QByteArray &fingerprint) :
-	d(new DeviceInfoPrivate(name, fingerprint))
+DeviceInfo::DeviceInfo(const QUuid &deviceId, const QString &name, const QByteArray &fingerprint) :
+	d(new DeviceInfoPrivate(deviceId, name, fingerprint))
+{}
+
+DeviceInfo::DeviceInfo(const std::tuple<QUuid, QString, QByteArray> &init) :
+	DeviceInfo(std::get<0>(init), std::get<1>(init), std::get<2>(init))
 {}
 
 DeviceInfo::DeviceInfo(const DeviceInfo &other) :
@@ -263,6 +268,11 @@ DeviceInfo &DeviceInfo::operator=(const DeviceInfo &other)
 	return (*this);
 }
 
+QUuid DeviceInfo::deviceId() const
+{
+	return d->deviceId;
+}
+
 QString DeviceInfo::name() const
 {
 	return d->name;
@@ -271,6 +281,11 @@ QString DeviceInfo::name() const
 QByteArray DeviceInfo::fingerprint() const
 {
 	return d->fingerprint;
+}
+
+void DeviceInfo::setDeviceId(const QUuid &deviceId)
+{
+	d->deviceId = deviceId;
 }
 
 void DeviceInfo::setName(const QString &name)
@@ -285,14 +300,16 @@ void DeviceInfo::setFingerprint(const QByteArray &fingerprint)
 
 
 
-DeviceInfoPrivate::DeviceInfoPrivate(const QString &name, const QByteArray &fingerprint) :
+DeviceInfoPrivate::DeviceInfoPrivate(const QUuid &deviceId, const QString &name, const QByteArray &fingerprint) :
 	QSharedData(),
+	deviceId(deviceId),
 	name(name),
 	fingerprint(fingerprint)
 {}
 
 DeviceInfoPrivate::DeviceInfoPrivate(const DeviceInfoPrivate &other) :
 	QSharedData(other),
+	deviceId(other.deviceId),
 	name(other.name),
 	fingerprint(other.fingerprint)
 {}

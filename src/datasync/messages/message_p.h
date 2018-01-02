@@ -62,6 +62,11 @@ inline bool isType(const QByteArray &name);
 template <typename TMessage>
 TMessage deserializeMessage(QDataStream &stream);
 
+template<typename... Args>
+QDataStream &operator<<(QDataStream &stream, const std::tuple<Args...> &message);
+template<typename... Args>
+QDataStream &operator>>(QDataStream &stream, std::tuple<Args...> &message);
+
 // ------------- Generic Implementation -------------
 
 template<typename TMessage>
@@ -128,6 +133,48 @@ TMessage deserializeMessage(QDataStream &stream)
 		return message;
 	else
 		throw DataStreamException(stream);
+}
+
+//helper method
+template <size_t index, typename TTuple, typename TCurrent>
+void writeTuple(QDataStream &stream, const TTuple &data) {
+	stream << std::get<index>(data);
+}
+
+//helper method
+template <size_t index, typename TTuple, typename TCurrent, typename TNext, typename... TArgs>
+void writeTuple(QDataStream &stream, const TTuple &data) {
+	stream << std::get<index>(data);
+	writeTuple<index+1, TTuple, TNext, TArgs...>(stream, data);
+}
+
+template<typename... Args>
+QDataStream &operator<<(QDataStream &stream, const std::tuple<Args...> &message) {
+	typedef std::tuple<Args...> tpl;
+	writeTuple<0, tpl, Args...>(stream, message);
+	return stream;
+}
+
+//helper method
+template <size_t index, typename TTuple, typename TCurrent>
+void readTuple(QDataStream &stream, TTuple &data) {
+	stream >> std::get<index>(data);
+}
+
+//helper method
+template <size_t index, typename TTuple, typename TCurrent, typename TNext, typename... TArgs>
+void readTuple(QDataStream &stream, TTuple &data) {
+	stream >> std::get<index>(data);
+	readTuple<index+1, TTuple, TNext, TArgs...>(stream, data);
+}
+
+template<typename... Args>
+QDataStream &operator>>(QDataStream &stream, std::tuple<Args...> &message) {
+	typedef std::tuple<Args...> tpl;
+	stream.startTransaction();
+	readTuple<0, tpl, Args...>(stream, message);
+	stream.commitTransaction();
+	return stream;
 }
 
 }

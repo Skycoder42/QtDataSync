@@ -36,7 +36,7 @@ void AccountManagerPrivate::listDevices()
 	_engine->remoteConnector()->listDevices();
 }
 
-void AccountManagerPrivate::removeDevice(const QByteArray &fingerprint)
+void AccountManagerPrivate::removeDevice(const QUuid &deviceId)
 {
 
 }
@@ -66,7 +66,7 @@ void AccountManagerPrivate::importAccount(quint32 id, const QByteArray &importDa
 
 }
 
-void AccountManagerPrivate::replyToLogin(const QByteArray &fingerprint, bool accept)
+void AccountManagerPrivate::replyToLogin(const QUuid &deviceId, bool accept)
 {
 
 }

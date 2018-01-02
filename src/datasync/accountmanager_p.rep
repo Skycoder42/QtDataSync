@@ -6,16 +6,16 @@ class AccountManagerPrivate {
 	PROP(QByteArray deviceFingerprint READONLY);
 
 	SLOT(void listDevices());
-	SLOT(void removeDevice(const QByteArray &fingerprint)); //TODO emit accountDevices if removed from cached list
+	SLOT(void removeDevice(const QUuid &deviceId)); //TODO emit accountDevices if removed from cached list
 	SLOT(void updateDeviceKey());
 	SLOT(void updateExchangeKey());
 	SLOT(void exportAccount(quint32 id, bool includeServer));
 	SLOT(void exportAccountTrusted(quint32 id, bool includeServer, const QString &password));
 	SLOT(void importAccount(quint32 id, const QByteArray &importData));
-	SLOT(void replyToLogin(const QByteArray &fingerprint, bool accept));
+	SLOT(void replyToLogin(const QUuid &deviceId, bool accept));
 
 	SIGNAL(accountDevices(const QList<QtDataSync::DeviceInfo> &devices));
 	SIGNAL(accountExportReady(quint32 id, const QByteArray &exportData));
 	SIGNAL(accountImportResult(quint32 id, bool success, const QString &error));
-	SIGNAL(loginRequested(const QString &name, const QByteArray &fingerprint));
+	SIGNAL(loginRequested(const QtDataSync::DeviceInfo &deviceInfo));
 };

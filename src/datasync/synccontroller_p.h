@@ -17,6 +17,7 @@ public:
 	void initialize(const QVariantHash &params) override;
 
 public Q_SLOTS:
+	void setSyncEnabled(bool enabled);
 	void syncChange(quint64 key, const QByteArray &changeData);
 
 Q_SIGNALS:
@@ -24,6 +25,7 @@ Q_SIGNALS:
 
 private:
 	LocalStore *_store;
+	bool _enabled;
 };
 
 }

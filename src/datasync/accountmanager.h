@@ -2,8 +2,10 @@
 #define ACCOUNTMANAGER_H
 
 #include <functional>
+#include <tuple>
 
 #include <QtCore/qobject.h>
+#include <QtCore/quuid.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qiodevice.h>
@@ -22,20 +24,24 @@ class Q_DATASYNC_EXPORT DeviceInfo
 {
 	Q_GADGET
 
+	Q_PROPERTY(QUuid deviceId READ deviceId WRITE setDeviceId)
 	Q_PROPERTY(QString name READ name WRITE setName)
 	Q_PROPERTY(QByteArray fingerprint READ fingerprint WRITE setFingerprint)
 
 public:
 	DeviceInfo();
-	DeviceInfo(const QString &name, const QByteArray &fingerprint);
+	DeviceInfo(const QUuid &deviceId, const QString &name, const QByteArray &fingerprint);
+	DeviceInfo(const std::tuple<QUuid, QString, QByteArray> &init);
 	DeviceInfo(const DeviceInfo &other);
 	~DeviceInfo();
 
 	DeviceInfo &operator=(const DeviceInfo &other);
 
+	QUuid deviceId() const;
 	QString name() const;
 	QByteArray fingerprint() const;
 
+	void setDeviceId(const QUuid &deviceId);
 	void setName(const QString &name);
 	void setFingerprint(const QByteArray &fingerprint);
 
@@ -90,9 +96,9 @@ public:
 
 public Q_SLOTS:
 	void listDevices();
-	void removeDevice(const QByteArray &fingerprint);
+	void removeDevice(const QUuid &deviceId);
 	inline void removeDevice(const DeviceInfo &deviceInfo) {
-		removeDevice(deviceInfo.fingerprint());
+		removeDevice(deviceInfo.deviceId());
 	}
 
 	void updateDeviceKey();
@@ -111,7 +117,7 @@ Q_SIGNALS:
 private Q_SLOTS:
 	void accountExportReady(quint32 id, const QByteArray &exportData);
 	void accountImportResult(quint32 id, bool success, const QString &error);
-	void loginRequestedImpl(const QString &name, const QByteArray &fingerprint);
+	void loginRequestedImpl(const DeviceInfo &deviceInfo);
 
 private:
 	QScopedPointer<AccountManagerPrivateHolder> d;

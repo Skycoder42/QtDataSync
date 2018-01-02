@@ -377,11 +377,8 @@ void Client::onListDevices(const ListDevicesMessage &message)
 		throw UnexpectedException<ListDevicesMessage>();
 
 	DevicesMessage devMessage;
-	foreach (auto device, _database->listDevices(_deviceId)) {
-		DevicesMessage::DeviceInfo info;
-		std::tie(info.first, info.second) = device;
-		devMessage.devices.append(info);
-	}
+	foreach (auto device, _database->listDevices(_deviceId))
+		devMessage.devices.append(device);
 
 	sendMessage(serializeMessage(devMessage));
 }

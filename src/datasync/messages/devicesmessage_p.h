@@ -1,10 +1,12 @@
 #ifndef DEVICESMESSAGE_P_H
 #define DEVICESMESSAGE_P_H
 
-#include "message_p.h"
+#include <tuple>
 
-#include <QtCore/QPair>
+#include <QtCore/QUuid>
 #include <QtCore/QList>
+
+#include "message_p.h"
 
 namespace QtDataSync {
 
@@ -23,7 +25,7 @@ class Q_DATASYNC_EXPORT DevicesMessage
 	Q_PROPERTY(QList<DeviceInfo> devices MEMBER devices)
 
 public:
-	typedef QPair<QString, QByteArray> DeviceInfo;
+	typedef std::tuple<QUuid, QString, QByteArray> DeviceInfo;
 
 	DevicesMessage();
 

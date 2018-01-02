@@ -8,7 +8,8 @@ using namespace QtDataSync;
 
 SyncController::SyncController(const Defaults &defaults, QObject *parent) :
 	Controller("sync", defaults, parent),
-	_store(nullptr)
+	_store(nullptr),
+	_enabled(false)
 {}
 
 void SyncController::initialize(const QVariantHash &params)
@@ -17,8 +18,16 @@ void SyncController::initialize(const QVariantHash &params)
 	Q_ASSERT_X(_store, Q_FUNC_INFO, "Missing parameter: store (LocalStore)");
 }
 
+void SyncController::setSyncEnabled(bool enabled)
+{
+	_enabled = enabled;
+}
+
 void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 {
+	if(!_enabled)
+		return;
+
 	try {
 		bool remoteDeleted;
 		ObjectKey objKey;
