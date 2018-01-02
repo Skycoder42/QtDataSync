@@ -96,7 +96,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>IDENTIFY(nonce)</name>
-                         <pos>x:285;y:80</pos>
+                         <pos>x:255;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -140,8 +140,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ADDDEVICE&lt;REGISTER&gt;(partner, trusted, signature) </name>
-                         <pos>x:505;y:80</pos>
+                         <name>ACCESS&lt;REGISTER&gt;(pnonce, partner, trusted, signature) </name>
+                         <pos>x:450;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -185,8 +185,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>PROOF(deviceId, signScheme, signKey, cryptScheme, cryptKey, trusted, signature)</name>
-                         <pos>x:930;y:80</pos>
+                         <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, trusted, signature)</name>
+                         <pos>x:830;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -226,7 +226,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{7cbb180a-013b-45d9-9f1a-b50812c92cc4}</object>
                          <name>trusted</name>
-                         <pos>x:930;y:250</pos>
+                         <pos>x:830;y:250</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -271,7 +271,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>user must accept</name>
-                         <pos>x:745;y:250</pos>
+                         <pos>x:635;y:250</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -317,7 +317,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>AcceptanceError</name>
-                         <pos>x:285;y:250</pos>
+                         <pos>x:255;y:250</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                          <stereotype-display>1</stereotype-display>
@@ -340,7 +340,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{56782482-b0da-4ac0-8a16-770686ece787}</object>
                          <name>signature valid</name>
-                         <pos>x:745;y:405</pos>
+                         <pos>x:635;y:405</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -386,7 +386,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>DENY(deviceId)</name>
-                         <pos>x:505;y:250</pos>
+                         <pos>x:450;y:250</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -469,7 +469,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>ACCEPT(deviceId, enc{secret})</name>
-                         <pos>x:285;y:405</pos>
+                         <pos>x:255;y:405</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -533,7 +533,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ACCESS&lt;ACCOUNT&gt;(enc{secret})</name>
+                         <name>GRANT&lt;ACCOUNT&gt;(enc{secret})</name>
                          <pos>x:90;y:405</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -623,7 +623,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>parallel</item>
                           </qlist>
                          </stereotypes>
-                         <pos>x:505;y:405</pos>
+                         <pos>x:450;y:405</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -663,7 +663,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{7ef4effb-9dd5-4454-86d6-030c637b2d04}</object>
                          <name>has unpassed data</name>
-                         <pos>x:505;y:550</pos>
+                         <pos>x:450;y:550</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -708,7 +708,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:745;y:550</pos>
+                         <pos>x:635;y:550</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -753,8 +753,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>PUT&lt;CHANGE&gt;(deviceId)</name>
-                         <pos>x:285;y:550</pos>
+                         <name>DEVICECHANGE&lt;CHANGE&gt;(deviceId)</name>
+                         <pos>x:255;y:550</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -799,8 +799,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>DONE(dataId)</name>
-                         <pos>x:285;y:705</pos>
+                         <name>DEVICECHANGEACK&lt;CHANGEACK&gt;(deviceId)</name>
+                         <pos>x:255;y:695</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -1217,7 +1217,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1514908808438</last-modified>
+                  <last-modified>1514925811137</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1360,7 +1360,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ADDDEVICE&lt;REGISTER&gt;(partner, trusted, signature) </name>
+                  <name>ACCESS&lt;REGISTER&gt;(pnonce, partner, trusted, signature) </name>
                   <relations>
                    <handles>
                     <handles>
@@ -1418,7 +1418,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>PROOF(deviceId, signScheme, signKey, cryptScheme, cryptKey, trusted, signature)</name>
+                  <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, trusted, signature)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1856,7 +1856,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ACCESS&lt;ACCOUNT&gt;(enc{secret})</name>
+                  <name>GRANT&lt;ACCOUNT&gt;(enc{secret})</name>
                   <relations>
                    <handles>
                     <handles>
@@ -2126,7 +2126,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>PUT&lt;CHANGE&gt;(deviceId)</name>
+                  <name>DEVICECHANGE&lt;CHANGE&gt;(deviceId)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -2184,7 +2184,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>DONE(dataId)</name>
+                  <name>DEVICECHANGEACK&lt;CHANGEACK&gt;(deviceId)</name>
                   <relations>
                    <handles>
                     <handles>

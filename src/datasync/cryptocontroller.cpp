@@ -342,7 +342,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByt
 
 		QByteArray cipher;
 		QByteArraySource(plain, true,
-			new AuthenticatedEncryptionFilter(*(enc.data()),
+			new AuthenticatedEncryptionFilter(*enc,
 				new QByteArraySink(cipher)
 			) // AuthenticatedEncryptionFilter
 		); // QByteArraySource
@@ -366,7 +366,7 @@ QByteArray CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, c
 
 		QByteArray plain;
 		QByteArraySource(cipher, true,
-			new AuthenticatedDecryptionFilter(*(dec.data()),
+			new AuthenticatedDecryptionFilter(*dec,
 				new QByteArraySink(plain)
 			) // AuthenticatedDecryptionFilter
 		); // QByteArraySource
@@ -389,7 +389,7 @@ std::tuple<quint32, QByteArray> CryptoController::createCmac(const QByteArray &d
 
 		QByteArray mac;
 		QByteArraySource (data, true,
-			new HashFilter(*(cmac.data()),
+			new HashFilter(*cmac,
 				new QByteArraySink(mac)
 			) // HashFilter
 		); // QByteArraySource
@@ -411,7 +411,7 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 		cmac->SetKey(info.key.data(), info.key.size());
 
 		QByteArraySource (data + mac, true,
-			new HashVerificationFilter(*(cmac.data()), nullptr, HashVerificationFilter::THROW_EXCEPTION | HashVerificationFilter::HASH_AT_END) // HashFilter
+			new HashVerificationFilter(*cmac, nullptr, HashVerificationFilter::THROW_EXCEPTION | HashVerificationFilter::HASH_AT_END) // HashFilter
 		); // QByteArraySource
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),

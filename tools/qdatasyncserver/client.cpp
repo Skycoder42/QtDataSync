@@ -246,7 +246,7 @@ void Client::run(const std::function<void ()> &fn)
 
 const QLoggingCategory &Client::logFn() const
 {
-	return (*(_logCat.data()));
+	return *_logCat;
 }
 
 void Client::close()

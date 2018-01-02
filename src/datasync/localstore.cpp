@@ -55,6 +55,23 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 									  createQuery.lastError().text());
 		}
 	}
+
+	if(!_database->tables().contains(QStringLiteral("DeviceUploads"))) {
+		QSqlQuery createQuery(_database);
+		createQuery.prepare(QStringLiteral("CREATE TABLE DeviceUploads ( "
+										   "	Device	TEXT NOT NULL, "
+										   "	Type	TEXT NOT NULL, "
+										   "	Id		TEXT NOT NULL, "
+										   "	PRIMARY KEY(Device, Type, Id), "
+										   "	FOREIGN KEY(Type, Id) REFERENCES DataIndex ON DELETE CASCADE "
+										   ") WITHOUT ROWID;"));
+		if(!createQuery.exec()) {
+			throw LocalStoreException(_defaults,
+									  QByteArrayLiteral("any"),
+									  createQuery.executedQuery().simplified(),
+									  createQuery.lastError().text());
+		}
+	}
 }
 
 LocalStore::~LocalStore() {}

@@ -89,7 +89,7 @@ void AsymmetricCrypto::verify(const X509PublicKey &key, const QByteArray &messag
 
 	QByteArraySource (message + signature, true,
 		new SignatureVerificationFilter(
-			*(verifier.data()), nullptr,
+			*verifier, nullptr,
 			SignatureVerificationFilter::THROW_EXCEPTION | SignatureVerificationFilter::SIGNATURE_AT_END
 		) // SignatureVerificationFilter
 	); // QByteArraySource
@@ -101,7 +101,7 @@ QByteArray AsymmetricCrypto::sign(const PKCS8PrivateKey &key, RandomNumberGenera
 
 	QByteArray signature;
 	QByteArraySource (message, true,
-		new SignerFilter(rng, *(signer.data()),
+		new SignerFilter(rng, *signer,
 			new QByteArraySink(signature)
 	   ) // SignerFilter
 	); // QByteArraySource
@@ -114,7 +114,7 @@ QByteArray AsymmetricCrypto::encrypt(const X509PublicKey &key, CryptoPP::RandomN
 
 	QByteArray cipher;
 	QByteArraySource (message, true,
-		new PK_EncryptorFilter(rng, *(encryptor.data()),
+		new PK_EncryptorFilter(rng, *encryptor,
 			new QByteArraySink(cipher)
 	   ) // SignerFilter
 	); // QByteArraySource
@@ -127,7 +127,7 @@ QByteArray AsymmetricCrypto::decrypt(const PKCS8PrivateKey &key, RandomNumberGen
 
 	QByteArray plain;
 	QByteArraySource (message, true,
-		new PK_DecryptorFilter(rng, *(decryptor.data()),
+		new PK_DecryptorFilter(rng, *decryptor,
 			new QByteArraySink(plain)
 	   ) // SignerFilter
 	); // QByteArraySource
@@ -174,12 +174,12 @@ AsymmetricCryptoInfo::AsymmetricCryptoInfo(CryptoPP::RandomNumberGenerator &rng,
 
 const X509PublicKey &AsymmetricCryptoInfo::signatureKey() const
 {
-	return *(_signKey.data());
+	return *_signKey;
 }
 
 const X509PublicKey &AsymmetricCryptoInfo::encryptionKey() const
 {
-	return *(_cryptKey.data());
+	return *_cryptKey;
 }
 
 QByteArray AsymmetricCryptoInfo::ownFingerprint() const

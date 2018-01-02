@@ -75,3 +75,42 @@ void AccountManagerPrivate::replyToLogin(const QUuid &deviceId, bool accept)
 {
 
 }
+
+QByteArray AccountManagerPrivate::createExportData(bool includeServer, bool trusted)
+{
+	//TODO export data is: x{pnonce, deviceid, trusted}, signature(x), [server]
+}
+
+
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const ExportData &data)
+{
+	stream << data.pNonce
+		   << data.partnerId
+		   << data.trusted
+		   << data.signature;
+	if(data.config) {
+		stream << true
+			   << *(data.config);
+	} else
+		stream << false;
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, ExportData &data)
+{
+	stream.startTransaction();
+	bool hasConfig;
+	stream >> data.pNonce
+		   >> data.partnerId
+		   >> data.trusted
+		   >> data.signature
+		   >> hasConfig;
+	if(hasConfig) {
+		data.config = QSharedPointer<RemoteConfig>::create();
+		stream >> *(data.config);
+	} else
+		data.config.reset();
+	stream.commitTransaction();
+	return stream;
+}

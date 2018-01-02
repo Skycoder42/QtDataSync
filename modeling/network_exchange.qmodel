@@ -107,7 +107,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>DONE(changeId)</name>
+                         <name>CHANGEDACK(changeId)</name>
                          <pos>x:555;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -347,7 +347,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>DONE(dataId)</name>
+                         <name>CHANGEACK(dataId)</name>
                          <pos>x:535;y:700</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -701,7 +701,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>CHANGEINFO&lt;CHANGED&gt;(countEstimate)</name>
+                         <name>CHANGEDINFO&lt;CHANGED&gt;(countEstimate)</name>
                          <pos>x:790;y:245</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -1046,7 +1046,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>DONE(changeId)</name>
+                  <name>CHANGEDACK(changeId)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1325,7 +1325,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>DONE(dataId)</name>
+                  <name>CHANGEACK(dataId)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1739,7 +1739,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>CHANGEINFO&lt;CHANGED&gt;(countEstimate)</name>
+                  <name>CHANGEDINFO&lt;CHANGED&gt;(countEstimate)</name>
                   <relations>
                    <handles>
                     <handles>

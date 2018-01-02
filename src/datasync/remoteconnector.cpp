@@ -169,6 +169,10 @@ void RemoteConnector::resetAccount()
 
 		if(!devId.isNull()) {
 			settings()->remove(keyDeviceId);
+			settings()->remove(keyRemoteUrl);
+			settings()->remove(keyAccessKey);
+			settings()->remove(keyHeaders);
+			settings()->remove(keyKeepaliveTimeout);
 			_cryptoController->deleteKeyMaterial(devId);
 			if(isIdle()) {//delete yourself. Remote will disconnecte once done
 				Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
@@ -414,7 +418,7 @@ void RemoteConnector::doConnect()
 	request.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
 	request.setAttribute(QNetworkRequest::HTTP2AllowedAttribute, true);
 
-	auto keys = sValue(keyHeaders).value<QHash<QByteArray, QByteArray>>();
+	auto keys = sValue(keyHeaders).value<RemoteConfig::HeaderHash>();
 	for(auto it = keys.begin(); it != keys.end(); it++)
 		request.setRawHeader(it.key(), it.value());
 
@@ -571,7 +575,7 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		if(settings()->childGroups().contains(keyHeaders)) {
 			settings()->beginGroup(keyHeaders);
 			auto keys = settings()->childKeys();
-			QHash<QByteArray, QByteArray> headers;
+			RemoteConfig::HeaderHash headers;
 			foreach(auto key, keys)
 				headers.insert(key.toUtf8(), settings()->value(key).toByteArray());
 			settings()->endGroup();
@@ -585,13 +589,13 @@ QVariant RemoteConnector::sValue(const QString &key) const
 
 	auto config = defaults().property(Defaults::RemoteConfiguration).value<RemoteConfig>();
 	if(key == keyRemoteUrl)
-		return config.url;
+		return config.url();
 	else if(key == keyAccessKey)
-		return config.accessKey;
+		return config.accessKey();
 	else if(key == keyHeaders)
-		return QVariant::fromValue(config.headers);
+		return QVariant::fromValue(config.headers());
 	else if(key == keyKeepaliveTimeout)
-		return QVariant::fromValue(config.keepaliveTimeout);
+		return QVariant::fromValue(config.keepaliveTimeout());
 	else if(key == keyRemoteEnabled)
 		return true;
 	else if(key == keyDeviceName)
@@ -666,7 +670,18 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 		triggerError(true);
 	} else {
 		_deviceId = message.deviceId;
+
 		settings()->setValue(keyDeviceId, _deviceId);
+		//store remote config as well -> via current values, taken from defaults
+		settings()->setValue(keyRemoteUrl, sValue(keyRemoteUrl));
+		settings()->setValue(keyAccessKey, sValue(keyAccessKey));
+		auto headers = sValue(keyHeaders).value<RemoteConfig::HeaderHash>();
+		settings()->beginGroup(keyHeaders);
+		for(auto it = headers.begin(); it != headers.end(); it++)
+			settings()->setValue(QString::fromUtf8(it.key()), it.value());
+		settings()->endGroup();
+		settings()->setValue(keyKeepaliveTimeout, sValue(keyKeepaliveTimeout));
+
 		_cryptoController->storePrivateKeys(_deviceId);
 		logDebug() << "Registration successful";
 		_expectChanges = false;

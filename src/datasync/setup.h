@@ -5,6 +5,7 @@
 #include <QtCore/qlogging.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qhash.h>
+#include <QtCore/qshareddata.h>
 class QLockFile;
 
 #include <QtNetwork/qsslconfiguration.h>
@@ -16,6 +17,7 @@ class QLockFile;
 
 class QJsonSerializer;
 
+//TODO use std::ratio constants instead?
 #define KB(x) (x*1024)
 #define MB(x) (KB(x)*1024)
 #define GB(x) (MB(x)*1024)
@@ -24,16 +26,43 @@ namespace QtDataSync {
 
 class ConflictResolver;
 
-struct Q_DATASYNC_EXPORT RemoteConfig {
-	QUrl url;
-	QString accessKey;
-	QHash<QByteArray, QByteArray> headers;
-	int keepaliveTimeout;
+class RemoteConfigPrivate;
+class Q_DATASYNC_EXPORT RemoteConfig
+{
+	Q_GADGET
+
+	Q_PROPERTY(QUrl url READ url WRITE setUrl)
+	Q_PROPERTY(QString accessKey READ accessKey WRITE setAccessKey)
+	Q_PROPERTY(HeaderHash headers READ headers WRITE setHeaders)
+	Q_PROPERTY(int keepaliveTimeout READ keepaliveTimeout WRITE setKeepaliveTimeout)
+
+public:
+	typedef QHash<QByteArray, QByteArray> HeaderHash;
 
 	RemoteConfig(const QUrl &url = {},
 				 const QString &accessKey = {},
-				 const QHash<QByteArray, QByteArray> &headers = {},
+				 const HeaderHash &headers = {},
 				 int keepaliveTimeout = 1); //1 minute between ping messages (nginx timeout is 75 seconds be default)
+	RemoteConfig(const RemoteConfig &other);
+	~RemoteConfig();
+
+	RemoteConfig &operator=(const RemoteConfig &other);
+
+	QUrl url() const;
+	QString accessKey() const;
+	HeaderHash headers() const;
+	int keepaliveTimeout() const;
+
+	void setUrl(QUrl url);
+	void setAccessKey(QString accessKey);
+	void setHeaders(HeaderHash headers);
+	void setKeepaliveTimeout(int keepaliveTimeout);
+
+private:
+	QSharedDataPointer<RemoteConfigPrivate> d;
+
+	friend Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemoteConfig &deviceInfo);
+	friend Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemoteConfig &deviceInfo);
 };
 
 class SetupPrivate;
@@ -256,6 +285,9 @@ protected:
 	QString _hostname;
 	QString _appname;
 };
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemoteConfig &deviceInfo);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemoteConfig &deviceInfo);
 
 }
 

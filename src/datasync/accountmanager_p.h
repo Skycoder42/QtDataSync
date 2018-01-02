@@ -10,6 +10,18 @@
 
 namespace QtDataSync {
 
+class Q_DATASYNC_EXPORT ExportData
+{
+public:
+	ExportData();
+
+	QByteArray pNonce;
+	QUuid partnerId;
+	bool trusted;
+	QByteArray signature;
+	QSharedPointer<RemoteConfig> config;
+};
+
 class Q_DATASYNC_EXPORT AccountManagerPrivate : public AccountManagerPrivateSource
 {
 	Q_OBJECT
@@ -34,7 +46,12 @@ public Q_SLOTS:
 
 private:
 	QPointer<ExchangeEngine> _engine;
+
+	QByteArray createExportData(bool includeServer, bool trusted);
 };
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ExportData &data);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ExportData &data);
 
 }
 
