@@ -232,6 +232,38 @@ void CryptoController::clearKeyMaterial()
 	emit fingerprintChanged(QByteArray());
 }
 
+void CryptoController::deleteKeyMaterial(const QUuid &deviceId)
+{
+	try {
+		//remove all saved keys
+		auto keyDir = keysDir();
+		keyDir.removeRecursively();
+
+		settings()->remove(keySignScheme);
+		settings()->remove(keyCryptScheme);
+		settings()->remove(keyLocalSymKey);
+		settings()->remove(keyKeystore);
+
+		ensureStoreOpen();
+		_keyStore->remove(keySignKeyTemplate.arg(deviceId.toString()));
+		_keyStore->remove(keyCryptKeyTemplate.arg(deviceId.toString()));
+		closeStore();
+
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
+	} catch(CppException &e) {
+		closeStore();
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to remove private key"),
+							  e);
+	}
+
+	//clear loaded keys
+	clearKeyMaterial();
+}
+
 void CryptoController::createPrivateKeys(const QByteArray &nonce)
 {
 	try {

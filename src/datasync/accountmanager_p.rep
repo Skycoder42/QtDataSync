@@ -9,9 +9,10 @@ class AccountManagerPrivate {
 	SLOT(void removeDevice(const QUuid &deviceId)); //TODO emit accountDevices if removed from cached list
 	SLOT(void updateDeviceKey());
 	SLOT(void updateExchangeKey());
+	SLOT(void resetAccount(bool keepData));
 	SLOT(void exportAccount(quint32 id, bool includeServer));
 	SLOT(void exportAccountTrusted(quint32 id, bool includeServer, const QString &password));
-	SLOT(void importAccount(quint32 id, const QByteArray &importData));
+	SLOT(void importAccount(quint32 id, const QByteArray &importData, bool keepData));
 	SLOT(void replyToLogin(const QUuid &deviceId, bool accept));
 
 	SIGNAL(accountDevices(const QList<QtDataSync::DeviceInfo> &devices));

@@ -10,7 +10,8 @@ HEADERS += \
 	$$PWD/syncmessage_p.h \
 	$$PWD/changemessage_p.h \
 	$$PWD/changedmessage_p.h \
-    $$PWD/devicesmessage_p.h
+    $$PWD/devicesmessage_p.h \
+    $$PWD/removemessage_p.h
 
 SOURCES += \
 	$$PWD/message.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
 	$$PWD/syncmessage.cpp \
 	$$PWD/changemessage.cpp \
 	$$PWD/changedmessage.cpp \
-    $$PWD/devicesmessage.cpp
+    $$PWD/devicesmessage.cpp \
+    $$PWD/removemessage.cpp
 
 INCLUDEPATH += $$PWD

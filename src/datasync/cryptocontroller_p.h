@@ -65,6 +65,7 @@ public:
 	bool acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);
 	void clearKeyMaterial();
+	void deleteKeyMaterial(const QUuid &deviceId);
 
 	void createPrivateKeys(const QByteArray &nonce);
 	void storePrivateKeys(const QUuid &deviceId) const;

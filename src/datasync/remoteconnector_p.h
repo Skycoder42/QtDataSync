@@ -22,6 +22,7 @@
 #include "changemessage_p.h"
 #include "changedmessage_p.h"
 #include "devicesmessage_p.h"
+#include "removemessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -68,6 +69,8 @@ public Q_SLOTS:
 
 	void resync();
 	void listDevices();
+	void removeDevice(const QUuid &deviceId);
+	void resetAccount();
 
 	void setSyncEnabled(bool syncEnabled);
 
@@ -100,6 +103,7 @@ private Q_SLOTS:
 	void doDisconnect();
 	void scheduleRetry();
 	void onEntryIdleState();
+	void onExitActiveState();
 
 private:
 	static const QVector<std::chrono::seconds> Timeouts;
@@ -116,6 +120,7 @@ private:
 	bool _expectChanges;
 
 	QUuid _deviceId;
+	mutable QList<DeviceInfo> _deviceCache;
 
 	bool isIdle() const;
 	void triggerError(bool canRecover);
@@ -136,6 +141,7 @@ private:
 	void onChangedInfo(const ChangedInfoMessage &message);
 	void onLastChanged(const LastChangedMessage &message);
 	void onDevices(const DevicesMessage &message);
+	void onRemoved(const RemovedMessage &message);
 };
 
 }

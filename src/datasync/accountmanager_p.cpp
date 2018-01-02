@@ -38,7 +38,7 @@ void AccountManagerPrivate::listDevices()
 
 void AccountManagerPrivate::removeDevice(const QUuid &deviceId)
 {
-
+	_engine->remoteConnector()->removeDevice(deviceId);
 }
 
 void AccountManagerPrivate::updateDeviceKey()
@@ -51,6 +51,11 @@ void AccountManagerPrivate::updateExchangeKey()
 
 }
 
+void AccountManagerPrivate::resetAccount(bool keepData)
+{
+	_engine->resetAccount(keepData);
+}
+
 void AccountManagerPrivate::exportAccount(quint32 id, bool includeServer)
 {
 
@@ -61,7 +66,7 @@ void AccountManagerPrivate::exportAccountTrusted(quint32 id, bool includeServer,
 
 }
 
-void AccountManagerPrivate::importAccount(quint32 id, const QByteArray &importData)
+void AccountManagerPrivate::importAccount(quint32 id, const QByteArray &importData, bool keepData)
 {
 
 }

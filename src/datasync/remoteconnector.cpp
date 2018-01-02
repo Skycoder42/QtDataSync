@@ -46,7 +46,8 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_stateMachine(nullptr),
 	_retryIndex(0),
 	_expectChanges(false),
-	_deviceId()
+	_deviceId(),
+	_deviceCache()
 {}
 
 CryptoController *RemoteConnector::cryptoController() const
@@ -71,9 +72,7 @@ void RemoteConnector::initialize(const QVariantHash &params)
 	_stateMachine->connectToState(QStringLiteral("Idle"),
 								  this, ConnectorStateMachine::onEntry(this, &RemoteConnector::onEntryIdleState));
 	_stateMachine->connectToState(QStringLiteral("Active"),
-								  this, ConnectorStateMachine::onExit([this](){
-		emit remoteEvent(RemoteDisconnected);
-	}));
+								  this, ConnectorStateMachine::onExit(this, &RemoteConnector::onExitActiveState));
 	_stateMachine->connectToEvent(QStringLiteral("doDisconnect"),
 								  this, &RemoteConnector::doDisconnect);
 #ifndef QT_NO_DEBUG
@@ -148,6 +147,40 @@ void RemoteConnector::listDevices()
 	if(!isIdle())
 		return;
 	_socket->sendBinaryMessage(serializeMessage(ListDevicesMessage()));
+}
+
+void RemoteConnector::removeDevice(const QUuid &deviceId)
+{
+	if(!isIdle())
+		return;
+	if(deviceId == _deviceId) {
+		logWarning() << "Cannot delete your own device. Use reset the account instead";
+		return;
+	}
+	_socket->sendBinaryMessage(serializeMessage<RemoveMessage>(deviceId));
+}
+
+void RemoteConnector::resetAccount()
+{
+	try {
+		auto devId = _deviceId;
+		if(devId.isNull())
+			devId = sValue(keyDeviceId).toUuid();
+
+		if(!devId.isNull()) {
+			settings()->remove(keyDeviceId);
+			_cryptoController->deleteKeyMaterial(devId);
+			if(isIdle()) {//delete yourself. Remote will disconnecte once done
+				Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
+				_socket->sendBinaryMessage(serializeMessage<RemoveMessage>(devId));
+			} else //TODO send later? would require signing...
+				reconnect();
+		} else
+			logInfo() << "Skipping server reset, not registered to a server";
+	} catch(Exception &e) {
+		logCritical() << "Failed to reset account completly:" << e.what();
+		triggerError(true);
+	}
 }
 
 void RemoteConnector::setSyncEnabled(bool syncEnabled)
@@ -275,6 +308,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onLastChanged(deserializeMessage<LastChangedMessage>(stream));
 		else if(isType<DevicesMessage>(name))
 			onDevices(deserializeMessage<DevicesMessage>(stream));
+		else if(isType<RemovedMessage>(name))
+			onRemoved(deserializeMessage<RemovedMessage>(stream));
 		else {
 			logWarning().noquote() << "Unknown message received:" << typeName(name);
 			triggerError(true);
@@ -438,6 +473,13 @@ void RemoteConnector::onEntryIdleState()
 		remoteEvent(RemoteReadyWithChanges);
 	} else
 		emit remoteEvent(RemoteReady);
+}
+
+void RemoteConnector::onExitActiveState()
+{
+	_deviceId = QUuid();
+	_deviceCache.clear();
+	emit remoteEvent(RemoteDisconnected);
 }
 
 bool RemoteConnector::isIdle() const
@@ -703,9 +745,31 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 		triggerError(true);
 	} else {
 		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
-		QList<DeviceInfo> infoList;
+		_deviceCache.clear();
 		foreach(auto device, message.devices)
-			infoList.append(device);
-		emit devicesListed(infoList);
+			_deviceCache.append(device);
+		emit devicesListed(_deviceCache);
+	}
+}
+
+void RemoteConnector::onRemoved(const RemovedMessage &message)
+{
+	if(!isIdle()) {
+		logWarning() << "Unexpected DevicesMessage";
+		triggerError(true);
+	} else {
+		logDebug() << "Device with id" << message.deviceId << "was removed";
+		if(_deviceId == message.deviceId)
+			reconnect();
+		else {
+			//in case the device was known, remove it
+			for(auto it = _deviceCache.begin(); it != _deviceCache.end(); it++) {
+				if(it->deviceId() == message.deviceId) {
+					_deviceCache.erase(it);
+					emit devicesListed(_deviceCache);
+					break;
+				}
+			}
+		}
 	}
 }

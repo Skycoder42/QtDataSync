@@ -84,7 +84,7 @@ public:
 
 	QList<QJsonObject> find(const QByteArray &typeName, const QString &query) const;
 	void clear(const QByteArray &typeName);
-	void reset();
+	void reset(bool keepData);
 
 	// change access
 	quint32 changeCount() const;

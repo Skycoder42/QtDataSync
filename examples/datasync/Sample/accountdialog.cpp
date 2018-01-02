@@ -60,7 +60,7 @@ void AccountDialog::updateDevices(const QList<QtDataSync::DeviceInfo> &devices)
 		auto item = new QTreeWidgetItem(ui->treeWidget);
 		item->setText(0, device.name());
 		item->setText(1, printFingerprint(device.fingerprint()));
-		item->setData(1, Qt::UserRole, device.fingerprint());
+		item->setData(0, Qt::UserRole + 1, device.deviceId());
 	}
 }
 
@@ -75,4 +75,22 @@ QString AccountDialog::printFingerprint(const QByteArray &fingerprint)
 	foreach(char c, fingerprint)
 		res.append(QByteArray(1, c).toHex());
 	return QString::fromUtf8(res.join(':'));
+}
+
+void AccountDialog::on_action_Remove_Device_triggered()
+{
+	auto item = ui->treeWidget->currentItem();
+	if(item) {
+		auto id = item->data(0, Qt::UserRole + 1).toUuid();
+		if(!id.isNull())
+			_manager->removeDevice(id);
+	}
+}
+
+void AccountDialog::on_buttonBox_clicked(QAbstractButton *button)
+{
+	if(ui->buttonBox->standardButton(button) == QDialogButtonBox::Reset)
+		_manager->resetAccount(true);
+	else if(ui->buttonBox->standardButton(button) == QDialogButtonBox::RestoreDefaults)
+		_manager->resetAccount(false);
 }

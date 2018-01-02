@@ -53,7 +53,7 @@ QByteArray AsymmetricCrypto::encryptionScheme() const
 	return _encryption->name();
 }
 
-QByteArray AsymmetricCrypto::fingerprint(const X509PublicKey &signingKey, const X509PublicKey &encryptionKey) const
+QByteArray AsymmetricCrypto::fingerprint(const X509PublicKey &signingKey, const X509PublicKey &encryptionKey) const //TODO not always the same...
 {
 	QCryptographicHash hash(QCryptographicHash::Sha3_256);
 	hash.addData(signatureScheme());

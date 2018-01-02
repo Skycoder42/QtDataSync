@@ -56,6 +56,7 @@ public:
 												 QObject *parent = nullptr);
 	void updateLogin(const QUuid &deviceId, const QString &name);
 	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId);
+	void removeDevice(const QUuid &deviceId, const QUuid &deleteId);
 
 	void addChange(const QUuid &deviceId,
 				   const QByteArray &dataId,

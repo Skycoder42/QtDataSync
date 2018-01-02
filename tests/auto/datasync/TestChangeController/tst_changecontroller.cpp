@@ -178,7 +178,7 @@ void TestChangeController::testChangeTriggers()
 
 	try {
 		//clear
-		store->reset();
+		store->reset(false);
 		QVERIFY(changeSpy.isEmpty());
 		QVERIFY(errorSpy.isEmpty());
 

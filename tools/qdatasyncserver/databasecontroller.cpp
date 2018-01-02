@@ -190,6 +190,49 @@ QList<std::tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(co
 	return resList;
 }
 
+void DatabaseController::removeDevice(const QUuid &deviceId, const QUuid &deleteId)
+{
+	auto db = _threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
+
+	try {
+		Query userIdQuery(db);
+		userIdQuery.prepare(QStringLiteral("SELECT userid FROM devices WHERE id = ?"));
+		userIdQuery.addBindValue(deviceId);
+		userIdQuery.exec();
+		if(!userIdQuery.first()) {
+			if(!db.commit())
+				throw DatabaseException(db);
+			return;
+		}
+
+		auto userId = userIdQuery.value(0).toULongLong();
+		Query deleteDeviceQuery(db);
+		deleteDeviceQuery.prepare(QStringLiteral("DELETE FROM devices "
+												 "WHERE id = ? AND userid = ?"));
+		deleteDeviceQuery.addBindValue(deleteId);
+		deleteDeviceQuery.addBindValue(userId);
+		deleteDeviceQuery.exec();
+
+		Query deleteUserQuery(db);
+		deleteUserQuery.prepare(QStringLiteral("DELETE FROM users WHERE id = ? "
+											   "AND NOT EXISTS ( "
+											   "	SELECT 1 FROM devices "
+											   "	WHERE userid = ? "
+											   ")"));
+		deleteUserQuery.addBindValue(userId);
+		deleteUserQuery.addBindValue(userId);
+		deleteUserQuery.exec();
+
+		if(!db.commit())
+			throw DatabaseException(db);
+	} catch(...) {
+		db.rollback();
+		throw;
+	}
+}
+
 void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
 {
 	auto db = _threadStore.localData().database();

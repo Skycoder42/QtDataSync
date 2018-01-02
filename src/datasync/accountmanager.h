@@ -87,9 +87,10 @@ public:
 
 	QRemoteObjectReplica *replica() const;
 
+	void resetAccount(bool keepData = true);
 	void exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn);
 	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn);
-	void importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn);
+	void importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 
 	QString deviceName() const;
 	QByteArray deviceFingerprint() const;

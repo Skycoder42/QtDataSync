@@ -157,6 +157,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onChangedAck(deserializeMessage<ChangedAckMessage>(stream));
 			else if(isType<ListDevicesMessage>(name))
 				onListDevices(deserializeMessage<ListDevicesMessage>(stream));
+			else if(isType<RemoveMessage>(name))
+				onRemove(deserializeMessage<RemoveMessage>(stream));
 			else {
 				qWarning() << "Unknown message received:" << typeName(name);
 				sendMessage(serializeMessage<ErrorMessage>({
@@ -381,6 +383,16 @@ void Client::onListDevices(const ListDevicesMessage &message)
 		devMessage.devices.append(device);
 
 	sendMessage(serializeMessage(devMessage));
+}
+
+void Client::onRemove(const RemoveMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<RemoveMessage>();
+	_database->removeDevice(_deviceId, message.deviceId);
+	sendMessage(serializeMessage<RemovedMessage>(message.deviceId));
+	if(_deviceId == message.deviceId)
+		closeLater(); //in case the client does not get the message...
 }
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)

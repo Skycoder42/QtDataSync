@@ -159,7 +159,7 @@ void TestLocalStore::testClear()
 		//reset
 		store->save(TestLib::generateKey(42), TestLib::generateDataJson(42));
 		QCOMPARE(store->count(TestLib::TypeName), 1ull);
-		store->reset();
+		store->reset(false);
 		QCOMPARE(store->count(TestLib::TypeName), 0ull);
 	} catch(QException &e) {
 		QFAIL(e.what());

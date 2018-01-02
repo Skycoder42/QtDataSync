@@ -77,6 +77,11 @@ QRemoteObjectReplica *AccountManager::replica() const
 	return d->replica;
 }
 
+void AccountManager::resetAccount(bool keepData)
+{
+	return d->replica->resetAccount(keepData);
+}
+
 void AccountManager::exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
@@ -103,7 +108,7 @@ void AccountManager::exportAccountTrusted(bool includeServer, const QString &pas
 	d->replica->exportAccountTrusted(id, includeServer, password);
 }
 
-void AccountManager::importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn)
+void AccountManager::importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
@@ -113,7 +118,7 @@ void AccountManager::importAccount(const QByteArray &importData, const std::func
 	} while(d->importActions.contains(id));
 
 	d->importActions.insert(id, completedFn);
-	d->replica->importAccount(id, importData);
+	d->replica->importAccount(id, importData,keepData);
 }
 
 QString AccountManager::deviceName() const
@@ -185,24 +190,6 @@ AccountManagerPrivateHolder::AccountManagerPrivateHolder(AccountManagerPrivateRe
 	exportActions(),
 	importActions()
 {}
-
-
-
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceInfo &deviceInfo)
-{
-	stream << deviceInfo.d->name
-		   << deviceInfo.d->fingerprint;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceInfo &deviceInfo)
-{
-	stream.startTransaction();
-	stream >> deviceInfo.d->name
-		   >> deviceInfo.d->fingerprint;
-	stream.commitTransaction();
-	return stream;
-}
 
 // ------------- LoginRequest Implementation -------------
 
@@ -313,3 +300,23 @@ DeviceInfoPrivate::DeviceInfoPrivate(const DeviceInfoPrivate &other) :
 	name(other.name),
 	fingerprint(other.fingerprint)
 {}
+
+
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceInfo &deviceInfo)
+{
+	stream << deviceInfo.d->deviceId
+		   << deviceInfo.d->name
+		   << deviceInfo.d->fingerprint;
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceInfo &deviceInfo)
+{
+	stream.startTransaction();
+	stream >> deviceInfo.d->deviceId
+		   >> deviceInfo.d->name
+		   >> deviceInfo.d->fingerprint;
+	stream.commitTransaction();
+	return stream;
+}

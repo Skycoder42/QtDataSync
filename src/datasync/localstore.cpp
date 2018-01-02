@@ -326,7 +326,7 @@ void LocalStore::clear(const QByteArray &typeName)
 	emit dataCleared(typeName);
 }
 
-void LocalStore::reset()
+void LocalStore::reset(bool keepData)
 {
 	//scope for the lock
 	{
@@ -336,16 +336,22 @@ void LocalStore::reset()
 			throw LocalStoreException(_defaults, {}, _database->databaseName(), _database->lastError().text());
 
 		try {
-			QSqlQuery resetQuery(_database);
-			resetQuery.prepare(QStringLiteral("DELETE FROM DataIndex"));
-			exec(resetQuery);
+			if(keepData) { //mark everything changed, to upload if needed
+				QSqlQuery resetQuery(_database);
+				resetQuery.prepare(QStringLiteral("UPDATE DataIndex SET Changed = 1"));
+				exec(resetQuery);
+			} else { //delete everything
+				QSqlQuery resetQuery(_database);
+				resetQuery.prepare(QStringLiteral("DELETE FROM DataIndex"));
+				exec(resetQuery);
 
-			//note: resets are local only, so they dont trigger any changecontroller stuff
+				//note: resets are local only, so they dont trigger any changecontroller stuff
 
-			auto tableDir = _defaults.storageDir();
-			if(tableDir.cd(QStringLiteral("store"))) {
-				if(!tableDir.removeRecursively()) //no rollback, as partially removed is possible, better keep junk data...
-					logWarning() << "Failed to delete store directory" << tableDir.absolutePath();
+				auto tableDir = _defaults.storageDir();
+				if(tableDir.cd(QStringLiteral("store"))) {
+					if(!tableDir.removeRecursively()) //no rollback, as partially removed is possible, better keep junk data...
+						logWarning() << "Failed to delete store directory" << tableDir.absolutePath();
+				}
 			}
 
 			if(!_database->commit())
@@ -356,11 +362,13 @@ void LocalStore::reset()
 		}
 
 		//notify others (and self)
-		emit emitter->dataResetted(this);
+		if(!keepData)
+			emit emitter->dataResetted(this);
 	}
 
 	//own signal
-	emit dataResetted();
+	if(!keepData)
+		emit dataResetted();
 }
 
 quint32 LocalStore::changeCount() const

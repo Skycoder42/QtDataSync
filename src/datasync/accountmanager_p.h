@@ -26,9 +26,10 @@ public Q_SLOTS:
 	void removeDevice(const QUuid &deviceId) override;
 	void updateDeviceKey() override;
 	void updateExchangeKey() override;
+	void resetAccount(bool keepData) override;
 	void exportAccount(quint32 id, bool includeServer) override;
 	void exportAccountTrusted(quint32 id, bool includeServer, const QString &password) override;
-	void importAccount(quint32 id, const QByteArray &importData) override;
+	void importAccount(quint32 id, const QByteArray &importData, bool keepData) override;
 	void replyToLogin(const QUuid &deviceId, bool accept) override;
 
 private:

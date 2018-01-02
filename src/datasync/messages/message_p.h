@@ -1,6 +1,8 @@
 #ifndef MESSAGE_P_H
 #define MESSAGE_P_H
 
+#include <tuple>
+
 #include <QtCore/QObject>
 #include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
@@ -61,11 +63,6 @@ template <typename TMessage>
 inline bool isType(const QByteArray &name);
 template <typename TMessage>
 TMessage deserializeMessage(QDataStream &stream);
-
-template<typename... Args>
-QDataStream &operator<<(QDataStream &stream, const std::tuple<Args...> &message);
-template<typename... Args>
-QDataStream &operator>>(QDataStream &stream, std::tuple<Args...> &message);
 
 // ------------- Generic Implementation -------------
 
@@ -135,6 +132,14 @@ TMessage deserializeMessage(QDataStream &stream)
 		throw DataStreamException(stream);
 }
 
+}
+
+//define outside of namespace for clang
+template<typename... Args>
+QDataStream &operator<<(QDataStream &stream, const std::tuple<Args...> &message);
+template<typename... Args>
+QDataStream &operator>>(QDataStream &stream, std::tuple<Args...> &message);
+
 //helper method
 template <size_t index, typename TTuple, typename TCurrent>
 void writeTuple(QDataStream &stream, const TTuple &data) {
@@ -175,8 +180,6 @@ QDataStream &operator>>(QDataStream &stream, std::tuple<Args...> &message) {
 	readTuple<0, tpl, Args...>(stream, message);
 	stream.commitTransaction();
 	return stream;
-}
-
 }
 
 #endif // MESSAGE_H

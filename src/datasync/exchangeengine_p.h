@@ -51,6 +51,8 @@ public Q_SLOTS:
 	void initialize();
 	void finalize();
 
+	void resetAccount(bool keepData);
+
 Q_SIGNALS:
 	void stateChanged(QtDataSync::SyncManager::SyncState state);
 	void progressChanged(qreal progress);

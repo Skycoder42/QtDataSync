@@ -413,7 +413,7 @@ void TestSyncController::testSyncOperation()
 	QSignalSpy errorSpy(controller, &SyncController::controllerError);
 
 	try {
-		store->reset();
+		store->reset(false);
 
 		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
 		dPriv->properties.insert(Defaults::PersistDeleted, persistent);
@@ -513,7 +513,7 @@ void TestSyncController::testResolver()
 	auto version = 10ull;
 
 	try {
-		store->reset();
+		store->reset(false);
 
 		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
 		auto oldRes = dPriv->resolver;
