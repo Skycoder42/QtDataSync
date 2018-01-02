@@ -43,6 +43,7 @@ void TestSyncController::initTestCase()
 		store = new LocalStore(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 		controller = new SyncController(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 		controller->initialize({{QStringLiteral("store"), QVariant::fromValue(store)}});
+		controller->setSyncEnabled(true);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
