@@ -869,7 +869,15 @@ void EccKeyScheme<TScheme>::createPrivateKey(RandomNumberGenerator &rng, const Q
 	if(keyParam.type() != QVariant::Int)
 		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_ARGUMENT, "keyParam must be a Setup::EllipticCurve");
 	auto curve = ClientCrypto::curveId((Setup::EllipticCurve)keyParam.toInt());
-	_key.Initialize(rng, curve);
+
+	//special hack: save and load again for consistency (needed for fingerprint)
+	typename TScheme::PrivateKey tmpKey;
+	tmpKey.Initialize(rng, curve);
+	QByteArray buffer;
+	QByteArraySink sink(buffer);
+	tmpKey.Save(sink);
+	QByteArraySource source(buffer, true);
+	_key.Load(source);
 }
 
 template <typename TScheme>
