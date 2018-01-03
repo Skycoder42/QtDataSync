@@ -22,12 +22,18 @@ using namespace QtDataSync;
 #define logRetry(...) (_retryIndex == 0 ? logWarning(__VA_ARGS__) : (logDebug(__VA_ARGS__) << "Repeated"))
 
 const QString RemoteConnector::keyRemoteEnabled(QStringLiteral("enabled"));
+const QString RemoteConnector::keyRemoteConfig(QStringLiteral("remote"));
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remote/url"));
 const QString RemoteConnector::keyAccessKey(QStringLiteral("remote/accessKey"));
 const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
 const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepaliveTimeout"));
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
+const QString RemoteConnector::keyImport(QStringLiteral("import"));
+const QString RemoteConnector::keyImportNonce(QStringLiteral("import/nonce"));
+const QString RemoteConnector::keyImportPartner(QStringLiteral("import/partner"));
+const QString RemoteConnector::keyImportTrusted(QStringLiteral("import/trusted"));
+const QString RemoteConnector::keyImportSignature(QStringLiteral("import/signature"));
 
 const QVector<std::chrono::seconds> RemoteConnector::Timeouts = {
 	std::chrono::seconds(5),
@@ -127,13 +133,8 @@ ExportData RemoteConnector::exportAccount(bool trusted, bool includeServer)
 	data.trusted = trusted;
 	data.signature = _cryptoController->crypto()->sign(data.signData());
 
-	if(includeServer) {
-		data.config = QSharedPointer<RemoteConfig>::create();
-		data.config->setUrl(sValue(keyRemoteUrl).toUrl());
-		data.config->setAccessKey(sValue(keyAccessKey).toString());
-		data.config->setHeaders(sValue(keyHeaders).value<RemoteConfig::HeaderHash>());
-		data.config->setKeepaliveTimeout(sValue(keyKeepaliveTimeout).toInt());
-	}
+	if(includeServer)
+		data.config = QSharedPointer<RemoteConfig>::create(loadConfig());
 
 	_exportsCache.insert(data.pNonce);
 	return data;
@@ -185,9 +186,14 @@ void RemoteConnector::removeDevice(const QUuid &deviceId)
 	_socket->sendBinaryMessage(serializeMessage<RemoveMessage>(deviceId));
 }
 
-void RemoteConnector::resetAccount()
+void RemoteConnector::resetAccount(bool clearConfig)
 {
 	try {
+		if(clearConfig) { //always clear, in order to reset imports
+			settings()->remove(keyRemoteConfig);
+			settings()->remove(keyImport);
+		}
+
 		auto devId = _deviceId;
 		if(devId.isNull())
 			devId = sValue(keyDeviceId).toUuid();
@@ -195,10 +201,6 @@ void RemoteConnector::resetAccount()
 		if(!devId.isNull()) {
 			_exportsCache.clear();
 			settings()->remove(keyDeviceId);
-			settings()->remove(keyRemoteUrl);
-			settings()->remove(keyAccessKey);
-			settings()->remove(keyHeaders);
-			settings()->remove(keyKeepaliveTimeout);
 			_cryptoController->deleteKeyMaterial(devId);
 			if(isIdle()) {//delete yourself. Remote will disconnecte once done
 				Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
@@ -207,17 +209,29 @@ void RemoteConnector::resetAccount()
 				_deviceId = QUuid();
 				reconnect();
 			}
-		} else
+		} else {
 			logInfo() << "Skipping server reset, not registered to a server";
+			//still reconnect, as this "completes" the operation (and is needed for imports)
+			reconnect();
+		}
 	} catch(Exception &e) {
 		logCritical() << "Failed to reset account completly:" << e.what();
 		triggerError(true);
 	}
 }
 
-void RemoteConnector::importAccount(const ExportData &data, bool keepData)
+void RemoteConnector::prepareImport(const ExportData &data)
 {
-
+	//assume data was already "validated"
+	if(data.config)
+		storeConfig(*(data.config));
+	else
+		settings()->remove(keyRemoteConfig);
+	settings()->setValue(keyImportNonce, data.pNonce);
+	settings()->setValue(keyImportPartner, data.partnerId);
+	settings()->setValue(keyImportTrusted, data.trusted);
+	settings()->setValue(keyImportSignature, data.signature);
+	//after storing, continue with "normal" reset. This MUST be done by the engine, thus not in this function
 }
 
 void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
@@ -643,6 +657,28 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return {};
 }
 
+RemoteConfig RemoteConnector::loadConfig() const
+{
+	RemoteConfig config;
+	config.setUrl(sValue(keyRemoteUrl).toUrl());
+	config.setAccessKey(sValue(keyAccessKey).toString());
+	config.setHeaders(sValue(keyHeaders).value<RemoteConfig::HeaderHash>());
+	config.setKeepaliveTimeout(sValue(keyKeepaliveTimeout).toInt());
+	return config;
+}
+
+void RemoteConnector::storeConfig(const RemoteConfig &config)
+{
+	//store remote config as well -> via current values, taken from defaults
+	settings()->setValue(keyRemoteUrl, config.url());
+	settings()->setValue(keyAccessKey, config.accessKey());
+	settings()->beginGroup(keyHeaders);
+	for(auto it = config.headers().begin(); it != config.headers().end(); it++)
+		settings()->setValue(QString::fromUtf8(it.key()), it.value());
+	settings()->endGroup();
+	settings()->setValue(keyKeepaliveTimeout, config.keepaliveTimeout());
+}
+
 void RemoteConnector::onError(const ErrorMessage &message)
 {
 	logCritical() << message;
@@ -689,15 +725,23 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 			logDebug() << "Sent login message for device id" << _deviceId;
 		} else {
 			_cryptoController->createPrivateKeys(message.nonce);
-			RegisterMessage msg(sValue(keyDeviceName).toString(),
-								message.nonce,
-								_cryptoController->crypto()->signKey(),
-								_cryptoController->crypto()->cryptKey(),
-								_cryptoController->crypto());
-			auto signedMsg = _cryptoController->serializeSignedMessage(msg);
-			_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
-			_socket->sendBinaryMessage(signedMsg);
-			logDebug() << "Sent registration message for new id";
+
+			//check if register or import
+			auto pNonce = settings()->value(keyImportNonce).toByteArray();
+			if(pNonce.isEmpty()) {
+				RegisterMessage msg(sValue(keyDeviceName).toString(),
+									message.nonce,
+									_cryptoController->crypto()->signKey(),
+									_cryptoController->crypto()->cryptKey(),
+									_cryptoController->crypto());
+				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
+				_socket->sendBinaryMessage(signedMsg);
+				logDebug() << "Sent registration message for new id";
+			} else {
+				Q_UNIMPLEMENTED();
+				triggerError(false);
+			}
 		}
 	}
 }
@@ -711,15 +755,7 @@ void RemoteConnector::onAccount(const AccountMessage &message)
 		_deviceId = message.deviceId;
 
 		settings()->setValue(keyDeviceId, _deviceId);
-		//store remote config as well -> via current values, taken from defaults
-		settings()->setValue(keyRemoteUrl, sValue(keyRemoteUrl));
-		settings()->setValue(keyAccessKey, sValue(keyAccessKey));
-		auto headers = sValue(keyHeaders).value<RemoteConfig::HeaderHash>();
-		settings()->beginGroup(keyHeaders);
-		for(auto it = headers.begin(); it != headers.end(); it++)
-			settings()->setValue(QString::fromUtf8(it.key()), it.value());
-		settings()->endGroup();
-		settings()->setValue(keyKeepaliveTimeout, sValue(keyKeepaliveTimeout));
+		storeConfig(loadConfig());//make shure it's stored, in case it was from defaults
 
 		_cryptoController->storePrivateKeys(_deviceId);
 		logDebug() << "Registration successful";

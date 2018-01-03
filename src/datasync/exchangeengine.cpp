@@ -141,12 +141,12 @@ void ExchangeEngine::finalize()
 	_changeController->finalize();
 }
 
-void ExchangeEngine::resetAccount(bool keepData)
+void ExchangeEngine::resetAccount(bool keepData, bool clearConfig)
 {
 	_syncController->setSyncEnabled(false);
 	_changeController->clearUploads();
 	_localStore->reset(keepData);
-	_remoteConnector->resetAccount();
+	_remoteConnector->resetAccount(clearConfig);
 }
 
 void ExchangeEngine::controllerError(const QString &errorMessage)

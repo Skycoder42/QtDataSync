@@ -127,8 +127,9 @@ void AccountManagerPrivate::importAccount(const JsonObject &importData, bool kee
 			throw Exception(_engine->defaults(), QStringLiteral("One or more fields contain incomplete or invalid data"));
 		}
 
-		//start the import sequence
-		_engine->remoteConnector()->importAccount(data, keepData);
+		//start the import sequence (prepare remcon, then reset)
+		_engine->remoteConnector()->prepareImport(data);
+		_engine->resetAccount(keepData, false);
 		emit accountImportResult(true, {});
 	} catch(QException &e) {
 		logWarning() << "Failed to import data with error:" << e.what();

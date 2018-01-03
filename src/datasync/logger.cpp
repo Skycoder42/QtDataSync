@@ -37,5 +37,5 @@ void Logger::reportFatalError(const char *error, const char *file, int line, con
 LoggerPrivate::LoggerPrivate(const QString &setupName, const QByteArray &subCategory) :
 	setupName(setupName),
 	catName("qtdatasync." + setupName.toUtf8() + "." + subCategory),
-	logCat(catName.constData(), QtWarningMsg)
+	logCat(catName.constData(), QtInfoMsg)
 {}

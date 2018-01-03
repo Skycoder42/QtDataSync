@@ -51,12 +51,18 @@ class Q_DATASYNC_EXPORT RemoteConnector : public Controller
 
 public:
 	static const QString keyRemoteEnabled;
+	static const QString keyRemoteConfig;
 	static const QString keyRemoteUrl;
 	static const QString keyAccessKey;
 	static const QString keyHeaders;
 	static const QString keyKeepaliveTimeout;
 	static const QString keyDeviceId;
 	static const QString keyDeviceName;
+	static const QString keyImport;
+	static const QString keyImportNonce;
+	static const QString keyImportPartner;
+	static const QString keyImportTrusted;
+	static const QString keyImportSignature;
 
 	enum RemoteEvent {
 		RemoteDisconnected,
@@ -85,8 +91,8 @@ public Q_SLOTS:
 
 	void listDevices();
 	void removeDevice(const QUuid &deviceId);
-	void resetAccount();
-	void importAccount(const ExportData &data, bool keepData);
+	void resetAccount(bool removeConfig);
+	void prepareImport(const ExportData &data);
 	void loginReply(const QUuid &deviceId, bool accept);
 
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
@@ -150,6 +156,8 @@ private:
 	std::chrono::seconds retry();
 
 	QVariant sValue(const QString &key) const;
+	RemoteConfig loadConfig() const;
+	void storeConfig(const RemoteConfig &config);
 
 	void onError(const ErrorMessage &message);
 	void onIdentify(const IdentifyMessage &message);

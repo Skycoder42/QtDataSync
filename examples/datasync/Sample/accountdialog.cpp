@@ -124,7 +124,7 @@ void AccountDialog::on_pushButton_clicked()
 	if(!ok)
 		return;
 
-	auto path = QFileDialog::getSaveFileName(this, tr("Account Export"));
+	auto path = QFileDialog::getSaveFileName(this, tr("Account Export"), QStringLiteral("/tmp/"));
 	if(!path.isEmpty()) {
 		auto fn = [this, path](QByteArray d) {
 			QFile f(path);
@@ -140,5 +140,37 @@ void AccountDialog::on_pushButton_clicked()
 			_manager->exportAccount(true, fn, eFn);
 		else
 			_manager->exportAccountTrusted(true, pw, fn, eFn);
+	}
+}
+
+void AccountDialog::on_pushButton_2_clicked()
+{
+	auto path = QFileDialog::getOpenFileName(this, tr("Account Import"), QStringLiteral("/tmp/"));
+	if(!path.isEmpty()) {
+		QFile f(path);
+		f.open(QIODevice::ReadOnly);
+		auto data = f.readAll();
+		f.close();
+
+		auto fn = [this](bool ok, QString error) {
+			if(ok)
+				QMessageBox::information(this, tr("Account Import"), tr("Account import successful!"));
+			else
+				QMessageBox::critical(this, tr("Account Import failed!"), error);
+		};
+
+		if(QtDataSync::AccountManager::isTrustedImport(data)) {
+			bool ok = false;
+			auto pw = QInputDialog::getText(this,
+											tr("Account Import"),
+											tr("Enter the password for the imported data:"),
+											QLineEdit::Password,
+											QString(),
+											&ok);
+			if(!ok)
+				return;
+			_manager->importAccountTrusted(data, pw, fn);
+		} else
+			_manager->importAccount(data, fn);
 	}
 }

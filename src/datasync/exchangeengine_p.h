@@ -52,7 +52,7 @@ public Q_SLOTS:
 	void initialize();
 	void finalize();
 
-	void resetAccount(bool keepData);
+	void resetAccount(bool keepData, bool clearConfig = true);
 
 Q_SIGNALS:
 	void stateChanged(QtDataSync::SyncManager::SyncState state);
