@@ -10,18 +10,6 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ExportData
-{
-public:
-	ExportData();
-
-	QByteArray pNonce;
-	QUuid partnerId;
-	bool trusted;
-	QByteArray signature;
-	QSharedPointer<RemoteConfig> config;
-};
-
 class Q_DATASYNC_EXPORT AccountManagerPrivate : public AccountManagerPrivateSource
 {
 	Q_OBJECT
@@ -41,17 +29,15 @@ public Q_SLOTS:
 	void resetAccount(bool keepData) override;
 	void exportAccount(quint32 id, bool includeServer) override;
 	void exportAccountTrusted(quint32 id, bool includeServer, const QString &password) override;
-	void importAccount(quint32 id, const QByteArray &importData, bool keepData) override;
+	void importAccount(quint32 id, const QJsonObject &importData, bool keepData) override;
 	void replyToLogin(const QUuid &deviceId, bool accept) override;
 
 private:
 	QPointer<ExchangeEngine> _engine;
+	Logger *_logger;
 
-	QByteArray createExportData(bool includeServer, bool trusted);
+	QJsonObject createExportData(bool trusted, bool includeServer);
 };
-
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ExportData &data);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ExportData &data);
 
 }
 

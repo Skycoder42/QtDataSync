@@ -42,6 +42,11 @@ void ExchangeEngine::enterFatalState(const QString &error, const char *file, int
 	defaultFatalErrorHandler(error, _defaults.setupName(), context);
 }
 
+Defaults ExchangeEngine::defaults() const
+{
+	return _defaults;
+}
+
 ChangeController *ExchangeEngine::changeController() const
 {
 	return _changeController;

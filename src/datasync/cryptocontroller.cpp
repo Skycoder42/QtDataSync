@@ -12,6 +12,7 @@
 #include <cryptopp/idea.h>
 #include <cryptopp/twofish.h>
 #include <cryptopp/serpent.h>
+#include <cryptopp/pwdbased.h>
 
 #include <qiodevicesink.h>
 #include <qiodevicesource.h>
@@ -92,6 +93,9 @@ private:
 // ------------- CryptoController Implementation -------------
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
+
+const byte CryptoController::PwPurpose = (byte)0x42;
+const int CryptoController::PwRounds = 5;
 
 const QString CryptoController::keyKeystore(QStringLiteral("keystore"));
 const QString CryptoController::keySignScheme(QStringLiteral("scheme/signing"));
@@ -416,6 +420,82 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify CMAC"),
+							  e);
+	}
+}
+
+std::tuple<QByteArray, QByteArray, QByteArray> CryptoController::pwEncrypt(const QByteArray &data, const QString &password) const
+{
+	try {
+		auto pw = password.toUtf8();
+
+		//load the algorithm
+		CipherInfo info;
+		createScheme((Setup::CipherScheme)defaults().property(Defaults::SymScheme).toInt(), info.scheme);
+		info.key.CleanNew(info.scheme->defaultKeyLength());
+
+		//create a salt
+		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
+		_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
+
+		//generate the key
+		PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
+		keydev.DeriveKey(info.key.data(), info.key.size(),
+						 PwPurpose, (const byte*)pw.constData(), pw.size(),
+						 (const byte*)salt.constData(), salt.size(), PwRounds);
+
+		//encrypt
+		auto enc = info.scheme->encryptor();
+		enc->SetKeyWithIV(info.key.data(), info.key.size(),
+						  (const byte*)salt.constData(), salt.size());
+
+		QByteArray cipher;
+		QByteArraySource(data, true,
+			new AuthenticatedEncryptionFilter(*enc,
+				new QByteArraySink(cipher)
+			) // AuthenticatedEncryptionFilter
+		); // QByteArraySource
+
+		return std::tuple<QByteArray, QByteArray, QByteArray>{info.scheme->name(), salt, cipher};
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to encrypt with password"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::pwDecrypt(const QByteArray &scheme, const QByteArray &salt, const QByteArray &data, const QString &password) const
+{
+	try {
+		auto pw = password.toUtf8();
+
+		//load the algorithm
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key.CleanNew(info.scheme->defaultKeyLength());
+
+		//generate the key
+		PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
+		keydev.DeriveKey(info.key.data(), info.key.size(),
+						 PwPurpose, (const byte*)pw.constData(), pw.size(),
+						 (const byte*)salt.constData(), salt.size(), PwRounds);
+
+		//encrypt
+		auto dec = info.scheme->decryptor();
+		dec->SetKeyWithIV(info.key.data(), info.key.size(),
+						  (const byte*)salt.constData(), salt.size());
+
+		QByteArray plain;
+		QByteArraySource(data, true,
+			new AuthenticatedDecryptionFilter(*dec,
+				new QByteArraySink(plain)
+			) // AuthenticatedEncryptionFilter
+		); // QByteArraySource
+
+		return plain;
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to decrypt with password"),
 							  e);
 	}
 }

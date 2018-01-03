@@ -33,7 +33,7 @@ public:
 	AccountManagerPrivateHolder(AccountManagerPrivateReplica *replica);
 
 	AccountManagerPrivateReplica *replica;
-	QHash<quint32, std::function<void(QByteArray)>> exportActions;
+	QHash<quint32, std::function<void(QJsonObject)>> exportActions;
 	QHash<quint32, std::function<void(bool,QString)>> importActions;
 };
 
@@ -82,7 +82,7 @@ void AccountManager::resetAccount(bool keepData)
 	return d->replica->resetAccount(keepData);
 }
 
-void AccountManager::exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn)
+void AccountManager::exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
@@ -95,7 +95,15 @@ void AccountManager::exportAccount(bool includeServer, const std::function<void(
 	d->replica->exportAccount(id, includeServer);
 }
 
-void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn)
+void AccountManager::exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn)
+{
+	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
+	exportAccount(includeServer, [completedFn](QJsonObject obj) {
+		completedFn(QJsonDocument(obj).toJson(QJsonDocument::Compact));
+	});
+}
+
+void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const std::function<void (QJsonObject)> &completedFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
@@ -108,7 +116,15 @@ void AccountManager::exportAccountTrusted(bool includeServer, const QString &pas
 	d->replica->exportAccountTrusted(id, includeServer, password);
 }
 
-void AccountManager::importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData)
+void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn)
+{
+	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
+	exportAccountTrusted(includeServer, password, [completedFn](QJsonObject obj) {
+		completedFn(QJsonDocument(obj).toJson(QJsonDocument::Compact));
+	});
+}
+
+void AccountManager::importAccount(const QJsonObject &importData, const std::function<void (bool, QString)> &completedFn, bool keepData)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
@@ -118,7 +134,12 @@ void AccountManager::importAccount(const QByteArray &importData, const std::func
 	} while(d->importActions.contains(id));
 
 	d->importActions.insert(id, completedFn);
-	d->replica->importAccount(id, importData,keepData);
+	d->replica->importAccount(id, importData, keepData);
+}
+
+void AccountManager::importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData)
+{
+	importAccount(QJsonDocument::fromJson(importData).object(), completedFn, keepData);
 }
 
 QString AccountManager::deviceName() const
@@ -161,7 +182,7 @@ void AccountManager::resetDeviceName()
 	d->replica->setDeviceName(QString());
 }
 
-void AccountManager::accountExportReady(quint32 id, const QByteArray &exportData)
+void AccountManager::accountExportReady(quint32 id, const QJsonObject &exportData)
 {
 	auto completeFn = d->exportActions.take(id);
 	if(completeFn)

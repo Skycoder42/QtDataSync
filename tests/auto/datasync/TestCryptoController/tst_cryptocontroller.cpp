@@ -29,10 +29,14 @@ private Q_SLOTS:
 	void testSymCrypto_data();
 	void testSymCrypto();
 
+	void testPwCrypto_data();
+	void testPwCrypto();
+
 private:
 	CryptoController *controller;
 
 	void cryptoData();
+	void symData();
 };
 
 void TestCryptoController::initTestCase()
@@ -188,15 +192,7 @@ void TestCryptoController::testKeyAccess()
 
 void TestCryptoController::testSymCrypto_data()
 {
-	QTest::addColumn<Setup::CipherScheme>("scheme");
-
-	QTest::newRow("AES_EAX") << Setup::AES_EAX;
-	QTest::newRow("AES_GCM") << Setup::AES_GCM;
-	QTest::newRow("TWOFISH_EAX") << Setup::TWOFISH_EAX;
-	QTest::newRow("TWOFISH_GCM") << Setup::TWOFISH_GCM;
-	QTest::newRow("SERPENT_EAX") << Setup::SERPENT_EAX;
-	QTest::newRow("SERPENT_GCM") << Setup::SERPENT_GCM;
-	QTest::newRow("IDEA_EAX") << Setup::IDEA_EAX;
+	symData();
 }
 
 void TestCryptoController::testSymCrypto()
@@ -241,6 +237,35 @@ void TestCryptoController::testSymCrypto()
 	}
 }
 
+void TestCryptoController::testPwCrypto_data()
+{
+	symData();
+}
+
+void TestCryptoController::testPwCrypto()
+{
+	QFETCH(Setup::CipherScheme, scheme);
+
+	QByteArray message("another message to be processed");
+	QString password(QStringLiteral("super secure password"));
+
+	try {
+		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
+		dPriv->properties.insert(Defaults::SymScheme, scheme);
+
+		//encryption
+		QByteArray schemeName;
+		QByteArray salt;
+		QByteArray cipher;
+		std::tie(schemeName, salt, cipher) = controller->pwEncrypt(message, password);
+		QCOMPARE(controller->pwDecrypt(schemeName, salt, cipher, password), message);
+
+		QVERIFY_EXCEPTION_THROWN(controller->pwDecrypt(schemeName, salt, cipher, QStringLiteral("wrong password")), CryptoException);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
 void TestCryptoController::cryptoData()
 {
 	QTest::addColumn<Setup::SignatureScheme>("signScheme");
@@ -270,6 +295,19 @@ void TestCryptoController::cryptoData()
 									<< QVariant(512)
 									<< true
 									<< false;
+}
+
+void TestCryptoController::symData()
+{
+	QTest::addColumn<Setup::CipherScheme>("scheme");
+
+	QTest::newRow("AES_EAX") << Setup::AES_EAX;
+	QTest::newRow("AES_GCM") << Setup::AES_GCM;
+	QTest::newRow("TWOFISH_EAX") << Setup::TWOFISH_EAX;
+	QTest::newRow("TWOFISH_GCM") << Setup::TWOFISH_GCM;
+	QTest::newRow("SERPENT_EAX") << Setup::SERPENT_EAX;
+	QTest::newRow("SERPENT_GCM") << Setup::SERPENT_GCM;
+	QTest::newRow("IDEA_EAX") << Setup::IDEA_EAX;
 }
 
 QTEST_MAIN(TestCryptoController)

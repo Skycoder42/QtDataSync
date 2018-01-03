@@ -39,6 +39,7 @@ public:
 									const char *function,
 									const char *category);
 
+	Defaults defaults() const;
 	ChangeController *changeController() const;
 	RemoteConnector *remoteConnector() const;
 	CryptoController *cryptoController() const;

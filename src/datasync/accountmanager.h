@@ -10,6 +10,7 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qscopedpointer.h>
+#include <QtCore/qjsonobject.h>
 
 #include "qtdatasync_global.h"
 
@@ -88,8 +89,11 @@ public:
 	QRemoteObjectReplica *replica() const;
 
 	void resetAccount(bool keepData = true);
+	void exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn);
 	void exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn);
+	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QJsonObject)> &completedFn);
 	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn);
+	void importAccount(const QJsonObject &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 	void importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 
 	QString deviceName() const;
@@ -116,7 +120,7 @@ Q_SIGNALS:
 	void deviceFingerprintChanged(const QByteArray &deviceFingerprint);
 
 private Q_SLOTS:
-	void accountExportReady(quint32 id, const QByteArray &exportData);
+	void accountExportReady(quint32 id, const QJsonObject &exportData);
 	void accountImportResult(quint32 id, bool success, const QString &error);
 	void loginRequestedImpl(const DeviceInfo &deviceInfo);
 

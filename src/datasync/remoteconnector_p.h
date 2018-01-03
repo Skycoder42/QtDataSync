@@ -28,6 +28,18 @@ class ConnectorStateMachine;
 
 namespace QtDataSync {
 
+class Q_DATASYNC_EXPORT ExportData
+{
+public:
+	ExportData();
+
+	QByteArray pNonce;
+	QUuid partnerId;
+	bool trusted;
+	QByteArray signature;
+	QSharedPointer<RemoteConfig> config;
+};
+
 class Q_DATASYNC_EXPORT RemoteConnector : public Controller
 {
 	Q_OBJECT
@@ -59,24 +71,24 @@ public:
 	void initialize(const QVariantHash &params) final;
 	void finalize() final;
 
-	Q_INVOKABLE bool isSyncEnabled() const;
+	ExportData exportAccount(bool trusted, bool includeServer);
 
+	bool isSyncEnabled() const;
 	QString deviceName() const;
 
 public Q_SLOTS:
 	void reconnect();
 	void disconnect();
-
 	void resync();
+
 	void listDevices();
 	void removeDevice(const QUuid &deviceId);
 	void resetAccount();
 
-	void setSyncEnabled(bool syncEnabled);
-
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
 	void downloadDone(const quint64 key);
 
+	void setSyncEnabled(bool syncEnabled);
 	void setDeviceName(const QString &deviceName);
 	void resetDeviceName();
 
@@ -118,6 +130,7 @@ private:
 	ConnectorStateMachine *_stateMachine;
 	int _retryIndex;
 	bool _expectChanges;
+	//TODO timeout for server downloads?
 
 	QUuid _deviceId;
 	mutable QList<DeviceInfo> _deviceCache;

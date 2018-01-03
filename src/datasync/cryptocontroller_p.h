@@ -79,6 +79,9 @@ public:
 	std::tuple<quint32, QByteArray> createCmac(const QByteArray &data) const;
 	void verifyCmac(quint32 keyIndex, const QByteArray &data, const QByteArray &mac) const;
 
+	std::tuple<QByteArray, QByteArray, QByteArray> pwEncrypt(const QByteArray &data, const QString &password) const;
+	QByteArray pwDecrypt(const QByteArray &scheme, const QByteArray &salt, const QByteArray &data, const QString &password) const;
+
 Q_SIGNALS:
 	void fingerprintChanged(const QByteArray &fingerprint);
 
@@ -87,6 +90,9 @@ private:
 		QSharedPointer<CipherScheme> scheme;
 		CryptoPP::SecByteBlock key;
 	};
+
+	static const byte PwPurpose;
+	static const int PwRounds;
 
 	static const QString keyKeystore;
 	static const QString keySignScheme;
@@ -110,7 +116,7 @@ private:
 
 	void ensureStoreOpen() const;
 	void closeStore() const;
-	void storeCipherKey(quint32 keyIndex) const;
+	void storeCipherKey(quint32 keyIndex) const; //TODO delete old keys
 
 	const CipherInfo &getInfo(quint32 keyIndex) const;
 	QDir keysDir() const;

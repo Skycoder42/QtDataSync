@@ -114,6 +114,26 @@ void RemoteConnector::finalize()
 		emit finalized();
 }
 
+ExportData RemoteConnector::exportAccount(bool trusted, bool includeServer)
+{
+	ExportData data;
+	data.pNonce = ""; //TODO generate and store
+	if(_deviceId.isNull())
+		data.partnerId = sValue(keyDeviceId).toUuid();
+	else
+		data.partnerId = _deviceId;
+	data.trusted = trusted;
+	data.signature = ""; //TODO
+	if(includeServer) {
+		data.config = QSharedPointer<RemoteConfig>::create();
+		data.config->setUrl(sValue(keyRemoteUrl).toUrl());
+		data.config->setAccessKey(sValue(keyAccessKey).toString());
+		data.config->setHeaders(sValue(keyHeaders).value<RemoteConfig::HeaderHash>());
+		data.config->setKeepaliveTimeout(sValue(keyKeepaliveTimeout).toInt());
+	}
+	return data;
+}
+
 bool RemoteConnector::isSyncEnabled() const
 {
 	return sValue(keyRemoteEnabled).toBool();
@@ -187,16 +207,6 @@ void RemoteConnector::resetAccount()
 	}
 }
 
-void RemoteConnector::setSyncEnabled(bool syncEnabled)
-{
-	if (sValue(keyRemoteEnabled).toBool() == syncEnabled)
-		return;
-
-	settings()->setValue(keyRemoteEnabled, syncEnabled);
-	reconnect();
-	emit syncEnabledChanged(syncEnabled);
-}
-
 void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
 {
 	try {
@@ -229,6 +239,16 @@ void RemoteConnector::downloadDone(const quint64 key)
 		logCritical() << e.what();
 		triggerError(false);
 	}
+}
+
+void RemoteConnector::setSyncEnabled(bool syncEnabled)
+{
+	if (sValue(keyRemoteEnabled).toBool() == syncEnabled)
+		return;
+
+	settings()->setValue(keyRemoteEnabled, syncEnabled);
+	reconnect();
+	emit syncEnabledChanged(syncEnabled);
 }
 
 void RemoteConnector::setDeviceName(const QString &deviceName)
@@ -788,3 +808,13 @@ void RemoteConnector::onRemoved(const RemovedMessage &message)
 		}
 	}
 }
+
+
+
+ExportData::ExportData() :
+	pNonce(),
+	partnerId(),
+	trusted(false),
+	signature(),
+	config(nullptr)
+{}
