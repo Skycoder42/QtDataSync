@@ -34,8 +34,8 @@ public:
 
 	AccountManagerPrivateReplica *replica;
 	QHash<quint32, std::function<void(QJsonObject)>> exportActions;
-	QHash<quint32, std::function<void(bool,QString)>> importActions;
 	QHash<quint32, std::function<void(QString)>> errorActions;
+	std::function<void(bool,QString)> importAction;
 };
 
 }
@@ -78,6 +78,16 @@ AccountManager::~AccountManager() {}
 QRemoteObjectReplica *AccountManager::replica() const
 {
 	return d->replica;
+}
+
+bool AccountManager::isTrustedImport(const QJsonObject &importData)
+{
+	return importData[QStringLiteral("trusted")].toBool();
+}
+
+bool AccountManager::isTrustedImport(const QByteArray &importData)
+{
+	return isTrustedImport(QJsonDocument::fromJson(importData).object());
 }
 
 void AccountManager::resetAccount(bool keepData)
@@ -135,18 +145,34 @@ void AccountManager::importAccount(const QJsonObject &importData, const std::fun
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
-	quint32 id;
-	do {
-		id = (quint32)qrand();
-	} while(d->importActions.contains(id));
-
-	d->importActions.insert(id, completedFn);
-	d->replica->importAccount(id, importData, keepData);
+	if(d->importAction)
+		completedFn(false, tr("Already importing. Only one import at a time is possible"));
+	else {
+		d->importAction = completedFn;
+		d->replica->importAccount(importData, keepData);
+	}
 }
 
 void AccountManager::importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData)
 {
 	importAccount(QJsonDocument::fromJson(importData).object(), completedFn, keepData);
+}
+
+void AccountManager::importAccountTrusted(const QJsonObject &importData, const QString &password, const std::function<void (bool, QString)> &completedFn, bool keepData)
+{
+	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
+
+	if(d->importAction)
+		completedFn(false, tr("Already importing. Only one import at a time is possible"));
+	else {
+		d->importAction = completedFn;
+		d->replica->importAccountTrusted(importData, password, keepData);
+	}
+}
+
+void AccountManager::importAccountTrusted(const QByteArray &importData, const QString &password, const std::function<void (bool, QString)> &completedFn, bool keepData)
+{
+	importAccountTrusted(QJsonDocument::fromJson(importData).object(), password, completedFn, keepData);
 }
 
 QString AccountManager::deviceName() const
@@ -205,11 +231,12 @@ void AccountManager::accountExportError(quint32 id, const QString &errorString)
 	d->exportActions.remove(id);
 }
 
-void AccountManager::accountImportResult(quint32 id, bool success, const QString &error)
+void AccountManager::accountImportResult(bool success, const QString &error)
 {
-	auto completeFn = d->importActions.take(id);
-	if(completeFn)
-		completeFn(success, error);
+	if(d->importAction) {
+		d->importAction(success, error);
+		d->importAction = {};
+	}
 }
 
 void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
@@ -225,8 +252,8 @@ void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
 AccountManagerPrivateHolder::AccountManagerPrivateHolder(AccountManagerPrivateReplica *replica) :
 	replica(replica),
 	exportActions(),
-	importActions(),
-	errorActions()
+	errorActions(),
+	importAction()
 {}
 
 // ------------- LoginRequest Implementation -------------

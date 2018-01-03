@@ -88,13 +88,18 @@ public:
 
 	QRemoteObjectReplica *replica() const;
 
+	static bool isTrustedImport(const QJsonObject &importData);
+	static bool isTrustedImport(const QByteArray &importData);
+
 	void resetAccount(bool keepData = true);
 	void exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn = {});
 	void exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn = {});
 	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn = {});
 	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn = {});
-	void importAccount(const QJsonObject &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
+	void importAccount(const QJsonObject &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false); //NOTE doc: completed does not mean accepted from peer, just valid import
 	void importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
+	void importAccountTrusted(const QJsonObject &importData, const QString &password, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
+	void importAccountTrusted(const QByteArray &importData, const QString &password, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 
 	QString deviceName() const;
 	QByteArray deviceFingerprint() const;
@@ -114,7 +119,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices);
-	void loginRequested(LoginRequest * const request);
+	void loginRequested(LoginRequest *request);
 
 	void deviceNameChanged(const QString &deviceName);
 	void deviceFingerprintChanged(const QByteArray &deviceFingerprint);
@@ -122,7 +127,7 @@ Q_SIGNALS:
 private Q_SLOTS:
 	void accountExportReady(quint32 id, const QJsonObject &exportData);
 	void accountExportError(quint32 id, const QString &errorString);
-	void accountImportResult(quint32 id, bool success, const QString &error);
+	void accountImportResult(bool success, const QString &error);
 	void loginRequestedImpl(const DeviceInfo &deviceInfo);
 
 private:

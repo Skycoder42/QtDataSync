@@ -86,6 +86,8 @@ public Q_SLOTS:
 	void listDevices();
 	void removeDevice(const QUuid &deviceId);
 	void resetAccount();
+	void importAccount(const ExportData &data, bool keepData);
+	void loginReply(const QUuid &deviceId, bool accept);
 
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
 	void downloadDone(const quint64 key);
@@ -103,6 +105,7 @@ Q_SIGNALS:
 	void syncEnabledChanged(bool syncEnabled);
 	void deviceNameChanged(const QString &deviceName);
 	void devicesListed(const QList<DeviceInfo> &devices);
+	void loginRequested(const DeviceInfo &deviceInfo);
 
 private Q_SLOTS:
 	void connected();

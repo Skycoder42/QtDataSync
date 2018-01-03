@@ -25,7 +25,8 @@ AccountDialog::AccountDialog(QWidget *parent) :
 	connect(_manager, &QtDataSync::AccountManager::accountDevices,
 			this, &AccountDialog::updateDevices);
 	connect(_manager, &QtDataSync::AccountManager::loginRequested,
-			this, &AccountDialog::login);
+			this, &AccountDialog::login,
+			Qt::DirectConnection); //must be direct
 
 	connect(ui->deviceNameLineEdit, &QLineEdit::editingFinished,
 			_manager, [this]() {
@@ -67,9 +68,22 @@ void AccountDialog::updateDevices(const QList<QtDataSync::DeviceInfo> &devices)
 	}
 }
 
-void AccountDialog::login(QtDataSync::LoginRequest * const request)
+void AccountDialog::login(QtDataSync::LoginRequest *request)
 {
-	Q_UNIMPLEMENTED();
+	if(request->handled())
+		return;
+	if(QMessageBox::question(this,
+							 tr("Login requested"),
+							 tr("A device wants to log into your account:<p>"
+								"Name: %1<br/>"
+								"Fingerprint: %2</p>"
+								"Do you want accept the request?")
+							 .arg(request->device().name())
+							 .arg(printFingerprint(request->device().fingerprint())))
+	   == QMessageBox::Yes)
+		request->accept();
+	else
+		request->reject();
 }
 
 QString AccountDialog::printFingerprint(const QByteArray &fingerprint)

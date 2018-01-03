@@ -29,12 +29,17 @@ public Q_SLOTS:
 	void resetAccount(bool keepData) override;
 	void exportAccount(quint32 id, bool includeServer) override;
 	void exportAccountTrusted(quint32 id, bool includeServer, const QString &password) override;
-	void importAccount(quint32 id, const JsonObject &importData, bool keepData) override;
+	void importAccount(const JsonObject &importData, bool keepData) override;
+	void importAccountTrusted(const JsonObject &importData, const QString &password, bool keepData) override;
 	void replyToLogin(const QUuid &deviceId, bool accept) override;
+
+private Q_SLOTS:
+	void requestLogin(const DeviceInfo &deviceInfo);
 
 private:
 	QPointer<ExchangeEngine> _engine;
 	Logger *_logger;
+	QSet<QUuid> _loginRequests;
 
 	QJsonObject createExportData(bool trusted, bool includeServer);
 };

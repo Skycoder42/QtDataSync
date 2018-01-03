@@ -215,6 +215,16 @@ void RemoteConnector::resetAccount()
 	}
 }
 
+void RemoteConnector::importAccount(const ExportData &data, bool keepData)
+{
+
+}
+
+void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
+{
+
+}
+
 void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
 {
 	try {
