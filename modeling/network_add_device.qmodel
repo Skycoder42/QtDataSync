@@ -96,7 +96,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>IDENTIFY(nonce)</name>
-                         <pos>x:255;y:80</pos>
+                         <pos>x:200;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -140,8 +140,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ACCESS&lt;REGISTER&gt;(pnonce, partner, trusted, signature) </name>
-                         <pos>x:450;y:80</pos>
+                         <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, trusted, signature) </name>
+                         <pos>x:430;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -1217,7 +1217,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1514925811137</last-modified>
+                  <last-modified>1515016027002</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1360,7 +1360,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ACCESS&lt;REGISTER&gt;(pnonce, partner, trusted, signature) </name>
+                  <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, trusted, signature) </name>
                   <relations>
                    <handles>
                     <handles>

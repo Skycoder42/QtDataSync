@@ -2,7 +2,7 @@
 
 using namespace QtDataSync;
 
-RegisterMessage::RegisterMessage() :
+RegisterBaseMessage::RegisterBaseMessage() :
 	IdentifyMessage(),
 	signAlgorithm(),
 	signKey(),
@@ -11,7 +11,7 @@ RegisterMessage::RegisterMessage() :
 	deviceName()
 {}
 
-RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
+RegisterBaseMessage::RegisterBaseMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
 	IdentifyMessage(nonce),
 	signAlgorithm(crypto->signatureScheme()),
 	signKey(crypto->writeKey(signKey)),
@@ -20,7 +20,7 @@ RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &no
 	deviceName(deviceName)
 {}
 
-AsymmetricCryptoInfo *RegisterMessage::createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent) const
+AsymmetricCryptoInfo *RegisterBaseMessage::createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent) const
 {
 	return new AsymmetricCryptoInfo(rng,
 									signAlgorithm,
@@ -30,7 +30,7 @@ AsymmetricCryptoInfo *RegisterMessage::createCryptoInfo(CryptoPP::RandomNumberGe
 									parent);
 }
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterBaseMessage &message)
 {
 	stream << (IdentifyMessage)message
 		   << message.signAlgorithm
@@ -41,7 +41,7 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &
 	return stream;
 }
 
-QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
+QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterBaseMessage &message)
 {
 	stream.startTransaction();
 	stream >> (IdentifyMessage&)message
@@ -50,6 +50,34 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &messag
 		   >> message.cryptAlgorithm
 		   >> message.cryptKey
 		   >> message.deviceName;
+	stream.commitTransaction();
+	return stream;
+}
+
+
+
+RegisterMessage::RegisterMessage() :
+	RegisterBaseMessage()
+{}
+
+RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
+	RegisterBaseMessage(deviceName,
+						nonce,
+						signKey,
+						cryptKey,
+						crypto)
+{}
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
+{
+	stream << (RegisterBaseMessage)message;
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
+{
+	stream.startTransaction();
+	stream >> (RegisterBaseMessage&)message;
 	stream.commitTransaction();
 	return stream;
 }

@@ -11,7 +11,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT RegisterMessage : public IdentifyMessage
+class Q_DATASYNC_EXPORT RegisterBaseMessage : public IdentifyMessage
 {
 	Q_GADGET
 
@@ -22,12 +22,12 @@ class Q_DATASYNC_EXPORT RegisterMessage : public IdentifyMessage
 	Q_PROPERTY(QString deviceName MEMBER deviceName)
 
 public:
-	RegisterMessage();
-	RegisterMessage(const QString &deviceName,
-					const QByteArray &nonce,
-					const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
-					const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
-					AsymmetricCrypto *crypto);
+	RegisterBaseMessage();
+	RegisterBaseMessage(const QString &deviceName,
+						const QByteArray &nonce,
+						const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
+						const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
+						AsymmetricCrypto *crypto);
 
 	QByteArray signAlgorithm;
 	QByteArray signKey;
@@ -38,11 +38,27 @@ public:
 	AsymmetricCryptoInfo *createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent = nullptr) const;
 };
 
+class Q_DATASYNC_EXPORT RegisterMessage : public RegisterBaseMessage
+{
+	Q_GADGET
+
+public:
+	RegisterMessage();
+	RegisterMessage(const QString &deviceName,
+					const QByteArray &nonce,
+					const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
+					const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
+					AsymmetricCrypto *crypto);
+};
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterBaseMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RegisterBaseMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RegisterMessage &message);
 
 }
 
+Q_DECLARE_METATYPE(QtDataSync::RegisterBaseMessage)
 Q_DECLARE_METATYPE(QtDataSync::RegisterMessage)
 
 #endif // REGISTERMESSAGE_H

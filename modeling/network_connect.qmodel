@@ -299,7 +299,7 @@
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>REGISTER&lt;IDENTIFY&gt;(signScheme, signKey, cryptScheme, cryptKey, cmac, name)</name>
+                         <name>REGISTER&lt;REGISTERBASE&gt;(cmac)</name>
                          <pos>x:455;y:255</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -726,9 +726,23 @@
                       </DDependency>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DAnnotation">
+                      <DAnnotation>
+                       <base-DElement>
+                        <DElement>
+                         <uid>{4a1450b5-7f09-49ed-ac54-cb6ef31fa861}</uid>
+                        </DElement>
+                       </base-DElement>
+                       <text>REGISTERBASE&lt;IDENTIFY&gt;(signScheme, signKey, cryptScheme, cryptKey, name)</text>
+                       <pos>x:275;y:310</pos>
+                       <rect>x:0;y:0;w:425.234;h:32</rect>
+                      </DAnnotation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1513945300136</last-modified>
+                  <last-modified>1515015982979</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1111,7 +1125,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>REGISTER&lt;IDENTIFY&gt;(signScheme, signKey, cryptScheme, cryptKey, cmac, name)</name>
+                  <name>REGISTER&lt;REGISTERBASE&gt;(cmac)</name>
                   <relations>
                    <handles>
                     <handles>
