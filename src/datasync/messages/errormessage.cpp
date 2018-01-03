@@ -38,6 +38,6 @@ QDebug QtDataSync::operator<<(QDebug debug, const ErrorMessage &message)
 							  << ", "
 							  << (message.canRecover ? "recoverable" : "unrecoverable")
 							  << "]: "
-							  << (message.message.isNull() ? QStringLiteral("<no message text>") : message.message);
+							  << (message.message.isNull() ? QStringLiteral("<no message text>") : (QString)message.message);
 	return debug;
 }

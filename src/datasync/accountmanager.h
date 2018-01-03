@@ -2,7 +2,6 @@
 #define ACCOUNTMANAGER_H
 
 #include <functional>
-#include <tuple>
 
 #include <QtCore/qobject.h>
 #include <QtCore/quuid.h>
@@ -32,7 +31,6 @@ class Q_DATASYNC_EXPORT DeviceInfo
 public:
 	DeviceInfo();
 	DeviceInfo(const QUuid &deviceId, const QString &name, const QByteArray &fingerprint);
-	DeviceInfo(const std::tuple<QUuid, QString, QByteArray> &init);
 	DeviceInfo(const DeviceInfo &other);
 	~DeviceInfo();
 

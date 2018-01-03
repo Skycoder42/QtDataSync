@@ -36,6 +36,18 @@ private:
 	QDataStream::Status _status;
 };
 
+class Q_DATASYNC_EXPORT Utf8String : public QString
+{
+public:
+	Utf8String();
+	Utf8String(const QByteArray &data);
+	Utf8String(const QString &other);
+};
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const Utf8String &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, Utf8String &message);
+
+
 extern Q_DATASYNC_EXPORT const QByteArray PingMessage;
 
 void Q_DATASYNC_EXPORT setupStream(QDataStream &stream);

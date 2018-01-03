@@ -1,4 +1,5 @@
 #include "objectkey.h"
+#include "message_p.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDebug>
@@ -38,15 +39,17 @@ uint QtDataSync::qHash(const QtDataSync::ObjectKey &key, uint seed) {
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const ObjectKey &key)
 {
 	stream << key.typeName
-		   << key.id;
+		   << (Utf8String)key.id;
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, ObjectKey &key)
 {
 	stream.startTransaction();
+	Utf8String id;
 	stream >> key.typeName
-		   >> key.id;
+		   >> id;
+	key.id = id;
 	stream.commitTransaction();
 	return stream;
 }

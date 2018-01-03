@@ -1,5 +1,6 @@
 #include "accountmanager.h"
 #include "defaults_p.h"
+#include "message_p.h"
 
 #include "rep_accountmanager_p_replica.h"
 
@@ -304,10 +305,6 @@ DeviceInfo::DeviceInfo(const QUuid &deviceId, const QString &name, const QByteAr
 	d(new DeviceInfoPrivate(deviceId, name, fingerprint))
 {}
 
-DeviceInfo::DeviceInfo(const std::tuple<QUuid, QString, QByteArray> &init) :
-	DeviceInfo(std::get<0>(init), std::get<1>(init), std::get<2>(init))
-{}
-
 DeviceInfo::DeviceInfo(const DeviceInfo &other) :
 	d(other.d)
 {}
@@ -371,7 +368,7 @@ DeviceInfoPrivate::DeviceInfoPrivate(const DeviceInfoPrivate &other) :
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceInfo &deviceInfo)
 {
 	stream << deviceInfo.d->deviceId
-		   << deviceInfo.d->name
+		   << (Utf8String)deviceInfo.d->name
 		   << deviceInfo.d->fingerprint;
 	return stream;
 }
@@ -379,9 +376,11 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceInfo &devic
 QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceInfo &deviceInfo)
 {
 	stream.startTransaction();
+	Utf8String name;
 	stream >> deviceInfo.d->deviceId
-		   >> deviceInfo.d->name
+		   >> name
 		   >> deviceInfo.d->fingerprint;
+	deviceInfo.d->name = name;
 	stream.commitTransaction();
 	return stream;
 }

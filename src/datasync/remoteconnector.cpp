@@ -837,7 +837,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
 		_deviceCache.clear();
 		foreach(auto device, message.devices)
-			_deviceCache.append(device);
+			_deviceCache.append(DeviceInfo{std::get<0>(device), std::get<1>(device), std::get<2>(device)});
 		emit devicesListed(_deviceCache);
 	}
 }

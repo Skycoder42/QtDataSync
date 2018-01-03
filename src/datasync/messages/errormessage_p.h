@@ -12,7 +12,7 @@ class Q_DATASYNC_EXPORT ErrorMessage
 	Q_GADGET
 
 	Q_PROPERTY(ErrorType type MEMBER type)
-	Q_PROPERTY(QString message MEMBER message)
+	Q_PROPERTY(Utf8String message MEMBER message)
 	Q_PROPERTY(bool canRecover MEMBER canRecover)
 
 public:
@@ -31,7 +31,7 @@ public:
 				 bool canRecover = false);
 
 	ErrorType type;
-	QString message;
+	Utf8String message;
 	bool canRecover;
 };
 

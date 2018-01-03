@@ -25,7 +25,7 @@ class Q_DATASYNC_EXPORT DevicesMessage
 	Q_PROPERTY(QList<DeviceInfo> devices MEMBER devices)
 
 public:
-	typedef std::tuple<QUuid, QString, QByteArray> DeviceInfo;
+	typedef std::tuple<QUuid, Utf8String, QByteArray> DeviceInfo;
 
 	DevicesMessage();
 

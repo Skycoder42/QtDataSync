@@ -19,7 +19,7 @@ class Q_DATASYNC_EXPORT RegisterBaseMessage : public IdentifyMessage
 	Q_PROPERTY(QByteArray signKey MEMBER signKey)
 	Q_PROPERTY(QByteArray cryptAlgorithm MEMBER cryptAlgorithm)
 	Q_PROPERTY(QByteArray cryptKey MEMBER cryptKey)
-	Q_PROPERTY(QString deviceName MEMBER deviceName)
+	Q_PROPERTY(Utf8String deviceName MEMBER deviceName)
 
 public:
 	RegisterBaseMessage();
@@ -33,7 +33,7 @@ public:
 	QByteArray signKey;
 	QByteArray cryptAlgorithm;
 	QByteArray cryptKey;
-	QString deviceName;
+	Utf8String deviceName;
 
 	AsymmetricCryptoInfo *createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent = nullptr) const;
 };

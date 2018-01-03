@@ -81,3 +81,33 @@ QException *DataStreamException::clone() const
 {
 	return new DataStreamException(_status);
 }
+
+
+
+Utf8String::Utf8String() :
+	QString()
+{}
+
+Utf8String::Utf8String(const QByteArray &data) :
+	QString(QString::fromUtf8(data))
+{}
+
+Utf8String::Utf8String(const QString &other) :
+	QString(other)
+{}
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const Utf8String &message)
+{
+	stream << message.toUtf8();
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, Utf8String &message)
+{
+	stream.startTransaction();
+	QByteArray m;
+	stream >> m;
+	message = m;
+	stream.commitTransaction();
+	return stream;
+}

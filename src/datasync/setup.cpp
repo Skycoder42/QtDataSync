@@ -3,6 +3,7 @@
 #include "setup_p.h"
 #include "defaults_p.h"
 #include "keystore.h"
+#include "message_p.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLockFile>
@@ -488,7 +489,7 @@ void RemoteConfig::setKeepaliveTimeout(int keepaliveTimeout)
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RemoteConfig &deviceInfo)
 {
 	stream << deviceInfo.d->url
-		   << deviceInfo.d->accessKey
+		   << (Utf8String)deviceInfo.d->accessKey
 		   << deviceInfo.d->headers
 		   << deviceInfo.d->keepaliveTimeout;
 	return stream;
@@ -497,10 +498,12 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const RemoteConfig &dev
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RemoteConfig &deviceInfo)
 {
 	stream.startTransaction();
+	Utf8String accessKey;
 	stream >> deviceInfo.d->url
-		   >> deviceInfo.d->accessKey
+		   >> accessKey
 		   >> deviceInfo.d->headers
 		   >> deviceInfo.d->keepaliveTimeout;
+	deviceInfo.d->accessKey = accessKey;
 	stream.commitTransaction();
 	return stream;
 }
