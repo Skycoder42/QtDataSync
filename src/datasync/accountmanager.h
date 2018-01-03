@@ -89,10 +89,10 @@ public:
 	QRemoteObjectReplica *replica() const;
 
 	void resetAccount(bool keepData = true);
-	void exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn);
-	void exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn);
-	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QJsonObject)> &completedFn);
-	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn);
+	void exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn = {});
+	void exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn = {});
+	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn = {});
+	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn = {});
 	void importAccount(const QJsonObject &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 	void importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 
@@ -121,6 +121,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
 	void accountExportReady(quint32 id, const QJsonObject &exportData);
+	void accountExportError(quint32 id, const QString &errorString);
 	void accountImportResult(quint32 id, bool success, const QString &error);
 	void loginRequestedImpl(const DeviceInfo &deviceInfo);
 

@@ -2,6 +2,9 @@
 #include "ui_accountdialog.h"
 
 #include <QRemoteObjectReplica>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QMessageBox>
 
 AccountDialog::AccountDialog(QWidget *parent) :
 	QDialog(parent),
@@ -93,4 +96,35 @@ void AccountDialog::on_buttonBox_clicked(QAbstractButton *button)
 		_manager->resetAccount(true);
 	else if(ui->buttonBox->standardButton(button) == QDialogButtonBox::RestoreDefaults)
 		_manager->resetAccount(false);
+}
+
+void AccountDialog::on_pushButton_clicked()
+{
+	bool ok = false;
+	auto pw = QInputDialog::getText(this,
+									tr("Account Export"),
+									tr("Enter a password or leave it empty:"),
+									QLineEdit::Password,
+									QString(),
+									&ok);
+	if(!ok)
+		return;
+
+	auto path = QFileDialog::getSaveFileName(this, tr("Account Export"));
+	if(!path.isEmpty()) {
+		auto fn = [this, path](QByteArray d) {
+			QFile f(path);
+			f.open(QIODevice::WriteOnly);
+			f.write(d);
+			f.close();
+			QMessageBox::information(this, tr("Account Export"), tr("Account export done!"));
+		};
+		auto eFn = [this](QString error) {
+			QMessageBox::critical(this, tr("Account Export failed!"), error);
+		};
+		if(pw.isNull())
+			_manager->exportAccount(true, fn, eFn);
+		else
+			_manager->exportAccountTrusted(true, pw, fn, eFn);
+	}
 }

@@ -17,6 +17,7 @@ class AccountManagerPrivate {
 
 	SIGNAL(accountDevices(const QList<QtDataSync::DeviceInfo> &devices));
 	SIGNAL(accountExportReady(quint32 id, const QJsonObject &exportData));
+	SIGNAL(accountExportError(quint32 id, const QString &errorString));
 	SIGNAL(accountImportResult(quint32 id, bool success, const QString &error));
 	SIGNAL(loginRequested(const QtDataSync::DeviceInfo &deviceInfo));
 };

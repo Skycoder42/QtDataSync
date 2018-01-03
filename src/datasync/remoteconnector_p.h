@@ -38,6 +38,8 @@ public:
 	bool trusted;
 	QByteArray signature;
 	QSharedPointer<RemoteConfig> config;
+
+	QByteArray signData() const;
 };
 
 class Q_DATASYNC_EXPORT RemoteConnector : public Controller
@@ -134,6 +136,7 @@ private:
 
 	QUuid _deviceId;
 	mutable QList<DeviceInfo> _deviceCache;
+	QSet<QByteArray> _exportsCache;
 
 	bool isIdle() const;
 	void triggerError(bool canRecover);

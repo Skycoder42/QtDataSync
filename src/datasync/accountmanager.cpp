@@ -35,6 +35,7 @@ public:
 	AccountManagerPrivateReplica *replica;
 	QHash<quint32, std::function<void(QJsonObject)>> exportActions;
 	QHash<quint32, std::function<void(bool,QString)>> importActions;
+	QHash<quint32, std::function<void(QString)>> errorActions;
 };
 
 }
@@ -64,6 +65,8 @@ AccountManager::AccountManager(QRemoteObjectNode *node, QObject *parent) :
 			this, &AccountManager::accountDevices);
 	connect(d->replica, &AccountManagerPrivateReplica::accountExportReady,
 			this, &AccountManager::accountExportReady);
+	connect(d->replica, &AccountManagerPrivateReplica::accountExportError,
+			this, &AccountManager::accountExportError);
 	connect(d->replica, &AccountManagerPrivateReplica::accountImportResult,
 			this, &AccountManager::accountImportResult);
 	connect(d->replica, &AccountManagerPrivateReplica::loginRequested,
@@ -82,7 +85,7 @@ void AccountManager::resetAccount(bool keepData)
 	return d->replica->resetAccount(keepData);
 }
 
-void AccountManager::exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn)
+void AccountManager::exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
@@ -92,18 +95,20 @@ void AccountManager::exportAccount(bool includeServer, const std::function<void(
 	} while(d->exportActions.contains(id));
 
 	d->exportActions.insert(id, completedFn);
+	if(errorFn)
+		d->errorActions.insert(id, errorFn);
 	d->replica->exportAccount(id, includeServer);
 }
 
-void AccountManager::exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn)
+void AccountManager::exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 	exportAccount(includeServer, [completedFn](QJsonObject obj) {
 		completedFn(QJsonDocument(obj).toJson(QJsonDocument::Compact));
-	});
+	}, errorFn);
 }
 
-void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const std::function<void (QJsonObject)> &completedFn)
+void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const std::function<void (QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
@@ -113,15 +118,17 @@ void AccountManager::exportAccountTrusted(bool includeServer, const QString &pas
 	} while(d->exportActions.contains(id));
 
 	d->exportActions.insert(id, completedFn);
+	if(errorFn)
+		d->errorActions.insert(id, errorFn);
 	d->replica->exportAccountTrusted(id, includeServer, password);
 }
 
-void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn)
+void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 	exportAccountTrusted(includeServer, password, [completedFn](QJsonObject obj) {
 		completedFn(QJsonDocument(obj).toJson(QJsonDocument::Compact));
-	});
+	}, errorFn);
 }
 
 void AccountManager::importAccount(const QJsonObject &importData, const std::function<void (bool, QString)> &completedFn, bool keepData)
@@ -187,6 +194,15 @@ void AccountManager::accountExportReady(quint32 id, const QJsonObject &exportDat
 	auto completeFn = d->exportActions.take(id);
 	if(completeFn)
 		completeFn(exportData);
+	d->errorActions.remove(id);
+}
+
+void AccountManager::accountExportError(quint32 id, const QString &errorString)
+{
+	auto errorFn = d->errorActions.take(id);
+	if(errorFn)
+		errorFn(errorString);
+	d->exportActions.remove(id);
 }
 
 void AccountManager::accountImportResult(quint32 id, bool success, const QString &error)
@@ -209,7 +225,8 @@ void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
 AccountManagerPrivateHolder::AccountManagerPrivateHolder(AccountManagerPrivateReplica *replica) :
 	replica(replica),
 	exportActions(),
-	importActions()
+	importActions(),
+	errorActions()
 {}
 
 // ------------- LoginRequest Implementation -------------

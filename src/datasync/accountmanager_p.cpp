@@ -68,7 +68,7 @@ void AccountManagerPrivate::exportAccount(quint32 id, bool includeServer)
 		emit accountExportReady(id, createExportData(false, includeServer));
 	} catch(QException &e) {
 		logWarning() << "Failed to generate export data with error:" << e.what();
-		emit accountExportReady(id, {});
+		emit accountExportError(id, tr("Failed to generate export data. Make shure you are connected and synchronized with the server"));
 	}
 }
 
@@ -85,7 +85,7 @@ void AccountManagerPrivate::exportAccountTrusted(quint32 id, bool includeServer,
 		emit accountExportReady(id, res);
 	} catch(QException &e) {
 		logWarning() << "Failed to generate export data with error:" << e.what();
-		emit accountExportReady(id, {});
+		emit accountExportError(id, tr("Failed to generate export data. Make shure you are connected and synchronized with the server"));
 	}
 }
 
@@ -101,37 +101,32 @@ void AccountManagerPrivate::replyToLogin(const QUuid &deviceId, bool accept)
 
 QJsonObject AccountManagerPrivate::createExportData(bool trusted, bool includeServer)
 {
-	try {
-		auto data = _engine->remoteConnector()->exportAccount(trusted, includeServer);
+	auto data = _engine->remoteConnector()->exportAccount(trusted, includeServer);
 
-		//cant use json serializer because of HeaderHash and config ptr
-		QJsonObject dJson;
-		dJson[QStringLiteral("nonce")] = QString::fromUtf8(data.pNonce.toBase64());
-		dJson[QStringLiteral("partner")] = data.partnerId.toString();
-		dJson[QStringLiteral("trusted")] = data.trusted;
-		dJson[QStringLiteral("signature")] = QString::fromUtf8(data.signature.toBase64());
+	//cant use json serializer because of HeaderHash and config ptr
+	QJsonObject dJson;
+	dJson[QStringLiteral("nonce")] = QString::fromUtf8(data.pNonce.toBase64());
+	dJson[QStringLiteral("partner")] = data.partnerId.toString();
+	dJson[QStringLiteral("trusted")] = data.trusted;
+	dJson[QStringLiteral("signature")] = QString::fromUtf8(data.signature.toBase64());
 
-		if(data.config) {
-			QJsonObject cJson;
-			cJson[QStringLiteral("url")] = data.config->url().toString();
-			cJson[QStringLiteral("accessKey")] = data.config->accessKey();
-			cJson[QStringLiteral("keepaliveTimeout")] = data.config->keepaliveTimeout();
+	if(data.config) {
+		QJsonObject cJson;
+		cJson[QStringLiteral("url")] = data.config->url().toString();
+		cJson[QStringLiteral("accessKey")] = data.config->accessKey();
+		cJson[QStringLiteral("keepaliveTimeout")] = data.config->keepaliveTimeout();
 
-			QJsonObject hJson;
-			auto headers = data.config->headers();
-			for(auto it = headers.constBegin(); it != headers.constEnd(); it++) {
-				hJson.insert(QString::fromUtf8(it.key()),
-							 QString::fromUtf8(it.value().toBase64()));
-			}
-			cJson[QStringLiteral("headers")] = hJson;
+		QJsonObject hJson;
+		auto headers = data.config->headers();
+		for(auto it = headers.constBegin(); it != headers.constEnd(); it++) {
+			hJson.insert(QString::fromUtf8(it.key()),
+						 QString::fromUtf8(it.value().toBase64()));
+		}
+		cJson[QStringLiteral("headers")] = hJson;
 
-			dJson[QStringLiteral("config")] = cJson;
-		} else
-			dJson[QStringLiteral("config")] = QJsonValue::Null;
+		dJson[QStringLiteral("config")] = cJson;
+	} else
+		dJson[QStringLiteral("config")] = QJsonValue::Null;
 
-		return dJson;
-	} catch(QException &e) {
-		logWarning() << "Failed to generate export data with error:" << e.what();
-		return {};
-	}
+	return dJson;
 }

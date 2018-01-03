@@ -59,6 +59,7 @@ void RemoteConnector::initialize(const QVariantHash &params)
 {
 	_cryptoController->initialize(params);
 
+	//setup keepalive timer
 	_pingTimer = new QTimer(this);
 	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
 	_pingTimer->setTimerType(Qt::VeryCoarseTimer);
@@ -116,14 +117,16 @@ void RemoteConnector::finalize()
 
 ExportData RemoteConnector::exportAccount(bool trusted, bool includeServer)
 {
-	ExportData data;
-	data.pNonce = ""; //TODO generate and store
 	if(_deviceId.isNull())
-		data.partnerId = sValue(keyDeviceId).toUuid();
-	else
-		data.partnerId = _deviceId;
+		throw Exception(defaults(), QStringLiteral("Cannot export data without beeing connected to the server"));
+
+	ExportData data;
+	data.pNonce.resize(IdentifyMessage::NonceSize);
+	_cryptoController->crypto()->rng().GenerateBlock((byte*)data.pNonce.data(), data.pNonce.size());
+	data.partnerId = _deviceId;
 	data.trusted = trusted;
-	data.signature = ""; //TODO
+	data.signature = _cryptoController->crypto()->sign(data.signData());
+
 	if(includeServer) {
 		data.config = QSharedPointer<RemoteConfig>::create();
 		data.config->setUrl(sValue(keyRemoteUrl).toUrl());
@@ -131,6 +134,8 @@ ExportData RemoteConnector::exportAccount(bool trusted, bool includeServer)
 		data.config->setHeaders(sValue(keyHeaders).value<RemoteConfig::HeaderHash>());
 		data.config->setKeepaliveTimeout(sValue(keyKeepaliveTimeout).toInt());
 	}
+
+	_exportsCache.insert(data.pNonce);
 	return data;
 }
 
@@ -188,6 +193,7 @@ void RemoteConnector::resetAccount()
 			devId = sValue(keyDeviceId).toUuid();
 
 		if(!devId.isNull()) {
+			_exportsCache.clear();
 			settings()->remove(keyDeviceId);
 			settings()->remove(keyRemoteUrl);
 			settings()->remove(keyAccessKey);
@@ -818,3 +824,10 @@ ExportData::ExportData() :
 	signature(),
 	config(nullptr)
 {}
+
+QByteArray ExportData::signData() const
+{
+	return pNonce +
+			partnerId.toRfc4122() +
+			(char)(trusted ? 0x01 : 0x00);
+}
