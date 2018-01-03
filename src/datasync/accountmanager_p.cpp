@@ -89,7 +89,7 @@ void AccountManagerPrivate::exportAccountTrusted(quint32 id, bool includeServer,
 	}
 }
 
-void AccountManagerPrivate::importAccount(quint32 id, const QJsonObject &importData, bool keepData)
+void AccountManagerPrivate::importAccount(quint32 id, const JsonObject &importData, bool keepData)
 {
 
 }

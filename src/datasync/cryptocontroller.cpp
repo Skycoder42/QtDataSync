@@ -144,7 +144,7 @@ void CryptoController::initialize(const QVariantHash &params)
 
 void CryptoController::finalize()
 {
-	closeStore();
+	clearKeyMaterial();
 }
 
 ClientCrypto *CryptoController::crypto() const

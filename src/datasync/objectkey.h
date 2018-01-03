@@ -24,8 +24,8 @@ struct Q_DATASYNC_EXPORT ObjectKey
 };
 
 uint Q_DATASYNC_EXPORT qHash(const ObjectKey &key, uint seed = 0);
-QDataStream Q_DATASYNC_EXPORT &operator<<(QDataStream &out, const ObjectKey &key);
-QDataStream Q_DATASYNC_EXPORT &operator>>(QDataStream &in, ObjectKey &key);
+QDataStream Q_DATASYNC_EXPORT &operator<<(QDataStream &stream, const ObjectKey &key);
+QDataStream Q_DATASYNC_EXPORT &operator>>(QDataStream &stream, ObjectKey &key);
 QDebug Q_DATASYNC_EXPORT operator<<(QDebug debug, const ObjectKey &key);
 
 }

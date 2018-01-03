@@ -29,7 +29,7 @@ public Q_SLOTS:
 	void resetAccount(bool keepData) override;
 	void exportAccount(quint32 id, bool includeServer) override;
 	void exportAccountTrusted(quint32 id, bool includeServer, const QString &password) override;
-	void importAccount(quint32 id, const QJsonObject &importData, bool keepData) override;
+	void importAccount(quint32 id, const JsonObject &importData, bool keepData) override;
 	void replyToLogin(const QUuid &deviceId, bool accept) override;
 
 private:

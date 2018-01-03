@@ -118,7 +118,7 @@ void RemoteConnector::finalize()
 ExportData RemoteConnector::exportAccount(bool trusted, bool includeServer)
 {
 	if(_deviceId.isNull())
-		throw Exception(defaults(), QStringLiteral("Cannot export data without beeing connected to the server"));
+		throw Exception(defaults(), QStringLiteral("Cannot export data without beeing registered on a server."));
 
 	ExportData data;
 	data.pNonce.resize(IdentifyMessage::NonceSize);
@@ -203,8 +203,10 @@ void RemoteConnector::resetAccount()
 			if(isIdle()) {//delete yourself. Remote will disconnecte once done
 				Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
 				_socket->sendBinaryMessage(serializeMessage<RemoveMessage>(devId));
-			} else //TODO send later? would require signing...
+			} else {
+				_deviceId = QUuid();
 				reconnect();
+			}
 		} else
 			logInfo() << "Skipping server reset, not registered to a server";
 	} catch(Exception &e) {
@@ -299,7 +301,6 @@ void RemoteConnector::disconnected()
 		_socket->deleteLater();
 	}
 	_socket = nullptr;
-	_cryptoController->clearKeyMaterial();
 	_stateMachine->submitEvent(QStringLiteral("disconnected"));
 }
 
@@ -507,7 +508,6 @@ void RemoteConnector::onEntryIdleState()
 
 void RemoteConnector::onExitActiveState()
 {
-	_deviceId = QUuid();
 	_deviceCache.clear();
 	emit remoteEvent(RemoteDisconnected);
 }
@@ -531,6 +531,12 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 	if(_stateMachine->dataModel()->scxmlProperty(QStringLiteral("isClosing")).toBool())
 		return false;
 
+	//load crypto stuff
+	if(!loadIdentity()) {
+		logCritical() << "Unable to load user identity. Cannot synchronize";
+		return false;
+	}
+
 	//check if sync is enabled
 	if(!sValue(keyRemoteEnabled).toBool()) {
 		logDebug() << "Remote has been disabled. Not connecting";
@@ -544,27 +550,24 @@ bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
 		return false;
 	}
 
-	//load crypto stuff
-	if(!loadIdentity()) {
-		logCritical() << "Unable to access private keys of user in keystore. Cannot synchronize";
-		return false;
-	}
-
 	return true;
 }
 
 bool RemoteConnector::loadIdentity()
 {
 	try {
-		_deviceId = sValue(keyDeviceId).toUuid();
+		auto nId = sValue(keyDeviceId).toUuid();
+		if(nId != _deviceId || nId.isNull()) { //only if new id is null or id has changed
+			_deviceId = nId;
+			_cryptoController->clearKeyMaterial();
+			if(!_cryptoController->acquireStore(!_deviceId.isNull())) //no keystore -> can neither save nor load...
+				return false;
 
-		if(!_cryptoController->acquireStore(!_deviceId.isNull())) //no keystore -> can neither save nor load...
-			return false;
+			if(_deviceId.isNull()) //no user -> nothing to be loaded
+				return true;
 
-		if(_deviceId.isNull()) //no user -> nothing to be loaded
-			return true;
-
-		_cryptoController->loadKeyMaterial(_deviceId);
+			_cryptoController->loadKeyMaterial(_deviceId);
+		}
 		return true;
 	} catch(Exception &e) {
 		logCritical() << e.what();
@@ -800,9 +803,10 @@ void RemoteConnector::onRemoved(const RemovedMessage &message)
 		triggerError(true);
 	} else {
 		logDebug() << "Device with id" << message.deviceId << "was removed";
-		if(_deviceId == message.deviceId)
+		if(_deviceId == message.deviceId) {
+			_deviceId = QUuid();
 			reconnect();
-		else {
+		} else {
 			//in case the device was known, remove it
 			for(auto it = _deviceCache.begin(); it != _deviceCache.end(); it++) {
 				if(it->deviceId() == message.deviceId) {

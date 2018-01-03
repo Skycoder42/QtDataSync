@@ -35,20 +35,20 @@ uint QtDataSync::qHash(const QtDataSync::ObjectKey &key, uint seed) {
 	return qHash(key.typeName, seed) ^ qHash(key.id, seed);
 }
 
-QDataStream &QtDataSync::operator<<(QDataStream &out, const ObjectKey &key)
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const ObjectKey &key)
 {
-	out << key.typeName
-		<< key.id;
-	return out;
+	stream << key.typeName
+		   << key.id;
+	return stream;
 }
 
-QDataStream &QtDataSync::operator>>(QDataStream &in, ObjectKey &key)
+QDataStream &QtDataSync::operator>>(QDataStream &stream, ObjectKey &key)
 {
-	in.startTransaction();
-	in >> key.typeName
-	   >> key.id;
-	in.commitTransaction();
-	return in;
+	stream.startTransaction();
+	stream >> key.typeName
+		   >> key.id;
+	stream.commitTransaction();
+	return stream;
 }
 
 QDebug QtDataSync::operator<<(QDebug debug, const ObjectKey &key)

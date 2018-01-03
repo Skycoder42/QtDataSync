@@ -358,3 +358,26 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceInfo &deviceInfo)
 	stream.commitTransaction();
 	return stream;
 }
+
+
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const JsonObject &data)
+{
+	stream << QJsonDocument(data).toBinaryData();
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, JsonObject &data)
+{
+	QByteArray bin;
+	stream.startTransaction();
+	stream >> bin;
+	auto doc = QJsonDocument::fromBinaryData(bin);
+	if(doc.isObject()) {
+		data = doc.object();
+		stream.commitTransaction();
+	} else
+		stream.abortTransaction();
+	return stream;
+}
+

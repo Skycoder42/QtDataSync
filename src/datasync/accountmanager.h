@@ -132,8 +132,20 @@ private:
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DeviceInfo &deviceInfo);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DeviceInfo &deviceInfo);
 
+//helper class until QTBUG-65557 is fixed (not exported, internal only)
+class JsonObject : public QJsonObject {
+public:
+	inline JsonObject(const QJsonObject &other = {}) :
+		QJsonObject(other)
+	{}
+};
+
+QDataStream &operator<<(QDataStream &out, const JsonObject &data);
+QDataStream &operator>>(QDataStream &in, JsonObject &data);
+
 }
 
+Q_DECLARE_METATYPE(QtDataSync::JsonObject)
 Q_DECLARE_METATYPE(QtDataSync::DeviceInfo)
 
 #endif // ACCOUNTMANAGER_H
