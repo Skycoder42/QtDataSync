@@ -194,11 +194,11 @@ void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &stora
 	//create the default propertie values if unset
 	if(!d->properties.contains(Defaults::SignKeyParam))
 		d->properties.insert(Defaults::SignKeyParam,
-							 Defaults::defaultParam((Setup::SignatureScheme)d->properties.value(Defaults::SignScheme).toInt()));
+							 Defaults::defaultParam(static_cast<Setup::SignatureScheme>(d->properties.value(Defaults::SignScheme).toInt())));
 
 	if(!d->properties.contains(Defaults::CryptKeyParam))
 		d->properties.insert(Defaults::CryptKeyParam,
-							 Defaults::defaultParam((Setup::EncryptionScheme)d->properties.value(Defaults::CryptScheme).toInt()));
+							 Defaults::defaultParam(static_cast<Setup::EncryptionScheme>(d->properties.value(Defaults::CryptScheme).toInt())));
 
 	if(d->thread() != qApp->thread())
 		d->moveToThread(qApp->thread());
@@ -287,7 +287,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 {
 	auto name = DefaultsPrivate::DatabaseName
 				.arg(setupName)
-				.arg(QString::number((quint64)QThread::currentThread(), 16));
+				.arg(QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
 	if((dbRefHash.localData()[setupName])++ == 0) {
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
@@ -305,7 +305,7 @@ void DefaultsPrivate::releaseDatabase()
 	if(--(dbRefHash.localData()[setupName]) == 0) {
 		auto name = DefaultsPrivate::DatabaseName
 					.arg(setupName)
-					.arg(QString::number((quint64)QThread::currentThread(), 16));
+					.arg(QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
 		QSqlDatabase::database(name).close();
 		QSqlDatabase::removeDatabase(name);
 	}

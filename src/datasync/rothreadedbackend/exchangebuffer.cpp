@@ -61,7 +61,7 @@ qint64 ExchangeBuffer::readData(char *data, qint64 maxlen)
 		auto delta = qMin<qint64>(buffer.size() - _index, (maxlen - written));
 		memcpy(data + written, buffer.constData() + _index, delta);
 		written += delta;
-		_index += (int)delta;
+		_index += static_cast<int>(delta);
 		if(_index >= buffer.size()) {
 			_buffers.dequeue();
 			_index = 0;
@@ -105,7 +105,7 @@ void ExchangeBuffer::receiveData(const QByteArray &data)
 	if(!isOpen())
 		return;
 	_buffers.enqueue(data);
-	_size += (qint64)data.size();
+	_size += data.size();
 	emit readyRead();
 }
 

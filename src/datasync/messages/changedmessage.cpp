@@ -41,7 +41,7 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, ChangedMessage &message
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const ChangedInfoMessage &message)
 {
-	stream << (ChangedMessage)message
+	stream << static_cast<ChangedMessage>(message)
 		   << message.changeEstimate;
 	return stream;
 }
@@ -49,7 +49,7 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const ChangedInfoMessag
 QDataStream &QtDataSync::operator>>(QDataStream &stream, ChangedInfoMessage &message)
 {
 	stream.startTransaction();
-	stream >> (ChangedMessage&)message
+	stream >> static_cast<ChangedMessage&>(message)
 		   >> message.changeEstimate;
 	stream.commitTransaction();
 	return stream;

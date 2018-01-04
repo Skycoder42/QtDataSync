@@ -5,7 +5,7 @@
 
 using namespace QtDataSync;
 
-const QByteArray QtDataSync::PingMessage(1, (char)0xFF);
+const QByteArray QtDataSync::PingMessage(1, static_cast<char>(0xFF));
 
 void QtDataSync::setupStream(QDataStream &stream)
 {

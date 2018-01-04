@@ -39,7 +39,7 @@ uint QtDataSync::qHash(const QtDataSync::ObjectKey &key, uint seed) {
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const ObjectKey &key)
 {
 	stream << key.typeName
-		   << (Utf8String)key.id;
+		   << static_cast<Utf8String>(key.id);
 	return stream;
 }
 

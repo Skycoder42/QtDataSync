@@ -5,6 +5,7 @@
 
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
+#include "accessmessage_p.h"
 #include "syncmessage_p.h"
 
 #include "connectorstatemachine.h"
@@ -30,7 +31,7 @@ const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepal
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
 const QString RemoteConnector::keyImport(QStringLiteral("import"));
-const QString RemoteConnector::keyImportTrusted(QStringLiteral("import/trusted"));
+const QString RemoteConnector::keyImportKey(QStringLiteral("import/key"));
 const QString RemoteConnector::keyImportNonce(QStringLiteral("import/nonce"));
 const QString RemoteConnector::keyImportPartner(QStringLiteral("import/partner"));
 const QString RemoteConnector::keyImportScheme(QStringLiteral("import/scheme"));
@@ -129,7 +130,7 @@ std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::expo
 
 	ExportData data;
 	data.pNonce.resize(IdentifyMessage::NonceSize);
-	_cryptoController->crypto()->rng().GenerateBlock((byte*)data.pNonce.data(), data.pNonce.size());
+	_cryptoController->crypto()->rng().GenerateBlock(reinterpret_cast<byte*>(data.pNonce.data()), data.pNonce.size());
 	data.partnerId = _deviceId;
 	data.trusted = !password.isNull();
 
@@ -225,18 +226,21 @@ void RemoteConnector::resetAccount(bool clearConfig)
 	}
 }
 
-void RemoteConnector::prepareImport(const ExportData &data)
+void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecByteBlock &key)
 {
 	//assume data was already "validated"
 	if(data.config)
 		storeConfig(*(data.config));
 	else
 		settings()->remove(keyRemoteConfig);
-	settings()->setValue(keyImportTrusted, data.trusted);
 	settings()->setValue(keyImportNonce, data.pNonce);
 	settings()->setValue(keyImportPartner, data.partnerId);
 	settings()->setValue(keyImportScheme, data.scheme);
 	settings()->setValue(keyImportCmac, data.cmac);
+	if(data.trusted) {
+		Q_ASSERT_X(!key.empty(), Q_FUNC_INFO, "Cannot have trusted data without a key");
+		settings()->setValue(keyImportKey, QByteArray::fromRawData(reinterpret_cast<const char*>(key.data()), static_cast<int>(key.size())));
+	}
 	//after storing, continue with "normal" reset. This MUST be done by the engine, thus not in this function
 }
 
@@ -731,22 +735,49 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 			logDebug() << "Sent login message for device id" << _deviceId;
 		} else {
 			_cryptoController->createPrivateKeys(message.nonce);
+			auto crypto = _cryptoController->crypto();
 
 			//check if register or import
 			auto pNonce = settings()->value(keyImportNonce).toByteArray();
 			if(pNonce.isEmpty()) {
 				RegisterMessage msg(sValue(keyDeviceName).toString(),
 									message.nonce,
-									_cryptoController->crypto()->signKey(),
-									_cryptoController->crypto()->cryptKey(),
-									_cryptoController->crypto());
+									crypto->signKey(),
+									crypto->cryptKey(),
+									crypto);
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
 				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
 			} else {
-				Q_UNIMPLEMENTED();
-				triggerError(false);
+				//calc trustmac
+				QByteArray trustmac;
+				auto scheme = settings()->value(keyImportScheme).toByteArray();
+				auto key = settings()->value(keyImportKey).toByteArray();
+				if(!key.isEmpty()) {
+					auto trustMessage = crypto->signatureScheme() +
+										crypto->writeSignKey() +
+										crypto->encryptionScheme() +
+										crypto->writeCryptKey();
+					CryptoPP::SecByteBlock secBlock(reinterpret_cast<const byte*>(key.constData()), key.size());
+					trustmac = _cryptoController->createExportCmac(scheme, secBlock, trustMessage);
+				}
+
+				//send message
+				AccessMessage msg(sValue(keyDeviceName).toString(),
+								  message.nonce,
+								  crypto->signKey(),
+								  crypto->cryptKey(),
+								  crypto,
+								  settings()->value(keyImportNonce).toByteArray(),
+								  settings()->value(keyImportPartner).toUuid(),
+								  scheme,
+								  settings()->value(keyImportCmac).toByteArray(),
+								  trustmac);
+				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				_stateMachine->submitEvent(QStringLiteral("awaitGranted"));
+				_socket->sendBinaryMessage(signedMsg);
+				logDebug() << "Sent registration message for new id";
 			}
 		}
 	}

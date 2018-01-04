@@ -49,7 +49,7 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 					auto persist = defaults().property(Defaults::PersistDeleted).toBool();
 					_store->storeDeleted(scope, remoteVersion, !persist, localState); //store the delete either unchanged or changed, see exchange.txt
 				} else if(localVersion == remoteVersion) {
-					switch ((Setup::SyncPolicy)defaults().property(Defaults::ConflictPolicy).toInt()) {
+					switch (static_cast<Setup::SyncPolicy>(defaults().property(Defaults::ConflictPolicy).toInt())) {
 					case Setup::PreferChanged:
 						_store->updateVersion(scope, localVersion, localVersion + 1ull, true); //keep as "v1 + 1"
 						break;
@@ -100,7 +100,7 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 				if(localVersion < remoteVersion)
 					_store->storeChanged(scope, remoteVersion, localFileName, remoteData, false, localState); //simply update the local data
 				else if(localVersion == remoteVersion) {
-					switch ((Setup::SyncPolicy)defaults().property(Defaults::ConflictPolicy).toInt()) {
+					switch (static_cast<Setup::SyncPolicy>(defaults().property(Defaults::ConflictPolicy).toInt())) {
 					case Setup::PreferChanged:
 						_store->storeChanged(scope, remoteVersion + 1ull, localFileName, remoteData, true, localState); //store as "v2 + 1"
 						break;

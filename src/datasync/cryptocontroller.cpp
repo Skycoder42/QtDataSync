@@ -94,7 +94,7 @@ private:
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
-const byte CryptoController::PwPurpose = (byte)0x42;
+const byte CryptoController::PwPurpose(0x42);
 const int CryptoController::PwRounds = 5;
 
 const QString CryptoController::keyKeystore(QStringLiteral("keystore"));
@@ -272,19 +272,19 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 {
 	try {
 		if(_asymCrypto->rng().CanIncorporateEntropy())
-			_asymCrypto->rng().IncorporateEntropy((const byte*)nonce.constData(), nonce.size());
+			_asymCrypto->rng().IncorporateEntropy(reinterpret_cast<const byte*>(nonce.constData()), nonce.size());
 
 		//generate private signature and encryption keys
-		_asymCrypto->generate((Setup::SignatureScheme)defaults().property(Defaults::SignScheme).toInt(),
+		_asymCrypto->generate(static_cast<Setup::SignatureScheme>(defaults().property(Defaults::SignScheme).toInt()),
 							  defaults().property(Defaults::SignKeyParam),
-							  (Setup::EncryptionScheme)defaults().property(Defaults::CryptScheme).toInt(),
+							  static_cast<Setup::EncryptionScheme>(defaults().property(Defaults::CryptScheme).toInt()),
 							  defaults().property(Defaults::CryptKeyParam));
 		_fingerprint = _asymCrypto->ownFingerprint();
 		emit fingerprintChanged(_fingerprint);
 
 		//create symmetric cipher and the key
 		CipherInfo info;
-		createScheme((Setup::CipherScheme)defaults().property(Defaults::SymScheme).toInt(),
+		createScheme(static_cast<Setup::CipherScheme>(defaults().property(Defaults::SymScheme).toInt()),
 					 info.scheme);
 		auto keySize = defaults().property(Defaults::SymKeyParam).toUInt();
 		if(keySize == 0)
@@ -338,7 +338,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByt
 	try {
 		auto info = getInfo(_localCipher);
 		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
-		_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
+		_asymCrypto->rng().GenerateBlock(reinterpret_cast<byte*>(salt.data()), salt.size());
 
 		auto cipher = symEncrypt(info, salt, plain);
 
@@ -391,7 +391,7 @@ std::tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExpor
 	try {
 		//load the algorithm
 		CipherInfo info;
-		createScheme((Setup::CipherScheme)defaults().property(Defaults::SymScheme).toInt(), info.scheme);
+		createScheme(static_cast<Setup::CipherScheme>(defaults().property(Defaults::SymScheme).toInt()), info.scheme);
 		info.key.CleanNew(info.scheme->defaultKeyLength());
 
 		QByteArray salt;
@@ -403,13 +403,13 @@ std::tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExpor
 
 			//create a salt
 			salt.resize(info.scheme->ivLength());
-			_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
+			_asymCrypto->rng().GenerateBlock(reinterpret_cast<byte*>(salt.data()), salt.size());
 
 			//generate the key
 			PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
 			keydev.DeriveKey(info.key.data(), info.key.size(),
-							 PwPurpose, (const byte*)pw.constData(), pw.size(),
-							 (const byte*)salt.constData(), salt.size(), PwRounds);
+							 PwPurpose, reinterpret_cast<const byte*>(pw.constData()), pw.size(),
+							 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
 		}
 
 		return std::tuple<QByteArray, QByteArray, SecByteBlock>{info.scheme->name(), salt, info.key};
@@ -433,8 +433,8 @@ SecByteBlock CryptoController::recoverExportKey(const QByteArray &scheme, const 
 		//generate the key
 		PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
 		keydev.DeriveKey(info.key.data(), info.key.size(),
-						 PwPurpose, (const byte*)pw.constData(), pw.size(),
-						 (const byte*)salt.constData(), salt.size(), PwRounds);
+						 PwPurpose, reinterpret_cast<const byte*>(pw.constData()), pw.size(),
+						 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
 
 		return info.key;
 	} catch(CppException &e) {
@@ -575,7 +575,8 @@ void CryptoController::storeCipherKey(quint32 keyIndex) const
 	auto keyDir = keysDir();
 	auto info = getInfo(keyIndex);
 	auto encData = _asymCrypto->encrypt(_asymCrypto->cryptKey(),
-										QByteArray::fromRawData((const char*)info.key.data(), (int)info.key.size()));
+										QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()),
+																static_cast<int>(info.key.size())));
 	QFile keyFile(keyDir.absoluteFilePath(keyKeyFileTemplate.arg(keyIndex)));
 	if(!keyFile.open(QIODevice::WriteOnly))
 		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, keyFile.errorString().toStdString());
@@ -600,11 +601,11 @@ const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) 
 		keyFile.close();
 
 		auto key = _asymCrypto->decrypt(encData);
-		info.key.Assign((const byte*)key.constData(), key.size());
+		info.key.Assign(reinterpret_cast<const byte*>(key.constData()), key.size());
 		memset(key.data(), 0, key.size());
 
 		//test if the key is of valid length
-		if(info.key.size() != info.scheme->toKeyLength((quint32)info.key.size()))
+		if(info.key.size() != info.scheme->toKeyLength(static_cast<quint32>(info.key.size())))
 			throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Key size is not valid for cipher scheme " + info.scheme->name().toStdString());
 		_loadedChiphers.insert(keyIndex, info);
 	}
@@ -649,7 +650,7 @@ QByteArray CryptoController::symEncrypt(const CryptoController::CipherInfo &info
 {
 	auto enc = info.scheme->encryptor();
 	enc->SetKeyWithIV(info.key.data(), info.key.size(),
-					  (const byte*)salt.constData(), salt.size());
+					  reinterpret_cast<const byte*>(salt.constData()), salt.size());
 
 	QByteArray cipher;
 	QByteArraySource(plain, true,
@@ -664,7 +665,7 @@ QByteArray CryptoController::symDecrypt(const CryptoController::CipherInfo &info
 {
 	auto dec = info.scheme->decryptor();
 	dec->SetKeyWithIV(info.key.data(), info.key.size(),
-					  (const byte*)salt.constData(), salt.size());
+					  reinterpret_cast<const byte*>(salt.constData()), salt.size());
 
 	QByteArray plain;
 	QByteArraySource(cipher, true,
@@ -940,7 +941,7 @@ quint32 StandardCipherScheme<TScheme, TCipher>::ivLength() const
 template <template<class> class TScheme, class TCipher>
 quint32 StandardCipherScheme<TScheme, TCipher>::toKeyLength(quint32 length) const
 {
-	return (quint32)TCipher::StaticGetValidKeyLength(length);
+	return static_cast<quint32>(TCipher::StaticGetValidKeyLength(length));
 }
 
 template <template<class> class TScheme, class TCipher>
@@ -1002,7 +1003,7 @@ void EccKeyScheme<TScheme>::createPrivateKey(RandomNumberGenerator &rng, const Q
 {
 	if(keyParam.type() != QVariant::Int)
 		throw CryptoPP::Exception(CryptoPP::Exception::INVALID_ARGUMENT, "keyParam must be a Setup::EllipticCurve");
-	auto curve = ClientCrypto::curveId((Setup::EllipticCurve)keyParam.toInt());
+	auto curve = ClientCrypto::curveId(static_cast<Setup::EllipticCurve>(keyParam.toInt()));
 
 	//special hack: save and load again for consistency (needed for fingerprint)
 	typename TScheme::PrivateKey tmpKey;
@@ -1070,7 +1071,7 @@ QString CryptoException::qWhat() const
 			QStringLiteral("\n\tCryptoPP::Error: %1"
 						   "\n\tCryptoPP::Type: %2")
 			.arg(error())
-			.arg((int)type());
+			.arg(type());
 }
 
 void CryptoException::raise() const

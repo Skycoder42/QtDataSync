@@ -5,7 +5,7 @@ AccessMessage::AccessMessage() :
 	RegisterBaseMessage()
 {}
 
-AccessMessage::AccessMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto, const QByteArray &pNonce, const QUuid &partnerId, bool trusted, const QByteArray &signature) :
+AccessMessage::AccessMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto, const QByteArray &pNonce, const QUuid &partnerId, const QByteArray &scheme, const QByteArray &cmac, const QByteArray &trustmac) :
 	RegisterBaseMessage(deviceName,
 						nonce,
 						signKey,
@@ -13,28 +13,31 @@ AccessMessage::AccessMessage(const QString &deviceName, const QByteArray &nonce,
 						crypto),
 	pNonce(pNonce),
 	partnerId(partnerId),
-	trusted(trusted),
-	signature(signature)
+	scheme(scheme),
+	cmac(cmac),
+	trustmac(trustmac)
 {}
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const AccessMessage &message)
 {
-	stream << (RegisterBaseMessage)message
+	stream << static_cast<RegisterBaseMessage>(message)
 		   << message.pNonce
 		   << message.partnerId
-		   << message.trusted
-		   << message.signature;
+		   << message.scheme
+		   << message.cmac
+		   << message.trustmac;
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, AccessMessage &message)
 {
 	stream.startTransaction();
-	stream >> (RegisterBaseMessage&)message
+	stream >> static_cast<RegisterBaseMessage&>(message)
 		   >> message.pNonce
 		   >> message.partnerId
-		   >> message.trusted
-		   >> message.signature;
+		   >> message.scheme
+		   >> message.cmac
+		   >> message.trustmac;
 	stream.commitTransaction();
 	return stream;
 }

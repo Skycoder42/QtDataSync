@@ -43,7 +43,6 @@ private:
 
 	QJsonObject serializeExportData(const ExportData &data) const;
 	ExportData deserializeExportData(const QJsonObject &importData) const;
-	void performImport(const ExportData &data, bool keepData);
 };
 
 }

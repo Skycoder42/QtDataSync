@@ -57,11 +57,11 @@ size_t QIODeviceSink::Put2(const byte *inString, size_t length, int messageEnd, 
 		qint64 size;
 		if (!SafeConvert(length, size))
 			size = std::numeric_limits<qint64>::max();
-		auto written = _device->write((const char *)inString, size);
+		auto written = _device->write(reinterpret_cast<const char *>(inString), size);
 		if(written == -1)
 			throw Err(QStringLiteral("QIODeviceSink: Failed to write with error: %1").arg(_device->errorString()));
 		inString += written;
-		length -= (size_t)written;
+		length -= static_cast<size_t>(written);
 	}
 
 	if(messageEnd)
@@ -80,7 +80,7 @@ QByteArraySink::QByteArraySink(QByteArray &sink) :
 	_buffer(&sink)
 {
 	_buffer.open(QIODevice::WriteOnly);
-	IsolatedInitialize(MakeParameters(DeviceParameter, (QIODevice*)&_buffer));
+	IsolatedInitialize(MakeParameters(DeviceParameter, static_cast<QIODevice*>(&_buffer)));
 }
 
 const QByteArray &QByteArraySink::buffer() const

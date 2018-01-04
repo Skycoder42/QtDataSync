@@ -14,8 +14,9 @@ class Q_DATASYNC_EXPORT AccessMessage : public RegisterBaseMessage
 
 	Q_PROPERTY(QByteArray pNonce MEMBER pNonce)
 	Q_PROPERTY(QUuid partnerId MEMBER partnerId)
-	Q_PROPERTY(bool trusted MEMBER trusted)
-	Q_PROPERTY(QByteArray signature MEMBER signature)
+	Q_PROPERTY(QByteArray scheme MEMBER scheme)
+	Q_PROPERTY(QByteArray cmac MEMBER cmac)
+	Q_PROPERTY(QByteArray trustmac MEMBER trustmac)
 
 public:
 	AccessMessage();
@@ -26,13 +27,15 @@ public:
 				  AsymmetricCrypto *crypto,
 				  const QByteArray &pNonce,
 				  const QUuid &partnerId,
-				  bool trusted,
-				  const QByteArray &signature);
+				  const QByteArray &scheme,
+				  const QByteArray &cmac,
+				  const QByteArray &trustmac);
 
 	QByteArray pNonce;
 	QUuid partnerId;
-	bool trusted;
-	QByteArray signature;
+	QByteArray scheme;
+	QByteArray cmac;
+	QByteArray trustmac;
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const AccessMessage &message);

@@ -9,7 +9,7 @@ LoginMessage::LoginMessage(const QUuid &deviceId, const QString &name, const QBy
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const LoginMessage &message)
 {
-	stream << (IdentifyMessage)message
+	stream << static_cast<IdentifyMessage>(message)
 		   << message.deviceId
 		   << message.name;
 	return stream;
@@ -18,7 +18,7 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const LoginMessage &mes
 QDataStream &QtDataSync::operator>>(QDataStream &stream, LoginMessage &message)
 {
 	stream.startTransaction();
-	stream >> (IdentifyMessage&)message
+	stream >> static_cast<IdentifyMessage&>(message)
 		   >> message.deviceId
 		   >> message.name;
 	stream.commitTransaction();

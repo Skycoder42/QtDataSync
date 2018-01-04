@@ -40,7 +40,7 @@ size_t QIODeviceStore::TransferTo2(BufferedTransformation &target, lword &transf
 		if(!_waiting) {
 			size_t spaceSize = 1024;
 			_space = HelpCreatePutSpace(target, channel, 1, UnsignedMin(size_t(SIZE_MAX), size), spaceSize);
-			_len = (size_t)_device->read((char *)_space, (unsigned int)STDMIN(size, (lword)spaceSize));
+			_len = static_cast<size_t>(_device->read(reinterpret_cast<char*>(_space), static_cast<qint64>(STDMIN(size, static_cast<lword>(spaceSize)))));
 			if(_len == -1)
 				throw Err(QStringLiteral("QIODeviceStore: Failed to read with error: %1").arg(_device->errorString()));
 		}
@@ -49,8 +49,8 @@ size_t QIODeviceStore::TransferTo2(BufferedTransformation &target, lword &transf
 		_waiting = blockedBytes > 0;
 		if (_waiting)
 			return blockedBytes;
-		size -= (size_t)_len;
-		transferBytes += (size_t)_len;
+		size -= static_cast<size_t>(_len);
+		transferBytes += static_cast<size_t>(_len);
 	}
 
 	return 0;
@@ -63,21 +63,21 @@ size_t QIODeviceStore::CopyRangeTo2(BufferedTransformation &target, lword &begin
 
 	QByteArray data;
 	if(_device->isSequential()) {
-		data = _device->peek((qint64)end);
+		data = _device->peek(static_cast<qint64>(end));
 		if (data.isEmpty())
 			return 0;
-		data = data.mid((int)begin);
+		data = data.mid(static_cast<int>(begin));
 	} else {
 		const auto cPos = _device->pos();
-		const auto nPos = cPos + (qint64)begin;
+		const auto nPos = cPos + static_cast<qint64>(begin);
 		if(nPos >= _device->size())
 			return 0;
 		_device->seek(nPos);
-		data = _device->read((qint64)(end - begin));
+		data = _device->read(static_cast<qint64>(end - begin));
 		_device->seek(cPos);
 	}
-	size_t blockedBytes = target.ChannelPut(channel, (byte*)data.data(), (size_t)data.size(), blocking);
-	begin += (size_t)data.size() - blockedBytes;
+	size_t blockedBytes = target.ChannelPut(channel, reinterpret_cast<byte*>(data.data()), static_cast<size_t>(data.size()), blocking);
+	begin += static_cast<size_t>(data.size()) - blockedBytes;
 	return blockedBytes;
 }
 
@@ -91,7 +91,7 @@ lword QIODeviceStore::Skip(lword skipMax)
 	if (!SafeConvert(skipMax, offset))
 		throw InvalidArgument("QIODeviceStore: maximum seek offset exceeded");
 	_device->seek(pos + offset);
-	return (lword)(_device->pos() - pos);
+	return static_cast<lword>(_device->pos() - pos);
 }
 
 QIODevice *QIODeviceStore::device() const
@@ -137,7 +137,7 @@ QByteArraySource::QByteArraySource(const QByteArray &source, bool pumpAll, Buffe
 {
 	_buffer.setData(source);
 	_buffer.open(QIODevice::ReadOnly);
-	SourceInitialize(pumpAll, MakeParameters(QIODeviceStore::DeviceParameter, (QIODevice*)&_buffer));
+	SourceInitialize(pumpAll, MakeParameters(QIODeviceStore::DeviceParameter, static_cast<QIODevice*>(&_buffer)));
 }
 
 const QByteArray &QByteArraySource::buffer() const

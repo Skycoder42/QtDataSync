@@ -32,7 +32,7 @@ AsymmetricCryptoInfo *RegisterBaseMessage::createCryptoInfo(CryptoPP::RandomNumb
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterBaseMessage &message)
 {
-	stream << (IdentifyMessage)message
+	stream << static_cast<IdentifyMessage>(message)
 		   << message.signAlgorithm
 		   << message.signKey
 		   << message.cryptAlgorithm
@@ -44,7 +44,7 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterBaseMessa
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterBaseMessage &message)
 {
 	stream.startTransaction();
-	stream >> (IdentifyMessage&)message
+	stream >> static_cast<IdentifyMessage&>(message)
 		   >> message.signAlgorithm
 		   >> message.signKey
 		   >> message.cryptAlgorithm
@@ -70,14 +70,14 @@ RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &no
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
 {
-	stream << (RegisterBaseMessage)message;
+	stream << static_cast<RegisterBaseMessage>(message);
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
 {
 	stream.startTransaction();
-	stream >> (RegisterBaseMessage&)message;
+	stream >> static_cast<RegisterBaseMessage&>(message);
 	stream.commitTransaction();
 	return stream;
 }

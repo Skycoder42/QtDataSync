@@ -140,14 +140,14 @@ void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::functio
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const SyncManager::SyncState &state)
 {
-	stream << (int)state;
+	stream << static_cast<int>(state);
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, SyncManager::SyncState &state)
 {
 	stream.startTransaction();
-	stream >> (int&)state;
+	stream >> reinterpret_cast<int&>(state);
 	stream.commitTransaction();
 	return stream;
 }

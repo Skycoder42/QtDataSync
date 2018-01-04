@@ -140,8 +140,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, cmac, trustmac) </name>
-                         <pos>x:430;y:80</pos>
+                         <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, scheme, cmac, trustmac) </name>
+                         <pos>x:425;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -1225,14 +1225,14 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                        </base-DElement>
                        <text>cmac generated with secret random or shared key
 trustmac only for trusted, over the public keys and schemes</text>
-                       <pos>x:265;y:140</pos>
+                       <pos>x:260;y:140</pos>
                        <rect>x:0;y:0;w:323.859;h:48</rect>
                       </DAnnotation>
                      </instance>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515070906837</last-modified>
+                  <last-modified>1515091495264</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1375,7 +1375,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, cmac, trustmac) </name>
+                  <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, scheme, cmac, trustmac) </name>
                   <relations>
                    <handles>
                     <handles>

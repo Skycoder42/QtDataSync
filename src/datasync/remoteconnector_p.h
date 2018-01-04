@@ -62,7 +62,7 @@ public:
 	static const QString keyDeviceId;
 	static const QString keyDeviceName;
 	static const QString keyImport;
-	static const QString keyImportTrusted;
+	static const QString keyImportKey;
 	static const QString keyImportNonce;
 	static const QString keyImportPartner;
 	static const QString keyImportScheme;
@@ -96,7 +96,7 @@ public Q_SLOTS:
 	void listDevices();
 	void removeDevice(const QUuid &deviceId);
 	void resetAccount(bool removeConfig);
-	void prepareImport(const ExportData &data);
+	void prepareImport(const ExportData &data, const CryptoPP::SecByteBlock &key);
 	void loginReply(const QUuid &deviceId, bool accept);
 
 	void uploadData(const QByteArray &key, const QByteArray &changeData);

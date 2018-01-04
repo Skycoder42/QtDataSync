@@ -114,7 +114,7 @@ bool Setup::persistDeletedVersion() const
 
 Setup::SyncPolicy Setup::syncPolicy() const
 {
-	return (SyncPolicy)d->properties.value(Defaults::ConflictPolicy).toInt();
+	return static_cast<SyncPolicy>(d->properties.value(Defaults::ConflictPolicy).toInt());
 }
 
 QSslConfiguration Setup::sslConfiguration() const
@@ -134,7 +134,7 @@ QString Setup::keyStoreProvider() const
 
 Setup::SignatureScheme Setup::signatureScheme() const
 {
-	return (SignatureScheme)d->properties.value(Defaults::SignScheme).toInt();
+	return static_cast<SignatureScheme>(d->properties.value(Defaults::SignScheme).toInt());
 }
 
 QVariant Setup::signatureKeyParam() const
@@ -144,7 +144,7 @@ QVariant Setup::signatureKeyParam() const
 
 Setup::EncryptionScheme Setup::encryptionScheme() const
 {
-	return (EncryptionScheme)d->properties.value(Defaults::CryptScheme).toInt();
+	return static_cast<EncryptionScheme>(d->properties.value(Defaults::CryptScheme).toInt());
 }
 
 QVariant Setup::encryptionKeyParam() const
@@ -154,7 +154,7 @@ QVariant Setup::encryptionKeyParam() const
 
 Setup::CipherScheme Setup::cipherScheme() const
 {
-	return (CipherScheme)d->properties.value(Defaults::SymScheme).toInt();
+	return static_cast<CipherScheme>(d->properties.value(Defaults::SymScheme).toInt());
 }
 
 qint32 Setup::cipherKeySize() const
@@ -489,7 +489,7 @@ void RemoteConfig::setKeepaliveTimeout(int keepaliveTimeout)
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RemoteConfig &deviceInfo)
 {
 	stream << deviceInfo.d->url
-		   << (Utf8String)deviceInfo.d->accessKey
+		   << static_cast<Utf8String>(deviceInfo.d->accessKey)
 		   << deviceInfo.d->headers
 		   << deviceInfo.d->keepaliveTimeout;
 	return stream;

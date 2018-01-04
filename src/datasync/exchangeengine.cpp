@@ -72,7 +72,7 @@ qreal ExchangeEngine::progress() const
 	if(_progressMax == 0)
 		return -1.0;
 	else
-		return (qreal)_progressCurrent/(qreal)_progressMax;
+		return static_cast<qreal>(_progressCurrent)/static_cast<qreal>(_progressMax);
 }
 
 QString ExchangeEngine::lastError() const

@@ -102,7 +102,7 @@ void AccountManager::exportAccount(bool includeServer, const std::function<void(
 
 	quint32 id;
 	do {
-		id = (quint32)qrand();
+		id = static_cast<quint32>(qrand());
 	} while(d->exportActions.contains(id));
 
 	d->exportActions.insert(id, completedFn);
@@ -131,7 +131,7 @@ void AccountManager::exportAccountTrusted(bool includeServer, const QString &pas
 
 	quint32 id;
 	do {
-		id = (quint32)qrand();
+		id = static_cast<quint32>(qrand());
 	} while(d->exportActions.contains(id));
 
 	d->exportActions.insert(id, completedFn);
@@ -374,7 +374,7 @@ DeviceInfoPrivate::DeviceInfoPrivate(const DeviceInfoPrivate &other) :
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceInfo &deviceInfo)
 {
 	stream << deviceInfo.d->deviceId
-		   << (Utf8String)deviceInfo.d->name
+		   << static_cast<Utf8String>(deviceInfo.d->name)
 		   << deviceInfo.d->fingerprint;
 	return stream;
 }

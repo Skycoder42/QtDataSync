@@ -106,7 +106,9 @@ void AccountManagerPrivate::importAccount(const JsonObject &importData, bool kee
 {
 	try {
 		auto data = deserializeExportData(importData);
-		performImport(data, keepData);
+		_engine->remoteConnector()->prepareImport(data, CryptoPP::SecByteBlock());
+		_engine->resetAccount(keepData, false);
+		emit accountImportResult(true, {});
 	} catch(QException &e) {
 		logWarning() << "Failed to import data with error:" << e.what();
 		emit accountImportResult(false, tr("Failed import data. Data invalid."));
@@ -128,7 +130,9 @@ void AccountManagerPrivate::importAccountTrusted(const JsonObject &importData, c
 			throw Exception(_engine->defaults(), error.errorString());
 		auto data = deserializeExportData(obj);
 		//verify cmac not needed here, as integrity and authenticity are already part of the encryption scheme
-		performImport(data, keepData);
+		_engine->remoteConnector()->prepareImport(data, key);
+		_engine->resetAccount(keepData, false);
+		emit accountImportResult(true, {});
 	} catch(QException &e) {
 		logWarning() << "Failed to decrypt import data with error:" << e.what();
 		emit accountImportResult(false, tr("Failed to decrypt data. Data invalid or password wrong."));
@@ -216,11 +220,4 @@ ExportData AccountManagerPrivate::deserializeExportData(const QJsonObject &impor
 	}
 
 	return data;
-}
-
-void AccountManagerPrivate::performImport(const ExportData &data, bool keepData)
-{
-	_engine->remoteConnector()->prepareImport(data);
-	_engine->resetAccount(keepData, false);
-	emit accountImportResult(true, {});
 }

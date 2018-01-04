@@ -18,7 +18,7 @@ IdentifyMessage IdentifyMessage::createRandom(CryptoPP::RandomNumberGenerator &r
 {
 	IdentifyMessage msg;
 	msg.nonce.resize(NonceSize);
-	rng.GenerateBlock((byte*)msg.nonce.data(), msg.nonce.size());
+	rng.GenerateBlock(reinterpret_cast<byte*>(msg.nonce.data()), msg.nonce.size());
 	return msg;
 }
 

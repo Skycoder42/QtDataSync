@@ -12,7 +12,7 @@ ErrorMessage::ErrorMessage(ErrorMessage::ErrorType type, const QString &message,
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const ErrorMessage &message)
 {
-	stream << (int)message.type
+	stream << static_cast<int>(message.type)
 		   << message.message
 		   << message.canRecover;
 	return stream;
@@ -21,7 +21,7 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const ErrorMessage &mes
 QDataStream &QtDataSync::operator>>(QDataStream &stream, ErrorMessage &message)
 {
 	stream.startTransaction();
-	stream >> (int&)message.type
+	stream >> reinterpret_cast<int&>(message.type)
 		   >> message.message
 		   >> message.canRecover;
 	if(!QMetaEnum::fromType<ErrorMessage::ErrorType>().valueToKey(message.type))
@@ -38,6 +38,6 @@ QDebug QtDataSync::operator<<(QDebug debug, const ErrorMessage &message)
 							  << ", "
 							  << (message.canRecover ? "recoverable" : "unrecoverable")
 							  << "]: "
-							  << (message.message.isNull() ? QStringLiteral("<no message text>") : (QString)message.message);
+							  << (message.message.isNull() ? QStringLiteral("<no message text>") : static_cast<QString>(message.message));
 	return debug;
 }

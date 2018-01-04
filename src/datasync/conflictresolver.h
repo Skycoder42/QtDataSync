@@ -48,8 +48,8 @@ public:
 	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
 		if(typeId == qMetaTypeId<T1>()) {
 			const QJsonSerializer *ser = this->serializer();
-			auto d1 = ser->deserialize<T1>(data1, (QObject*)this);
-			auto d2 = ser->deserialize<T1>(data2, (QObject*)this);
+			auto d1 = ser->deserialize<T1>(data1, const_cast<GenericConflictResolver<T1, Args...>*>(this));
+			auto d2 = ser->deserialize<T1>(data2, const_cast<GenericConflictResolver<T1, Args...>*>(this));
 			return ser->serialize<T1>(resolveConflict(d1, d2));
 		} else
 			return GenericConflictResolver<Args...>::resolveConflict(typeId, data1, data2);
@@ -69,8 +69,8 @@ public:
 	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
 		if(typeId == qMetaTypeId<T1>()) {
 			const QJsonSerializer *ser = this->serializer();
-			auto d1 = ser->deserialize<T1>(data1, (QObject*)this);
-			auto d2 = ser->deserialize<T1>(data2, (QObject*)this);
+			auto d1 = ser->deserialize<T1>(data1, const_cast<GenericConflictResolver<T1>*>(this));
+			auto d2 = ser->deserialize<T1>(data2, const_cast<GenericConflictResolver<T1>*>(this));
 			return ser->serialize<T1>(resolveConflict(d1, d2));
 		} else
 			return QJsonObject();

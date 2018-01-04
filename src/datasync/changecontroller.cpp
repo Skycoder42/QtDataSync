@@ -193,7 +193,7 @@ bool ChangeController::CachedObjectKey::operator==(const CachedObjectKey &other)
 	if(!_hash.isEmpty() && !other._hash.isEmpty())
 		return _hash == other._hash;
 	else
-		return ((ObjectKey)(*this) == (ObjectKey)other);
+		return (static_cast<ObjectKey>(*this) == static_cast<ObjectKey>(other));
 }
 
 bool ChangeController::CachedObjectKey::operator!=(const CachedObjectKey &other) const
@@ -201,7 +201,7 @@ bool ChangeController::CachedObjectKey::operator!=(const CachedObjectKey &other)
 	if(!_hash.isEmpty() && !other._hash.isEmpty())
 		return _hash != other._hash;
 	else
-		return ((ObjectKey)(*this) != (ObjectKey)other);
+		return (static_cast<ObjectKey>(*this) != static_cast<ObjectKey>(other));
 }
 
 uint QtDataSync::qHash(const ChangeController::CachedObjectKey &key, uint seed)
