@@ -123,6 +123,12 @@ void AccountManager::exportAccountTrusted(bool includeServer, const QString &pas
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
+	if(password.isEmpty()) {
+		if(errorFn)
+			errorFn(tr("Password must not be empty."));
+		return;
+	}
+
 	quint32 id;
 	do {
 		id = (quint32)qrand();

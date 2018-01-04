@@ -93,7 +93,7 @@ public:
 
 	// sync access
 	SyncScope startSync(const ObjectKey &key) const;
-	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QString, QByteArray> loadChangeInfo(SyncScope &scope) const;
+	std::tuple<QtDataSync::LocalStore::ChangeType, quint64, QString, QByteArray> loadChangeInfo(SyncScope &scope) const; //(changetype, version, filename, checksum)
 	void updateVersion(SyncScope &scope,
 					   quint64 oldVersion,
 					   quint64 newVersion,

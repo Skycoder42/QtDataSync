@@ -55,7 +55,7 @@ public:
 												 CryptoPP::RandomNumberGenerator &rng,
 												 QObject *parent = nullptr);
 	void updateLogin(const QUuid &deviceId, const QString &name);
-	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId);
+	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId); // (deviceid, name, fingerprint)
 	void removeDevice(const QUuid &deviceId, const QUuid &deleteId);
 
 	void addChange(const QUuid &deviceId,
@@ -65,7 +65,7 @@ public:
 				   const QByteArray &data);
 
 	quint32 changeCount(const QUuid &deviceId);
-	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip);
+	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip); // (dataid, keyindex, salt, data)
 	void completeChange(const QUuid &deviceId, quint64 dataIndex);
 
 Q_SIGNALS:

@@ -30,10 +30,11 @@ const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepal
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
 const QString RemoteConnector::keyImport(QStringLiteral("import"));
+const QString RemoteConnector::keyImportTrusted(QStringLiteral("import/trusted"));
 const QString RemoteConnector::keyImportNonce(QStringLiteral("import/nonce"));
 const QString RemoteConnector::keyImportPartner(QStringLiteral("import/partner"));
-const QString RemoteConnector::keyImportTrusted(QStringLiteral("import/trusted"));
-const QString RemoteConnector::keyImportSignature(QStringLiteral("import/signature"));
+const QString RemoteConnector::keyImportScheme(QStringLiteral("import/scheme"));
+const QString RemoteConnector::keyImportCmac(QStringLiteral("import/cmac"));
 
 const QVector<std::chrono::seconds> RemoteConnector::Timeouts = {
 	std::chrono::seconds(5),
@@ -121,7 +122,7 @@ void RemoteConnector::finalize()
 		emit finalized();
 }
 
-ExportData RemoteConnector::exportAccount(bool trusted, bool includeServer)
+std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::exportAccount(bool includeServer, const QString &password)
 {
 	if(_deviceId.isNull())
 		throw Exception(defaults(), QStringLiteral("Cannot export data without beeing registered on a server."));
@@ -130,14 +131,18 @@ ExportData RemoteConnector::exportAccount(bool trusted, bool includeServer)
 	data.pNonce.resize(IdentifyMessage::NonceSize);
 	_cryptoController->crypto()->rng().GenerateBlock((byte*)data.pNonce.data(), data.pNonce.size());
 	data.partnerId = _deviceId;
-	data.trusted = trusted;
-	data.signature = _cryptoController->crypto()->sign(data.signData());
+	data.trusted = !password.isNull();
+
+	QByteArray salt;
+	CryptoPP::SecByteBlock key;
+	std::tie(data.scheme, salt, key) = _cryptoController->generateExportKey(password);
+	data.cmac = _cryptoController->createExportCmac(data.scheme, key, data.signData());
 
 	if(includeServer)
 		data.config = QSharedPointer<RemoteConfig>::create(loadConfig());
 
-	_exportsCache.insert(data.pNonce);
-	return data;
+	_exportsCache.insert(data.pNonce, key);
+	return std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock>{data, salt, key};
 }
 
 bool RemoteConnector::isSyncEnabled() const
@@ -227,10 +232,11 @@ void RemoteConnector::prepareImport(const ExportData &data)
 		storeConfig(*(data.config));
 	else
 		settings()->remove(keyRemoteConfig);
+	settings()->setValue(keyImportTrusted, data.trusted);
 	settings()->setValue(keyImportNonce, data.pNonce);
 	settings()->setValue(keyImportPartner, data.partnerId);
-	settings()->setValue(keyImportTrusted, data.trusted);
-	settings()->setValue(keyImportSignature, data.signature);
+	settings()->setValue(keyImportScheme, data.scheme);
+	settings()->setValue(keyImportCmac, data.cmac);
 	//after storing, continue with "normal" reset. This MUST be done by the engine, thus not in this function
 }
 
@@ -868,10 +874,11 @@ void RemoteConnector::onRemoved(const RemovedMessage &message)
 
 
 ExportData::ExportData() :
+	trusted(false),
 	pNonce(),
 	partnerId(),
-	trusted(false),
-	signature(),
+	scheme(),
+	cmac(),
 	config(nullptr)
 {}
 
@@ -879,5 +886,5 @@ QByteArray ExportData::signData() const
 {
 	return pNonce +
 			partnerId.toRfc4122() +
-			(char)(trusted ? 0x01 : 0x00);
+			scheme;
 }

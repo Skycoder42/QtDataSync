@@ -67,7 +67,9 @@ void AccountManagerPrivate::resetAccount(bool keepData)
 void AccountManagerPrivate::exportAccount(quint32 id, bool includeServer)
 {
 	try {
-		emit accountExportReady(id, createExportData(false, includeServer));
+		auto data = _engine->remoteConnector()->exportAccount(includeServer, QString());
+		auto json = serializeExportData(std::get<0>(data)); //ignore the salt and key, not needed
+		emit accountExportReady(id, json);
 	} catch(QException &e) {
 		logWarning() << "Failed to generate export data with error:" << e.what();
 		emit accountExportError(id, tr("Failed to generate export data. You must be registered to a server to export data."));
@@ -76,14 +78,23 @@ void AccountManagerPrivate::exportAccount(quint32 id, bool includeServer)
 
 void AccountManagerPrivate::exportAccountTrusted(quint32 id, bool includeServer, const QString &password)
 {
+	if(password.isEmpty()) {
+		emit accountExportError(id, tr("Password must not be empty."));
+		return;
+	}
+
 	try {
-		auto json = createExportData(true, includeServer);
-		auto enc = _engine->cryptoController()->pwEncrypt(QJsonDocument(json).toJson(QJsonDocument::Compact), password);
+		ExportData data;
+		QByteArray salt;
+		CryptoPP::SecByteBlock key;
+		std::tie(data, salt, key) = _engine->remoteConnector()->exportAccount(includeServer, password);
+		auto json = serializeExportData(data);
+		auto enc = _engine->cryptoController()->exportEncrypt(data.scheme, salt, key, QJsonDocument(json).toJson(QJsonDocument::Compact));
 		QJsonObject res;
 		res[QStringLiteral("trusted")] = true; //trusted exports are always encrypted, needed for deser
-		res[QStringLiteral("scheme")] = QString::fromUtf8(std::get<0>(enc));
-		res[QStringLiteral("salt")] = QString::fromUtf8(std::get<1>(enc).toBase64());
-		res[QStringLiteral("data")] = QString::fromUtf8(std::get<2>(enc).toBase64());
+		res[QStringLiteral("scheme")] = QString::fromUtf8(data.scheme);
+		res[QStringLiteral("salt")] = QString::fromUtf8(salt.toBase64());
+		res[QStringLiteral("data")] = QString::fromUtf8(enc.toBase64());
 		emit accountExportReady(id, res);
 	} catch(QException &e) {
 		logWarning() << "Failed to generate export data with error:" << e.what();
@@ -94,43 +105,8 @@ void AccountManagerPrivate::exportAccountTrusted(quint32 id, bool includeServer,
 void AccountManagerPrivate::importAccount(const JsonObject &importData, bool keepData)
 {
 	try {
-		ExportData data;
-
-		//cant use json serializer because of HeaderHash and config ptr
-		data.pNonce = QByteArray::fromBase64(importData[QStringLiteral("nonce")].toString().toUtf8());
-		data.partnerId = QUuid::fromString(importData[QStringLiteral("partner")].toString());
-		data.trusted = importData[QStringLiteral("trusted")].toBool();
-		data.signature = QByteArray::fromBase64(importData[QStringLiteral("signature")].toString().toUtf8());
-
-		if(importData[QStringLiteral("config")].isObject()) {
-			auto cJson = importData[QStringLiteral("config")].toObject();
-
-			data.config = QSharedPointer<RemoteConfig>::create();
-			data.config->setUrl(QUrl(cJson[QStringLiteral("url")].toString()));
-			data.config->setAccessKey(cJson[QStringLiteral("accessKey")].toString());
-			data.config->setKeepaliveTimeout(cJson[QStringLiteral("keepaliveTimeout")].toInt());
-
-			auto hJson = cJson[QStringLiteral("headers")].toObject();
-			RemoteConfig::HeaderHash headers;
-			for(auto it = hJson.constBegin(); it != hJson.constEnd(); it++) {
-				headers.insert(it.key().toUtf8(),
-							   QByteArray::fromBase64(it.value().toString().toUtf8()));
-			}
-			data.config->setHeaders(headers);
-		}
-
-		//quick sanity check of data
-		if(data.pNonce.isEmpty() ||
-		   data.partnerId.isNull() ||
-		   data.signature.isEmpty() ||
-		   (data.config && !data.config->url().isValid())) {
-			throw Exception(_engine->defaults(), QStringLiteral("One or more fields contain incomplete or invalid data"));
-		}
-
-		//start the import sequence (prepare remcon, then reset)
-		_engine->remoteConnector()->prepareImport(data);
-		_engine->resetAccount(keepData, false);
-		emit accountImportResult(true, {});
+		auto data = deserializeExportData(importData);
+		performImport(data, keepData);
 	} catch(QException &e) {
 		logWarning() << "Failed to import data with error:" << e.what();
 		emit accountImportResult(false, tr("Failed import data. Data invalid."));
@@ -140,16 +116,19 @@ void AccountManagerPrivate::importAccount(const JsonObject &importData, bool kee
 void AccountManagerPrivate::importAccountTrusted(const JsonObject &importData, const QString &password, bool keepData)
 {
 	try {
-		auto raw = _engine->cryptoController()->pwDecrypt(importData[QStringLiteral("scheme")].toString().toUtf8(),
-														  QByteArray::fromBase64(importData[QStringLiteral("salt")].toString().toUtf8()),
-														  QByteArray::fromBase64(importData[QStringLiteral("data")].toString().toUtf8()),
-														  password);
+		auto scheme = importData[QStringLiteral("scheme")].toString().toUtf8();
+		auto salt = QByteArray::fromBase64(importData[QStringLiteral("salt")].toString().toUtf8());
+
+		auto key = _engine->cryptoController()->recoverExportKey(scheme, salt, password);
+		auto raw = _engine->cryptoController()->importDecrypt(scheme, salt, key,
+															  QByteArray::fromBase64(importData[QStringLiteral("data")].toString().toUtf8()));
 		QJsonParseError error;
 		auto obj = QJsonDocument::fromJson(raw, &error).object();
 		if(error.error != QJsonParseError::NoError)
 			throw Exception(_engine->defaults(), error.errorString());
-
-		importAccount(obj, keepData);
+		auto data = deserializeExportData(obj);
+		//verify cmac not needed here, as integrity and authenticity are already part of the encryption scheme
+		performImport(data, keepData);
 	} catch(QException &e) {
 		logWarning() << "Failed to decrypt import data with error:" << e.what();
 		emit accountImportResult(false, tr("Failed to decrypt data. Data invalid or password wrong."));
@@ -168,16 +147,15 @@ void AccountManagerPrivate::requestLogin(const DeviceInfo &deviceInfo)
 	emit loginRequested(deviceInfo);
 }
 
-QJsonObject AccountManagerPrivate::createExportData(bool trusted, bool includeServer)
+QJsonObject AccountManagerPrivate::serializeExportData(const ExportData &data) const
 {
-	auto data = _engine->remoteConnector()->exportAccount(trusted, includeServer);
-
 	//cant use json serializer because of HeaderHash and config ptr
 	QJsonObject dJson;
+	dJson[QStringLiteral("trusted")] = data.trusted;
 	dJson[QStringLiteral("nonce")] = QString::fromUtf8(data.pNonce.toBase64());
 	dJson[QStringLiteral("partner")] = data.partnerId.toString();
-	dJson[QStringLiteral("trusted")] = data.trusted;
-	dJson[QStringLiteral("signature")] = QString::fromUtf8(data.signature.toBase64());
+	dJson[QStringLiteral("scheme")] = QString::fromUtf8(data.scheme);
+	dJson[QStringLiteral("cmac")] = QString::fromUtf8(data.cmac.toBase64());
 
 	if(data.config) {
 		QJsonObject cJson;
@@ -198,4 +176,51 @@ QJsonObject AccountManagerPrivate::createExportData(bool trusted, bool includeSe
 		dJson[QStringLiteral("config")] = QJsonValue::Null;
 
 	return dJson;
+}
+
+ExportData AccountManagerPrivate::deserializeExportData(const QJsonObject &importData) const
+{
+	ExportData data;
+
+	//cant use json serializer because of HeaderHash and config ptr
+	data.trusted = importData[QStringLiteral("trusted")].toBool();
+	data.pNonce = QByteArray::fromBase64(importData[QStringLiteral("nonce")].toString().toUtf8());
+	data.partnerId = QUuid::fromString(importData[QStringLiteral("partner")].toString());
+	data.scheme = importData[QStringLiteral("scheme")].toString().toUtf8();
+	data.cmac = QByteArray::fromBase64(importData[QStringLiteral("cmac")].toString().toUtf8());
+
+	if(importData[QStringLiteral("config")].isObject()) {
+		auto cJson = importData[QStringLiteral("config")].toObject();
+
+		data.config = QSharedPointer<RemoteConfig>::create();
+		data.config->setUrl(QUrl(cJson[QStringLiteral("url")].toString()));
+		data.config->setAccessKey(cJson[QStringLiteral("accessKey")].toString());
+		data.config->setKeepaliveTimeout(cJson[QStringLiteral("keepaliveTimeout")].toInt());
+
+		auto hJson = cJson[QStringLiteral("headers")].toObject();
+		RemoteConfig::HeaderHash headers;
+		for(auto it = hJson.constBegin(); it != hJson.constEnd(); it++) {
+			headers.insert(it.key().toUtf8(),
+						   QByteArray::fromBase64(it.value().toString().toUtf8()));
+		}
+		data.config->setHeaders(headers);
+	}
+
+	//quick sanity check of data
+	if(data.pNonce.isEmpty() ||
+	   data.partnerId.isNull() ||
+	   data.scheme.isEmpty() ||
+	   data.cmac.isEmpty() ||
+	   (data.config && !data.config->url().isValid())) {
+		throw Exception(_engine->defaults(), QStringLiteral("One or more fields contain incomplete or invalid data"));
+	}
+
+	return data;
+}
+
+void AccountManagerPrivate::performImport(const ExportData &data, bool keepData)
+{
+	_engine->remoteConnector()->prepareImport(data);
+	_engine->resetAccount(keepData, false);
+	emit accountImportResult(true, {});
 }

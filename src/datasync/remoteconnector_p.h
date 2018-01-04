@@ -33,11 +33,14 @@ class Q_DATASYNC_EXPORT ExportData
 public:
 	ExportData();
 
+	bool trusted;
 	QByteArray pNonce;
 	QUuid partnerId;
-	bool trusted;
-	QByteArray signature;
+	QByteArray scheme; //scheme used for the cmac
+	QByteArray cmac; //over pNonce, partnerId and scheme, with secret (shared pw-derived) key
 	QSharedPointer<RemoteConfig> config;
+
+	//in case of trusted: must be additionally encrypted with the same key. Must the contain (trusted, scheme, salt, data)
 
 	QByteArray signData() const;
 };
@@ -59,10 +62,11 @@ public:
 	static const QString keyDeviceId;
 	static const QString keyDeviceName;
 	static const QString keyImport;
+	static const QString keyImportTrusted;
 	static const QString keyImportNonce;
 	static const QString keyImportPartner;
-	static const QString keyImportTrusted;
-	static const QString keyImportSignature;
+	static const QString keyImportScheme;
+	static const QString keyImportCmac;
 
 	enum RemoteEvent {
 		RemoteDisconnected,
@@ -79,7 +83,7 @@ public:
 	void initialize(const QVariantHash &params) final;
 	void finalize() final;
 
-	ExportData exportAccount(bool trusted, bool includeServer);
+	std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> exportAccount(bool includeServer, const QString &password); // (exportdata, salt, key)
 
 	bool isSyncEnabled() const;
 	QString deviceName() const;
@@ -145,7 +149,7 @@ private:
 
 	QUuid _deviceId;
 	mutable QList<DeviceInfo> _deviceCache;
-	QSet<QByteArray> _exportsCache;
+	QHash<QByteArray, CryptoPP::SecByteBlock> _exportsCache;
 
 	bool isIdle() const;
 	void triggerError(bool canRecover);

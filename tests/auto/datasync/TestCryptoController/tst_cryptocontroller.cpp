@@ -253,14 +253,39 @@ void TestCryptoController::testPwCrypto()
 		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
 		dPriv->properties.insert(Defaults::SymScheme, scheme);
 
-		//encryption
 		QByteArray schemeName;
 		QByteArray salt;
-		QByteArray cipher;
-		std::tie(schemeName, salt, cipher) = controller->pwEncrypt(message, password);
-		QCOMPARE(controller->pwDecrypt(schemeName, salt, cipher, password), message);
+		QByteArray cmac;
+		QByteArray data;
 
-		QVERIFY_EXCEPTION_THROWN(controller->pwDecrypt(schemeName, salt, cipher, QStringLiteral("wrong password")), CryptoException);
+		//side A
+		{
+			//generate key
+			CryptoPP::SecByteBlock key;
+			std::tie(schemeName, salt, key) = controller->generateExportKey(password);
+
+			//cmac
+			cmac = controller->createExportCmac(schemeName, key, message);
+			controller->verifyImportCmac(schemeName, key, message, cmac);
+
+			//encrypt
+			data = controller->exportEncrypt(schemeName, salt, key, message);
+		}
+
+		//side B
+		{
+			auto key = controller->recoverExportKey(schemeName, salt, password);
+			auto otherKey = controller->recoverExportKey(schemeName, salt, QStringLiteral("wrong password"));
+
+			//cmac
+			controller->verifyImportCmac(schemeName, key, message, cmac);
+			QVERIFY_EXCEPTION_THROWN(controller->verifyImportCmac(schemeName, otherKey, message, cmac), CryptoException);
+
+			//encrypt
+			auto res = controller->importDecrypt(schemeName, salt, key, data);
+			QCOMPARE(res, message);
+			QVERIFY_EXCEPTION_THROWN(controller->importDecrypt(schemeName, salt, otherKey, data), CryptoException);
+		}
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

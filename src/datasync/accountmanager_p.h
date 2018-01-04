@@ -41,7 +41,9 @@ private:
 	Logger *_logger;
 	QSet<QUuid> _loginRequests;
 
-	QJsonObject createExportData(bool trusted, bool includeServer);
+	QJsonObject serializeExportData(const ExportData &data) const;
+	ExportData deserializeExportData(const QJsonObject &importData) const;
+	void performImport(const ExportData &data, bool keepData);
 };
 
 }

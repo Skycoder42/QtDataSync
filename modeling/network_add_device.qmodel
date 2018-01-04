@@ -140,7 +140,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, trusted, signature) </name>
+                         <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, cmac, trustmac) </name>
                          <pos>x:430;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -185,7 +185,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, trusted, signature)</name>
+                         <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, cmac, trustmac)</name>
                          <pos>x:830;y:80</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -465,7 +465,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          <object>{1445529b-49e1-46ac-a8b3-0852ad1714ca}</object>
                          <stereotypes>
                           <qlist>
-                           <item>message</item>
+                           <item>signed message</item>
                           </qlist>
                          </stereotypes>
                          <name>ACCEPT(deviceId, enc{secret})</name>
@@ -1215,9 +1215,24 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                       </DDependency>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DAnnotation">
+                      <DAnnotation>
+                       <base-DElement>
+                        <DElement>
+                         <uid>{1e8005f4-00a6-4e56-82ed-4d17f5058d2c}</uid>
+                        </DElement>
+                       </base-DElement>
+                       <text>cmac generated with secret random or shared key
+trustmac only for trusted, over the public keys and schemes</text>
+                       <pos>x:265;y:140</pos>
+                       <rect>x:0;y:0;w:323.859;h:48</rect>
+                      </DAnnotation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515016027002</last-modified>
+                  <last-modified>1515070906837</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1360,7 +1375,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, trusted, signature) </name>
+                  <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, cmac, trustmac) </name>
                   <relations>
                    <handles>
                     <handles>
@@ -1418,7 +1433,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, trusted, signature)</name>
+                  <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, cmac, trustmac)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1793,7 +1808,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                     <uid>{1445529b-49e1-46ac-a8b3-0852ad1714ca}</uid>
                     <stereotypes>
                      <qlist>
-                      <item>message</item>
+                      <item>signed message</item>
                      </qlist>
                     </stereotypes>
                    </MElement>

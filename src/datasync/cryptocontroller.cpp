@@ -340,16 +340,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByt
 		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
 		_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
 
-		auto enc = info.scheme->encryptor();
-		enc->SetKeyWithIV(info.key.data(), info.key.size(),
-						  (const byte*)salt.constData(), salt.size());
-
-		QByteArray cipher;
-		QByteArraySource(plain, true,
-			new AuthenticatedEncryptionFilter(*enc,
-				new QByteArraySink(cipher)
-			) // AuthenticatedEncryptionFilter
-		); // QByteArraySource
+		auto cipher = symEncrypt(info, salt, plain);
 
 		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, salt, cipher};
 	} catch(CppException &e) {
@@ -363,19 +354,7 @@ QByteArray CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, c
 {
 	try {
 		auto info = getInfo(keyIndex);
-
-		auto dec = info.scheme->decryptor();
-		dec->SetKeyWithIV(info.key.data(), info.key.size(),
-						  (const byte*)salt.constData(), salt.size());
-
-		QByteArray plain;
-		QByteArraySource(cipher, true,
-			new AuthenticatedDecryptionFilter(*dec,
-				new QByteArraySink(plain)
-			) // AuthenticatedDecryptionFilter
-		); // QByteArraySource
-
-		return plain;
+		return symDecrypt(info, salt, cipher);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to decrypt downloaded data"),
@@ -387,18 +366,7 @@ std::tuple<quint32, QByteArray> CryptoController::createCmac(const QByteArray &d
 {
 	try {
 		auto info = getInfo(_localCipher);
-
-		auto cmac = info.scheme->cmac();
-		cmac->SetKey(info.key.data(), info.key.size());
-
-		QByteArray mac;
-		QByteArraySource (data, true,
-			new HashFilter(*cmac,
-				new QByteArraySink(mac)
-			) // HashFilter
-		); // QByteArraySource
-
-		return std::tuple<quint32, QByteArray>{_localCipher, mac};
+		return std::tuple<quint32, QByteArray>{_localCipher, genCmac(info, data)};
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to create CMAC"),
@@ -410,13 +378,7 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 {
 	try {
 		auto info = getInfo(keyIndex);
-
-		auto cmac = info.scheme->cmac();
-		cmac->SetKey(info.key.data(), info.key.size());
-
-		QByteArraySource (data + mac, true,
-			new HashVerificationFilter(*cmac, nullptr, HashVerificationFilter::THROW_EXCEPTION | HashVerificationFilter::HASH_AT_END) // HashFilter
-		); // QByteArraySource
+		verCmac(info, data, mac);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify CMAC"),
@@ -424,47 +386,41 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 	}
 }
 
-std::tuple<QByteArray, QByteArray, QByteArray> CryptoController::pwEncrypt(const QByteArray &data, const QString &password) const
+std::tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExportKey(const QString &password) const
 {
 	try {
-		auto pw = password.toUtf8();
-
 		//load the algorithm
 		CipherInfo info;
 		createScheme((Setup::CipherScheme)defaults().property(Defaults::SymScheme).toInt(), info.scheme);
 		info.key.CleanNew(info.scheme->defaultKeyLength());
 
-		//create a salt
-		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
-		_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
+		QByteArray salt;
+		if(password.isNull()) {
+			//generate random key
+			_asymCrypto->rng().GenerateBlock(info.key.data(), info.key.size());
+		} else {
+			auto pw = password.toUtf8();
 
-		//generate the key
-		PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
-		keydev.DeriveKey(info.key.data(), info.key.size(),
-						 PwPurpose, (const byte*)pw.constData(), pw.size(),
-						 (const byte*)salt.constData(), salt.size(), PwRounds);
+			//create a salt
+			salt.resize(info.scheme->ivLength());
+			_asymCrypto->rng().GenerateBlock((byte*)salt.data(), salt.size());
 
-		//encrypt
-		auto enc = info.scheme->encryptor();
-		enc->SetKeyWithIV(info.key.data(), info.key.size(),
-						  (const byte*)salt.constData(), salt.size());
+			//generate the key
+			PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
+			keydev.DeriveKey(info.key.data(), info.key.size(),
+							 PwPurpose, (const byte*)pw.constData(), pw.size(),
+							 (const byte*)salt.constData(), salt.size(), PwRounds);
+		}
 
-		QByteArray cipher;
-		QByteArraySource(data, true,
-			new AuthenticatedEncryptionFilter(*enc,
-				new QByteArraySink(cipher)
-			) // AuthenticatedEncryptionFilter
-		); // QByteArraySource
-
-		return std::tuple<QByteArray, QByteArray, QByteArray>{info.scheme->name(), salt, cipher};
+		return std::tuple<QByteArray, QByteArray, SecByteBlock>{info.scheme->name(), salt, info.key};
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to encrypt with password"),
+							  QStringLiteral("Failed to generate key from password"),
 							  e);
 	}
 }
 
-QByteArray CryptoController::pwDecrypt(const QByteArray &scheme, const QByteArray &salt, const QByteArray &data, const QString &password) const
+SecByteBlock CryptoController::recoverExportKey(const QByteArray &scheme, const QByteArray &salt, const QString &password) const
 {
 	try {
 		auto pw = password.toUtf8();
@@ -480,22 +436,66 @@ QByteArray CryptoController::pwDecrypt(const QByteArray &scheme, const QByteArra
 						 PwPurpose, (const byte*)pw.constData(), pw.size(),
 						 (const byte*)salt.constData(), salt.size(), PwRounds);
 
-		//encrypt
-		auto dec = info.scheme->decryptor();
-		dec->SetKeyWithIV(info.key.data(), info.key.size(),
-						  (const byte*)salt.constData(), salt.size());
-
-		QByteArray plain;
-		QByteArraySource(data, true,
-			new AuthenticatedDecryptionFilter(*dec,
-				new QByteArraySink(plain)
-			) // AuthenticatedEncryptionFilter
-		); // QByteArraySource
-
-		return plain;
+		return info.key;
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to decrypt with password"),
+							  QStringLiteral("Failed to recover key from password"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::createExportCmac(const QByteArray &scheme, const SecByteBlock &key, const QByteArray &data) const
+{
+	try {
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key = key;
+		return genCmac(info, data);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to generate cmac for export data"),
+							  e);
+	}
+}
+
+void CryptoController::verifyImportCmac(const QByteArray &scheme, const SecByteBlock &key, const QByteArray &data, const QByteArray &mac) const
+{
+	try {
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key = key;
+		return verCmac(info, data, mac);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to generate cmac for export data"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::exportEncrypt(const QByteArray &scheme, const QByteArray &salt, const SecByteBlock &key, const QByteArray &data) const
+{
+	try {
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key = key;
+		return symEncrypt(info, salt, data);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to encrypt export data"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::importDecrypt(const QByteArray &scheme, const QByteArray &salt, const SecByteBlock &key, const QByteArray &data) const
+{
+	try {
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key = key;
+		return symDecrypt(info, salt, data);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to decrypt downloaded data"),
 							  e);
 	}
 }
@@ -619,6 +619,60 @@ QDir CryptoController::keysDir() const
 	if(!keyDir.mkpath(keyDirName) || !keyDir.cd(keyDirName))
 		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, "Failed to create keys directory");
 	return keyDir;
+}
+
+QByteArray CryptoController::genCmac(const CryptoController::CipherInfo &info, const QByteArray &data) const
+{
+	auto cmac = info.scheme->cmac();
+	cmac->SetKey(info.key.data(), info.key.size());
+
+	QByteArray mac;
+	QByteArraySource (data, true,
+		new HashFilter(*cmac,
+			new QByteArraySink(mac)
+		) // HashFilter
+	); // QByteArraySource
+	return mac;
+}
+
+void CryptoController::verCmac(const CryptoController::CipherInfo &info, const QByteArray &data, const QByteArray &mac) const
+{
+	auto cmac = info.scheme->cmac();
+	cmac->SetKey(info.key.data(), info.key.size());
+
+	QByteArraySource (data + mac, true,
+		new HashVerificationFilter(*cmac, nullptr, HashVerificationFilter::THROW_EXCEPTION | HashVerificationFilter::HASH_AT_END) // HashFilter
+	); // QByteArraySource
+}
+
+QByteArray CryptoController::symEncrypt(const CryptoController::CipherInfo &info, const QByteArray &salt, const QByteArray &plain) const
+{
+	auto enc = info.scheme->encryptor();
+	enc->SetKeyWithIV(info.key.data(), info.key.size(),
+					  (const byte*)salt.constData(), salt.size());
+
+	QByteArray cipher;
+	QByteArraySource(plain, true,
+		new AuthenticatedEncryptionFilter(*enc,
+			new QByteArraySink(cipher)
+		) // AuthenticatedEncryptionFilter
+	); // QByteArraySource
+	return cipher;
+}
+
+QByteArray CryptoController::symDecrypt(const CryptoController::CipherInfo &info, const QByteArray &salt, const QByteArray &cipher) const
+{
+	auto dec = info.scheme->decryptor();
+	dec->SetKeyWithIV(info.key.data(), info.key.size(),
+					  (const byte*)salt.constData(), salt.size());
+
+	QByteArray plain;
+	QByteArraySource(cipher, true,
+		new AuthenticatedDecryptionFilter(*dec,
+			new QByteArraySink(plain)
+		) // AuthenticatedDecryptionFilter
+	); // QByteArraySource
+	return plain;
 }
 
 // ------------- ClientCrypto Implementation -------------
