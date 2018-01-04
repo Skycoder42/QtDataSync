@@ -23,6 +23,7 @@
 #include "changedmessage_p.h"
 #include "devicesmessage_p.h"
 #include "removemessage_p.h"
+#include "proofmessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -150,6 +151,7 @@ private:
 	QUuid _deviceId;
 	mutable QList<DeviceInfo> _deviceCache;
 	QHash<QByteArray, CryptoPP::SecByteBlock> _exportsCache;
+	QHash<QUuid, QSharedPointer<AsymmetricCryptoInfo>> _activeProofs;
 
 	bool isIdle() const;
 	void triggerError(bool canRecover);
@@ -173,6 +175,7 @@ private:
 	void onLastChanged(const LastChangedMessage &message);
 	void onDevices(const DevicesMessage &message);
 	void onRemoved(const RemovedMessage &message);
+	void onProof(const ProofMessage &message);
 };
 
 }

@@ -70,7 +70,7 @@ QSharedPointer<X509PublicKey> AsymmetricCrypto::readKey(bool signKey, CryptoPP::
 				   _encryption->createNullKey();
 	QByteArraySource source(data, true);
 	key->Load(source);
-	if(!key->Validate(rng, 2))
+	if(!key->Validate(rng, 2)) //TODO always 3???
 	   throw Exception(Exception::INVALID_DATA_FORMAT, "Key failed validation");
 	return key;
 }

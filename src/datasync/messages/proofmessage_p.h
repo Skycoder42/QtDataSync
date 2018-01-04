@@ -12,6 +12,7 @@ class Q_DATASYNC_EXPORT ProofMessage
 
 	Q_PROPERTY(QByteArray pNonce MEMBER pNonce)
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
+	Q_PROPERTY(QString deviceName MEMBER deviceName)
 	Q_PROPERTY(QByteArray signAlgorithm MEMBER signAlgorithm)
 	Q_PROPERTY(QByteArray signKey MEMBER signKey)
 	Q_PROPERTY(QByteArray cryptAlgorithm MEMBER cryptAlgorithm)
@@ -26,6 +27,7 @@ public:
 
 	QByteArray pNonce;
 	QUuid deviceId;
+	QString deviceName;
 	QByteArray signAlgorithm;
 	QByteArray signKey;
 	QByteArray cryptAlgorithm;
@@ -35,11 +37,26 @@ public:
 	QByteArray trustmac;
 };
 
+class Q_DATASYNC_EXPORT DenyMessage
+{
+	Q_GADGET
+
+	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
+
+public:
+	DenyMessage(const QUuid &deviceId = {});
+
+	QUuid deviceId;
+};
+
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ProofMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ProofMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DenyMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DenyMessage &message);
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ProofMessage)
+Q_DECLARE_METATYPE(QtDataSync::DenyMessage)
 
 #endif // PROOFMESSAGE_P_H

@@ -146,7 +146,8 @@ void ClientConnector::proofRequested(const QUuid &partner, const QtDataSync::Pro
 				client, [devId, pClient, client](const QUuid &partner, bool result) {
 			if(devId == partner) {
 				client->proofResult(result);
-				disconnect(pClient, nullptr, client, nullptr);
+				if(pClient)
+					pClient->disconnect(client);
 			}
 		}, Qt::QueuedConnection);
 		pClient->sendProof(message);

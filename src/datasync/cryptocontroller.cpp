@@ -467,7 +467,7 @@ void CryptoController::verifyImportCmac(const QByteArray &scheme, const SecByteB
 		return verCmac(info, data, mac);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to generate cmac for export data"),
+							  QStringLiteral("Failed to verify cmac for import data"),
 							  e);
 	}
 }

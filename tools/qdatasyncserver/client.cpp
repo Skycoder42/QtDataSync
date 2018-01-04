@@ -452,7 +452,7 @@ void Client::onRemove(const RemoveMessage &message)
 	_database->removeDevice(_deviceId, message.deviceId);
 	sendMessage(serializeMessage<RemovedMessage>(message.deviceId));
 	if(_deviceId == message.deviceId) {
-		_state == Error;
+		_state = Error;
 		closeLater(); //in case the client does not get the message...
 	}
 }

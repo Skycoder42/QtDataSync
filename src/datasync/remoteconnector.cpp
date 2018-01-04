@@ -55,7 +55,9 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_retryIndex(0),
 	_expectChanges(false),
 	_deviceId(),
-	_deviceCache()
+	_deviceCache(),
+	_exportsCache(),
+	_activeProofs()//TODO cleanup
 {}
 
 CryptoController *RemoteConnector::cryptoController() const
@@ -246,7 +248,7 @@ void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecB
 
 void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 {
-
+	logCritical() << Q_FUNC_INFO << deviceId << accept;
 }
 
 void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
@@ -375,6 +377,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onDevices(deserializeMessage<DevicesMessage>(stream));
 		else if(isType<RemovedMessage>(name))
 			onRemoved(deserializeMessage<RemovedMessage>(stream));
+		else if(isType<ProofMessage>(name))
+			onProof(deserializeMessage<ProofMessage>(stream));
 		else {
 			logWarning().noquote() << "Unknown message received:" << typeName(name);
 			triggerError(true);
@@ -758,11 +762,11 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto scheme = settings()->value(keyImportScheme).toByteArray();
 				auto key = settings()->value(keyImportKey).toByteArray();
 				if(!key.isEmpty()) {
+					CryptoPP::SecByteBlock secBlock(reinterpret_cast<const byte*>(key.constData()), key.size());
 					QByteArray trustMessage = crypto->signatureScheme() +
 											  crypto->writeSignKey() +
 											  crypto->encryptionScheme() +
 											  crypto->writeCryptKey();
-					CryptoPP::SecByteBlock secBlock(reinterpret_cast<const byte*>(key.constData()), key.size());
 					trustmac = _cryptoController->createExportCmac(scheme, secBlock, trustMessage);
 				}
 
@@ -901,6 +905,55 @@ void RemoteConnector::onRemoved(const RemovedMessage &message)
 					break;
 				}
 			}
+		}
+	}
+}
+
+void RemoteConnector::onProof(const ProofMessage &message)
+{
+	if(!isIdle()) {
+		logWarning() << "Unexpected ProofMessage";
+		triggerError(true);
+	} else {
+		try {
+			//check if expected and verify cmac
+			auto key = _exportsCache.take(message.pNonce);
+			if(key.empty())
+				throw Exception(defaults(), QStringLiteral("ProofMessage for non existing export"));
+			QByteArray macData = message.pNonce +
+								 _deviceId.toRfc4122() +
+								 message.macscheme;
+			_cryptoController->verifyImportCmac(message.macscheme, key, macData, message.cmac);
+
+			//read (and verify) the keys
+			auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->crypto()->rng(),
+																		  message.signAlgorithm,
+																		  message.signKey,
+																		  message.cryptAlgorithm,
+																		  message.cryptKey);
+
+			//verify trustmac if given
+			auto trusted = !message.trustmac.isNull();
+			if(trusted) {
+				QByteArray trustMessage = cryptInfo->signatureScheme() +
+										  cryptInfo->writeKey(cryptInfo->signatureKey()) +
+										  cryptInfo->encryptionScheme() +
+										  cryptInfo->writeKey(cryptInfo->encryptionKey());
+				_cryptoController->verifyImportCmac(message.macscheme, key, trustMessage, message.trustmac);
+			}
+
+			//all verifications accepted
+			_activeProofs.insert(message.deviceId, cryptInfo);
+			logDebug() << "Received import proof request for device" << message.deviceId;
+			if(trusted) //trusted -> ready to go, send back the accept
+				loginReply(message.deviceId, true);
+			else { //untrusted -> cache the request and signale that the login must be checked
+				DeviceInfo info(message.deviceId, message.deviceName, cryptInfo->ownFingerprint());
+				emit loginRequested(info);
+			}
+		} catch(Exception &e) {
+			logWarning() << "Rejecting ProofMessage with error:" << e.what();
+			_socket->sendBinaryMessage(serializeMessage<DenyMessage>(message.deviceId));
 		}
 	}
 }
