@@ -241,7 +241,7 @@ void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecB
 	settings()->setValue(keyImportCmac, data.cmac);
 	if(data.trusted) {
 		Q_ASSERT_X(!key.empty(), Q_FUNC_INFO, "Cannot have trusted data without a key");
-		settings()->setValue(keyImportKey, QByteArray::fromRawData(reinterpret_cast<const char*>(key.data()), static_cast<int>(key.size())));
+		settings()->setValue(keyImportKey, QByteArray(reinterpret_cast<const char*>(key.data()), static_cast<int>(key.size())));
 	}
 	//after storing, continue with "normal" reset. This MUST be done by the engine, thus not in this function
 }
