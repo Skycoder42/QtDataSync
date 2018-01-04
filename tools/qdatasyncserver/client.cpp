@@ -1,6 +1,5 @@
 #include "client.h"
 #include "app.h"
-#include "errormessage_p.h"
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
@@ -126,6 +125,31 @@ void Client::notifyChanged()
 	});
 }
 
+void Client::proofResult(bool success)
+{
+	if(_state != AwatingGrant) {
+		qWarning() << "Unexpected proof result. Ignoring";
+		return;
+	} else {
+		qDebug() << "Proof completed with result:" << success;
+		if(success) {
+			Q_UNIMPLEMENTED();
+		} else
+			sendError(ErrorMessage::AccessError);
+	}
+}
+
+void Client::sendProof(const ProofMessage &message)
+{
+	run([this, message]() {
+		if(_state != Idle) {
+			qWarning() << "Cannot send proof when not in idle state";
+			emit proofDone(message.deviceId, false);
+		} else
+			sendMessage(serializeMessage(message));
+	});
+}
+
 void Client::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == PingMessage) {
@@ -136,6 +160,9 @@ void Client::binaryMessageReceived(const QByteArray &message)
 	}
 
 	run([message, this]() {
+		if(_state == Error)
+			return;
+
 		try {
 			QDataStream stream(message);
 			setupStream(stream);
@@ -149,6 +176,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onRegister(deserializeMessage<RegisterMessage>(stream), stream);
 			else if(isType<LoginMessage>(name))
 				onLogin(deserializeMessage<LoginMessage>(stream), stream);
+			else if(isType<AccessMessage>(name))
+				onAccess(deserializeMessage<AccessMessage>(stream), stream);
 			else if(isType<SyncMessage>(name))
 				onSync(deserializeMessage<SyncMessage>(stream));
 			else if(isType<ChangeMessage>(name))
@@ -161,21 +190,19 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onRemove(deserializeMessage<RemoveMessage>(stream));
 			else {
 				qWarning() << "Unknown message received:" << typeName(name);
-				sendMessage(serializeMessage<ErrorMessage>({
-															   ErrorMessage::IncompatibleVersionError,
-															   QStringLiteral("Unknown message type \"%1\"").arg(QString::fromUtf8(typeName(name)))
-														   }));
-				closeLater();
+				sendError({
+							  ErrorMessage::IncompatibleVersionError,
+							  QStringLiteral("Unknown message type \"%1\"").arg(QString::fromUtf8(typeName(name)))
+						  });
 			}
 		} catch(IncompatibleVersionException &e) {
 			qWarning() << "Message error:" << e.what();
-			sendMessage(serializeMessage<ErrorMessage>({
-														   ErrorMessage::IncompatibleVersionError,
-														   QStringLiteral("Version %1 is not compatible to server version %2")
-														   .arg(e.invalidVersion().toString())
-														   .arg(IdentifyMessage::CurrentVersion.toString())
-													   }));
-			closeLater();
+			sendError({
+						  ErrorMessage::IncompatibleVersionError,
+						  QStringLiteral("Version %1 is not compatible to server version %2")
+						  .arg(e.invalidVersion().toString())
+						  .arg(IdentifyMessage::CurrentVersion.toString())
+					  });
 		}
 	});
 }
@@ -184,6 +211,7 @@ void Client::error()
 {
 	qWarning() << "Socket error:"
 			   << _socket->errorString();
+	_state = Error;
 	if(_socket->state() == QAbstractSocket::ConnectedState)
 		_socket->close();
 }
@@ -194,6 +222,7 @@ void Client::sslErrors(const QList<QSslError> &errors)
 		qWarning() << "SSL error:"
 				   << error.errorString();
 	}
+	_state = Error;
 	if(_socket->state() == QAbstractSocket::ConnectedState)
 		_socket->close();
 }
@@ -219,6 +248,7 @@ void Client::closeClient()
 void Client::timeout()
 {
 	qDebug() << "Disconnecting idle client";
+	_state = Error;
 	_socket->close();
 }
 
@@ -230,16 +260,13 @@ void Client::run(const std::function<void ()> &fn)
 			fn();
 		} catch (DatabaseException &e) {
 			qCritical() << "Internal database error:" << e.what();
-			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::ServerError, QString(), true}));
-			closeLater();
+			sendError({ErrorMessage::ServerError, QString(), true});
 		} catch (ClientErrorException &e) {
 			qWarning() << "Message error:" << e.what();
-			sendMessage(serializeMessage<ErrorMessage>(e));
-			closeLater();
+			sendError(e);
 		} catch (std::exception &e) {
 			qWarning() << "Message error:" << e.what();
-			sendMessage(serializeMessage<ErrorMessage>({ErrorMessage::ClientError}));
-			closeLater();
+			sendError(ErrorMessage::ClientError);
 		}
 	});
 }
@@ -266,6 +293,13 @@ void Client::sendMessage(const QByteArray &message)
 {
 	QMetaObject::invokeMethod(this, "doSend", Qt::QueuedConnection,
 							  Q_ARG(QByteArray, message));
+}
+
+void Client::sendError(const ErrorMessage &message)
+{
+	_state = Error;
+	sendMessage(serializeMessage(message));
+	closeLater();
 }
 
 void Client::doSend(const QByteArray &message)
@@ -342,6 +376,32 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	triggerDownload(true, _cachedChanges == 0);
 }
 
+void Client::onAccess(const AccessMessage &message, QDataStream &stream)
+{
+	if(_state != Authenticating)
+		throw UnexpectedException<AccessMessage>();
+	if(_loginNonce != message.nonce)
+		throw MessageException("Invalid nonce in AccessMessage");
+	_loginNonce.clear();
+
+	try {
+		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
+		verifySignature(stream, crypto->signatureKey(), crypto.data());
+	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+		qWarning() << "Authentication error:" << e.what();
+		throw ClientErrorException(ErrorMessage::AuthenticationError);
+	}
+
+	_deviceId = QUuid::createUuid(); //not stored yet!!!
+	_cachedAccessRequest = message;
+	_catStr = "client." + _deviceId.toByteArray();
+	_logCat.reset(new QLoggingCategory(_catStr.constData()));
+
+	qDebug() << "New Devices requested account access for" << message.partnerId;
+	_state = AwatingGrant;
+	emit proofRequested(message.partnerId, ProofMessage{message, _deviceId});
+}
+
 void Client::onSync(const SyncMessage &message)
 {
 	if(_state != Idle)
@@ -391,8 +451,10 @@ void Client::onRemove(const RemoveMessage &message)
 		throw UnexpectedException<RemoveMessage>();
 	_database->removeDevice(_deviceId, message.deviceId);
 	sendMessage(serializeMessage<RemovedMessage>(message.deviceId));
-	if(_deviceId == message.deviceId)
+	if(_deviceId == message.deviceId) {
+		_state == Error;
 		closeLater(); //in case the client does not get the message...
+	}
 }
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)

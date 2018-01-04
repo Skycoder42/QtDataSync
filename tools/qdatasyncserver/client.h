@@ -20,13 +20,16 @@
 #include "databasecontroller.h"
 #include "singletaskqueue.h"
 
+#include "errormessage_p.h"
 #include "registermessage_p.h"
 #include "loginmessage_p.h"
+#include "accessmessage_p.h"
 #include "syncmessage_p.h"
 #include "changemessage_p.h"
 #include "changedmessage_p.h"
 #include "devicesmessage_p.h"
 #include "removemessage_p.h"
+#include "proofmessage_p.h"
 
 class Client : public QObject
 {
@@ -35,9 +38,8 @@ class Client : public QObject
 public:
 	enum State {
 		Authenticating,
+		AwatingGrant,
 		Idle,
-		PushingChanges,
-		PullingChanges,
 		Error
 	};
 	Q_ENUM(State)
@@ -46,9 +48,13 @@ public:
 
 public Q_SLOTS:
 	void notifyChanged();
+	void proofResult(bool success);
+	void sendProof(const QtDataSync::ProofMessage &message);
 
 Q_SIGNALS:
 	void connected(const QUuid &deviceId);
+	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
+	void proofDone(const QUuid &partner, bool result);
 
 private Q_SLOTS:
 	void binaryMessageReceived(const QByteArray &message);
@@ -94,6 +100,8 @@ private:
 	QByteArray _loginNonce;
 	quint32 _cachedChanges;
 	QList<quint64> _activeDownloads;
+	//cached:
+	QtDataSync::AccessMessage _cachedAccessRequest;
 
 	void run(const std::function<void()> &fn);
 	const QLoggingCategory &logFn() const;
@@ -101,10 +109,12 @@ private:
 	void close();
 	void closeLater();
 	void sendMessage(const QByteArray &message);
+	void sendError(const QtDataSync::ErrorMessage &message);
 	Q_INVOKABLE void doSend(const QByteArray &message);
 
 	void onRegister(const QtDataSync::RegisterMessage &message, QDataStream &stream);
 	void onLogin(const QtDataSync::LoginMessage &message, QDataStream &stream);
+	void onAccess(const QtDataSync::AccessMessage &message, QDataStream &stream);
 	void onSync(const QtDataSync::SyncMessage &message);
 	void onChange(const QtDataSync::ChangeMessage &message);
 	void onChangedAck(const QtDataSync::ChangedAckMessage &message);

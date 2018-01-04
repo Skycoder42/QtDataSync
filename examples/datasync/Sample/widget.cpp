@@ -7,11 +7,12 @@
 #include "accountdialog.h"
 #include "modeltest.h"
 
-Widget::Widget(QWidget *parent) :
+Widget::Widget(const QString &setup, QWidget *parent) :
 	QWidget(parent),
+	_setup(setup),
 	ui(new Ui::Widget),
-	_manager(new QtDataSync::SyncManager(this)),
-	_model(new QtDataSync::DataStoreModel(this))
+	_manager(new QtDataSync::SyncManager(setup, this)),
+	_model(new QtDataSync::DataStoreModel(setup, this))
 {
 	ui->setupUi(this);
 
@@ -109,5 +110,5 @@ void Widget::on_clearButton_clicked()
 
 void Widget::on_accountButton_clicked()
 {
-	AccountDialog::exec(this);
+	AccountDialog::exec(_setup, this);
 }

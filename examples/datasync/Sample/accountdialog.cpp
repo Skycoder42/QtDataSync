@@ -6,10 +6,10 @@
 #include <QInputDialog>
 #include <QMessageBox>
 
-AccountDialog::AccountDialog(QWidget *parent) :
+AccountDialog::AccountDialog(const QString &setup, QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::AccountDialog),
-	_manager(new QtDataSync::AccountManager(this))
+	_manager(new QtDataSync::AccountManager(setup, this))
 {
 	ui->setupUi(this);
 	ui->treeWidget->addAction(ui->action_Remove_Device);
@@ -51,9 +51,9 @@ AccountDialog::~AccountDialog()
 	delete ui;
 }
 
-void AccountDialog::exec(QWidget *parent)
+void AccountDialog::exec(const QString &setup, QWidget *parent)
 {
-	AccountDialog dialog(parent);
+	AccountDialog dialog(setup, parent);
 	dialog.QDialog::exec();
 }
 

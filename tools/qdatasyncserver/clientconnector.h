@@ -16,14 +16,17 @@ public:
 	bool setupWss();
 	bool listen();
 
-public slots:
+public Q_SLOTS:
 	void notifyChanged(const QUuid &deviceId);
 
-private slots:
+private Q_SLOTS:
 	void verifySecret(QWebSocketCorsAuthenticator *authenticator);
 	void newConnection();
 	void serverError();
 	void sslErrors(const QList<QSslError> &errors);
+
+	void clientConnected(const QUuid &deviceId);
+	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
 
 private:
 	DatabaseController *database;

@@ -14,7 +14,7 @@ class Widget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit Widget(QWidget *parent = nullptr);
+	explicit Widget(const QString &setup, QWidget *parent = nullptr);
 	~Widget();
 
 private slots:
@@ -28,6 +28,7 @@ private slots:
 	void on_accountButton_clicked();
 
 private:
+	const QString _setup;
 	Ui::Widget *ui;
 	QtDataSync::SyncManager *_manager;
 	QtDataSync::DataStoreModel *_model;

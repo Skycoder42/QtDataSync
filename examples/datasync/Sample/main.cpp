@@ -1,6 +1,8 @@
 #include "widget.h"
 #include <QApplication>
 #include <QLoggingCategory>
+#include <QInputDialog>
+#include <QSettings>
 #include <QtDataSync/syncmanager.h>
 #include <QtDataSync/setup.h>
 #include "sampledata.h"
@@ -22,13 +24,33 @@ int main(int argc, char *argv[])
 	qDebug() << "Available keystores:" << QtDataSync::Setup::keystoreProviders();
 	qDebug() << "Active keystores:" << QtDataSync::Setup::availableKeystores();
 
+	QString name;
+	if(QCoreApplication::arguments().size() >= 2)
+		name = QCoreApplication::arguments().at(1);
+	else {
+		QSettings settings;
+		auto known = settings.value(QStringLiteral("clients")).toStringList();
+		bool ok = false;
+		name = QInputDialog::getItem(nullptr,
+									 QCoreApplication::translate("GLOBAL", "Client select"),
+									 QCoreApplication::translate("GLOBAL", "Select a client to work with (you can enter a new name):"),
+									 known, 0, true, &ok);
+		if(name.isEmpty() || !ok)
+			return EXIT_FAILURE;
+		if(!known.contains(name)) {
+			known.append(name);
+			settings.setValue(QStringLiteral("clients"), known);
+		}
+	}
+
 	//setup datasync
 	QtDataSync::Setup()
+			.setLocalDir(QStringLiteral("./%1").arg(name))
 			.setRemoteConfiguration(QUrl(QStringLiteral("ws://localhost:4242")))
 			.setSignatureScheme(QtDataSync::Setup::ECDSA_ECP_SHA3_512)
-			.create();
+			.create(name);
 
-	Widget w;
+	Widget w(name);
 	w.show();
 
 	return a.exec();

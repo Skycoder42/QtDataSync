@@ -702,6 +702,9 @@ void RemoteConnector::onError(const ErrorMessage &message)
 		case ErrorMessage::AuthenticationError: //TODO special treatment? (or better description)
 			emit controllerError(tr("Authentication failed. Try to remove and add your device again, or reset your account!"));
 			break;
+		case ErrorMessage::AccessError: //TODO special treatment? (or better description)
+			emit controllerError(tr("Account access (import) failed. The partner device was not available or did not accept your request!"));
+			break;
 		case ErrorMessage::ClientError:
 		case ErrorMessage::ServerError:
 		case ErrorMessage::UnexpectedMessageError:
@@ -755,10 +758,10 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto scheme = settings()->value(keyImportScheme).toByteArray();
 				auto key = settings()->value(keyImportKey).toByteArray();
 				if(!key.isEmpty()) {
-					auto trustMessage = crypto->signatureScheme() +
-										crypto->writeSignKey() +
-										crypto->encryptionScheme() +
-										crypto->writeCryptKey();
+					QByteArray trustMessage = crypto->signatureScheme() +
+											  crypto->writeSignKey() +
+											  crypto->encryptionScheme() +
+											  crypto->writeCryptKey();
 					CryptoPP::SecByteBlock secBlock(reinterpret_cast<const byte*>(key.constData()), key.size());
 					trustmac = _cryptoController->createExportCmac(scheme, secBlock, trustMessage);
 				}
@@ -777,7 +780,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_stateMachine->submitEvent(QStringLiteral("awaitGranted"));
 				_socket->sendBinaryMessage(signedMsg);
-				logDebug() << "Sent registration message for new id";
+				logDebug() << "Sent access message for new id";
 			}
 		}
 	}

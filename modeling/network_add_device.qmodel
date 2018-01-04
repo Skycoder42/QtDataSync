@@ -141,7 +141,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>ACCESS&lt;REGISTERBASE&gt;(pnonce, partner, scheme, cmac, trustmac) </name>
-                         <pos>x:425;y:80</pos>
+                         <pos>x:505;y:40</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -185,8 +185,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, cmac, trustmac)</name>
-                         <pos>x:830;y:80</pos>
+                         <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, macscheme, cmac, trustmac)</name>
+                         <pos>x:785;y:130</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -1225,14 +1225,14 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                        </base-DElement>
                        <text>cmac generated with secret random or shared key
 trustmac only for trusted, over the public keys and schemes</text>
-                       <pos>x:260;y:140</pos>
+                       <pos>x:330;y:100</pos>
                        <rect>x:0;y:0;w:323.859;h:48</rect>
                       </DAnnotation>
                      </instance>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515091495264</last-modified>
+                  <last-modified>1515095857033</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1433,7 +1433,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, cmac, trustmac)</name>
+                  <name>PROOF(pnonce, deviceId, signScheme, signKey, cryptScheme, cryptKey, macscheme, cmac, trustmac)</name>
                   <relations>
                    <handles>
                     <handles>

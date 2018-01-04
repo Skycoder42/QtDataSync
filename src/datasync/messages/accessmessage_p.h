@@ -14,7 +14,7 @@ class Q_DATASYNC_EXPORT AccessMessage : public RegisterBaseMessage
 
 	Q_PROPERTY(QByteArray pNonce MEMBER pNonce)
 	Q_PROPERTY(QUuid partnerId MEMBER partnerId)
-	Q_PROPERTY(QByteArray scheme MEMBER scheme)
+	Q_PROPERTY(QByteArray macscheme MEMBER macscheme)
 	Q_PROPERTY(QByteArray cmac MEMBER cmac)
 	Q_PROPERTY(QByteArray trustmac MEMBER trustmac)
 
@@ -27,13 +27,13 @@ public:
 				  AsymmetricCrypto *crypto,
 				  const QByteArray &pNonce,
 				  const QUuid &partnerId,
-				  const QByteArray &scheme,
+				  const QByteArray &macscheme,
 				  const QByteArray &cmac,
 				  const QByteArray &trustmac);
 
 	QByteArray pNonce;
 	QUuid partnerId;
-	QByteArray scheme;
+	QByteArray macscheme;
 	QByteArray cmac;
 	QByteArray trustmac;
 };

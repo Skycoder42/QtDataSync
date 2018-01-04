@@ -15,10 +15,10 @@ class AccountDialog : public QDialog
 	Q_OBJECT
 
 public:
-	explicit AccountDialog(QWidget *parent = nullptr);
+	explicit AccountDialog(const QString &setup, QWidget *parent = nullptr);
 	~AccountDialog();
 
-	static void exec(QWidget *parent = nullptr);
+	static void exec(const QString &setup, QWidget *parent = nullptr);
 
 private Q_SLOTS:
 	void updateDevices(const QList<QtDataSync::DeviceInfo> &devices);

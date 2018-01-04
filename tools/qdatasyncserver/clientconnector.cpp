@@ -95,12 +95,13 @@ void ClientConnector::newConnection()
 	while (server->hasPendingConnections()) {
 		auto socket = server->nextPendingConnection();
 		auto client = new Client(database, socket, this);
-		connect(client, &Client::connected, this, [=](QUuid deviceId){
-			clients.insert(deviceId, client);
-			connect(client, &Client::destroyed, this, [=](){
-				clients.remove(deviceId);
-			});
-		}, Qt::QueuedConnection);
+		//queued is needed because they are emitted from threads
+		connect(client, &Client::connected,
+				this, &ClientConnector::clientConnected,
+				Qt::QueuedConnection);
+		connect(client, &Client::proofRequested,
+				this, &ClientConnector::proofRequested,
+				Qt::QueuedConnection);
 	}
 }
 
@@ -115,5 +116,39 @@ void ClientConnector::sslErrors(const QList<QSslError> &errors)
 	foreach(auto error, errors) {
 		qWarning() << "SSL error:"
 				   << error.errorString();
+	}
+}
+
+void ClientConnector::clientConnected(const QUuid &deviceId)
+{
+	auto client = qobject_cast<Client*>(sender());
+	if(!client)
+		return;
+
+	clients.insert(deviceId, client);
+	connect(client, &Client::destroyed, this, [this, deviceId](){
+		clients.remove(deviceId);
+	});
+}
+
+void ClientConnector::proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message)
+{
+	auto client = qobject_cast<Client*>(sender());
+	if(!client)
+		return;
+
+	QPointer<Client> pClient = clients.value(partner);
+	if(!pClient)
+		client->proofResult(false);
+	else {
+		auto devId = message.deviceId;
+		connect(pClient, &Client::proofDone,
+				client, [devId, pClient, client](const QUuid &partner, bool result) {
+			if(devId == partner) {
+				client->proofResult(result);
+				disconnect(pClient, nullptr, client, nullptr);
+			}
+		}, Qt::QueuedConnection);
+		pClient->sendProof(message);
 	}
 }

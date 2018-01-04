@@ -22,7 +22,8 @@ public:
 		UnexpectedMessageError = 2,
 		ServerError = 3,
 		ClientError = 4,
-		AuthenticationError = 5
+		AuthenticationError = 5,
+		AccessError = 6
 	};
 	Q_ENUM(ErrorType)
 
