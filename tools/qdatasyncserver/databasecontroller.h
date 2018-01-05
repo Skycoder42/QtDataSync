@@ -51,6 +51,14 @@ public:
 					   const QByteArray &cryptScheme,
 					   const QByteArray &cryptKey,
 					   const QByteArray &fingerprint);
+	void addNewDeviceToUser(const QUuid &newDeviceId,
+							const QUuid &partnerDeviceId,
+							const QString &name,
+							const QByteArray &signScheme,
+							const QByteArray &signKey,
+							const QByteArray &cryptScheme,
+							const QByteArray &cryptKey,
+							const QByteArray &fingerprint);
 	QtDataSync::AsymmetricCryptoInfo *loadCrypto(const QUuid &deviceId,
 												 CryptoPP::RandomNumberGenerator &rng,
 												 QObject *parent = nullptr);

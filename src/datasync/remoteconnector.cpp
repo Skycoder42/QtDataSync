@@ -263,7 +263,8 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 		}
 
 		if(accept) {
-			AcceptMessage message(deviceId, _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey()));
+			AcceptMessage message(deviceId);
+			std::tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
 			_socket->sendBinaryMessage(serializeMessage(message));
 			emit prepareAddedData(deviceId);
 		} else
@@ -367,7 +368,6 @@ void RemoteConnector::disconnected()
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == PingMessage) {
-		logDebug() << "pong";
 		_awaitingPing = false;
 		_pingTimer->start();
 		return;
@@ -390,6 +390,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onAccount(deserializeMessage<AccountMessage>(stream));
 		else if(isType<WelcomeMessage>(name))
 			onWelcome(deserializeMessage<WelcomeMessage>(stream));
+		else if(isType<GrantMessage>(name))
+			onGrant(deserializeMessage<GrantMessage>(stream));
 		else if(isType<ChangeAckMessage>(name))
 			onChangeAck(deserializeMessage<ChangeAckMessage>(stream));
 		else if(isType<ChangedMessage>(name))
@@ -451,7 +453,6 @@ void RemoteConnector::ping()
 		logDebug() << "Server connection idle. Reconnecting to server";
 		reconnect();
 	} else {
-		logDebug() << "ping";
 		_awaitingPing = true;
 		_socket->sendBinaryMessage(PingMessage);
 	}
@@ -815,9 +816,9 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 	}
 }
 
-void RemoteConnector::onAccount(const AccountMessage &message)
+void RemoteConnector::onAccount(const AccountMessage &message, bool checkState)
 {
-	if(!_stateMachine->isActive(QStringLiteral("Registering"))) {
+	if(checkState && !_stateMachine->isActive(QStringLiteral("Registering"))) {
 		logWarning() << "Unexpected AccountMessage";
 		triggerError(true);
 	} else {
@@ -843,6 +844,19 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		// reset retry index only after successfuly account creation or login
 		_expectChanges = message.hasChanges;
 		_stateMachine->submitEvent(QStringLiteral("account"));
+	}
+}
+
+void RemoteConnector::onGrant(const GrantMessage &message)
+{
+	if(!_stateMachine->isActive(QStringLiteral("Granting"))) {
+		logWarning() << "Unexpected GrantMessage";
+		triggerError(true);
+	} else {
+		logDebug() << "Account access granted";
+		_cryptoController->decryptSecretKey(message.index, message.scheme, message.secret, true);
+		onAccount(message, false);
+		//TODO update cmac
 	}
 }
 

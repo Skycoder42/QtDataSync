@@ -24,6 +24,7 @@
 #include "devicesmessage_p.h"
 #include "removemessage_p.h"
 #include "proofmessage_p.h"
+#include "grantmessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -168,8 +169,9 @@ private:
 
 	void onError(const ErrorMessage &message);
 	void onIdentify(const IdentifyMessage &message);
-	void onAccount(const AccountMessage &message);
+	void onAccount(const AccountMessage &message, bool checkState = true);
 	void onWelcome(const WelcomeMessage &message);
+	void onGrant(const GrantMessage &message);
 	void onChangeAck(const ChangeAckMessage &message);
 	void onChanged(const ChangedMessage &message);
 	void onChangedInfo(const ChangedInfoMessage &message);

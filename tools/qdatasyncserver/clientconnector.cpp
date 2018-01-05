@@ -143,9 +143,9 @@ void ClientConnector::proofRequested(const QUuid &partner, const QtDataSync::Pro
 	else {
 		auto devId = message.deviceId;
 		connect(pClient, &Client::proofDone,
-				client, [devId, pClient, client](const QUuid &partner, bool result) {
+				client, [devId, pClient, client](const QUuid &partner, bool success, const QtDataSync::AcceptMessage &message) {
 			if(devId == partner) {
-				client->proofResult(result);
+				client->proofResult(success, message);
 				if(pClient)
 					pClient->disconnect(client);
 			}

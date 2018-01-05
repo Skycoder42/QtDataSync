@@ -48,13 +48,13 @@ public:
 
 public Q_SLOTS:
 	void notifyChanged();
-	void proofResult(bool success);
+	void proofResult(bool success, const QtDataSync::AcceptMessage &message = {}); //empty key equals denied
 	void sendProof(const QtDataSync::ProofMessage &message);
 
 Q_SIGNALS:
 	void connected(const QUuid &deviceId);
 	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
-	void proofDone(const QUuid &partner, bool result);
+	void proofDone(const QUuid &partner, bool success, const QtDataSync::AcceptMessage& message = {});
 
 private Q_SLOTS:
 	void binaryMessageReceived(const QByteArray &message);
@@ -102,6 +102,7 @@ private:
 	QList<quint64> _activeDownloads;
 	//cached:
 	QtDataSync::AccessMessage _cachedAccessRequest;
+	QByteArray _cachedFingerPrint;
 
 	void run(const std::function<void()> &fn);
 	const QLoggingCategory &logFn() const;
@@ -120,6 +121,8 @@ private:
 	void onChangedAck(const QtDataSync::ChangedAckMessage &message);
 	void onListDevices(const QtDataSync::ListDevicesMessage &message);
 	void onRemove(const QtDataSync::RemoveMessage &message);
+	void onAccept(const QtDataSync::AcceptMessage &message);
+	void onDeny(const QtDataSync::DenyMessage &message);
 
 	void triggerDownload(bool forceUpdate = false, bool skipNoChanges = false);
 };

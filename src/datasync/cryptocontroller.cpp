@@ -162,16 +162,44 @@ QByteArray CryptoController::fingerprint() const
 	return _fingerprint;
 }
 
-QByteArray CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
+std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
 {
 	try {
 		auto info = getInfo(_localCipher);
-		return crypto->encrypt(pubKey,
-							   _asymCrypto->rng(),
-							   QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()), static_cast<int>(info.key.size())));
+		auto data = crypto->encrypt(pubKey,
+									_asymCrypto->rng(),
+									QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()), static_cast<int>(info.key.size())));
+		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, info.scheme->name(), data};
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt secret key for peer"),
+							  e);
+	}
+}
+
+void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit)
+{
+	try {
+		auto key = _asymCrypto->decrypt(data);
+
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key.Assign(reinterpret_cast<const byte*>(key.constData()), key.size());
+
+		_loadedChiphers.insert(keyIndex, info);
+		if(grantInit)
+			_localCipher = keyIndex;
+		else {
+			storeCipherKey(keyIndex);
+			if(keyIndex > _localCipher) {
+				_localCipher = keyIndex;
+				settings()->setValue(keyLocalSymKey, _localCipher);
+				logInfo() << "Update cipher key to index" << _localCipher;
+			}
+		}
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to decrypt secret key from peer"),
 							  e);
 	}
 }

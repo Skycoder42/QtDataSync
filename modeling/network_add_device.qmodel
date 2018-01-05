@@ -468,8 +468,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>signed message</item>
                           </qlist>
                          </stereotypes>
-                         <name>ACCEPT(deviceId, enc{secret})</name>
-                         <pos>x:255;y:405</pos>
+                         <name>ACCEPT(deviceId, index, scheme, enc{secret})</name>
+                         <pos>x:275;y:340</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -533,8 +533,8 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>GRANT&lt;ACCOUNT&gt;(enc{secret})</name>
-                         <pos>x:90;y:405</pos>
+                         <name>GRANT&lt;ACCOUNT&gt;(index, scheme, enc{secret})</name>
+                         <pos>x:155;y:440</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -1232,7 +1232,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515095857033</last-modified>
+                  <last-modified>1515157771210</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1813,7 +1813,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>ACCEPT(deviceId, enc{secret})</name>
+                  <name>ACCEPT(deviceId, index, scheme, enc{secret})</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1871,7 +1871,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>GRANT&lt;ACCOUNT&gt;(enc{secret})</name>
+                  <name>GRANT&lt;ACCOUNT&gt;(index, scheme, enc{secret})</name>
                   <relations>
                    <handles>
                     <handles>

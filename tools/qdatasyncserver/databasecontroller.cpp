@@ -129,6 +129,28 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 	}
 }
 
+void DatabaseController::addNewDeviceToUser(const QUuid &newDeviceId, const QUuid &partnerDeviceId, const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey, const QByteArray &fingerprint)
+{
+	auto db = _threadStore.localData().database();
+
+	Query createDeviceQuery(db);
+	createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
+											 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey, fingerprint) "
+											 "VALUES(?, ( "
+											 "	SELECT userid FROM devices " //TODO make stored procedure
+											 "	WHERE id = ? "
+											 "), ?, ?, ?, ?, ?, ?) "));
+	createDeviceQuery.addBindValue(newDeviceId);
+	createDeviceQuery.addBindValue(partnerDeviceId);
+	createDeviceQuery.addBindValue(name);
+	createDeviceQuery.addBindValue(QString::fromUtf8(signScheme));
+	createDeviceQuery.addBindValue(signKey);
+	createDeviceQuery.addBindValue(QString::fromUtf8(cryptScheme));
+	createDeviceQuery.addBindValue(cryptKey);
+	createDeviceQuery.addBindValue(fingerprint);
+	createDeviceQuery.exec();
+}
+
 AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, CryptoPP::RandomNumberGenerator &rng, QObject *parent)
 {
 	auto db = _threadStore.localData().database();

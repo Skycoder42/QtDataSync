@@ -596,6 +596,9 @@ void LocalStore::prepareAccountAdded(const QUuid &deviceId)
 										   "SELECT ?, Type, Id FROM DataIndex"));
 		insertQuery.addBindValue(deviceId);
 		exec(insertQuery);
+
+		if(insertQuery.numRowsAffected() != 0) //in case of -1 (unknown), simply assue changed
+			ChangeController::triggerDataChange(_defaults, _);
 	} catch(Exception &e) {
 		logCritical() << "Failed to prepare added account with error:" << e.what();
 	}

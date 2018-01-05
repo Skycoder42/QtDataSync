@@ -3,6 +3,7 @@
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
+#include "grantmessage_p.h"
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -125,18 +126,34 @@ void Client::notifyChanged()
 	});
 }
 
-void Client::proofResult(bool success)
+void Client::proofResult(bool success, const AcceptMessage &message)
 {
-	if(_state != AwatingGrant) {
-		qWarning() << "Unexpected proof result. Ignoring";
-		return;
-	} else {
-		qDebug() << "Proof completed with result:" << success;
-		if(success) {
-			Q_UNIMPLEMENTED();
-		} else
-			sendError(ErrorMessage::AccessError);
-	}
+	run([this, success, message](){
+		if(_state != AwatingGrant) {
+			qWarning() << "Unexpected proof result. Ignoring";
+			return;
+		} else {
+			qDebug() << "Proof completed with result:" << success;
+			if(success) {
+				_database->addNewDeviceToUser(_deviceId,
+											  _cachedAccessRequest.partnerId,
+											  _cachedAccessRequest.deviceName,
+											  _cachedAccessRequest.signAlgorithm,
+											  _cachedAccessRequest.signKey,
+											  _cachedAccessRequest.cryptAlgorithm,
+											  _cachedAccessRequest.cryptKey,
+											  _cachedFingerPrint);
+				_cachedAccessRequest = AccessMessage();
+				_cachedFingerPrint.clear();
+
+				qDebug() << "Created new device and user accounts";
+				sendMessage(serializeMessage<GrantMessage>({_deviceId, message}));
+				_state = Idle;
+				emit connected(_deviceId);
+			} else
+				sendError(ErrorMessage::AccessError);
+		}
+	});
 }
 
 void Client::sendProof(const ProofMessage &message)
@@ -153,7 +170,6 @@ void Client::sendProof(const ProofMessage &message)
 void Client::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == PingMessage) {
-		qDebug() << "ping";
 		if(_idleTimer)
 			_idleTimer->start();
 		_socket->sendBinaryMessage(PingMessage);
@@ -189,6 +205,10 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onListDevices(deserializeMessage<ListDevicesMessage>(stream));
 			else if(isType<RemoveMessage>(name))
 				onRemove(deserializeMessage<RemoveMessage>(stream));
+			else if(isType<AcceptMessage>(name))
+				onAccept(deserializeMessage<AcceptMessage>(stream));
+			else if(isType<DenyMessage>(name))
+				onDeny(deserializeMessage<DenyMessage>(stream));
 			else {
 				qWarning() << "Unknown message received:" << typeName(name);
 				sendError({
@@ -388,6 +408,7 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 	try {
 		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
 		verifySignature(stream, crypto->signatureKey(), crypto.data());
+		_cachedFingerPrint = crypto->ownFingerprint();
 	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
@@ -395,6 +416,7 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 
 	_deviceId = QUuid::createUuid(); //not stored yet!!!
 	_cachedAccessRequest = message;
+	//_cachedFingerPrint done inside of try/catch block
 	_catStr = "client." + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
@@ -456,6 +478,22 @@ void Client::onRemove(const RemoveMessage &message)
 		_state = Error;
 		closeLater(); //in case the client does not get the message...
 	}
+}
+
+void Client::onAccept(const AcceptMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<AcceptMessage>();
+	else
+		emit proofDone(message.deviceId, true, message);
+}
+
+void Client::onDeny(const DenyMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<DenyMessage>();
+	else
+		emit proofDone(message.deviceId, false);
 }
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)

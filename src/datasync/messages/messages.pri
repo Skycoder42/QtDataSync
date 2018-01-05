@@ -13,7 +13,8 @@ HEADERS += \
     $$PWD/devicesmessage_p.h \
     $$PWD/removemessage_p.h \
     $$PWD/accessmessage_p.h \
-    $$PWD/proofmessage_p.h
+    $$PWD/proofmessage_p.h \
+    $$PWD/grantmessage_p.h
 
 SOURCES += \
 	$$PWD/message.cpp \
@@ -30,6 +31,7 @@ SOURCES += \
     $$PWD/devicesmessage.cpp \
     $$PWD/removemessage.cpp \
     $$PWD/accessmessage.cpp \
-    $$PWD/proofmessage.cpp
+    $$PWD/proofmessage.cpp \
+    $$PWD/grantmessage.cpp
 
 INCLUDEPATH += $$PWD

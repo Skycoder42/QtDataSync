@@ -54,12 +54,16 @@ class Q_DATASYNC_EXPORT AcceptMessage
 	Q_GADGET
 
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
+	Q_PROPERTY(quint32 index MEMBER index)
+	Q_PROPERTY(QByteArray scheme MEMBER scheme)
 	Q_PROPERTY(QByteArray secret MEMBER secret)
 
 public:
-	AcceptMessage(const QUuid &deviceId = {}, const QByteArray &secret = {});
+	AcceptMessage(const QUuid &deviceId = {});
 
 	QUuid deviceId;
+	quint32 index;
+	QByteArray scheme;
 	QByteArray secret;
 };
 
