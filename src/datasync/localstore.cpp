@@ -37,6 +37,11 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 
 	//make shure the primary table exists
 	QWriteLocker _(_defaults.databaseLock());
+
+	QSqlQuery pragma(_database);
+	if(!pragma.exec(QStringLiteral("PRAGMA foreign_keys = ON")))
+		logWarning() << "Failed to enable foreign_keys support";
+
 	if(!_database->tables().contains(QStringLiteral("DataIndex"))) {
 		QSqlQuery createQuery(_database);
 		createQuery.prepare(QStringLiteral("CREATE TABLE DataIndex ("
