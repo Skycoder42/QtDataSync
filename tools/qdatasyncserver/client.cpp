@@ -199,6 +199,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onSync(deserializeMessage<SyncMessage>(stream));
 			else if(isType<ChangeMessage>(name))
 				onChange(deserializeMessage<ChangeMessage>(stream));
+			else if(isType<DeviceChangeMessage>(name))
+				onDeviceChange(deserializeMessage<DeviceChangeMessage>(stream));
 			else if(isType<ChangedAckMessage>(name))
 				onChangedAck(deserializeMessage<ChangedAckMessage>(stream));
 			else if(isType<ListDevicesMessage>(name))
@@ -444,7 +446,22 @@ void Client::onChange(const ChangeMessage &message)
 						 message.salt,
 						 message.data);
 
-	sendMessage(serializeMessage<ChangeAckMessage>(message.dataId));
+	sendMessage(serializeMessage<ChangeAckMessage>(message));
+}
+
+void Client::onDeviceChange(const DeviceChangeMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<DeviceChangeMessage>();
+
+	_database->addDeviceChange(_deviceId,
+							   message.deviceId,
+							   message.dataId,
+							   message.keyIndex,
+							   message.salt,
+							   message.data);
+
+	sendMessage(serializeMessage<DeviceChangeAckMessage>(message));
 }
 
 void Client::onChangedAck(const ChangedAckMessage &message)

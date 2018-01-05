@@ -30,7 +30,7 @@ class Q_DATASYNC_EXPORT ChangeAckMessage
 	Q_PROPERTY(QByteArray dataId MEMBER dataId)
 
 public:
-	ChangeAckMessage(const QByteArray &dataId = {});
+	ChangeAckMessage(const ChangeMessage &message = {});
 
 	QByteArray dataId;
 };

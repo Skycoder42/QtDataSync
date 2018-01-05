@@ -8,8 +8,8 @@ ChangeMessage::ChangeMessage(const QByteArray &dataId) :
 	data()
 {}
 
-ChangeAckMessage::ChangeAckMessage(const QByteArray &dataId) :
-	dataId(dataId)
+ChangeAckMessage::ChangeAckMessage(const ChangeMessage &message) :
+	dataId(message.dataId)
 {}
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const ChangeMessage &message)

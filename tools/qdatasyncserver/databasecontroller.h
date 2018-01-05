@@ -71,6 +71,12 @@ public:
 				   const quint32 keyIndex,
 				   const QByteArray &salt,
 				   const QByteArray &data);
+	void addDeviceChange(const QUuid &deviceId,
+						 const QUuid &targetId,
+						 const QByteArray &dataId,
+						 const quint32 keyIndex,
+						 const QByteArray &salt,
+						 const QByteArray &data);
 
 	quint32 changeCount(const QUuid &deviceId);
 	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip); // (dataid, keyindex, salt, data)

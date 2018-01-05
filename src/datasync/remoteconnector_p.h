@@ -25,6 +25,7 @@
 #include "removemessage_p.h"
 #include "proofmessage_p.h"
 #include "grantmessage_p.h"
+#include "devicechangemessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -102,6 +103,7 @@ public Q_SLOTS:
 	void loginReply(const QUuid &deviceId, bool accept);
 
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
+	void uploadDeviceData(const QByteArray &key, const QUuid &deviceId, const QByteArray &changeData);
 	void downloadDone(const quint64 key);
 
 	void setSyncEnabled(bool syncEnabled);
@@ -112,6 +114,7 @@ Q_SIGNALS:
 	void finalized();
 	void remoteEvent(RemoteEvent event);
 	void uploadDone(const QByteArray &key);
+	void deviceUploadDone(const QByteArray &key, const QUuid &deviceId);
 	void downloadData(const quint64 key, const QByteArray &changeData);
 	void prepareAddedData(const QUuid &deviceId);
 
@@ -173,6 +176,7 @@ private:
 	void onWelcome(const WelcomeMessage &message);
 	void onGrant(const GrantMessage &message);
 	void onChangeAck(const ChangeAckMessage &message);
+	void onDeviceChangeAck(const DeviceChangeAckMessage &message);
 	void onChanged(const ChangedMessage &message);
 	void onChangedInfo(const ChangedInfoMessage &message);
 	void onLastChanged(const LastChangedMessage &message);

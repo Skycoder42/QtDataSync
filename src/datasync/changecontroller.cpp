@@ -69,6 +69,29 @@ void ChangeController::uploadDone(const QByteArray &key)
 	}
 }
 
+void ChangeController::deviceUploadDone(const QByteArray &key, const QUuid &deviceId)
+{
+	if(!_activeUploads.contains({key, deviceId})) {
+		logWarning() << "Unknown device key completed:" << key.toHex() << deviceId;
+		return;
+	}
+
+	try {
+		auto info = _activeUploads.take({key, deviceId});
+		_store->removeDeviceChange(info.key, deviceId);
+		_changeEstimate--;
+		emit progressIncrement();
+		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
+
+		if(_uploadingEnabled && _activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
+			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection,
+									  Q_ARG(bool, false));
+	} catch(Exception &e) {
+		logCritical() << "Failed to complete upload with error:" << e.what();
+		emit controllerError(tr("Failed to upload changes to server."));
+	}
+}
+
 void ChangeController::changeTriggered()
 {
 	if(_uploadingEnabled)
@@ -99,8 +122,8 @@ void ChangeController::uploadNext(bool emitStarted)
 			}
 		}
 
-		_store->loadChanges(UploadLimit, [this, emitProgress, &emitStarted](ObjectKey objKey, quint64 version, QString file) {
-			CachedObjectKey key(objKey);
+		_store->loadChanges(UploadLimit, [this, emitProgress, &emitStarted](ObjectKey objKey, quint64 version, QString file, QUuid deviceId) {
+			CachedObjectKey key(objKey, deviceId);
 
 			//skip stuff already beeing uploaded (could still have changed, but to prevent errors)
 			auto skip = false;
@@ -125,12 +148,18 @@ void ChangeController::uploadNext(bool emitStarted)
 			auto isDelete = file.isNull();
 			_activeUploads.insert(key, {key, version, isDelete});
 			if(isDelete) {//deleted
-				emit uploadChange(keyHash, SyncHelper::combine(key, version));
+				if(deviceId.isNull())
+					emit uploadChange(keyHash, SyncHelper::combine(key, version));
+				else
+					emit uploadDeviceChange(keyHash, deviceId, SyncHelper::combine(key, version));
 				logDebug() << "Started upload of deleted" << key << "( Active uploads:" << _activeUploads.size() << ")";
 			} else { //changed
 				try {
 					auto json = _store->readJson(key, file);
-					emit uploadChange(keyHash, SyncHelper::combine(key, version, json));
+					if(deviceId.isNull())
+						emit uploadChange(keyHash, SyncHelper::combine(key, version, json));
+					else
+						emit uploadDeviceChange(keyHash, deviceId, SyncHelper::combine(key, version, json));
 					logDebug() << "Started upload of changed" << key << "( Active uploads:" << _activeUploads.size() << ")";
 				} catch (Exception &e) {
 					logWarning() << "Failed to read json for upload. Assuming unchanged. Error:" << e.what();
@@ -171,13 +200,15 @@ ChangeController::CachedObjectKey::CachedObjectKey() :
 	_hash()
 {}
 
-ChangeController::CachedObjectKey::CachedObjectKey(const ObjectKey &other) :
+ChangeController::CachedObjectKey::CachedObjectKey(const ObjectKey &other, const QUuid &deviceId) :
 	ObjectKey(other),
+	optionalDevice(deviceId),
 	_hash()
 {}
 
-ChangeController::CachedObjectKey::CachedObjectKey(const QByteArray &hash) :
+ChangeController::CachedObjectKey::CachedObjectKey(const QByteArray &hash, const QUuid &deviceId) :
 	ObjectKey(),
+	optionalDevice(deviceId),
 	_hash(hash)
 {}
 
@@ -191,20 +222,20 @@ QByteArray ChangeController::CachedObjectKey::hashed() const
 bool ChangeController::CachedObjectKey::operator==(const CachedObjectKey &other) const
 {
 	if(!_hash.isEmpty() && !other._hash.isEmpty())
-		return _hash == other._hash;
+		return _hash == other._hash && optionalDevice == other.optionalDevice;
 	else
-		return (static_cast<ObjectKey>(*this) == static_cast<ObjectKey>(other));
+		return (static_cast<ObjectKey>(*this) == static_cast<ObjectKey>(other)) && optionalDevice == other.optionalDevice;
 }
 
 bool ChangeController::CachedObjectKey::operator!=(const CachedObjectKey &other) const
 {
 	if(!_hash.isEmpty() && !other._hash.isEmpty())
-		return _hash != other._hash;
+		return _hash != other._hash || optionalDevice != other.optionalDevice;
 	else
-		return (static_cast<ObjectKey>(*this) != static_cast<ObjectKey>(other));
+		return (static_cast<ObjectKey>(*this) != static_cast<ObjectKey>(other)) || optionalDevice != other.optionalDevice;
 }
 
 uint QtDataSync::qHash(const ChangeController::CachedObjectKey &key, uint seed)
 {
-	return qHash(key.hashed(), seed);
+	return qHash(key.hashed(), seed) ^ qHash(key.optionalDevice, seed);
 }

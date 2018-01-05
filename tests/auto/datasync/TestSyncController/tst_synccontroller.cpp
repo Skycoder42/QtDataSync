@@ -469,7 +469,7 @@ void TestSyncController::testSyncOperation()
 
 		//step 5: verify changed
 		auto called = false;
-		store->loadChanges(1000, [key, resultVersion, &called](ObjectKey k, quint64 v, QString) -> bool {
+		store->loadChanges(1000, [key, resultVersion, &called](ObjectKey k, quint64 v, QString, QUuid) -> bool {
 			if(k == key) {
 				if (!QTest::qCompare(v, resultVersion, "v", "resultVersion", __FILE__, __LINE__))
 					return false;
@@ -552,7 +552,7 @@ void TestSyncController::testResolver()
 
 		//step 5: verify changed
 		auto called = false;
-		store->loadChanges(1000, [key, version, &called](ObjectKey k, quint64 v, QString) -> bool {
+		store->loadChanges(1000, [key, version, &called](ObjectKey k, quint64 v, QString, QUuid) -> bool {
 			if(k == key) {
 				if (!QTest::qCompare(v, version + 1ull, "v", "resultVersion", __FILE__, __LINE__))
 					return false;

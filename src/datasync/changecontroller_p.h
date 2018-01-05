@@ -29,10 +29,12 @@ public:
 	class Q_DATASYNC_EXPORT CachedObjectKey : public ObjectKey {
 	public:
 		CachedObjectKey();
-		CachedObjectKey(const ObjectKey &other);
-		CachedObjectKey(const QByteArray &hash);
+		CachedObjectKey(const ObjectKey &other, const QUuid &deviceId = {});
+		CachedObjectKey(const QByteArray &hash, const QUuid &deviceId = {});
 
 		QByteArray hashed() const;
+
+		QUuid optionalDevice;
 
 		bool operator==(const CachedObjectKey &other) const;
 		bool operator!=(const CachedObjectKey &other) const;
@@ -52,10 +54,12 @@ public Q_SLOTS:
 	void clearUploads();
 
 	void uploadDone(const QByteArray &key);
+	void deviceUploadDone(const QByteArray &key, const QUuid &deviceId);
 
 Q_SIGNALS:
 	void uploadingChanged(bool uploading);
 	void uploadChange(const QByteArray &key, const QByteArray &changeData);
+	void uploadDeviceChange(const QByteArray &key, const QUuid &deviceId, const QByteArray &changeData);
 
 private Q_SLOTS:
 	void changeTriggered();

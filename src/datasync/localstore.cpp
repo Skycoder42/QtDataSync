@@ -407,7 +407,7 @@ quint32 LocalStore::changeCount() const
 		return 0;
 }
 
-void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString)> &visitor) const
+void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const
 {
 	QReadLocker _(_defaults.databaseLock());
 	QSqlQuery readChangesQuery(_database);
@@ -415,11 +415,33 @@ void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quin
 	readChangesQuery.addBindValue(limit);
 	exec(readChangesQuery);
 
+	auto cnt = 0;
 	while(readChangesQuery.next()) {
+		cnt++;
 		if(!visitor({readChangesQuery.value(0).toByteArray(), readChangesQuery.value(1).toString()},
 					readChangesQuery.value(2).toULongLong(),
-					readChangesQuery.value(3).toString()))
-			break;
+					readChangesQuery.value(3).toString(),
+					QUuid()))
+			return;
+	}
+
+	if(cnt < limit) {
+		QSqlQuery readDeviceChangesQuery(_database);
+		readDeviceChangesQuery.prepare(QStringLiteral("SELECT DeviceUploads.Type, DeviceUploads.Id, DataIndex.Version, DataIndex.File, DeviceUploads.Device "
+													  "FROM DeviceUploads "
+													  "INNER JOIN DataIndex "
+													  "ON (DeviceUploads.Type = DataIndex.Type AND DeviceUploads.Id = DataIndex.Id) "
+													  "LIMIT ?"));
+		readDeviceChangesQuery.addBindValue(limit - cnt);
+		exec(readDeviceChangesQuery);
+
+		while(readDeviceChangesQuery.next()) {
+			if(!visitor({readDeviceChangesQuery.value(0).toByteArray(), readDeviceChangesQuery.value(1).toString()},
+						readDeviceChangesQuery.value(2).toULongLong(),
+						readDeviceChangesQuery.value(3).toString(),
+						readDeviceChangesQuery.value(4).toUuid()))
+				return;
+		}
 	}
 }
 
@@ -427,6 +449,18 @@ void LocalStore::markUnchanged(const ObjectKey &key, quint64 version, bool isDel
 {
 	QWriteLocker _(_defaults.databaseLock());
 	markUnchangedImpl(_database, key, version, isDelete, _);
+}
+
+void LocalStore::removeDeviceChange(const ObjectKey &key, const QUuid &deviceId)
+{
+	QWriteLocker _(_defaults.databaseLock());
+
+	QSqlQuery rmDeviceQuery(_database);
+	rmDeviceQuery.prepare(QStringLiteral("DELETE FROM DeviceUploads WHERE Type = ? AND Id = ? AND Device = ?"));
+	rmDeviceQuery.addBindValue(key.typeName);
+	rmDeviceQuery.addBindValue(key.id);
+	rmDeviceQuery.addBindValue(deviceId);
+	exec(rmDeviceQuery);
 }
 
 LocalStore::SyncScope LocalStore::startSync(const ObjectKey &key) const

@@ -293,6 +293,23 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 	}
 }
 
+void RemoteConnector::uploadDeviceData(const QByteArray &key, const QUuid &deviceId, const QByteArray &changeData)
+{
+	try {
+		if(!isIdle()) {
+			logWarning() << "Can't upload when not in idle state. Ignoring request";
+			return;
+		}
+
+		DeviceChangeMessage message(key, deviceId);
+		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
+		_socket->sendBinaryMessage(serializeMessage(message));
+	} catch(Exception &e) {
+		logCritical() << e.what();
+		triggerError(false); //TODO really false? what about a client message? FIX EVERYWHERE
+	}
+}
+
 void RemoteConnector::downloadDone(const quint64 key)
 {
 	try {
@@ -394,6 +411,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onGrant(deserializeMessage<GrantMessage>(stream));
 		else if(isType<ChangeAckMessage>(name))
 			onChangeAck(deserializeMessage<ChangeAckMessage>(stream));
+		else if(isType<DeviceChangeAckMessage>(name))
+			onDeviceChangeAck(deserializeMessage<DeviceChangeAckMessage>(stream));
 		else if(isType<ChangedMessage>(name))
 			onChanged(deserializeMessage<ChangedMessage>(stream));
 		else if(isType<ChangedInfoMessage>(name))
@@ -863,10 +882,19 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 void RemoteConnector::onChangeAck(const ChangeAckMessage &message)
 {
 	if(!isIdle()) {
-		logWarning() << "Unexpected DoneMessage";
+		logWarning() << "Unexpected ChangeAckMessage";//TODO make generic i.e. if(checkIdle<Msg>()) {...
 		triggerError(true);
 	} else
 		emit uploadDone(message.dataId);
+}
+
+void RemoteConnector::onDeviceChangeAck(const DeviceChangeAckMessage &message)
+{
+	if(!isIdle()) {
+		logWarning() << "Unexpected DeviceChangeAckMessage";
+		triggerError(true);
+	} else
+		emit deviceUploadDone(message.dataId, message.deviceId);
 }
 
 void RemoteConnector::onChanged(const ChangedMessage &message)

@@ -271,7 +271,8 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 
 		// add the data change
 		Query addChangeQuery(db);
-		addChangeQuery.prepare(QStringLiteral("INSERT INTO datachanges (deviceid, dataid, keyid, salt, data) VALUES(?, ?, ?, ?, ?)"));
+		addChangeQuery.prepare(QStringLiteral("INSERT INTO datachanges (deviceid, dataid, keyid, salt, data) "
+											  "VALUES(?, ?, ?, ?, ?)"));
 		addChangeQuery.addBindValue(deviceId);
 		addChangeQuery.addBindValue(dataId);
 		addChangeQuery.addBindValue(keyIndex);
@@ -306,6 +307,60 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 			removeChangeQuery.addBindValue(nId);
 			removeChangeQuery.exec();
 		}
+
+		if(!db.commit())
+			throw DatabaseException(db);
+	} catch(...) {
+		db.rollback();
+		throw;
+	}
+}
+
+void DatabaseController::addDeviceChange(const QUuid &deviceId, const QUuid &targetId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
+{
+	auto db = _threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
+
+	try {
+		// add the data change (or ignore, if already existing)
+		Query addChangeQuery(db);
+		addChangeQuery.prepare(QStringLiteral("INSERT INTO datachanges (deviceid, dataid, keyid, salt, data) "
+											  "VALUES(?, ?, ?, ?, ?) "
+											  "ON CONFLICT(deviceid, dataid) DO NOTHING "
+											  "RETURNING id"));
+		addChangeQuery.addBindValue(deviceId);
+		addChangeQuery.addBindValue(dataId);
+		addChangeQuery.addBindValue(keyIndex);
+		addChangeQuery.addBindValue(salt);
+		addChangeQuery.addBindValue(data);
+		addChangeQuery.exec();
+
+		//get the id of the data
+		QVariant nId;
+		if(addChangeQuery.first())
+			nId = addChangeQuery.value(0);
+		else {//insert was ignored, as data already exists
+			Query getIdQuery(db);
+			getIdQuery.prepare(QStringLiteral("SELECT id FROM datachanges WHERE deviceid = ? AND dataid = ?"));
+			getIdQuery.addBindValue(deviceId);
+			getIdQuery.addBindValue(dataId);
+			getIdQuery.exec();
+			if(!getIdQuery.first()){
+				db.rollback();
+				throw DatabaseException(QSqlError(QString(), QStringLiteral("Unable to get id of last inserted data change")));
+			} else
+				nId = getIdQuery.value(0);
+		}
+
+		// add a change for the device (or ignore)
+		Query updateDevicesQuery(db);
+		updateDevicesQuery.prepare(QStringLiteral("INSERT INTO devicechanges(dataid, deviceid) "
+												  "VALUES(?, ?) "
+												  "ON CONFLICT DO NOTHING"));
+		updateDevicesQuery.addBindValue(nId);
+		updateDevicesQuery.addBindValue(targetId);
+		updateDevicesQuery.exec();
 
 		if(!db.commit())
 			throw DatabaseException(db);

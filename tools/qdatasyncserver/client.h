@@ -30,6 +30,7 @@
 #include "devicesmessage_p.h"
 #include "removemessage_p.h"
 #include "proofmessage_p.h"
+#include "devicechangemessage_p.h"
 
 class Client : public QObject
 {
@@ -118,6 +119,7 @@ private:
 	void onAccess(const QtDataSync::AccessMessage &message, QDataStream &stream);
 	void onSync(const QtDataSync::SyncMessage &message);
 	void onChange(const QtDataSync::ChangeMessage &message);
+	void onDeviceChange(const QtDataSync::DeviceChangeMessage &message);
 	void onChangedAck(const QtDataSync::ChangedAckMessage &message);
 	void onListDevices(const QtDataSync::ListDevicesMessage &message);
 	void onRemove(const QtDataSync::RemoveMessage &message);

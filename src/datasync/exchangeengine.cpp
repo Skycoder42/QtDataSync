@@ -91,6 +91,8 @@ void ExchangeEngine::initialize()
 				this, &ExchangeEngine::uploadingChanged);
 		connect(_changeController, &ChangeController::uploadChange,
 				_remoteConnector, &RemoteConnector::uploadData);
+		connect(_changeController, &ChangeController::uploadDeviceChange,
+				_remoteConnector, &RemoteConnector::uploadDeviceData);
 
 		//sync controller
 		connectController(_syncController);
@@ -103,6 +105,8 @@ void ExchangeEngine::initialize()
 				this, &ExchangeEngine::remoteEvent);
 		connect(_remoteConnector, &RemoteConnector::uploadDone,
 				_changeController, &ChangeController::uploadDone);
+		connect(_remoteConnector, &RemoteConnector::deviceUploadDone,
+				_changeController, &ChangeController::deviceUploadDone);
 		connect(_remoteConnector, &RemoteConnector::downloadData,
 				_syncController, &SyncController::syncChange);
 		connect(_remoteConnector, &RemoteConnector::prepareAddedData,
