@@ -35,6 +35,7 @@ class Q_DATASYNC_EXPORT SetupPrivate
 
 public:
 	static void cleanupHandler();
+	static unsigned long currentTimeout();
 
 	static ExchangeEngine *engine(const QString &setupName);
 

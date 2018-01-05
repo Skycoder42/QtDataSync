@@ -157,17 +157,20 @@ private:
 	//TODO timeout for server downloads?
 
 	QUuid _deviceId;
-	mutable QList<DeviceInfo> _deviceCache;
+	QList<DeviceInfo> _deviceCache;
 	QHash<QByteArray, CryptoPP::SecByteBlock> _exportsCache;
 	QHash<QUuid, QSharedPointer<AsymmetricCryptoInfo>> _activeProofs;
 
 	bool isIdle() const;
+	template <typename TMessage>
+	bool checkIdle();
 	void triggerError(bool canRecover);
 
 	bool checkCanSync(QUrl &remoteUrl);
 	bool loadIdentity();
 	void tryClose();
 	std::chrono::seconds retry();
+	void clearCaches(bool includeExport);
 
 	QVariant sValue(const QString &key) const;
 	RemoteConfig loadConfig() const;

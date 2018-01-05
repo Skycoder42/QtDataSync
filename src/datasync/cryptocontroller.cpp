@@ -101,6 +101,7 @@ const QString CryptoController::keyKeystore(QStringLiteral("keystore"));
 const QString CryptoController::keySignScheme(QStringLiteral("scheme/signing"));
 const QString CryptoController::keyCryptScheme(QStringLiteral("scheme/encryption"));
 const QString CryptoController::keyLocalSymKey(QStringLiteral("localkey"));
+const QString CryptoController::keySymKeys(QStringLiteral("scheme/key"));
 const QString CryptoController::keySymKeysTemplate(QStringLiteral("scheme/key/%1"));
 
 const QString CryptoController::keySignKeyTemplate(QStringLiteral("%1/signing"));
@@ -195,6 +196,7 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 				_localCipher = keyIndex;
 				settings()->setValue(keyLocalSymKey, _localCipher);
 				logInfo() << "Update cipher key to index" << _localCipher;
+				cleanCiphers();
 			}
 		}
 	} catch(CppException &e) {
@@ -631,6 +633,27 @@ void CryptoController::storeCipherKey(quint32 keyIndex) const
 	keyFile.close();
 
 	settings()->setValue(keySymKeysTemplate.arg(keyIndex), info.scheme->name());
+}
+
+void CryptoController::cleanCiphers() const
+{
+	auto keyDir = keysDir();
+
+	settings()->beginGroup(keySymKeys);
+	auto keys = settings()->childKeys();
+	settings()->endGroup();
+
+	foreach(auto key, keys) {
+		auto ok = false;
+		auto keyIndex = key.toUInt(&ok);
+		if(!ok)
+			continue;
+
+		if((keyIndex + 5) < _localCipher) {
+			settings()->remove(keySymKeysTemplate.arg(keyIndex));
+			keyDir.remove(keyKeyFileTemplate.arg(keyIndex));
+		}
+	}
 }
 
 const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) const

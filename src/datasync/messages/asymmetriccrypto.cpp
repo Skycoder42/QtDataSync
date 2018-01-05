@@ -53,7 +53,7 @@ QByteArray AsymmetricCrypto::encryptionScheme() const
 	return _encryption->name();
 }
 
-QByteArray AsymmetricCrypto::fingerprint(const X509PublicKey &signingKey, const X509PublicKey &encryptionKey) const //TODO not always the same...
+QByteArray AsymmetricCrypto::fingerprint(const X509PublicKey &signingKey, const X509PublicKey &encryptionKey) const
 {
 	QCryptographicHash hash(QCryptographicHash::Sha3_256);
 	hash.addData(signatureScheme());
@@ -70,7 +70,7 @@ QSharedPointer<X509PublicKey> AsymmetricCrypto::readKey(bool signKey, CryptoPP::
 				   _encryption->createNullKey();
 	QByteArraySource source(data, true);
 	key->Load(source);
-	if(!key->Validate(rng, 2)) //TODO always 3???
+	if(!key->Validate(rng, 3))
 	   throw Exception(Exception::INVALID_DATA_FORMAT, "Key failed validation");
 	return key;
 }

@@ -553,6 +553,11 @@ void SetupPrivate::cleanupHandler()
 	DefaultsPrivate::clearDefaults();
 }
 
+unsigned long SetupPrivate::currentTimeout()
+{
+	return timeout;
+}
+
 ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 {
 	QMutexLocker _(&setupMutex);

@@ -106,6 +106,7 @@ private:
 	static const QString keySignScheme;
 	static const QString keyCryptScheme;
 	static const QString keyLocalSymKey;
+	static const QString keySymKeys;
 	static const QString keySymKeysTemplate;
 
 	static const QString keySignKeyTemplate;
@@ -124,7 +125,8 @@ private:
 
 	void ensureStoreOpen() const;
 	void closeStore() const;
-	void storeCipherKey(quint32 keyIndex) const; //TODO delete old keys
+	void storeCipherKey(quint32 keyIndex) const;
+	void cleanCiphers() const;
 
 	const CipherInfo &getInfo(quint32 keyIndex) const;
 	QDir keysDir() const;

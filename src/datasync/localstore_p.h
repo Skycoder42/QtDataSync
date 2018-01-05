@@ -90,7 +90,7 @@ public:
 	quint32 changeCount() const;
 	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const;
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
-	void removeDeviceChange(const ObjectKey &key, const QUuid &deviceId);
+	void removeDeviceChange(const ObjectKey &key, const QUuid &deviceId); //TODO unittest
 
 	// sync access
 	SyncScope startSync(const ObjectKey &key) const;

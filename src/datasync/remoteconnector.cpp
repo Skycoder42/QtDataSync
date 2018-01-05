@@ -1,5 +1,6 @@
 #include "remoteconnector_p.h"
 #include "logger.h"
+#include "setup_p.h"
 
 #include <QtCore/QSysInfo>
 
@@ -57,7 +58,7 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	_deviceId(),
 	_deviceCache(),
 	_exportsCache(),
-	_activeProofs()//TODO cleanup
+	_activeProofs()
 {}
 
 CryptoController *RemoteConnector::cryptoController() const
@@ -115,8 +116,8 @@ void RemoteConnector::finalize()
 		//send "dummy" event to revalute the changed properties and trigger the changes
 		_stateMachine->submitEvent(QStringLiteral("close"));
 
-		//TODO proper timeout?
-		QTimer::singleShot(scdtime(std::chrono::seconds(2)), this, [this](){
+		//timout from setup, minus a delta have a chance of beeing finished before timeout
+		QTimer::singleShot(qMax<int>(1000, static_cast<int>(SetupPrivate::currentTimeout()) - 1000), this, [this](){
 			if(_stateMachine->isRunning())
 				_stateMachine->stop();
 			if(_socket)
@@ -209,7 +210,7 @@ void RemoteConnector::resetAccount(bool clearConfig)
 			devId = sValue(keyDeviceId).toUuid();
 
 		if(!devId.isNull()) {
-			_exportsCache.clear();
+			clearCaches(true);
 			settings()->remove(keyDeviceId);
 			_cryptoController->deleteKeyMaterial(devId);
 			if(isIdle()) {//delete yourself. Remote will disconnecte once done
@@ -591,7 +592,7 @@ void RemoteConnector::onEntryIdleState()
 
 void RemoteConnector::onExitActiveState()
 {
-	_deviceCache.clear();
+	clearCaches(false);
 	emit remoteEvent(RemoteDisconnected);
 }
 
@@ -599,6 +600,20 @@ bool RemoteConnector::isIdle() const
 {
 	return _stateMachine->isActive(QStringLiteral("Idle"));
 }
+
+template<typename TMessage>
+bool RemoteConnector::checkIdle()
+{
+	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be checked");
+	if(isIdle())
+		return true;
+	else {
+		logWarning() << "Unexpected" << TMessage::staticMetaObject.className();
+		triggerError(true);
+		return false;
+	}
+}
+
 
 void RemoteConnector::triggerError(bool canRecover)
 {
@@ -679,6 +694,14 @@ std::chrono::seconds RemoteConnector::retry()
 	});
 
 	return retryTimeout;
+}
+
+void RemoteConnector::clearCaches(bool includeExport)
+{
+	_deviceCache.clear();
+	if(includeExport)
+		_exportsCache.clear();
+	_activeProofs.clear();
 }
 
 QVariant RemoteConnector::sValue(const QString &key) const
@@ -882,28 +905,19 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 
 void RemoteConnector::onChangeAck(const ChangeAckMessage &message)
 {
-	if(!isIdle()) {
-		logWarning() << "Unexpected ChangeAckMessage";//TODO make generic i.e. if(checkIdle<Msg>()) {...
-		triggerError(true);
-	} else
+	if(checkIdle<ChangeAckMessage>())
 		emit uploadDone(message.dataId);
 }
 
 void RemoteConnector::onDeviceChangeAck(const DeviceChangeAckMessage &message)
 {
-	if(!isIdle()) {
-		logWarning() << "Unexpected DeviceChangeAckMessage";
-		triggerError(true);
-	} else
+	if(checkIdle<DeviceChangeAckMessage>())
 		emit deviceUploadDone(message.dataId, message.deviceId);
 }
 
 void RemoteConnector::onChanged(const ChangedMessage &message)
 {
-	if(!isIdle()) {
-		logWarning() << "Unexpected ChangedMessage";
-		triggerError(true);
-	} else {
+	if(checkIdle<ChangedMessage>()) {
 		auto data = _cryptoController->decrypt(message.keyIndex,
 											   message.salt,
 											   message.data);
@@ -913,15 +927,11 @@ void RemoteConnector::onChanged(const ChangedMessage &message)
 
 void RemoteConnector::onChangedInfo(const ChangedInfoMessage &message)
 {
-	if(!isIdle()) {
-		logWarning() << "Unexpected ChangedInfoMessage";
-		triggerError(true);
-	} else {
+	if(checkIdle<ChangedInfoMessage>()) {
 		logDebug() << "Started downloading, estimated changes:" << message.changeEstimate;
 		//emit event to enter downloading state
 		emit remoteEvent(RemoteReadyWithChanges);
 		emit progressAdded(message.changeEstimate);
-		//TODO make use of change count
 		//parse as usual
 		onChanged(message);
 	}
@@ -931,10 +941,7 @@ void RemoteConnector::onLastChanged(const LastChangedMessage &message)
 {
 	Q_UNUSED(message)
 
-	if(!isIdle()) {
-		logWarning() << "Unexpected LastChangedMessage";
-		triggerError(true);
-	} else {
+	if(checkIdle<LastChangedMessage>()) {
 		logDebug() << "Completed downloading changes";
 		emit remoteEvent(RemoteReady); //back to normal
 	}
@@ -942,10 +949,7 @@ void RemoteConnector::onLastChanged(const LastChangedMessage &message)
 
 void RemoteConnector::onDevices(const DevicesMessage &message)
 {
-	if(!isIdle()) {
-		logWarning() << "Unexpected DevicesMessage";
-		triggerError(true);
-	} else {
+	if(checkIdle<DevicesMessage>()) {
 		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
 		_deviceCache.clear();
 		foreach(auto device, message.devices)
@@ -956,10 +960,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 
 void RemoteConnector::onRemoved(const RemovedMessage &message)
 {
-	if(!isIdle()) {
-		logWarning() << "Unexpected DevicesMessage";
-		triggerError(true);
-	} else {
+	if(checkIdle<RemovedMessage>()) {
 		logDebug() << "Device with id" << message.deviceId << "was removed";
 		if(_deviceId == message.deviceId) {
 			_deviceId = QUuid();
@@ -979,10 +980,7 @@ void RemoteConnector::onRemoved(const RemovedMessage &message)
 
 void RemoteConnector::onProof(const ProofMessage &message)
 {
-	if(!isIdle()) {
-		logWarning() << "Unexpected ProofMessage";
-		triggerError(true);
-	} else {
+	if(checkIdle<ProofMessage>()) {
 		try {
 			//check if expected and verify cmac
 			auto key = _exportsCache.take(message.pNonce);
