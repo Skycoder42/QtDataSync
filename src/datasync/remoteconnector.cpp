@@ -133,7 +133,7 @@ std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::expo
 		throw Exception(defaults(), QStringLiteral("Cannot export data without beeing registered on a server."));
 
 	ExportData data;
-	data.pNonce.resize(IdentifyMessage::NonceSize);
+	data.pNonce.resize(InitMessage::NonceSize);
 	_cryptoController->rng().GenerateBlock(reinterpret_cast<byte*>(data.pNonce.data()), data.pNonce.size());
 	data.partnerId = _deviceId;
 	data.trusted = !password.isNull();
@@ -777,6 +777,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 		logWarning() << "Unexpected IdentifyMessage";
 		triggerError(true);
 	} else {
+		emit updateUploadLimit(message.uploadLimit);
 		if(!_deviceId.isNull()) {
 			LoginMessage msg(_deviceId,
 							 sValue(keyDeviceName).toString(),

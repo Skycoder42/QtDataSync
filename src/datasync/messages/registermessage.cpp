@@ -3,7 +3,7 @@
 using namespace QtDataSync;
 
 RegisterBaseMessage::RegisterBaseMessage() :
-	IdentifyMessage(),
+	InitMessage(),
 	signAlgorithm(),
 	signKey(),
 	cryptAlgorithm(),
@@ -12,7 +12,7 @@ RegisterBaseMessage::RegisterBaseMessage() :
 {}
 
 RegisterBaseMessage::RegisterBaseMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
-	IdentifyMessage(nonce),
+	InitMessage(nonce),
 	signAlgorithm(crypto->signatureScheme()),
 	signKey(crypto->writeKey(signKey)),
 	cryptAlgorithm(crypto->encryptionScheme()),
@@ -32,7 +32,7 @@ AsymmetricCryptoInfo *RegisterBaseMessage::createCryptoInfo(CryptoPP::RandomNumb
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterBaseMessage &message)
 {
-	stream << static_cast<IdentifyMessage>(message)
+	stream << static_cast<InitMessage>(message)
 		   << message.signAlgorithm
 		   << message.signKey
 		   << message.cryptAlgorithm
@@ -44,7 +44,7 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterBaseMessa
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterBaseMessage &message)
 {
 	stream.startTransaction();
-	stream >> static_cast<IdentifyMessage&>(message)
+	stream >> static_cast<InitMessage&>(message)
 		   >> message.signAlgorithm
 		   >> message.signKey
 		   >> message.cryptAlgorithm

@@ -77,6 +77,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_database(database),
 	_socket(websocket),
 	_idleTimer(nullptr),
+	_uploadLimit(10),
 	_downLimit(20),
 	_downThreshold(10),
 	_queue(new SingleTaskQueue(qApp->threadPool(), this)),
@@ -97,6 +98,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	connect(_socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
+	_uploadLimit = qApp->configuration()->value(QStringLiteral("server/uploads/limit"), _uploadLimit).toUInt();
 	_downLimit = qApp->configuration()->value(QStringLiteral("server/downloads/limit"), _downLimit).toUInt();
 	_downThreshold = qApp->configuration()->value(QStringLiteral("server/downloads/threshold"), _downThreshold).toUInt();
 	auto idleTimeout = qApp->configuration()->value(QStringLiteral("server/idleTimeout"), 5).toInt();
@@ -112,7 +114,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 
 	run([this]() {
 		//initialize connection by sending indent message
-		auto msg = IdentifyMessage::createRandom(rngPool.localData());
+		auto msg = IdentifyMessage::createRandom(_uploadLimit, rngPool.localData());
 		_loginNonce = msg.nonce;
 		sendMessage(serializeMessage(msg));
 	});
@@ -224,7 +226,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 						  ErrorMessage::IncompatibleVersionError,
 						  QStringLiteral("Version %1 is not compatible to server version %2")
 						  .arg(e.invalidVersion().toString())
-						  .arg(IdentifyMessage::CurrentVersion.toString())
+						  .arg(InitMessage::CurrentVersion.toString())
 					  });
 		}
 	});

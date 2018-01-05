@@ -11,7 +11,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT RegisterBaseMessage : public IdentifyMessage
+class Q_DATASYNC_EXPORT RegisterBaseMessage : public InitMessage
 {
 	Q_GADGET
 

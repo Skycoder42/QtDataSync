@@ -112,7 +112,10 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void finalized();
+
+	void updateUploadLimit(quint32 limit);
 	void remoteEvent(RemoteEvent event);
+
 	void uploadDone(const QByteArray &key);
 	void deviceUploadDone(const QByteArray &key, const QUuid &deviceId);
 	void downloadData(const quint64 key, const QByteArray &changeData);

@@ -103,6 +103,8 @@ void ExchangeEngine::initialize()
 		connectController(_remoteConnector);
 		connect(_remoteConnector, &RemoteConnector::remoteEvent,
 				this, &ExchangeEngine::remoteEvent);
+		connect(_remoteConnector, &RemoteConnector::updateUploadLimit,
+				_changeController, &ChangeController::updateUploadLimit);
 		connect(_remoteConnector, &RemoteConnector::uploadDone,
 				_changeController, &ChangeController::uploadDone);
 		connect(_remoteConnector, &RemoteConnector::deviceUploadDone,
@@ -164,6 +166,12 @@ void ExchangeEngine::controllerError(const QString &errorMessage)
 	//stop up/downloading etc.
 	_remoteConnector->disconnect();
 	_changeController->clearUploads();
+}
+
+void ExchangeEngine::controllerTimeout()
+{
+	logWarning() << "Internal operation timeout from" << QObject::sender()->metaObject()->className();
+	_remoteConnector->reconnect();
 }
 
 void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
@@ -247,6 +255,8 @@ void ExchangeEngine::connectController(Controller *controller)
 {
 	connect(controller, &Controller::controllerError,
 			this, &ExchangeEngine::controllerError);
+	connect(controller, &Controller::operationTimeout,
+			this, &ExchangeEngine::controllerTimeout);
 	connect(controller, &Controller::progressAdded,
 			this, &ExchangeEngine::addProgress);
 	connect(controller, &Controller::progressIncrement,

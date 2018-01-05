@@ -61,6 +61,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
 	void controllerError(const QString &errorMessage);
+	void controllerTimeout();
 	void remoteEvent(RemoteConnector::RemoteEvent event);
 	void uploadingChanged(bool uploading);
 

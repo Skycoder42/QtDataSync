@@ -8,12 +8,11 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
-const int ChangeController::UploadLimit = 10;
-
 ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	Controller("change", defaults, parent),
 	_store(nullptr),
 	_uploadingEnabled(false),
+	_uploadLimit(10), //good default
 	_activeUploads(),
 	_changeEstimate(0)
 {}
@@ -35,8 +34,10 @@ void ChangeController::setUploadingEnabled(bool uploading)
 	_uploadingEnabled = uploading;
 	if(uploading)
 		uploadNext(true);
-	else
+	else {
+		endOp(); //stop timeouts
 		emit uploadingChanged(false);
+	}
 }
 
 void ChangeController::clearUploads()
@@ -44,6 +45,12 @@ void ChangeController::clearUploads()
 	setUploadingEnabled(false);
 	_activeUploads.clear();
 	_changeEstimate = 0;
+}
+
+void ChangeController::updateUploadLimit(quint32 limit)
+{
+	logDebug() << "Updated update limit to:" << limit;
+	_uploadLimit = static_cast<int>(limit);
 }
 
 void ChangeController::uploadDone(const QByteArray &key)
@@ -60,7 +67,7 @@ void ChangeController::uploadDone(const QByteArray &key)
 		emit progressIncrement();
 		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
 
-		if(_uploadingEnabled && _activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
+		if(_uploadingEnabled && _activeUploads.size() < _uploadLimit) //queued, so we may have the luck to complete a few more before uploading again
 			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection,
 									  Q_ARG(bool, false));
 	} catch(Exception &e) {
@@ -83,7 +90,7 @@ void ChangeController::deviceUploadDone(const QByteArray &key, const QUuid &devi
 		emit progressIncrement();
 		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
 
-		if(_uploadingEnabled && _activeUploads.size() < UploadLimit) //queued, so we may have the luck to complete a few more before uploading again
+		if(_uploadingEnabled && _activeUploads.size() < _uploadLimit) //queued, so we may have the luck to complete a few more before uploading again
 			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection,
 									  Q_ARG(bool, false));
 	} catch(Exception &e) {
@@ -106,7 +113,7 @@ void ChangeController::uploadNext(bool emitStarted)
 		emit uploadingChanged(true);
 	}
 
-	if(_activeUploads.size() >= UploadLimit)
+	if(_activeUploads.size() >= _uploadLimit)
 		return;
 
 	try {
@@ -122,7 +129,7 @@ void ChangeController::uploadNext(bool emitStarted)
 			}
 		}
 
-		_store->loadChanges(UploadLimit, [this, emitProgress, &emitStarted](ObjectKey objKey, quint64 version, QString file, QUuid deviceId) {
+		_store->loadChanges(_uploadLimit, [this, emitProgress, &emitStarted](ObjectKey objKey, quint64 version, QString file, QUuid deviceId) {
 			CachedObjectKey key(objKey, deviceId);
 
 			//skip stuff already beeing uploaded (could still have changed, but to prevent errors)
@@ -147,6 +154,7 @@ void ChangeController::uploadNext(bool emitStarted)
 			auto keyHash = key.hashed();
 			auto isDelete = file.isNull();
 			_activeUploads.insert(key, {key, version, isDelete});
+			beginOp(); //start the default timeout
 			if(isDelete) {//deleted
 				if(deviceId.isNull())
 					emit uploadChange(keyHash, SyncHelper::combine(key, version));
@@ -168,11 +176,13 @@ void ChangeController::uploadNext(bool emitStarted)
 				}
 			}
 
-			return _activeUploads.size() < UploadLimit; //only continue as long as there is free space
+			return _activeUploads.size() < _uploadLimit; //only continue as long as there is free space
 		});
 
-		if(_activeUploads.isEmpty())
+		if(_activeUploads.isEmpty()) {
+			endOp(); //stop any timeouts
 			emit uploadingChanged(false);
+		}
 	} catch(Exception &e) {
 		logCritical() << "Error when trying to upload change:" << e.what();
 		emit controllerError(tr("Failed to upload changes to server."));

@@ -2,41 +2,33 @@
 
 using namespace QtDataSync;
 
-const QVersionNumber IdentifyMessage::CurrentVersion(1, 0, 0); //NOTE update accordingly
-const QVersionNumber IdentifyMessage::CompatVersion(1, 0, 0);
+const QVersionNumber InitMessage::CurrentVersion(1, 0, 0); //NOTE update accordingly
+const QVersionNumber InitMessage::CompatVersion(1, 0, 0);
 
-IdentifyMessage::IdentifyMessage() :
-	IdentifyMessage(QByteArray())
+InitMessage::InitMessage() :
+	InitMessage(QByteArray())
 {}
 
-IdentifyMessage::IdentifyMessage(const QByteArray &nonce) :
+InitMessage::InitMessage(const QByteArray &nonce) :
 	protocolVersion(CurrentVersion),
 	nonce(nonce)
 {}
 
-IdentifyMessage IdentifyMessage::createRandom(CryptoPP::RandomNumberGenerator &rng)
-{
-	IdentifyMessage msg;
-	msg.nonce.resize(NonceSize);
-	rng.GenerateBlock(reinterpret_cast<byte*>(msg.nonce.data()), msg.nonce.size());
-	return msg;
-}
-
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const IdentifyMessage &message)
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const InitMessage &message)
 {
 	stream << message.protocolVersion
 		   << message.nonce;
 	return stream;
 }
 
-QDataStream &QtDataSync::operator>>(QDataStream &stream, IdentifyMessage &message)
+QDataStream &QtDataSync::operator>>(QDataStream &stream, InitMessage &message)
 {
 	stream.startTransaction();
 	stream >> message.protocolVersion
 		   >> message.nonce;
-	if(message.protocolVersion < IdentifyMessage::CompatVersion)
+	if(message.protocolVersion < InitMessage::CompatVersion)
 		throw IncompatibleVersionException(message.protocolVersion);
-	if(message.nonce.size() < IdentifyMessage::NonceSize)
+	if(message.nonce.size() < InitMessage::NonceSize)
 		stream.abortTransaction();
 	else
 		stream.commitTransaction();
@@ -45,10 +37,42 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, IdentifyMessage &messag
 
 
 
+IdentifyMessage::IdentifyMessage(quint32 uploadLimit) :
+	InitMessage(),
+	uploadLimit(uploadLimit)
+{}
+
+IdentifyMessage IdentifyMessage::createRandom(quint32 uploadLimit, CryptoPP::RandomNumberGenerator &rng)
+{
+	IdentifyMessage msg(uploadLimit);
+	msg.nonce.resize(NonceSize);
+	rng.GenerateBlock(reinterpret_cast<byte*>(msg.nonce.data()), msg.nonce.size());
+	return msg;
+}
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const IdentifyMessage &message)
+{
+	stream << static_cast<InitMessage>(message)
+		   << message.uploadLimit;
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, IdentifyMessage &message)
+{
+	stream.startTransaction();
+	stream >> static_cast<InitMessage&>(message)
+		   >> message.uploadLimit;
+	stream.commitTransaction();
+	return stream;
+}
+
+
+
+
 IncompatibleVersionException::IncompatibleVersionException(const QVersionNumber &invalidVersion) :
 	_version(invalidVersion),
 	_msg(QStringLiteral("Incompatible protocol versions. Must be at least %1, but remote proposed with %2")
-		 .arg(IdentifyMessage::CompatVersion.toString())
+		 .arg(InitMessage::CompatVersion.toString())
 		 .arg(_version.toString())
 		 .toUtf8())
 {}

@@ -26,7 +26,7 @@ private:
 	const QByteArray _msg;
 };
 
-class Q_DATASYNC_EXPORT IdentifyMessage
+class Q_DATASYNC_EXPORT InitMessage
 {
 	Q_GADGET
 
@@ -37,22 +37,37 @@ public:
 	static const QVersionNumber CurrentVersion;
 	static const QVersionNumber CompatVersion;
 	static const int NonceSize = 16;
-	IdentifyMessage();
-
-	static IdentifyMessage createRandom(CryptoPP::RandomNumberGenerator &rng);
+	InitMessage();
 
 	QVersionNumber protocolVersion;
 	QByteArray nonce;
 
 protected:
-	IdentifyMessage(const QByteArray &nonce);
+	InitMessage(const QByteArray &nonce);
 };
 
+class Q_DATASYNC_EXPORT IdentifyMessage : public InitMessage
+{
+	Q_GADGET
+
+	Q_PROPERTY(quint32 uploadLimit MEMBER uploadLimit)
+
+public:
+	IdentifyMessage(quint32 uploadLimit = 0);
+
+	static IdentifyMessage createRandom(quint32 uploadLimit, CryptoPP::RandomNumberGenerator &rng);
+
+	quint32 uploadLimit;
+};
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const InitMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, InitMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const IdentifyMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, IdentifyMessage &message);
 
 }
 
+Q_DECLARE_METATYPE(QtDataSync::InitMessage)
 Q_DECLARE_METATYPE(QtDataSync::IdentifyMessage)
 
 #endif // IDENTIFYMESSAGE_H

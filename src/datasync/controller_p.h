@@ -1,7 +1,10 @@
 #ifndef CONTROLLER_P_H
 #define CONTROLLER_P_H
 
+#include <chrono>
+
 #include <QtCore/QObject>
+#include <QtCore/QTimer>
 
 #include "qtdatasync_global.h"
 #include "defaults.h"
@@ -24,6 +27,7 @@ public:
 
 Q_SIGNALS:
 	void controllerError(const QString &error);
+	void operationTimeout();
 	void progressAdded(quint32 delta);
 	void progressIncrement();
 
@@ -32,10 +36,14 @@ protected:
 	Logger *logger() const;
 	QSettings *settings() const;
 
+	void beginOp(const std::chrono::minutes &interval = std::chrono::minutes(5));
+	void endOp();
+
 private:
 	Defaults _defaults;
 	Logger *_logger;
 	QSettings *_settings;
+	QTimer *_opTimer;
 };
 
 }

@@ -8,7 +8,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT LoginMessage : public IdentifyMessage
+class Q_DATASYNC_EXPORT LoginMessage : public InitMessage
 {
 	Q_GADGET
 

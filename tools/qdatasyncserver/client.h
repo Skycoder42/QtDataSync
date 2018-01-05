@@ -89,6 +89,7 @@ private:
 
 	// "constant" members, that wont change after the constructor
 	QTimer *_idleTimer;
+	quint32 _uploadLimit;
 	quint32 _downLimit;
 	quint32 _downThreshold;
 

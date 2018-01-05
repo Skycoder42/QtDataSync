@@ -52,6 +52,7 @@ public:
 public Q_SLOTS:
 	void setUploadingEnabled(bool uploading);
 	void clearUploads();
+	void updateUploadLimit(quint32 limit);
 
 	void uploadDone(const QByteArray &key);
 	void deviceUploadDone(const QByteArray &key, const QUuid &deviceId);
@@ -72,13 +73,11 @@ private:
 		bool isDelete;
 	};
 
-	static const int UploadLimit; //TODO get from server instead
-
 	LocalStore *_store;
 	bool _uploadingEnabled;
+	int _uploadLimit;
 	QHash<CachedObjectKey, UploadInfo> _activeUploads;
 	quint32 _changeEstimate;
-	//TODO timeout?
 };
 
 uint Q_DATASYNC_EXPORT qHash(const ChangeController::CachedObjectKey &key, uint seed);
