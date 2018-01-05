@@ -119,6 +119,8 @@ public Q_SLOTS:
 	void setCacheSize(int cacheSize);
 	void resetCacheSize();
 
+	void prepareAccountAdded(const QUuid &deviceId); //TODO unittest
+
 Q_SIGNALS:
 	void dataChanged(const QtDataSync::ObjectKey &key, bool deleted);
 	void dataCleared(const QByteArray &typeName);

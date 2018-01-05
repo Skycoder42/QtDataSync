@@ -152,9 +152,28 @@ ClientCrypto *CryptoController::crypto() const
 	return _asymCrypto;
 }
 
+RandomNumberGenerator &CryptoController::rng() const
+{
+	return _asymCrypto->rng();
+}
+
 QByteArray CryptoController::fingerprint() const
 {
 	return _fingerprint;
+}
+
+QByteArray CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
+{
+	try {
+		auto info = getInfo(_localCipher);
+		return crypto->encrypt(pubKey,
+							   _asymCrypto->rng(),
+							   QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()), static_cast<int>(info.key.size())));
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to encrypt secret key for peer"),
+							  e);
+	}
 }
 
 bool CryptoController::acquireStore(bool existing)

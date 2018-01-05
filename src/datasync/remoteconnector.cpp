@@ -73,6 +73,8 @@ void RemoteConnector::initialize(const QVariantHash &params)
 	_pingTimer = new QTimer(this);
 	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
 	_pingTimer->setTimerType(Qt::VeryCoarseTimer);
+	connect(_pingTimer, &QTimer::timeout,
+			this, &RemoteConnector::ping);
 
 	//setup SM
 	_stateMachine = new ConnectorStateMachine(this);
@@ -132,7 +134,7 @@ std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::expo
 
 	ExportData data;
 	data.pNonce.resize(IdentifyMessage::NonceSize);
-	_cryptoController->crypto()->rng().GenerateBlock(reinterpret_cast<byte*>(data.pNonce.data()), data.pNonce.size());
+	_cryptoController->rng().GenerateBlock(reinterpret_cast<byte*>(data.pNonce.data()), data.pNonce.size());
 	data.partnerId = _deviceId;
 	data.trusted = !password.isNull();
 
@@ -248,7 +250,29 @@ void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecB
 
 void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 {
-	logCritical() << Q_FUNC_INFO << deviceId << accept;
+	if(!isIdle()) {
+		logWarning() << "Can't react to login when not in idle state. Ignoring request";
+		return;
+	}
+
+	try {
+		auto crypto = _activeProofs.take(deviceId);
+		if(!crypto) {
+			logWarning() << "Received login reply for non existant request. Propably already handeled";
+			return;
+		}
+
+		if(accept) {
+			AcceptMessage message(deviceId, _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey()));
+			_socket->sendBinaryMessage(serializeMessage(message));
+			emit prepareAddedData(deviceId);
+		} else
+			_socket->sendBinaryMessage(serializeMessage<DenyMessage>(deviceId));
+	} catch(Exception &e) {
+		logWarning() << "Failed to reply to login with error:" << e.what();
+		//simply send a deny
+		_socket->sendBinaryMessage(serializeMessage<DenyMessage>(deviceId));
+	}
 }
 
 void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
@@ -264,7 +288,7 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 		_socket->sendBinaryMessage(serializeMessage(message));
 	} catch(Exception &e) {
 		logCritical() << e.what();
-		triggerError(false);
+		triggerError(false); //TODO really false? what about a client message? FIX EVERYWHERE
 	}
 }
 
@@ -343,6 +367,7 @@ void RemoteConnector::disconnected()
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == PingMessage) {
+		logDebug() << "pong";
 		_awaitingPing = false;
 		_pingTimer->start();
 		return;
@@ -426,6 +451,7 @@ void RemoteConnector::ping()
 		logDebug() << "Server connection idle. Reconnecting to server";
 		reconnect();
 	} else {
+		logDebug() << "ping";
 		_awaitingPing = true;
 		_socket->sendBinaryMessage(PingMessage);
 	}
@@ -469,12 +495,11 @@ void RemoteConnector::doConnect()
 	auto tOut = sValue(keyKeepaliveTimeout).toInt();
 	if(tOut > 0) {
 		_pingTimer->setInterval(scdtime(std::chrono::minutes(tOut)));
+		_awaitingPing = false;
 		connect(_socket, &QWebSocket::connected,
 				_pingTimer, QOverload<>::of(&QTimer::start));
 		connect(_socket, &QWebSocket::disconnected,
 				_pingTimer, &QTimer::stop);
-		connect(_pingTimer, &QTimer::timeout,
-				this, &RemoteConnector::ping);
 	}
 
 	QNetworkRequest request(remoteUrl);
@@ -926,7 +951,7 @@ void RemoteConnector::onProof(const ProofMessage &message)
 			_cryptoController->verifyImportCmac(message.macscheme, key, macData, message.cmac);
 
 			//read (and verify) the keys
-			auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->crypto()->rng(),
+			auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->rng(),
 																		  message.signAlgorithm,
 																		  message.signKey,
 																		  message.cryptAlgorithm,

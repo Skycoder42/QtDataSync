@@ -112,6 +112,7 @@ Q_SIGNALS:
 	void remoteEvent(RemoteEvent event);
 	void uploadDone(const QByteArray &key);
 	void downloadData(const quint64 key, const QByteArray &changeData);
+	void prepareAddedData(const QUuid &deviceId);
 
 	void syncEnabledChanged(bool syncEnabled);
 	void deviceNameChanged(const QString &deviceName);

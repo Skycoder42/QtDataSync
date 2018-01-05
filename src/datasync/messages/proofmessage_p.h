@@ -49,14 +49,31 @@ public:
 	QUuid deviceId;
 };
 
+class Q_DATASYNC_EXPORT AcceptMessage
+{
+	Q_GADGET
+
+	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
+	Q_PROPERTY(QByteArray secret MEMBER secret)
+
+public:
+	AcceptMessage(const QUuid &deviceId = {}, const QByteArray &secret = {});
+
+	QUuid deviceId;
+	QByteArray secret;
+};
+
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ProofMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ProofMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DenyMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DenyMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const AcceptMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, AcceptMessage &message);
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ProofMessage)
 Q_DECLARE_METATYPE(QtDataSync::DenyMessage)
+Q_DECLARE_METATYPE(QtDataSync::AcceptMessage)
 
 #endif // PROOFMESSAGE_P_H

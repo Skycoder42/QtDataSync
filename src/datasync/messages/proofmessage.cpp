@@ -78,3 +78,26 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, DenyMessage &message)
 	stream.commitTransaction();
 	return stream;
 }
+
+
+
+AcceptMessage::AcceptMessage(const QUuid &deviceId, const QByteArray &secret) :
+	deviceId(deviceId),
+	secret(secret)
+{}
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const AcceptMessage &message)
+{
+	stream << message.deviceId
+		   << message.secret;
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, AcceptMessage &message)
+{
+	stream.startTransaction();
+	stream >> message.deviceId
+		   >> message.secret;
+	stream.commitTransaction();
+	return stream;
+}

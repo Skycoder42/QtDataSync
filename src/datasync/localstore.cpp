@@ -581,6 +581,21 @@ void LocalStore::resetCacheSize()
 	_dataCache.setMaxCost(_defaults.property(Defaults::CacheSize).toInt());
 }
 
+void LocalStore::prepareAccountAdded(const QUuid &deviceId)
+{
+	try {
+		QWriteLocker _(_defaults.databaseLock());
+
+		QSqlQuery insertQuery(_database);
+		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO DeviceUploads (Device, Type, Id) "
+										   "SELECT ?, Type, Id FROM DataIndex"));
+		insertQuery.addBindValue(deviceId);
+		exec(insertQuery);
+	} catch(Exception &e) {
+		logCritical() << "Failed to prepare added account with error:" << e.what();
+	}
+}
+
 void LocalStore::onDataChange(QObject *origin, const ObjectKey &key, const QJsonObject &data, int size)
 {
 	if(origin != this) {

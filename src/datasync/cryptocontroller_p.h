@@ -60,7 +60,9 @@ public:
 	void finalize() final;
 
 	ClientCrypto *crypto() const;
+	CryptoPP::RandomNumberGenerator &rng() const;
 	QByteArray fingerprint() const;
+	QByteArray encryptSecretKey(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const;
 
 	bool acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);

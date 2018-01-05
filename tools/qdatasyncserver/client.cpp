@@ -153,6 +153,7 @@ void Client::sendProof(const ProofMessage &message)
 void Client::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == PingMessage) {
+		qDebug() << "ping";
 		if(_idleTimer)
 			_idleTimer->start();
 		_socket->sendBinaryMessage(PingMessage);

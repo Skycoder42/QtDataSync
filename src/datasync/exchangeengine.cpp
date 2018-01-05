@@ -105,6 +105,8 @@ void ExchangeEngine::initialize()
 				_changeController, &ChangeController::uploadDone);
 		connect(_remoteConnector, &RemoteConnector::downloadData,
 				_syncController, &SyncController::syncChange);
+		connect(_remoteConnector, &RemoteConnector::prepareAddedData,
+				_localStore, &LocalStore::prepareAccountAdded);
 
 		//initialize all
 		QVariantHash params;
