@@ -217,7 +217,7 @@
                           </qlist>
                          </stereotypes>
                          <name>disconnect given device</name>
-                         <pos>x:875;y:410</pos>
+                         <pos>x:425;y:410</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -254,8 +254,8 @@
                         </DElement>
                        </base-DElement>
                        <text>done per device</text>
-                       <pos>x:755;y:415</pos>
-                       <rect>x:-190;y:-65;w:380;h:130</rect>
+                       <pos>x:535;y:415</pos>
+                       <rect>x:-180;y:-65;w:360;h:130</rect>
                       </DBoundary>
                      </instance>
                     </item>
@@ -422,7 +422,7 @@
                          <name>MACUPDATE(cmac)</name>
                          <pos>x:875;y:260</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
-                         <visual-role>0</visual-role>
+                         <visual-role>6</visual-role>
                         </DObject>
                        </base-DObject>
                        <variety>activity</variety>
@@ -448,9 +448,54 @@
                       </DDependency>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{07bc2817-2bcf-4cf4-9130-5a81c2b6374b}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{f84675e1-72c9-43c2-b8d3-bac5ed20eb53}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>MACUPDATEACK()</name>
+                         <pos>x:875;y:410</pos>
+                         <rect>x:-40;y:-20;w:80;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>activity</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{bccc297c-f7ac-44de-8143-e77bfa7aaddd}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{4d0af725-6927-4934-8590-4fe05da9b4cd}</object>
+                         <a>{797ce92d-be5a-4d44-a01c-18742aebbc5a}</a>
+                         <b>{07bc2817-2bcf-4cf4-9130-5a81c2b6374b}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515246261821</last-modified>
+                  <last-modified>1515252056191</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -921,6 +966,64 @@
                    </MElement>
                   </base-MElement>
                   <name>MACUPDATE(cmac)</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{4d0af725-6927-4934-8590-4fe05da9b4cd}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{4d0af725-6927-4934-8590-4fe05da9b4cd}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{296ad634-fff4-4d6e-9906-01259f13c94b}</a>
+                             <b>{f84675e1-72c9-43c2-b8d3-bac5ed20eb53}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>activity</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{f84675e1-72c9-43c2-b8d3-bac5ed20eb53}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{f84675e1-72c9-43c2-b8d3-bac5ed20eb53}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>MACUPDATEACK()</name>
                  </MObject>
                 </base-MObject>
                 <variety-editable>false</variety-editable>

@@ -8,7 +8,6 @@
 #include "loginmessage_p.h"
 #include "accessmessage_p.h"
 #include "syncmessage_p.h"
-#include "macupdatemessage_p.h"
 
 #include "connectorstatemachine.h"
 
@@ -38,6 +37,7 @@ const QString RemoteConnector::keyImportNonce(QStringLiteral("import/nonce"));
 const QString RemoteConnector::keyImportPartner(QStringLiteral("import/partner"));
 const QString RemoteConnector::keyImportScheme(QStringLiteral("import/scheme"));
 const QString RemoteConnector::keyImportCmac(QStringLiteral("import/cmac"));
+const QString RemoteConnector::keySendCmac(QStringLiteral("sendCmac"));
 
 const QVector<std::chrono::seconds> RemoteConnector::Timeouts = {
 	std::chrono::seconds(5),
@@ -98,10 +98,16 @@ void RemoteConnector::initialize(const QVariantHash &params)
 	if(!_stateMachine->init())
 		throw Exception(defaults(), QStringLiteral("Failed to initialize RemoteConnector statemachine"));
 
+	//special timeout
 	connect(this, &RemoteConnector::specialOperationTimeout,
 			this, [this]() {
 		triggerError(true);
 	});
+
+	//cc signals
+	connect(_cryptoController, &CryptoController::secretKeyUpdated,
+			this, &RemoteConnector::sendKeyUpdate,
+			Qt::QueuedConnection); //queued connection, to only do it once
 
 	_stateMachine->start();
 }
@@ -442,6 +448,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onRemoved(deserializeMessage<RemovedMessage>(stream));
 		else if(isType<ProofMessage>(name))
 			onProof(deserializeMessage<ProofMessage>(stream));
+		else if(isType<MacUpdateAckMessage>(name))
+			onMacUpdateAck(deserializeMessage<MacUpdateAckMessage>(stream));
 		else {
 			logWarning().noquote() << "Unknown message received:" << typeName(name);
 			triggerError(true);
@@ -491,6 +499,19 @@ void RemoteConnector::ping()
 	} else {
 		_awaitingPing = true;
 		_socket->sendBinaryMessage(PingMessage);
+	}
+}
+
+void RemoteConnector::sendKeyUpdate(quint32 keyIndex)
+{
+	try {
+		if(keyIndex == _cryptoController->keyIndex()) {
+			settings()->setValue(keySendCmac, true);
+			auto cmac = _cryptoController->cryptoKeyCmac();
+			_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>(cmac));
+		}
+	} catch(Exception &e) {
+		onError({ErrorMessage::LocalError, e.qWhat()});
 	}
 }
 
@@ -753,6 +774,8 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		return true;
 	else if(key == keyDeviceName)
 		return QSysInfo::machineHostName();
+	else if(key == keySendCmac)
+		return false;
 	else
 		return {};
 }
@@ -910,6 +933,9 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		// reset retry index only after successfuly account creation or login
 		_expectChanges = message.hasChanges;
 		_stateMachine->submitEvent(QStringLiteral("account"));
+
+		if(sValue(keySendCmac).toBool())
+			sendKeyUpdate(_cryptoController->keyIndex());
 	}
 }
 
@@ -1059,6 +1085,13 @@ void RemoteConnector::onProof(const ProofMessage &message)
 			_socket->sendBinaryMessage(serializeMessage<DenyMessage>(message.deviceId));
 		}
 	}
+}
+
+void RemoteConnector::onMacUpdateAck(const MacUpdateAckMessage &message)
+{
+	Q_UNUSED(message)
+	if(checkIdle<MacUpdateAckMessage>()) //TODO message as param
+		settings()->remove(keySendCmac);
 }
 
 

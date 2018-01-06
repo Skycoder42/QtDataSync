@@ -163,6 +163,11 @@ QByteArray CryptoController::fingerprint() const
 	return _fingerprint;
 }
 
+quint32 CryptoController::keyIndex() const
+{
+	return _localCipher;
+}
+
 std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
 {
 	try {
@@ -197,7 +202,7 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 				settings()->setValue(keyLocalSymKey, _localCipher);
 				logInfo() << "Update cipher key to index" << _localCipher;
 				cleanCiphers();
-				//TODO emit change signal
+				emit secretKeyUpdated(keyIndex);
 			}
 		}
 	} catch(CppException &e) {

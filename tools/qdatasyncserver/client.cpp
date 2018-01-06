@@ -522,8 +522,10 @@ void Client::onMacUpdate(const MacUpdateMessage &message)
 {
 	if(_state != Idle)
 		throw UnexpectedException<MacUpdateMessage>(); //TODO as check fn
-	else
+	else {
 		_database->updateCmac(_deviceId, message.cmac);
+		sendMessage(serializeMessage(MacUpdateAckMessage()));
+	}
 }
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)

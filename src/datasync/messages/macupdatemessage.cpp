@@ -18,3 +18,19 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, MacUpdateMessage &messa
 	stream.commitTransaction();
 	return stream;
 }
+
+
+
+MacUpdateAckMessage::MacUpdateAckMessage() {}
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const MacUpdateAckMessage &message)
+{
+	Q_UNUSED(message)
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, MacUpdateAckMessage &message)
+{
+	Q_UNUSED(message)
+	return stream;
+}

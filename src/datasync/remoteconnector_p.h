@@ -26,6 +26,7 @@
 #include "proofmessage_p.h"
 #include "grantmessage_p.h"
 #include "devicechangemessage_p.h"
+#include "macupdatemessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -70,6 +71,7 @@ public:
 	static const QString keyImportPartner;
 	static const QString keyImportScheme;
 	static const QString keyImportCmac;
+	static const QString keySendCmac;
 
 	enum RemoteEvent {
 		RemoteDisconnected,
@@ -135,6 +137,8 @@ private Q_SLOTS:
 	void sslErrors(const QList<QSslError> &errors);
 	void ping();
 
+	void sendKeyUpdate(quint32 keyIndex);
+
 	//statemachine
 	void doConnect();
 	void doDisconnect();
@@ -189,6 +193,7 @@ private:
 	void onDevices(const DevicesMessage &message);
 	void onRemoved(const RemovedMessage &message);
 	void onProof(const ProofMessage &message);
+	void onMacUpdateAck(const MacUpdateAckMessage &message);
 };
 
 }

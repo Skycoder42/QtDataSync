@@ -703,7 +703,7 @@
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:455;y:590</pos>
+                         <pos>x:275;y:590</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -725,7 +725,7 @@
                          </base-DElement>
                          <object>{e94f5cbc-17c1-4b12-8597-83d153d3aab8}</object>
                          <a>{317e8a28-a6c9-4082-ae1d-49f004735e8f}</a>
-                         <b>{6ad81d0f-465a-4cc2-ad49-369425324d17}</b>
+                         <b>{cbc065aa-93bf-41ae-bb57-6d5f01015516}</b>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -745,9 +745,54 @@
                       </DAnnotation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{cbc065aa-93bf-41ae-bb57-6d5f01015516}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{4d73c30f-cf49-4064-b1a8-01b8c9b36059}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>MACUPDATEACK()</name>
+                         <pos>x:455;y:590</pos>
+                         <rect>x:-40;y:-20;w:80;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>activity</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{cb8a4c57-e47d-4a52-8b2b-6ebf1f9bc2dd}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{1a1d0e9b-78ae-4d75-8e09-47d09523159d}</object>
+                         <a>{cbc065aa-93bf-41ae-bb57-6d5f01015516}</a>
+                         <b>{6ad81d0f-465a-4cc2-ad49-369425324d17}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515248730383</last-modified>
+                  <last-modified>1515251881021</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1561,7 +1606,7 @@
                               </MElement>
                              </base-MElement>
                              <a>{b32e911d-85cf-4ef7-83ef-86648d2c3a24}</a>
-                             <b>{1ef68902-508e-4008-b2c5-8e3311aac8e1}</b>
+                             <b>{4d73c30f-cf49-4064-b1a8-01b8c9b36059}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -1605,6 +1650,64 @@
                 </base-MObject>
                 <variety-editable>false</variety-editable>
                 <variety>termination</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{4d73c30f-cf49-4064-b1a8-01b8c9b36059}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{4d73c30f-cf49-4064-b1a8-01b8c9b36059}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>MACUPDATEACK()</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{1a1d0e9b-78ae-4d75-8e09-47d09523159d}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{1a1d0e9b-78ae-4d75-8e09-47d09523159d}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{4d73c30f-cf49-4064-b1a8-01b8c9b36059}</a>
+                             <b>{1ef68902-508e-4008-b2c5-8e3311aac8e1}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>activity</variety>
                </MItem>
               </instance>
              </target>

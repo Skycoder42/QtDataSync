@@ -579,7 +579,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:90;y:695</pos>
+                         <pos>x:255;y:695</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -800,7 +800,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>DEVICECHANGEACK&lt;CHANGEACK&gt;(deviceId)</name>
-                         <pos>x:255;y:695</pos>
+                         <pos>x:450;y:695</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -885,7 +885,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{38fd9427-a78c-48ee-84c0-5698f9967be0}</object>
                          <a>{cb78f375-c909-4b5e-a85f-402147b202f6}</a>
-                         <b>{ae6feadb-52f0-4977-963a-6d81f16f042c}</b>
+                         <b>{f57f24e9-363f-4976-b15e-46456071fc63}</b>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -1230,9 +1230,54 @@ trustmac only for trusted, over the public keys and schemes</text>
                       </DAnnotation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{f57f24e9-363f-4976-b15e-46456071fc63}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{332b2ac8-460f-47d7-9820-2df1d3ebf00a}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>MACUPDATEACK()</name>
+                         <pos>x:90;y:695</pos>
+                         <rect>x:-40;y:-20;w:80;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>activity</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{0e346ac0-fc52-4461-9aac-9b8a1a8ee4cc}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{f6569734-6073-4616-935a-0a4bc816eddf}</object>
+                         <a>{f57f24e9-363f-4976-b15e-46456071fc63}</a>
+                         <b>{ae6feadb-52f0-4977-963a-6d81f16f042c}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515249013864</last-modified>
+                  <last-modified>1515251921433</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -2276,7 +2321,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                               </MElement>
                              </base-MElement>
                              <a>{ddd4501a-b934-416d-ac83-453ca5dc408d}</a>
-                             <b>{4dec097d-9a83-413c-850f-322ac0684871}</b>
+                             <b>{332b2ac8-460f-47d7-9820-2df1d3ebf00a}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -2681,6 +2726,64 @@ trustmac only for trusted, over the public keys and schemes</text>
                              </base-MElement>
                              <a>{28017118-bc06-4752-8bc8-f45add38c962}</a>
                              <b>{1b4f9fb4-8cb2-4f2e-bd89-7495826c7451}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>activity</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{332b2ac8-460f-47d7-9820-2df1d3ebf00a}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{332b2ac8-460f-47d7-9820-2df1d3ebf00a}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>MACUPDATEACK()</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{f6569734-6073-4616-935a-0a4bc816eddf}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{f6569734-6073-4616-935a-0a4bc816eddf}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{332b2ac8-460f-47d7-9820-2df1d3ebf00a}</a>
+                             <b>{4dec097d-9a83-413c-850f-322ac0684871}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
