@@ -22,9 +22,8 @@ public:
 	void setDeviceName(QString deviceName) override;
 
 public Q_SLOTS:
-	void listDevices() override;
-	void removeDevice(const QUuid &deviceId) override;
-	void updateDeviceKey() override;
+	void listDevices() override; //TODO send device updates to anyone always
+	void removeDevice(const QUuid &deviceId) override; //TODO disconnect if connected
 	void updateExchangeKey() override;
 	void resetAccount(bool keepData) override;
 	void exportAccount(quint32 id, bool includeServer) override;

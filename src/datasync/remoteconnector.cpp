@@ -256,7 +256,8 @@ void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecB
 	if(data.trusted) {
 		Q_ASSERT_X(!key.empty(), Q_FUNC_INFO, "Cannot have trusted data without a key");
 		settings()->setValue(keyImportKey, QByteArray(reinterpret_cast<const char*>(key.data()), static_cast<int>(key.size())));
-	}
+	} else
+		settings()->remove(keyImportKey);
 	//after storing, continue with "normal" reset. This MUST be done by the engine, thus not in this function
 }
 
@@ -919,6 +920,7 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 		logDebug() << "Account access granted";
 		_cryptoController->decryptSecretKey(message.index, message.scheme, message.secret, true);
 		onAccount(message, false);
+		settings()->remove(keyImport); //import succeeded, so remove import related stuff
 		//TODO update cmac
 		emit importCompleted();
 	}

@@ -51,11 +51,6 @@ void AccountManagerPrivate::removeDevice(const QUuid &deviceId)
 	_engine->remoteConnector()->removeDevice(deviceId);
 }
 
-void AccountManagerPrivate::updateDeviceKey()
-{
-
-}
-
 void AccountManagerPrivate::updateExchangeKey()
 {
 
@@ -119,6 +114,11 @@ void AccountManagerPrivate::importAccount(const JsonObject &importData, bool kee
 
 void AccountManagerPrivate::importAccountTrusted(const JsonObject &importData, const QString &password, bool keepData)
 {
+	if(password.isEmpty()) {
+		emit accountImportResult(false, tr("Password must not be empty."));
+		return;
+	}
+
 	try {
 		auto scheme = importData[QStringLiteral("scheme")].toString().toUtf8();
 		auto salt = QByteArray::fromBase64(importData[QStringLiteral("salt")].toString().toUtf8());

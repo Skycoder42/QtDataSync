@@ -7,7 +7,6 @@ class AccountManagerPrivate {
 
 	SLOT(void listDevices());
 	SLOT(void removeDevice(const QUuid &deviceId)); //TODO emit accountDevices if removed from cached list
-	SLOT(void updateDeviceKey());
 	SLOT(void updateExchangeKey());
 	SLOT(void resetAccount(bool keepData));
 	SLOT(void exportAccount(quint32 id, bool includeServer));

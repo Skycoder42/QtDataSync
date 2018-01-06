@@ -109,7 +109,6 @@ public Q_SLOTS:
 		removeDevice(deviceInfo.deviceId());
 	}
 
-	void updateDeviceKey();
 	void updateExchangeKey();
 
 	void setDeviceName(const QString &deviceName);

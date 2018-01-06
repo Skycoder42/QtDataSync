@@ -66,13 +66,6 @@
    <item row="2" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QPushButton" name="pushButton_3">
-       <property name="text">
-        <string>&amp;Update Device Key</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="pushButton_4">
        <property name="text">
         <string>Update Exchange &amp;Key</string>

@@ -204,11 +204,6 @@ void AccountManager::removeDevice(const QUuid &deviceId)
 	d->replica->removeDevice(deviceId);
 }
 
-void AccountManager::updateDeviceKey()
-{
-	d->replica->updateDeviceKey();
-}
-
 void AccountManager::updateExchangeKey()
 {
 	d->replica->updateExchangeKey();

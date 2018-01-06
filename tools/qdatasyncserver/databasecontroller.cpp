@@ -465,7 +465,7 @@ void DatabaseController::initDatabase()
 	}
 
 	try {
-//#define AUTO_DROP_TABLES
+#define AUTO_DROP_TABLES
 #ifdef AUTO_DROP_TABLES
 		QSqlQuery dropQuery(db);
 		if(!dropQuery.exec(QStringLiteral("DROP TABLE IF EXISTS devicechanges, datachanges, devices, users CASCADE"))) {
