@@ -197,11 +197,29 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 				settings()->setValue(keyLocalSymKey, _localCipher);
 				logInfo() << "Update cipher key to index" << _localCipher;
 				cleanCiphers();
+				//TODO emit change signal
 			}
 		}
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to decrypt secret key from peer"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::cryptoKeyCmac() const
+{
+	try {
+		QByteArray message = _asymCrypto->encryptionScheme() +
+							 _asymCrypto->writeCryptKey();
+		return std::get<1>(createCmac(message));
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed create CMAC for private encryption key"),
 							  e);
 	}
 }

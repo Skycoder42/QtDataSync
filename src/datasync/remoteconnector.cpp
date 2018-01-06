@@ -8,6 +8,7 @@
 #include "loginmessage_p.h"
 #include "accessmessage_p.h"
 #include "syncmessage_p.h"
+#include "macupdatemessage_p.h"
 
 #include "connectorstatemachine.h"
 
@@ -841,7 +842,8 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 									message.nonce,
 									crypto->signKey(),
 									crypto->cryptKey(),
-									crypto);
+									crypto,
+									_cryptoController->cryptoKeyCmac());
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
 				_socket->sendBinaryMessage(signedMsg);
@@ -921,7 +923,8 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 		_cryptoController->decryptSecretKey(message.index, message.scheme, message.secret, true);
 		onAccount(message, false);
 		settings()->remove(keyImport); //import succeeded, so remove import related stuff
-		//TODO update cmac
+		//update the server cmac
+		_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>(_cryptoController->cryptoKeyCmac()));
 		emit importCompleted();
 	}
 }

@@ -15,7 +15,8 @@ HEADERS += \
     $$PWD/accessmessage_p.h \
     $$PWD/proofmessage_p.h \
     $$PWD/grantmessage_p.h \
-    $$PWD/devicechangemessage_p.h
+    $$PWD/devicechangemessage_p.h \
+    $$PWD/macupdatemessage_p.h
 
 SOURCES += \
 	$$PWD/message.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
     $$PWD/accessmessage.cpp \
     $$PWD/proofmessage.cpp \
     $$PWD/grantmessage.cpp \
-    $$PWD/devicechangemessage.cpp
+    $$PWD/devicechangemessage.cpp \
+    $$PWD/macupdatemessage.cpp
 
 INCLUDEPATH += $$PWD

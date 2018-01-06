@@ -50,7 +50,8 @@ public:
 					   const QByteArray &signKey,
 					   const QByteArray &cryptScheme,
 					   const QByteArray &cryptKey,
-					   const QByteArray &fingerprint);
+					   const QByteArray &fingerprint,
+					   const QByteArray &keyCmac);
 	void addNewDeviceToUser(const QUuid &newDeviceId,
 							const QUuid &partnerDeviceId,
 							const QString &name,
@@ -63,6 +64,7 @@ public:
 												 CryptoPP::RandomNumberGenerator &rng,
 												 QObject *parent = nullptr);
 	void updateLogin(const QUuid &deviceId, const QString &name);
+	void updateCmac(const QUuid &deviceId, const QByteArray &cmac);
 	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId); // (deviceid, name, fingerprint)
 	void removeDevice(const QUuid &deviceId, const QUuid &deleteId);
 

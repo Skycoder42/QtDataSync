@@ -57,27 +57,31 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterBaseMessage &me
 
 
 RegisterMessage::RegisterMessage() :
-	RegisterBaseMessage()
+	RegisterBaseMessage(),
+	cmac()
 {}
 
-RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
+RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto, const QByteArray &cmac) :
 	RegisterBaseMessage(deviceName,
 						nonce,
 						signKey,
 						cryptKey,
-						crypto)
+						crypto),
+	cmac(cmac)
 {}
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
 {
-	stream << static_cast<RegisterBaseMessage>(message);
+	stream << static_cast<RegisterBaseMessage>(message)
+		   << message.cmac;
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
 {
 	stream.startTransaction();
-	stream >> static_cast<RegisterBaseMessage&>(message);
+	stream >> static_cast<RegisterBaseMessage&>(message)
+		   >> message.cmac;
 	stream.commitTransaction();
 	return stream;
 }

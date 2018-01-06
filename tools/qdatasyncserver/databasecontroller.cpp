@@ -87,7 +87,7 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 	});
 }
 
-QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey, const QByteArray &fingerprint)
+QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey, const QByteArray &fingerprint, const QByteArray &keyCmac)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -107,8 +107,8 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 		auto deviceId = QUuid::createUuid();
 		Query createDeviceQuery(db);
 		createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
-												 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey, fingerprint) "
-												 "VALUES(?, ?, ?, ?, ?, ?, ?, ?) "));
+												 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey, fingerprint, keymac) "
+												 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"));
 		createDeviceQuery.addBindValue(deviceId);
 		createDeviceQuery.addBindValue(userId);
 		createDeviceQuery.addBindValue(name);
@@ -117,6 +117,7 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 		createDeviceQuery.addBindValue(QString::fromUtf8(cryptScheme));
 		createDeviceQuery.addBindValue(cryptKey);
 		createDeviceQuery.addBindValue(fingerprint);
+		createDeviceQuery.addBindValue(keyCmac);
 		createDeviceQuery.exec();
 
 		if(!db.commit())
@@ -177,6 +178,18 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?, lastlogin = 'today'"
 										   "WHERE id = ?"));
 	updateNameQuery.addBindValue(name);
+	updateNameQuery.addBindValue(deviceId);
+	updateNameQuery.exec();
+}
+
+void DatabaseController::updateCmac(const QUuid &deviceId, const QByteArray &cmac)
+{
+	auto db = _threadStore.localData().database();
+
+	Query updateNameQuery(db);
+	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET keymac = ? "
+										   "WHERE id = ?"));
+	updateNameQuery.addBindValue(cmac);
 	updateNameQuery.addBindValue(deviceId);
 	updateNameQuery.exec();
 }
@@ -465,7 +478,7 @@ void DatabaseController::initDatabase()
 	}
 
 	try {
-#define AUTO_DROP_TABLES
+//#define AUTO_DROP_TABLES
 #ifdef AUTO_DROP_TABLES
 		QSqlQuery dropQuery(db);
 		if(!dropQuery.exec(QStringLiteral("DROP TABLE IF EXISTS devicechanges, datachanges, devices, users CASCADE"))) {
@@ -512,6 +525,7 @@ void DatabaseController::initDatabase()
 												  "		cryptscheme	TEXT NOT NULL, "
 												  "		cryptkey	BYTEA NOT NULL, "
 												  "		fingerprint	BYTEA NOT NULL, "
+												  "		keymac		BYTEA, "
 												  "		lastlogin	DATE NOT NULL DEFAULT 'today' "
 												  ")"))) {
 				throw DatabaseException(createDevices);

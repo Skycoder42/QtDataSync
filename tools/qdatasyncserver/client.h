@@ -31,6 +31,7 @@
 #include "removemessage_p.h"
 #include "proofmessage_p.h"
 #include "devicechangemessage_p.h"
+#include "macupdatemessage_p.h"
 
 class Client : public QObject
 {
@@ -126,6 +127,7 @@ private:
 	void onRemove(const QtDataSync::RemoveMessage &message);
 	void onAccept(const QtDataSync::AcceptMessage &message);
 	void onDeny(const QtDataSync::DenyMessage &message);
+	void onMacUpdate(const QtDataSync::MacUpdateMessage &message);
 
 	void triggerDownload(bool forceUpdate = false, bool skipNoChanges = false);
 };

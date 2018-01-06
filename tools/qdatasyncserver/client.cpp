@@ -213,6 +213,8 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onAccept(deserializeMessage<AcceptMessage>(stream));
 			else if(isType<DenyMessage>(name))
 				onDeny(deserializeMessage<DenyMessage>(stream));
+			else if(isType<MacUpdateMessage>(name))
+				onMacUpdate(deserializeMessage<MacUpdateMessage>(stream));
 			else {
 				qWarning() << "Unknown message received:" << typeName(name);
 				sendError({
@@ -349,7 +351,8 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 											message.signKey,
 											message.cryptAlgorithm,
 											message.cryptKey,
-											crypto->ownFingerprint());
+											crypto->ownFingerprint(),
+											message.cmac);
 	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
@@ -513,6 +516,14 @@ void Client::onDeny(const DenyMessage &message)
 		throw UnexpectedException<DenyMessage>();
 	else
 		emit proofDone(message.deviceId, false);
+}
+
+void Client::onMacUpdate(const MacUpdateMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<MacUpdateMessage>(); //TODO as check fn
+	else
+		_database->updateCmac(_deviceId, message.cmac);
 }
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)

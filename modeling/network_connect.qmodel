@@ -303,7 +303,6 @@
                          <pos>x:455;y:255</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
-                         <visual-emphasized>true</visual-emphasized>
                         </DObject>
                        </base-DObject>
                        <variety>activity</variety>
@@ -477,6 +476,11 @@
                           </DElement>
                          </base-DElement>
                          <object>{337c5536-0e19-4c04-9e42-316dba0758f7}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
                          <name>WELCOME(hasChanges, &lt;newId, newKey&gt;, ...)</name>
                          <pos>x:885;y:245</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
@@ -655,6 +659,7 @@
                          <pos>x:455;y:430</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
+                         <visual-emphasized>true</visual-emphasized>
                         </DObject>
                        </base-DObject>
                        <variety>activity</variety>
@@ -742,7 +747,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515015982979</last-modified>
+                  <last-modified>1515248730383</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1290,6 +1295,11 @@
                   <base-MElement>
                    <MElement>
                     <uid>{337c5536-0e19-4c04-9e42-316dba0758f7}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
                    </MElement>
                   </base-MElement>
                   <name>WELCOME(hasChanges, &lt;newId, newKey&gt;, ...)</name>

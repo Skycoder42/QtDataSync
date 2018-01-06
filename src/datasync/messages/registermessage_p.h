@@ -42,13 +42,18 @@ class Q_DATASYNC_EXPORT RegisterMessage : public RegisterBaseMessage
 {
 	Q_GADGET
 
+	Q_PROPERTY(QByteArray cmac MEMBER cmac)
+
 public:
 	RegisterMessage();
 	RegisterMessage(const QString &deviceName,
 					const QByteArray &nonce,
 					const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
 					const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
-					AsymmetricCrypto *crypto);
+					AsymmetricCrypto *crypto,
+					const QByteArray &cmac);
+
+	QByteArray cmac;
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterBaseMessage &message);

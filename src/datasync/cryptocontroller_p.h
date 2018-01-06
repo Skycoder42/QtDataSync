@@ -64,6 +64,7 @@ public:
 	QByteArray fingerprint() const;
 	std::tuple<quint32, QByteArray, QByteArray> encryptSecretKey(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const; //(keyIndex, scheme, data)
 	void decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit);
+	QByteArray cryptoKeyCmac() const;
 
 	bool acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);
