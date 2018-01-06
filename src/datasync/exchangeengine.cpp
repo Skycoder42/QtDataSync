@@ -171,7 +171,10 @@ void ExchangeEngine::controllerError(const QString &errorMessage)
 void ExchangeEngine::controllerTimeout()
 {
 	logWarning() << "Internal operation timeout from" << QObject::sender()->metaObject()->className();
-	_remoteConnector->reconnect();
+	if(QObject::sender() == _remoteConnector)
+		;
+	else
+		_remoteConnector->reconnect();
 }
 
 void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)

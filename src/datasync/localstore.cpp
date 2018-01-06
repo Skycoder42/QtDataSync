@@ -5,7 +5,6 @@
 
 #include <QtCore/QUrl>
 #include <QtCore/QJsonDocument>
-#include <QtCore/QUuid>
 #include <QtCore/QTemporaryFile>
 #include <QtCore/QGlobalStatic>
 #include <QtCore/QCoreApplication>

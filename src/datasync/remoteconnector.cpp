@@ -97,6 +97,11 @@ void RemoteConnector::initialize(const QVariantHash &params)
 	if(!_stateMachine->init())
 		throw Exception(defaults(), QStringLiteral("Failed to initialize RemoteConnector statemachine"));
 
+	connect(this, &RemoteConnector::specialOperationTimeout,
+			this, [this]() {
+		triggerError(true);
+	});
+
 	_stateMachine->start();
 }
 
@@ -173,23 +178,29 @@ void RemoteConnector::disconnect()
 
 void RemoteConnector::resync()
 {
-	if(!isIdle())
+	if(!isIdle()){
+		logInfo() << "Cannot resync when not in idle state. Ignoring request";
 		return;
+	}
 	emit remoteEvent(RemoteReadyWithChanges);
 	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
 }
 
 void RemoteConnector::listDevices()
 {
-	if(!isIdle())
+	if(!isIdle()){
+		logInfo() << "Cannot list devices when not in idle state. Ignoring request";
 		return;
+	}
 	_socket->sendBinaryMessage(serializeMessage(ListDevicesMessage()));
 }
 
 void RemoteConnector::removeDevice(const QUuid &deviceId)
 {
-	if(!isIdle())
+	if(!isIdle()){
+		logInfo() << "Cannot remove a device when not in idle state. Ignoring request";
 		return;
+	}
 	if(deviceId == _deviceId) {
 		logWarning() << "Cannot delete your own device. Use reset the account instead";
 		return;
@@ -289,8 +300,8 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
 		_socket->sendBinaryMessage(serializeMessage(message));
 	} catch(Exception &e) {
-		logCritical() << e.what();
-		triggerError(false); //TODO really false? what about a client message? FIX EVERYWHERE
+		//simulate a "normal" client error
+		onError({ErrorMessage::LocalError, e.qWhat()});
 	}
 }
 
@@ -306,8 +317,8 @@ void RemoteConnector::uploadDeviceData(const QByteArray &key, const QUuid &devic
 		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
 		_socket->sendBinaryMessage(serializeMessage(message));
 	} catch(Exception &e) {
-		logCritical() << e.what();
-		triggerError(false); //TODO really false? what about a client message? FIX EVERYWHERE
+		//simulate a "normal" client error
+		onError({ErrorMessage::LocalError, e.qWhat()});
 	}
 }
 
@@ -322,9 +333,10 @@ void RemoteConnector::downloadDone(const quint64 key)
 		ChangedAckMessage message(key);
 		_socket->sendBinaryMessage(serializeMessage(message));
 		emit progressIncrement();
+		beginOp(std::chrono::minutes(5), false);
 	} catch(Exception &e) {
-		logCritical() << e.what();
-		triggerError(false);
+		//simulate a "normal" client error
+		onError({ErrorMessage::LocalError, e.qWhat()});
 	}
 }
 
@@ -358,12 +370,14 @@ void RemoteConnector::resetDeviceName()
 
 void RemoteConnector::connected()
 {
+	endOp();
 	logDebug() << "Successfully connected to remote server";
 	_stateMachine->submitEvent(QStringLiteral("connected"));
 }
 
 void RemoteConnector::disconnected()
 {
+	endOp(); //to be safe
 	if(_stateMachine->isActive(QStringLiteral("Active"))) {
 		if(_stateMachine->isActive(QStringLiteral("Connecting")))
 			logRetry() << "Failed to connect to server";
@@ -434,8 +448,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		logCritical() << "Remote message error:" << e.what();
 		triggerError(true);
 	} catch(Exception &e) {
-		logCritical() << e.what();
-		triggerError(false);
+		//simulate a "normal" client error
+		onError({ErrorMessage::LocalError, e.qWhat()});
 	}
 }
 
@@ -533,6 +547,7 @@ void RemoteConnector::doConnect()
 	for(auto it = keys.begin(); it != keys.end(); it++)
 		request.setRawHeader(it.key(), it.value());
 
+	beginSpecialOp(std::chrono::minutes(1)); //wait at most 1 minute for the connection
 	_socket->open(request);
 	logDebug() << "Connecting to remote server...";
 }
@@ -557,6 +572,7 @@ void RemoteConnector::doDisconnect()
 			break;
 		case QAbstractSocket::ConnectedState:
 			logDebug() << "Closing active connection with server";
+			beginSpecialOp(std::chrono::minutes(1)); //wait at most 1 minute for the disconnect
 			_socket->close();
 			break;
 		case QAbstractSocket::BoundState:
@@ -593,6 +609,7 @@ void RemoteConnector::onEntryIdleState()
 void RemoteConnector::onExitActiveState()
 {
 	clearCaches(false);
+	endOp(); //disconnected -> whatever operation was going on is now done
 	emit remoteEvent(RemoteDisconnected);
 }
 
@@ -613,7 +630,6 @@ bool RemoteConnector::checkIdle()
 		return false;
 	}
 }
-
 
 void RemoteConnector::triggerError(bool canRecover)
 {
@@ -763,7 +779,10 @@ void RemoteConnector::storeConfig(const RemoteConfig &config)
 
 void RemoteConnector::onError(const ErrorMessage &message)
 {
-	logCritical() << message;
+	if(message.type == ErrorMessage::LocalError)
+		logCritical().noquote() << "Local error:" << message.message;
+	else
+		logCritical() << message;
 	triggerError(message.canRecover);
 
 	if(!message.canRecover) {
@@ -771,12 +790,13 @@ void RemoteConnector::onError(const ErrorMessage &message)
 		case ErrorMessage::IncompatibleVersionError:
 			emit controllerError(tr("Server is not compatibel with your application version."));
 			break;
-		case ErrorMessage::AuthenticationError: //TODO special treatment? (or better description)
+		case ErrorMessage::AuthenticationError:
 			emit controllerError(tr("Authentication failed. Try to remove and add your device again, or reset your account!"));
 			break;
-		case ErrorMessage::AccessError: //TODO special treatment? (or better description)
+		case ErrorMessage::AccessError:
 			emit controllerError(tr("Account access (import) failed. The partner device was not available or did not accept your request!"));
 			break;
+		case ErrorMessage::LocalError:
 		case ErrorMessage::ClientError:
 		case ErrorMessage::ServerError:
 		case ErrorMessage::UnexpectedMessageError:
@@ -900,6 +920,7 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 		_cryptoController->decryptSecretKey(message.index, message.scheme, message.secret, true);
 		onAccount(message, false);
 		//TODO update cmac
+		emit importCompleted();
 	}
 }
 
@@ -921,6 +942,7 @@ void RemoteConnector::onChanged(const ChangedMessage &message)
 		auto data = _cryptoController->decrypt(message.keyIndex,
 											   message.salt,
 											   message.data);
+		beginOp();//start download timeout
 		emit downloadData(message.dataIndex, data);
 	}
 }
@@ -943,6 +965,7 @@ void RemoteConnector::onLastChanged(const LastChangedMessage &message)
 
 	if(checkIdle<LastChangedMessage>()) {
 		logDebug() << "Completed downloading changes";
+		endOp(); //downloads done
 		emit remoteEvent(RemoteReady); //back to normal
 	}
 }
@@ -1017,6 +1040,15 @@ void RemoteConnector::onProof(const ProofMessage &message)
 				DeviceInfo info(message.deviceId, message.deviceName, cryptInfo->ownFingerprint());
 				emit loginRequested(info);
 			}
+
+			//simple timer to clean up any unhandelt proof request
+			auto deviceId = message.deviceId;
+			QTimer::singleShot(scdtime(std::chrono::minutes(10)), Qt::VeryCoarseTimer, this, [this, deviceId]() {
+				if(_activeProofs.remove(deviceId) > 0) {
+					logWarning() << "Rejecting ProofMessage after timeout";
+					_socket->sendBinaryMessage(serializeMessage<DenyMessage>(deviceId));
+				}
+			});
 		} catch(Exception &e) {
 			logWarning() << "Rejecting ProofMessage with error:" << e.what();
 			_socket->sendBinaryMessage(serializeMessage<DenyMessage>(message.deviceId));

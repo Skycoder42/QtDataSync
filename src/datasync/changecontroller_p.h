@@ -3,6 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QMutex>
+#include <QtCore/QUuid>
 
 #include "qtdatasync_global.h"
 #include "objectkey.h"

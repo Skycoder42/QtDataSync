@@ -11,18 +11,20 @@ class QLockFile;
 #include <QtNetwork/qsslconfiguration.h>
 
 #include <functional>
+#include <ratio>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
 
 class QJsonSerializer;
 
-//TODO use std::ratio constants instead?
-#define KB(x) (x*1024)
-#define MB(x) (KB(x)*1024)
-#define GB(x) (MB(x)*1024)
-
 namespace QtDataSync {
+
+template<typename TRatio>
+Q_DECL_CONSTEXPR inline int ratioBytes(const intmax_t &value);
+Q_DECL_CONSTEXPR inline int KB(const intmax_t &value);
+Q_DECL_CONSTEXPR inline int MB(const intmax_t &value);
+Q_DECL_CONSTEXPR inline int GB(const intmax_t &value);
 
 class ConflictResolver;
 
@@ -288,6 +290,29 @@ protected:
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemoteConfig &deviceInfo);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemoteConfig &deviceInfo);
+
+// ------------- Generic Implementation -------------
+
+template<typename TRatio>
+Q_DECL_CONSTEXPR inline int ratioBytes(const intmax_t &value)
+{
+	return static_cast<int>(qMin(TRatio().num * value, static_cast<intmax_t>(INT_MAX)));
+}
+
+Q_DECL_CONSTEXPR inline int KB(const intmax_t &value)
+{
+	return ratioBytes<std::kilo>(value);
+}
+
+Q_DECL_CONSTEXPR inline int MB(const intmax_t &value)
+{
+	return ratioBytes<std::mega>(value);
+}
+
+Q_DECL_CONSTEXPR inline int GB(const intmax_t &value)
+{
+	return ratioBytes<std::giga>(value);
+}
 
 }
 

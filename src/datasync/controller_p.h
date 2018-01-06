@@ -5,6 +5,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QTimer>
+#include <QtCore/QDeadlineTimer>
 
 #include "qtdatasync_global.h"
 #include "defaults.h"
@@ -28,6 +29,7 @@ public:
 Q_SIGNALS:
 	void controllerError(const QString &error);
 	void operationTimeout();
+	void specialOperationTimeout();
 	void progressAdded(quint32 delta);
 	void progressIncrement();
 
@@ -36,14 +38,21 @@ protected:
 	Logger *logger() const;
 	QSettings *settings() const;
 
-	void beginOp(const std::chrono::minutes &interval = std::chrono::minutes(5));
+	void beginOp(const std::chrono::minutes &interval = std::chrono::minutes(5),
+				 bool startIfNotRunning = true);
+	void beginSpecialOp(const std::chrono::minutes &interval);
 	void endOp();
+
+private Q_SLOTS:
+	void onTimeout();
 
 private:
 	Defaults _defaults;
 	Logger *_logger;
 	QSettings *_settings;
 	QTimer *_opTimer;
+
+	QDeadlineTimer _specialOp;
 };
 
 }

@@ -125,6 +125,7 @@ Q_SIGNALS:
 	void deviceNameChanged(const QString &deviceName);
 	void devicesListed(const QList<DeviceInfo> &devices);
 	void loginRequested(const DeviceInfo &deviceInfo);
+	void importCompleted();
 
 private Q_SLOTS:
 	void connected();
@@ -154,7 +155,6 @@ private:
 	ConnectorStateMachine *_stateMachine;
 	int _retryIndex;
 	bool _expectChanges;
-	//TODO timeout for server downloads?
 
 	QUuid _deviceId;
 	QList<DeviceInfo> _deviceCache;

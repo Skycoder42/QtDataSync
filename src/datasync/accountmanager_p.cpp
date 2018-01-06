@@ -19,6 +19,8 @@ AccountManagerPrivate::AccountManagerPrivate(ExchangeEngine *engineParent) :
 			this, &AccountManagerPrivate::accountDevices);
 	connect(_engine->remoteConnector(), &RemoteConnector::loginRequested,
 			this, &AccountManagerPrivate::requestLogin);
+	connect(_engine->remoteConnector(), &RemoteConnector::importCompleted,
+			this, &AccountManagerPrivate::importCompleted);
 }
 
 QString AccountManagerPrivate::deviceName() const

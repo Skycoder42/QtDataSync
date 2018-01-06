@@ -118,6 +118,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices);
 	void loginRequested(LoginRequest *request);
+	void importAccepted();
 
 	void deviceNameChanged(const QString &deviceName);
 	void deviceFingerprintChanged(const QByteArray &deviceFingerprint);

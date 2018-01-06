@@ -72,6 +72,8 @@ AccountManager::AccountManager(QRemoteObjectNode *node, QObject *parent) :
 			this, &AccountManager::accountImportResult);
 	connect(d->replica, &AccountManagerPrivateReplica::loginRequested,
 			this, &AccountManager::loginRequestedImpl);
+	connect(d->replica, &AccountManagerPrivateReplica::importCompleted,
+			this, &AccountManager::importAccepted);
 }
 
 AccountManager::~AccountManager() {}

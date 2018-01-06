@@ -9,6 +9,7 @@
 #include <QtCore/QCache>
 #include <QtCore/QReadWriteLock>
 #include <QtCore/QJsonObject>
+#include <QtCore/QUuid>
 
 #include <QtSql/QSqlDatabase>
 

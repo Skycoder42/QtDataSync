@@ -136,10 +136,7 @@ void DatabaseController::addNewDeviceToUser(const QUuid &newDeviceId, const QUui
 	Query createDeviceQuery(db);
 	createDeviceQuery.prepare(QStringLiteral("INSERT INTO devices "
 											 "(id, userid, name, signscheme, signkey, cryptscheme, cryptkey, fingerprint) "
-											 "VALUES(?, ( "
-											 "	SELECT userid FROM devices " //TODO make stored procedure
-											 "	WHERE id = ? "
-											 "), ?, ?, ?, ?, ?, ?) "));
+											 "VALUES(?, deviceUserId(?), ?, ?, ?, ?, ?, ?) "));
 	createDeviceQuery.addBindValue(newDeviceId);
 	createDeviceQuery.addBindValue(partnerDeviceId);
 	createDeviceQuery.addBindValue(name);
@@ -193,10 +190,7 @@ QList<std::tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(co
 											"FROM devices "
 											"INNER JOIN users ON devices.userid = users.id "
 											"WHERE devices.id != ? "
-											"AND devices.userid = ( "
-											"	SELECT userid FROM devices "
-											"	WHERE id = ? "
-											")"));
+											"AND devices.userid = deviceUserId(?)"));
 	loadDevicesQuery.addBindValue(deviceId);
 	loadDevicesQuery.addBindValue(deviceId);
 	loadDevicesQuery.exec();
@@ -220,7 +214,7 @@ void DatabaseController::removeDevice(const QUuid &deviceId, const QUuid &delete
 
 	try {
 		Query userIdQuery(db);
-		userIdQuery.prepare(QStringLiteral("SELECT userid FROM devices WHERE id = ?"));
+		userIdQuery.prepare(QStringLiteral("SELECT deviceUserId(?)"));
 		userIdQuery.addBindValue(deviceId);
 		userIdQuery.exec();
 		if(!userIdQuery.first()) {
@@ -291,10 +285,7 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 												  "SELECT ? AS dataid, devices.id AS deviceid FROM devices "
 												  "INNER JOIN users ON devices.userid = users.id "
 												  "WHERE devices.id != ? "
-												  "AND devices.userid = ( "
-												  "	SELECT userid FROM devices "
-												  "	WHERE id = ? "
-												  ")"));
+												  "AND devices.userid = deviceUserId(?)"));
 		updateDevicesQuery.addBindValue(nId);
 		updateDevicesQuery.addBindValue(deviceId);
 		updateDevicesQuery.addBindValue(deviceId);
@@ -525,6 +516,19 @@ void DatabaseController::initDatabase()
 												  ")"))) {
 				throw DatabaseException(createDevices);
 			}
+
+			QSqlQuery createUserIdFn(db);
+			if(!createUserIdFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION deviceUserId(device UUID) "
+												   "RETURNS BIGINT AS $BODY$ "
+												   "DECLARE "
+												   "	uid BIGINT; "
+												   "BEGIN "
+												   "	SELECT devices.userid INTO uid FROM devices WHERE id = device; "
+												   "	RETURN uid; "
+												   "END; "
+												   "$BODY$ LANGUAGE plpgsql;"))) {
+				throw DatabaseException(createUserIdFn);
+			}
 		}
 
 		if(!db.tables().contains(QStringLiteral("datachanges"))) {
@@ -542,16 +546,14 @@ void DatabaseController::initDatabase()
 			}
 
 			QSqlQuery createUpquotaFn(db);
-			if(!createUpquotaFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION upquota() RETURNS TRIGGER AS "
-													"$BODY$ "
+			if(!createUpquotaFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION upquota() "
+													"RETURNS TRIGGER AS $BODY$ "
 													"BEGIN "
-													"	UPDATE users SET quota = quota + octet_length(NEW.data) WHERE id = ( "
-													"		SELECT userid FROM devices WHERE id = NEW.deviceid "
-													"	); "
+													"	UPDATE users SET quota = quota + octet_length(NEW.data) "
+													"	WHERE id = deviceUserId(NEW.deviceid); "
 													"	RETURN NEW; "
 													"END; "
-													"$BODY$ "
-													"LANGUAGE plpgsql;"))) {
+													"$BODY$ LANGUAGE plpgsql;"))) {
 				throw DatabaseException(createUpquotaFn);
 			}
 
@@ -565,16 +567,14 @@ void DatabaseController::initDatabase()
 			}
 
 			QSqlQuery createDownquotaFn(db);
-			if(!createDownquotaFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION downquota() RETURNS TRIGGER AS "
-													  "$BODY$ "
+			if(!createDownquotaFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION downquota() "
+													  "RETURNS TRIGGER AS $BODY$ "
 													  "BEGIN "
-													  "		UPDATE users SET quota = GREATEST(quota - octet_length(OLD.data), 0) WHERE id = ( "
-													  "			SELECT userid FROM devices WHERE id = OLD.deviceid "
-													  "		); "
+													  "		UPDATE users SET quota = GREATEST(quota - octet_length(OLD.data), 0) "
+													  "		WHERE id = deviceUserId(OLD.deviceid); "
 													  "		RETURN OLD; "
 													  "END; "
-													  "$BODY$ "
-													  "LANGUAGE plpgsql;"))) {
+													  "$BODY$ LANGUAGE plpgsql;"))) {
 				throw DatabaseException(createDownquotaFn);
 			}
 
@@ -599,14 +599,12 @@ void DatabaseController::initDatabase()
 			}
 
 			QSqlQuery createNotifyFn(db);
-			if(!createNotifyFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION notifyDeviceChange() RETURNS TRIGGER AS "
-												   "$BODY$ "
+			if(!createNotifyFn.exec(QStringLiteral("CREATE OR REPLACE FUNCTION notifyDeviceChange() RETURNS TRIGGER AS $BODY$ "
 												   "BEGIN "
 												   "	PERFORM pg_notify('deviceDataEvent', NEW.deviceid::text); "
 												   "	RETURN NEW; "
 												   "END; "
-												   "$BODY$ "
-												   "LANGUAGE plpgsql VOLATILE;"))) {
+												   "$BODY$ LANGUAGE plpgsql VOLATILE;"))) {
 				throw DatabaseException(createNotifyFn);
 			}
 
