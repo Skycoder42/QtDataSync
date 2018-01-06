@@ -100,6 +100,10 @@ public:
 						 const QByteArray &encryptionScheme,
 						 const QByteArray &encryptionKey,
 						 QObject *parent = nullptr);
+	AsymmetricCryptoInfo(CryptoPP::RandomNumberGenerator &rng,
+						 const QByteArray &encryptionScheme,
+						 const QByteArray &encryptionKey,
+						 QObject *parent = nullptr);
 
 	const CryptoPP::X509PublicKey &signatureKey() const;
 	const CryptoPP::X509PublicKey &encryptionKey() const;

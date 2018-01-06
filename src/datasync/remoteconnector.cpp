@@ -8,6 +8,8 @@
 #include "loginmessage_p.h"
 #include "accessmessage_p.h"
 #include "syncmessage_p.h"
+#include "keychangemessage_p.h"
+#include "newkeymessage_p.h"
 
 #include "connectorstatemachine.h"
 
@@ -103,11 +105,6 @@ void RemoteConnector::initialize(const QVariantHash &params)
 			this, [this]() {
 		triggerError(true);
 	});
-
-	//cc signals
-	connect(_cryptoController, &CryptoController::secretKeyUpdated,
-			this, &RemoteConnector::sendKeyUpdate,
-			Qt::QueuedConnection); //queued connection, to only do it once
 
 	_stateMachine->start();
 }
@@ -296,6 +293,22 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 	}
 }
 
+void RemoteConnector::initKeyUpdate()
+{
+	try {
+		if(!isIdle()) {
+			logWarning() << "Can't update secret keys when not in idle state. Ignoring request";
+			return;
+		}
+
+		auto nextIndex = _cryptoController->generateNextKey();
+		_socket->sendBinaryMessage(serializeMessage<KeyChangeMessage>(nextIndex));
+	} catch(Exception &e) {
+		//simulate a "normal" client error
+		onError({ErrorMessage::LocalError, e.qWhat()});
+	}
+}
+
 void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
 {
 	try {
@@ -450,6 +463,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onProof(deserializeMessage<ProofMessage>(stream));
 		else if(isType<MacUpdateAckMessage>(name))
 			onMacUpdateAck(deserializeMessage<MacUpdateAckMessage>(stream));
+		else if(isType<DeviceKeysMessage>(name))
+			onDeviceKeys(deserializeMessage<DeviceKeysMessage>(stream));
 		else {
 			logWarning().noquote() << "Unknown message received:" << typeName(name);
 			triggerError(true);
@@ -499,19 +514,6 @@ void RemoteConnector::ping()
 	} else {
 		_awaitingPing = true;
 		_socket->sendBinaryMessage(PingMessage);
-	}
-}
-
-void RemoteConnector::sendKeyUpdate(quint32 keyIndex)
-{
-	try {
-		if(keyIndex == _cryptoController->keyIndex()) {
-			settings()->setValue(keySendCmac, true);
-			auto cmac = _cryptoController->cryptoKeyCmac();
-			_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>(cmac));
-		}
-	} catch(Exception &e) {
-		onError({ErrorMessage::LocalError, e.qWhat()});
 	}
 }
 
@@ -802,6 +804,15 @@ void RemoteConnector::storeConfig(const RemoteConfig &config)
 	settings()->setValue(keyKeepaliveTimeout, config.keepaliveTimeout());
 }
 
+void RemoteConnector::sendKeyUpdate(quint32 keyIndex)
+{
+	if(keyIndex == _cryptoController->keyIndex()) {
+		settings()->setValue(keySendCmac, true);
+		auto cmac = _cryptoController->generateCryptoKeyCmac();
+		_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>(cmac));
+	}
+}
+
 void RemoteConnector::onError(const ErrorMessage &message)
 {
 	if(message.type == ErrorMessage::LocalError)
@@ -820,6 +831,9 @@ void RemoteConnector::onError(const ErrorMessage &message)
 			break;
 		case ErrorMessage::AccessError:
 			emit controllerError(tr("Account access (import) failed. The partner device was not available or did not accept your request!"));
+			break;
+		case ErrorMessage::KeyIndexError:
+			emit controllerError(tr("Cannot update key! This client is not using the latest existing keys."));
 			break;
 		case ErrorMessage::LocalError:
 		case ErrorMessage::ClientError:
@@ -866,7 +880,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 									crypto->signKey(),
 									crypto->cryptKey(),
 									crypto,
-									_cryptoController->cryptoKeyCmac());
+									_cryptoController->generateCryptoKeyCmac());
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
 				_socket->sendBinaryMessage(signedMsg);
@@ -950,7 +964,7 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 		onAccount(message, false);
 		settings()->remove(keyImport); //import succeeded, so remove import related stuff
 		//update the server cmac
-		_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>(_cryptoController->cryptoKeyCmac()));
+		sendKeyUpdate(_cryptoController->keyIndex());
 		emit importCompleted();
 	}
 }
@@ -1050,7 +1064,7 @@ void RemoteConnector::onProof(const ProofMessage &message)
 																		  message.signAlgorithm,
 																		  message.signKey,
 																		  message.cryptAlgorithm,
-																		  message.cryptKey);
+																		  message.cryptKey); //TODO catch cryptopp exceptions
 
 			//verify trustmac if given
 			auto trusted = !message.trustmac.isNull();
@@ -1092,6 +1106,40 @@ void RemoteConnector::onMacUpdateAck(const MacUpdateAckMessage &message)
 	Q_UNUSED(message)
 	if(checkIdle<MacUpdateAckMessage>()) //TODO message as param
 		settings()->remove(keySendCmac);
+}
+
+void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
+{
+	if(checkIdle<DeviceKeysMessage>()) {
+		auto oldIndex = _cryptoController->keyIndex();
+		_cryptoController->saveNextKey(message.keyIndex);
+		sendKeyUpdate(message.keyIndex);
+		//TODO store for resending, and await reply per device!!!
+		foreach(auto info, message.devices) {
+			try {
+				//verify the device knows the previous secret
+				auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->rng(),
+																			  std::get<1>(info),
+																			  std::get<2>(info)); //TODO catch cryptopp exceptions
+				_cryptoController->verifyCryptoKeyCmac(oldIndex,
+													   cryptInfo.data(),
+													   cryptInfo->encryptionKey(),
+													   std::get<3>(info));
+
+				//encrypt the secret key and send the message
+				NewKeyMessage message(std::get<0>(info));
+				std::tie(message.keyIndex, message.scheme, message.key) = _cryptoController->encryptSecretKey(cryptInfo.data(), cryptInfo->encryptionKey());
+				message.cmac = _cryptoController->createCmac(oldIndex, message.signatureData());
+				_socket->sendBinaryMessage(serializeMessage(message));
+				logDebug() << "Sent key update to" << std::get<0>(info);
+			} catch(Exception &e) {
+				logWarning() << "Failed to send update exchange key to device"
+							 << std::get<0>(info)
+							 << "- device is going to be excluded from synchronisation. Error:"
+							 << e.what();
+			}
+		}
+	}
 }
 
 

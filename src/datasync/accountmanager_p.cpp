@@ -53,7 +53,7 @@ void AccountManagerPrivate::removeDevice(const QUuid &deviceId)
 
 void AccountManagerPrivate::updateExchangeKey()
 {
-
+	_engine->remoteConnector()->initKeyUpdate();
 }
 
 void AccountManagerPrivate::resetAccount(bool keepData)

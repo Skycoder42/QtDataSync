@@ -171,7 +171,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>NEWKEY(enc{newKey})</name>
+                         <name>NEWKEY(deviceId, keyIndex, scheme, enc{newKey}, verifymac)</name>
                          <pos>x:645;y:410</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -217,7 +217,7 @@
                           </qlist>
                          </stereotypes>
                          <name>disconnect given device</name>
-                         <pos>x:425;y:410</pos>
+                         <pos>x:405;y:410</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -254,23 +254,9 @@
                         </DElement>
                        </base-DElement>
                        <text>done per device</text>
-                       <pos>x:535;y:415</pos>
-                       <rect>x:-180;y:-65;w:360;h:130</rect>
+                       <pos>x:550;y:420</pos>
+                       <rect>x:-265;y:-60;w:530;h:120</rect>
                       </DBoundary>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DAnnotation">
-                      <DAnnotation>
-                       <base-DElement>
-                        <DElement>
-                         <uid>{9bcd368e-5f3c-4f7e-a777-e2453c338a6d}</uid>
-                        </DElement>
-                       </base-DElement>
-                       <text>asym enc + cmac</text>
-                       <pos>x:600;y:365</pos>
-                       <rect>x:0;y:0;w:103.344;h:32</rect>
-                      </DAnnotation>
                      </instance>
                     </item>
                     <item>
@@ -495,7 +481,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515252056191</last-modified>
+                  <last-modified>1515252949618</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -696,7 +682,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>NEWKEY(enc{newKey})</name>
+                  <name>NEWKEY(deviceId, keyIndex, scheme, enc{newKey}, verifymac)</name>
                   <relations>
                    <handles>
                     <handles>

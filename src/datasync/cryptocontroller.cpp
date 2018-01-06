@@ -202,7 +202,6 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 				settings()->setValue(keyLocalSymKey, _localCipher);
 				logInfo() << "Update cipher key to index" << _localCipher;
 				cleanCiphers();
-				emit secretKeyUpdated(keyIndex);
 			}
 		}
 	} catch(CppException &e) {
@@ -212,7 +211,7 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 	}
 }
 
-QByteArray CryptoController::cryptoKeyCmac() const
+QByteArray CryptoController::generateCryptoKeyCmac() const
 {
 	try {
 		QByteArray message = _asymCrypto->encryptionScheme() +
@@ -225,6 +224,58 @@ QByteArray CryptoController::cryptoKeyCmac() const
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed create CMAC for private encryption key"),
+							  e);
+	}
+}
+
+void CryptoController::verifyCryptoKeyCmac(quint32 oldIndex, AsymmetricCrypto *crypto, const X509PublicKey &pubKey, const QByteArray &cmac) const
+{
+	try {
+		QByteArray message = crypto->encryptionScheme() +
+							 crypto->writeKey(pubKey);
+		verifyCmac(oldIndex, message, cmac);
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed create CMAC for private encryption key"),
+							  e);
+	}
+}
+
+quint32 CryptoController::generateNextKey()
+{
+	try {
+		auto info = createCipher();
+		auto keyIndex = _localCipher + 1;
+		_loadedChiphers.insert(keyIndex, info);
+		//not stored on disk yet
+
+		logDebug().noquote() << "Generated new exchange key";
+		return keyIndex;
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to generate new exchange key"),
+							  e);
+	}
+}
+
+void CryptoController::saveNextKey(quint32 keyIndex)
+{
+	try {
+		if(_localCipher + 1 != keyIndex)
+			throw Exception(defaults(), QStringLiteral("Unexpected keychange index, is not current + 1"));
+
+		storeCipherKey(keyIndex);
+		_localCipher = keyIndex;
+		settings()->setValue(keyLocalSymKey, _localCipher); //TODO wrap in function
+		logDebug() << "Stored and applied new exchange key";
+		cleanCiphers();
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to save new exchange key"),
 							  e);
 	}
 }
@@ -355,16 +406,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 		emit fingerprintChanged(_fingerprint);
 
 		//create symmetric cipher and the key
-		CipherInfo info;
-		createScheme(static_cast<Setup::CipherScheme>(defaults().property(Defaults::SymScheme).toInt()),
-					 info.scheme);
-		auto keySize = defaults().property(Defaults::SymKeyParam).toUInt();
-		if(keySize == 0)
-			keySize = info.scheme->defaultKeyLength();
-		else
-			keySize = info.scheme->toKeyLength(keySize);
-		info.key.CleanNew(keySize);
-		_asymCrypto->rng().GenerateBlock(info.key.data(), info.key.size());
+		auto info = createCipher();
 		_localCipher = 0;
 		_loadedChiphers.insert(_localCipher, info);
 
@@ -436,9 +478,14 @@ QByteArray CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, c
 
 std::tuple<quint32, QByteArray> CryptoController::createCmac(const QByteArray &data) const
 {
+	return std::tuple<quint32, QByteArray>{_localCipher, createCmac(_localCipher, data)};
+}
+
+QByteArray CryptoController::createCmac(quint32 keyIndex, const QByteArray &data) const
+{
 	try {
-		auto info = getInfo(_localCipher);
-		return std::tuple<quint32, QByteArray>{_localCipher, genCmac(info, data)};
+		auto info = getInfo(keyIndex);
+		return genCmac(info, data);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to create CMAC"),
@@ -683,6 +730,21 @@ void CryptoController::cleanCiphers() const
 	}
 }
 
+CryptoController::CipherInfo CryptoController::createCipher() const
+{
+	CipherInfo info;
+	createScheme(static_cast<Setup::CipherScheme>(defaults().property(Defaults::SymScheme).toInt()),
+				 info.scheme);
+	auto keySize = defaults().property(Defaults::SymKeyParam).toUInt();
+	if(keySize == 0)
+		keySize = info.scheme->defaultKeyLength();
+	else
+		keySize = info.scheme->toKeyLength(keySize);
+	info.key.CleanNew(keySize);
+	_asymCrypto->rng().GenerateBlock(info.key.data(), info.key.size());
+	return info;
+}
+
 const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) const
 {
 	if(!_loadedChiphers.contains(keyIndex)) {
@@ -731,9 +793,6 @@ QByteArray CryptoController::genCmac(const CryptoController::CipherInfo &info, c
 		) // HashFilter
 	); // QByteArraySource
 
-
-	logDebug() << "cmac generate key:" << QByteArray::fromRawData((const char*)info.key.data(), info.key.size()).toBase64();
-	logDebug() << "cmac generate cmac:" << mac.toBase64();
 	return mac;
 }
 
@@ -741,9 +800,6 @@ void CryptoController::verCmac(const CryptoController::CipherInfo &info, const Q
 {
 	auto cmac = info.scheme->cmac();
 	cmac->SetKey(info.key.data(), info.key.size());
-
-	logDebug() << "cmac verify key:" << QByteArray::fromRawData((const char*)info.key.data(), info.key.size()).toBase64();
-	logDebug() << "cmac verify cmac:" << mac.toBase64();
 
 	QByteArraySource (data + mac, true,
 		new HashVerificationFilter(*cmac, nullptr, HashVerificationFilter::THROW_EXCEPTION | HashVerificationFilter::HASH_AT_END) // HashFilter

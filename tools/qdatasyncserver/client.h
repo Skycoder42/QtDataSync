@@ -32,6 +32,8 @@
 #include "proofmessage_p.h"
 #include "devicechangemessage_p.h"
 #include "macupdatemessage_p.h"
+#include "keychangemessage_p.h"
+#include "newkeymessage_p.h"
 
 class Client : public QObject
 {
@@ -128,6 +130,8 @@ private:
 	void onAccept(const QtDataSync::AcceptMessage &message);
 	void onDeny(const QtDataSync::DenyMessage &message);
 	void onMacUpdate(const QtDataSync::MacUpdateMessage &message);
+	void onKeyChange(const QtDataSync::KeyChangeMessage &message);
+	void onNewKey(const QtDataSync::NewKeyMessage &message);
 
 	void triggerDownload(bool forceUpdate = false, bool skipNoChanges = false);
 };

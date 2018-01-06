@@ -66,7 +66,10 @@ public:
 
 	std::tuple<quint32, QByteArray, QByteArray> encryptSecretKey(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const; //(keyIndex, scheme, data)
 	void decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit);
-	QByteArray cryptoKeyCmac() const;
+	QByteArray generateCryptoKeyCmac() const;
+	void verifyCryptoKeyCmac(quint32 oldIndex, AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey, const QByteArray &cmac) const;
+	quint32 generateNextKey();
+	void saveNextKey(quint32 keyIndex);
 
 	bool acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);
@@ -83,6 +86,7 @@ public:
 	QByteArray decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const;
 
 	std::tuple<quint32, QByteArray> createCmac(const QByteArray &data) const; //(keyIndex, cmac)
+	QByteArray createCmac(quint32 keyIndex, const QByteArray &data) const; //(keyIndex, cmac)
 	void verifyCmac(quint32 keyIndex, const QByteArray &data, const QByteArray &mac) const;
 
 	//exchange stuff
@@ -95,7 +99,6 @@ public:
 
 Q_SIGNALS:
 	void fingerprintChanged(const QByteArray &fingerprint);
-	void secretKeyUpdated(quint32 keyIndex);
 
 private:
 	struct Q_DATASYNC_EXPORT CipherInfo {
@@ -132,6 +135,7 @@ private:
 	void storeCipherKey(quint32 keyIndex) const;
 	void cleanCiphers() const;
 
+	CipherInfo createCipher() const;
 	const CipherInfo &getInfo(quint32 keyIndex) const;
 	QDir keysDir() const;
 	QByteArray genCmac(const CipherInfo &info, const QByteArray &data) const;

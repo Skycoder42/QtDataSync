@@ -16,7 +16,10 @@ HEADERS += \
     $$PWD/proofmessage_p.h \
     $$PWD/grantmessage_p.h \
     $$PWD/devicechangemessage_p.h \
-    $$PWD/macupdatemessage_p.h
+    $$PWD/macupdatemessage_p.h \
+    $$PWD/keychangemessage_p.h \
+    $$PWD/devicekeysmessage_p.h \
+    $$PWD/newkeymessage_p.h
 
 SOURCES += \
 	$$PWD/message.cpp \
@@ -36,6 +39,9 @@ SOURCES += \
     $$PWD/proofmessage.cpp \
     $$PWD/grantmessage.cpp \
     $$PWD/devicechangemessage.cpp \
-    $$PWD/macupdatemessage.cpp
+    $$PWD/macupdatemessage.cpp \
+    $$PWD/keychangemessage.cpp \
+    $$PWD/devicekeysmessage.cpp \
+    $$PWD/newkeymessage.cpp
 
 INCLUDEPATH += $$PWD

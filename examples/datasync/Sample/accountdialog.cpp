@@ -34,6 +34,8 @@ AccountDialog::AccountDialog(const QString &setup, QWidget *parent) :
 	});
 	connect(ui->action_Reset_Devicename, &QAction::triggered,
 			_manager, &QtDataSync::AccountManager::resetDeviceName);
+	connect(ui->updateKeyButton, &QPushButton::clicked,
+			_manager, &QtDataSync::AccountManager::updateExchangeKey);
 
 	ui->deviceNameLineEdit->setText(_manager->deviceName());
 	ui->fingerprintLineEdit->setText(printFingerprint(_manager->deviceFingerprint()));

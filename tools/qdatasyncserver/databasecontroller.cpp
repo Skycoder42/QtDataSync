@@ -445,6 +445,59 @@ void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex
 	}
 }
 
+QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, bool &accepted)
+{
+	accepted = false;
+
+	auto db = _threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
+
+	try {
+		Query updateKeyCountQuery(db);
+		updateKeyCountQuery.prepare(QStringLiteral("UPDATE users SET keycount = keycount + 1 "
+												   "WHERE id = deviceUserId(?) "
+												   "AND keycount = ?"));
+		updateKeyCountQuery.addBindValue(deviceId);
+		updateKeyCountQuery.addBindValue(proposedIndex - 1);
+		updateKeyCountQuery.exec();
+
+		QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> result;
+		if(updateKeyCountQuery.numRowsAffected() > 0) {
+			accepted = true;
+
+			Query deviceKeysQuery(db);
+			deviceKeysQuery.prepare(QStringLiteral("SELECT id, cryptscheme, cryptkey, keymac FROM devices "
+												   "WHERE id != ? "
+												   "AND userid = deviceUserId(?)"));
+			deviceKeysQuery.addBindValue(deviceId);
+			deviceKeysQuery.addBindValue(deviceId);
+			deviceKeysQuery.exec();
+
+			while(deviceKeysQuery.next()) {
+				result.append(std::tuple<QUuid, QByteArray, QByteArray, QByteArray> {
+								  deviceKeysQuery.value(0).toUuid(),
+								  deviceKeysQuery.value(1).toByteArray(),
+								  deviceKeysQuery.value(2).toByteArray(),
+								  deviceKeysQuery.value(3).toByteArray()
+							  });
+			}
+		}
+
+		if(!db.commit())
+			throw DatabaseException(db);
+		return result;
+	} catch(...) {
+		db.rollback();
+		throw;
+	}
+}
+
+void DatabaseController::addKey(const QUuid &deviceId, const QUuid &target, quint32 keyIndex, const QByteArray &scheme, const QByteArray &key, const QByteArray &cmac)
+{
+	//TODO here
+}
+
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
 {
 	Q_UNUSED(source)

@@ -25,11 +25,8 @@ private Q_SLOTS:
 	void login(QtDataSync::LoginRequest * const request);
 
 	void on_action_Remove_Device_triggered();
-
 	void on_buttonBox_clicked(QAbstractButton *button);
-
 	void on_pushButton_clicked();
-
 	void on_pushButton_2_clicked();
 
 private:

@@ -84,6 +84,14 @@ public:
 	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip); // (dataid, keyindex, salt, data)
 	void completeChange(const QUuid &deviceId, quint64 dataIndex);
 
+	QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, bool &accepted); //(deviceid, scheme, key, cmac)
+	void addKey(const QUuid &deviceId,
+				const QUuid &target,
+				quint32 keyIndex,
+				const QByteArray &scheme,
+				const QByteArray &key,
+				const QByteArray &cmac);
+
 Q_SIGNALS:
 	void notifyChanged(const QUuid &deviceId);
 

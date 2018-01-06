@@ -27,6 +27,7 @@
 #include "grantmessage_p.h"
 #include "devicechangemessage_p.h"
 #include "macupdatemessage_p.h"
+#include "devicekeysmessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -104,6 +105,8 @@ public Q_SLOTS:
 	void prepareImport(const ExportData &data, const CryptoPP::SecByteBlock &key);
 	void loginReply(const QUuid &deviceId, bool accept);
 
+	void initKeyUpdate();
+
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
 	void uploadDeviceData(const QByteArray &key, const QUuid &deviceId, const QByteArray &changeData);
 	void downloadDone(const quint64 key);
@@ -136,8 +139,6 @@ private Q_SLOTS:
 	void error(QAbstractSocket::SocketError error);
 	void sslErrors(const QList<QSslError> &errors);
 	void ping();
-
-	void sendKeyUpdate(quint32 keyIndex);
 
 	//statemachine
 	void doConnect();
@@ -180,6 +181,8 @@ private:
 	RemoteConfig loadConfig() const;
 	void storeConfig(const RemoteConfig &config);
 
+	void sendKeyUpdate(quint32 keyIndex);
+
 	void onError(const ErrorMessage &message);
 	void onIdentify(const IdentifyMessage &message);
 	void onAccount(const AccountMessage &message, bool checkState = true);
@@ -194,6 +197,7 @@ private:
 	void onRemoved(const RemovedMessage &message);
 	void onProof(const ProofMessage &message);
 	void onMacUpdateAck(const MacUpdateAckMessage &message);
+	void onDeviceKeys(const DeviceKeysMessage &message);
 };
 
 }

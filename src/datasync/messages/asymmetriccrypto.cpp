@@ -172,6 +172,15 @@ AsymmetricCryptoInfo::AsymmetricCryptoInfo(CryptoPP::RandomNumberGenerator &rng,
 	_cryptKey(readKey(false, rng, encryptionKey))
 {}
 
+AsymmetricCryptoInfo::AsymmetricCryptoInfo(RandomNumberGenerator &rng, const QByteArray &encryptionScheme, const QByteArray &encryptionKey, QObject *parent) :
+	AsymmetricCrypto(parent),
+	_signKey(),
+	_cryptKey()
+{
+	setEncryptionScheme(encryptionScheme);
+	_cryptKey = readKey(false, rng, encryptionKey);
+}
+
 const X509PublicKey &AsymmetricCryptoInfo::signatureKey() const
 {
 	return *_signKey;

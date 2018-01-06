@@ -4,6 +4,7 @@
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
 #include "grantmessage_p.h"
+#include "devicekeysmessage_p.h"
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -215,6 +216,10 @@ void Client::binaryMessageReceived(const QByteArray &message)
 				onDeny(deserializeMessage<DenyMessage>(stream));
 			else if(isType<MacUpdateMessage>(name))
 				onMacUpdate(deserializeMessage<MacUpdateMessage>(stream));
+			else if(isType<KeyChangeMessage>(name))
+				onKeyChange(deserializeMessage<KeyChangeMessage>(stream));
+			else if(isType<NewKeyMessage>(name))
+				onNewKey(deserializeMessage<NewKeyMessage>(stream));
 			else {
 				qWarning() << "Unknown message received:" << typeName(name);
 				sendError({
@@ -525,6 +530,35 @@ void Client::onMacUpdate(const MacUpdateMessage &message)
 	else {
 		_database->updateCmac(_deviceId, message.cmac);
 		sendMessage(serializeMessage(MacUpdateAckMessage()));
+	}
+}
+
+void Client::onKeyChange(const KeyChangeMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<KeyChangeMessage>();
+	else {
+		auto accepted = false;
+		auto deviceInfos = _database->tryKeyChange(_deviceId, message.nextIndex, accepted);
+		if(accepted)
+			sendMessage(serializeMessage<DeviceKeysMessage>({message.nextIndex, deviceInfos}));
+		else
+			sendError(ErrorMessage::KeyIndexError);
+	}
+}
+
+void Client::onNewKey(const NewKeyMessage &message)
+{
+	if(_state != Idle)
+		throw UnexpectedException<NewKeyMessage>();
+	else {
+		_database->addKey(_deviceId,
+						  message.deviceId,
+						  message.keyIndex,
+						  message.scheme,
+						  message.key,
+						  message.cmac);
+		//TODO send ok reply
 	}
 }
 
