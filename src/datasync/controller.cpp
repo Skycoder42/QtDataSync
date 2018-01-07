@@ -67,7 +67,7 @@ void Controller::beginSpecialOp(const std::chrono::minutes &interval)
 #else
 	if(scdtime(interval) < _specialOp.remainingTime())
 #endif
-		_specialOp.setRemainingTime(interval);
+		_specialOp.setRemainingTime(scdtime(interval));
 	beginOp(interval);
 }
 

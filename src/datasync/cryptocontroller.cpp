@@ -531,8 +531,6 @@ std::tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExpor
 							 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
 		}
 
-		logDebug() << "Generated salt:" << salt.toBase64();
-		logDebug() << "Generated key:" << QByteArray::fromRawData((const char*)info.key.data(), info.key.size()).toBase64();
 		return std::tuple<QByteArray, QByteArray, SecByteBlock>{info.scheme->name(), salt, info.key};
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
@@ -557,8 +555,6 @@ SecByteBlock CryptoController::recoverExportKey(const QByteArray &scheme, const 
 						 PwPurpose, reinterpret_cast<const byte*>(pw.constData()), pw.size(),
 						 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
 
-		logDebug() << "Recovered salt:" << salt.toBase64();
-		logDebug() << "Recovered key:" << QByteArray::fromRawData((const char*)info.key.data(), info.key.size()).toBase64();
 		return info.key;
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
