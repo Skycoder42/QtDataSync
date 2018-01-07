@@ -182,22 +182,50 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	updateNameQuery.exec();
 }
 
-void DatabaseController::updateCmac(const QUuid &deviceId, const QByteArray &cmac)
+bool DatabaseController::updateCmac(const QUuid &deviceId, quint32 keyIndex, const QByteArray &cmac)
 {
 	auto db = _threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
 
-	Query updateNameQuery(db);
-	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET keymac = ? "
-										   "WHERE id = ?"));
-	updateNameQuery.addBindValue(cmac);
-	updateNameQuery.addBindValue(deviceId);
-	updateNameQuery.exec();
+	try {
+		Query updateCmacQuery(db);
+		updateCmacQuery.prepare(QStringLiteral("UPDATE devices SET keymac = ? "
+											   "WHERE id = ? AND ( "
+											   "	SELECT keycount FROM users "
+											   "	WHERE id = deviceUserId(?) "
+											   ") <= ?"));
+		updateCmacQuery.addBindValue(cmac);
+		updateCmacQuery.addBindValue(deviceId);
+		updateCmacQuery.addBindValue(deviceId);
+		updateCmacQuery.addBindValue(keyIndex);
+		updateCmacQuery.exec();
+
+		if(updateCmacQuery.numRowsAffected() > 0) {
+			Query removeChangesQuery(db);
+			removeChangesQuery.prepare(QStringLiteral("DELETE FROM keychanges "
+													  "WHERE deviceid = ? "
+													  "AND keyindex <= ?"));
+			removeChangesQuery.addBindValue(deviceId);
+			removeChangesQuery.addBindValue(keyIndex);
+			removeChangesQuery.exec();
+
+			if(!db.commit())
+				throw DatabaseException(db);
+			return true;
+		} else {
+			db.rollback();
+			return false;
+		}
+	} catch(...) {
+		db.rollback();
+		throw;
+	}
 }
 
 QList<std::tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(const QUuid &deviceId)
 {
 	auto db = _threadStore.localData().database();
-
 	Query loadDevicesQuery(db);
 	loadDevicesQuery.prepare(QStringLiteral("SELECT devices.id, name, fingerprint "
 											"FROM devices "
@@ -537,8 +565,13 @@ bool DatabaseController::updateExchageKey(const QUuid &deviceId, quint32 keyInde
 			addKeyQuery.exec();
 		}
 
-		//update the cmac. Call is ok, as the method does not open a new transaction
-		updateCmac(deviceId, cmac);
+		//update the cmac
+		Query updateCmacQuery(db);
+		updateCmacQuery.prepare(QStringLiteral("UPDATE devices SET keymac = ? "
+											   "WHERE id = ?"));
+		updateCmacQuery.addBindValue(cmac);
+		updateCmacQuery.addBindValue(deviceId);
+		updateCmacQuery.exec();
 
 		if(!db.commit())
 			throw DatabaseException(db);
@@ -547,6 +580,30 @@ bool DatabaseController::updateExchageKey(const QUuid &deviceId, quint32 keyInde
 		db.rollback();
 		throw;
 	}
+}
+
+QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> DatabaseController::loadKeyChanges(const QUuid &deviceId)
+{
+	auto db = _threadStore.localData().database();
+
+	Query keyChangesQuery(db);
+	keyChangesQuery.prepare(QStringLiteral("SELECT keyindex, scheme, key, verifymac FROM keychanges "
+										   "WHERE deviceid = ? "
+										   "ORDER BY keyindex ASC"));
+	keyChangesQuery.addBindValue(deviceId);
+	keyChangesQuery.exec();
+
+	QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> result;
+	while(keyChangesQuery.next()) {
+		result.append(std::tuple<quint32, QByteArray, QByteArray, QByteArray> {
+						  keyChangesQuery.value(0).toUInt(),
+						  keyChangesQuery.value(1).toByteArray(),
+						  keyChangesQuery.value(2).toByteArray(),
+						  keyChangesQuery.value(3).toByteArray()
+					  });
+	}
+
+	return result;
 }
 
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)

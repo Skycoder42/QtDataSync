@@ -1511,9 +1511,9 @@
 													"showShadow": true,
 													"containerChangeable": false,
 													"containerExtending": false,
-													"left": 297,
+													"left": 230,
 													"top": 340,
-													"width": 108,
+													"width": 243,
 													"height": 13,
 													"autoResize": false,
 													"alpha": 1.5707963267948966,
@@ -1523,7 +1523,7 @@
 													},
 													"edgePosition": 1,
 													"underline": false,
-													"text": "5 : MacUpdateAck",
+													"text": "5 : NewKeyAck|MacUpdateAck(keyIndex)",
 													"horizontalAlignment": 2,
 													"verticalAlignment": 5,
 													"wordWrap": false
@@ -3081,7 +3081,7 @@
 									"_parent": {
 										"$ref": "AAAAAAFg0BcIFyD+XdY="
 									},
-									"name": "MacUpdateAck",
+									"name": "NewKeyAck|MacUpdateAck",
 									"source": {
 										"$ref": "AAAAAAFg0Bi3VSFH3Zs="
 									},
@@ -3090,6 +3090,7 @@
 									},
 									"visibility": "public",
 									"messageSort": "asynchCall",
+									"arguments": "keyIndex",
 									"isConcurrentIteration": false
 								},
 								{

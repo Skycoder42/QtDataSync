@@ -805,13 +805,11 @@ void RemoteConnector::storeConfig(const RemoteConfig &config)
 	settings()->setValue(keyKeepaliveTimeout, config.keepaliveTimeout());
 }
 
-void RemoteConnector::sendKeyUpdate(quint32 keyIndex)
+void RemoteConnector::sendKeyUpdate()
 {
-	if(keyIndex == _cryptoController->keyIndex()) {
-		settings()->setValue(keySendCmac, true);
-		auto cmac = _cryptoController->generateCryptoKeyCmac();
-		_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>(cmac));
-	}
+	settings()->setValue(keySendCmac, true);
+	auto cmac = _cryptoController->generateCryptoKeyCmac();
+	_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>({_cryptoController->keyIndex(), cmac}));
 }
 
 void RemoteConnector::onError(const ErrorMessage &message)
@@ -949,8 +947,22 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		_expectChanges = message.hasChanges;
 		_stateMachine->submitEvent(QStringLiteral("account"));
 
-		if(sValue(keySendCmac).toBool())
-			sendKeyUpdate(_cryptoController->keyIndex());
+		auto keyUpdated = false;
+		foreach(auto keyUpdate, message.keyUpdates) { //are orderd by index
+			//verify the new key by using the current key
+			_cryptoController->verifyCmac(_cryptoController->keyIndex(), //the key before this one
+										  WelcomeMessage::signatureData(_deviceId, keyUpdate),
+										  std::get<3>(keyUpdate));
+			//import the key and set active if newer
+			_cryptoController->decryptSecretKey(std::get<0>(keyUpdate), //index
+												std::get<1>(keyUpdate), //scheme
+												std::get<2>(keyUpdate), //key
+												false);
+			keyUpdated = true;
+		}
+
+		if(keyUpdated || sValue(keySendCmac).toBool())
+			sendKeyUpdate();
 	}
 }
 
@@ -965,7 +977,7 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 		onAccount(message, false);
 		settings()->remove(keyImport); //import succeeded, so remove import related stuff
 		//update the server cmac
-		sendKeyUpdate(_cryptoController->keyIndex());
+		sendKeyUpdate();
 		emit importCompleted();
 	}
 }

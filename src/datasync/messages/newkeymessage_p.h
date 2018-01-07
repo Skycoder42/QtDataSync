@@ -12,7 +12,6 @@ class Q_DATASYNC_EXPORT NewKeyMessage : public MacUpdateMessage
 {
 	Q_GADGET
 
-	Q_PROPERTY(quint32 keyIndex MEMBER keyIndex)
 	Q_PROPERTY(QByteArray scheme MEMBER scheme)
 	Q_PROPERTY(QList<KeyUpdate> deviceKeys MEMBER deviceKeys)
 
@@ -21,7 +20,6 @@ public:
 
 	NewKeyMessage();
 
-	quint32 keyIndex;
 	QByteArray scheme;
 	QList<KeyUpdate> deviceKeys;
 

@@ -405,7 +405,8 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 
 	//load changecount early to find out if data changed
 	_cachedChanges = _database->changeCount(_deviceId);
-	sendMessage(serializeMessage(WelcomeMessage(_cachedChanges > 0)));
+	auto keyUpdates = _database->loadKeyChanges(_deviceId);
+	sendMessage(serializeMessage<WelcomeMessage>({_cachedChanges > 0, keyUpdates}));
 	_state = Idle;
 	emit connected(_deviceId);
 
@@ -533,8 +534,10 @@ void Client::onMacUpdate(const MacUpdateMessage &message)
 	if(_state != Idle)
 		throw UnexpectedException<MacUpdateMessage>(); //TODO as check fn
 	else {
-		_database->updateCmac(_deviceId, message.cmac);
-		sendMessage(serializeMessage(MacUpdateAckMessage()));
+		if(_database->updateCmac(_deviceId, message.keyIndex, message.cmac))
+			sendMessage(serializeMessage(MacUpdateAckMessage()));
+		else
+			sendError(ErrorMessage::KeyIndexError);
 	}
 }
 

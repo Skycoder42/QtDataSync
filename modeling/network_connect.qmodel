@@ -481,11 +481,10 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>WELCOME(hasChanges, &lt;newId, newKey&gt;, ...)</name>
+                         <name>WELCOME(hasChanges, &lt;newId, newScheme, newKey, newCmac&gt;, ...)</name>
                          <pos>x:885;y:245</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
-                         <visual-emphasized>true</visual-emphasized>
                         </DObject>
                        </base-DObject>
                        <variety>activity</variety>
@@ -655,11 +654,10 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>MACUPDATE(cmac)</name>
+                         <name>MACUPDATE(keyIndex, cmac)</name>
                          <pos>x:455;y:430</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
-                         <visual-emphasized>true</visual-emphasized>
                         </DObject>
                        </base-DObject>
                        <variety>activity</variety>
@@ -792,7 +790,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515251881021</last-modified>
+                  <last-modified>1515343077895</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1347,7 +1345,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>WELCOME(hasChanges, &lt;newId, newKey&gt;, ...)</name>
+                  <name>WELCOME(hasChanges, &lt;newId, newScheme, newKey, newCmac&gt;, ...)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1587,7 +1585,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>MACUPDATE(cmac)</name>
+                  <name>MACUPDATE(keyIndex, cmac)</name>
                   <relations>
                    <handles>
                     <handles>

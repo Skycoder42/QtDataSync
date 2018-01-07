@@ -182,7 +182,7 @@ private:
 	RemoteConfig loadConfig() const;
 	void storeConfig(const RemoteConfig &config);
 
-	void sendKeyUpdate(quint32 keyIndex);
+	void sendKeyUpdate();
 
 	void onError(const ErrorMessage &message);
 	void onIdentify(const IdentifyMessage &message);

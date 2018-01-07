@@ -171,7 +171,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>NEWKEY&lt;MACUPDATE&gt;(keyIndex, scheme, &lt;deviceId, enc{newKey}, verifymac&gt;, ...)</name>
+                         <name>NEWKEY&lt;MACUPDATE&gt;(scheme, &lt;deviceId, enc{newKey}, verifymac&gt;, ...)</name>
                          <pos>x:830;y:260</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -330,7 +330,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>MACUPDATEACK()</name>
+                         <name>NEWKEYACK()</name>
                          <pos>x:625;y:425</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -692,7 +692,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>NEWKEY&lt;MACUPDATE&gt;(keyIndex, scheme, &lt;deviceId, enc{newKey}, verifymac&gt;, ...)</name>
+                  <name>NEWKEY&lt;MACUPDATE&gt;(scheme, &lt;deviceId, enc{newKey}, verifymac&gt;, ...)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -918,7 +918,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>MACUPDATEACK()</name>
+                  <name>NEWKEYACK()</name>
                   <relations>
                    <handles>
                     <handles>

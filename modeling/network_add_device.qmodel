@@ -754,7 +754,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>DEVICECHANGE&lt;CHANGE&gt;(deviceId)</name>
-                         <pos>x:255;y:550</pos>
+                         <pos>x:275;y:550</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -862,7 +862,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>MACUPDATE(cmac)</name>
+                         <name>MACUPDATE(keyIndex, cmac)</name>
                          <pos>x:90;y:550</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
@@ -1277,7 +1277,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515251921433</last-modified>
+                  <last-modified>1515343094114</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -2302,7 +2302,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>MACUPDATE(cmac)</name>
+                  <name>MACUPDATE(keyIndex, cmac)</name>
                   <relations>
                    <handles>
                     <handles>

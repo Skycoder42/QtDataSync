@@ -65,7 +65,7 @@ public:
 												 CryptoPP::RandomNumberGenerator &rng,
 												 QObject *parent = nullptr);
 	void updateLogin(const QUuid &deviceId, const QString &name);
-	void updateCmac(const QUuid &deviceId, const QByteArray &cmac);
+	bool updateCmac(const QUuid &deviceId, quint32 keyIndex, const QByteArray &cmac);
 	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId); // (deviceid, name, fingerprint)
 	void removeDevice(const QUuid &deviceId, const QUuid &deleteId);
 
@@ -90,6 +90,7 @@ public:
 						  quint32 keyIndex,
 						  const QByteArray &scheme, const QByteArray &cmac,
 						  const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys);// (deviceId, key, cmac)
+	QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> loadKeyChanges(const QUuid &deviceId);
 
 Q_SIGNALS:
 	void notifyChanged(const QUuid &deviceId);
