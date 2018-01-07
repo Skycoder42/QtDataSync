@@ -27,6 +27,7 @@ private Q_SLOTS:
 
 	void clientConnected(const QUuid &deviceId);
 	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
+	void keyDisconnect(const QUuid &partner);
 
 private:
 	DatabaseController *database;

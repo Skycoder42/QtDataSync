@@ -51,6 +51,7 @@ public:
 	explicit Client(DatabaseController *_database, QWebSocket *websocket, QObject *parent = nullptr);
 
 public Q_SLOTS:
+	void dropConnection();
 	void notifyChanged();
 	void proofResult(bool success, const QtDataSync::AcceptMessage &message = {}); //empty key equals denied
 	void sendProof(const QtDataSync::ProofMessage &message);
@@ -59,6 +60,7 @@ Q_SIGNALS:
 	void connected(const QUuid &deviceId);
 	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
 	void proofDone(const QUuid &partner, bool success, const QtDataSync::AcceptMessage& message = {});
+	void keyDisconnect(const QUuid &partner);
 
 private Q_SLOTS:
 	void binaryMessageReceived(const QByteArray &message);

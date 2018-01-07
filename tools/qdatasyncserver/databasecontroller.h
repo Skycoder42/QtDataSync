@@ -41,6 +41,7 @@ class DatabaseController : public QObject
 	Q_OBJECT
 
 public:
+	//TODO use triggers and constraints where possible
 	explicit DatabaseController(QObject *parent = nullptr);
 
 	void cleanupDevices(quint64 offlineSinceDays);
@@ -84,13 +85,11 @@ public:
 	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip); // (dataid, keyindex, salt, data)
 	void completeChange(const QUuid &deviceId, quint64 dataIndex);
 
-	QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, bool &accepted); //(deviceid, scheme, key, cmac)
-	void addKey(const QUuid &deviceId,
-				const QUuid &target,
-				quint32 keyIndex,
-				const QByteArray &scheme,
-				const QByteArray &key,
-				const QByteArray &cmac);
+	QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset); //(deviceid, scheme, key, cmac)
+	bool updateExchageKey(const QUuid &deviceId,
+						  quint32 keyIndex,
+						  const QByteArray &scheme, const QByteArray &cmac,
+						  const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys);// (deviceId, key, cmac)
 
 Q_SIGNALS:
 	void notifyChanged(const QUuid &deviceId);

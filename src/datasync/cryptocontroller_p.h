@@ -29,6 +29,7 @@ namespace QtDataSync {
 class ClientCrypto;
 class SymmetricCrypto;
 
+//TODO method cleanup
 class Q_DATASYNC_EXPORT CryptoController : public Controller
 {
 	Q_OBJECT
@@ -67,9 +68,10 @@ public:
 	std::tuple<quint32, QByteArray, QByteArray> encryptSecretKey(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const; //(keyIndex, scheme, data)
 	void decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit);
 	QByteArray generateCryptoKeyCmac() const;
-	void verifyCryptoKeyCmac(quint32 oldIndex, AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey, const QByteArray &cmac) const;
-	quint32 generateNextKey();
-	void saveNextKey(quint32 keyIndex);
+	QByteArray generateCryptoKeyCmac(quint32 keyIndex) const;
+	void verifyCryptoKeyCmac(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey, const QByteArray &cmac) const;
+	std::tuple<quint32, QByteArray> generateNextKey(); //(keyIndex, scheme)
+	void activateNextKey(quint32 keyIndex);
 
 	bool acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);
@@ -85,7 +87,7 @@ public:
 	std::tuple<quint32, QByteArray, QByteArray> encrypt(const QByteArray &data); //(keyIndex, salt, data)
 	QByteArray decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const;
 
-	std::tuple<quint32, QByteArray> createCmac(const QByteArray &data) const; //(keyIndex, cmac)
+	QByteArray createCmac(const QByteArray &data) const;
 	QByteArray createCmac(quint32 keyIndex, const QByteArray &data) const; //(keyIndex, cmac)
 	void verifyCmac(quint32 keyIndex, const QByteArray &data, const QByteArray &mac) const;
 
@@ -113,6 +115,7 @@ private:
 	static const QString keySignScheme;
 	static const QString keyCryptScheme;
 	static const QString keyLocalSymKey;
+	static const QString keyNextSymKey;
 	static const QString keySymKeys;
 	static const QString keySymKeysTemplate;
 

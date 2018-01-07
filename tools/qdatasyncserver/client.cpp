@@ -121,6 +121,11 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	});
 }
 
+void Client::dropConnection()
+{
+	_socket->close();
+}
+
 void Client::notifyChanged()
 {
 	run([this]() {
@@ -538,10 +543,12 @@ void Client::onKeyChange(const KeyChangeMessage &message)
 	if(_state != Idle)
 		throw UnexpectedException<KeyChangeMessage>();
 	else {
-		auto accepted = false;
-		auto deviceInfos = _database->tryKeyChange(_deviceId, message.nextIndex, accepted);
-		if(accepted)
+		auto offset = 0;
+		auto deviceInfos = _database->tryKeyChange(_deviceId, message.nextIndex, offset);
+		if(offset == 1) //accepted
 			sendMessage(serializeMessage<DeviceKeysMessage>({message.nextIndex, deviceInfos}));
+		else if(offset == 0) //proposed is the same as current (accept as duplicate, but don't send any devices)
+			sendMessage(serializeMessage<DeviceKeysMessage>(message.nextIndex));
 		else
 			sendError(ErrorMessage::KeyIndexError);
 	}
@@ -552,13 +559,17 @@ void Client::onNewKey(const NewKeyMessage &message)
 	if(_state != Idle)
 		throw UnexpectedException<NewKeyMessage>();
 	else {
-		_database->addKey(_deviceId,
-						  message.deviceId,
-						  message.keyIndex,
-						  message.scheme,
-						  message.key,
-						  message.cmac);
-		//TODO send ok reply
+		auto ok = _database->updateExchageKey(_deviceId,
+											  message.keyIndex,
+											  message.scheme,
+											  message.cmac,
+											  message.deviceKeys);
+		if(ok) {
+			foreach(auto info, message.deviceKeys)
+				emit keyDisconnect(std::get<0>(info));
+			sendMessage(serializeMessage<NewKeyAckMessage>(message));
+		} else
+			sendError(ErrorMessage::KeyIndexError);
 	}
 }
 

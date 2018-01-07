@@ -28,6 +28,7 @@
 #include "devicechangemessage_p.h"
 #include "macupdatemessage_p.h"
 #include "devicekeysmessage_p.h"
+#include "newkeymessage_p.h"
 
 class ConnectorStateMachine;
 
@@ -198,6 +199,7 @@ private:
 	void onProof(const ProofMessage &message);
 	void onMacUpdateAck(const MacUpdateAckMessage &message);
 	void onDeviceKeys(const DeviceKeysMessage &message);
+	void onNewKeyAck(const NewKeyAckMessage &message);
 };
 
 }

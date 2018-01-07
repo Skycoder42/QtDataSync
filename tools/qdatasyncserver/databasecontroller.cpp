@@ -445,27 +445,27 @@ void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex
 	}
 }
 
-QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, bool &accepted)
+QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset)
 {
-	accepted = false;
+	offset = -1;
 
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
 		throw DatabaseException(db);
 
 	try {
-		Query updateKeyCountQuery(db);
-		updateKeyCountQuery.prepare(QStringLiteral("UPDATE users SET keycount = keycount + 1 "
-												   "WHERE id = deviceUserId(?) "
-												   "AND keycount = ?"));
-		updateKeyCountQuery.addBindValue(deviceId);
-		updateKeyCountQuery.addBindValue(proposedIndex - 1);
-		updateKeyCountQuery.exec();
+		Query readIndexQuery(db);
+		readIndexQuery.prepare(QStringLiteral("SELECT keycount FROM users "
+											  "WHERE id = deviceUserId(?)"));
+		readIndexQuery.addBindValue(deviceId);
+		readIndexQuery.exec();
+		if(!readIndexQuery.first())
+			throw DatabaseException(db);
+		auto currentIndex = readIndexQuery.value(0).toUInt();
+		offset = proposedIndex - currentIndex;
 
 		QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> result;
-		if(updateKeyCountQuery.numRowsAffected() > 0) {
-			accepted = true;
-
+		if(offset == 1) { //proposed = current + 1
 			Query deviceKeysQuery(db);
 			deviceKeysQuery.prepare(QStringLiteral("SELECT id, cryptscheme, cryptkey, keymac FROM devices "
 												   "WHERE id != ? "
@@ -493,9 +493,60 @@ QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController:
 	}
 }
 
-void DatabaseController::addKey(const QUuid &deviceId, const QUuid &target, quint32 keyIndex, const QByteArray &scheme, const QByteArray &key, const QByteArray &cmac)
+bool DatabaseController::updateExchageKey(const QUuid &deviceId, quint32 keyIndex, const QByteArray &scheme, const QByteArray &cmac, const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys)
 {
-	//TODO here
+	auto db = _threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
+
+	try {
+		Query updateKeyCountQuery(db);
+		updateKeyCountQuery.prepare(QStringLiteral("UPDATE users SET keycount = keycount + 1"
+												   "WHERE id = deviceUserId(?) "
+												   "AND (keycount + 1) = ?"));
+		updateKeyCountQuery.addBindValue(deviceId);
+		updateKeyCountQuery.addBindValue(keyIndex);
+		updateKeyCountQuery.exec();
+		if(updateKeyCountQuery.numRowsAffected() != 1) {
+			db.rollback();
+			return false;
+		}
+
+		foreach(auto device, deviceKeys) {
+			//check if the device belongs to the same user
+			Query checkAllowedQuery(db);
+			checkAllowedQuery.prepare(QStringLiteral("SELECT id FROM devices "
+													 "WHERE id = ? "
+													 "AND userid = deviceUserId(?)"));
+			checkAllowedQuery.addBindValue(std::get<0>(device));
+			checkAllowedQuery.addBindValue(deviceId);
+			checkAllowedQuery.exec();
+			if(!checkAllowedQuery.first())
+				throw DatabaseException(db);
+
+			//add the keychange
+			Query addKeyQuery(db);
+			addKeyQuery.prepare(QStringLiteral("INSERT INTO keychanges "
+											   "(deviceid, keyindex, scheme, key, verifymac) "
+											   "VALUES(?, ?, ?, ?, ?)"));
+			addKeyQuery.addBindValue(std::get<0>(device));
+			addKeyQuery.addBindValue(keyIndex);
+			addKeyQuery.addBindValue(QString::fromUtf8(scheme));
+			addKeyQuery.addBindValue(std::get<1>(device));
+			addKeyQuery.addBindValue(std::get<2>(device));
+			addKeyQuery.exec();
+		}
+
+		//update the cmac. Call is ok, as the method does not open a new transaction
+		updateCmac(deviceId, cmac);
+
+		if(!db.commit())
+			throw DatabaseException(db);
+		return true;
+	} catch(...) {
+		db.rollback();
+		throw;
+	}
 }
 
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
@@ -682,6 +733,20 @@ void DatabaseController::initDatabase()
 														"FOR EACH ROW "
 														"EXECUTE PROCEDURE notifyDeviceChange();"))) {
 				throw DatabaseException(createNotifyTrigger);
+			}
+		}
+
+		if(!db.tables().contains(QStringLiteral("keychanges"))) {
+			QSqlQuery createKeyChanges(db);
+			if(!createKeyChanges.exec(QStringLiteral("CREATE TABLE keychanges ( "
+														"	deviceid	UUID NOT NULL REFERENCES devices(id) ON DELETE CASCADE, "
+														"	keyindex	INT NOT NULL, "
+														"	scheme		TEXT NOT NULL, "
+														"	key			BYTEA NOT NULL, "
+														"	verifymac	BYTEA NOT NULL, "
+														"	PRIMARY KEY(deviceid, keyindex) "
+														")"))) {
+				throw DatabaseException(createKeyChanges);
 			}
 		}
 

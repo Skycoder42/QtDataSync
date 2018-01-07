@@ -4,36 +4,50 @@
 #include <QtCore/QUuid>
 
 #include "message_p.h"
+#include "macupdatemessage_p.h"
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT NewKeyMessage
+class Q_DATASYNC_EXPORT NewKeyMessage : public MacUpdateMessage
 {
 	Q_GADGET
 
-	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 	Q_PROPERTY(quint32 keyIndex MEMBER keyIndex)
 	Q_PROPERTY(QByteArray scheme MEMBER scheme)
-	Q_PROPERTY(QByteArray key MEMBER key)
-	Q_PROPERTY(QByteArray cmac MEMBER cmac)
+	Q_PROPERTY(QList<KeyUpdate> deviceKeys MEMBER deviceKeys)
 
 public:
-	NewKeyMessage(const QUuid &deviceId = {});
+	typedef std::tuple<QUuid, QByteArray, QByteArray> KeyUpdate; //(deviceId, key, cmac)
 
-	QUuid deviceId;
+	NewKeyMessage();
+
 	quint32 keyIndex;
 	QByteArray scheme;
-	QByteArray key;
-	QByteArray cmac;
+	QList<KeyUpdate> deviceKeys;
 
-	QByteArray signatureData() const;
+	QByteArray signatureData(const KeyUpdate &deviceInfo) const;
+};
+
+class Q_DATASYNC_EXPORT NewKeyAckMessage : public MacUpdateAckMessage
+{
+	Q_GADGET
+
+	Q_PROPERTY(quint32 keyIndex MEMBER keyIndex)
+
+public:
+	NewKeyAckMessage(const NewKeyMessage &message = {});
+
+	quint32 keyIndex;
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const NewKeyMessage &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, NewKeyMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const NewKeyAckMessage &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, NewKeyAckMessage &message);
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::NewKeyMessage)
+Q_DECLARE_METATYPE(QtDataSync::NewKeyAckMessage)
 
 #endif // NEWKEYMESSAGE_P_H

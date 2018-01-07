@@ -1001,19 +1001,19 @@
 													"showShadow": true,
 													"containerChangeable": false,
 													"containerExtending": false,
-													"left": 205,
+													"left": 151,
 													"top": 212,
-													"width": 301,
+													"width": 404,
 													"height": 13,
 													"autoResize": false,
-													"alpha": 1.5707963267948966,
-													"distance": 10,
+													"alpha": 1.2793404497484746,
+													"distance": 10.44030650891055,
 													"hostEdge": {
 														"$ref": "AAAAAAFg0BunCyHHaBA="
 													},
 													"edgePosition": 1,
 													"underline": false,
-													"text": "2 : DeviceKeys([devId, scheme, pubkey, cmac], ...)",
+													"text": "2 : DeviceKeys(duplicated[false], [devId, scheme, pubkey, cmac], ...)",
 													"horizontalAlignment": 2,
 													"verticalAlignment": 5,
 													"wordWrap": false
@@ -1693,7 +1693,7 @@
 													},
 													"edgePosition": 1,
 													"underline": false,
-													"text": "6 : Error(KeyDuplicateError)",
+													"text": "6 : DeviceKeys(duplicated[true])",
 													"horizontalAlignment": 2,
 													"verticalAlignment": 5,
 													"wordWrap": false
@@ -3037,7 +3037,7 @@
 									},
 									"visibility": "public",
 									"messageSort": "asynchCall",
-									"arguments": "[devId, scheme, pubkey, cmac], ...",
+									"arguments": "duplicated[false], [devId, scheme, pubkey, cmac], ...",
 									"isConcurrentIteration": false
 								},
 								{
@@ -3098,7 +3098,7 @@
 									"_parent": {
 										"$ref": "AAAAAAFg0BcIFyD+XdY="
 									},
-									"name": "Error",
+									"name": "DeviceKeys",
 									"source": {
 										"$ref": "AAAAAAFg0Bi3VSFH3Zs="
 									},
@@ -3107,7 +3107,7 @@
 									},
 									"visibility": "public",
 									"messageSort": "asynchCall",
-									"arguments": "KeyDuplicateError",
+									"arguments": "duplicated[true]",
 									"isConcurrentIteration": false
 								},
 								{

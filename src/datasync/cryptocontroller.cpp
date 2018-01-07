@@ -101,6 +101,7 @@ const QString CryptoController::keyKeystore(QStringLiteral("keystore"));
 const QString CryptoController::keySignScheme(QStringLiteral("scheme/signing"));
 const QString CryptoController::keyCryptScheme(QStringLiteral("scheme/encryption"));
 const QString CryptoController::keyLocalSymKey(QStringLiteral("localkey"));
+const QString CryptoController::keyNextSymKey(QStringLiteral("nextkey"));
 const QString CryptoController::keySymKeys(QStringLiteral("scheme/key"));
 const QString CryptoController::keySymKeysTemplate(QStringLiteral("scheme/key/%1"));
 
@@ -213,10 +214,15 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 
 QByteArray CryptoController::generateCryptoKeyCmac() const
 {
+	return generateCryptoKeyCmac(_localCipher);
+}
+
+QByteArray CryptoController::generateCryptoKeyCmac(quint32 keyIndex) const
+{
 	try {
 		QByteArray message = _asymCrypto->encryptionScheme() +
 							 _asymCrypto->writeCryptKey();
-		return std::get<1>(createCmac(message));
+		return createCmac(keyIndex, message);
 #ifdef __clang__
 	} catch(QException &e) { //prevent catching the std::exception
 		throw;
@@ -228,12 +234,12 @@ QByteArray CryptoController::generateCryptoKeyCmac() const
 	}
 }
 
-void CryptoController::verifyCryptoKeyCmac(quint32 oldIndex, AsymmetricCrypto *crypto, const X509PublicKey &pubKey, const QByteArray &cmac) const
+void CryptoController::verifyCryptoKeyCmac(AsymmetricCrypto *crypto, const X509PublicKey &pubKey, const QByteArray &cmac) const
 {
 	try {
 		QByteArray message = crypto->encryptionScheme() +
 							 crypto->writeKey(pubKey);
-		verifyCmac(oldIndex, message, cmac);
+		verifyCmac(_localCipher, message, cmac);
 #ifdef __clang__
 	} catch(QException &e) { //prevent catching the std::exception
 		throw;
@@ -245,16 +251,23 @@ void CryptoController::verifyCryptoKeyCmac(quint32 oldIndex, AsymmetricCrypto *c
 	}
 }
 
-quint32 CryptoController::generateNextKey()
+std::tuple<quint32, QByteArray> CryptoController::generateNextKey()
 {
 	try {
-		auto info = createCipher();
 		auto keyIndex = _localCipher + 1;
-		_loadedChiphers.insert(keyIndex, info);
-		//not stored on disk yet
-
-		logDebug().noquote() << "Generated new exchange key";
-		return keyIndex;
+		auto nIndex = settings()->value(keyNextSymKey);
+		CipherInfo info;
+		if(nIndex.isValid() && nIndex.toUInt() == keyIndex)
+			info = getInfo(keyIndex);
+		else {
+			info = createCipher();
+			_loadedChiphers.insert(keyIndex, info);
+			storeCipherKey(keyIndex);
+			settings()->setValue(keyNextSymKey, keyIndex);
+			//not set as active key yet
+			logDebug().noquote() << "Generated new exchange key";
+		}
+		return std::tuple<quint32, QByteArray>{keyIndex, info.scheme->name()};
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate new exchange key"),
@@ -262,15 +275,25 @@ quint32 CryptoController::generateNextKey()
 	}
 }
 
-void CryptoController::saveNextKey(quint32 keyIndex)
+void CryptoController::activateNextKey(quint32 keyIndex)
 {
 	try {
-		if(_localCipher + 1 != keyIndex)
-			throw Exception(defaults(), QStringLiteral("Unexpected keychange index, is not current + 1"));
+		if(_localCipher + 1 != keyIndex) {
+			logWarning() << "Unexpected keychange index, is not current + 1";
+			return;
+		}
 
-		storeCipherKey(keyIndex);
+		auto nIndex = settings()->value(keyNextSymKey).toUInt();
+		if(keyIndex != nIndex) {
+			logWarning() << "Unexpected keychange index, is not the currently store key proposal";
+			return;
+		}
+
+		getInfo(keyIndex); // just to make shure the key is actually available and can be loaded
+
 		_localCipher = keyIndex;
-		settings()->setValue(keyLocalSymKey, _localCipher); //TODO wrap in function
+		settings()->setValue(keyLocalSymKey, _localCipher);
+		settings()->remove(keyNextSymKey);
 		logDebug() << "Stored and applied new exchange key";
 		cleanCiphers();
 	} catch(CppException &e) {
@@ -476,9 +499,9 @@ QByteArray CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, c
 	}
 }
 
-std::tuple<quint32, QByteArray> CryptoController::createCmac(const QByteArray &data) const
+QByteArray CryptoController::createCmac(const QByteArray &data) const
 {
-	return std::tuple<quint32, QByteArray>{_localCipher, createCmac(_localCipher, data)};
+	return createCmac(_localCipher, data);
 }
 
 QByteArray CryptoController::createCmac(quint32 keyIndex, const QByteArray &data) const

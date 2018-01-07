@@ -1,39 +1,59 @@
 #include "newkeymessage_p.h"
 using namespace QtDataSync;
 
-NewKeyMessage::NewKeyMessage(const QUuid &deviceId) :
-	deviceId(deviceId),
+NewKeyMessage::NewKeyMessage() :
 	keyIndex(0),
 	scheme(),
-	key(),
-	cmac()
+	deviceKeys()
 {}
 
-QByteArray NewKeyMessage::signatureData() const
+QByteArray NewKeyMessage::signatureData(const NewKeyMessage::KeyUpdate &deviceInfo) const
 {
 	return QByteArray::number(keyIndex) +
 			scheme +
-			key;
+			std::get<0>(deviceInfo).toRfc4122() +
+			std::get<1>(deviceInfo);
 }
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const NewKeyMessage &message)
 {
-	stream << message.deviceId
+	stream << static_cast<MacUpdateMessage>(message)
 		   << message.keyIndex
 		   << message.scheme
-		   << message.key
-		   << message.cmac;
+		   << message.deviceKeys;
 	return stream;
 }
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, NewKeyMessage &message)
 {
 	stream.startTransaction();
-	stream >> message.deviceId
+	stream >> static_cast<MacUpdateMessage&>(message)
 		   >> message.keyIndex
 		   >> message.scheme
-		   >> message.key
-		   >> message.cmac;
+		   >> message.deviceKeys;
+	stream.commitTransaction();
+	return stream;
+}
+
+
+
+NewKeyAckMessage::NewKeyAckMessage(const NewKeyMessage &message) :
+	MacUpdateAckMessage(),
+	keyIndex(message.keyIndex)
+{}
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const NewKeyAckMessage &message)
+{
+	stream << static_cast<MacUpdateAckMessage>(message)
+		   << message.keyIndex;
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, NewKeyAckMessage &message)
+{
+	stream.startTransaction();
+	stream >> static_cast<MacUpdateAckMessage&>(message)
+		   >> message.keyIndex;
 	stream.commitTransaction();
 	return stream;
 }

@@ -226,8 +226,8 @@ void TestCryptoController::testSymCrypto()
 
 		//cmac
 		QByteArray mac;
-		std::tie(index, mac) = controller->createCmac(message);
-		controller->verifyCmac(index, message, mac);
+		mac = controller->createCmac(message);
+		controller->verifyCmac(controller->keyIndex(), message, mac);
 
 		QVERIFY_EXCEPTION_THROWN(controller->verifyCmac(index + 1, message, mac), CryptoException);
 		QVERIFY_EXCEPTION_THROWN(controller->verifyCmac(index, message + "a", mac), CryptoException);

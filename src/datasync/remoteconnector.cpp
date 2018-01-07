@@ -9,7 +9,6 @@
 #include "accessmessage_p.h"
 #include "syncmessage_p.h"
 #include "keychangemessage_p.h"
-#include "newkeymessage_p.h"
 
 #include "connectorstatemachine.h"
 
@@ -301,11 +300,11 @@ void RemoteConnector::initKeyUpdate()
 			return;
 		}
 
-		auto nextIndex = _cryptoController->generateNextKey();
-		_socket->sendBinaryMessage(serializeMessage<KeyChangeMessage>(nextIndex));
+		//TODO do on idle state, if cached key changes
+		_socket->sendBinaryMessage(serializeMessage<KeyChangeMessage>(_cryptoController->keyIndex() + 1));
 	} catch(Exception &e) {
 		//simulate a "normal" client error
-		onError({ErrorMessage::LocalError, e.qWhat()});
+		onError({ErrorMessage::LocalError, e.qWhat()}); //TODO second method parameter instead...
 	}
 }
 
@@ -465,6 +464,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onMacUpdateAck(deserializeMessage<MacUpdateAckMessage>(stream));
 		else if(isType<DeviceKeysMessage>(name))
 			onDeviceKeys(deserializeMessage<DeviceKeysMessage>(stream));
+		else if(isType<NewKeyAckMessage>(name))
+			onNewKeyAck(deserializeMessage<NewKeyAckMessage>(stream));
 		else {
 			logWarning().noquote() << "Unknown message received:" << typeName(name);
 			triggerError(true);
@@ -1111,35 +1112,51 @@ void RemoteConnector::onMacUpdateAck(const MacUpdateAckMessage &message)
 void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 {
 	if(checkIdle<DeviceKeysMessage>()) {
-		auto oldIndex = _cryptoController->keyIndex();
-		_cryptoController->saveNextKey(message.keyIndex);
-		sendKeyUpdate(message.keyIndex);
-		//TODO store for resending, and await reply per device!!!
-		foreach(auto info, message.devices) {
-			try {
-				//verify the device knows the previous secret
-				auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->rng(),
-																			  std::get<1>(info),
-																			  std::get<2>(info)); //TODO catch cryptopp exceptions
-				_cryptoController->verifyCryptoKeyCmac(oldIndex,
-													   cryptInfo.data(),
-													   cryptInfo->encryptionKey(),
-													   std::get<3>(info));
+		if(message.duplicated)
+			_cryptoController->activateNextKey(message.keyIndex);
+		else {
+			NewKeyMessage reply;
+			std::tie(reply.keyIndex, reply.scheme) = _cryptoController->generateNextKey(); //TODO use make_tuple EVERYWHERE
+			reply.cmac = _cryptoController->generateCryptoKeyCmac(reply.keyIndex); //cmac for the new key
+			//do not store this mac to be send again!
 
-				//encrypt the secret key and send the message
-				NewKeyMessage message(std::get<0>(info));
-				std::tie(message.keyIndex, message.scheme, message.key) = _cryptoController->encryptSecretKey(cryptInfo.data(), cryptInfo->encryptionKey());
-				message.cmac = _cryptoController->createCmac(oldIndex, message.signatureData());
-				_socket->sendBinaryMessage(serializeMessage(message));
-				logDebug() << "Sent key update to" << std::get<0>(info);
-			} catch(Exception &e) {
-				logWarning() << "Failed to send update exchange key to device"
-							 << std::get<0>(info)
-							 << "- device is going to be excluded from synchronisation. Error:"
-							 << e.what();
+			foreach(auto info, message.devices) {
+				try {
+					//verify the device knows the previous secret (which is still the current one)
+					auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->rng(),
+																				  std::get<1>(info),
+																				  std::get<2>(info)); //TODO catch cryptopp exceptions
+					_cryptoController->verifyCryptoKeyCmac(cryptInfo.data(),
+														   cryptInfo->encryptionKey(),
+														   std::get<3>(info));
+
+					//encrypt the secret key and send the message
+					NewKeyMessage::KeyUpdate keyUpdate {
+						std::get<0>(info),
+						std::get<2>(_cryptoController->encryptSecretKey(cryptInfo.data(), cryptInfo->encryptionKey())),
+						QByteArray()
+					};
+					std::get<2>(keyUpdate) = _cryptoController->createCmac(reply.signatureData(keyUpdate)); //uses the "old" current key
+					reply.deviceKeys.append(keyUpdate);
+					logDebug() << "Prepared key update for device" << std::get<0>(info);
+				} catch(Exception &e) {
+					logWarning() << "Failed to send update exchange key to device"
+								 << std::get<0>(info)
+								 << "- device is going to be excluded from synchronisation. Error:"
+								 << e.what();
+				}
 			}
+
+			_socket->sendBinaryMessage(serializeMessage(reply));
+			logDebug() << "Sent key update to server";
 		}
 	}
+}
+
+void RemoteConnector::onNewKeyAck(const NewKeyAckMessage &message)
+{
+	if(checkIdle<NewKeyAckMessage>())
+		_cryptoController->activateNextKey(message.keyIndex);
 }
 
 
