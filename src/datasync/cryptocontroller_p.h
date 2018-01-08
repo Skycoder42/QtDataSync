@@ -66,6 +66,7 @@ public:
 	quint32 keyIndex() const;
 
 	std::tuple<quint32, QByteArray, QByteArray> encryptSecretKey(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const; //(keyIndex, scheme, data)
+	QByteArray encryptSecretKey(quint32 keyIndex, AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const;
 	void decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit);
 	QByteArray generateCryptoKeyCmac() const;
 	QByteArray generateCryptoKeyCmac(quint32 keyIndex) const;

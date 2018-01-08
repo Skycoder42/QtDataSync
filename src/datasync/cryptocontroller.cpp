@@ -173,10 +173,27 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(A
 {
 	try {
 		auto info = getInfo(_localCipher);
+		auto data = encryptSecretKey(_localCipher, crypto, pubKey);
+		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, info.scheme->name(), data};
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to encrypt secret key for peer"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::encryptSecretKey(quint32 keyIndex, AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
+{
+	try {
+		auto info = getInfo(keyIndex);
 		auto data = crypto->encrypt(pubKey,
 									_asymCrypto->rng(),
 									QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()), static_cast<int>(info.key.size())));
-		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, info.scheme->name(), data};
+		return data;
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt secret key for peer"),

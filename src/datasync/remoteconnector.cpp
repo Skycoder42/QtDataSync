@@ -799,7 +799,8 @@ void RemoteConnector::storeConfig(const RemoteConfig &config)
 	settings()->setValue(keyRemoteUrl, config.url());
 	settings()->setValue(keyAccessKey, config.accessKey());
 	settings()->beginGroup(keyHeaders);
-	for(auto it = config.headers().begin(); it != config.headers().end(); it++)
+	auto headers = config.headers();
+	for(auto it = headers.constBegin(); it != headers.constEnd(); it++)
 		settings()->setValue(QString::fromUtf8(it.key()), it.value());
 	settings()->endGroup();
 	settings()->setValue(keyKeepaliveTimeout, config.keepaliveTimeout());
@@ -1087,11 +1088,12 @@ void RemoteConnector::onProof(const ProofMessage &message)
 										  cryptInfo->encryptionScheme() +
 										  cryptInfo->writeKey(cryptInfo->encryptionKey());
 				_cryptoController->verifyImportCmac(message.macscheme, key, trustMessage, message.trustmac);
-			}
+				logInfo() << "Accepted trusted import proof request for device" << message.deviceId;
+			} else
+				logInfo() << "Received untrusted import proof request for device" << message.deviceId;
 
 			//all verifications accepted
 			_activeProofs.insert(message.deviceId, cryptInfo);
-			logDebug() << "Received import proof request for device" << message.deviceId;
 			if(trusted) //trusted -> ready to go, send back the accept
 				loginReply(message.deviceId, true);
 			else { //untrusted -> cache the request and signale that the login must be checked
@@ -1145,7 +1147,7 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 					//encrypt the secret key and send the message
 					NewKeyMessage::KeyUpdate keyUpdate {
 						std::get<0>(info),
-						std::get<2>(_cryptoController->encryptSecretKey(cryptInfo.data(), cryptInfo->encryptionKey())),
+						_cryptoController->encryptSecretKey(reply.keyIndex, cryptInfo.data(), cryptInfo->encryptionKey()),
 						QByteArray()
 					};
 					std::get<2>(keyUpdate) = _cryptoController->createCmac(reply.signatureData(keyUpdate)); //uses the "old" current key
