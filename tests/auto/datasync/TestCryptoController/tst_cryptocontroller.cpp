@@ -213,16 +213,16 @@ void TestCryptoController::testSymCrypto()
 		quint32 index;
 		QByteArray salt;
 		QByteArray cipher;
-		std::tie(index, salt, cipher) = controller->encrypt(message);
-		QCOMPARE(controller->decrypt(index, salt, cipher), message);
+		std::tie(index, salt, cipher) = controller->encryptData(message);
+		QCOMPARE(controller->decryptData(index, salt, cipher), message);
 
-		QVERIFY_EXCEPTION_THROWN(controller->decrypt(index + 1, salt, cipher), CryptoException);
+		QVERIFY_EXCEPTION_THROWN(controller->decryptData(index + 1, salt, cipher), CryptoException);
 		auto fakeSalt = salt;
 		fakeSalt[2] = fakeSalt[2] + (char)1;
-		QVERIFY_EXCEPTION_THROWN(controller->decrypt(index, fakeSalt, cipher), CryptoException);
+		QVERIFY_EXCEPTION_THROWN(controller->decryptData(index, fakeSalt, cipher), CryptoException);
 		auto fakeMsg = cipher;
 		fakeMsg[2] = fakeMsg[2] + (char)1;
-		QVERIFY_EXCEPTION_THROWN(controller->decrypt(index, salt, fakeMsg), CryptoException);
+		QVERIFY_EXCEPTION_THROWN(controller->decryptData(index, salt, fakeMsg), CryptoException);
 
 		//cmac
 		QByteArray mac;

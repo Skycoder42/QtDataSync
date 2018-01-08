@@ -238,11 +238,11 @@ QList<std::tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(co
 
 	QList<std::tuple<QUuid, QString, QByteArray>> resList;
 	while(loadDevicesQuery.next()) {
-		resList.append(std::tuple<QUuid, QString, QByteArray> {
+		resList.append(std::make_tuple(
 						   loadDevicesQuery.value(0).toUuid(),
 						   loadDevicesQuery.value(1).toString(),
 						   loadDevicesQuery.value(2).toByteArray()
-					   });
+					   ));
 	}
 	return resList;
 }
@@ -432,12 +432,12 @@ QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::
 
 	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> resList;
 	while(loadChangesQuery.next()) {
-		resList.append(std::tuple<quint64, quint32, QByteArray, QByteArray> {
-						   loadChangesQuery.value(0).toULongLong(),
-						   loadChangesQuery.value(1).toUInt(),
+		resList.append(std::make_tuple(
+						   (quint64)loadChangesQuery.value(0).toULongLong(),
+						   (quint32)loadChangesQuery.value(1).toUInt(),
 						   loadChangesQuery.value(2).toByteArray(),
 						   loadChangesQuery.value(3).toByteArray()
-					   });
+					   ));
 	}
 	return resList;
 }
@@ -503,12 +503,12 @@ QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController:
 			deviceKeysQuery.exec();
 
 			while(deviceKeysQuery.next()) {
-				result.append(std::tuple<QUuid, QByteArray, QByteArray, QByteArray> {
+				result.append(std::make_tuple(
 								  deviceKeysQuery.value(0).toUuid(),
 								  deviceKeysQuery.value(1).toByteArray(),
 								  deviceKeysQuery.value(2).toByteArray(),
 								  deviceKeysQuery.value(3).toByteArray()
-							  });
+							  ));
 			}
 		}
 
@@ -595,12 +595,12 @@ QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> DatabaseControlle
 
 	QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> result;
 	while(keyChangesQuery.next()) {
-		result.append(std::tuple<quint32, QByteArray, QByteArray, QByteArray> {
-						  keyChangesQuery.value(0).toUInt(),
+		result.append(std::make_tuple(
+						  (quint32)keyChangesQuery.value(0).toUInt(),
 						  keyChangesQuery.value(1).toByteArray(),
 						  keyChangesQuery.value(2).toByteArray(),
 						  keyChangesQuery.value(3).toByteArray()
-					  });
+					  ));
 	}
 
 	return result;

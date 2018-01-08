@@ -168,9 +168,12 @@ private:
 	QHash<QByteArray, CryptoPP::SecByteBlock> _exportsCache;
 	QHash<QUuid, QSharedPointer<AsymmetricCryptoInfo>> _activeProofs;
 
+	template<typename TMessage>
+	void sendMessage(const TMessage &message);
+
 	bool isIdle() const;
 	template <typename TMessage>
-	bool checkIdle();
+	bool checkIdle(const TMessage & = {});
 	void triggerError(bool canRecover);
 
 	bool checkCanSync(QUrl &remoteUrl);
@@ -185,7 +188,7 @@ private:
 
 	void sendKeyUpdate();
 
-	void onError(const ErrorMessage &message);
+	void onError(const ErrorMessage &message, const QByteArray &messageName = {});
 	void onIdentify(const IdentifyMessage &message);
 	void onAccount(const AccountMessage &message, bool checkState = true);
 	void onWelcome(const WelcomeMessage &message);

@@ -84,7 +84,7 @@ std::tuple<bool, ObjectKey, quint64, QJsonObject> SyncHelper::extract(const QByt
 	if(stream.status() != QDataStream::Ok)
 		throw DataStreamException(stream);
 
-	return std::tuple<bool, ObjectKey, quint64, QJsonObject>{jData.isNull(), key, version, obj};
+	return std::make_tuple(jData.isNull(), key, version, obj);
 }
 
 namespace {

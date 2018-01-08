@@ -24,8 +24,7 @@ public:
 		ClientError = 4,
 		AuthenticationError = 5,
 		AccessError = 6,
-		LocalError = 7,
-		KeyIndexError = 8 //TODO handler
+		KeyIndexError = 7
 	};
 	Q_ENUM(ErrorType)
 

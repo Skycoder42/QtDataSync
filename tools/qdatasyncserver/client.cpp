@@ -117,7 +117,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 		//initialize connection by sending indent message
 		auto msg = IdentifyMessage::createRandom(_uploadLimit, rngPool.localData());
 		_loginNonce = msg.nonce;
-		sendMessage(serializeMessage(msg));
+		sendMessage(msg);
 	});
 }
 
@@ -155,7 +155,7 @@ void Client::proofResult(bool success, const AcceptMessage &message)
 				_cachedFingerPrint.clear();
 
 				qDebug() << "Created new device and user accounts";
-				sendMessage(serializeMessage<GrantMessage>({_deviceId, message}));
+				sendMessage<GrantMessage>({_deviceId, message});
 				_state = Idle;
 				emit connected(_deviceId);
 			} else
@@ -171,7 +171,7 @@ void Client::sendProof(const ProofMessage &message)
 			qWarning() << "Cannot send proof when not in idle state";
 			emit proofDone(message.deviceId, false);
 		} else
-			sendMessage(serializeMessage(message));
+			sendMessage(message);
 	});
 }
 
@@ -313,6 +313,13 @@ const QLoggingCategory &Client::logFn() const
 	return *_logCat;
 }
 
+template<typename TMessage>
+void Client::checkIdle(const TMessage &)
+{
+	if(_state != Idle)
+		throw UnexpectedException<TMessage>();
+}
+
 void Client::close()
 {
 	QMetaObject::invokeMethod(_socket, "close", Qt::QueuedConnection);
@@ -326,16 +333,17 @@ void Client::closeLater()
 	});
 }
 
-void Client::sendMessage(const QByteArray &message)
+template<typename TMessage>
+void Client::sendMessage(const TMessage &message)
 {
 	QMetaObject::invokeMethod(this, "doSend", Qt::QueuedConnection,
-							  Q_ARG(QByteArray, message));
+							  Q_ARG(QByteArray, serializeMessage(message)));
 }
 
 void Client::sendError(const ErrorMessage &message)
 {
 	_state = Error;
-	sendMessage(serializeMessage(message));
+	sendMessage(message);
 	closeLater();
 }
 
@@ -372,7 +380,7 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
 	qDebug() << "Created new device and user accounts";
-	sendMessage(serializeMessage<AccountMessage>(_deviceId));
+	sendMessage<AccountMessage>(_deviceId);
 	_state = Idle;
 	emit connected(_deviceId);
 }
@@ -406,7 +414,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	//load changecount early to find out if data changed
 	_cachedChanges = _database->changeCount(_deviceId);
 	auto keyUpdates = _database->loadKeyChanges(_deviceId);
-	sendMessage(serializeMessage<WelcomeMessage>({_cachedChanges > 0, keyUpdates}));
+	sendMessage<WelcomeMessage>({_cachedChanges > 0, keyUpdates});
 	_state = Idle;
 	emit connected(_deviceId);
 
@@ -445,16 +453,14 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 
 void Client::onSync(const SyncMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<SyncMessage>();
+	checkIdle(message);
 	Q_UNUSED(message)
 	triggerDownload();
 }
 
 void Client::onChange(const ChangeMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<ChangeMessage>();
+	checkIdle(message);
 
 	_database->addChange(_deviceId,
 						 message.dataId,
@@ -462,13 +468,12 @@ void Client::onChange(const ChangeMessage &message)
 						 message.salt,
 						 message.data);
 
-	sendMessage(serializeMessage<ChangeAckMessage>(message));
+	sendMessage<ChangeAckMessage>(message);
 }
 
 void Client::onDeviceChange(const DeviceChangeMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<DeviceChangeMessage>();
+	checkIdle(message);
 
 	_database->addDeviceChange(_deviceId,
 							   message.deviceId,
@@ -477,7 +482,7 @@ void Client::onDeviceChange(const DeviceChangeMessage &message)
 							   message.salt,
 							   message.data);
 
-	sendMessage(serializeMessage<DeviceChangeAckMessage>(message));
+	sendMessage<DeviceChangeAckMessage>(message);
 }
 
 void Client::onChangedAck(const ChangedAckMessage &message)
@@ -491,22 +496,21 @@ void Client::onChangedAck(const ChangedAckMessage &message)
 void Client::onListDevices(const ListDevicesMessage &message)
 {
 	Q_UNUSED(message);
-	if(_state != Idle)
-		throw UnexpectedException<ListDevicesMessage>();
+	checkIdle(message);
 
 	DevicesMessage devMessage;
 	foreach (auto device, _database->listDevices(_deviceId))
 		devMessage.devices.append(device);
 
-	sendMessage(serializeMessage(devMessage));
+	sendMessage(devMessage);
 }
 
 void Client::onRemove(const RemoveMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<RemoveMessage>();
+	checkIdle(message);
+
 	_database->removeDevice(_deviceId, message.deviceId);
-	sendMessage(serializeMessage<RemovedMessage>(message.deviceId));
+	sendMessage<RemovedMessage>(message.deviceId);
 	if(_deviceId == message.deviceId) {
 		_state = Error;
 		closeLater(); //in case the client does not get the message...
@@ -516,65 +520,55 @@ void Client::onRemove(const RemoveMessage &message)
 
 void Client::onAccept(const AcceptMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<AcceptMessage>();
-	else
-		emit proofDone(message.deviceId, true, message);
+	checkIdle(message);
+	emit proofDone(message.deviceId, true, message);
 }
 
 void Client::onDeny(const DenyMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<DenyMessage>();
-	else
-		emit proofDone(message.deviceId, false);
+	checkIdle(message);
+	emit proofDone(message.deviceId, false);
 }
 
 void Client::onMacUpdate(const MacUpdateMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<MacUpdateMessage>(); //TODO as check fn
-	else {
-		if(_database->updateCmac(_deviceId, message.keyIndex, message.cmac))
-			sendMessage(serializeMessage(MacUpdateAckMessage()));
-		else
-			sendError(ErrorMessage::KeyIndexError);
-	}
+	checkIdle(message);
+
+	if(_database->updateCmac(_deviceId, message.keyIndex, message.cmac))
+		sendMessage(MacUpdateAckMessage());
+	else
+		sendError(ErrorMessage::KeyIndexError);
 }
 
 void Client::onKeyChange(const KeyChangeMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<KeyChangeMessage>();
-	else {
-		auto offset = 0;
-		auto deviceInfos = _database->tryKeyChange(_deviceId, message.nextIndex, offset);
-		if(offset == 1) //accepted
-			sendMessage(serializeMessage<DeviceKeysMessage>({message.nextIndex, deviceInfos}));
-		else if(offset == 0) //proposed is the same as current (accept as duplicate, but don't send any devices)
-			sendMessage(serializeMessage<DeviceKeysMessage>(message.nextIndex));
-		else
-			sendError(ErrorMessage::KeyIndexError);
-	}
+	checkIdle(message);
+
+	auto offset = 0;
+	auto deviceInfos = _database->tryKeyChange(_deviceId, message.nextIndex, offset);
+	if(offset == 1) //accepted
+		sendMessage<DeviceKeysMessage>({message.nextIndex, deviceInfos});
+	else if(offset == 0) //proposed is the same as current (accept as duplicate, but don't send any devices)
+		sendMessage<DeviceKeysMessage>(message.nextIndex);
+	else
+		sendError(ErrorMessage::KeyIndexError);
 }
 
 void Client::onNewKey(const NewKeyMessage &message)
 {
-	if(_state != Idle)
-		throw UnexpectedException<NewKeyMessage>();
-	else {
-		auto ok = _database->updateExchageKey(_deviceId,
-											  message.keyIndex,
-											  message.scheme,
-											  message.cmac,
-											  message.deviceKeys);
-		if(ok) {
-			foreach(auto info, message.deviceKeys)
-				emit forceDisconnect(std::get<0>(info));
-			sendMessage(serializeMessage<NewKeyAckMessage>(message));
-		} else
-			sendError(ErrorMessage::KeyIndexError);
-	}
+	checkIdle(message);
+
+	auto ok = _database->updateExchageKey(_deviceId,
+										  message.keyIndex,
+										  message.scheme,
+										  message.cmac,
+										  message.deviceKeys);
+	if(ok) {
+		foreach(auto info, message.deviceKeys)
+			emit forceDisconnect(std::get<0>(info));
+		sendMessage<NewKeyAckMessage>(message);
+	} else
+		sendError(ErrorMessage::KeyIndexError);
 }
 
 void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
@@ -593,12 +587,12 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 			if(updateChange) {
 				ChangedInfoMessage message(_cachedChanges);
 				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
-				sendMessage(serializeMessage<ChangedInfoMessage>(message));
+				sendMessage<ChangedInfoMessage>(message);
 				updateChange = false; //only the first message has that info
 			} else {
 				ChangedMessage message;
 				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
-				sendMessage(serializeMessage<ChangedMessage>(message));
+				sendMessage<ChangedMessage>(message);
 			}
 			_activeDownloads.append(std::get<0>(change));
 			_cachedChanges--;
@@ -607,7 +601,7 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 
 	if(_activeDownloads.isEmpty() && !skipNoChanges) {
 		_cachedChanges = 0; //to make shure the next message is a ChangedInfoMessage
-		sendMessage(serializeMessage<LastChangedMessage>({}));
+		sendMessage<LastChangedMessage>({});
 	}
 }
 

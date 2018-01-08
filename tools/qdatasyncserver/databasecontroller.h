@@ -41,7 +41,6 @@ class DatabaseController : public QObject
 	Q_OBJECT
 
 public:
-	//TODO use triggers and constraints where possible
 	explicit DatabaseController(QObject *parent = nullptr);
 
 	void cleanupDevices(quint64 offlineSinceDays);

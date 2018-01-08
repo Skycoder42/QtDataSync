@@ -29,7 +29,6 @@ namespace QtDataSync {
 class ClientCrypto;
 class SymmetricCrypto;
 
-//TODO method cleanup
 class Q_DATASYNC_EXPORT CryptoController : public Controller
 {
 	Q_OBJECT
@@ -60,39 +59,47 @@ public:
 	void initialize(const QVariantHash &params) final;
 	void finalize() final;
 
+	//status access
 	ClientCrypto *crypto() const;
 	CryptoPP::RandomNumberGenerator &rng() const;
 	QByteArray fingerprint() const;
 	quint32 keyIndex() const;
+	bool hasKeyUpdate() const;
 
-	std::tuple<quint32, QByteArray, QByteArray> encryptSecretKey(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const; //(keyIndex, scheme, data)
-	QByteArray encryptSecretKey(quint32 keyIndex, AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const;
-	void decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit);
-	QByteArray generateCryptoKeyCmac() const;
-	QByteArray generateCryptoKeyCmac(quint32 keyIndex) const;
-	void verifyCryptoKeyCmac(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey, const QByteArray &cmac) const;
-	std::tuple<quint32, QByteArray> generateNextKey(); //(keyIndex, scheme)
-	void activateNextKey(quint32 keyIndex);
-
+	//load, clear, remove key material
 	bool acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);
 	void clearKeyMaterial();
 	void deleteKeyMaterial(const QUuid &deviceId);
 
+	//create and store new keys
 	void createPrivateKeys(const QByteArray &nonce);
 	void storePrivateKeys(const QUuid &deviceId) const;
 
+	//wrapper to sign a message
 	template <typename TMessage>
 	QByteArray serializeSignedMessage(const TMessage &message);
 
-	std::tuple<quint32, QByteArray, QByteArray> encrypt(const QByteArray &data); //(keyIndex, salt, data)
-	QByteArray decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const;
+	//used for transport encryption of actual data
+	std::tuple<quint32, QByteArray, QByteArray> encryptData(const QByteArray &data); //(keyIndex, salt, data)
+	QByteArray decryptData(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const;
 
+	// cmac generation for verification of key updates etc.
 	QByteArray createCmac(const QByteArray &data) const;
 	QByteArray createCmac(quint32 keyIndex, const QByteArray &data) const; //(keyIndex, cmac)
 	void verifyCmac(quint32 keyIndex, const QByteArray &data, const QByteArray &mac) const;
 
-	//exchange stuff
+	// secret key related, for exchanging the secret key with other devices
+	std::tuple<quint32, QByteArray, QByteArray> encryptSecretKey(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const; //(keyIndex, scheme, data)
+	QByteArray encryptSecretKey(quint32 keyIndex, AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey) const;
+	void decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit);
+	QByteArray generateEncryptionKeyCmac() const;
+	QByteArray generateEncryptionKeyCmac(quint32 keyIndex) const;
+	void verifyEncryptionKeyCmac(AsymmetricCrypto *crypto, const CryptoPP::X509PublicKey &pubKey, const QByteArray &cmac) const;
+	std::tuple<quint32, QByteArray> generateNextKey(); //(keyIndex, scheme)
+	void activateNextKey(quint32 keyIndex);
+
+	//export and import key methods for exchange security
 	std::tuple<QByteArray, QByteArray, CryptoPP::SecByteBlock> generateExportKey(const QString &password) const; //(scheme, salt, key)
 	CryptoPP::SecByteBlock recoverExportKey(const QByteArray &scheme, const QByteArray &salt, const QString &password) const;
 	QByteArray createExportCmac(const QByteArray &scheme, const CryptoPP::SecByteBlock &key, const QByteArray &data) const;
@@ -136,16 +143,17 @@ private:
 
 	void ensureStoreOpen() const;
 	void closeStore() const;
+
+	QDir keysDir() const;
+	CipherInfo createInfo() const;
+	const CipherInfo &getInfo(quint32 keyIndex) const;
 	void storeCipherKey(quint32 keyIndex) const;
 	void cleanCiphers() const;
 
-	CipherInfo createCipher() const;
-	const CipherInfo &getInfo(quint32 keyIndex) const;
-	QDir keysDir() const;
-	QByteArray genCmac(const CipherInfo &info, const QByteArray &data) const;
-	void verCmac(const CipherInfo &info, const QByteArray &data, const QByteArray &mac) const;
-	QByteArray symEncrypt(const CipherInfo &info, const QByteArray &salt, const QByteArray &plain) const;
-	QByteArray symDecrypt(const CipherInfo &info, const QByteArray &salt, const QByteArray &cipher) const;
+	QByteArray createCmacImpl(const CipherInfo &info, const QByteArray &data) const;
+	void verifyCmacImpl(const CipherInfo &info, const QByteArray &data, const QByteArray &mac) const;
+	QByteArray encryptImpl(const CipherInfo &info, const QByteArray &salt, const QByteArray &plain) const;
+	QByteArray decryptImpl(const CipherInfo &info, const QByteArray &salt, const QByteArray &cipher) const;
 };
 
 class Q_DATASYNC_EXPORT ClientCrypto : public AsymmetricCrypto

@@ -156,7 +156,7 @@ std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::expo
 		data.config = QSharedPointer<RemoteConfig>::create(loadConfig());
 
 	_exportsCache.insert(data.pNonce, key);
-	return std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock>{data, salt, key};
+	return std::make_tuple(data, salt, key);
 }
 
 bool RemoteConnector::isSyncEnabled() const
@@ -186,7 +186,7 @@ void RemoteConnector::resync()
 		return;
 	}
 	emit remoteEvent(RemoteReadyWithChanges);
-	_socket->sendBinaryMessage(serializeMessage(SyncMessage()));
+	sendMessage(SyncMessage());
 }
 
 void RemoteConnector::listDevices()
@@ -195,7 +195,7 @@ void RemoteConnector::listDevices()
 		logInfo() << "Cannot list devices when not in idle state. Ignoring request";
 		return;
 	}
-	_socket->sendBinaryMessage(serializeMessage(ListDevicesMessage()));
+	sendMessage(ListDevicesMessage());
 }
 
 void RemoteConnector::removeDevice(const QUuid &deviceId)
@@ -208,40 +208,35 @@ void RemoteConnector::removeDevice(const QUuid &deviceId)
 		logWarning() << "Cannot delete your own device. Use reset the account instead";
 		return;
 	}
-	_socket->sendBinaryMessage(serializeMessage<RemoveMessage>(deviceId));
+	sendMessage<RemoveMessage>(deviceId);
 }
 
 void RemoteConnector::resetAccount(bool clearConfig)
 {
-	try {
-		if(clearConfig) { //always clear, in order to reset imports
-			settings()->remove(keyRemoteConfig);
-			settings()->remove(keyImport);
-		}
+	if(clearConfig) { //always clear, in order to reset imports
+		settings()->remove(keyRemoteConfig);
+		settings()->remove(keyImport);
+	}
 
-		auto devId = _deviceId;
-		if(devId.isNull())
-			devId = sValue(keyDeviceId).toUuid();
+	auto devId = _deviceId;
+	if(devId.isNull())
+		devId = sValue(keyDeviceId).toUuid();
 
-		if(!devId.isNull()) {
-			clearCaches(true);
-			settings()->remove(keyDeviceId);
-			_cryptoController->deleteKeyMaterial(devId);
-			if(isIdle()) {//delete yourself. Remote will disconnecte once done
-				Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
-				_socket->sendBinaryMessage(serializeMessage<RemoveMessage>(devId));
-			} else {
-				_deviceId = QUuid();
-				reconnect();
-			}
+	if(!devId.isNull()) {
+		clearCaches(true);
+		settings()->remove(keyDeviceId);
+		_cryptoController->deleteKeyMaterial(devId);
+		if(isIdle()) {//delete yourself. Remote will disconnecte once done
+			Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
+			sendMessage<RemoveMessage>(devId);
 		} else {
-			logInfo() << "Skipping server reset, not registered to a server";
-			//still reconnect, as this "completes" the operation (and is needed for imports)
+			_deviceId = QUuid();
 			reconnect();
 		}
-	} catch(Exception &e) {
-		logCritical() << "Failed to reset account completly:" << e.what();
-		triggerError(true);
+	} else {
+		logInfo() << "Skipping server reset, not registered to a server";
+		//still reconnect, as this "completes" the operation (and is needed for imports)
+		reconnect();
 	}
 }
 
@@ -281,83 +276,78 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 		if(accept) {
 			AcceptMessage message(deviceId);
 			std::tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
-			_socket->sendBinaryMessage(serializeMessage(message));
+			sendMessage(message);
 			emit prepareAddedData(deviceId);
 			emit accountAccessGranted(deviceId);
 		} else
-			_socket->sendBinaryMessage(serializeMessage<DenyMessage>(deviceId));
+			sendMessage<DenyMessage>(deviceId);
 	} catch(Exception &e) {
 		logWarning() << "Failed to reply to login with error:" << e.what();
 		//simply send a deny
-		_socket->sendBinaryMessage(serializeMessage<DenyMessage>(deviceId));
+		sendMessage<DenyMessage>(deviceId);
 	}
 }
 
 void RemoteConnector::initKeyUpdate()
 {
-	try {
-		if(!isIdle()) {
-			logWarning() << "Can't update secret keys when not in idle state. Ignoring request";
-			return;
-		}
+	if(!isIdle()) {
+		logWarning() << "Can't update secret keys when not in idle state. Ignoring request";
+		return;
+	}
 
-		//TODO do on idle state, if cached key changes
-		_socket->sendBinaryMessage(serializeMessage<KeyChangeMessage>(_cryptoController->keyIndex() + 1));
+	try {
+		sendMessage<KeyChangeMessage>(_cryptoController->keyIndex() + 1);
 	} catch(Exception &e) {
-		//simulate a "normal" client error
-		onError({ErrorMessage::LocalError, e.qWhat()}); //TODO second method parameter instead...
+		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<KeyChangeMessage>());
 	}
 }
 
 void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &changeData)
 {
-	try {
-		if(!isIdle()) {
-			logWarning() << "Can't upload when not in idle state. Ignoring request";
-			return;
-		}
+	if(!isIdle()) {
+		logWarning() << "Can't upload when not in idle state. Ignoring request";
+		return;
+	}
 
+	try {
 		ChangeMessage message(key);
-		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
-		_socket->sendBinaryMessage(serializeMessage(message));
+		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
+		sendMessage(message);
 	} catch(Exception &e) {
-		//simulate a "normal" client error
-		onError({ErrorMessage::LocalError, e.qWhat()});
+		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<ChangeMessage>());
 	}
 }
 
 void RemoteConnector::uploadDeviceData(const QByteArray &key, const QUuid &deviceId, const QByteArray &changeData)
 {
-	try {
-		if(!isIdle()) {
-			logWarning() << "Can't upload when not in idle state. Ignoring request";
-			return;
-		}
+	if(!isIdle()) {
+		logWarning() << "Can't upload when not in idle state. Ignoring request";
+		return;
+	}
 
+	try {
 		DeviceChangeMessage message(key, deviceId);
-		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encrypt(changeData);
-		_socket->sendBinaryMessage(serializeMessage(message));
+		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
+		sendMessage(message);
 	} catch(Exception &e) {
-		//simulate a "normal" client error
-		onError({ErrorMessage::LocalError, e.qWhat()});
+		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<DeviceChangeMessage>());
 	}
 }
 
 void RemoteConnector::downloadDone(const quint64 key)
 {
-	try {
-		if(!isIdle()) {
-			logWarning() << "Can't download when not in idle state. Ignoring request";
-			return;
-		}
+	if(!isIdle()) {
+		logWarning() << "Can't download when not in idle state. Ignoring request";
+		return;
+	}
 
+	try {
 		ChangedAckMessage message(key);
-		_socket->sendBinaryMessage(serializeMessage(message));
+		sendMessage(message);
 		emit progressIncrement();
 		beginOp(std::chrono::minutes(5), false);
 	} catch(Exception &e) {
-		//simulate a "normal" client error
-		onError({ErrorMessage::LocalError, e.qWhat()});
+		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<ChangedAckMessage>());
 	}
 }
 
@@ -426,11 +416,11 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		return;
 	}
 
+	QByteArray name;
 	try {
 		QDataStream stream(message);
 		setupStream(stream);
 		stream.startTransaction();
-		QByteArray name;
 		stream >> name;
 		if(!stream.commitTransaction())
 			throw DataStreamException(stream);
@@ -476,7 +466,15 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		triggerError(true);
 	} catch(Exception &e) {
 		//simulate a "normal" client error
-		onError({ErrorMessage::LocalError, e.qWhat()});
+		onError({ErrorMessage::ClientError, e.qWhat()}, name);
+#ifdef __clang__
+	} catch(std::exception &e) {
+#else
+	} catch(CryptoPP::Exception &e) {
+#endif
+		//simulate a "normal" client error
+		CryptoException tmpExcept(defaults(), QStringLiteral("Crypto-Operation in external context failed"), e);
+		onError({ErrorMessage::ClientError, tmpExcept.qWhat()}, name);
 	}
 }
 
@@ -625,6 +623,9 @@ void RemoteConnector::scheduleRetry()
 void RemoteConnector::onEntryIdleState()
 {
 	_retryIndex = 0;
+	if(_cryptoController->hasKeyUpdate())
+		initKeyUpdate();
+
 	if(_expectChanges) {
 		_expectChanges = false;
 		logDebug() << "Server has changes. Reloading states";
@@ -640,13 +641,19 @@ void RemoteConnector::onExitActiveState()
 	emit remoteEvent(RemoteDisconnected);
 }
 
+template<typename TMessage>
+void RemoteConnector::sendMessage(const TMessage &message)
+{
+	_socket->sendBinaryMessage(serializeMessage(message));
+}
+
 bool RemoteConnector::isIdle() const
 {
 	return _stateMachine->isActive(QStringLiteral("Idle"));
 }
 
 template<typename TMessage>
-bool RemoteConnector::checkIdle()
+bool RemoteConnector::checkIdle(const TMessage &)
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be checked");
 	if(isIdle())
@@ -810,14 +817,14 @@ void RemoteConnector::storeConfig(const RemoteConfig &config)
 void RemoteConnector::sendKeyUpdate()
 {
 	settings()->setValue(keySendCmac, true);
-	auto cmac = _cryptoController->generateCryptoKeyCmac();
-	_socket->sendBinaryMessage(serializeMessage<MacUpdateMessage>({_cryptoController->keyIndex(), cmac}));
+	auto cmac = _cryptoController->generateEncryptionKeyCmac();
+	sendMessage<MacUpdateMessage>({_cryptoController->keyIndex(), cmac});
 }
 
-void RemoteConnector::onError(const ErrorMessage &message)
+void RemoteConnector::onError(const ErrorMessage &message, const QByteArray &messageName)
 {
-	if(message.type == ErrorMessage::LocalError)
-		logCritical().noquote() << "Local error:" << message.message;
+	if(!messageName.isEmpty())
+		logCritical().noquote() << "Local error on " << messageName << ": " << message.message;
 	else
 		logCritical() << message;
 	triggerError(message.canRecover);
@@ -836,7 +843,6 @@ void RemoteConnector::onError(const ErrorMessage &message)
 		case ErrorMessage::KeyIndexError:
 			emit controllerError(tr("Cannot update key! This client is not using the latest existing keys."));
 			break;
-		case ErrorMessage::LocalError:
 		case ErrorMessage::ClientError:
 		case ErrorMessage::ServerError:
 		case ErrorMessage::UnexpectedMessageError:
@@ -881,7 +887,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 									crypto->signKey(),
 									crypto->cryptKey(),
 									crypto,
-									_cryptoController->generateCryptoKeyCmac());
+									_cryptoController->generateEncryptionKeyCmac());
 				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
 				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
 				_socket->sendBinaryMessage(signedMsg);
@@ -986,20 +992,20 @@ void RemoteConnector::onGrant(const GrantMessage &message)
 
 void RemoteConnector::onChangeAck(const ChangeAckMessage &message)
 {
-	if(checkIdle<ChangeAckMessage>())
+	if(checkIdle(message))
 		emit uploadDone(message.dataId);
 }
 
 void RemoteConnector::onDeviceChangeAck(const DeviceChangeAckMessage &message)
 {
-	if(checkIdle<DeviceChangeAckMessage>())
+	if(checkIdle(message))
 		emit deviceUploadDone(message.dataId, message.deviceId);
 }
 
 void RemoteConnector::onChanged(const ChangedMessage &message)
 {
-	if(checkIdle<ChangedMessage>()) {
-		auto data = _cryptoController->decrypt(message.keyIndex,
+	if(checkIdle(message)) {
+		auto data = _cryptoController->decryptData(message.keyIndex,
 											   message.salt,
 											   message.data);
 		beginOp();//start download timeout
@@ -1009,7 +1015,7 @@ void RemoteConnector::onChanged(const ChangedMessage &message)
 
 void RemoteConnector::onChangedInfo(const ChangedInfoMessage &message)
 {
-	if(checkIdle<ChangedInfoMessage>()) {
+	if(checkIdle(message)) {
 		logDebug() << "Started downloading, estimated changes:" << message.changeEstimate;
 		//emit event to enter downloading state
 		emit remoteEvent(RemoteReadyWithChanges);
@@ -1023,7 +1029,7 @@ void RemoteConnector::onLastChanged(const LastChangedMessage &message)
 {
 	Q_UNUSED(message)
 
-	if(checkIdle<LastChangedMessage>()) {
+	if(checkIdle(message)) {
 		logDebug() << "Completed downloading changes";
 		endOp(); //downloads done
 		emit remoteEvent(RemoteReady); //back to normal
@@ -1032,7 +1038,7 @@ void RemoteConnector::onLastChanged(const LastChangedMessage &message)
 
 void RemoteConnector::onDevices(const DevicesMessage &message)
 {
-	if(checkIdle<DevicesMessage>()) {
+	if(checkIdle(message)) {
 		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
 		_deviceCache.clear();
 		foreach(auto device, message.devices)
@@ -1043,7 +1049,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 
 void RemoteConnector::onRemoved(const RemovedMessage &message)
 {
-	if(checkIdle<RemovedMessage>()) {
+	if(checkIdle(message)) {
 		logDebug() << "Device with id" << message.deviceId << "was removed";
 		if(_deviceId == message.deviceId) {
 			_deviceId = QUuid();
@@ -1063,7 +1069,7 @@ void RemoteConnector::onRemoved(const RemovedMessage &message)
 
 void RemoteConnector::onProof(const ProofMessage &message)
 {
-	if(checkIdle<ProofMessage>()) {
+	if(checkIdle(message)) {
 		try {
 			//check if expected and verify cmac
 			auto key = _exportsCache.take(message.pNonce);
@@ -1079,7 +1085,7 @@ void RemoteConnector::onProof(const ProofMessage &message)
 																		  message.signAlgorithm,
 																		  message.signKey,
 																		  message.cryptAlgorithm,
-																		  message.cryptKey); //TODO catch cryptopp exceptions
+																		  message.cryptKey);
 
 			//verify trustmac if given
 			auto trusted = !message.trustmac.isNull();
@@ -1107,12 +1113,12 @@ void RemoteConnector::onProof(const ProofMessage &message)
 			QTimer::singleShot(scdtime(std::chrono::minutes(10)), Qt::VeryCoarseTimer, this, [this, deviceId]() {
 				if(_activeProofs.remove(deviceId) > 0) {
 					logWarning() << "Rejecting ProofMessage after timeout";
-					_socket->sendBinaryMessage(serializeMessage<DenyMessage>(deviceId));
+					sendMessage<DenyMessage>(deviceId);
 				}
 			});
 		} catch(Exception &e) {
 			logWarning() << "Rejecting ProofMessage with error:" << e.what();
-			_socket->sendBinaryMessage(serializeMessage<DenyMessage>(message.deviceId));
+			sendMessage<DenyMessage>(message.deviceId);
 		}
 	}
 }
@@ -1120,19 +1126,19 @@ void RemoteConnector::onProof(const ProofMessage &message)
 void RemoteConnector::onMacUpdateAck(const MacUpdateAckMessage &message)
 {
 	Q_UNUSED(message)
-	if(checkIdle<MacUpdateAckMessage>()) //TODO message as param
+	if(checkIdle(message))
 		settings()->remove(keySendCmac);
 }
 
 void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 {
-	if(checkIdle<DeviceKeysMessage>()) {
+	if(checkIdle(message)) {
 		if(message.duplicated)
 			_cryptoController->activateNextKey(message.keyIndex);
 		else {
 			NewKeyMessage reply;
-			std::tie(reply.keyIndex, reply.scheme) = _cryptoController->generateNextKey(); //TODO use make_tuple EVERYWHERE
-			reply.cmac = _cryptoController->generateCryptoKeyCmac(reply.keyIndex); //cmac for the new key
+			std::tie(reply.keyIndex, reply.scheme) = _cryptoController->generateNextKey();
+			reply.cmac = _cryptoController->generateEncryptionKeyCmac(reply.keyIndex); //cmac for the new key
 			//do not store this mac to be send again!
 
 			foreach(auto info, message.devices) {
@@ -1140,8 +1146,8 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 					//verify the device knows the previous secret (which is still the current one)
 					auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->rng(),
 																				  std::get<1>(info),
-																				  std::get<2>(info)); //TODO catch cryptopp exceptions
-					_cryptoController->verifyCryptoKeyCmac(cryptInfo.data(),
+																				  std::get<2>(info));
+					_cryptoController->verifyEncryptionKeyCmac(cryptInfo.data(),
 														   cryptInfo->encryptionKey(),
 														   std::get<3>(info));
 
@@ -1162,7 +1168,7 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 				}
 			}
 
-			_socket->sendBinaryMessage(serializeMessage(reply));
+			sendMessage(reply);
 			logDebug() << "Sent key update to server";
 		}
 	}
@@ -1170,7 +1176,7 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 
 void RemoteConnector::onNewKeyAck(const NewKeyAckMessage &message)
 {
-	if(checkIdle<NewKeyAckMessage>())
+	if(checkIdle(message))
 		_cryptoController->activateNextKey(message.keyIndex);
 }
 

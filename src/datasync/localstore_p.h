@@ -91,7 +91,7 @@ public:
 	quint32 changeCount() const;
 	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const;
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
-	void removeDeviceChange(const ObjectKey &key, const QUuid &deviceId); //TODO unittest
+	void removeDeviceChange(const ObjectKey &key, const QUuid &deviceId);
 
 	// sync access
 	SyncScope startSync(const ObjectKey &key) const;
@@ -121,7 +121,7 @@ public Q_SLOTS:
 	void setCacheSize(int cacheSize);
 	void resetCacheSize();
 
-	void prepareAccountAdded(const QUuid &deviceId); //TODO unittest
+	void prepareAccountAdded(const QUuid &deviceId);
 
 Q_SIGNALS:
 	void dataChanged(const QtDataSync::ObjectKey &key, bool deleted);

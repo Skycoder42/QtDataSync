@@ -169,155 +169,9 @@ quint32 CryptoController::keyIndex() const
 	return _localCipher;
 }
 
-std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
+bool CryptoController::hasKeyUpdate() const
 {
-	try {
-		auto info = getInfo(_localCipher);
-		auto data = encryptSecretKey(_localCipher, crypto, pubKey);
-		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, info.scheme->name(), data};
-#ifdef __clang__
-	} catch(QException &e) { //prevent catching the std::exception
-		throw;
-#endif
-	} catch(CppException &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to encrypt secret key for peer"),
-							  e);
-	}
-}
-
-QByteArray CryptoController::encryptSecretKey(quint32 keyIndex, AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
-{
-	try {
-		auto info = getInfo(keyIndex);
-		auto data = crypto->encrypt(pubKey,
-									_asymCrypto->rng(),
-									QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()), static_cast<int>(info.key.size())));
-		return data;
-	} catch(CppException &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to encrypt secret key for peer"),
-							  e);
-	}
-}
-
-void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit)
-{
-	try {
-		auto key = _asymCrypto->decrypt(data);
-
-		CipherInfo info;
-		createScheme(scheme, info.scheme);
-		info.key.Assign(reinterpret_cast<const byte*>(key.constData()), key.size());
-
-		_loadedChiphers.insert(keyIndex, info);
-		if(grantInit)
-			_localCipher = keyIndex;
-		else {
-			storeCipherKey(keyIndex);
-			if(keyIndex > _localCipher) {
-				_localCipher = keyIndex;
-				settings()->setValue(keyLocalSymKey, _localCipher);
-				logInfo() << "Update cipher key to index" << _localCipher;
-				cleanCiphers();
-			}
-		}
-	} catch(CppException &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to decrypt secret key from peer"),
-							  e);
-	}
-}
-
-QByteArray CryptoController::generateCryptoKeyCmac() const
-{
-	return generateCryptoKeyCmac(_localCipher);
-}
-
-QByteArray CryptoController::generateCryptoKeyCmac(quint32 keyIndex) const
-{
-	try {
-		QByteArray message = _asymCrypto->encryptionScheme() +
-							 _asymCrypto->writeCryptKey();
-		return createCmac(keyIndex, message);
-#ifdef __clang__
-	} catch(QException &e) { //prevent catching the std::exception
-		throw;
-#endif
-	} catch(CppException &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed create CMAC for private encryption key"),
-							  e);
-	}
-}
-
-void CryptoController::verifyCryptoKeyCmac(AsymmetricCrypto *crypto, const X509PublicKey &pubKey, const QByteArray &cmac) const
-{
-	try {
-		QByteArray message = crypto->encryptionScheme() +
-							 crypto->writeKey(pubKey);
-		verifyCmac(_localCipher, message, cmac);
-#ifdef __clang__
-	} catch(QException &e) { //prevent catching the std::exception
-		throw;
-#endif
-	} catch(CppException &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed create CMAC for private encryption key"),
-							  e);
-	}
-}
-
-std::tuple<quint32, QByteArray> CryptoController::generateNextKey()
-{
-	try {
-		auto keyIndex = _localCipher + 1;
-		auto nIndex = settings()->value(keyNextSymKey);
-		CipherInfo info;
-		if(nIndex.isValid() && nIndex.toUInt() == keyIndex)
-			info = getInfo(keyIndex);
-		else {
-			info = createCipher();
-			_loadedChiphers.insert(keyIndex, info);
-			storeCipherKey(keyIndex);
-			settings()->setValue(keyNextSymKey, keyIndex);
-			//not set as active key yet
-			logDebug().noquote() << "Generated new exchange key";
-		}
-		return std::tuple<quint32, QByteArray>{keyIndex, info.scheme->name()};
-	} catch(CppException &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to generate new exchange key"),
-							  e);
-	}
-}
-
-void CryptoController::activateNextKey(quint32 keyIndex)
-{
-	try {
-		if(_localCipher + 1 != keyIndex) {
-			logWarning() << "Unexpected keychange index, is not current + 1";
-			return;
-		}
-
-		auto nIndex = settings()->value(keyNextSymKey).toUInt();
-		if(keyIndex != nIndex) {
-			logWarning() << "Unexpected keychange index, is not the currently store key proposal";
-			return;
-		}
-
-		getInfo(keyIndex); // just to make shure the key is actually available and can be loaded
-
-		_localCipher = keyIndex;
-		settings()->setValue(keyLocalSymKey, _localCipher);
-		settings()->remove(keyNextSymKey);
-		logDebug() << "Stored and applied new exchange key";
-		cleanCiphers();
-	} catch(CppException &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to save new exchange key"),
-							  e);
-	}
+	return settings()->contains(keyNextSymKey);
 }
 
 bool CryptoController::acquireStore(bool existing)
@@ -383,7 +237,7 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 	} catch(CppException &e) {
 		closeStore();
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to import private key"),
+							  QStringLiteral("Failed to load key material"),
 							  e);
 	}
 }
@@ -401,32 +255,24 @@ void CryptoController::clearKeyMaterial()
 
 void CryptoController::deleteKeyMaterial(const QUuid &deviceId)
 {
+	//remove all saved keys
+	auto keyDir = keysDir();
+	if(!keyDir.removeRecursively())
+		logWarning() << "Failed to completely delete old exchange keys";
+
+	settings()->remove(keySignScheme);
+	settings()->remove(keyCryptScheme);
+	settings()->remove(keyLocalSymKey);
+	settings()->remove(keyKeystore);
+
 	try {
-		//remove all saved keys
-		auto keyDir = keysDir();
-		keyDir.removeRecursively();
-
-		settings()->remove(keySignScheme);
-		settings()->remove(keyCryptScheme);
-		settings()->remove(keyLocalSymKey);
-		settings()->remove(keyKeystore);
-
 		ensureStoreOpen();
 		_keyStore->remove(keySignKeyTemplate.arg(deviceId.toString()));
 		_keyStore->remove(keyCryptKeyTemplate.arg(deviceId.toString()));
-		closeStore();
-
-#ifdef __clang__
-	} catch(QException &e) { //prevent catching the std::exception
-		throw;
-#endif
 	} catch(CppException &e) {
-		closeStore();
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to remove private key"),
-							  e);
+		logWarning() << "Failed to delete private keys from keystore with error:" << e.what();
 	}
-
+	closeStore();
 	//clear loaded keys
 	clearKeyMaterial();
 }
@@ -446,7 +292,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 		emit fingerprintChanged(_fingerprint);
 
 		//create symmetric cipher and the key
-		auto info = createCipher();
+		auto info = createInfo();
 		_localCipher = 0;
 		_loadedChiphers.insert(_localCipher, info);
 
@@ -454,7 +300,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 							 << _fingerprint.toHex();
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to generate private key"),
+							  QStringLiteral("Failed to generate key material"),
 							  e);
 	}
 }
@@ -482,21 +328,21 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 	} catch(CppException &e) {
 		closeStore();
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to generate private key"),
+							  QStringLiteral("Failed to store key material"),
 							  e);
 	}
 }
 
-std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByteArray &plain)
+std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptData(const QByteArray &plain)
 {
 	try {
 		auto info = getInfo(_localCipher);
 		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
 		_asymCrypto->rng().GenerateBlock(reinterpret_cast<byte*>(salt.data()), salt.size());
 
-		auto cipher = symEncrypt(info, salt, plain);
+		auto cipher = encryptImpl(info, salt, plain);
 
-		return std::tuple<quint32, QByteArray, QByteArray>{_localCipher, salt, cipher};
+		return std::make_tuple(_localCipher, salt, cipher);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt data for upload"),
@@ -504,11 +350,11 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encrypt(const QByt
 	}
 }
 
-QByteArray CryptoController::decrypt(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const
+QByteArray CryptoController::decryptData(quint32 keyIndex, const QByteArray &salt, const QByteArray &cipher) const
 {
 	try {
 		auto info = getInfo(keyIndex);
-		return symDecrypt(info, salt, cipher);
+		return decryptImpl(info, salt, cipher);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to decrypt downloaded data"),
@@ -525,7 +371,7 @@ QByteArray CryptoController::createCmac(quint32 keyIndex, const QByteArray &data
 {
 	try {
 		auto info = getInfo(keyIndex);
-		return genCmac(info, data);
+		return createCmacImpl(info, data);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to create CMAC"),
@@ -537,10 +383,155 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 {
 	try {
 		auto info = getInfo(keyIndex);
-		verCmac(info, data, mac);
+		verifyCmacImpl(info, data, mac);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify CMAC"),
+							  e);
+	}
+}
+
+std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
+{
+	try {
+		auto info = getInfo(_localCipher);
+		auto data = encryptSecretKey(_localCipher, crypto, pubKey);
+		return std::make_tuple(_localCipher, info.scheme->name(), data);
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to encrypt secret key for peer"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::encryptSecretKey(quint32 keyIndex, AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
+{
+	try {
+		auto info = getInfo(keyIndex);
+		auto data = crypto->encrypt(pubKey,
+									_asymCrypto->rng(),
+									QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()), static_cast<int>(info.key.size())));
+		return data;
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to encrypt secret key for peer"),
+							  e);
+	}
+}
+
+void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &scheme, const QByteArray &data, bool grantInit)
+{
+	try {
+		auto key = _asymCrypto->decrypt(data);
+
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key.Assign(reinterpret_cast<const byte*>(key.constData()), key.size());
+
+		_loadedChiphers.insert(keyIndex, info);
+		if(grantInit)
+			_localCipher = keyIndex;
+		else {
+			storeCipherKey(keyIndex);
+			if(keyIndex > _localCipher) {
+				_localCipher = keyIndex;
+				settings()->setValue(keyLocalSymKey, _localCipher);
+				logInfo() << "Update cipher key to index" << _localCipher;
+				cleanCiphers();
+			}
+		}
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to decrypt secret key from peer"),
+							  e);
+	}
+}
+
+QByteArray CryptoController::generateEncryptionKeyCmac() const
+{
+	return generateEncryptionKeyCmac(_localCipher);
+}
+
+QByteArray CryptoController::generateEncryptionKeyCmac(quint32 keyIndex) const
+{
+	try {
+		QByteArray message = _asymCrypto->encryptionScheme() +
+							 _asymCrypto->writeCryptKey();
+		auto info = getInfo(keyIndex);
+		return createCmacImpl(info, message);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed create CMAC for private encryption key"),
+							  e);
+	}
+}
+
+void CryptoController::verifyEncryptionKeyCmac(AsymmetricCrypto *crypto, const X509PublicKey &pubKey, const QByteArray &cmac) const
+{
+	try {
+		QByteArray message = crypto->encryptionScheme() +
+							 crypto->writeKey(pubKey);
+		auto info = getInfo(_localCipher);
+		verifyCmacImpl(info, message, cmac);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed create CMAC for private encryption key"),
+							  e);
+	}
+}
+
+std::tuple<quint32, QByteArray> CryptoController::generateNextKey()
+{
+	try {
+		auto keyIndex = _localCipher + 1;
+		auto nIndex = settings()->value(keyNextSymKey);
+		CipherInfo info;
+		if(nIndex.isValid() && nIndex.toUInt() == keyIndex)
+			info = getInfo(keyIndex);
+		else {
+			info = createInfo();
+			_loadedChiphers.insert(keyIndex, info);
+			storeCipherKey(keyIndex);
+			settings()->setValue(keyNextSymKey, keyIndex);
+			//not set as active key yet
+			logDebug().noquote() << "Generated new exchange key";
+		}
+		return std::make_tuple(keyIndex, info.scheme->name());
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to generate new exchange key"),
+							  e);
+	}
+}
+
+void CryptoController::activateNextKey(quint32 keyIndex)
+{
+	try {
+		if(_localCipher + 1 != keyIndex) {
+			logWarning() << "Unexpected keychange index, is not current + 1";
+			return;
+		}
+
+		auto nIndex = settings()->value(keyNextSymKey).toUInt();
+		if(keyIndex != nIndex) {
+			logWarning() << "Unexpected keychange index, is not the currently store key proposal";
+			return;
+		}
+
+		getInfo(keyIndex); // just to make shure the key is actually available and can be loaded
+
+		_localCipher = keyIndex;
+		settings()->setValue(keyLocalSymKey, _localCipher);
+		settings()->remove(keyNextSymKey);
+		logDebug() << "Stored and applied new exchange key";
+		cleanCiphers();
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to save new exchange key"),
 							  e);
 	}
 }
@@ -571,7 +562,7 @@ std::tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExpor
 							 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
 		}
 
-		return std::tuple<QByteArray, QByteArray, SecByteBlock>{info.scheme->name(), salt, info.key};
+		return std::make_tuple(info.scheme->name(), salt, info.key);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate key from password"),
@@ -609,7 +600,7 @@ QByteArray CryptoController::createExportCmac(const QByteArray &scheme, const Se
 		CipherInfo info;
 		createScheme(scheme, info.scheme);
 		info.key = key;
-		return genCmac(info, data);
+		return createCmacImpl(info, data);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate cmac for export data"),
@@ -623,7 +614,7 @@ void CryptoController::verifyImportCmac(const QByteArray &scheme, const SecByteB
 		CipherInfo info;
 		createScheme(scheme, info.scheme);
 		info.key = key;
-		return verCmac(info, data, mac);
+		return verifyCmacImpl(info, data, mac);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify cmac for import data"),
@@ -637,7 +628,7 @@ QByteArray CryptoController::exportEncrypt(const QByteArray &scheme, const QByte
 		CipherInfo info;
 		createScheme(scheme, info.scheme);
 		info.key = key;
-		return symEncrypt(info, salt, data);
+		return encryptImpl(info, salt, data);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt export data"),
@@ -651,7 +642,7 @@ QByteArray CryptoController::importDecrypt(const QByteArray &scheme, const QByte
 		CipherInfo info;
 		createScheme(scheme, info.scheme);
 		info.key = key;
-		return symDecrypt(info, salt, data);
+		return decryptImpl(info, salt, data);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to decrypt downloaded data"),
@@ -716,7 +707,7 @@ void CryptoController::ensureStoreOpen() const
 		if(!_keyStore->isOpen())
 			_keyStore->openStore();
 	} else
-		throw Exception(defaults(), QStringLiteral("No keystore available"));
+		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "No keystore available");
 }
 
 void CryptoController::closeStore() const
@@ -729,44 +720,16 @@ void CryptoController::closeStore() const
 	}
 }
 
-void CryptoController::storeCipherKey(quint32 keyIndex) const
+QDir CryptoController::keysDir() const
 {
-	auto keyDir = keysDir();
-	auto info = getInfo(keyIndex);
-	auto encData = _asymCrypto->encrypt(_asymCrypto->cryptKey(),
-										QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()),
-																static_cast<int>(info.key.size())));
-	QFile keyFile(keyDir.absoluteFilePath(keyKeyFileTemplate.arg(keyIndex)));
-	if(!keyFile.open(QIODevice::WriteOnly))
-		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, keyFile.errorString().toStdString());
-	keyFile.write(encData);
-	keyFile.close();
-
-	settings()->setValue(keySymKeysTemplate.arg(keyIndex), info.scheme->name());
+	auto keyDirName = QStringLiteral("keys");
+	auto keyDir = defaults().storageDir();
+	if(!keyDir.mkpath(keyDirName) || !keyDir.cd(keyDirName))
+		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, "Failed to create keys directory");
+	return keyDir;
 }
 
-void CryptoController::cleanCiphers() const
-{
-	auto keyDir = keysDir();
-
-	settings()->beginGroup(keySymKeys);
-	auto keys = settings()->childKeys();
-	settings()->endGroup();
-
-	foreach(auto key, keys) {
-		auto ok = false;
-		auto keyIndex = key.toUInt(&ok);
-		if(!ok)
-			continue;
-
-		if((keyIndex + 5) < _localCipher) {
-			settings()->remove(keySymKeysTemplate.arg(keyIndex));
-			keyDir.remove(keyKeyFileTemplate.arg(keyIndex));
-		}
-	}
-}
-
-CryptoController::CipherInfo CryptoController::createCipher() const
+CryptoController::CipherInfo CryptoController::createInfo() const
 {
 	CipherInfo info;
 	createScheme(static_cast<Setup::CipherScheme>(defaults().property(Defaults::SymScheme).toInt()),
@@ -808,16 +771,46 @@ const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) 
 	return _loadedChiphers[keyIndex];
 }
 
-QDir CryptoController::keysDir() const
+void CryptoController::storeCipherKey(quint32 keyIndex) const
 {
-	auto keyDirName = QStringLiteral("keys");
-	auto keyDir = defaults().storageDir();
-	if(!keyDir.mkpath(keyDirName) || !keyDir.cd(keyDirName))
-		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, "Failed to create keys directory");
-	return keyDir;
+	auto keyDir = keysDir();
+	auto info = getInfo(keyIndex);
+	auto encData = _asymCrypto->encrypt(_asymCrypto->cryptKey(),
+										QByteArray::fromRawData(reinterpret_cast<const char*>(info.key.data()),
+																static_cast<int>(info.key.size())));
+	QFile keyFile(keyDir.absoluteFilePath(keyKeyFileTemplate.arg(keyIndex)));
+	if(!keyFile.open(QIODevice::WriteOnly))
+		throw CryptoPP::Exception(CryptoPP::Exception::IO_ERROR, keyFile.errorString().toStdString());
+	keyFile.write(encData);
+	keyFile.close();
+
+	settings()->setValue(keySymKeysTemplate.arg(keyIndex), info.scheme->name());
 }
 
-QByteArray CryptoController::genCmac(const CryptoController::CipherInfo &info, const QByteArray &data) const
+void CryptoController::cleanCiphers() const
+{
+	auto keyDir = keysDir();
+
+	settings()->beginGroup(keySymKeys);
+	auto keys = settings()->childKeys();
+	settings()->endGroup();
+
+	foreach(auto key, keys) {
+		auto ok = false;
+		auto keyIndex = key.toUInt(&ok);
+		if(!ok)
+			continue;
+
+		if((keyIndex + 5) < _localCipher) {
+			settings()->remove(keySymKeysTemplate.arg(keyIndex));
+			if(!keyDir.remove(keyKeyFileTemplate.arg(keyIndex)))
+				logWarning() << "Failed to delete file of cleared key" << keyIndex;
+			_loadedChiphers.remove(keyIndex);
+		}
+	}
+}
+
+QByteArray CryptoController::createCmacImpl(const CryptoController::CipherInfo &info, const QByteArray &data) const
 {
 	auto cmac = info.scheme->cmac();
 	cmac->SetKey(info.key.data(), info.key.size());
@@ -832,7 +825,7 @@ QByteArray CryptoController::genCmac(const CryptoController::CipherInfo &info, c
 	return mac;
 }
 
-void CryptoController::verCmac(const CryptoController::CipherInfo &info, const QByteArray &data, const QByteArray &mac) const
+void CryptoController::verifyCmacImpl(const CryptoController::CipherInfo &info, const QByteArray &data, const QByteArray &mac) const
 {
 	auto cmac = info.scheme->cmac();
 	cmac->SetKey(info.key.data(), info.key.size());
@@ -842,7 +835,7 @@ void CryptoController::verCmac(const CryptoController::CipherInfo &info, const Q
 	); // QByteArraySource
 }
 
-QByteArray CryptoController::symEncrypt(const CryptoController::CipherInfo &info, const QByteArray &salt, const QByteArray &plain) const
+QByteArray CryptoController::encryptImpl(const CryptoController::CipherInfo &info, const QByteArray &salt, const QByteArray &plain) const
 {
 	auto enc = info.scheme->encryptor();
 	enc->SetKeyWithIV(info.key.data(), info.key.size(),
@@ -857,7 +850,7 @@ QByteArray CryptoController::symEncrypt(const CryptoController::CipherInfo &info
 	return cipher;
 }
 
-QByteArray CryptoController::symDecrypt(const CryptoController::CipherInfo &info, const QByteArray &salt, const QByteArray &cipher) const
+QByteArray CryptoController::decryptImpl(const CryptoController::CipherInfo &info, const QByteArray &salt, const QByteArray &cipher) const
 {
 	auto dec = info.scheme->decryptor();
 	dec->SetKeyWithIV(info.key.data(), info.key.size(),
@@ -878,7 +871,7 @@ ClientCrypto::ClientCrypto(QObject *parent) :
 	AsymmetricCrypto(parent),
 #ifdef QT_NO_DEBUG
 	_rng(true, 32),
-#else //fast rng pooling for debug builds
+#else //fast rng seeding for debug builds
 	_rng(false),
 #endif
 	_signKey(nullptr),

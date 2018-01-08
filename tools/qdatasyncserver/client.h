@@ -114,9 +114,13 @@ private:
 	void run(const std::function<void()> &fn);
 	const QLoggingCategory &logFn() const;
 
+	template<typename TMessage>
+	void checkIdle(const TMessage & = {});
+
 	void close();
 	void closeLater();
-	void sendMessage(const QByteArray &message);
+	template <typename TMessage>
+	void sendMessage(const TMessage &message);
 	void sendError(const QtDataSync::ErrorMessage &message);
 	Q_INVOKABLE void doSend(const QByteArray &message);
 
