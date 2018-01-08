@@ -132,6 +132,7 @@ Q_SIGNALS:
 	void devicesListed(const QList<DeviceInfo> &devices);
 	void loginRequested(const DeviceInfo &deviceInfo);
 	void importCompleted();
+	void accountAccessGranted(const QUuid &deviceId);
 
 private Q_SLOTS:
 	void connected();

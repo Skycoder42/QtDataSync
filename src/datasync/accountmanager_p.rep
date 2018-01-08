@@ -4,6 +4,7 @@
 class AccountManagerPrivate {
 	PROP(QString deviceName READWRITE);
 	PROP(QByteArray deviceFingerprint READONLY);
+	PROP(QString lastError READONLY);
 
 	SLOT(void listDevices());
 	SLOT(void removeDevice(const QUuid &deviceId)); //TODO emit accountDevices if removed from cached list
@@ -21,4 +22,5 @@ class AccountManagerPrivate {
 	SIGNAL(accountImportResult(bool success, const QString &error));
 	SIGNAL(loginRequested(const QtDataSync::DeviceInfo &deviceInfo));
 	SIGNAL(importCompleted());
+	SIGNAL(accountAccessGranted(const QUuid &deviceId));
 };

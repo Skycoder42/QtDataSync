@@ -77,6 +77,7 @@ class Q_DATASYNC_EXPORT AccountManager : public QObject
 
 	Q_PROPERTY(QString deviceName READ deviceName WRITE setDeviceName RESET resetDeviceName NOTIFY deviceNameChanged)
 	Q_PROPERTY(QByteArray deviceFingerprint READ deviceFingerprint NOTIFY deviceFingerprintChanged)
+	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
 	explicit AccountManager(QObject *parent = nullptr);
@@ -101,6 +102,7 @@ public:
 
 	QString deviceName() const;
 	QByteArray deviceFingerprint() const;
+	QString lastError() const;
 
 public Q_SLOTS:
 	void listDevices();
@@ -118,9 +120,11 @@ Q_SIGNALS:
 	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices);
 	void loginRequested(LoginRequest *request);
 	void importAccepted();
+	void accountAccessGranted(const QUuid &deviceId);
 
 	void deviceNameChanged(const QString &deviceName);
 	void deviceFingerprintChanged(const QByteArray &deviceFingerprint);
+	void lastErrorChanged(const QString &lastError);
 
 private Q_SLOTS:
 	void accountExportReady(quint32 id, const QJsonObject &exportData);

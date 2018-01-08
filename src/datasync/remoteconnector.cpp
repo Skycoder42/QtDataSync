@@ -283,6 +283,7 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 			std::tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
 			_socket->sendBinaryMessage(serializeMessage(message));
 			emit prepareAddedData(deviceId);
+			emit accountAccessGranted(deviceId);
 		} else
 			_socket->sendBinaryMessage(serializeMessage<DenyMessage>(deviceId));
 	} catch(Exception &e) {

@@ -23,6 +23,8 @@ public:
 private Q_SLOTS:
 	void updateDevices(const QList<QtDataSync::DeviceInfo> &devices);
 	void login(QtDataSync::LoginRequest * const request);
+	void importDone();
+	void engineError(const QString &error);
 
 	void on_action_Remove_Device_triggered();
 	void on_buttonBox_clicked(QAbstractButton *button);

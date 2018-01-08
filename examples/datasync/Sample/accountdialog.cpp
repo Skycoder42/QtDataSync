@@ -36,6 +36,12 @@ AccountDialog::AccountDialog(const QString &setup, QWidget *parent) :
 			_manager, &QtDataSync::AccountManager::resetDeviceName);
 	connect(ui->updateKeyButton, &QPushButton::clicked,
 			_manager, &QtDataSync::AccountManager::updateExchangeKey);
+	connect(_manager, &QtDataSync::AccountManager::importAccepted,
+			this, &AccountDialog::importDone);
+	connect(_manager, &QtDataSync::AccountManager::lastErrorChanged,
+			this, &AccountDialog::engineError);
+	connect(_manager, &QtDataSync::AccountManager::accountAccessGranted,
+			_manager, &QtDataSync::AccountManager::listDevices);
 
 	ui->deviceNameLineEdit->setText(_manager->deviceName());
 	ui->fingerprintLineEdit->setText(printFingerprint(_manager->deviceFingerprint()));
@@ -68,6 +74,18 @@ void AccountDialog::updateDevices(const QList<QtDataSync::DeviceInfo> &devices)
 		item->setText(1, printFingerprint(device.fingerprint()));
 		item->setData(0, Qt::UserRole + 1, device.deviceId());
 	}
+}
+
+void AccountDialog::importDone()
+{
+	_manager->listDevices();
+	QMessageBox::information(this, tr("Account Import"), tr("Import was excepted by partner. Login completed"));
+}
+
+void AccountDialog::engineError(const QString &error)
+{
+	if(!error.isEmpty())
+		QMessageBox::critical(this, tr("Engine Error"), error);
 }
 
 void AccountDialog::login(QtDataSync::LoginRequest *request)

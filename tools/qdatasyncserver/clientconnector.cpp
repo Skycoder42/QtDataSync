@@ -126,8 +126,8 @@ void ClientConnector::clientConnected(const QUuid &deviceId)
 		return;
 
 	clients.insert(deviceId, client);
-	connect(client, &Client::keyDisconnect,
-			this, &ClientConnector::keyDisconnect,
+	connect(client, &Client::forceDisconnect,
+			this, &ClientConnector::forceDisconnect,
 			Qt::QueuedConnection);
 	connect(client, &Client::destroyed, this, [this, deviceId](){
 		clients.remove(deviceId);
@@ -157,7 +157,7 @@ void ClientConnector::proofRequested(const QUuid &partner, const QtDataSync::Pro
 	}
 }
 
-void ClientConnector::keyDisconnect(const QUuid &partner)
+void ClientConnector::forceDisconnect(const QUuid &partner)
 {
 	auto client = clients.value(partner);
 	if(client)

@@ -62,6 +62,8 @@ AccountManager::AccountManager(QRemoteObjectNode *node, QObject *parent) :
 			this, &AccountManager::deviceNameChanged);
 	connect(d->replica, &AccountManagerPrivateReplica::deviceFingerprintChanged,
 			this, &AccountManager::deviceFingerprintChanged);
+	connect(d->replica, &AccountManagerPrivateReplica::lastErrorChanged,
+			this, &AccountManager::lastErrorChanged);
 	connect(d->replica, &AccountManagerPrivateReplica::accountDevices,
 			this, &AccountManager::accountDevices);
 	connect(d->replica, &AccountManagerPrivateReplica::accountExportReady,
@@ -74,6 +76,8 @@ AccountManager::AccountManager(QRemoteObjectNode *node, QObject *parent) :
 			this, &AccountManager::loginRequestedImpl);
 	connect(d->replica, &AccountManagerPrivateReplica::importCompleted,
 			this, &AccountManager::importAccepted);
+	connect(d->replica, &AccountManagerPrivateReplica::accountAccessGranted,
+			this, &AccountManager::accountAccessGranted);
 }
 
 AccountManager::~AccountManager() {}
@@ -192,6 +196,11 @@ QString AccountManager::deviceName() const
 QByteArray AccountManager::deviceFingerprint() const
 {
 	return d->replica->deviceFingerprint();
+}
+
+QString AccountManager::lastError() const
+{
+	return d->replica->lastError();
 }
 
 void AccountManager::listDevices()

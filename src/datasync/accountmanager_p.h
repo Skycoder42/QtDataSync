@@ -19,11 +19,12 @@ public:
 
 	QString deviceName() const override;
 	QByteArray deviceFingerprint() const override;
+	QString lastError() const override;
 	void setDeviceName(QString deviceName) override;
 
 public Q_SLOTS:
-	void listDevices() override; //TODO send device updates to anyone always
-	void removeDevice(const QUuid &deviceId) override; //TODO disconnect if connected
+	void listDevices() override;
+	void removeDevice(const QUuid &deviceId) override;
 	void updateExchangeKey() override;
 	void resetAccount(bool keepData) override;
 	void exportAccount(quint32 id, bool includeServer) override;

@@ -510,7 +510,8 @@ void Client::onRemove(const RemoveMessage &message)
 	if(_deviceId == message.deviceId) {
 		_state = Error;
 		closeLater(); //in case the client does not get the message...
-	}
+	} else
+		emit forceDisconnect(message.deviceId);
 }
 
 void Client::onAccept(const AcceptMessage &message)
@@ -569,7 +570,7 @@ void Client::onNewKey(const NewKeyMessage &message)
 											  message.deviceKeys);
 		if(ok) {
 			foreach(auto info, message.deviceKeys)
-				emit keyDisconnect(std::get<0>(info));
+				emit forceDisconnect(std::get<0>(info));
 			sendMessage(serializeMessage<NewKeyAckMessage>(message));
 		} else
 			sendError(ErrorMessage::KeyIndexError);

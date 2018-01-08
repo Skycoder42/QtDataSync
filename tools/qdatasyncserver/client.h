@@ -60,7 +60,7 @@ Q_SIGNALS:
 	void connected(const QUuid &deviceId);
 	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
 	void proofDone(const QUuid &partner, bool success, const QtDataSync::AcceptMessage& message = {});
-	void keyDisconnect(const QUuid &partner);
+	void forceDisconnect(const QUuid &partner);
 
 private Q_SLOTS:
 	void binaryMessageReceived(const QByteArray &message);

@@ -15,12 +15,16 @@ AccountManagerPrivate::AccountManagerPrivate(ExchangeEngine *engineParent) :
 			this, &AccountManagerPrivate::deviceNameChanged);
 	connect(_engine->cryptoController(), &CryptoController::fingerprintChanged,
 			this, &AccountManagerPrivate::deviceFingerprintChanged);
+	connect(_engine, &ExchangeEngine::lastErrorChanged,
+			this, &AccountManagerPrivate::lastErrorChanged);
 	connect(_engine->remoteConnector(), &RemoteConnector::devicesListed,
 			this, &AccountManagerPrivate::accountDevices);
 	connect(_engine->remoteConnector(), &RemoteConnector::loginRequested,
 			this, &AccountManagerPrivate::requestLogin);
 	connect(_engine->remoteConnector(), &RemoteConnector::importCompleted,
 			this, &AccountManagerPrivate::importCompleted);
+	connect(_engine->remoteConnector(), &RemoteConnector::accountAccessGranted,
+			this, &AccountManagerPrivate::accountAccessGranted);
 }
 
 QString AccountManagerPrivate::deviceName() const
@@ -31,6 +35,11 @@ QString AccountManagerPrivate::deviceName() const
 QByteArray AccountManagerPrivate::deviceFingerprint() const
 {
 	return _engine->cryptoController()->fingerprint();
+}
+
+QString AccountManagerPrivate::lastError() const
+{
+	return _engine->lastError();
 }
 
 void AccountManagerPrivate::setDeviceName(QString deviceName)
