@@ -65,7 +65,7 @@ public:
 	inline static QByteArray messageName();
 
 	QByteArray typeName() const;
-	static QByteArray typeName(const QByteArray &messageName); //TODO template needed?
+	static QByteArray typeName(const QByteArray &messageName);
 
 	template <typename TMessage>
 	static inline bool isType(const QByteArray &name);

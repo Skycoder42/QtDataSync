@@ -16,6 +16,7 @@ void TestLib::init()
 Setup &TestLib::setup(Setup &setup)
 {
 	tDir.setAutoRemove(false);
+	qInfo() << "storage path:" << tDir.path();
 	return setup.setLocalDir(tDir.path())
 			.setKeyStoreProvider(QStringLiteral("plain"))
 			.setSignatureScheme(Setup::RSA_PSS_SHA3_512)

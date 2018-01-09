@@ -84,7 +84,7 @@ void TestMessages::testSerialization()
 	Message &out = *resultMessage;
 
 	try {
-		QCOMPARE(in.messageName(), name); //TODO more static tests?
+		QCOMPARE(in.messageName(), name);
 		auto data = in.serialize();
 
 		QDataStream stream(data);

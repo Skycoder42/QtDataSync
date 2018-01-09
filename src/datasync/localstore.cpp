@@ -397,7 +397,11 @@ quint32 LocalStore::changeCount() const
 	QReadLocker _(_defaults.databaseLock());
 
 	QSqlQuery countQuery(_database);
-	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM DataIndex WHERE Changed = 1"));
+	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM DataIndex "
+									  "LEFT JOIN DeviceUploads "
+									  "ON DataIndex.Type = DeviceUploads.Type "
+									  "AND DataIndex.Id = DeviceUploads.Id "
+									  "WHERE Changed = 1 OR DeviceUploads.Device NOT NULL;"));
 	exec(countQuery);
 
 	if(countQuery.first())

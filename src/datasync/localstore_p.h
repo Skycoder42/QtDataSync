@@ -89,7 +89,7 @@ public:
 
 	// change access
 	quint32 changeCount() const;
-	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const;
+	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const; //(key, version, file, device)
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
 	void removeDeviceChange(const ObjectKey &key, const QUuid &deviceId);
 
