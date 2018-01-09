@@ -5,7 +5,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ChangedMessage
+class Q_DATASYNC_EXPORT ChangedMessage : public Message
 {
 	Q_GADGET
 
@@ -21,6 +21,9 @@ public:
 	quint32 keyIndex;
 	QByteArray salt;
 	QByteArray data;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
 class Q_DATASYNC_EXPORT ChangedInfoMessage : public ChangedMessage
@@ -33,17 +36,23 @@ public:
 	ChangedInfoMessage(quint32 changeEstimate = 0);
 
 	quint32 changeEstimate;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT LastChangedMessage
+class Q_DATASYNC_EXPORT LastChangedMessage : public Message
 {
 	Q_GADGET
 
 public:
 	LastChangedMessage();
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT ChangedAckMessage
+class Q_DATASYNC_EXPORT ChangedAckMessage : public Message
 {
 	Q_GADGET
 
@@ -53,19 +62,10 @@ public:
 	ChangedAckMessage(quint64 dataIndex = 0);
 
 	quint64 dataIndex;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
-
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ChangedMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ChangedMessage &message);
-
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ChangedInfoMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ChangedInfoMessage &message);
-
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const LastChangedMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, LastChangedMessage &message);
-
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ChangedAckMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ChangedAckMessage &message);
 
 }
 

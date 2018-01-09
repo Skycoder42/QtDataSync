@@ -387,13 +387,11 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceInfo &devic
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceInfo &deviceInfo)
 {
-	stream.startTransaction();
 	Utf8String name;
 	stream >> deviceInfo.d->deviceId
 		   >> name
 		   >> deviceInfo.d->fingerprint;
 	deviceInfo.d->name = name;
-	stream.commitTransaction();
 	return stream;
 }
 

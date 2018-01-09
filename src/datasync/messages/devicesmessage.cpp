@@ -3,16 +3,9 @@ using namespace QtDataSync;
 
 ListDevicesMessage::ListDevicesMessage() {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const ListDevicesMessage &message)
+const QMetaObject *ListDevicesMessage::getMetaObject() const
 {
-	Q_UNUSED(message);
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, ListDevicesMessage &message)
-{
-	Q_UNUSED(message);
-	return stream;
+	return &staticMetaObject;
 }
 
 
@@ -21,16 +14,7 @@ DevicesMessage::DevicesMessage() :
 	devices()
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const DevicesMessage &message)
+const QMetaObject *DevicesMessage::getMetaObject() const
 {
-	stream << message.devices;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, DevicesMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.devices;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

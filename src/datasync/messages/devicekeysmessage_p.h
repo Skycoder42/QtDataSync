@@ -7,13 +7,13 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT DeviceKeysMessage
+class Q_DATASYNC_EXPORT DeviceKeysMessage : public Message
 {
 	Q_GADGET
 
 	Q_PROPERTY(quint32 keyIndex MEMBER keyIndex)
 	Q_PROPERTY(bool duplicated MEMBER duplicated)
-	Q_PROPERTY(QList<DeviceKey> devices MEMBER devices)
+	Q_PROPERTY(QList<QtDataSync::DeviceKeysMessage::DeviceKey> devices MEMBER devices)
 
 public:
 	typedef std::tuple<QUuid, QByteArray, QByteArray, QByteArray> DeviceKey; // (deviceid, scheme, key, mac)
@@ -24,13 +24,14 @@ public:
 	quint32 keyIndex;
 	bool duplicated;
 	QList<DeviceKey> devices;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DeviceKeysMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DeviceKeysMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::DeviceKeysMessage)
+Q_DECLARE_METATYPE(QtDataSync::DeviceKeysMessage::DeviceKey)
 
 #endif // DEVICEKEYSMESSAGE_P_H

@@ -27,36 +27,9 @@ ProofMessage::ProofMessage(const AccessMessage &access, const QUuid &deviceId) :
 	trustmac(access.trustmac)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const QtDataSync::ProofMessage &message)
+const QMetaObject *ProofMessage::getMetaObject() const
 {
-	stream << message.pNonce
-		   << message.deviceId
-		   << message.deviceName
-		   << message.signAlgorithm
-		   << message.signKey
-		   << message.cryptAlgorithm
-		   << message.cryptKey
-		   << message.macscheme
-		   << message.cmac
-		   << message.trustmac;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, QtDataSync::ProofMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.pNonce
-		   >> message.deviceId
-		   >> message.deviceName
-		   >> message.signAlgorithm
-		   >> message.signKey
-		   >> message.cryptAlgorithm
-		   >> message.cryptKey
-		   >> message.macscheme
-		   >> message.cmac
-		   >> message.trustmac;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }
 
 
@@ -65,18 +38,9 @@ DenyMessage::DenyMessage(const QUuid &deviceId) :
 	deviceId(deviceId)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const DenyMessage &message)
+const QMetaObject *DenyMessage::getMetaObject() const
 {
-	stream << message.deviceId;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, DenyMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.deviceId;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }
 
 
@@ -88,22 +52,7 @@ AcceptMessage::AcceptMessage(const QUuid &deviceId) :
 	secret()
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const AcceptMessage &message)
+const QMetaObject *AcceptMessage::getMetaObject() const
 {
-	stream << message.deviceId
-		   << message.index
-		   << message.scheme
-		   << message.secret;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, AcceptMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.deviceId
-		   >> message.index
-		   >> message.scheme
-		   >> message.secret;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

@@ -208,7 +208,7 @@ void RemoteConnector::removeDevice(const QUuid &deviceId)
 		logWarning() << "Cannot delete your own device. Use reset the account instead";
 		return;
 	}
-	sendMessage<RemoveMessage>(deviceId);
+	sendMessage(RemoveMessage{deviceId});
 }
 
 void RemoteConnector::resetAccount(bool clearConfig)
@@ -228,7 +228,7 @@ void RemoteConnector::resetAccount(bool clearConfig)
 		_cryptoController->deleteKeyMaterial(devId);
 		if(isIdle()) {//delete yourself. Remote will disconnecte once done
 			Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
-			sendMessage<RemoveMessage>(devId);
+			sendMessage(RemoveMessage{devId});
 		} else {
 			_deviceId = QUuid();
 			reconnect();
@@ -280,11 +280,11 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 			emit prepareAddedData(deviceId);
 			emit accountAccessGranted(deviceId);
 		} else
-			sendMessage<DenyMessage>(deviceId);
+			sendMessage(DenyMessage{deviceId});
 	} catch(Exception &e) {
 		logWarning() << "Failed to reply to login with error:" << e.what();
 		//simply send a deny
-		sendMessage<DenyMessage>(deviceId);
+		sendMessage(DenyMessage{deviceId});
 	}
 }
 
@@ -296,9 +296,9 @@ void RemoteConnector::initKeyUpdate()
 	}
 
 	try {
-		sendMessage<KeyChangeMessage>(_cryptoController->keyIndex() + 1);
+		sendMessage(KeyChangeMessage{_cryptoController->keyIndex() + 1});
 	} catch(Exception &e) {
-		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<KeyChangeMessage>());
+		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<KeyChangeMessage>());
 	}
 }
 
@@ -314,7 +314,7 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
 		sendMessage(message);
 	} catch(Exception &e) {
-		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<ChangeMessage>());
+		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<ChangeMessage>());
 	}
 }
 
@@ -330,7 +330,7 @@ void RemoteConnector::uploadDeviceData(const QByteArray &key, const QUuid &devic
 		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
 		sendMessage(message);
 	} catch(Exception &e) {
-		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<DeviceChangeMessage>());
+		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<DeviceChangeMessage>());
 	}
 }
 
@@ -347,7 +347,7 @@ void RemoteConnector::downloadDone(const quint64 key)
 		emit progressIncrement();
 		beginOp(std::chrono::minutes(5), false);
 	} catch(Exception &e) {
-		onError({ErrorMessage::ClientError, e.qWhat()}, messageName<ChangedAckMessage>());
+		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<ChangedAckMessage>());
 	}
 }
 
@@ -410,7 +410,7 @@ void RemoteConnector::disconnected()
 
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 {
-	if(message == PingMessage) {
+	if(message == Message::PingMessage) {
 		_awaitingPing = false;
 		_pingTimer->start();
 		return;
@@ -419,46 +419,46 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 	QByteArray name;
 	try {
 		QDataStream stream(message);
-		setupStream(stream);
+		Message::setupStream(stream);
 		stream.startTransaction();
 		stream >> name;
 		if(!stream.commitTransaction())
 			throw DataStreamException(stream);
 
-		if(isType<ErrorMessage>(name))
-			onError(deserializeMessage<ErrorMessage>(stream));
-		else if(isType<IdentifyMessage>(name))
-			onIdentify(deserializeMessage<IdentifyMessage>(stream));
-		else if(isType<AccountMessage>(name))
-			onAccount(deserializeMessage<AccountMessage>(stream));
-		else if(isType<WelcomeMessage>(name))
-			onWelcome(deserializeMessage<WelcomeMessage>(stream));
-		else if(isType<GrantMessage>(name))
-			onGrant(deserializeMessage<GrantMessage>(stream));
-		else if(isType<ChangeAckMessage>(name))
-			onChangeAck(deserializeMessage<ChangeAckMessage>(stream));
-		else if(isType<DeviceChangeAckMessage>(name))
-			onDeviceChangeAck(deserializeMessage<DeviceChangeAckMessage>(stream));
-		else if(isType<ChangedMessage>(name))
-			onChanged(deserializeMessage<ChangedMessage>(stream));
-		else if(isType<ChangedInfoMessage>(name))
-			onChangedInfo(deserializeMessage<ChangedInfoMessage>(stream));
-		else if(isType<LastChangedMessage>(name))
-			onLastChanged(deserializeMessage<LastChangedMessage>(stream));
-		else if(isType<DevicesMessage>(name))
-			onDevices(deserializeMessage<DevicesMessage>(stream));
-		else if(isType<RemovedMessage>(name))
-			onRemoved(deserializeMessage<RemovedMessage>(stream));
-		else if(isType<ProofMessage>(name))
-			onProof(deserializeMessage<ProofMessage>(stream));
-		else if(isType<MacUpdateAckMessage>(name))
-			onMacUpdateAck(deserializeMessage<MacUpdateAckMessage>(stream));
-		else if(isType<DeviceKeysMessage>(name))
-			onDeviceKeys(deserializeMessage<DeviceKeysMessage>(stream));
-		else if(isType<NewKeyAckMessage>(name))
-			onNewKeyAck(deserializeMessage<NewKeyAckMessage>(stream));
+		if(Message::isType<ErrorMessage>(name))
+			onError(Message::deserializeMessage<ErrorMessage>(stream));
+		else if(Message::isType<IdentifyMessage>(name))
+			onIdentify(Message::deserializeMessage<IdentifyMessage>(stream));
+		else if(Message::isType<AccountMessage>(name))
+			onAccount(Message::deserializeMessage<AccountMessage>(stream));
+		else if(Message::isType<WelcomeMessage>(name))
+			onWelcome(Message::deserializeMessage<WelcomeMessage>(stream));
+		else if(Message::isType<GrantMessage>(name))
+			onGrant(Message::deserializeMessage<GrantMessage>(stream));
+		else if(Message::isType<ChangeAckMessage>(name))
+			onChangeAck(Message::deserializeMessage<ChangeAckMessage>(stream));
+		else if(Message::isType<DeviceChangeAckMessage>(name))
+			onDeviceChangeAck(Message::deserializeMessage<DeviceChangeAckMessage>(stream));
+		else if(Message::isType<ChangedMessage>(name))
+			onChanged(Message::deserializeMessage<ChangedMessage>(stream));
+		else if(Message::isType<ChangedInfoMessage>(name))
+			onChangedInfo(Message::deserializeMessage<ChangedInfoMessage>(stream));
+		else if(Message::isType<LastChangedMessage>(name))
+			onLastChanged(Message::deserializeMessage<LastChangedMessage>(stream));
+		else if(Message::isType<DevicesMessage>(name))
+			onDevices(Message::deserializeMessage<DevicesMessage>(stream));
+		else if(Message::isType<RemoveAckMessage>(name))
+			onRemoved(Message::deserializeMessage<RemoveAckMessage>(stream));
+		else if(Message::isType<ProofMessage>(name))
+			onProof(Message::deserializeMessage<ProofMessage>(stream));
+		else if(Message::isType<MacUpdateAckMessage>(name))
+			onMacUpdateAck(Message::deserializeMessage<MacUpdateAckMessage>(stream));
+		else if(Message::isType<DeviceKeysMessage>(name))
+			onDeviceKeys(Message::deserializeMessage<DeviceKeysMessage>(stream));
+		else if(Message::isType<NewKeyAckMessage>(name))
+			onNewKeyAck(Message::deserializeMessage<NewKeyAckMessage>(stream));
 		else {
-			logWarning().noquote() << "Unknown message received:" << typeName(name);
+			logWarning().noquote() << "Unknown message received:" << Message::typeName(name);
 			triggerError(true);
 		}
 	} catch(DataStreamException &e) {
@@ -513,7 +513,7 @@ void RemoteConnector::ping()
 		reconnect();
 	} else {
 		_awaitingPing = true;
-		_socket->sendBinaryMessage(PingMessage);
+		_socket->sendBinaryMessage(Message::PingMessage);
 	}
 }
 
@@ -641,10 +641,9 @@ void RemoteConnector::onExitActiveState()
 	emit remoteEvent(RemoteDisconnected);
 }
 
-template<typename TMessage>
-void RemoteConnector::sendMessage(const TMessage &message)
+void RemoteConnector::sendMessage(const Message &message)
 {
-	_socket->sendBinaryMessage(serializeMessage(message));
+	_socket->sendBinaryMessage(message.serialize());
 }
 
 bool RemoteConnector::isIdle() const
@@ -652,14 +651,12 @@ bool RemoteConnector::isIdle() const
 	return _stateMachine->isActive(QStringLiteral("Idle"));
 }
 
-template<typename TMessage>
-bool RemoteConnector::checkIdle(const TMessage &)
+bool RemoteConnector::checkIdle(const Message &message)
 {
-	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be checked");
 	if(isIdle())
 		return true;
 	else {
-		logWarning() << "Unexpected" << TMessage::staticMetaObject.className();
+		logWarning().noquote() << "Unexpected" << message.typeName();
 		triggerError(true);
 		return false;
 	}
@@ -818,7 +815,7 @@ void RemoteConnector::sendKeyUpdate()
 {
 	settings()->setValue(keySendCmac, true);
 	auto cmac = _cryptoController->generateEncryptionKeyCmac();
-	sendMessage<MacUpdateMessage>({_cryptoController->keyIndex(), cmac});
+	sendMessage(MacUpdateMessage{_cryptoController->keyIndex(), cmac});
 }
 
 void RemoteConnector::onError(const ErrorMessage &message, const QByteArray &messageName)
@@ -1043,7 +1040,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 	}
 }
 
-void RemoteConnector::onRemoved(const RemovedMessage &message)
+void RemoteConnector::onRemoved(const RemoveAckMessage &message)
 {
 	if(checkIdle(message)) {
 		logDebug() << "Device with id" << message.deviceId << "was removed";
@@ -1105,12 +1102,12 @@ void RemoteConnector::onProof(const ProofMessage &message)
 			QTimer::singleShot(scdtime(std::chrono::minutes(10)), Qt::VeryCoarseTimer, this, [this, deviceId]() {
 				if(_activeProofs.remove(deviceId) > 0) {
 					logWarning() << "Rejecting ProofMessage after timeout";
-					sendMessage<DenyMessage>(deviceId);
+					sendMessage(DenyMessage{deviceId});
 				}
 			});
 		} catch(Exception &e) {
 			logWarning() << "Rejecting ProofMessage with error:" << e.what();
-			sendMessage<DenyMessage>(message.deviceId);
+			sendMessage(DenyMessage{message.deviceId});
 		}
 	}
 }

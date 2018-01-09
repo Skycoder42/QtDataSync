@@ -333,6 +333,19 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 	}
 }
 
+QByteArray CryptoController::serializeSignedMessage(const Message &message)
+{
+	try {
+		return message.serializeSigned(_asymCrypto->privateSignKey(),
+									   _asymCrypto->rng(),
+									   _asymCrypto);
+	} catch(CryptoPP::Exception &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to sign message"),
+							  e);
+	}
+}
+
 std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptData(const QByteArray &plain)
 {
 	try {

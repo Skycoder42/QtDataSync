@@ -5,16 +5,16 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT SyncMessage
+class Q_DATASYNC_EXPORT SyncMessage : public Message
 {
 	Q_GADGET
 
 public:
 	SyncMessage();
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const SyncMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, SyncMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

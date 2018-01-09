@@ -5,7 +5,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ChangeMessage
+class Q_DATASYNC_EXPORT ChangeMessage : public Message
 {
 	Q_GADGET
 
@@ -21,9 +21,12 @@ public:
 	quint32 keyIndex;
 	QByteArray salt;
 	QByteArray data;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT ChangeAckMessage
+class Q_DATASYNC_EXPORT ChangeAckMessage : public Message
 {
 	Q_GADGET
 
@@ -33,13 +36,10 @@ public:
 	ChangeAckMessage(const ChangeMessage &message = {});
 
 	QByteArray dataId;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
-
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ChangeMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ChangeMessage &message);
-
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ChangeAckMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ChangeAckMessage &message);
 
 }
 

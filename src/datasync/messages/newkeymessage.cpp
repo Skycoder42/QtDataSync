@@ -15,22 +15,9 @@ QByteArray NewKeyMessage::signatureData(const NewKeyMessage::KeyUpdate &deviceIn
 			std::get<1>(deviceInfo);
 }
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const NewKeyMessage &message)
+const QMetaObject *NewKeyMessage::getMetaObject() const
 {
-	stream << static_cast<MacUpdateMessage>(message)
-		   << message.scheme
-		   << message.deviceKeys;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, NewKeyMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<MacUpdateMessage&>(message)
-		   >> message.scheme
-		   >> message.deviceKeys;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }
 
 
@@ -40,18 +27,7 @@ NewKeyAckMessage::NewKeyAckMessage(const NewKeyMessage &message) :
 	keyIndex(message.keyIndex)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const NewKeyAckMessage &message)
+const QMetaObject *NewKeyAckMessage::getMetaObject() const
 {
-	stream << static_cast<MacUpdateAckMessage>(message)
-		   << message.keyIndex;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, NewKeyAckMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<MacUpdateAckMessage&>(message)
-		   >> message.keyIndex;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

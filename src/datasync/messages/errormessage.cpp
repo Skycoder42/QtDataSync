@@ -10,24 +10,16 @@ ErrorMessage::ErrorMessage(ErrorMessage::ErrorType type, const QString &message,
 	canRecover(canRecover)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const ErrorMessage &message)
+const QMetaObject *ErrorMessage::getMetaObject() const
 {
-	stream << static_cast<int>(message.type)
-		   << message.message
-		   << message.canRecover;
-	return stream;
+	return &staticMetaObject;
 }
 
-QDataStream &QtDataSync::operator>>(QDataStream &stream, ErrorMessage &message)
+bool ErrorMessage::validate()
 {
-	stream.startTransaction();
-	stream >> reinterpret_cast<int&>(message.type)
-		   >> message.message
-		   >> message.canRecover;
-	if(!QMetaEnum::fromType<ErrorMessage::ErrorType>().valueToKey(message.type))
-		message.type = ErrorMessage::UnknownError;
-	stream.commitTransaction();
-	return stream;
+	if(!QMetaEnum::fromType<ErrorMessage::ErrorType>().valueToKey(type))
+		type = ErrorMessage::UnknownError;
+	return true;
 }
 
 QDebug QtDataSync::operator<<(QDebug debug, const ErrorMessage &message)

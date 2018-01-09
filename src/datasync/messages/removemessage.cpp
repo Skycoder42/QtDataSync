@@ -5,36 +5,18 @@ RemoveMessage::RemoveMessage(const QUuid &deviceId) :
 	deviceId(deviceId)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const RemoveMessage &message)
+const QMetaObject *RemoveMessage::getMetaObject() const
 {
-	stream << message.deviceId;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, RemoveMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.deviceId;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }
 
 
 
-RemovedMessage::RemovedMessage(const QUuid &deviceId) :
+RemoveAckMessage::RemoveAckMessage(const QUuid &deviceId) :
 	deviceId(deviceId)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const RemovedMessage &message)
+const QMetaObject *RemoveAckMessage::getMetaObject() const
 {
-	stream << message.deviceId;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, RemovedMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.deviceId;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

@@ -17,27 +17,3 @@ AccessMessage::AccessMessage(const QString &deviceName, const QByteArray &nonce,
 	cmac(cmac),
 	trustmac(trustmac)
 {}
-
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const AccessMessage &message)
-{
-	stream << static_cast<RegisterBaseMessage>(message)
-		   << message.pNonce
-		   << message.partnerId
-		   << message.macscheme
-		   << message.cmac
-		   << message.trustmac;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, AccessMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<RegisterBaseMessage&>(message)
-		   >> message.pNonce
-		   >> message.partnerId
-		   >> message.macscheme
-		   >> message.cmac
-		   >> message.trustmac;
-	stream.commitTransaction();
-	return stream;
-}

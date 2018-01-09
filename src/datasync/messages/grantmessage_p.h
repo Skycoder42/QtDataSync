@@ -22,10 +22,10 @@ public:
 	quint32 index;
 	QByteArray scheme;
 	QByteArray secret;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const GrantMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, GrantMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

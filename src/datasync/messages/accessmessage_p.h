@@ -38,9 +38,6 @@ public:
 	QByteArray trustmac;
 };
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const AccessMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, AccessMessage &message);
-
 }
 
 Q_DECLARE_METATYPE(QtDataSync::AccessMessage)

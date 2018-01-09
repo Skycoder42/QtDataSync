@@ -6,14 +6,7 @@ using namespace QtDataSync;
 
 SyncMessage::SyncMessage() {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const SyncMessage &message)
+const QMetaObject *SyncMessage::getMetaObject() const
 {
-	Q_UNUSED(message)
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, SyncMessage &message)
-{
-	Q_UNUSED(message)
-	return stream;
+	return &staticMetaObject;
 }

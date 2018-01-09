@@ -7,7 +7,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT RemoveMessage
+class Q_DATASYNC_EXPORT RemoveMessage : public Message
 {
 	Q_GADGET
 
@@ -17,28 +17,29 @@ public:
 	RemoveMessage(const QUuid &deviceId = {});
 
 	QUuid deviceId;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT RemovedMessage
+class Q_DATASYNC_EXPORT RemoveAckMessage : public Message
 {
 	Q_GADGET
 
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	RemovedMessage(const QUuid &deviceId = {});
+	RemoveAckMessage(const QUuid &deviceId = {});
 
 	QUuid deviceId;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemoveMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemoveMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemovedMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemovedMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::RemoveMessage)
-Q_DECLARE_METATYPE(QtDataSync::RemovedMessage)
+Q_DECLARE_METATYPE(QtDataSync::RemoveAckMessage)
 
 #endif // REMOVEMESSAGE_P_H

@@ -2,19 +2,109 @@
 #include "asymmetriccrypto_p.h"
 
 #include <QtCore/QMetaProperty>
+#include <QtCore/QVersionNumber>
+
+#include "welcomemessage_p.h"
+#include "devicesmessage_p.h"
+#include "devicekeysmessage_p.h"
+#include "newkeymessage_p.h"
 
 using namespace QtDataSync;
 
-const QByteArray QtDataSync::PingMessage(1, static_cast<char>(0xFF));
+#define REGISTER(x) do { \
+	qRegisterMetaType<x>(#x); \
+	qRegisterMetaTypeStreamOperators<x>(#x); \
+} while(false)
+#define REGISTER_LIST(x) do { \
+	REGISTER(x); \
+	REGISTER(QList<x>); \
+} while(false)
 
-void QtDataSync::setupStream(QDataStream &stream)
+const QByteArray Message::PingMessage(1, static_cast<char>(0xFF));
+
+void Message::registerTypes()
+{
+	qRegisterMetaType<QVersionNumber>();
+	qRegisterMetaTypeStreamOperators<QVersionNumber>(); //whyever this is not done by Qt itself...
+
+	qRegisterMetaType<Utf8String>();
+	qRegisterMetaTypeStreamOperators<Utf8String>();
+	REGISTER_LIST(QtDataSync::WelcomeMessage::KeyUpdate);
+	REGISTER_LIST(QtDataSync::DevicesMessage::DeviceInfo);
+	REGISTER_LIST(QtDataSync::DeviceKeysMessage::DeviceKey);
+	REGISTER_LIST(QtDataSync::NewKeyMessage::KeyUpdate);
+}
+
+Message::~Message() {}
+
+const QMetaObject *Message::metaObject() const
+{
+	return getMetaObject();
+}
+
+QByteArray Message::messageName() const
+{
+	return msgNameImpl(getMetaObject());
+}
+
+QByteArray Message::typeName() const
+{
+	return getMetaObject()->className();
+}
+
+QByteArray Message::typeName(const QByteArray &messageName)
+{
+	return "QtDataSync::" + messageName + "Message";
+}
+
+void Message::serializeTo(QDataStream &stream, bool withName) const
+{
+	if(withName)
+		stream << messageName();
+	stream << *this;
+	if(stream.status() != QDataStream::Ok)
+		throw DataStreamException(stream);
+}
+
+QByteArray Message::serialize() const
+{
+	QByteArray out;
+	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
+	setupStream(stream);
+	serializeTo(stream);
+	return out;
+}
+
+QByteArray Message::serializeSigned(const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto) const
+{
+	QByteArray out;
+	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered); //unbuffered needed for signature
+	setupStream(stream);
+	serializeTo(stream);
+	stream << crypto->sign(key, rng, out);
+	return out;
+}
+
+void Message::setupStream(QDataStream &stream)
 {
 	static_assert(QDataStream::Qt_DefaultCompiledVersion == QDataStream::Qt_5_6, "update DS version");
 	stream.setVersion(QDataStream::Qt_5_6);
 	stream.resetStatus();
 }
 
-void QtDataSync::verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto)
+void Message::deserializeMessageTo(QDataStream &stream, Message &message)
+{
+	stream.startTransaction();
+	stream >> message;
+	if(message.validate()) {
+		if(stream.commitTransaction())
+			return;
+	} else
+		stream.abortTransaction();
+	throw DataStreamException(stream);
+}
+
+void Message::verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto)
 {
 	auto device = stream.device();
 	auto cPos = device->pos();
@@ -33,14 +123,47 @@ void QtDataSync::verifySignature(QDataStream &stream, const CryptoPP::X509Public
 	crypto->verify(key, msgData, signature);
 }
 
-QByteArray QtDataSync::createSignature(const QByteArray &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto)
+bool Message::validate()
 {
-	return crypto->sign(key, rng, message);
+	return true;
 }
 
-QByteArray QtDataSync::typeName(const QByteArray &messageName)
+QByteArray Message::msgNameImpl(const QMetaObject *metaObject)
 {
-	return "QtDataSync::" + messageName + "Message";
+	QByteArray name(metaObject->className());
+	Q_ASSERT_X(name.startsWith("QtDataSync::"), Q_FUNC_INFO, "Message is not in QtDataSync namespace");
+	Q_ASSERT_X(name.endsWith("Message"), Q_FUNC_INFO, "Message does not have the Message suffix");
+	name = name.mid(12); //strlen("QtDataSync::")
+	name.chop(7); //strlen("Message")
+	return name;
+}
+
+QDataStream &QtDataSync::operator<<(QDataStream &stream, const Message &message)
+{
+	//seralize all properties in order, without type information
+	auto mo = message.metaObject();
+	for(auto i = 0; i < mo->propertyCount(); i++) {
+		auto prop = mo->property(i);
+		auto tId = prop.userType();
+		auto data = prop.readOnGadget(&message);
+		QMetaType::save(stream, tId, data.constData());
+	}
+	return stream;
+}
+
+QDataStream &QtDataSync::operator>>(QDataStream &stream, Message &message)
+{
+	//deseralize all properties in order, without type information
+	auto mo = message.metaObject();
+	for(auto i = 0; i < mo->propertyCount(); i++) {
+		auto prop = mo->property(i);
+		auto tId = prop.userType();
+
+		QVariant tData(tId, nullptr);
+		QMetaType::load(stream, tId, tData.data());
+		prop.writeOnGadget(&message, tData);
+	}
+	return stream;
 }
 
 
@@ -108,6 +231,9 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, Utf8String &message)
 	QByteArray m;
 	stream >> m;
 	message = m;
-	stream.commitTransaction();
+	if(message.toUtf8() == m)
+		stream.commitTransaction();
+	else
+		stream.abortTransaction();
 	return stream;
 }

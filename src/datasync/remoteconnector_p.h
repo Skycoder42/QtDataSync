@@ -168,12 +168,10 @@ private:
 	QHash<QByteArray, CryptoPP::SecByteBlock> _exportsCache;
 	QHash<QUuid, QSharedPointer<AsymmetricCryptoInfo>> _activeProofs;
 
-	template<typename TMessage>
-	void sendMessage(const TMessage &message);
+	void sendMessage(const Message &message);
 
 	bool isIdle() const;
-	template <typename TMessage>
-	bool checkIdle(const TMessage & = {});
+	bool checkIdle(const Message &message);
 	void triggerError(bool canRecover);
 
 	bool checkCanSync(QUrl &remoteUrl);
@@ -199,7 +197,7 @@ private:
 	void onChangedInfo(const ChangedInfoMessage &message);
 	void onLastChanged(const LastChangedMessage &message);
 	void onDevices(const DevicesMessage &message);
-	void onRemoved(const RemovedMessage &message);
+	void onRemoved(const RemoveAckMessage &message);
 	void onProof(const ProofMessage &message);
 	void onMacUpdateAck(const MacUpdateAckMessage &message);
 	void onDeviceKeys(const DeviceKeysMessage &message);

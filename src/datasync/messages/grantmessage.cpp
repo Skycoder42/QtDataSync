@@ -15,23 +15,7 @@ GrantMessage::GrantMessage(const QUuid &deviceId, const AcceptMessage &message) 
 	secret(message.secret)
 {}
 
-
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const QtDataSync::GrantMessage &message)
+const QMetaObject *GrantMessage::getMetaObject() const
 {
-	stream << static_cast<AccountMessage>(message)
-		   << message.index
-		   << message.scheme
-		   << message.secret;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, QtDataSync::GrantMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<AccountMessage&>(message)
-		   >> message.index
-		   >> message.scheme
-		   >> message.secret;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

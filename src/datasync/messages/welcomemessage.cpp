@@ -15,18 +15,7 @@ QByteArray WelcomeMessage::signatureData(const QUuid &deviceId, const WelcomeMes
 			std::get<2>(deviceInfo);
 }
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const WelcomeMessage &message)
+const QMetaObject *WelcomeMessage::getMetaObject() const
 {
-	stream << message.hasChanges
-		   << message.keyUpdates;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, WelcomeMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.hasChanges
-		   >> message.keyUpdates;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

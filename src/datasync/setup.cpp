@@ -497,14 +497,12 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const RemoteConfig &dev
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, RemoteConfig &deviceInfo)
 {
-	stream.startTransaction();
 	Utf8String accessKey;
 	stream >> deviceInfo.d->url
 		   >> accessKey
 		   >> deviceInfo.d->headers
 		   >> deviceInfo.d->keepaliveTimeout;
 	deviceInfo.d->accessKey = accessKey;
-	stream.commitTransaction();
 	return stream;
 }
 

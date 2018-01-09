@@ -19,7 +19,7 @@ class Q_DATASYNC_EXPORT RegisterBaseMessage : public InitMessage
 	Q_PROPERTY(QByteArray signKey MEMBER signKey)
 	Q_PROPERTY(QByteArray cryptAlgorithm MEMBER cryptAlgorithm)
 	Q_PROPERTY(QByteArray cryptKey MEMBER cryptKey)
-	Q_PROPERTY(Utf8String deviceName MEMBER deviceName)
+	Q_PROPERTY(QtDataSync::Utf8String deviceName MEMBER deviceName)
 
 public:
 	RegisterBaseMessage();
@@ -36,6 +36,9 @@ public:
 	Utf8String deviceName;
 
 	AsymmetricCryptoInfo *createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent = nullptr) const;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
 class Q_DATASYNC_EXPORT RegisterMessage : public RegisterBaseMessage
@@ -54,12 +57,10 @@ public:
 					const QByteArray &cmac);
 
 	QByteArray cmac;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterBaseMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RegisterBaseMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RegisterMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RegisterMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

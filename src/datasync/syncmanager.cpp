@@ -148,6 +148,9 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, SyncManager::SyncState 
 {
 	stream.startTransaction();
 	stream >> reinterpret_cast<int&>(state);
-	stream.commitTransaction();
+	if(QMetaEnum::fromType<SyncManager::SyncState>().valueToKey(state)) //verify is a valid enum value
+		stream.commitTransaction();
+	else
+		stream.abortTransaction();;
 	return stream;
 }

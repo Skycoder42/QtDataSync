@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QTimer>
 
+#include "message_p.h"
+
 App::App(int &argc, char **argv) :
 	QtBackgroundProcess::App(argc, argv),
 	config(nullptr),
@@ -18,6 +20,8 @@ App::App(int &argc, char **argv) :
 	QCoreApplication::setApplicationVersion(QStringLiteral(VERSION));
 	QCoreApplication::setOrganizationName(QStringLiteral(COMPANY));
 	QCoreApplication::setOrganizationDomain(QStringLiteral(BUNDLE_PREFIX));
+
+	QtDataSync::Message::registerTypes();
 
 	connect(this, &App::newTerminalConnected,
 			this, &App::terminalConnected);

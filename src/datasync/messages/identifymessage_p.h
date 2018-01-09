@@ -26,7 +26,7 @@ private:
 	const QByteArray _msg;
 };
 
-class Q_DATASYNC_EXPORT InitMessage
+class Q_DATASYNC_EXPORT InitMessage : public Message
 {
 	Q_GADGET
 
@@ -44,6 +44,9 @@ public:
 
 protected:
 	InitMessage(const QByteArray &nonce);
+
+	const QMetaObject *getMetaObject() const override;
+	bool validate() override;
 };
 
 class Q_DATASYNC_EXPORT IdentifyMessage : public InitMessage
@@ -58,12 +61,10 @@ public:
 	static IdentifyMessage createRandom(quint32 uploadLimit, CryptoPP::RandomNumberGenerator &rng);
 
 	quint32 uploadLimit;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const InitMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, InitMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const IdentifyMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, IdentifyMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

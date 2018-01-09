@@ -27,7 +27,7 @@ QByteArray SyncHelper::combine(const ObjectKey &key, quint64 version, const QJso
 {
 	QByteArray out;
 	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
-	setupStream(stream);
+	Message::setupStream(stream);
 
 	stream << key
 		   << version
@@ -42,7 +42,7 @@ QByteArray SyncHelper::combine(const ObjectKey &key, quint64 version)
 {
 	QByteArray out;
 	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
-	setupStream(stream);
+	Message::setupStream(stream);
 
 	stream << key
 		   << version
@@ -60,7 +60,7 @@ std::tuple<bool, ObjectKey, quint64, QJsonObject> SyncHelper::extract(const QByt
 	QByteArray jData;
 
 	QDataStream stream(data);
-	setupStream(stream);
+	Message::setupStream(stream);
 
 	stream.startTransaction();
 	stream >> key

@@ -1186,7 +1186,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>REMOVED(deviceId)</name>
+                         <name>REMOVEACK(deviceId)</name>
                          <pos>x:495;y:1060</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -2706,7 +2706,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>REMOVED(deviceId)</name>
+                  <name>REMOVEACK(deviceId)</name>
                   <relations>
                    <handles>
                     <handles>

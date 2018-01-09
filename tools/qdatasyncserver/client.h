@@ -119,8 +119,7 @@ private:
 
 	void close();
 	void closeLater();
-	template <typename TMessage>
-	void sendMessage(const TMessage &message);
+	void sendMessage(const QtDataSync::Message &message);
 	void sendError(const QtDataSync::ErrorMessage &message);
 	Q_INVOKABLE void doSend(const QByteArray &message);
 

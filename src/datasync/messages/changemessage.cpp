@@ -8,41 +8,18 @@ ChangeMessage::ChangeMessage(const QByteArray &dataId) :
 	data()
 {}
 
+const QMetaObject *ChangeMessage::getMetaObject() const
+{
+	return &staticMetaObject;
+}
+
+
+
 ChangeAckMessage::ChangeAckMessage(const ChangeMessage &message) :
 	dataId(message.dataId)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const ChangeMessage &message)
+const QMetaObject *ChangeAckMessage::getMetaObject() const
 {
-	stream << message.dataId
-		   << message.keyIndex
-		   << message.salt
-		   << message.data;
-	return stream;
+	return &staticMetaObject;
 }
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, ChangeMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.dataId
-		   >> message.keyIndex
-		   >> message.salt
-		   >> message.data;
-	stream.commitTransaction();
-	return stream;
-}
-
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const ChangeAckMessage &message)
-{
-	stream << message.dataId;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, ChangeAckMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.dataId;
-	stream.commitTransaction();
-	return stream;
-}
-

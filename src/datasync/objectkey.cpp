@@ -45,12 +45,10 @@ QDataStream &QtDataSync::operator<<(QDataStream &stream, const ObjectKey &key)
 
 QDataStream &QtDataSync::operator>>(QDataStream &stream, ObjectKey &key)
 {
-	stream.startTransaction();
 	Utf8String id;
 	stream >> key.typeName
 		   >> id;
 	key.id = id;
-	stream.commitTransaction();
 	return stream;
 }
 

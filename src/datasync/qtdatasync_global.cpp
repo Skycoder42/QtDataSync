@@ -6,6 +6,7 @@
 #include "threadedclient_p.h"
 
 #include <QtCore/QCoreApplication>
+#include "message_p.h"
 
 const QString QtDataSync::DefaultSetup(QStringLiteral("default"));
 
@@ -17,5 +18,7 @@ static void setupQtDataSync()
 
 	qRegisterRemoteObjectsServer<QtDataSync::ThreadedServer>(QtDataSync::ThreadedServer::UrlScheme);
 	qRegisterRemoteObjectsClient<QtDataSync::ThreadedClientIoDevice>(QtDataSync::ThreadedServer::UrlScheme);
+
+	QtDataSync::Message::registerTypes();
 }
 Q_COREAPP_STARTUP_FUNCTION(setupQtDataSync)

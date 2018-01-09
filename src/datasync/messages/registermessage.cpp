@@ -30,28 +30,9 @@ AsymmetricCryptoInfo *RegisterBaseMessage::createCryptoInfo(CryptoPP::RandomNumb
 									parent);
 }
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterBaseMessage &message)
+const QMetaObject *RegisterBaseMessage::getMetaObject() const
 {
-	stream << static_cast<InitMessage>(message)
-		   << message.signAlgorithm
-		   << message.signKey
-		   << message.cryptAlgorithm
-		   << message.cryptKey
-		   << message.deviceName;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterBaseMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<InitMessage&>(message)
-		   >> message.signAlgorithm
-		   >> message.signKey
-		   >> message.cryptAlgorithm
-		   >> message.cryptKey
-		   >> message.deviceName;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }
 
 
@@ -70,18 +51,7 @@ RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &no
 	cmac(cmac)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const RegisterMessage &message)
+const QMetaObject *RegisterMessage::getMetaObject() const
 {
-	stream << static_cast<RegisterBaseMessage>(message)
-		   << message.cmac;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, RegisterMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<RegisterBaseMessage&>(message)
-		   >> message.cmac;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

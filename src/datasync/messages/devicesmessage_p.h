@@ -10,19 +10,22 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ListDevicesMessage
+class Q_DATASYNC_EXPORT ListDevicesMessage : public Message
 {
 	Q_GADGET
 
 public:
 	ListDevicesMessage();
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT DevicesMessage
+class Q_DATASYNC_EXPORT DevicesMessage : public Message
 {
 	Q_GADGET
 
-	Q_PROPERTY(QList<DeviceInfo> devices MEMBER devices)
+	Q_PROPERTY(QList<QtDataSync::DevicesMessage::DeviceInfo> devices MEMBER devices)
 
 public:
 	typedef std::tuple<QUuid, Utf8String, QByteArray> DeviceInfo; // (deviceid, name, fingerprint)
@@ -30,16 +33,15 @@ public:
 	DevicesMessage();
 
 	QList<DeviceInfo> devices;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ListDevicesMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ListDevicesMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DevicesMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DevicesMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ListDevicesMessage)
 Q_DECLARE_METATYPE(QtDataSync::DevicesMessage)
+Q_DECLARE_METATYPE(QtDataSync::DevicesMessage::DeviceInfo)
 
 #endif // DEVICESMESSAGE_P_H

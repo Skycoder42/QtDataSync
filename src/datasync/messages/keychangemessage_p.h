@@ -5,7 +5,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT KeyChangeMessage
+class Q_DATASYNC_EXPORT KeyChangeMessage : public Message
 {
 	Q_GADGET
 
@@ -15,10 +15,10 @@ public:
 	KeyChangeMessage(quint32 nextIndex = 0);
 
 	quint32 nextIndex;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const KeyChangeMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, KeyChangeMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

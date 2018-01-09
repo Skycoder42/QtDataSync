@@ -9,7 +9,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT AccountMessage
+class Q_DATASYNC_EXPORT AccountMessage : public Message
 {
 	Q_GADGET
 
@@ -19,10 +19,10 @@ public:
 	AccountMessage(const QUuid &deviceId = {});
 
 	QUuid deviceId;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const AccountMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, AccountMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

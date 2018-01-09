@@ -2,8 +2,8 @@
 
 using namespace QtDataSync;
 
-const QVersionNumber InitMessage::CurrentVersion(1, 0, 0); //NOTE update accordingly
-const QVersionNumber InitMessage::CompatVersion(1, 0, 0);
+const QVersionNumber InitMessage::CurrentVersion(1); //NOTE update accordingly
+const QVersionNumber InitMessage::CompatVersion(1);
 
 InitMessage::InitMessage() :
 	InitMessage(QByteArray())
@@ -14,25 +14,16 @@ InitMessage::InitMessage(const QByteArray &nonce) :
 	nonce(nonce)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const InitMessage &message)
+const QMetaObject *InitMessage::getMetaObject() const
 {
-	stream << message.protocolVersion
-		   << message.nonce;
-	return stream;
+	return &staticMetaObject;
 }
 
-QDataStream &QtDataSync::operator>>(QDataStream &stream, InitMessage &message)
+bool InitMessage::validate()
 {
-	stream.startTransaction();
-	stream >> message.protocolVersion
-		   >> message.nonce;
-	if(message.protocolVersion < InitMessage::CompatVersion)
-		throw IncompatibleVersionException(message.protocolVersion);
-	if(message.nonce.size() < InitMessage::NonceSize)
-		stream.abortTransaction();
-	else
-		stream.commitTransaction();
-	return stream;
+	if(protocolVersion < InitMessage::CompatVersion)
+		throw IncompatibleVersionException(protocolVersion);
+	return nonce.size() >= InitMessage::NonceSize;
 }
 
 
@@ -50,22 +41,10 @@ IdentifyMessage IdentifyMessage::createRandom(quint32 uploadLimit, CryptoPP::Ran
 	return msg;
 }
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const IdentifyMessage &message)
+const QMetaObject *IdentifyMessage::getMetaObject() const
 {
-	stream << static_cast<InitMessage>(message)
-		   << message.uploadLimit;
-	return stream;
+	return &staticMetaObject;
 }
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, IdentifyMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<InitMessage&>(message)
-		   >> message.uploadLimit;
-	stream.commitTransaction();
-	return stream;
-}
-
 
 
 

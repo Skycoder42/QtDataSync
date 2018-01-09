@@ -12,20 +12,7 @@ DeviceKeysMessage::DeviceKeysMessage(quint32 keyIndex, const QList<DeviceKey> &d
 	devices(devices)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceKeysMessage &message)
+const QMetaObject *DeviceKeysMessage::getMetaObject() const
 {
-	stream << message.keyIndex
-		   << message.duplicated
-		   << message.devices;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceKeysMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.keyIndex
-		   >> message.duplicated
-		   >> message.devices;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

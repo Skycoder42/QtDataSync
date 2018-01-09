@@ -7,20 +7,7 @@ LoginMessage::LoginMessage(const QUuid &deviceId, const QString &name, const QBy
 	name(name)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const LoginMessage &message)
+const QMetaObject *LoginMessage::getMetaObject() const
 {
-	stream << static_cast<InitMessage>(message)
-		   << message.deviceId
-		   << message.name;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, LoginMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<InitMessage&>(message)
-		   >> message.deviceId
-		   >> message.name;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

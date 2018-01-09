@@ -5,7 +5,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT MacUpdateMessage
+class Q_DATASYNC_EXPORT MacUpdateMessage : public Message
 {
 	Q_GADGET
 
@@ -17,20 +17,21 @@ public:
 
 	quint32 keyIndex;
 	QByteArray cmac;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT MacUpdateAckMessage
+class Q_DATASYNC_EXPORT MacUpdateAckMessage : public Message
 {
 	Q_GADGET
 
 public:
 	MacUpdateAckMessage();
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const MacUpdateMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, MacUpdateMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const MacUpdateAckMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, MacUpdateAckMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

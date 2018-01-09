@@ -6,7 +6,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ProofMessage
+class Q_DATASYNC_EXPORT ProofMessage : public Message
 {
 	Q_GADGET
 
@@ -35,9 +35,12 @@ public:
 	QByteArray macscheme;
 	QByteArray cmac;
 	QByteArray trustmac;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT DenyMessage
+class Q_DATASYNC_EXPORT DenyMessage : public Message
 {
 	Q_GADGET
 
@@ -47,9 +50,12 @@ public:
 	DenyMessage(const QUuid &deviceId = {});
 
 	QUuid deviceId;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
-class Q_DATASYNC_EXPORT AcceptMessage
+class Q_DATASYNC_EXPORT AcceptMessage : public Message
 {
 	Q_GADGET
 
@@ -65,14 +71,10 @@ public:
 	quint32 index;
 	QByteArray scheme;
 	QByteArray secret;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ProofMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ProofMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DenyMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DenyMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const AcceptMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, AcceptMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

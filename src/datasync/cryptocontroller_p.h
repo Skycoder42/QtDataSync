@@ -77,8 +77,7 @@ public:
 	void storePrivateKeys(const QUuid &deviceId) const;
 
 	//wrapper to sign a message
-	template <typename TMessage>
-	QByteArray serializeSignedMessage(const TMessage &message);
+	QByteArray serializeSignedMessage(const Message &message);
 
 	//used for transport encryption of actual data
 	std::tuple<quint32, QByteArray, QByteArray> encryptData(const QByteArray &data); //(keyIndex, salt, data)
@@ -272,22 +271,6 @@ protected:
 	CryptoPP::Exception _exception;
 };
 
-// ------------- Generic Implementation -------------
-
-template<typename TMessage>
-QByteArray CryptoController::serializeSignedMessage(const TMessage &message)
-{
-	try {
-		return QtDataSync::serializeSignedMessage<TMessage>(message,
-															_asymCrypto->privateSignKey(),
-															_asymCrypto->rng(),
-															_asymCrypto);
-	} catch(CryptoPP::Exception &e) {
-		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to sign message"),
-							  e);
-	}
-}
 }
 
 #endif // CRYPTOCONTROLLER_P_H

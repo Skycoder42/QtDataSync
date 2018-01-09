@@ -155,7 +155,7 @@ void Client::proofResult(bool success, const AcceptMessage &message)
 				_cachedFingerPrint.clear();
 
 				qDebug() << "Created new device and user accounts";
-				sendMessage<GrantMessage>({_deviceId, message});
+				sendMessage(GrantMessage{_deviceId, message});
 				_state = Idle;
 				emit connected(_deviceId);
 			} else
@@ -177,10 +177,10 @@ void Client::sendProof(const ProofMessage &message)
 
 void Client::binaryMessageReceived(const QByteArray &message)
 {
-	if(message == PingMessage) {
+	if(message == Message::PingMessage) {
 		if(_idleTimer)
 			_idleTimer->start();
-		_socket->sendBinaryMessage(PingMessage);
+		_socket->sendBinaryMessage(Message::PingMessage);
 		return;
 	}
 
@@ -190,46 +190,46 @@ void Client::binaryMessageReceived(const QByteArray &message)
 
 		try {
 			QDataStream stream(message);
-			setupStream(stream);
+			Message::setupStream(stream);
 			stream.startTransaction();
 			QByteArray name;
 			stream >> name;
 			if(!stream.commitTransaction())
 				throw DataStreamException(stream);
 
-			if(isType<RegisterMessage>(name))
-				onRegister(deserializeMessage<RegisterMessage>(stream), stream);
-			else if(isType<LoginMessage>(name))
-				onLogin(deserializeMessage<LoginMessage>(stream), stream);
-			else if(isType<AccessMessage>(name))
-				onAccess(deserializeMessage<AccessMessage>(stream), stream);
-			else if(isType<SyncMessage>(name))
-				onSync(deserializeMessage<SyncMessage>(stream));
-			else if(isType<ChangeMessage>(name))
-				onChange(deserializeMessage<ChangeMessage>(stream));
-			else if(isType<DeviceChangeMessage>(name))
-				onDeviceChange(deserializeMessage<DeviceChangeMessage>(stream));
-			else if(isType<ChangedAckMessage>(name))
-				onChangedAck(deserializeMessage<ChangedAckMessage>(stream));
-			else if(isType<ListDevicesMessage>(name))
-				onListDevices(deserializeMessage<ListDevicesMessage>(stream));
-			else if(isType<RemoveMessage>(name))
-				onRemove(deserializeMessage<RemoveMessage>(stream));
-			else if(isType<AcceptMessage>(name))
-				onAccept(deserializeMessage<AcceptMessage>(stream));
-			else if(isType<DenyMessage>(name))
-				onDeny(deserializeMessage<DenyMessage>(stream));
-			else if(isType<MacUpdateMessage>(name))
-				onMacUpdate(deserializeMessage<MacUpdateMessage>(stream));
-			else if(isType<KeyChangeMessage>(name))
-				onKeyChange(deserializeMessage<KeyChangeMessage>(stream));
-			else if(isType<NewKeyMessage>(name))
-				onNewKey(deserializeMessage<NewKeyMessage>(stream));
+			if(Message::isType<RegisterMessage>(name))
+				onRegister(Message::deserializeMessage<RegisterMessage>(stream), stream);
+			else if(Message::isType<LoginMessage>(name))
+				onLogin(Message::deserializeMessage<LoginMessage>(stream), stream);
+			else if(Message::isType<AccessMessage>(name))
+				onAccess(Message::deserializeMessage<AccessMessage>(stream), stream);
+			else if(Message::isType<SyncMessage>(name))
+				onSync(Message::deserializeMessage<SyncMessage>(stream));
+			else if(Message::isType<ChangeMessage>(name))
+				onChange(Message::deserializeMessage<ChangeMessage>(stream));
+			else if(Message::isType<DeviceChangeMessage>(name))
+				onDeviceChange(Message::deserializeMessage<DeviceChangeMessage>(stream));
+			else if(Message::isType<ChangedAckMessage>(name))
+				onChangedAck(Message::deserializeMessage<ChangedAckMessage>(stream));
+			else if(Message::isType<ListDevicesMessage>(name))
+				onListDevices(Message::deserializeMessage<ListDevicesMessage>(stream));
+			else if(Message::isType<RemoveMessage>(name))
+				onRemove(Message::deserializeMessage<RemoveMessage>(stream));
+			else if(Message::isType<AcceptMessage>(name))
+				onAccept(Message::deserializeMessage<AcceptMessage>(stream));
+			else if(Message::isType<DenyMessage>(name))
+				onDeny(Message::deserializeMessage<DenyMessage>(stream));
+			else if(Message::isType<MacUpdateMessage>(name))
+				onMacUpdate(Message::deserializeMessage<MacUpdateMessage>(stream));
+			else if(Message::isType<KeyChangeMessage>(name))
+				onKeyChange(Message::deserializeMessage<KeyChangeMessage>(stream));
+			else if(Message::isType<NewKeyMessage>(name))
+				onNewKey(Message::deserializeMessage<NewKeyMessage>(stream));
 			else {
-				qWarning() << "Unknown message received:" << typeName(name);
+				qWarning() << "Unknown message received:" << Message::typeName(name);
 				sendError({
 							  ErrorMessage::IncompatibleVersionError,
-							  QStringLiteral("Unknown message type \"%1\"").arg(QString::fromUtf8(typeName(name)))
+							  QStringLiteral("Unknown message type \"%1\"").arg(QString::fromUtf8(Message::typeName(name)))
 						  });
 			}
 		} catch(IncompatibleVersionException &e) {
@@ -333,11 +333,10 @@ void Client::closeLater()
 	});
 }
 
-template<typename TMessage>
-void Client::sendMessage(const TMessage &message)
+void Client::sendMessage(const Message &message)
 {
 	QMetaObject::invokeMethod(this, "doSend", Qt::QueuedConnection,
-							  Q_ARG(QByteArray, serializeMessage(message)));
+							  Q_ARG(QByteArray, message.serialize()));
 }
 
 void Client::sendError(const ErrorMessage &message)
@@ -362,7 +361,7 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 
 	try {
 		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
-		verifySignature(stream, crypto->signatureKey(), crypto.data());
+		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
 
 		_deviceId = _database->addNewDevice(message.deviceName,
 											message.signAlgorithm,
@@ -380,7 +379,7 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
 	qDebug() << "Created new device and user accounts";
-	sendMessage<AccountMessage>(_deviceId);
+	sendMessage(AccountMessage{_deviceId});
 	_state = Idle;
 	emit connected(_deviceId);
 }
@@ -398,7 +397,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 		QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(message.deviceId, rngPool.localData()));
 		if(!crypto)
 			throw ClientErrorException(ErrorMessage::AuthenticationError);
-		verifySignature(stream, crypto->signatureKey(), crypto.data());
+		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
 	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
@@ -414,7 +413,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	//load changecount early to find out if data changed
 	_cachedChanges = _database->changeCount(_deviceId);
 	auto keyUpdates = _database->loadKeyChanges(_deviceId);
-	sendMessage<WelcomeMessage>({_cachedChanges > 0, keyUpdates});
+	sendMessage(WelcomeMessage{_cachedChanges > 0, keyUpdates});
 	_state = Idle;
 	emit connected(_deviceId);
 
@@ -433,7 +432,7 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 
 	try {
 		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
-		verifySignature(stream, crypto->signatureKey(), crypto.data());
+		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
 		_cachedFingerPrint = crypto->ownFingerprint();
 	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
@@ -468,7 +467,7 @@ void Client::onChange(const ChangeMessage &message)
 						 message.salt,
 						 message.data);
 
-	sendMessage<ChangeAckMessage>(message);
+	sendMessage(ChangeAckMessage{message});
 }
 
 void Client::onDeviceChange(const DeviceChangeMessage &message)
@@ -482,7 +481,7 @@ void Client::onDeviceChange(const DeviceChangeMessage &message)
 							   message.salt,
 							   message.data);
 
-	sendMessage<DeviceChangeAckMessage>(message);
+	sendMessage(DeviceChangeAckMessage{message});
 }
 
 void Client::onChangedAck(const ChangedAckMessage &message)
@@ -510,7 +509,7 @@ void Client::onRemove(const RemoveMessage &message)
 	checkIdle(message);
 
 	_database->removeDevice(_deviceId, message.deviceId);
-	sendMessage<RemovedMessage>(message.deviceId);
+	sendMessage(RemoveAckMessage{message.deviceId});
 	if(_deviceId == message.deviceId) {
 		_state = Error;
 		closeLater(); //in case the client does not get the message...
@@ -547,9 +546,9 @@ void Client::onKeyChange(const KeyChangeMessage &message)
 	auto offset = 0;
 	auto deviceInfos = _database->tryKeyChange(_deviceId, message.nextIndex, offset);
 	if(offset == 1) //accepted
-		sendMessage<DeviceKeysMessage>({message.nextIndex, deviceInfos});
+		sendMessage(DeviceKeysMessage{message.nextIndex, deviceInfos});
 	else if(offset == 0) //proposed is the same as current (accept as duplicate, but don't send any devices)
-		sendMessage<DeviceKeysMessage>(message.nextIndex);
+		sendMessage(DeviceKeysMessage{message.nextIndex});
 	else
 		sendError(ErrorMessage::KeyIndexError);
 }
@@ -566,7 +565,7 @@ void Client::onNewKey(const NewKeyMessage &message)
 	if(ok) {
 		foreach(auto info, message.deviceKeys)
 			emit forceDisconnect(std::get<0>(info));
-		sendMessage<NewKeyAckMessage>(message);
+		sendMessage(NewKeyAckMessage{message});
 	} else
 		sendError(ErrorMessage::KeyIndexError);
 }
@@ -587,12 +586,12 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 			if(updateChange) {
 				ChangedInfoMessage message(_cachedChanges);
 				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
-				sendMessage<ChangedInfoMessage>(message);
+				sendMessage(ChangedInfoMessage{message});
 				updateChange = false; //only the first message has that info
 			} else {
 				ChangedMessage message;
 				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
-				sendMessage<ChangedMessage>(message);
+				sendMessage(ChangedMessage{message});
 			}
 			_activeDownloads.append(std::get<0>(change));
 			_cachedChanges--;
@@ -601,7 +600,7 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 
 	if(_activeDownloads.isEmpty() && !skipNoChanges) {
 		_cachedChanges = 0; //to make shure the next message is a ChangedInfoMessage
-		sendMessage<LastChangedMessage>({});
+		sendMessage(LastChangedMessage());
 	}
 }
 

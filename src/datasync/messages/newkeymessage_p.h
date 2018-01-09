@@ -13,7 +13,7 @@ class Q_DATASYNC_EXPORT NewKeyMessage : public MacUpdateMessage
 	Q_GADGET
 
 	Q_PROPERTY(QByteArray scheme MEMBER scheme)
-	Q_PROPERTY(QList<KeyUpdate> deviceKeys MEMBER deviceKeys)
+	Q_PROPERTY(QList<QtDataSync::NewKeyMessage::KeyUpdate> deviceKeys MEMBER deviceKeys)
 
 public:
 	typedef std::tuple<QUuid, QByteArray, QByteArray> KeyUpdate; //(deviceId, key, cmac)
@@ -24,6 +24,9 @@ public:
 	QList<KeyUpdate> deviceKeys;
 
 	QByteArray signatureData(const KeyUpdate &deviceInfo) const;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
 class Q_DATASYNC_EXPORT NewKeyAckMessage : public MacUpdateAckMessage
@@ -36,16 +39,15 @@ public:
 	NewKeyAckMessage(const NewKeyMessage &message = {});
 
 	quint32 keyIndex;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const NewKeyMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, NewKeyMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const NewKeyAckMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, NewKeyAckMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::NewKeyMessage)
+Q_DECLARE_METATYPE(QtDataSync::NewKeyMessage::KeyUpdate)
 Q_DECLARE_METATYPE(QtDataSync::NewKeyAckMessage)
 
 #endif // NEWKEYMESSAGE_P_H

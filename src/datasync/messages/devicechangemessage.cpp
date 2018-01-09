@@ -6,20 +6,9 @@ DeviceChangeMessage::DeviceChangeMessage(const QByteArray &dataId, const QUuid &
 	deviceId(deviceId)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceChangeMessage &message)
+const QMetaObject *DeviceChangeMessage::getMetaObject() const
 {
-	stream << static_cast<ChangeMessage>(message)
-		   << message.deviceId;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceChangeMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<ChangeMessage&>(message)
-		   >> message.deviceId;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }
 
 
@@ -29,18 +18,7 @@ DeviceChangeAckMessage::DeviceChangeAckMessage(const DeviceChangeMessage &messag
 	deviceId(message.deviceId)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const DeviceChangeAckMessage &message)
+const QMetaObject *DeviceChangeAckMessage::getMetaObject() const
 {
-	stream << static_cast<ChangeAckMessage>(message)
-		   << message.deviceId;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, DeviceChangeAckMessage &message)
-{
-	stream.startTransaction();
-	stream >> static_cast<ChangeAckMessage&>(message)
-		   >> message.deviceId;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }

@@ -18,6 +18,9 @@ public:
 	DeviceChangeMessage(const QByteArray &dataId = {}, const QUuid &deviceId = {});
 
 	QUuid deviceId;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
 class Q_DATASYNC_EXPORT DeviceChangeAckMessage : public ChangeAckMessage
@@ -30,12 +33,10 @@ public:
 	DeviceChangeAckMessage(const DeviceChangeMessage &message = {});
 
 	QUuid deviceId;
-};
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DeviceChangeMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DeviceChangeMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DeviceChangeAckMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DeviceChangeAckMessage &message);
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
 
 }
 

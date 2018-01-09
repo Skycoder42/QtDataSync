@@ -6,34 +6,16 @@ MacUpdateMessage::MacUpdateMessage(quint32 keyIndex, const QByteArray &cmac) :
 	cmac(cmac)
 {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const MacUpdateMessage &message)
+const QMetaObject *MacUpdateMessage::getMetaObject() const
 {
-	stream << message.keyIndex
-		   << message.cmac;
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, MacUpdateMessage &message)
-{
-	stream.startTransaction();
-	stream >> message.keyIndex
-		   >> message.cmac;
-	stream.commitTransaction();
-	return stream;
+	return &staticMetaObject;
 }
 
 
 
 MacUpdateAckMessage::MacUpdateAckMessage() {}
 
-QDataStream &QtDataSync::operator<<(QDataStream &stream, const MacUpdateAckMessage &message)
+const QMetaObject *MacUpdateAckMessage::getMetaObject() const
 {
-	Q_UNUSED(message)
-	return stream;
-}
-
-QDataStream &QtDataSync::operator>>(QDataStream &stream, MacUpdateAckMessage &message)
-{
-	Q_UNUSED(message)
-	return stream;
+	return &staticMetaObject;
 }

@@ -47,104 +47,83 @@ public:
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const Utf8String &message);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, Utf8String &message);
 
+class Q_DATASYNC_EXPORT Message
+{
+	Q_GADGET
 
-extern Q_DATASYNC_EXPORT const QByteArray PingMessage;
+public:
+	static const QByteArray PingMessage;
 
-void Q_DATASYNC_EXPORT setupStream(QDataStream &stream);
-void Q_DATASYNC_EXPORT verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto);
-inline void verifySignature(QDataStream &stream, const QSharedPointer<CryptoPP::X509PublicKey> &key, AsymmetricCrypto *crypto) {
-	return verifySignature(stream, *key, crypto);
-}
-QByteArray Q_DATASYNC_EXPORT createSignature(const QByteArray &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
+	static void registerTypes();
 
-template <typename TMessage>
-QByteArray messageName();
-QByteArray Q_DATASYNC_EXPORT typeName(const QByteArray &messageName);
+	virtual ~Message();
 
-template <typename TMessage>
-void serializeMessage(QDataStream &stream, const TMessage &message, bool withName = true);
-template <typename TMessage>
-QByteArray serializeMessage(const TMessage &message);
-template <typename TMessage>
-QByteArray serializeSignedMessage(const TMessage &message,
-								  const CryptoPP::PKCS8PrivateKey &key,
-								  CryptoPP::RandomNumberGenerator &rng,
-								  AsymmetricCrypto *crypto);
+	const QMetaObject *metaObject() const;
 
-template <typename TMessage>
-inline bool isType(const QByteArray &name);
-template <typename TMessage>
-TMessage deserializeMessage(QDataStream &stream);
+	QByteArray messageName() const;
+	template <typename TMessage>
+	inline static QByteArray messageName();
+
+	QByteArray typeName() const;
+	static QByteArray typeName(const QByteArray &messageName); //TODO template needed?
+
+	template <typename TMessage>
+	static inline bool isType(const QByteArray &name);
+
+	void serializeTo(QDataStream &stream, bool withName = true) const;
+	QByteArray serialize() const;
+	QByteArray serializeSigned(const CryptoPP::PKCS8PrivateKey &key,
+							   CryptoPP::RandomNumberGenerator &rng,
+							   AsymmetricCrypto *crypto) const;
+
+	static void setupStream(QDataStream &stream);
+	static void deserializeMessageTo(QDataStream &stream, Message &message);
+	template <typename TMessage>
+	static inline TMessage deserializeMessage(QDataStream &stream);
+	static void verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto);
+	static inline void verifySignature(QDataStream &stream, const QSharedPointer<CryptoPP::X509PublicKey> &key, AsymmetricCrypto *crypto) {
+		return verifySignature(stream, *key, crypto);
+	}
+
+protected:
+	virtual const QMetaObject *getMetaObject() const = 0;
+	virtual bool validate();
+
+private:
+	static QByteArray msgNameImpl(const QMetaObject *getMetaObject);
+};
+
+Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const Message &message);
+Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, Message &message);
 
 // ------------- Generic Implementation -------------
 
 template<typename TMessage>
-QByteArray messageName()
+inline QByteArray Message::messageName()
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
-	auto name = QByteArray(TMessage::staticMetaObject.className());
-	Q_ASSERT_X(name.startsWith("QtDataSync::"), Q_FUNC_INFO, "Message is not in QtDataSync namespace");
-	Q_ASSERT_X(name.endsWith("Message"), Q_FUNC_INFO, "Message does not have the Message suffix");
-	name = name.mid(12); //strlen("QtDataSync::")
-	name.chop(7); //strlen("Message")
-	return name;
-}
-
-template <typename TMessage>
-void serializeMessage(QDataStream &stream, const TMessage &message, bool withName)
-{
-	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
-	if(withName)
-		stream << messageName<TMessage>();
-	stream << message;
-	if(stream.status() != QDataStream::Ok)
-		throw DataStreamException(stream);
-}
-
-template <typename TMessage>
-QByteArray serializeMessage(const TMessage &message)
-{
-	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
-	QByteArray out;
-	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
-	setupStream(stream);
-	serializeMessage(stream, message, true);
-	return out;
+	return msgNameImpl(&TMessage::staticMetaObject);
 }
 
 template<typename TMessage>
-QByteArray serializeSignedMessage(const TMessage &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto)
-{
-	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
-	QByteArray out;
-	QDataStream stream(&out, QIODevice::WriteOnly | QIODevice::Unbuffered);
-	setupStream(stream);
-	serializeMessage(stream, message, true);
-	stream << createSignature(out, key, rng, crypto);
-	return out;
-}
-
-template<typename TMessage>
-inline bool isType(const QByteArray &name)
+inline bool Message::isType(const QByteArray &name)
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
 	return (messageName<TMessage>() == name);
 }
 
 template <typename TMessage>
-TMessage deserializeMessage(QDataStream &stream)
+inline TMessage Message::deserializeMessage(QDataStream &stream)
 {
 	static_assert(std::is_void<typename TMessage::QtGadgetHelper>::value, "Only Q_GADGETS can be serialized");
-	stream.startTransaction();
 	TMessage message;
-	stream >> message;
-	if(stream.commitTransaction())
-		return message;
-	else
-		throw DataStreamException(stream);
+	deserializeMessageTo(stream, message);
+	return message;
 }
 
 }
+
+Q_DECLARE_METATYPE(QtDataSync::Utf8String)
 
 //define outside of namespace for clang
 template<typename... Args>

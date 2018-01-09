@@ -7,12 +7,12 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ErrorMessage
+class Q_DATASYNC_EXPORT ErrorMessage : public Message
 {
 	Q_GADGET
 
 	Q_PROPERTY(ErrorType type MEMBER type)
-	Q_PROPERTY(Utf8String message MEMBER message)
+	Q_PROPERTY(QtDataSync::Utf8String message MEMBER message)
 	Q_PROPERTY(bool canRecover MEMBER canRecover)
 
 public:
@@ -35,10 +35,12 @@ public:
 	ErrorType type;
 	Utf8String message;
 	bool canRecover;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
+	bool validate() override;
 };
 
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const ErrorMessage &message);
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, ErrorMessage &message);
 Q_DATASYNC_EXPORT QDebug operator<<(QDebug debug, const ErrorMessage &message);
 
 }
