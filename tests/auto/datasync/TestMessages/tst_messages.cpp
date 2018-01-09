@@ -37,9 +37,13 @@ private Q_SLOTS:
 	void testSerialization_data();
 	void testSerialization();
 
+	void testSignedSerialization_data();
+	void testSignedSerialization();
+
 private:
 	ClientCrypto *crypto;
 
+	void addSignedData();
 	void addAllData();
 	template <typename TMessage>
 	void addData(std::function<TMessage()> createFn, bool success = true);
@@ -79,11 +83,14 @@ void TestMessages::testSerialization()
 	QFETCH(Message*, message);
 	QFETCH(Message*, resultMessage);
 	QFETCH(bool, success);
+	QFETCH(QByteArray, className);
 
 	const Message &in = *message;
 	Message &out = *resultMessage;
 
 	try {
+		QCOMPARE(in.metaObject()->className(), className);
+		QCOMPARE(out.metaObject()->className(), className);
 		QCOMPARE(in.messageName(), name);
 		auto data = in.serialize();
 
@@ -112,12 +119,123 @@ void TestMessages::testSerialization()
 	delete resultMessage;
 }
 
-void TestMessages::addAllData()
+void TestMessages::testSignedSerialization_data()
+{
+	addSignedData();
+}
+
+void TestMessages::testSignedSerialization()
+{
+	QFETCH(QByteArray, name);
+	QFETCH(Message*, message);
+	QFETCH(Message*, resultMessage);
+	QFETCH(bool, success);
+	QFETCH(QByteArray, className);
+
+	const Message &in = *message;
+	Message &out = *resultMessage;
+
+	try {
+		QCOMPARE(in.metaObject()->className(), className);
+		QCOMPARE(out.metaObject()->className(), className);
+		QCOMPARE(in.messageName(), name);
+		auto data = in.serializeSigned(crypto->privateSignKey(), crypto->rng(), crypto);
+
+		QDataStream stream(data);
+		Message::setupStream(stream);
+		QByteArray resName;
+		stream >> resName;
+		QCOMPARE(resName, name);
+
+		if(success) {
+			Message::deserializeMessageTo(stream, out);
+			Message::verifySignature(stream, crypto->signKey(), crypto);
+
+			auto mo = message->metaObject();
+			for(auto i = 0; i < mo->propertyCount(); i++) {
+				auto p = mo->property(i);
+				auto x1 = p.readOnGadget(message);
+				auto x2 = p.readOnGadget(resultMessage);
+				QCOMPARE(x2, x1);
+			}
+		} else
+			QVERIFY_EXCEPTION_THROWN(Message::deserializeMessageTo(stream, out), DataStreamException);
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+
+	delete message;
+	delete resultMessage;
+}
+
+void TestMessages::addSignedData()
 {
 	QTest::addColumn<QByteArray>("name");
 	QTest::addColumn<Message*>("message");
 	QTest::addColumn<Message*>("resultMessage");
 	QTest::addColumn<bool>("success");
+	QTest::addColumn<QByteArray>("className");
+
+	addData<RegisterMessage>([&]() {
+		return RegisterMessage(QStringLiteral("devName"),
+							   QByteArray(InitMessage::NonceSize, 'x'),
+							   crypto->signKey(),
+							   crypto->cryptKey(),
+							   crypto,
+							   "random cmac");
+	});
+	addData<LoginMessage>([&]() {
+		return LoginMessage(QUuid::createUuid(),
+							QStringLiteral("devName"),
+							QByteArray(InitMessage::NonceSize, 'x'));
+	});
+	addData<LoginMessage>([&]() {
+		return LoginMessage(QUuid::createUuid(),
+							QStringLiteral("devName"),
+							QByteArray(3, 'x'));
+	}, false);
+	addData<AccessMessage>([&]() {
+		return AccessMessage(QStringLiteral("devName"),
+							 QByteArray(InitMessage::NonceSize, 'x'),
+							 crypto->signKey(),
+							 crypto->cryptKey(),
+							 crypto,
+							 QByteArray(InitMessage::NonceSize, 'x'),
+							 QUuid::createUuid(),
+							 "macscheme",
+							 "cmac",
+							 "trustmac");
+	});
+	addData<AcceptMessage>([&]() {
+		AcceptMessage msg(QUuid::createUuid());
+		msg.index = 42;
+		msg.scheme = "key_scheme";
+		msg.secret = "encrypted_key";
+		return msg;
+	});
+	addData<NewKeyMessage>([&]() {
+		NewKeyMessage msg;
+		msg.keyIndex = 33;
+		msg.cmac = "key_cmac";
+		msg.scheme = "random_scheme";
+		msg.deviceKeys.append(std::make_tuple(
+								  QUuid::createUuid(),
+								  "data1",
+								  "data2"
+							  ));
+		msg.deviceKeys.append(std::make_tuple(
+								  QUuid::createUuid(),
+								  "data4",
+								  "data5"
+							  ));
+		return msg;
+
+	});
+}
+
+void TestMessages::addAllData()
+{
+	addSignedData();
 
 	addData<ErrorMessage>([&]() {
 		return ErrorMessage(ErrorMessage::AuthenticationError,
@@ -145,27 +263,9 @@ void TestMessages::addAllData()
 								   crypto->cryptKey(),
 								   crypto);
 	});
-	addData<RegisterMessage>([&]() {
-		return RegisterMessage(QStringLiteral("devName"),
-							   QByteArray(InitMessage::NonceSize, 'x'),
-							   crypto->signKey(),
-							   crypto->cryptKey(),
-							   crypto,
-							   "random cmac");
-	});
 	addData<AccountMessage>([&]() {
 		return AccountMessage(QUuid::createUuid());
 	});
-	addData<LoginMessage>([&]() {
-		return LoginMessage(QUuid::createUuid(),
-							QStringLiteral("devName"),
-							QByteArray(InitMessage::NonceSize, 'x'));
-	});
-	addData<LoginMessage>([&]() {
-		return LoginMessage(QUuid::createUuid(),
-							QStringLiteral("devName"),
-							QByteArray(3, 'x'));
-	}, false);
 	addData<WelcomeMessage>([&]() {
 		return WelcomeMessage(true, {
 								  std::make_tuple(
@@ -229,18 +329,6 @@ void TestMessages::addAllData()
 		return ChangedAckMessage(77);
 	});
 
-	addData<AccessMessage>([&]() {
-		return AccessMessage(QStringLiteral("devName"),
-							 QByteArray(InitMessage::NonceSize, 'x'),
-							 crypto->signKey(),
-							 crypto->cryptKey(),
-							 crypto,
-							 QByteArray(InitMessage::NonceSize, 'x'),
-							 QUuid::createUuid(),
-							 "macscheme",
-							 "cmac",
-							 "trustmac");
-	});
 	addData<ProofMessage>([&]() {
 		AccessMessage msg(QStringLiteral("devName"),
 						  QByteArray(InitMessage::NonceSize, 'x'),
@@ -256,13 +344,6 @@ void TestMessages::addAllData()
 	});
 	addData<DenyMessage>([&]() {
 		return DenyMessage(QUuid::createUuid());
-	});
-	addData<AcceptMessage>([&]() {
-		AcceptMessage msg(QUuid::createUuid());
-		msg.index = 42;
-		msg.scheme = "key_scheme";
-		msg.secret = "encrypted_key";
-		return msg;
 	});
 	addData<GrantMessage>([&]() {
 		AcceptMessage msg(QUuid::createUuid());
@@ -332,24 +413,6 @@ void TestMessages::addAllData()
 									 )
 								 });
 	});
-	addData<NewKeyMessage>([&]() {
-		NewKeyMessage msg;
-		msg.keyIndex = 33;
-		msg.cmac = "key_cmac";
-		msg.scheme = "random_scheme";
-		msg.deviceKeys.append(std::make_tuple(
-								  QUuid::createUuid(),
-								  "data1",
-								  "data2"
-							  ));
-		msg.deviceKeys.append(std::make_tuple(
-								  QUuid::createUuid(),
-								  "data4",
-								  "data5"
-							  ));
-		return msg;
-
-	});
 	addData<NewKeyAckMessage>([&]() {
 		NewKeyMessage msg;
 		msg.keyIndex = 33;
@@ -379,7 +442,8 @@ void TestMessages::addData(std::function<TMessage()> createFn, bool success)
 	QTest::addRow(name.constData()) << m1->messageName()
 									<< (Message*)m1
 									<< (Message*)m2
-									<< success;
+									<< success
+									<< QByteArray(TMessage::staticMetaObject.className());
 }
 
 QTEST_MAIN(TestMessages)

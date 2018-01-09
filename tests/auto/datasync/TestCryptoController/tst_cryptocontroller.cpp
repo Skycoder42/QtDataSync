@@ -29,6 +29,8 @@ private Q_SLOTS:
 	void testSymCrypto_data();
 	void testSymCrypto();
 
+	void testKeyExchange();
+
 	void testPwCrypto_data();
 	void testPwCrypto();
 
@@ -171,20 +173,34 @@ void TestCryptoController::testClientCryptoOperations()
 
 void TestCryptoController::testKeyAccess()
 {
+	QSignalSpy fPrintSpy(controller, &CryptoController::fingerprintChanged);
+
 	try {
 		controller->clearKeyMaterial();
+		QCOMPARE(fPrintSpy.size(), 1);
 
 		auto testid = QUuid::createUuid();
 
 		controller->createPrivateKeys("nonce");
 		auto fPrint = controller->fingerprint();
 		QVERIFY(!fPrint.isEmpty());
+		QCOMPARE(fPrintSpy.size(), 2);
 
 		controller->storePrivateKeys(testid);
+
 		controller->clearKeyMaterial();
+		QVERIFY(controller->fingerprint().isEmpty());
+		QCOMPARE(fPrintSpy.size(), 3);
 		QVERIFY_EXCEPTION_THROWN(controller->loadKeyMaterial(QUuid::createUuid()), KeyStoreException);
+
 		controller->loadKeyMaterial(testid);
 		QCOMPARE(controller->fingerprint(), fPrint);
+		QCOMPARE(fPrintSpy.size(), 4);
+
+		controller->deleteKeyMaterial(testid);
+		QVERIFY(controller->fingerprint().isEmpty());
+		QCOMPARE(fPrintSpy.size(), 5);
+		QVERIFY_EXCEPTION_THROWN(controller->loadKeyMaterial(testid), KeyStoreException);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -237,6 +253,36 @@ void TestCryptoController::testSymCrypto()
 	}
 }
 
+void TestCryptoController::testKeyExchange()
+{
+	try {
+		controller->clearKeyMaterial();
+		controller->createPrivateKeys("nonce");
+		auto crypto = controller->crypto();
+
+		//secret encryption
+		auto cInfo = controller->encryptSecretKey(crypto, *(crypto->cryptKey()));
+		QCOMPARE(std::get<0>(cInfo), controller->keyIndex());
+		auto nIndex = controller->keyIndex() + 1;
+		controller->decryptSecretKey(nIndex, std::get<1>(cInfo), std::get<2>(cInfo), false);
+		QCOMPARE(controller->keyIndex(), nIndex);
+
+		//crypt cmac stuff
+		auto cmac = controller->generateEncryptionKeyCmac();
+		controller->verifyEncryptionKeyCmac(crypto, *(crypto->cryptKey()), cmac);
+
+		//key updates
+		nIndex = controller->keyIndex();
+		auto nKey = controller->generateNextKey();
+		QCOMPARE(std::get<0>(nKey), nIndex + 1);
+		QCOMPARE(controller->keyIndex(), nIndex);
+		controller->activateNextKey(std::get<0>(nKey));
+		QCOMPARE(controller->keyIndex(), std::get<0>(nKey));
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
 void TestCryptoController::testPwCrypto_data()
 {
 	symData();
@@ -253,9 +299,17 @@ void TestCryptoController::testPwCrypto()
 		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
 		dPriv->properties.insert(Defaults::SymScheme, scheme);
 
+		auto crypto = controller->crypto();
+		AsymmetricCryptoInfo *asymInfo = new AsymmetricCryptoInfo(controller->rng(),
+																  crypto->signatureScheme(),
+																  crypto->writeSignKey(),
+																  crypto->encryptionScheme(),
+																  crypto->writeCryptKey());
+
 		QByteArray schemeName;
 		QByteArray salt;
 		QByteArray cmac;
+		QByteArray cCmac;
 		QByteArray data;
 
 		//side A
@@ -267,6 +321,10 @@ void TestCryptoController::testPwCrypto()
 			//cmac
 			cmac = controller->createExportCmac(schemeName, key, message);
 			controller->verifyImportCmac(schemeName, key, message, cmac);
+
+			//cCmac
+			cCmac = controller->createExportCmacForCrypto(schemeName, key);
+			controller->verifyImportCmacForCrypto(schemeName, key, asymInfo, cCmac);
 
 			//encrypt
 			data = controller->exportEncrypt(schemeName, salt, key, message);
@@ -280,6 +338,10 @@ void TestCryptoController::testPwCrypto()
 			//cmac
 			controller->verifyImportCmac(schemeName, key, message, cmac);
 			QVERIFY_EXCEPTION_THROWN(controller->verifyImportCmac(schemeName, otherKey, message, cmac), CryptoException);
+
+			//cCmac
+			controller->verifyImportCmacForCrypto(schemeName, key, asymInfo, cCmac);
+			QVERIFY_EXCEPTION_THROWN(controller->verifyImportCmacForCrypto(schemeName, otherKey, asymInfo, cCmac), CryptoException);
 
 			//encrypt
 			auto res = controller->importDecrypt(schemeName, salt, key, data);

@@ -17,3 +17,8 @@ AccessMessage::AccessMessage(const QString &deviceName, const QByteArray &nonce,
 	cmac(cmac),
 	trustmac(trustmac)
 {}
+
+const QMetaObject *AccessMessage::getMetaObject() const
+{
+	return &staticMetaObject;
+}

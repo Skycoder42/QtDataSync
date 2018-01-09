@@ -276,9 +276,10 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 		if(accept) {
 			AcceptMessage message(deviceId);
 			std::tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
-			sendMessage(message);
+			sendSignedMessage(message);
 			emit prepareAddedData(deviceId);
 			emit accountAccessGranted(deviceId);
+
 		} else
 			sendMessage(DenyMessage{deviceId});
 	} catch(Exception &e) {
@@ -646,6 +647,11 @@ void RemoteConnector::sendMessage(const Message &message)
 	_socket->sendBinaryMessage(message.serialize());
 }
 
+void RemoteConnector::sendSignedMessage(const Message &message)
+{
+	_socket->sendBinaryMessage(_cryptoController->serializeSignedMessage(message));
+}
+
 bool RemoteConnector::isIdle() const
 {
 	return _stateMachine->isActive(QStringLiteral("Idle"));
@@ -868,9 +874,8 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 			LoginMessage msg(_deviceId,
 							 sValue(keyDeviceName).toString(),
 							 message.nonce);
-			auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+			sendSignedMessage(msg);
 			_stateMachine->submitEvent(QStringLiteral("awaitLogin"));
-			_socket->sendBinaryMessage(signedMsg);
 			logDebug() << "Sent login message for device id" << _deviceId;
 		} else {
 			_cryptoController->createPrivateKeys(message.nonce);
@@ -885,9 +890,8 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 									crypto->cryptKey(),
 									crypto,
 									_cryptoController->generateEncryptionKeyCmac());
-				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				sendSignedMessage(msg);
 				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
-				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent registration message for new id";
 			} else {
 				//calc trustmac
@@ -910,9 +914,8 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 								  scheme,
 								  settings()->value(keyImportCmac).toByteArray(),
 								  trustmac);
-				auto signedMsg = _cryptoController->serializeSignedMessage(msg);
+				sendSignedMessage(msg);
 				_stateMachine->submitEvent(QStringLiteral("awaitGranted"));
-				_socket->sendBinaryMessage(signedMsg);
 				logDebug() << "Sent access message for new id";
 			}
 		}
@@ -1157,7 +1160,7 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 				}
 			}
 
-			sendMessage(reply);
+			sendSignedMessage(reply);
 			logDebug() << "Sent key update to server";
 		}
 	}

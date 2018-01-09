@@ -168,7 +168,7 @@
                          <object>{faaadac9-3588-406f-8699-be30c0f7d659}</object>
                          <stereotypes>
                           <qlist>
-                           <item>message</item>
+                           <item>signed message</item>
                           </qlist>
                          </stereotypes>
                          <name>NEWKEY&lt;MACUPDATE&gt;(scheme, &lt;deviceId, enc{newKey}, verifymac&gt;, ...)</name>
@@ -687,7 +687,7 @@
                     <uid>{faaadac9-3588-406f-8699-be30c0f7d659}</uid>
                     <stereotypes>
                      <qlist>
-                      <item>message</item>
+                      <item>signed message</item>
                      </qlist>
                     </stereotypes>
                    </MElement>

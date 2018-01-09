@@ -169,6 +169,7 @@ private:
 	QHash<QUuid, QSharedPointer<AsymmetricCryptoInfo>> _activeProofs;
 
 	void sendMessage(const Message &message);
+	void sendSignedMessage(const Message &message);
 
 	bool isIdle() const;
 	bool checkIdle(const Message &message);

@@ -132,11 +132,11 @@ private:
 	void onChangedAck(const QtDataSync::ChangedAckMessage &message);
 	void onListDevices(const QtDataSync::ListDevicesMessage &message);
 	void onRemove(const QtDataSync::RemoveMessage &message);
-	void onAccept(const QtDataSync::AcceptMessage &message);
+	void onAccept(const QtDataSync::AcceptMessage &message, QDataStream &stream);
 	void onDeny(const QtDataSync::DenyMessage &message);
 	void onMacUpdate(const QtDataSync::MacUpdateMessage &message);
 	void onKeyChange(const QtDataSync::KeyChangeMessage &message);
-	void onNewKey(const QtDataSync::NewKeyMessage &message);
+	void onNewKey(const QtDataSync::NewKeyMessage &message, QDataStream &stream);
 
 	void triggerDownload(bool forceUpdate = false, bool skipNoChanges = false);
 };

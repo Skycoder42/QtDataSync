@@ -216,7 +216,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			else if(Message::isType<RemoveMessage>(name))
 				onRemove(Message::deserializeMessage<RemoveMessage>(stream));
 			else if(Message::isType<AcceptMessage>(name))
-				onAccept(Message::deserializeMessage<AcceptMessage>(stream));
+				onAccept(Message::deserializeMessage<AcceptMessage>(stream), stream);
 			else if(Message::isType<DenyMessage>(name))
 				onDeny(Message::deserializeMessage<DenyMessage>(stream));
 			else if(Message::isType<MacUpdateMessage>(name))
@@ -224,7 +224,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			else if(Message::isType<KeyChangeMessage>(name))
 				onKeyChange(Message::deserializeMessage<KeyChangeMessage>(stream));
 			else if(Message::isType<NewKeyMessage>(name))
-				onNewKey(Message::deserializeMessage<NewKeyMessage>(stream));
+				onNewKey(Message::deserializeMessage<NewKeyMessage>(stream), stream);
 			else {
 				qWarning() << "Unknown message received:" << Message::typeName(name);
 				sendError({
@@ -517,9 +517,21 @@ void Client::onRemove(const RemoveMessage &message)
 		emit forceDisconnect(message.deviceId);
 }
 
-void Client::onAccept(const AcceptMessage &message)
+void Client::onAccept(const AcceptMessage &message, QDataStream &stream)
 {
 	checkIdle(message);
+
+	//verify the signature (in case of an unsecure channel)
+	try {
+		QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(_deviceId, rngPool.localData()));
+		if(!crypto)
+			throw ClientErrorException(ErrorMessage::AuthenticationError);
+		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
+	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+		qWarning() << "Authentication error:" << e.what();
+		throw ClientErrorException(ErrorMessage::AuthenticationError);
+	}
+
 	emit proofDone(message.deviceId, true, message);
 }
 
@@ -553,9 +565,20 @@ void Client::onKeyChange(const KeyChangeMessage &message)
 		sendError(ErrorMessage::KeyIndexError);
 }
 
-void Client::onNewKey(const NewKeyMessage &message)
+void Client::onNewKey(const NewKeyMessage &message, QDataStream &stream)
 {
 	checkIdle(message);
+
+	//verify the signature (in case of an unsecure channel)
+	try {
+		QScopedPointer<AsymmetricCryptoInfo> crypto(_database->loadCrypto(_deviceId, rngPool.localData()));
+		if(!crypto)
+			throw ClientErrorException(ErrorMessage::AuthenticationError);
+		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
+	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+		qWarning() << "Authentication error:" << e.what();
+		throw ClientErrorException(ErrorMessage::AuthenticationError);
+	}
 
 	auto ok = _database->updateExchageKey(_deviceId,
 										  message.keyIndex,

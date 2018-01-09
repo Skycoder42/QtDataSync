@@ -36,6 +36,9 @@ public:
 	QByteArray macscheme;
 	QByteArray cmac;
 	QByteArray trustmac;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
 };
 
 }
