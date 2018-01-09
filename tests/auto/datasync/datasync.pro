@@ -8,6 +8,7 @@ SUBDIRS += \
     TestChangeController \
     TestCryptoController \
     TestSyncController \
-    TestRoThreadedBackend
+    TestRoThreadedBackend \
+    TestMessages
 
 CONFIG += ordered
