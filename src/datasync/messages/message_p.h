@@ -53,7 +53,7 @@ extern Q_DATASYNC_EXPORT const QByteArray PingMessage;
 void Q_DATASYNC_EXPORT setupStream(QDataStream &stream);
 void Q_DATASYNC_EXPORT verifySignature(QDataStream &stream, const CryptoPP::X509PublicKey &key, AsymmetricCrypto *crypto);
 inline void verifySignature(QDataStream &stream, const QSharedPointer<CryptoPP::X509PublicKey> &key, AsymmetricCrypto *crypto) {
-	return verifySignature(stream, *(key.data()), crypto);
+	return verifySignature(stream, *key, crypto);
 }
 QByteArray Q_DATASYNC_EXPORT createSignature(const QByteArray &message, const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, AsymmetricCrypto *crypto);
 

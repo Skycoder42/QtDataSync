@@ -899,11 +899,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto key = settings()->value(keyImportKey).toByteArray();
 				if(!key.isEmpty()) {
 					CryptoPP::SecByteBlock secBlock(reinterpret_cast<const byte*>(key.constData()), key.size());
-					QByteArray trustMessage = crypto->signatureScheme() +
-											  crypto->writeSignKey() +
-											  crypto->encryptionScheme() +
-											  crypto->writeCryptKey();
-					trustmac = _cryptoController->createExportCmac(scheme, secBlock, trustMessage);
+					trustmac = _cryptoController->createExportCmacForCrypto(scheme, secBlock);
 				}
 
 				//send message
@@ -1090,11 +1086,7 @@ void RemoteConnector::onProof(const ProofMessage &message)
 			//verify trustmac if given
 			auto trusted = !message.trustmac.isNull();
 			if(trusted) {
-				QByteArray trustMessage = cryptInfo->signatureScheme() +
-										  cryptInfo->writeKey(cryptInfo->signatureKey()) +
-										  cryptInfo->encryptionScheme() +
-										  cryptInfo->writeKey(cryptInfo->encryptionKey());
-				_cryptoController->verifyImportCmac(message.macscheme, key, trustMessage, message.trustmac);
+				_cryptoController->verifyImportCmacForCrypto(message.macscheme, key, cryptInfo.data(), message.trustmac);
 				logInfo() << "Accepted trusted import proof request for device" << message.deviceId;
 			} else
 				logInfo() << "Received untrusted import proof request for device" << message.deviceId;
@@ -1148,8 +1140,8 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 																				  std::get<1>(info),
 																				  std::get<2>(info));
 					_cryptoController->verifyEncryptionKeyCmac(cryptInfo.data(),
-														   cryptInfo->encryptionKey(),
-														   std::get<3>(info));
+															   cryptInfo->encryptionKey(),
+															   std::get<3>(info));
 
 					//encrypt the secret key and send the message
 					NewKeyMessage::KeyUpdate keyUpdate {
@@ -1160,7 +1152,7 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 					std::get<2>(keyUpdate) = _cryptoController->createCmac(reply.signatureData(keyUpdate)); //uses the "old" current key
 					reply.deviceKeys.append(keyUpdate);
 					logDebug() << "Prepared key update for device" << std::get<0>(info);
-				} catch(Exception &e) {
+				} catch(std::exception &e) {
 					logWarning() << "Failed to send update exchange key to device"
 								 << std::get<0>(info)
 								 << "- device is going to be excluded from synchronisation. Error:"

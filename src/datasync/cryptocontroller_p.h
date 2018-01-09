@@ -101,11 +101,30 @@ public:
 
 	//export and import key methods for exchange security
 	std::tuple<QByteArray, QByteArray, CryptoPP::SecByteBlock> generateExportKey(const QString &password) const; //(scheme, salt, key)
-	CryptoPP::SecByteBlock recoverExportKey(const QByteArray &scheme, const QByteArray &salt, const QString &password) const;
-	QByteArray createExportCmac(const QByteArray &scheme, const CryptoPP::SecByteBlock &key, const QByteArray &data) const;
-	void verifyImportCmac(const QByteArray &scheme, const CryptoPP::SecByteBlock &key, const QByteArray &data, const QByteArray &mac) const;
-	QByteArray exportEncrypt(const QByteArray &scheme, const QByteArray &salt, const CryptoPP::SecByteBlock &key, const QByteArray &data) const;
-	QByteArray importDecrypt(const QByteArray &scheme, const QByteArray &salt, const CryptoPP::SecByteBlock &key, const QByteArray &data) const;
+	CryptoPP::SecByteBlock recoverExportKey(const QByteArray &scheme,
+											const QByteArray &salt,
+											const QString &password) const;
+	QByteArray createExportCmac(const QByteArray &scheme,
+								const CryptoPP::SecByteBlock &key,
+								const QByteArray &data) const;
+	QByteArray createExportCmacForCrypto(const QByteArray &scheme,
+										 const CryptoPP::SecByteBlock &key) const;
+	void verifyImportCmac(const QByteArray &scheme,
+						  const CryptoPP::SecByteBlock &key,
+						  const QByteArray &data,
+						  const QByteArray &mac) const;
+	void verifyImportCmacForCrypto(const QByteArray &scheme,
+								   const CryptoPP::SecByteBlock &key,
+								   AsymmetricCryptoInfo *cryptoInfo,
+								   const QByteArray &mac) const;
+	QByteArray exportEncrypt(const QByteArray &scheme,
+							 const QByteArray &salt,
+							 const CryptoPP::SecByteBlock &key,
+							 const QByteArray &data) const;
+	QByteArray importDecrypt(const QByteArray &scheme,
+							 const QByteArray &salt,
+							 const CryptoPP::SecByteBlock &key,
+							 const QByteArray &data) const;
 
 Q_SIGNALS:
 	void fingerprintChanged(const QByteArray &fingerprint);
@@ -206,7 +225,7 @@ public:
 
 	QByteArray encrypt(const CryptoPP::X509PublicKey &key, const QByteArray &message);
 	inline QByteArray encrypt(const QSharedPointer<CryptoPP::X509PublicKey> &key, const QByteArray &message) {
-		return encrypt(*(key.data()), message);
+		return encrypt(*key, message);
 	}
 	QByteArray decrypt(const QByteArray &message);
 

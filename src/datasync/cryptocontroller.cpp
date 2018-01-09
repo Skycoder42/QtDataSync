@@ -608,6 +608,24 @@ QByteArray CryptoController::createExportCmac(const QByteArray &scheme, const Se
 	}
 }
 
+QByteArray CryptoController::createExportCmacForCrypto(const QByteArray &scheme, const SecByteBlock &key) const
+{
+	try {
+		QByteArray trustMessage = _asymCrypto->signatureScheme() +
+								  _asymCrypto->writeSignKey() +
+								  _asymCrypto->encryptionScheme() +
+								  _asymCrypto->writeCryptKey();
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key = key;
+		return createCmacImpl(info, trustMessage);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to generate cmac for crypto keys"),
+							  e);
+	}
+}
+
 void CryptoController::verifyImportCmac(const QByteArray &scheme, const SecByteBlock &key, const QByteArray &data, const QByteArray &mac) const
 {
 	try {
@@ -618,6 +636,24 @@ void CryptoController::verifyImportCmac(const QByteArray &scheme, const SecByteB
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify cmac for import data"),
+							  e);
+	}
+}
+
+void CryptoController::verifyImportCmacForCrypto(const QByteArray &scheme, const SecByteBlock &key, AsymmetricCryptoInfo *cryptoInfo, const QByteArray &mac) const
+{
+	try {
+		QByteArray trustMessage = cryptoInfo->signatureScheme() +
+								  cryptoInfo->writeKey(cryptoInfo->signatureKey()) +
+								  cryptoInfo->encryptionScheme() +
+								  cryptoInfo->writeKey(cryptoInfo->encryptionKey());
+		CipherInfo info;
+		createScheme(scheme, info.scheme);
+		info.key = key;
+		return verifyCmacImpl(info, trustMessage, mac);
+	} catch(CppException &e) {
+		throw CryptoException(defaults(),
+							  QStringLiteral("Failed to verify cmac for crypto keys"),
 							  e);
 	}
 }

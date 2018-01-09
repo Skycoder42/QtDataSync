@@ -77,7 +77,7 @@ private:
 			d(new CryptoPP::AutoSeededRandomPool())
 		{}
 		inline operator CryptoPP::RandomNumberGenerator&() {
-			return *(d.data());
+			return *d;
 		}
 	private:
 		QScopedPointer<CryptoPP::AutoSeededRandomPool> d;

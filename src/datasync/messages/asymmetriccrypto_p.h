@@ -52,24 +52,24 @@ public:
 						   const CryptoPP::X509PublicKey &encryptionKey) const;
 	inline QByteArray fingerprint(const QSharedPointer<CryptoPP::X509PublicKey> &signingKey,
 								  const QSharedPointer<CryptoPP::X509PublicKey> &encryptionKey) const {
-		return fingerprint(*(signingKey.data()), *(encryptionKey.data()));
+		return fingerprint(*signingKey, *encryptionKey);
 	}
 
 	QSharedPointer<CryptoPP::X509PublicKey> readKey(bool signKey, CryptoPP::RandomNumberGenerator &rng, const QByteArray &data) const;
 	QByteArray writeKey(const CryptoPP::X509PublicKey &key) const;
 	inline QByteArray writeKey(const QSharedPointer<CryptoPP::X509PublicKey> &key) const {
-		return writeKey(*(key.data()));
+		return writeKey(*key);
 	}
 
 	void verify(const CryptoPP::X509PublicKey &key, const QByteArray &message, const QByteArray &signature) const;
 	inline void verify(const QSharedPointer<CryptoPP::X509PublicKey> &key, const QByteArray &message, const QByteArray &signature) const {
-		verify(*(key.data()), message, signature);
+		verify(*key, message, signature);
 	}
 	QByteArray sign(const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message) const;
 
 	QByteArray encrypt(const CryptoPP::X509PublicKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message) const;
 	inline QByteArray encrypt(const QSharedPointer<CryptoPP::X509PublicKey> &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message) const {
-		return encrypt(*(key.data()), rng, message);
+		return encrypt(*key, rng, message);
 	}
 	QByteArray decrypt(const CryptoPP::PKCS8PrivateKey &key, CryptoPP::RandomNumberGenerator &rng, const QByteArray &message) const;
 
