@@ -190,41 +190,37 @@ void TestChangeController::testDeviceChanges()
 			QFAIL(errorSpy.takeFirst()[0].toString().toUtf8().constData());
 
 		QCOMPARE(changeSpy.size(), 2);
-		QCOMPARE(deviceChangeSpy.size(), 2);
+		QCOMPARE(deviceChangeSpy.size(), 3);
 		QVERIFY(activeSpy.last()[0].toBool());
-		QCOMPARE(store->changeCount(), 4u);
+		QCOMPARE(store->changeCount(), 5u);
 
 		auto change = changeSpy.takeFirst();
 		auto keyHash = change[0].toByteArray();
 		controller->uploadDone(keyHash);
 		QCOMPARE(changeSpy.size(), 1);
-		QCOMPARE(deviceChangeSpy.size(), 2);
-		QCOMPARE(store->changeCount(), 4u); //TODO should be 3
+		QCOMPARE(deviceChangeSpy.size(), 3);
+		QCOMPARE(store->changeCount(), 4u);
 
 		change = changeSpy.takeFirst();
 		keyHash = change[0].toByteArray();
 		controller->uploadDone(keyHash);
 		QCOMPARE(changeSpy.size(), 0);
+		QCOMPARE(deviceChangeSpy.size(), 3);
+		QCOMPARE(store->changeCount(), 3u);
+
+		change = deviceChangeSpy.takeFirst();
+		keyHash = change[0].toByteArray();
+		controller->deviceUploadDone(keyHash, devId);
+		QCOMPARE(changeSpy.size(), 0);
 		QCOMPARE(deviceChangeSpy.size(), 2);
-		QCOMPARE(store->changeCount(), 3u); //TODO should be 2
+		QCOMPARE(store->changeCount(), 2u);
 
 		change = deviceChangeSpy.takeFirst();
 		keyHash = change[0].toByteArray();
 		controller->deviceUploadDone(keyHash, devId);
 		QCOMPARE(changeSpy.size(), 0);
 		QCOMPARE(deviceChangeSpy.size(), 1);
-		QCOMPARE(store->changeCount(), 2u); //TODO should be 1
-
-		change = deviceChangeSpy.takeFirst();
-		keyHash = change[0].toByteArray();
-		controller->deviceUploadDone(keyHash, devId);
-		QCOMPARE(changeSpy.size(), 0);
-		QCOMPARE(deviceChangeSpy.size(), 0);
-		QCOMPARE(store->changeCount(), 1u); //TODO should be 0
-
-		//for now: another round of changes is needed
-		QVERIFY(deviceChangeSpy.wait());
-		QCOMPARE(deviceChangeSpy.size(), 1);
+		QCOMPARE(store->changeCount(), 1u);
 
 		change = deviceChangeSpy.takeFirst();
 		keyHash = change[0].toByteArray();

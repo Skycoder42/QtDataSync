@@ -397,11 +397,16 @@ quint32 LocalStore::changeCount() const
 	QReadLocker _(_defaults.databaseLock());
 
 	QSqlQuery countQuery(_database);
-	countQuery.prepare(QStringLiteral("SELECT Count(*) FROM DataIndex "
-									  "LEFT JOIN DeviceUploads "
-									  "ON DataIndex.Type = DeviceUploads.Type "
-									  "AND DataIndex.Id = DeviceUploads.Id "
-									  "WHERE Changed = 1 OR DeviceUploads.Device NOT NULL;"));
+	countQuery.prepare(QStringLiteral("SELECT Sum(rows) FROM ( "
+									  "		SELECT Count(*) AS rows FROM DataIndex "
+									  "		WHERE Changed = 1"
+									  "		UNION ALL"
+									  "		SELECT Count(*) AS rows FROM DataIndex "
+									  "		INNER JOIN DeviceUploads "
+									  "		ON DataIndex.Type = DeviceUploads.Type "
+									  "		AND DataIndex.Id = DeviceUploads.Id "
+									  "		WHERE NOT (DataIndex.Changed = 1 AND File IS NULL)"
+									  ")"));
 	exec(countQuery);
 
 	if(countQuery.first())
@@ -428,14 +433,13 @@ void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quin
 			return;
 	}
 
-	//TODO optimize: if changed = 1 and device upload, cache that somehow, so that normal mark unchanged also removes device change
 	if(cnt < limit) {
 		QSqlQuery readDeviceChangesQuery(_database);
 		readDeviceChangesQuery.prepare(QStringLiteral("SELECT DeviceUploads.Type, DeviceUploads.Id, DataIndex.Version, DataIndex.File, DeviceUploads.Device "
 													  "FROM DeviceUploads "
 													  "INNER JOIN DataIndex "
 													  "ON (DeviceUploads.Type = DataIndex.Type AND DeviceUploads.Id = DataIndex.Id) "
-													  "WHERE DataIndex.Changed = 0 " //only those that havent been operated on before
+													  "WHERE NOT (DataIndex.Changed = 1 AND File IS NULL) " //only those that haven't been operated on before
 													  "LIMIT ?"));
 		readDeviceChangesQuery.addBindValue(limit - cnt);
 		exec(readDeviceChangesQuery);
