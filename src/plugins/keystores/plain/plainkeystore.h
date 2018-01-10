@@ -18,8 +18,8 @@ public:
 	void openStore() override;
 	void closeStore() override;
 	bool contains(const QString &key) const override;
-	void storePrivateKey(const QString &key, const QByteArray &pKey) override;
-	QByteArray loadPrivateKey(const QString &key) override;
+	void save(const QString &key, const QByteArray &pKey) override;
+	QByteArray load(const QString &key) override;
 	void remove(const QString &key) override;
 
 private:

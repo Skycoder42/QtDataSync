@@ -47,7 +47,7 @@ bool PlainKeyStore::contains(const QString &key) const
 	return _settings->contains(key);
 }
 
-void PlainKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey)
+void PlainKeyStore::save(const QString &key, const QByteArray &pKey)
 {
 	_settings->setValue(key, pKey);
 	_settings->sync();
@@ -55,7 +55,7 @@ void PlainKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey)
 		throw QtDataSync::KeyStoreException(this, QStringLiteral("Failed to write to keystore file"));
 }
 
-QByteArray PlainKeyStore::loadPrivateKey(const QString &key)
+QByteArray PlainKeyStore::load(const QString &key)
 {
 	return _settings->value(key).toByteArray();
 }

@@ -212,12 +212,12 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 		ensureStoreOpen();
 
 		auto signScheme = settings()->value(keySignScheme).toByteArray();
-		auto signKey = _keyStore->loadPrivateKey(keySignKeyTemplate.arg(deviceId.toString()));
+		auto signKey = _keyStore->load(keySignKeyTemplate.arg(deviceId.toString()));
 		if(signKey.isNull())
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private signing key from keystore"));
 
 		auto cryptScheme = settings()->value(keyCryptScheme).toByteArray();
-		auto cryptKey = _keyStore->loadPrivateKey(keyCryptKeyTemplate.arg(deviceId.toString()));
+		auto cryptKey = _keyStore->load(keyCryptKeyTemplate.arg(deviceId.toString()));
 		if(cryptKey.isNull())
 			throw KeyStoreException(_keyStore, QStringLiteral("Unable to load private encryption key from keystore"));
 
@@ -311,11 +311,11 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 		ensureStoreOpen();
 
 		settings()->setValue(keySignScheme, _asymCrypto->signatureScheme());
-		_keyStore->storePrivateKey(keySignKeyTemplate.arg(deviceId.toString()),
+		_keyStore->save(keySignKeyTemplate.arg(deviceId.toString()),
 								   _asymCrypto->savePrivateSignKey());
 
 		settings()->setValue(keyCryptScheme, _asymCrypto->encryptionScheme());
-		_keyStore->storePrivateKey(keyCryptKeyTemplate.arg(deviceId.toString()),
+		_keyStore->save(keyCryptKeyTemplate.arg(deviceId.toString()),
 								   _asymCrypto->savePrivateCryptKey());
 
 		//store with key index 0, as the initial key, that will never be managed by the server. Server will always start counting at 1

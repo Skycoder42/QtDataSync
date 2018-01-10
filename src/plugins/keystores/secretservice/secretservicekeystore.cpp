@@ -44,7 +44,7 @@ bool SecretServiceKeyStore::contains(const QString &key) const
 	}
 }
 
-void SecretServiceKeyStore::storePrivateKey(const QString &key, const QByteArray &pKey)
+void SecretServiceKeyStore::save(const QString &key, const QByteArray &pKey)
 {
 	try {
 		_libSecret->storeSecret(key.toUtf8(), pKey);
@@ -53,7 +53,7 @@ void SecretServiceKeyStore::storePrivateKey(const QString &key, const QByteArray
 	}
 }
 
-QByteArray SecretServiceKeyStore::loadPrivateKey(const QString &key)
+QByteArray SecretServiceKeyStore::load(const QString &key)
 {
 	try {
 		return _libSecret->loadSecret(key.toUtf8());

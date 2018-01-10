@@ -4,8 +4,9 @@ using namespace QtDataSync;
 const QByteArray TestLib::TypeName("TestData");
 QTemporaryDir TestLib::tDir;
 
-void TestLib::init()
+void TestLib::init(const QByteArray &keystorePath)
 {
+	qputenv("PLUGIN_KEYSTORES_PATH", keystorePath);
 	qRegisterMetaType<TestData>();
 	QJsonSerializer::registerListConverters<TestData>();
 #ifdef VERBOSE_TESTS

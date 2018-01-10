@@ -21,3 +21,5 @@ else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../TestLib/libTestLib.a
 
 mac: QMAKE_LFLAGS += '-Wl,-rpath,\'$$OUT_PWD/../../../../lib\''
+
+DEFINES += KEYSTORE_PATH=\\\"$$OUT_PWD/../../../../plugins/keystores/\\\"

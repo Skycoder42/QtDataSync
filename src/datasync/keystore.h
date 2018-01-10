@@ -46,8 +46,8 @@ public:
 	virtual void closeStore() = 0;
 
 	virtual bool contains(const QString &key) const = 0;
-	virtual void storePrivateKey(const QString &key, const QByteArray &pKey) = 0;
-	virtual QByteArray loadPrivateKey(const QString &key) = 0;
+	virtual void save(const QString &key, const QByteArray &pKey) = 0;
+	virtual QByteArray load(const QString &key) = 0;
 	virtual void remove(const QString &key) = 0;
 
 protected:

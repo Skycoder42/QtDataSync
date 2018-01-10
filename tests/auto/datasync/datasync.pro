@@ -9,6 +9,7 @@ SUBDIRS += \
     TestCryptoController \
     TestSyncController \
     TestRoThreadedBackend \
-    TestMessages
+    TestMessages \
+    TestKeystorePlugins
 
 CONFIG += ordered
