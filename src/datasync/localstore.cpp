@@ -63,10 +63,10 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 	if(!_database->tables().contains(QStringLiteral("DeviceUploads"))) {
 		QSqlQuery createQuery(_database);
 		createQuery.prepare(QStringLiteral("CREATE TABLE DeviceUploads ( "
-										   "	Device	TEXT NOT NULL, "
 										   "	Type	TEXT NOT NULL, "
 										   "	Id		TEXT NOT NULL, "
-										   "	PRIMARY KEY(Device, Type, Id), "
+										   "	Device	TEXT NOT NULL, "
+										   "	PRIMARY KEY(Type, Id, Device), "
 										   "	FOREIGN KEY(Type, Id) REFERENCES DataIndex ON DELETE CASCADE "
 										   ") WITHOUT ROWID;"));
 		if(!createQuery.exec()) {
@@ -428,12 +428,14 @@ void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quin
 			return;
 	}
 
+	//TODO optimize: if changed = 1 and device upload, cache that somehow, so that normal mark unchanged also removes device change
 	if(cnt < limit) {
 		QSqlQuery readDeviceChangesQuery(_database);
 		readDeviceChangesQuery.prepare(QStringLiteral("SELECT DeviceUploads.Type, DeviceUploads.Id, DataIndex.Version, DataIndex.File, DeviceUploads.Device "
 													  "FROM DeviceUploads "
 													  "INNER JOIN DataIndex "
 													  "ON (DeviceUploads.Type = DataIndex.Type AND DeviceUploads.Id = DataIndex.Id) "
+													  "WHERE DataIndex.Changed = 0 " //only those that havent been operated on before
 													  "LIMIT ?"));
 		readDeviceChangesQuery.addBindValue(limit - cnt);
 		exec(readDeviceChangesQuery);
@@ -629,8 +631,8 @@ void LocalStore::prepareAccountAdded(const QUuid &deviceId)
 		QWriteLocker _(_defaults.databaseLock());
 
 		QSqlQuery insertQuery(_database);
-		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO DeviceUploads (Device, Type, Id) "
-										   "SELECT ?, Type, Id FROM DataIndex"));
+		insertQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO DeviceUploads (Type, Id, Device) "
+										   "SELECT Type, Id, ? FROM DataIndex"));
 		insertQuery.addBindValue(deviceId);
 		exec(insertQuery);
 

@@ -25,6 +25,8 @@ private Q_SLOTS:
 	void testChanges_data();
 	void testChanges();
 
+	void testDeviceChanges();
+
 	//last test, to avoid problems
 	void testChangeTriggers();
 
@@ -147,12 +149,98 @@ void TestChangeController::testChanges()
 		QCOMPARE(std::get<2>(syncData), version);
 		QCOMPARE(std::get<3>(syncData), data);
 
-		if(complete)
+		if(complete) {
 			controller->uploadDone(keyHash);
+			QCOMPARE(store->changeCount(), 0u);
+		}
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
 
+	controller->clearUploads();
+}
+
+void TestChangeController::testDeviceChanges()
+{
+	controller->setUploadingEnabled(false);
+	QCoreApplication::processEvents();
+	QSignalSpy activeSpy(controller, &ChangeController::uploadingChanged);
+	QSignalSpy changeSpy(controller, &ChangeController::uploadChange);
+	QSignalSpy deviceChangeSpy(controller, &ChangeController::uploadDeviceChange);
+	QSignalSpy errorSpy(controller, &ChangeController::controllerError);
+
+	try {
+		auto devId = QUuid::createUuid();
+
+		//Create the device changes
+		store->reset(false);
+		store->save(TestLib::generateKey(42), TestLib::generateDataJson(42));
+		store->save(TestLib::generateKey(43), TestLib::generateDataJson(43));
+		store->remove(TestLib::generateKey(43));
+		store->save(TestLib::generateKey(44), TestLib::generateDataJson(44));
+		store->save(TestLib::generateKey(45), TestLib::generateDataJson(45));
+		store->remove(TestLib::generateKey(45));
+		store->markUnchanged(TestLib::generateKey(42), 1, false);
+		store->markUnchanged(TestLib::generateKey(43), 2, false); //fake persistet
+		store->prepareAccountAdded(devId);
+
+		//enable changes
+		controller->setUploadingEnabled(true);
+		if(!errorSpy.isEmpty())
+			QFAIL(errorSpy.takeFirst()[0].toString().toUtf8().constData());
+
+		QCOMPARE(changeSpy.size(), 2);
+		QCOMPARE(deviceChangeSpy.size(), 2);
+		QVERIFY(activeSpy.last()[0].toBool());
+		QCOMPARE(store->changeCount(), 4u);
+
+		auto change = changeSpy.takeFirst();
+		auto keyHash = change[0].toByteArray();
+		controller->uploadDone(keyHash);
+		QCOMPARE(changeSpy.size(), 1);
+		QCOMPARE(deviceChangeSpy.size(), 2);
+		QCOMPARE(store->changeCount(), 4u); //TODO should be 3
+
+		change = changeSpy.takeFirst();
+		keyHash = change[0].toByteArray();
+		controller->uploadDone(keyHash);
+		QCOMPARE(changeSpy.size(), 0);
+		QCOMPARE(deviceChangeSpy.size(), 2);
+		QCOMPARE(store->changeCount(), 3u); //TODO should be 2
+
+		change = deviceChangeSpy.takeFirst();
+		keyHash = change[0].toByteArray();
+		controller->deviceUploadDone(keyHash, devId);
+		QCOMPARE(changeSpy.size(), 0);
+		QCOMPARE(deviceChangeSpy.size(), 1);
+		QCOMPARE(store->changeCount(), 2u); //TODO should be 1
+
+		change = deviceChangeSpy.takeFirst();
+		keyHash = change[0].toByteArray();
+		controller->deviceUploadDone(keyHash, devId);
+		QCOMPARE(changeSpy.size(), 0);
+		QCOMPARE(deviceChangeSpy.size(), 0);
+		QCOMPARE(store->changeCount(), 1u); //TODO should be 0
+
+		//for now: another round of changes is needed
+		QVERIFY(deviceChangeSpy.wait());
+		QCOMPARE(deviceChangeSpy.size(), 1);
+
+		change = deviceChangeSpy.takeFirst();
+		keyHash = change[0].toByteArray();
+		controller->deviceUploadDone(keyHash, devId);
+		QCOMPARE(changeSpy.size(), 0);
+		QCOMPARE(deviceChangeSpy.size(), 0);
+		QCOMPARE(store->changeCount(), 0u);
+
+		QVERIFY(!deviceChangeSpy.wait());
+		QVERIFY(changeSpy.isEmpty());
+		QVERIFY(deviceChangeSpy.isEmpty());
+
+		store->reset(false);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
 	controller->clearUploads();
 }
 
