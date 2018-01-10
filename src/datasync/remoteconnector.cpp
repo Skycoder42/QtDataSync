@@ -463,8 +463,7 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			triggerError(true);
 		}
 	} catch(DataStreamException &e) {
-		logCritical() << "Remote message error:" << e.what();
-		triggerError(true);
+		onError({ErrorMessage::IncompatibleVersionError, QString::fromUtf8(e.what())}, "invalid remote message");
 	} catch(Exception &e) {
 		//simulate a "normal" client error
 		onError({ErrorMessage::ClientError, e.qWhat()}, name);

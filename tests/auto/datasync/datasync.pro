@@ -10,6 +10,7 @@ SUBDIRS += \
     TestSyncController \
     TestRoThreadedBackend \
     TestMessages \
-    TestKeystorePlugins
+    TestKeystorePlugins \
+    TestRemoteConnector
 
 CONFIG += ordered

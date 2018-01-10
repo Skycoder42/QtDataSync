@@ -13,13 +13,13 @@ class Q_DATASYNC_EXPORT LoginMessage : public InitMessage
 	Q_GADGET
 
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
-	Q_PROPERTY(QtDataSync::Utf8String name MEMBER name)
+	Q_PROPERTY(QtDataSync::Utf8String deviceName MEMBER deviceName)
 
 public:
-	LoginMessage(const QUuid &deviceId = {}, const QString &name = {}, const QByteArray &nonce = {});
+	LoginMessage(const QUuid &deviceId = {}, const QString &deviceName = {}, const QByteArray &nonce = {});
 
 	QUuid deviceId;
-	Utf8String name;
+	Utf8String deviceName;
 
 protected:
 	const QMetaObject *getMetaObject() const override;

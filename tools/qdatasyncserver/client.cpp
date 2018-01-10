@@ -407,7 +407,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	_catStr = "client." + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
-	_database->updateLogin(_deviceId, message.name);
+	_database->updateLogin(_deviceId, message.deviceName);
 	qDebug() << "Device successfully logged in";
 
 	//load changecount early to find out if data changed
