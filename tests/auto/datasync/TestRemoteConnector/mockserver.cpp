@@ -42,18 +42,13 @@ bool MockServer::waitForConnected(MockConnection **connection)
 {
 	auto ok = false;
 	[&]() {
+		QVERIFY(connection);
 		if(_connectedSpy.isEmpty())
 			QVERIFY(_connectedSpy.wait());
 		QVERIFY(!_connectedSpy.isEmpty());
 		QVERIFY(_server->hasPendingConnections());
 		_connectedSpy.removeFirst();
-		if(connection)
-			*connection = new MockConnection(_server->nextPendingConnection(), this);
-		else {
-			auto s = _server->nextPendingConnection();
-			s->abort();
-			s->deleteLater();
-		}
+		*connection = new MockConnection(_server->nextPendingConnection(), this);
 		ok = true;
 	}();
 	return ok;
