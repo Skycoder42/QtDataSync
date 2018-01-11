@@ -46,6 +46,8 @@ private:
 
 void TestRemoteConnector::initTestCase()
 {
+	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
+
 	qRegisterMetaType<RemoteConnector::RemoteEvent>("RemoteEvent");
 
 	try {

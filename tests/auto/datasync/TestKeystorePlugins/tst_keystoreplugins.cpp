@@ -61,12 +61,18 @@ void TestKeystorePlugins::testKeystoreFunctions()
 	QFETCH(QString, provider);
 	QFETCH(bool, required);
 
-	QPluginLoader loader;
-#ifdef Q_OS_UNIX
-	loader.setFileName(QStringLiteral(KEYSTORE_PATH) + QStringLiteral("lib") + pluginname);
+#ifdef Q_OS_WIN
+#ifdef QT_NO_DEBUG
+	QString fullPath = QStringLiteral(KEYSTORE_PATH) + pluginname;
 #else
-	loader.setFileName(QStringLiteral(KEYSTORE_PATH) + pluginname);
+	QString fullPath = QStringLiteral(KEYSTORE_PATH) + pluginname + QStringLiteral("d");
 #endif
+#else
+	QString fullPath = QStringLiteral(KEYSTORE_PATH) + QStringLiteral("lib") + pluginname;
+#endif
+
+	QPluginLoader loader;
+	loader.setFileName(fullPath);
 
 	if(!loader.load()) {
 		if(!required)
