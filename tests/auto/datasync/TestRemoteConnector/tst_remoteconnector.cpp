@@ -57,6 +57,7 @@ void TestRemoteConnector::initTestCase()
 	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
 
 	qRegisterMetaType<RemoteConnector::RemoteEvent>("RemoteEvent");
+	qRegisterMetaType<DeviceInfo>("DeviceInfo");
 
 	remote = nullptr;
 	partner1 = nullptr;
@@ -356,12 +357,21 @@ void TestRemoteConnector::testDownloading()
 
 void TestRemoteConnector::testAddDeviceUntrusted()
 {
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy loginSpy(remote, &RemoteConnector::loginRequested);
+
 	try {
-		//part 0: create a second setup...
+		//assume already logged in
+		MockConnection *connection = currentConnection;
+		QVERIFY(connection);
+
+		//create a second setup...
 		setup1 = QStringLiteral("partner1");
 		std::tie(partner1, devId1) = createSetup(setup1);
+		QSignalSpy partnerErrorSpy(partner1, &RemoteConnector::controllerError);
+		QSignalSpy partnerImportSpy(remote, &RemoteConnector::importCompleted);
 
-		//part 1: data export
+		//data export
 		ExportData exportData;
 		QByteArray scheme;
 		CryptoPP::SecByteBlock key;
@@ -372,11 +382,49 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 		QVERIFY(exportData.config);
 		remote->cryptoController()->verifyImportCmac(exportData.scheme, key, exportData.signData(), exportData.cmac);
 
-		//part 2: create a second client and pass it the import data, then connect
+		//create a second client and pass it the import data, then connect and send identify
 		partner1->prepareImport(exportData, CryptoPP::SecByteBlock());
 		partner1->initialize({});
+		auto partnerCrypto = partner1->cryptoController()->crypto();
 		MockConnection *partnerCon = nullptr;
 		QVERIFY(server->waitForConnected(&partnerCon));
+		auto iMsg = IdentifyMessage::createRandom(10, rng);
+		partnerCon->send(iMsg);
+
+		//wait for the access message
+		QVERIFY(partnerCon->waitForSignedReply<AccessMessage>(partnerCrypto, [&](AccessMessage message, bool &ok) {
+			QCOMPARE(message.nonce, iMsg.nonce);
+			QCOMPARE(message.deviceName, partner1->deviceName());
+			AsymmetricCryptoInfo cInfo(partnerCrypto->rng(),
+				message.signAlgorithm,
+				message.signKey,
+				message.cryptAlgorithm,
+				message.cryptKey);
+			QCOMPARE(cInfo.ownFingerprint(), partnerCrypto->ownFingerprint());
+
+			QCOMPARE(message.pNonce, exportData.pNonce);
+			QCOMPARE(message.partnerId, exportData.partnerId);
+			QCOMPARE(message.macscheme, exportData.scheme);
+			QCOMPARE(message.cmac, exportData.cmac);
+			QVERIFY(message.trustmac.isEmpty());
+			ok = true;
+
+			//Send from here because message needed
+			connection->send(ProofMessage(message, devId1));
+		}));
+
+		//Send the proof the main con and wait for login request
+		QVERIFY(loginSpy.wait());
+		QCOMPARE(loginSpy.size(), 1);
+		auto devInfo = loginSpy.takeFirst()[0].value<DeviceInfo>();
+		QCOMPARE(devInfo.deviceId(), devId1);
+		QCOMPARE(devInfo.name(), partner1->deviceName());
+		QCOMPARE(devInfo.fingerprint(), partnerCrypto->ownFingerprint());
+
+		//TODO here
+
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(partnerErrorSpy.isEmpty());
 	} catch(std::exception &e) {
 		QFAIL(e.what());
 	}
