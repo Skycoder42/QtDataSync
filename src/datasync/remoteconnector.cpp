@@ -1001,8 +1001,8 @@ void RemoteConnector::onChanged(const ChangedMessage &message)
 {
 	if(checkIdle(message)) {
 		auto data = _cryptoController->decryptData(message.keyIndex,
-											   message.salt,
-											   message.data);
+												   message.salt,
+												   message.data);
 		beginOp();//start download timeout
 		emit downloadData(message.dataIndex, data);
 	}

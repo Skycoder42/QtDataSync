@@ -69,6 +69,8 @@ MockConnection::MockConnection(QWebSocket *socket, QObject *parent) :
 {
 	_socket->setParent(this);
 	connect(_socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this, [this]() {
+		if(_socket->error() == QAbstractSocket::RemoteHostClosedError)
+			return;
 		QFAIL(qUtf8Printable(_socket->errorString()));
 	});
 	connect(_socket, &QWebSocket::sslErrors, this, [this](const QList<QSslError> &errors) {

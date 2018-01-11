@@ -27,7 +27,7 @@ private Q_SLOTS:
 
 	void testUploading();
 	void testDeviceUploading();
-	//void testDownloading();
+	void testDownloading();
 
 	//void testAddDevice();
 	//void testListAndRemoveDevices();
@@ -108,6 +108,8 @@ void TestRemoteConnector::testInvalidIdentify()
 
 	//wait for register message
 	QVERIFY(connection->waitForDisconnect());
+	if(eventSpy.isEmpty())
+		QVERIFY(eventSpy.wait());
 	QCOMPARE(eventSpy.size(), 1);
 	QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteDisconnected);
 	QCOMPARE(errorSpy.size(), 1);
@@ -262,6 +264,75 @@ void TestRemoteConnector::testDeviceUploading()
 	auto sgnl = uploadSpy.takeFirst();
 	QCOMPARE(sgnl[0].toByteArray(), key);
 	QCOMPARE(sgnl[1].toUuid(), deviceId);
+
+	QVERIFY(errorSpy.isEmpty());
+}
+
+void TestRemoteConnector::testDownloading()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy eventSpy(remote, &RemoteConnector::remoteEvent);
+	QSignalSpy downloadSpy(remote, &RemoteConnector::downloadData);
+	QSignalSpy progUpdateSpy(remote, &RemoteConnector::progressAdded);
+	QSignalSpy progIncSpy(remote, &RemoteConnector::progressIncrement);
+
+	//assume already logged in
+	MockConnection *connection = currentConnection;
+	QVERIFY(connection);
+
+	//send the change info with 2 changes
+	QByteArray data1 = "random_dataset_1";
+	ChangedInfoMessage infoMsg(2);
+	infoMsg.dataIndex = 10;
+	std::tie(infoMsg.keyIndex, infoMsg.salt, infoMsg.data) = remote->cryptoController()->encryptData(data1);
+	connection->send(infoMsg);
+
+	//check signals
+	QVERIFY(downloadSpy.wait());
+	QCOMPARE(eventSpy.size(), 1);
+	QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteReadyWithChanges);
+	QCOMPARE(progUpdateSpy.size(), 1);
+	QCOMPARE(progUpdateSpy.takeFirst()[0].toUInt(), infoMsg.changeEstimate);
+	QCOMPARE(downloadSpy.size(), 1);
+	auto cChange = downloadSpy.takeFirst();
+	QCOMPARE(cChange[0].toULongLong(), infoMsg.dataIndex);
+	QCOMPARE(cChange[1].toByteArray(), data1);
+
+	//complete the change
+	remote->downloadDone(infoMsg.dataIndex);
+	QVERIFY(connection->waitForReply<ChangedAckMessage>([&](ChangedAckMessage message, bool &ok) {
+		QCOMPARE(message.dataIndex, infoMsg.dataIndex);
+		ok = true;
+	}));
+	QCOMPARE(progIncSpy.size(), 1);
+
+	//send another (normal) change
+	QByteArray data2 = "random_dataset_2";
+	ChangedMessage changeMsg;
+	changeMsg.dataIndex = 20;
+	std::tie(changeMsg.keyIndex, changeMsg.salt, changeMsg.data) = remote->cryptoController()->encryptData(data2);
+	connection->send(changeMsg);
+
+	//check signals
+	QVERIFY(downloadSpy.wait());
+	QCOMPARE(downloadSpy.size(), 1);
+	cChange = downloadSpy.takeFirst();
+	QCOMPARE(cChange[0].toULongLong(), changeMsg.dataIndex);
+	QCOMPARE(cChange[1].toByteArray(), data2);
+
+	//complete the change
+	remote->downloadDone(changeMsg.dataIndex);
+	QVERIFY(connection->waitForReply<ChangedAckMessage>([&](ChangedAckMessage message, bool &ok) {
+		QCOMPARE(message.dataIndex, changeMsg.dataIndex);
+		ok = true;
+	}));
+	QCOMPARE(progIncSpy.size(), 2);
+
+	//complete downloading
+	connection->send(LastChangedMessage());
+	QVERIFY(eventSpy.wait());
+	QCOMPARE(eventSpy.size(), 1);
+	QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteReady);
 
 	QVERIFY(errorSpy.isEmpty());
 }

@@ -30,7 +30,7 @@ Q_SIGNALS:
 	void controllerError(const QString &error);
 	void operationTimeout();
 	void specialOperationTimeout();
-	void progressAdded(quint32 delta);
+	void progressAdded(quint32 delta); //TODO test on changecontroller
 	void progressIncrement();
 
 protected:
