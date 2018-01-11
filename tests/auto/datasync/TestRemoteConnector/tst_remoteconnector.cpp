@@ -359,17 +359,19 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 {
 	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
 	QSignalSpy loginSpy(remote, &RemoteConnector::loginRequested);
+	QSignalSpy addedSpy(remote, &RemoteConnector::prepareAddedData);
 
 	try {
 		//assume already logged in
 		MockConnection *connection = currentConnection;
 		QVERIFY(connection);
+		auto crypto = remote->cryptoController()->crypto();
 
 		//create a second setup...
 		setup1 = QStringLiteral("partner1");
 		std::tie(partner1, devId1) = createSetup(setup1);
 		QSignalSpy partnerErrorSpy(partner1, &RemoteConnector::controllerError);
-		QSignalSpy partnerImportSpy(remote, &RemoteConnector::importCompleted);
+		QSignalSpy partnerImportSpy(partner1, &RemoteConnector::importCompleted);
 
 		//data export
 		ExportData exportData;
@@ -421,7 +423,39 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 		QCOMPARE(devInfo.name(), partner1->deviceName());
 		QCOMPARE(devInfo.fingerprint(), partnerCrypto->ownFingerprint());
 
-		//TODO here
+		//accept the request
+		remote->loginReply(devId1, true);
+		QVERIFY(connection->waitForSignedReply<AcceptMessage>(crypto, [&](AcceptMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, devId1);
+			QCOMPARE(message.index, remote->cryptoController()->keyIndex());
+			partnerCrypto->decrypt(message.secret); //make shure works without exception
+			ok = true;
+
+			//Send from here because message needed
+			partnerCon->send(GrantMessage(devId1, message));
+		}));
+
+		//verify preperations are done
+		if(addedSpy.isEmpty())
+			QVERIFY(addedSpy.wait());
+		QCOMPARE(addedSpy.size(), 1);
+		QCOMPARE(addedSpy.takeFirst()[0].toUuid(), devId1);
+
+		//verify grant message received successfully
+		QVERIFY(partnerImportSpy.wait());
+		QCOMPARE(partnerImportSpy.size(), 1);
+
+		//wait for mac update message
+		QVERIFY(partnerCon->waitForReply<MacUpdateMessage>([&](MacUpdateMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, partner1->cryptoController()->keyIndex());
+			QCOMPARE(message.cmac, partner1->cryptoController()->generateEncryptionKeyCmac());
+			ok = true;
+		}));
+
+		//send macack
+		partnerCon->send(MacUpdateAckMessage());
+		//cannot really check if received... but simple enough to assume worked
+		//TODO test mac resending
 
 		QVERIFY(errorSpy.isEmpty());
 		QVERIFY(partnerErrorSpy.isEmpty());
