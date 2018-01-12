@@ -64,7 +64,8 @@ MockConnection::MockConnection(QWebSocket *socket, QObject *parent) :
 {
 	_socket->setParent(this);
 	connect(_socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this, [this]() {
-		if(_socket->error() == QAbstractSocket::RemoteHostClosedError)
+		if(_socket->error() == QAbstractSocket::RemoteHostClosedError ||
+		   _socket->error() == QAbstractSocket::UnknownSocketError)
 			return;
 		QFAIL(qUtf8Printable(_socket->errorString()));
 	});
