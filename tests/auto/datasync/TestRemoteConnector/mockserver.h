@@ -20,6 +20,7 @@ public:
 	void send(const QtDataSync::Message &message);
 	//server does not need signed sending
 
+	bool waitForNothing();
 	template <typename TMessage>
 	bool waitForReply(const std::function<void(TMessage,bool&)> &fn);
 	template <typename TMessage>

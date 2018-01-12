@@ -79,6 +79,11 @@ void MockConnection::send(const QtDataSync::Message &message)
 	_socket->sendBinaryMessage(message.serialize());
 }
 
+bool MockConnection::waitForNothing()
+{
+	return !_msgSpy.wait();
+}
+
 bool MockConnection::waitForError(QtDataSync::ErrorMessage::ErrorType type, bool recoverable)
 {
 	return waitForReply<QtDataSync::ErrorMessage>([&](QtDataSync::ErrorMessage message, bool &ok) {

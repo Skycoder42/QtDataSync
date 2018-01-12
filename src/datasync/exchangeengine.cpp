@@ -111,7 +111,7 @@ void ExchangeEngine::initialize()
 				_changeController, &ChangeController::deviceUploadDone);
 		connect(_remoteConnector, &RemoteConnector::downloadData,
 				_syncController, &SyncController::syncChange);
-		connect(_remoteConnector, &RemoteConnector::prepareAddedData,
+		connect(_remoteConnector, &RemoteConnector::accountAccessGranted,
 				_localStore, &LocalStore::prepareAccountAdded);
 
 		//initialize all
@@ -164,7 +164,7 @@ void ExchangeEngine::controllerError(const QString &errorMessage)
 	upstate(SyncManager::Error);
 
 	//stop up/downloading etc.
-	_remoteConnector->disconnect();
+	_remoteConnector->disconnectRemote();
 	_changeController->clearUploads();
 }
 

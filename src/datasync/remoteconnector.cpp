@@ -174,7 +174,7 @@ void RemoteConnector::reconnect()
 	_stateMachine->submitEvent(QStringLiteral("reconnect"));
 }
 
-void RemoteConnector::disconnect()
+void RemoteConnector::disconnectRemote()
 {
 	triggerError(false);
 }
@@ -277,9 +277,7 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 			AcceptMessage message(deviceId);
 			std::tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
 			sendSignedMessage(message);
-			emit prepareAddedData(deviceId);
 			emit accountAccessGranted(deviceId);
-
 		} else
 			sendMessage(DenyMessage{deviceId});
 	} catch(Exception &e) {

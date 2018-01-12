@@ -9,6 +9,7 @@
 #include <QtDataSync/private/setup_p.h>
 
 #include <QtDataSync/private/loginmessage_p.h>
+#include <QtDataSync/private/syncmessage_p.h>
 
 #include "mockserver.h"
 using namespace QtDataSync;
@@ -29,12 +30,15 @@ private Q_SLOTS:
 	void testUploading();
 	void testDeviceUploading();
 	void testDownloading();
+	void testResync();
 
 	void testAddDeviceUntrusted();
-	//void testAddDeviceTrusted();
-	//void testListAndRemoveDevices();
+	void testAddDeviceTrusted();
+	void testListAndRemoveDevices();
 
 	//void testKeyUpdate();
+	//void testResetAccount();
+	//void testFinalize();
 
 	//TODO test error message and unexpected messages
 
@@ -58,6 +62,7 @@ void TestRemoteConnector::initTestCase()
 
 	qRegisterMetaType<RemoteConnector::RemoteEvent>("RemoteEvent");
 	qRegisterMetaType<DeviceInfo>("DeviceInfo");
+	qRegisterMetaType<QList<DeviceInfo>>("QList<DeviceInfo>");
 
 	remote = nullptr;
 	partner1 = nullptr;
@@ -86,6 +91,8 @@ void TestRemoteConnector::cleanupTestCase()
 		partner1 = nullptr;
 	}
 	Setup::removeSetup(DefaultSetup, true);
+	if(!setup1.isEmpty())
+		Setup::removeSetup(setup1, true);
 }
 
 void TestRemoteConnector::testInvalidIdentify()
@@ -145,7 +152,7 @@ void TestRemoteConnector::testRegistering()
 				message.signKey,
 				message.cryptAlgorithm,
 				message.cryptKey);
-			QCOMPARE(cInfo.ownFingerprint(), crypto->ownFingerprint());
+			QCOMPARE(cInfo.ownFingerprint(), remote->cryptoController()->fingerprint());
 			QCOMPARE(message.cmac, remote->cryptoController()->generateEncryptionKeyCmac());
 			ok = true;
 		}));
@@ -355,11 +362,42 @@ void TestRemoteConnector::testDownloading()
 	}
 }
 
+void TestRemoteConnector::testResync()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy eventSpy(remote, &RemoteConnector::remoteEvent);
+
+	try {
+		//assume already logged in
+		MockConnection *connection = currentConnection;
+		QVERIFY(connection);
+
+		//send a resync
+		remote->resync();
+		QVERIFY(connection->waitForReply<SyncMessage>([&](SyncMessage message, bool &ok) {
+			Q_UNUSED(message);
+			ok = true;
+		}));
+		QCOMPARE(eventSpy.size(), 1);
+		QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteReadyWithChanges);
+
+		//send no changes
+		connection->send(LastChangedMessage());
+		QVERIFY(eventSpy.wait());
+		QCOMPARE(eventSpy.size(), 1);
+		QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteReady);
+
+		QVERIFY(errorSpy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
 void TestRemoteConnector::testAddDeviceUntrusted()
 {
 	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
 	QSignalSpy loginSpy(remote, &RemoteConnector::loginRequested);
-	QSignalSpy addedSpy(remote, &RemoteConnector::prepareAddedData);
+	QSignalSpy grantedSpy(remote, &RemoteConnector::accountAccessGranted);
 
 	try {
 		//assume already logged in
@@ -375,9 +413,9 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 
 		//data export
 		ExportData exportData;
-		QByteArray scheme;
+		QByteArray salt;
 		CryptoPP::SecByteBlock key;
-		std::tie(exportData, scheme, key) = remote->exportAccount(true, QString());
+		std::tie(exportData, salt, key) = remote->exportAccount(true, QString());
 
 		QVERIFY(!exportData.trusted);
 		QCOMPARE(exportData.partnerId, devId);
@@ -402,7 +440,7 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 				message.signKey,
 				message.cryptAlgorithm,
 				message.cryptKey);
-			QCOMPARE(cInfo.ownFingerprint(), partnerCrypto->ownFingerprint());
+			QCOMPARE(cInfo.ownFingerprint(), partner1->cryptoController()->fingerprint());
 
 			QCOMPARE(message.pNonce, exportData.pNonce);
 			QCOMPARE(message.partnerId, exportData.partnerId);
@@ -421,7 +459,7 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 		auto devInfo = loginSpy.takeFirst()[0].value<DeviceInfo>();
 		QCOMPARE(devInfo.deviceId(), devId1);
 		QCOMPARE(devInfo.name(), partner1->deviceName());
-		QCOMPARE(devInfo.fingerprint(), partnerCrypto->ownFingerprint());
+		QCOMPARE(devInfo.fingerprint(), partner1->cryptoController()->fingerprint());
 
 		//accept the request
 		remote->loginReply(devId1, true);
@@ -436,10 +474,10 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 		}));
 
 		//verify preperations are done
-		if(addedSpy.isEmpty())
-			QVERIFY(addedSpy.wait());
-		QCOMPARE(addedSpy.size(), 1);
-		QCOMPARE(addedSpy.takeFirst()[0].toUuid(), devId1);
+		if(grantedSpy.isEmpty())
+			QVERIFY(grantedSpy.wait());
+		QCOMPARE(grantedSpy.size(), 1);
+		QCOMPARE(grantedSpy.takeFirst()[0].toUuid(), devId1);
 
 		//verify grant message received successfully
 		QVERIFY(partnerImportSpy.wait());
@@ -464,6 +502,174 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 	}
 }
 
+void TestRemoteConnector::testAddDeviceTrusted()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy loginSpy(remote, &RemoteConnector::loginRequested);
+	QSignalSpy grantedSpy(remote, &RemoteConnector::accountAccessGranted);
+
+	try {
+		//assume already logged in
+		MockConnection *connection = currentConnection;
+		QVERIFY(connection);
+		auto crypto = remote->cryptoController()->crypto();
+
+		//create a second setup...
+		auto setup2 = QStringLiteral("partner2");
+		RemoteConnector *partner2;
+		QUuid devId2;
+		std::tie(partner2, devId2) = createSetup(setup2);
+		QSignalSpy partnerErrorSpy(partner2, &RemoteConnector::controllerError);
+		QSignalSpy partnerImportSpy(partner2, &RemoteConnector::importCompleted);
+
+		//data export
+		auto password = QStringLiteral("random_secure_password");
+		ExportData exportData;
+		QByteArray salt;
+		CryptoPP::SecByteBlock key;
+		std::tie(exportData, salt, key) = remote->exportAccount(false, password);
+
+		QVERIFY(exportData.trusted);
+		QCOMPARE(exportData.partnerId, devId);
+		QVERIFY(!exportData.config);
+		remote->cryptoController()->verifyImportCmac(exportData.scheme, key, exportData.signData(), exportData.cmac);
+
+		//create a second client and pass it the import data, then connect and send identify
+		partner2->prepareImport(exportData, key); //assume correctly recovered key
+		partner2->initialize({});
+		auto partnerCrypto = partner2->cryptoController()->crypto();
+		MockConnection *partnerCon = nullptr;
+		QVERIFY(server->waitForConnected(&partnerCon));
+		auto iMsg = IdentifyMessage::createRandom(10, rng);
+		partnerCon->send(iMsg);
+
+		//wait for the access message
+		QVERIFY(partnerCon->waitForSignedReply<AccessMessage>(partnerCrypto, [&](AccessMessage message, bool &ok) {
+			QCOMPARE(message.nonce, iMsg.nonce);
+			QCOMPARE(message.deviceName, partner2->deviceName());
+			AsymmetricCryptoInfo cInfo(partnerCrypto->rng(),
+				message.signAlgorithm,
+				message.signKey,
+				message.cryptAlgorithm,
+				message.cryptKey);
+			QCOMPARE(cInfo.ownFingerprint(), partner2->cryptoController()->fingerprint());
+
+			QCOMPARE(message.pNonce, exportData.pNonce);
+			QCOMPARE(message.partnerId, exportData.partnerId);
+			QCOMPARE(message.macscheme, exportData.scheme);
+			QCOMPARE(message.cmac, exportData.cmac);
+			QVERIFY(!message.trustmac.isEmpty());
+			remote->cryptoController()->verifyImportCmacForCrypto(exportData.scheme, key, &cInfo, message.trustmac);
+			ok = true;
+
+			//Send from here because message needed
+			connection->send(ProofMessage(message, devId2));
+		}));
+
+		//wait for the automatically accepted request
+		QVERIFY(connection->waitForSignedReply<AcceptMessage>(crypto, [&](AcceptMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, devId2);
+			QCOMPARE(message.index, remote->cryptoController()->keyIndex());
+			partnerCrypto->decrypt(message.secret); //make shure works without exception
+			ok = true;
+
+			//Send from here because message needed
+			partnerCon->send(GrantMessage(devId2, message));
+		}));
+
+		//verify preperations are done
+		if(grantedSpy.isEmpty())
+			QVERIFY(grantedSpy.wait());
+		QCOMPARE(grantedSpy.size(), 1);
+		QCOMPARE(grantedSpy.takeFirst()[0].toUuid(), devId2);
+
+		//verify grant message received successfully
+		QVERIFY(partnerImportSpy.wait());
+		QCOMPARE(partnerImportSpy.size(), 1);
+
+		//wait for mac update message
+		QVERIFY(partnerCon->waitForReply<MacUpdateMessage>([&](MacUpdateMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, partner2->cryptoController()->keyIndex());
+			QCOMPARE(message.cmac, partner2->cryptoController()->generateEncryptionKeyCmac());
+			ok = true;
+		}));
+
+		//send macack
+		partnerCon->send(MacUpdateAckMessage());
+		//cannot really check if received... but simple enough to assume worked
+		//TODO test mac resending
+
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(partnerErrorSpy.isEmpty());
+		QVERIFY(loginSpy.isEmpty());
+
+		//cleanup: remove the partner2
+		partner2->deleteLater();
+		QVERIFY(partnerCon->waitForDisconnect());
+		partnerCon->deleteLater();
+		Setup::removeSetup(setup2, true);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestRemoteConnector::testListAndRemoveDevices()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy devicesSpy(remote, &RemoteConnector::devicesListed);
+
+	try {
+		//assume already logged in
+		MockConnection *connection = currentConnection;
+		QVERIFY(connection);
+
+		//send a list devices
+		remote->listDevices();
+		QVERIFY(connection->waitForReply<ListDevicesMessage>([&](ListDevicesMessage message, bool &ok) {
+			Q_UNUSED(message);
+			ok = true;
+		}));
+
+		//send the other partner
+		DevicesMessage message;
+		message.devices.append(std::make_tuple(
+								   devId1,
+								   partner1->deviceName(),
+								   partner1->cryptoController()->fingerprint()
+							   ));
+		connection->send(message);
+		QVERIFY(devicesSpy.wait());
+		QCOMPARE(devicesSpy.size(), 1);
+		auto devList = devicesSpy.takeFirst()[0].value<QList<DeviceInfo>>();
+		QCOMPARE(devList.size(), 1);
+		QCOMPARE(devList[0].deviceId(), devId1);
+		QCOMPARE(devList[0].name(), partner1->deviceName());
+		QCOMPARE(devList[0].fingerprint(), partner1->cryptoController()->fingerprint());
+
+		//remote partner from devices
+		remote->removeDevice(devId1);
+		QVERIFY(connection->waitForReply<RemoveMessage>([&](RemoveMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, devId1);
+			ok = true;
+		}));
+
+		//send the reply
+		connection->send(RemoveAckMessage(devId1));
+		QVERIFY(devicesSpy.wait());
+		QCOMPARE(devicesSpy.size(), 1);
+		devList = devicesSpy.takeFirst()[0].value<QList<DeviceInfo>>();
+		QCOMPARE(devList.size(), 0);
+
+		//remove self not allowed
+		remote->removeDevice(devId);
+		QVERIFY(connection->waitForNothing());
+
+		QVERIFY(errorSpy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
 std::tuple<RemoteConnector*, QUuid> TestRemoteConnector::createSetup(const QString &setupName)
 {
 	Setup setup;
@@ -475,7 +681,7 @@ std::tuple<RemoteConnector*, QUuid> TestRemoteConnector::createSetup(const QStri
 	MockConnection *tCon = nullptr;
 	if(!server->waitForConnected(&tCon))
 		throw Exception(setupName, QStringLiteral("Client did not connect to server"));
-	SetupPrivate::engine(setupName)->remoteConnector()->disconnect();
+	SetupPrivate::engine(setupName)->remoteConnector()->disconnectRemote();
 	if(!tCon->waitForDisconnect())
 		throw Exception(setupName, QStringLiteral("Client did not disconnect from server"));
 

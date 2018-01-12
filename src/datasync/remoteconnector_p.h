@@ -97,7 +97,7 @@ public:
 
 public Q_SLOTS:
 	void reconnect();
-	void disconnect();
+	void disconnectRemote();
 	void resync();
 
 	void listDevices();
@@ -125,7 +125,6 @@ Q_SIGNALS:
 	void uploadDone(const QByteArray &key);
 	void deviceUploadDone(const QByteArray &key, const QUuid &deviceId);
 	void downloadData(const quint64 key, const QByteArray &changeData);
-	void prepareAddedData(const QUuid &deviceId);
 
 	void syncEnabledChanged(bool syncEnabled);
 	void deviceNameChanged(const QString &deviceName);
