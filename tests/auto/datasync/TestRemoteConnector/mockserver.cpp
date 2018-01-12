@@ -63,11 +63,11 @@ MockConnection::MockConnection(QWebSocket *socket, QObject *parent) :
 	_closeSpy(_socket, &QWebSocket::disconnected)
 {
 	_socket->setParent(this);
-	connect(_socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this, [this]() {
+	connect(_socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this, [this](QAbstractSocket::SocketError error) {
 		if(_socket->error() == QAbstractSocket::RemoteHostClosedError ||
 		   _socket->error() == QAbstractSocket::UnknownSocketError)
 			return;
-		QFAIL(qUtf8Printable(_socket->errorString()));
+		QFAIL(qUtf8Printable(QString::number(error) + QStringLiteral(" - ") + _socket->errorString()));
 	});
 	connect(_socket, &QWebSocket::sslErrors, this, [this](const QList<QSslError> &errors) {
 		foreach(auto error, errors)

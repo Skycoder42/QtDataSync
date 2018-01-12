@@ -53,6 +53,9 @@ void TestKeystorePlugins::testKeystoreFunctions_data()
 	QTest::newRow("gnome-keyring") << QStringLiteral("qsecretservice")
 								   << QStringLiteral("gnome-keyring")
 								   << false;
+	QTest::newRow("wincred") << QStringLiteral("qwincred")
+							 << QStringLiteral("wincred")
+							 << false;
 }
 
 void TestKeystorePlugins::testKeystoreFunctions()
