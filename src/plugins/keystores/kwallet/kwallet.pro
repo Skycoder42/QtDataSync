@@ -1,6 +1,6 @@
 TARGET  = qkwallet
 
-QT += KWallet datasync-private
+QT += datasync KWallet
 QT -= gui
 
 HEADERS += \

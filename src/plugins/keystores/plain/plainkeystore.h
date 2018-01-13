@@ -2,7 +2,6 @@
 #define PLAINKEYSTORE_H
 
 #include <QtCore/QSettings>
-#include <QtCore/QPointer>
 
 #include <QtDataSync/keystore.h>
 

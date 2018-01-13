@@ -1,14 +1,14 @@
 TARGET  = qplain
 
-QT += datasync-private
+QT += datasync
 QT -= gui
 
 HEADERS += \
-		plainkeystoreplugin.h \
+	plainkeystoreplugin.h \
 	plainkeystore.h
 
 SOURCES += \
-		plainkeystoreplugin.cpp \
+	plainkeystoreplugin.cpp \
 	plainkeystore.cpp
 
 DISTFILES += plain.json

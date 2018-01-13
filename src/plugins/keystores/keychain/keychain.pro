@@ -1,6 +1,6 @@
 TARGET  = qkeychain
 
-QT += datasync-private
+QT += datasync
 QT -= gui
 
 HEADERS += \

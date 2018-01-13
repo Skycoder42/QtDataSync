@@ -1,15 +1,15 @@
 TARGET  = qwincred
 
-QT += datasync-private
+QT += datasync
 QT -= gui
 
 HEADERS += \
 	wincredkeystoreplugin.h \
-    wincredkeystore.h
+	wincredkeystore.h
 
 SOURCES += \
 	wincredkeystoreplugin.cpp \
-    wincredkeystore.cpp
+	wincredkeystore.cpp
 
 DISTFILES += wincred.json
 
