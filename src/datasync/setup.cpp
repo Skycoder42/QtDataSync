@@ -58,18 +58,29 @@ bool Setup::keystoreAvailable(const QString &provider)
 	return CryptoController::keystoreAvailable(provider);
 }
 
+#define RETURN_IF_AVAILABLE(x) \
+	if(CryptoController::keystoreAvailable(x)) \
+		return x
+
 QString Setup::defaultKeystoreProvider()
 {
-#ifdef Q_OS_LINUX
-	if(CryptoController::keystoreAvailable(QStringLiteral("secretservice")))
-		return QStringLiteral("secretservice");
-	if(CryptoController::keystoreAvailable(QStringLiteral("kwallet")))
-		return QStringLiteral("kwallet");
-	if(CryptoController::keystoreAvailable(QStringLiteral("gnome-keyring")))
-		return QStringLiteral("gnome-keyring");
+	//NOTE add envvar to doc
+	auto prefered = qgetenv("QTDATASYNC_KEYSTORE");
+	if(!prefered.isEmpty())
+		RETURN_IF_AVAILABLE(QString::fromUtf8(prefered));
+#ifdef Q_OS_WIN
+	RETURN_IF_AVAILABLE(QStringLiteral("wincred"));
 #endif
+#ifdef Q_OS_DARWIN
+	RETURN_IF_AVAILABLE(QStringLiteral("keychain"));
+#endif
+	//mostly used on linux, but theoretically possible on any platform
+	RETURN_IF_AVAILABLE(QStringLiteral("secretservice"));
+	RETURN_IF_AVAILABLE(QStringLiteral("kwallet"));
 	return QStringLiteral("plain");
 }
+
+#undef RETURN_IF_AVAILABLE
 
 Setup::Setup() :
 	d(new SetupPrivate())

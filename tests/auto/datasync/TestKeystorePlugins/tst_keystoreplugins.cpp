@@ -53,12 +53,16 @@ void TestKeystorePlugins::testKeystoreFunctions_data()
 	QTest::newRow("gnome-keyring") << QStringLiteral("qsecretservice")
 								   << QStringLiteral("gnome-keyring")
 								   << false;
+#ifdef Q_OS_WIN
 	QTest::newRow("wincred") << QStringLiteral("qwincred")
 							 << QStringLiteral("wincred")
-							 << false;
+							 << true;
+#endif
+#ifdef Q_OS_DARWIN
 	QTest::newRow("keychain") << QStringLiteral("qkeychain")
 							  << QStringLiteral("keychain")
-							  << false;
+							  << true;
+#endif
 }
 
 void TestKeystorePlugins::testKeystoreFunctions()
@@ -96,6 +100,9 @@ void TestKeystorePlugins::testKeystoreFunctions()
 			QEXPECT_FAIL("", "Cannot test unavailable provider", Abort);
 		QVERIFY2(plugin->keystoreAvailable(provider), "Plugin can be loaded, but expected provider is not available");
 	}
+
+	//verify datasync nows about the plugin
+	QVERIFY(Setup::keystoreAvailable(provider));
 
 	auto key = QStringLiteral("some_random_key");
 	auto data = "random_secret_private_key";
