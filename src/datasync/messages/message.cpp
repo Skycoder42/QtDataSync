@@ -20,7 +20,7 @@ using namespace QtDataSync;
 	REGISTER(QList<x>); \
 } while(false)
 
-const QByteArray Message::PingMessage(1, static_cast<char>(0xFF));
+const QByteArray Message::PingMessage(1, '\xFF');
 
 void Message::registerTypes()
 {
