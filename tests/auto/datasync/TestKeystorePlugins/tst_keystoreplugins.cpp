@@ -63,6 +63,11 @@ void TestKeystorePlugins::testKeystoreFunctions_data()
 							  << QStringLiteral("keychain")
 							  << true;
 #endif
+#ifdef Q_OS_ANDROID
+	QTest::newRow("android") << QStringLiteral("qandroid")
+							 << QStringLiteral("android")
+							 << true;
+#endif
 }
 
 void TestKeystorePlugins::testKeystoreFunctions()

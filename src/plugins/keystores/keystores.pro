@@ -5,3 +5,4 @@ qtHaveModule(KWallet): SUBDIRS += kwallet
 unix:!android:!ios:system(pkg-config --exists libsecret-1): SUBDIRS += secretservice
 win32:!winrt: SUBDIRS += wincred
 mac|ios: SUBDIRS += keychain
+android: SUBDIRS += android
