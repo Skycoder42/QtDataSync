@@ -56,9 +56,9 @@ void TestKeystorePlugins::testKeystoreFunctions_data()
 	QTest::newRow("wincred") << QStringLiteral("qwincred")
 							 << QStringLiteral("wincred")
 							 << false;
-	QTest::newRow("mackeychain") << QStringLiteral("qmackeychain")
-								 << QStringLiteral("mackeychain")
-								 << false;
+	QTest::newRow("keychain") << QStringLiteral("qkeychain")
+							  << QStringLiteral("keychain")
+							  << false;
 }
 
 void TestKeystorePlugins::testKeystoreFunctions()

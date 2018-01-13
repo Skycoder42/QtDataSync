@@ -1,5 +1,5 @@
-#ifndef MACKEYCHAINKEYSTORE_H
-#define MACKEYCHAINKEYSTORE_H
+#ifndef KEYCHAINKEYSTORE_H
+#define KEYCHAINKEYSTORE_H
 
 #include <tuple>
 
@@ -7,14 +7,13 @@
 #include <QtDataSync/logger.h>
 
 #include <CoreFoundation/CoreFoundation.h>
-#include <Security/Security.h>
 
-class MacKeychainKeyStore : public QtDataSync::KeyStore
+class KeychainKeyStore : public QtDataSync::KeyStore
 {
 	Q_OBJECT
 
 public:
-	explicit MacKeychainKeyStore(const QtDataSync::Defaults &defaults, QObject *parent = nullptr);
+	explicit KeychainKeyStore(const QtDataSync::Defaults &defaults, QObject *parent = nullptr);
 
 	QString providerName() const override;
 	bool isOpen() const override;
@@ -29,10 +28,8 @@ private:
 	bool _open;
 	QtDataSync::Logger *_logger;
 
-	static QByteArray serviceName();
+	static QString serviceName();
 	static QString errorMsg(OSStatus status);
-
-	SecKeychainItemRef loadItem(const QString &key) const;
 };
 
-#endif // MACKEYCHAINKEYSTORE_H
+#endif // KEYCHAINKEYSTORE_H
