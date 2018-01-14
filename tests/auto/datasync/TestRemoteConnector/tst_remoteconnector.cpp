@@ -25,7 +25,7 @@ private Q_SLOTS:
 
 	void testInvalidIdentify();
 	void testRegistering();
-	void testLogin(bool hasChanges = false);
+	void testLogin(bool hasChanges = false, bool withDisconnect = true);
 	void testLoginWithChanges();
 
 	void testUploading();
@@ -41,6 +41,9 @@ private Q_SLOTS:
 	void testListAndRemoveDevices();
 
 	void testKeyUpdate();
+	void testKeyUpdateReject();
+	void testKeyUpdateLost();
+	void testKeyUpdateFakeDevice();
 	void testResetAccount();
 
 #ifdef TEST_PING_MSG
@@ -51,12 +54,7 @@ private Q_SLOTS:
 	void testFinalize();
 
 	//TODO test error message and unexpected messages
-	/* reject key update
-	 * cancel key update after newkeys, and try again (continue)
-	 *  -> more?
-	 * invalid devicekey on key update
-	 * multiple key updates at once
-	 * idle-message in non-idle state (test all?)
+	/* idle-message in non-idle state (test all?)
 	 * login/register/... in unexpected state
 	 * download with invalid encryption
 	 * unknown message
@@ -201,7 +199,7 @@ void TestRemoteConnector::testRegistering()
 	}
 }
 
-void TestRemoteConnector::testLogin(bool hasChanges)
+void TestRemoteConnector::testLogin(bool hasChanges, bool withDisconnect)
 {
 	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
 	QSignalSpy eventSpy(remote, &RemoteConnector::remoteEvent);
@@ -212,8 +210,11 @@ void TestRemoteConnector::testLogin(bool hasChanges)
 		auto crypto = remote->cryptoController()->crypto();
 		connection = nullptr;
 		QVERIFY(server->waitForConnected(&connection));
-		QCOMPARE(eventSpy.size(), 2);
-		QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteDisconnected);
+		if(withDisconnect) {
+			QCOMPARE(eventSpy.size(), 2);
+			QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteDisconnected);
+		} else
+			QCOMPARE(eventSpy.size(), 1);
 		QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteConnecting);
 
 		//send the identifiy message
@@ -938,23 +939,22 @@ void TestRemoteConnector::testKeyUpdate()
 										   devices));
 
 		//wait for reply
-		WelcomeMessage::KeyUpdate resUpdate;
+		WelcomeMessage welcomeMessage(false);
 		QVERIFY(connection->waitForReply<NewKeyMessage>([&](NewKeyMessage message, bool &ok) {
 			QCOMPARE(message.keyIndex, remote->cryptoController()->keyIndex() + 1);
 			QCOMPARE(message.cmac, remote->cryptoController()->generateEncryptionKeyCmac(message.keyIndex));
 			QCOMPARE(message.deviceKeys.size(), 1);
 
 			QUuid mId;
-			QByteArray key;
-			QByteArray cmac;
-			std::tie(mId, key, cmac) = message.deviceKeys.first();
+			std::tie(mId, welcomeMessage.key, welcomeMessage.cmac) = message.deviceKeys.first();
 			QCOMPARE(mId, partnerDevId);
 			partner->cryptoController()->verifyCmac(partner->cryptoController()->keyIndex(),
 													message.signatureData(message.deviceKeys.first()),
-													cmac);
-			auto pKey = pCrypto->decrypt(key);
+													welcomeMessage.cmac);
+			auto pKey = pCrypto->decrypt(welcomeMessage.key);
 			QVERIFY(!pKey.isEmpty());
-			resUpdate = std::make_tuple(message.keyIndex, message.scheme, key, cmac);
+			welcomeMessage.keyIndex = message.keyIndex;
+			welcomeMessage.scheme = message.scheme;
 			ok = true;
 
 			//send key ack (verify later)
@@ -979,9 +979,9 @@ void TestRemoteConnector::testKeyUpdate()
 		}));
 
 		//send welcome reply
-		partnerConnection->send(WelcomeMessage(false, {resUpdate}));//no changes, but key update
+		partnerConnection->send(welcomeMessage);//no changes, but key update
 		QVERIFY(partnerConnection->waitForReply<MacUpdateMessage>([&](MacUpdateMessage message, bool &ok) {
-			QCOMPARE(message.keyIndex, std::get<0>(resUpdate));
+			QCOMPARE(message.keyIndex, welcomeMessage.keyIndex);
 			partner->cryptoController()->verifyEncryptionKeyCmac(pCrypto, *(pCrypto->cryptKey()), message.cmac);
 			ok = true;
 		}));
@@ -990,8 +990,257 @@ void TestRemoteConnector::testKeyUpdate()
 		partnerConnection->send(MacUpdateAckMessage());
 
 		//final: check if both have the new index
-		QCOMPARE(remote->cryptoController()->keyIndex(), std::get<0>(resUpdate));
-		QCOMPARE(partner->cryptoController()->keyIndex(), std::get<0>(resUpdate));
+		QCOMPARE(remote->cryptoController()->keyIndex(), welcomeMessage.keyIndex);
+		QCOMPARE(partner->cryptoController()->keyIndex(), welcomeMessage.keyIndex);
+
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(partnerErrorSpy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestRemoteConnector::testKeyUpdateReject()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy eventSpy(remote, &RemoteConnector::remoteEvent);
+
+	try {
+		//assume already logged in
+		QVERIFY(connection);
+		auto cIndex = remote->cryptoController()->keyIndex();
+
+		//get the key update
+		remote->initKeyUpdate();
+		QVERIFY(connection->waitForReply<KeyChangeMessage>([&](KeyChangeMessage message, bool &ok) {
+			QCOMPARE(message.nextIndex, cIndex + 1);
+			ok = true;
+		}));
+
+		//reject it
+		connection->send(ErrorMessage(ErrorMessage::KeyIndexError));
+		QVERIFY(connection->waitForDisconnect());
+
+		if(errorSpy.isEmpty())
+			QVERIFY(errorSpy.wait());
+		QCOMPARE(errorSpy.size(), 1);
+		QCOMPARE(eventSpy.size(), 1);
+		QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteDisconnected);
+
+		//verify still old key
+		QCOMPARE(remote->cryptoController()->keyIndex(), cIndex);
+
+		//login again...
+		testLogin(false, false);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestRemoteConnector::testKeyUpdateLost()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy partnerErrorSpy(partner, &RemoteConnector::controllerError);
+
+	try {
+		//assume already logged in
+		QVERIFY(connection);
+		QVERIFY(partnerConnection);
+		auto pCrypto = partner->cryptoController()->crypto();
+
+		//get the key update
+		remote->initKeyUpdate();
+		QVERIFY(connection->waitForReply<KeyChangeMessage>([&](KeyChangeMessage message, bool &ok) {
+			QCOMPARE(message.nextIndex, remote->cryptoController()->keyIndex() + 1);
+			ok = true;
+		}));
+
+		//accept it
+		QList<DeviceKeysMessage::DeviceKey> devices;
+		devices.append(std::make_tuple(
+						   partnerDevId,
+						   pCrypto->encryptionScheme(),
+						   pCrypto->writeCryptKey(),
+						   partner->cryptoController()->generateEncryptionKeyCmac()
+					   ));
+		connection->send(DeviceKeysMessage(remote->cryptoController()->keyIndex() + 1,
+										   devices));
+
+		//wait for reply
+		QVERIFY(connection->waitForReply<NewKeyMessage>([&](NewKeyMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, remote->cryptoController()->keyIndex() + 1);
+			//skip other checks
+			//ack message is lost
+			ok = true;
+		}));
+
+		//log in remote again
+		testLogin(false);
+
+		//wait for the KeyChangeMessage
+		QVERIFY(connection->waitForReply<KeyChangeMessage>([&](KeyChangeMessage message, bool &ok) {
+			QCOMPARE(message.nextIndex, remote->cryptoController()->keyIndex() + 1);
+			ok = true;
+		}));
+
+		//accept it
+		connection->send(DeviceKeysMessage(remote->cryptoController()->keyIndex() + 1,
+										   devices));
+
+		//wait for reply
+		WelcomeMessage welcomeMsg;
+		QVERIFY(connection->waitForReply<NewKeyMessage>([&](NewKeyMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, remote->cryptoController()->keyIndex() + 1);
+			//skip other checks
+			QUuid mId;
+			std::tie(mId, welcomeMsg.key, welcomeMsg.cmac) = message.deviceKeys.first();
+			welcomeMsg.keyIndex = message.keyIndex;
+			welcomeMsg.scheme = message.scheme;
+			ok = true;
+			//again, don't ack, but this time update partners (i.e. accept it)
+		}));
+
+		//reconnect the partner and do a login with key updates
+		partner->reconnect();
+		QVERIFY(partnerConnection->waitForDisconnect());
+		QVERIFY(server->waitForConnected(&partnerConnection));
+
+		//send the identifiy message
+		auto iMsg = IdentifyMessage::createRandom(20, rng);
+		partnerConnection->send(iMsg);
+
+		//wait for login message
+		QVERIFY(partnerConnection->waitForSignedReply<LoginMessage>(pCrypto, [&](LoginMessage message, bool &ok) {
+			QCOMPARE(message.nonce, iMsg.nonce);
+			QCOMPARE(message.deviceId, partnerDevId);
+			QCOMPARE(message.deviceName, partner->deviceName());
+			ok = true;
+		}));
+
+		//send welcome reply
+		partnerConnection->send(welcomeMsg);//no changes, but key update
+		QVERIFY(partnerConnection->waitForReply<MacUpdateMessage>([&](MacUpdateMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, welcomeMsg.keyIndex);
+			partner->cryptoController()->verifyEncryptionKeyCmac(pCrypto, *(pCrypto->cryptKey()), message.cmac);
+			ok = true;
+		}));
+
+		//send the mac update
+		partnerConnection->send(MacUpdateAckMessage());
+
+		//again, reconnect the remote
+		testLogin(false);
+
+		//wait for the KeyChangeMessage
+		QVERIFY(connection->waitForReply<KeyChangeMessage>([&](KeyChangeMessage message, bool &ok) {
+			QCOMPARE(message.nextIndex, remote->cryptoController()->keyIndex() + 1);
+			ok = true;
+		}));
+
+		//send back the keychange without any devices
+		connection->send(DeviceKeysMessage(remote->cryptoController()->keyIndex() + 1));
+		QVERIFY(connection->waitForNothing());
+
+		//final: check if both have the new index
+		QCOMPARE(remote->cryptoController()->keyIndex(), welcomeMsg.keyIndex);
+		QCOMPARE(partner->cryptoController()->keyIndex(), welcomeMsg.keyIndex);
+
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(partnerErrorSpy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestRemoteConnector::testKeyUpdateFakeDevice()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy partnerErrorSpy(partner, &RemoteConnector::controllerError);
+
+	try {
+		//assume already logged in
+		QVERIFY(connection);
+		QVERIFY(partnerConnection);
+		auto pCrypto = partner->cryptoController()->crypto();
+
+		//get the key update
+		remote->initKeyUpdate();
+		QVERIFY(connection->waitForReply<KeyChangeMessage>([&](KeyChangeMessage message, bool &ok) {
+			QCOMPARE(message.nextIndex, remote->cryptoController()->keyIndex() + 1);
+			ok = true;
+		}));
+
+		//accept it, but add a second, invalid device
+		QList<DeviceKeysMessage::DeviceKey> devices;
+		devices.append(std::make_tuple(
+						   partnerDevId,
+						   pCrypto->encryptionScheme(),
+						   pCrypto->writeCryptKey(),
+						   partner->cryptoController()->generateEncryptionKeyCmac()
+					   ));
+		devices.append(std::make_tuple(
+						   QUuid::createUuid(),
+						   pCrypto->encryptionScheme(),
+						   pCrypto->writeCryptKey(),
+						   QByteArray("cannot_create_valid_cmac")
+					   ));
+		connection->send(DeviceKeysMessage(remote->cryptoController()->keyIndex() + 1,
+										   devices));
+
+		//wait for reply
+		WelcomeMessage welcomeMsg;
+		QVERIFY(connection->waitForReply<NewKeyMessage>([&](NewKeyMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, remote->cryptoController()->keyIndex() + 1);
+			QCOMPARE(message.cmac, remote->cryptoController()->generateEncryptionKeyCmac(message.keyIndex));
+			QCOMPARE(message.deviceKeys.size(), 1);
+
+			QUuid mId;
+			std::tie(mId, welcomeMsg.key, welcomeMsg.cmac) = message.deviceKeys.first();
+			QCOMPARE(mId, partnerDevId);
+			partner->cryptoController()->verifyCmac(partner->cryptoController()->keyIndex(),
+													message.signatureData(message.deviceKeys.first()),
+													welcomeMsg.cmac);
+			auto pKey = pCrypto->decrypt(welcomeMsg.key);
+			QVERIFY(!pKey.isEmpty());
+			welcomeMsg.keyIndex = message.keyIndex;
+			welcomeMsg.scheme = message.scheme;
+			ok = true;
+
+			//send key ack (verify later)
+			connection->send(NewKeyAckMessage(message));
+		}));
+
+		//reconnect the partner and do a login with key updates
+		partner->reconnect();
+		QVERIFY(partnerConnection->waitForDisconnect());
+		QVERIFY(server->waitForConnected(&partnerConnection));
+
+		//send the identifiy message
+		auto iMsg = IdentifyMessage::createRandom(20, rng);
+		partnerConnection->send(iMsg);
+
+		//wait for login message
+		QVERIFY(partnerConnection->waitForSignedReply<LoginMessage>(pCrypto, [&](LoginMessage message, bool &ok) {
+			QCOMPARE(message.nonce, iMsg.nonce);
+			QCOMPARE(message.deviceId, partnerDevId);
+			QCOMPARE(message.deviceName, partner->deviceName());
+			ok = true;
+		}));
+
+		//send welcome reply
+		partnerConnection->send(welcomeMsg);//no changes, but key update
+		QVERIFY(partnerConnection->waitForReply<MacUpdateMessage>([&](MacUpdateMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, welcomeMsg.keyIndex);
+			partner->cryptoController()->verifyEncryptionKeyCmac(pCrypto, *(pCrypto->cryptKey()), message.cmac);
+			ok = true;
+		}));
+
+		//send the mac update
+		partnerConnection->send(MacUpdateAckMessage());
+
+		//final: check if both have the new index
+		QCOMPARE(remote->cryptoController()->keyIndex(), welcomeMsg.keyIndex);
+		QCOMPARE(partner->cryptoController()->keyIndex(), welcomeMsg.keyIndex);
 
 		QVERIFY(errorSpy.isEmpty());
 		QVERIFY(partnerErrorSpy.isEmpty());

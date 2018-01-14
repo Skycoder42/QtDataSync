@@ -52,8 +52,6 @@ private:
 void TestMessages::initTestCase()
 {
 	QMetaType::registerComparators<Utf8String>();
-	QMetaType::registerComparators<WelcomeMessage::KeyUpdate>();
-	QMetaType::registerComparators<QList<WelcomeMessage::KeyUpdate>>();
 	QMetaType::registerComparators<DevicesMessage::DeviceInfo>();
 	QMetaType::registerComparators<QList<DevicesMessage::DeviceInfo>>();
 	QMetaType::registerComparators<DeviceKeysMessage::DeviceKey>();
@@ -267,19 +265,12 @@ void TestMessages::addAllData()
 		return AccountMessage(QUuid::createUuid());
 	});
 	addData<WelcomeMessage>([&]() {
-		return WelcomeMessage(true, {
-								  std::make_tuple(
-									  (quint32)42,
-									  "data1",
-									  "data2",
-									  "data3"
-								  ), std::make_tuple(
-									  (quint32)77,
-									  "data4",
-									  "data5",
-									  "data6"
-								  )
-							  });
+		WelcomeMessage msg(true);
+		msg.keyIndex = 42;
+		msg.scheme = "scheme";
+		msg.key = "key";
+		msg.cmac = "cmac";
+		return msg;
 	});
 	addData<MacUpdateMessage>([&]() {
 		return MacUpdateMessage(42, "cmac");

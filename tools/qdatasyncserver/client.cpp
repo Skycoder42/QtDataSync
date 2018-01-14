@@ -412,8 +412,9 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 
 	//load changecount early to find out if data changed
 	_cachedChanges = _database->changeCount(_deviceId);
-	auto keyUpdates = _database->loadKeyChanges(_deviceId);
-	sendMessage(WelcomeMessage{_cachedChanges > 0, keyUpdates});
+	WelcomeMessage reply(_cachedChanges > 0);
+	std::tie(reply.keyIndex, reply.scheme, reply.key, reply.cmac) = _database->loadKeyChanges(_deviceId);
+	sendMessage(reply);
 	_state = Idle;
 	emit connected(_deviceId);
 

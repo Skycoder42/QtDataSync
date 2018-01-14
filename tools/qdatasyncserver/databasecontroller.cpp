@@ -475,6 +475,8 @@ void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex
 
 QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset)
 {
+	//TODO fail in case 1 client as unloaded keychanges
+	//TODO then, test that
 	offset = -1;
 
 	auto db = _threadStore.localData().database();
@@ -582,7 +584,7 @@ bool DatabaseController::updateExchageKey(const QUuid &deviceId, quint32 keyInde
 	}
 }
 
-QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> DatabaseController::loadKeyChanges(const QUuid &deviceId)
+std::tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::loadKeyChanges(const QUuid &deviceId)
 {
 	auto db = _threadStore.localData().database();
 
@@ -594,16 +596,15 @@ QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> DatabaseControlle
 	keyChangesQuery.exec();
 
 	QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> result;
-	while(keyChangesQuery.next()) {
-		result.append(std::make_tuple(
-						  (quint32)keyChangesQuery.value(0).toUInt(),
-						  keyChangesQuery.value(1).toByteArray(),
-						  keyChangesQuery.value(2).toByteArray(),
-						  keyChangesQuery.value(3).toByteArray()
-					  ));
-	}
-
-	return result;
+	if(keyChangesQuery.first()) {
+		return std::make_tuple(
+			(quint32)keyChangesQuery.value(0).toUInt(),
+			keyChangesQuery.value(1).toByteArray(),
+			keyChangesQuery.value(2).toByteArray(),
+			keyChangesQuery.value(3).toByteArray()
+		);
+	} else
+		return std::make_tuple((quint32)0, QByteArray(), QByteArray(), QByteArray());
 }
 
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
@@ -796,12 +797,11 @@ void DatabaseController::initDatabase()
 		if(!db.tables().contains(QStringLiteral("keychanges"))) {
 			QSqlQuery createKeyChanges(db);
 			if(!createKeyChanges.exec(QStringLiteral("CREATE TABLE keychanges ( "
-														"	deviceid	UUID NOT NULL REFERENCES devices(id) ON DELETE CASCADE, "
+														"	deviceid	UUID PRIMARY KEY NOT NULL REFERENCES devices(id) ON DELETE CASCADE, "
 														"	keyindex	INT NOT NULL, "
 														"	scheme		TEXT NOT NULL, "
 														"	key			BYTEA NOT NULL, "
-														"	verifymac	BYTEA NOT NULL, "
-														"	PRIMARY KEY(deviceid, keyindex) "
+														"	verifymac	BYTEA NOT NULL "
 														")"))) {
 				throw DatabaseException(createKeyChanges);
 			}

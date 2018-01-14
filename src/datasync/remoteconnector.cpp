@@ -949,15 +949,15 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		_stateMachine->submitEvent(QStringLiteral("account"));
 
 		auto keyUpdated = false;
-		foreach(auto keyUpdate, message.keyUpdates) { //are orderd by index
+		if(message.hasKeyUpdate()) { //are orderd by index
 			//verify the new key by using the current key
 			_cryptoController->verifyCmac(_cryptoController->keyIndex(), //the key before this one
-										  WelcomeMessage::signatureData(_deviceId, keyUpdate),
-										  std::get<3>(keyUpdate));
+										  message.signatureData(_deviceId),
+										  message.cmac);
 			//import the key and set active if newer
-			_cryptoController->decryptSecretKey(std::get<0>(keyUpdate), //index
-												std::get<1>(keyUpdate), //scheme
-												std::get<2>(keyUpdate), //key
+			_cryptoController->decryptSecretKey(message.keyIndex,
+												message.scheme,
+												message.key,
 												false);
 			keyUpdated = true;
 		}
@@ -1105,7 +1105,7 @@ void RemoteConnector::onProof(const ProofMessage &message)
 					sendMessage(DenyMessage{deviceId});
 				}
 			});
-		} catch(Exception &e) {
+		} catch(std::exception &e) {
 			logWarning() << "Rejecting ProofMessage with error:" << e.what();
 			sendMessage(DenyMessage{message.deviceId});
 		}

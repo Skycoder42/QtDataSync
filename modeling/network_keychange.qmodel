@@ -284,8 +284,8 @@
                            <item>error</item>
                           </qlist>
                          </stereotypes>
-                         <name> KeyIndexError / KeyDuplicateError</name>
-                         <pos>x:625;y:75</pos>
+                         <name> KeyIndexError</name>
+                         <pos>x:830;y:75</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -307,7 +307,7 @@
                          </base-DElement>
                          <object>{c0b90e10-6140-46d3-9cef-1d9237691cb1}</object>
                          <a>{5de3aa21-32f0-4aa9-b9b7-a71d7e6282c8}</a>
-                         <b>{167e7092-d34c-4e0f-a9ea-7b23dc1cca73}</b>
+                         <b>{be4f870e-f62b-45c9-842f-0216faeea16a}</b>
                          <name>false</name>
                         </DRelation>
                        </base-DRelation>
@@ -477,21 +477,72 @@
                           </DElement>
                          </base-DElement>
                          <object>{76afa888-42aa-490d-82ee-648389f3254e}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>recovery</item>
-                          </qlist>
-                         </stereotypes>
-                         <a>{167e7092-d34c-4e0f-a9ea-7b23dc1cca73}</a>
+                         <a>{be4f870e-f62b-45c9-842f-0216faeea16a}</a>
                          <b>{551c345e-51cc-4268-9361-3ea134e59b63}</b>
+                         <name>true</name>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{be4f870e-f62b-45c9-842f-0216faeea16a}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</object>
+                         <name>newIndex == currentIndex</name>
+                         <pos>x:625;y:75</pos>
+                         <rect>x:-20;y:-20;w:40;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>condition</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{fb451080-6a09-4dcf-af5e-3180f7b1adb2}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{c3e3de75-405e-4d07-9ad2-a17831962eaa}</object>
+                         <a>{be4f870e-f62b-45c9-842f-0216faeea16a}</a>
+                         <b>{167e7092-d34c-4e0f-a9ea-7b23dc1cca73}</b>
+                         <name>false</name>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DAnnotation">
+                      <DAnnotation>
+                       <base-DElement>
+                        <DElement>
+                         <uid>{b66b2de3-d4d5-4993-a1da-cea4cf63319a}</uid>
+                        </DElement>
+                       </base-DElement>
+                       <text>BUT: NEWKEY will be sent without any devices</text>
+                       <pos>x:625;y:170</pos>
+                       <rect>x:0;y:0;w:252.438;h:32</rect>
+                      </DAnnotation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515318061051</last-modified>
+                  <last-modified>1515944743712</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -816,7 +867,7 @@
                              </base-MElement>
                              <name>false</name>
                              <a>{2d1b35b6-47bf-4c5f-89d3-e24764fa62d8}</a>
-                             <b>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</b>
+                             <b>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -855,42 +906,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name> KeyIndexError / KeyDuplicateError</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{76afa888-42aa-490d-82ee-648389f3254e}</uid>
-                        <target>
-                         <instance type="MDependency">
-                          <MDependency>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{76afa888-42aa-490d-82ee-648389f3254e}</uid>
-                               <stereotypes>
-                                <qlist>
-                                 <item>recovery</item>
-                                </qlist>
-                               </stereotypes>
-                              </MElement>
-                             </base-MElement>
-                             <a>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</a>
-                             <b>{faaadac9-3588-406f-8699-be30c0f7d659}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MDependency>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
+                  <name> KeyIndexError</name>
                  </MObject>
                 </base-MObject>
                 <variety-editable>false</variety-editable>
@@ -1060,6 +1076,83 @@
                 </base-MObject>
                 <variety-editable>false</variety-editable>
                 <variety>termination</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</uid>
+                   </MElement>
+                  </base-MElement>
+                  <name>newIndex == currentIndex</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{76afa888-42aa-490d-82ee-648389f3254e}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{76afa888-42aa-490d-82ee-648389f3254e}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <name>true</name>
+                             <a>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</a>
+                             <b>{faaadac9-3588-406f-8699-be30c0f7d659}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                      <item>
+                       <handle>
+                        <uid>{c3e3de75-405e-4d07-9ad2-a17831962eaa}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{c3e3de75-405e-4d07-9ad2-a17831962eaa}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <name>false</name>
+                             <a>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</a>
+                             <b>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>condition</variety>
                </MItem>
               </instance>
              </target>

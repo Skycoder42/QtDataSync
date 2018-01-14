@@ -12,17 +12,22 @@ class Q_DATASYNC_EXPORT WelcomeMessage : public Message
 	Q_GADGET
 
 	Q_PROPERTY(bool hasChanges MEMBER hasChanges)
-	Q_PROPERTY(QList<QtDataSync::WelcomeMessage::KeyUpdate> keyUpdates MEMBER keyUpdates)
+	Q_PROPERTY(quint32 keyIndex MEMBER keyIndex)
+	Q_PROPERTY(QByteArray scheme MEMBER scheme)
+	Q_PROPERTY(QByteArray key MEMBER key)
+	Q_PROPERTY(QByteArray cmac MEMBER cmac)
 
 public:
-	typedef std::tuple<quint32, QByteArray, QByteArray, QByteArray> KeyUpdate; //(keyIndex, scheme, key, cmac)
-
-	WelcomeMessage(bool hasChanges = false, const QList<KeyUpdate> &keyUpdates = {});
+	WelcomeMessage(bool hasChanges = false);
 
 	bool hasChanges;
-	QList<KeyUpdate> keyUpdates;
+	quint32 keyIndex;
+	QByteArray scheme;
+	QByteArray key;
+	QByteArray cmac;
 
-	static QByteArray signatureData(const QUuid &deviceId, const KeyUpdate &deviceInfo);
+	bool hasKeyUpdate() const;
+	QByteArray signatureData(const QUuid &deviceId) const;
 
 protected:
 	const QMetaObject *getMetaObject() const override;
@@ -31,6 +36,5 @@ protected:
 }
 
 Q_DECLARE_METATYPE(QtDataSync::WelcomeMessage)
-Q_DECLARE_METATYPE(QtDataSync::WelcomeMessage::KeyUpdate)
 
 #endif // WELCOMEMESSAGE_P_H

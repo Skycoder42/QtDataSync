@@ -89,7 +89,7 @@ public:
 						  quint32 keyIndex,
 						  const QByteArray &scheme, const QByteArray &cmac,
 						  const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys);// (deviceId, key, cmac)
-	QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> loadKeyChanges(const QUuid &deviceId);
+	std::tuple<quint32, QByteArray, QByteArray, QByteArray> loadKeyChanges(const QUuid &deviceId);// (keyIndex, scheme, key, cmac)
 
 Q_SIGNALS:
 	void notifyChanged(const QUuid &deviceId);

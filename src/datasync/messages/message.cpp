@@ -4,7 +4,6 @@
 #include <QtCore/QMetaProperty>
 #include <QtCore/QVersionNumber>
 
-#include "welcomemessage_p.h"
 #include "devicesmessage_p.h"
 #include "devicekeysmessage_p.h"
 #include "newkeymessage_p.h"
@@ -29,7 +28,6 @@ void Message::registerTypes()
 
 	qRegisterMetaType<Utf8String>();
 	qRegisterMetaTypeStreamOperators<Utf8String>();
-	REGISTER_LIST(QtDataSync::WelcomeMessage::KeyUpdate);
 	REGISTER_LIST(QtDataSync::DevicesMessage::DeviceInfo);
 	REGISTER_LIST(QtDataSync::DeviceKeysMessage::DeviceKey);
 	REGISTER_LIST(QtDataSync::NewKeyMessage::KeyUpdate);

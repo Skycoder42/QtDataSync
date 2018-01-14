@@ -1,18 +1,26 @@
 #include "welcomemessage_p.h"
 using namespace QtDataSync;
 
-WelcomeMessage::WelcomeMessage(bool hasChanges, const QList<KeyUpdate> &keyUpdates) :
+WelcomeMessage::WelcomeMessage(bool hasChanges) :
 	hasChanges(hasChanges),
-	keyUpdates(keyUpdates)
+	keyIndex(0),
+	scheme(),
+	key(),
+	cmac()
 {}
 
-QByteArray WelcomeMessage::signatureData(const QUuid &deviceId, const WelcomeMessage::KeyUpdate &deviceInfo)
+bool WelcomeMessage::hasKeyUpdate() const
+{
+	return !key.isEmpty();
+}
+
+QByteArray WelcomeMessage::signatureData(const QUuid &deviceId) const
 {
 	// keyIndex, scheme, deviceId, key
-	return QByteArray::number(std::get<0>(deviceInfo)) +
-			std::get<1>(deviceInfo) +
+	return QByteArray::number(keyIndex) +
+			scheme +
 			deviceId.toRfc4122() +
-			std::get<2>(deviceInfo);
+			key;
 }
 
 const QMetaObject *WelcomeMessage::getMetaObject() const

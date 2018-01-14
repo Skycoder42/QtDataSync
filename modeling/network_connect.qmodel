@@ -481,7 +481,7 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>WELCOME(hasChanges, &lt;newId, newScheme, newKey, newCmac&gt;, ...)</name>
+                         <name>WELCOME(hasChanges, newId, newScheme, newKey, newCmac)</name>
                          <pos>x:885;y:245</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
@@ -1345,7 +1345,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>WELCOME(hasChanges, &lt;newId, newScheme, newKey, newCmac&gt;, ...)</name>
+                  <name>WELCOME(hasChanges, newId, newScheme, newKey, newCmac)</name>
                   <relations>
                    <handles>
                     <handles>
