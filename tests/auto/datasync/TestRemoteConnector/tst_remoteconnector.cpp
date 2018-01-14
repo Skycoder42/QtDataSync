@@ -42,6 +42,32 @@ private Q_SLOTS:
 	void testFinalize();
 
 	//TODO test error message and unexpected messages
+	/* retry-intervals
+	 * pingmessage
+	 * timeout?
+	 * access:
+	 *	deny login
+	 *	invalid crypto
+	 *  login for non-existant export
+	 *  invalid trusted
+	 * reject key update
+	 * cancel key update after newkeys, and try again (continue)
+	 *  -> more?
+	 * invalid devicekey on key update
+	 * multiple key updates at once
+	 * idle-message in non-idle state (test all?)
+	 * login/register/... in unexpected state
+	 * download with invalid encryption
+	 * unknown message
+	 * broken message
+	 * version error
+	 * error message (from server)
+	 * unaccepted mac
+	 *
+	 * setup-errors?
+	 *	missing keystore
+	 *	invalid data
+	 */
 
 private:
 	MockServer *server;

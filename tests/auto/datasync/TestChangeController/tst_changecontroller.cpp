@@ -26,6 +26,7 @@ private Q_SLOTS:
 	void testChanges();
 
 	void testDeviceChanges();
+	//TODO test progress
 
 	//last test, to avoid problems
 	void testChangeTriggers();
