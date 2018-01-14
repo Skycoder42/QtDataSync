@@ -35,22 +35,23 @@ private Q_SLOTS:
 
 	void testAddDeviceUntrusted();
 	void testAddDeviceTrusted();
+	void testAddDeviceDenied();
+	void testAddDeviceInvalid();
+	void testAddDeviceNonExistant();
 	void testListAndRemoveDevices();
 
 	void testKeyUpdate();
 	void testResetAccount();
+
+#ifdef TEST_PING_MSG
+	void testPingMessages();
+#endif
+
+	void testRetry();
 	void testFinalize();
 
 	//TODO test error message and unexpected messages
-	/* retry-intervals
-	 * pingmessage
-	 * timeout?
-	 * access:
-	 *	deny login
-	 *	invalid crypto
-	 *  login for non-existant export
-	 *  invalid trusted
-	 * reject key update
+	/* reject key update
 	 * cancel key update after newkeys, and try again (continue)
 	 *  -> more?
 	 * invalid devicekey on key update
@@ -87,7 +88,7 @@ private:
 
 void TestRemoteConnector::initTestCase()
 {
-	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
+	//QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
 
 	qRegisterMetaType<RemoteConnector::RemoteEvent>("RemoteEvent");
 	qRegisterMetaType<DeviceInfo>("DeviceInfo");
@@ -637,6 +638,220 @@ void TestRemoteConnector::testAddDeviceTrusted()
 	}
 }
 
+void TestRemoteConnector::testAddDeviceDenied()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+	QSignalSpy loginSpy(remote, &RemoteConnector::loginRequested);
+
+	try {
+		//assume already logged in
+		QVERIFY(connection);
+
+		//create a second setup...
+		auto setup3 = QStringLiteral("partner3");
+		RemoteConnector *partner3;
+		QUuid devId3;
+		std::tie(partner3, devId3) = createSetup(setup3);
+		QSignalSpy partnerErrorSpy(partner3, &RemoteConnector::controllerError);
+
+		//data export
+		ExportData exportData;
+		QByteArray salt;
+		CryptoPP::SecByteBlock key;
+		std::tie(exportData, salt, key) = remote->exportAccount(false, QString());
+
+		QVERIFY(!exportData.trusted);
+		QCOMPARE(exportData.partnerId, devId);
+		QVERIFY(!exportData.config);
+		remote->cryptoController()->verifyImportCmac(exportData.scheme, key, exportData.signData(), exportData.cmac);
+
+		//create a second client and pass it the import data, then connect and send identify
+		partner3->prepareImport(exportData, key); //assume correctly recovered key
+		partner3->initialize({});
+		auto partnerCrypto = partner3->cryptoController()->crypto();
+		MockConnection *partnerCon = nullptr;
+		QVERIFY(server->waitForConnected(&partnerCon));
+		auto iMsg = IdentifyMessage::createRandom(10, rng);
+		partnerCon->send(iMsg);
+
+		//wait for the access message
+		QVERIFY(partnerCon->waitForSignedReply<AccessMessage>(partnerCrypto, [&](AccessMessage message, bool &ok) {
+			QCOMPARE(message.nonce, iMsg.nonce);
+			//skip additional checks
+			ok = true;
+
+			//Send from here because message needed
+			connection->send(ProofMessage(message, devId3));
+		}));
+
+		//Send the proof the main con and wait for login request
+		QVERIFY(loginSpy.wait());
+		QCOMPARE(loginSpy.size(), 1);
+		auto devInfo = loginSpy.takeFirst()[0].value<DeviceInfo>();
+		QCOMPARE(devInfo.deviceId(), devId3);
+		QCOMPARE(devInfo.name(), partner3->deviceName());
+		QCOMPARE(devInfo.fingerprint(), partner3->cryptoController()->fingerprint());
+
+		//deny the login
+		remote->loginReply(devId3, false);
+		QVERIFY(connection->waitForReply<DenyMessage>([&](DenyMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, devId3);
+			ok = true;
+		}));
+
+		//stop here
+
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(partnerErrorSpy.isEmpty());
+
+		//cleanup: remove the partner2
+		partner3->deleteLater();
+		QVERIFY(partnerCon->waitForDisconnect());
+		partnerCon->deleteLater();
+		Setup::removeSetup(setup3, true);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestRemoteConnector::testAddDeviceInvalid()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+
+	try {
+		//assume already logged in
+		QVERIFY(connection);
+
+		//create a second setup...
+		auto setup4 = QStringLiteral("partner4");
+		RemoteConnector *partner4;
+		QUuid devId4;
+		std::tie(partner4, devId4) = createSetup(setup4);
+		QSignalSpy partnerErrorSpy(partner4, &RemoteConnector::controllerError);
+
+		//data export
+		ExportData exportData;
+		QByteArray salt;
+		CryptoPP::SecByteBlock key;
+		std::tie(exportData, salt, key) = remote->exportAccount(false, QString());
+
+		QVERIFY(!exportData.trusted);
+		QCOMPARE(exportData.partnerId, devId);
+		QVERIFY(!exportData.config);
+		remote->cryptoController()->verifyImportCmac(exportData.scheme, key, exportData.signData(), exportData.cmac);
+
+		//create a second client and pass it the import data, then connect and send identify
+		partner4->prepareImport(exportData, key); //assume correctly recovered key
+		partner4->initialize({});
+		auto partnerCrypto = partner4->cryptoController()->crypto();
+		MockConnection *partnerCon = nullptr;
+		QVERIFY(server->waitForConnected(&partnerCon));
+		auto iMsg = IdentifyMessage::createRandom(10, rng);
+		partnerCon->send(iMsg);
+
+		//wait for the access message
+		QVERIFY(partnerCon->waitForSignedReply<AccessMessage>(partnerCrypto, [&](AccessMessage message, bool &ok) {
+			QCOMPARE(message.nonce, iMsg.nonce);
+			//skip additional checks
+			ok = true;
+
+			//tamper with the cmac
+			message.cmac[0] = message.cmac[0] + 'B';
+			//Send from here because message needed
+			connection->send(ProofMessage(message, devId4));
+		}));
+
+		//wait for the deny message
+		QVERIFY(connection->waitForReply<DenyMessage>([&](DenyMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, devId4);
+			ok = true;
+		}));
+
+		//stop here
+
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(partnerErrorSpy.isEmpty());
+
+		//cleanup: remove the partner2
+		partner4->deleteLater();
+		QVERIFY(partnerCon->waitForDisconnect());
+		partnerCon->deleteLater();
+		Setup::removeSetup(setup4, true);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestRemoteConnector::testAddDeviceNonExistant()
+{
+	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
+
+	try {
+		//assume already logged in
+		QVERIFY(connection);
+		auto crypto = remote->cryptoController()->crypto();
+
+		//create a second setup...
+		auto setup5 = QStringLiteral("partner5");
+		RemoteConnector *partner5;
+		QUuid devId5;
+		std::tie(partner5, devId5) = createSetup(setup5);
+		QSignalSpy partnerErrorSpy(partner5, &RemoteConnector::controllerError);
+
+		//generate theoretically valid export data
+		ExportData data;
+		data.trusted = false;
+		data.pNonce.resize(InitMessage::NonceSize);
+		crypto->rng().GenerateBlock(reinterpret_cast<byte*>(data.pNonce.data()), data.pNonce.size());
+		data.partnerId = devId;
+
+		QByteArray salt;
+		CryptoPP::SecByteBlock key;
+		std::tie(data.scheme, salt, key) = remote->cryptoController()->generateExportKey(QString());
+		data.cmac = remote->cryptoController()->createExportCmac(data.scheme, key, data.signData());
+
+		//create a second client and pass it the import fake data, then connect and send identify
+		partner5->prepareImport(data, key); //assume correctly recovered key
+		partner5->initialize({});
+		auto partnerCrypto = partner5->cryptoController()->crypto();
+		MockConnection *partnerCon = nullptr;
+		QVERIFY(server->waitForConnected(&partnerCon));
+		auto iMsg = IdentifyMessage::createRandom(10, rng);
+		partnerCon->send(iMsg);
+
+		//wait for the access message
+		QVERIFY(partnerCon->waitForSignedReply<AccessMessage>(partnerCrypto, [&](AccessMessage message, bool &ok) {
+			QCOMPARE(message.nonce, iMsg.nonce);
+			//skip additional checks
+			ok = true;
+
+			//tamper with the cmac
+			message.cmac[0] = message.cmac[0] + 'B';
+			//Send from here because message needed
+			connection->send(ProofMessage(message, devId5));
+		}));
+
+		//wait for the deny message
+		QVERIFY(connection->waitForReply<DenyMessage>([&](DenyMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, devId5);
+			ok = true;
+		}));
+
+		//stop here
+
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(partnerErrorSpy.isEmpty());
+
+		//cleanup: remove the partner2
+		partner5->deleteLater();
+		QVERIFY(partnerCon->waitForDisconnect());
+		partnerCon->deleteLater();
+		Setup::removeSetup(setup5, true);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
 void TestRemoteConnector::testListAndRemoveDevices()
 {
 	QSignalSpy errorSpy(remote, &RemoteConnector::controllerError);
@@ -838,6 +1053,59 @@ void TestRemoteConnector::testResetAccount()
 		QCOMPARE(eventSpy.size(), 2);
 		QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteConnecting);
 		QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteReady);
+
+		QVERIFY(errorSpy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+#ifdef TEST_PING_MSG
+void TestRemoteConnector::testPingMessages()
+{
+	QSignalSpy errorSpy(partner, &RemoteConnector::controllerError);
+
+	try {
+		//assume already logged in
+		QVERIFY(connection);
+		QVERIFY(partnerConnection);
+
+		QVERIFY(connection->waitForPing());
+		connection->sendPing();
+		QVERIFY(connection->waitForPing());
+
+		//wait for partner to reconnect
+		QVERIFY(partnerConnection->waitForPing());
+		QVERIFY(partnerConnection->waitForDisconnect());
+
+		QVERIFY(errorSpy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+#endif
+
+void TestRemoteConnector::testRetry()
+{
+	QSignalSpy errorSpy(partner, &RemoteConnector::controllerError);
+	QSignalSpy eventSpy(partner, &RemoteConnector::remoteEvent);
+
+	try {
+		//assume already logged in
+		QVERIFY(partnerConnection);
+
+		//reconnect, the wait 3 times to check timouts working
+		partner->reconnect();
+		for(auto i = 0; i < 3; i++) {
+			QVERIFY(server->waitForConnected(&partnerConnection, 5000*(i+1)));
+			if(eventSpy.size() != 2)
+				QVERIFY(eventSpy.wait());
+			QCOMPARE(eventSpy.size(), 2);
+			QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteDisconnected);
+			QCOMPARE(eventSpy.takeFirst()[0].toInt(), RemoteConnector::RemoteConnecting);
+			partnerConnection->close();
+		}
+		partner->disconnectRemote();
 
 		QVERIFY(errorSpy.isEmpty());
 	} catch(std::exception &e) {

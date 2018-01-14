@@ -18,9 +18,12 @@ public:
 	explicit MockConnection(QWebSocket *socket, QObject *parent = nullptr);
 
 	void send(const QtDataSync::Message &message);
+	void sendPing();
+	void close();
 	//server does not need signed sending
 
 	bool waitForNothing();
+	bool waitForPing();
 	template <typename TMessage>
 	bool waitForReply(const std::function<void(TMessage,bool&)> &fn);
 	template <typename TMessage>
@@ -33,6 +36,7 @@ private:
 
 	QSignalSpy _msgSpy;
 	QSignalSpy _closeSpy;
+	bool _hasPing;
 
 	bool waitForReplyImpl(const std::function<void(QByteArray,bool&)> &msgFn);
 };
@@ -48,7 +52,7 @@ public:
 	QUrl url() const;
 
 	void clear();
-	bool waitForConnected(MockConnection **connection);
+	bool waitForConnected(MockConnection **connection, int timeout = 5000);
 
 private:
 	QWebSocketServer *_server;

@@ -38,13 +38,13 @@ void MockServer::clear()
 	_connectedSpy.clear();
 }
 
-bool MockServer::waitForConnected(MockConnection **connection)
+bool MockServer::waitForConnected(MockConnection **connection, int timeout)
 {
 	auto ok = false;
 	[&]() {
 		QVERIFY(connection);
 		if(_connectedSpy.isEmpty())
-			QVERIFY(_connectedSpy.wait());
+			QVERIFY(_connectedSpy.wait(timeout));
 		QVERIFY(!_connectedSpy.isEmpty());
 		QVERIFY(_server->hasPendingConnections());
 		_connectedSpy.removeFirst();
@@ -81,9 +81,37 @@ void MockConnection::send(const QtDataSync::Message &message)
 	_socket->sendBinaryMessage(message.serialize());
 }
 
+void MockConnection::sendPing()
+{
+	_socket->sendBinaryMessage(QtDataSync::Message::PingMessage);
+}
+
+void MockConnection::close()
+{
+	_socket->close();
+}
+
 bool MockConnection::waitForNothing()
 {
 	return !_msgSpy.wait();
+}
+
+bool MockConnection::waitForPing()
+{
+	if(_hasPing) {
+		_hasPing = false;
+		return true;
+	}
+
+	auto ok = false;
+	[&]() {
+		if(_msgSpy.isEmpty())
+			QVERIFY(_msgSpy.wait(65000)); // 1 min 5 secs
+		QVERIFY(!_msgSpy.isEmpty());
+		auto msg = _msgSpy.takeFirst()[0].toByteArray();
+		ok = (msg == QtDataSync::Message::PingMessage);
+	}();
+	return ok;
 }
 
 bool MockConnection::waitForError(QtDataSync::ErrorMessage::ErrorType type, bool recoverable)
@@ -117,6 +145,8 @@ bool MockConnection::waitForReplyImpl(const std::function<void(QByteArray, bool&
 				QVERIFY(_msgSpy.wait());
 			QVERIFY(!_msgSpy.isEmpty());
 			msg = _msgSpy.takeFirst()[0].toByteArray();
+			if(msg == QtDataSync::Message::PingMessage)
+				_hasPing = true;
 		} while(msg == QtDataSync::Message::PingMessage);
 		try {
 			msgFn(msg, ok);
