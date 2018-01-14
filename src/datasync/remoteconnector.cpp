@@ -226,7 +226,7 @@ void RemoteConnector::resetAccount(bool clearConfig)
 		clearCaches(true);
 		settings()->remove(keyDeviceId);
 		_cryptoController->deleteKeyMaterial(devId);
-		if(isIdle()) {//delete yourself. Remote will disconnecte once done
+		if(isIdle()) {//delete yourself. Disconnecting happens after that
 			Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
 			sendMessage(RemoveMessage{devId});
 		} else {

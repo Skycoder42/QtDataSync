@@ -151,3 +151,8 @@ All these components can be set per datasync instance by using the Setup. Check 
 
 ## Documentation
 The documentation is available on [github pages](https://skycoder42.github.io/QtDataSync/). It was created using [doxygen](http://www.doxygen.org/). The HTML-documentation and Qt-Help files are shipped together with the module for both the custom repository and the package on the release page. Please note that doxygen docs do not perfectly integrate with QtCreator/QtAssistant.
+
+## References
+TODO
+
+- https://github.com/frankosterfeld/qtkeychain
