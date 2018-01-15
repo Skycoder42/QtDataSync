@@ -45,7 +45,9 @@ DISTFILES += \
 	dockerbuild/Dockerfile \
 	dockerbuild/env_start.sh \
 	dockerbuild/install.sh \
-	dockerbuild/qt-installer-script.qs
+	dockerbuild/qt-installer-script.qs \
+    qdsapp.service \
+    qdsapp.socket
 
 include(../../src/datasync/messages/messages.pri)
 include(../../src/3rdparty/cryptopp/cryptopp.pri)

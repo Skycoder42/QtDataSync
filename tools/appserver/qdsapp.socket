@@ -1,0 +1,11 @@
+[Unit]
+Description=QtDataSync AppServer Socket
+Documentation=https://github.com/Skycoder42/QtDataSync
+After=network.target
+PartOf=qdsapp.service
+
+[Socket]
+ListenStream=4242
+
+[Install]
+WantedBy=sockets.target

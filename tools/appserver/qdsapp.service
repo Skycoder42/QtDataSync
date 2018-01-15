@@ -1,0 +1,15 @@
+[Unit]
+Description=QtDataSync AppServer Daemon
+Documentation=https://github.com/Skycoder42/QtDataSync
+After=network-online.target qdsapp.socket
+
+[Service]
+Type=simple
+ExecStart=/path/to/qdsappd
+#only temporary
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target
+#WantedBy=default.target
