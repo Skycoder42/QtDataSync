@@ -1,8 +1,9 @@
 #include "app.h"
 
-#include <QFileInfo>
-#include <QDir>
-#include <QTimer>
+#include <QtCore/QFileInfo>
+#include <QtCore/QDir>
+#include <QtCore/QTimer>
+#include <QtCore/QStandardPaths>
 
 #include <QCtrlSignals>
 
@@ -15,7 +16,7 @@ App::App(int &argc, char **argv) :
 	_connector(nullptr),
 	_database(nullptr)
 {
-	QCoreApplication::setApplicationName(QStringLiteral(TARGET));
+	QCoreApplication::setApplicationName(QStringLiteral(APPNAME));
 	QCoreApplication::setApplicationVersion(QStringLiteral(VERSION));
 	QCoreApplication::setOrganizationName(QStringLiteral(COMPANY));
 	QCoreApplication::setOrganizationDomain(QStringLiteral(BUNDLE_PREFIX));
@@ -68,12 +69,12 @@ bool App::start(const QString &serviceName)
 {
 	Q_UNUSED(serviceName)
 
-#ifdef Q_OS_UNIX
-	auto configPath = QStringLiteral("/etc/%1/setup.conf").arg(QStringLiteral(TARGET));//TODO more paths?
-#else
-	auto configPath = QCoreApplication::applicationDirPath() + QStringLiteral("/setup.conf");
-#endif
-	configPath = qEnvironmentVariable("QDSAPP_CONFIG", configPath);//NOTE document
+	auto configPath = findConfig();
+	if(configPath.isEmpty()) {
+		qCritical() << "Unable to find any configuration file. Set it explicitly via the QDSAPP_CONFIG environment variable";
+		return false;
+	}
+
 	_config = new QSettings(configPath, QSettings::IniFormat, this);
 	if(_config->status() != QSettings::NoError) {
 		qCritical() << "Failed to read configuration file"
@@ -170,6 +171,39 @@ void App::onSignal(int signal)
 		break;
 	}
 #endif
+}
+
+QString App::findConfig() const
+{
+	auto configPath = qEnvironmentVariable("QDSAPP_CONFIG");//NOTE document
+	if(!configPath.isEmpty())
+		return configPath;
+
+	QStringList tmpPaths;
+	tmpPaths.append(QStandardPaths::standardLocations(QStandardPaths::ConfigLocation));
+	tmpPaths.append(QStandardPaths::standardLocations(QStandardPaths::GenericConfigLocation));
+#ifdef Q_OS_UNIX
+	tmpPaths.append(QStringLiteral("/etc/"));
+#else
+	tmpPaths.append(QCoreApplication::applicationDirPath());
+#endif
+
+	QStringList configNames {
+		QStringLiteral("%1.conf").arg(QCoreApplication::applicationName()),
+		QStringLiteral("%1.conf").arg(QStringLiteral(APPNAME))
+	};
+
+	tmpPaths.removeDuplicates();
+	configNames.removeDuplicates();
+	foreach(auto path, tmpPaths) {
+		QDir dir(path);
+		foreach(auto config, configNames) {
+			if(dir.exists(config))
+				return dir.absoluteFilePath(config);
+		}
+	}
+
+	return {};
 }
 
 int main(int argc, char *argv[])

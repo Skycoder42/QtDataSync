@@ -42,6 +42,8 @@ private:
 	QThreadPool *_mainPool;
 	ClientConnector *_connector;
 	DatabaseController *_database;
+
+	QString findConfig() const;
 };
 
 #undef qApp

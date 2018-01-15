@@ -6,16 +6,16 @@ QT -= gui
 CONFIG += c++11 console
 CONFIG -= app_bundle
 
-TARGET = qdsapp
-unix: TARGET = $${TARGET}d
-win32: TARGET = $${TARGET}svc
+APPNAME = qdsapp
+unix: TARGET = $${APPNAME}d
+win32: TARGET = $${APPNAME}svc
 
 VERSION = $$MODULE_VERSION
 COMPANY = Skycoder42
 BUNDLE_PREFIX = de.skycoder42
 
 DEFINES += BUILD_QDATASYNCSERVER
-DEFINES += "TARGET=\\\"$$TARGET\\\""
+DEFINES += "APPNAME=\\\"$$APPNAME\\\""
 DEFINES += "VERSION=\\\"$$VERSION\\\""
 DEFINES += "COMPANY=\\\"$$COMPANY\\\""
 DEFINES += "BUNDLE_PREFIX=\\\"$$BUNDLE_PREFIX\\\""
@@ -38,7 +38,6 @@ SOURCES += \
 	singletaskqueue.cpp
 
 DISTFILES += \
-	setup.conf \
 	docker_setup.conf \
 	docker-compose.yaml \
 	dockerbuild/makedocker.sh \
@@ -46,8 +45,9 @@ DISTFILES += \
 	dockerbuild/env_start.sh \
 	dockerbuild/install.sh \
 	dockerbuild/qt-installer-script.qs \
-    qdsapp.service \
-    qdsapp.socket
+	qdsapp.service \
+	qdsapp.socket \
+    qdsapp.conf
 
 include(../../src/datasync/messages/messages.pri)
 include(../../src/3rdparty/cryptopp/cryptopp.pri)
