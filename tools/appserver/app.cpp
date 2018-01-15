@@ -4,40 +4,63 @@
 #include <QDir>
 #include <QTimer>
 
+#include <QCtrlSignals>
+
 #include "message_p.h"
 
 App::App(int &argc, char **argv) :
 	QCoreApplication(argc, argv),
-	config(nullptr),
-	mainPool(nullptr),
-	connector(nullptr),
-	database(nullptr)
+	_config(nullptr),
+	_mainPool(nullptr),
+	_connector(nullptr),
+	_database(nullptr)
 {
 	QCoreApplication::setApplicationName(QStringLiteral(TARGET));
 	QCoreApplication::setApplicationVersion(QStringLiteral(VERSION));
 	QCoreApplication::setOrganizationName(QStringLiteral(COMPANY));
 	QCoreApplication::setOrganizationDomain(QStringLiteral(BUNDLE_PREFIX));
 
+	//setup logging
+	qSetMessagePattern(QStringLiteral("[%{time} "
+									  "%{if-debug}\033[32mDebug\033[0m]    %{endif}"
+									  "%{if-info}\033[36mInfo\033[0m]     %{endif}"
+									  "%{if-warning}\033[33mWarning\033[0m]  %{endif}"
+									  "%{if-critical}\033[31mCritical\033[0m] %{endif}"
+									  "%{if-fatal}\033[35mFatal\033[0m]    %{endif}"
+									  "%{if-category}%{category}: %{endif}"
+									  "%{message}"));
+
 	QtDataSync::Message::registerTypes();
 
 	connect(this, &App::aboutToQuit,
 			this, &App::stop,
 			Qt::DirectConnection);
+
+	auto handler = QCtrlSignalHandler::instance();
+	handler->setAutoQuitActive(true);
+#ifdef Q_OS_UNIX
+	connect(handler, &QCtrlSignalHandler::ctrlSignal,
+			this, &App::onSignal);
+	handler->registerForSignal(SIGHUP);
+	handler->registerForSignal(SIGCONT);
+	handler->registerForSignal(SIGTSTP);
+	handler->registerForSignal(SIGUSR1);
+#endif
 }
 
 QSettings *App::configuration() const
 {
-	return config;
+	return _config;
 }
 
 QThreadPool *App::threadPool() const
 {
-	return mainPool;
+	return _mainPool;
 }
 
 QString App::absolutePath(const QString &path) const
 {
-	auto dir = QFileInfo(config->fileName()).dir();
+	auto dir = QFileInfo(_config->fileName()).dir();
 	return QDir::cleanPath(dir.absoluteFilePath(path));
 }
 
@@ -51,35 +74,35 @@ bool App::start(const QString &serviceName)
 	auto configPath = QCoreApplication::applicationDirPath() + QStringLiteral("/setup.conf");
 #endif
 	configPath = qEnvironmentVariable("QDSAPP_CONFIG", configPath);//NOTE document
-	config = new QSettings(configPath, QSettings::IniFormat, this);
-	if(config->status() != QSettings::NoError) {
+	_config = new QSettings(configPath, QSettings::IniFormat, this);
+	if(_config->status() != QSettings::NoError) {
 		qCritical() << "Failed to read configuration file"
 					<< configPath
 					<< "with error:"
-					<< (config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
+					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
 		return false;
 	} else
-		qDebug() << "Using configuration:" << config->fileName();
+		qDebug() << "Using configuration:" << _config->fileName();
 
-	mainPool = new QThreadPool(this);
-	mainPool->setMaxThreadCount(config->value(QStringLiteral("threads/count"),
+	_mainPool = new QThreadPool(this);
+	_mainPool->setMaxThreadCount(_config->value(QStringLiteral("threads/count"),
 											  QThread::idealThreadCount()).toInt());
-	auto timeoutMin = config->value(QStringLiteral("threads/expire"), 10).toInt(); //in minutes
-	mainPool->setExpiryTimeout(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::minutes(timeoutMin)).count());
-	qDebug() << "Running with max" << mainPool->maxThreadCount()
+	auto timeoutMin = _config->value(QStringLiteral("threads/expire"), 10).toInt(); //in minutes
+	_mainPool->setExpiryTimeout(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::minutes(timeoutMin)).count());
+	qDebug() << "Running with max" << _mainPool->maxThreadCount()
 			 << "threads and an expiry timeout of" << timeoutMin
 			 << "minutes";
 
-	database = new DatabaseController(this);
-	connector = new ClientConnector(database, this);
+	_database = new DatabaseController(this);
+	_connector = new ClientConnector(_database, this);
 
-	connect(database, &DatabaseController::databaseInitDone,
+	connect(_database, &DatabaseController::databaseInitDone,
 			this, &App::completeStartup,
 			Qt::QueuedConnection);
 
-	if(!connector->setupWss())
+	if(!_connector->setupWss())
 		return false;
-	database->initialize();
+	_database->initialize();
 
 	qDebug() << QCoreApplication::applicationName() << "started successfully";
 	return true;
@@ -87,26 +110,35 @@ bool App::start(const QString &serviceName)
 
 void App::stop()
 {
-	connector->disconnectAll();
-	mainPool->clear();
-	mainPool->waitForDone();
+	qDebug() << "Stopping server...";
+	_connector->disconnectAll();
+	_mainPool->clear();
+	_mainPool->waitForDone();
+	qDebug() << "Server stopped";
 }
 
 void App::pause()
 {
-	connector->setPaused(true);
+	qDebug() << "Pausing server...";
+	_connector->setPaused(true);
 }
 
 void App::resume()
 {
-	connector->setPaused(false);
+	qDebug() << "Resuming server...";
+	_connector->setPaused(false);
+}
+
+void App::reload()
+{
+	Q_UNIMPLEMENTED();
 }
 
 void App::processCommand(int code)
 {
 	switch (code) {
 	case CleanupCode:
-		database->cleanupDevices();
+		_database->cleanupDevices();
 	default:
 		break;
 	}
@@ -114,14 +146,36 @@ void App::processCommand(int code)
 
 void App::completeStartup(bool ok)
 {
-	if(!ok || !connector->listen())
+	if(!ok || !_connector->listen())
 		qApp->exit();
+}
+
+void App::onSignal(int signal)
+{
+#ifdef Q_OS_UNIX
+	switch (signal) {
+	case SIGHUP:
+		reload();
+		break;
+	case SIGCONT:
+		resume();
+		break;
+	case SIGTSTP:
+		pause();
+		break;
+	case SIGUSR1:
+		processCommand(CleanupCode);
+		break;
+	default:
+		break;
+	}
+#endif
 }
 
 int main(int argc, char *argv[])
 {
 	App a(argc, argv);
-	QMetaObject::invokeMethod(&a, "start", Qt::QueuedConnection,
-							  Q_ARG(QString, QString()));
+	if(!a.start({}))
+		return EXIT_FAILURE;
 	return a.exec();
 }

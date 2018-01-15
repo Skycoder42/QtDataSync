@@ -31,9 +31,10 @@ private:
 
 }
 
+QThreadStorage<DatabaseController::DatabaseWrapper> DatabaseController::_threadStore;
+
 DatabaseController::DatabaseController(QObject *parent) :
 	QObject(parent),
-	_threadStore(),
 	_keepAliveTimer(nullptr)
 {}
 
@@ -44,7 +45,9 @@ void DatabaseController::initialize()
 
 void DatabaseController::cleanupDevices()
 {
-	quint64 offlineSinceDays = 0;//TODO
+	auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"),
+														 90ull) //default interval of ca 3 months
+							.toULongLong();
 	QtConcurrent::run(qApp->threadPool(), [this, offlineSinceDays]() {
 		try {
 			auto db = _threadStore.localData().database();

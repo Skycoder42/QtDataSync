@@ -14,7 +14,7 @@ class App : public QCoreApplication
 
 public:
 	enum ServiceCodes {
-		CodeOffset = 127,
+		CodeOffset = 128,
 		CleanupCode
 	};
 	Q_ENUM(ServiceCodes)
@@ -25,21 +25,23 @@ public:
 	QThreadPool *threadPool() const;
 	QString absolutePath(const QString &path) const;
 
-protected Q_SLOTS://defined like that to be ready for service inclusion
+public Q_SLOTS://defined like that to be ready for service inclusion
 	bool start(const QString &serviceName);
 	void stop();
 	void pause();
 	void resume();
+	void reload();
 	void processCommand(int code);
 
 private Q_SLOTS:
 	void completeStartup(bool ok);
+	void onSignal(int signal);
 
 private:
-	QSettings *config;
-	QThreadPool *mainPool;
-	ClientConnector *connector;
-	DatabaseController *database;
+	QSettings *_config;
+	QThreadPool *_mainPool;
+	ClientConnector *_connector;
+	DatabaseController *_database;
 };
 
 #undef qApp

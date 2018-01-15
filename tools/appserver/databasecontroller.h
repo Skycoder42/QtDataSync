@@ -115,7 +115,7 @@ private:
 		QString dbName;
 	};
 
-	QThreadStorage<DatabaseWrapper> _threadStore;
+	static QThreadStorage<DatabaseWrapper> _threadStore; //must be static
 	QTimer *_keepAliveTimer;
 
 	void initDatabase();
