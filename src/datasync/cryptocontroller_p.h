@@ -67,7 +67,7 @@ public:
 	bool hasKeyUpdate() const;
 
 	//load, clear, remove key material
-	bool acquireStore(bool existing);
+	void acquireStore(bool existing);
 	void loadKeyMaterial(const QUuid &deviceId);
 	void clearKeyMaterial();
 	void deleteKeyMaterial(const QUuid &deviceId);

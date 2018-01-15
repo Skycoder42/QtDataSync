@@ -76,6 +76,11 @@ MockConnection::MockConnection(QWebSocket *socket, QObject *parent) :
 	});
 }
 
+void MockConnection::sendBytes(const QByteArray &data)
+{
+	_socket->sendBinaryMessage(data);
+}
+
 void MockConnection::send(const QtDataSync::Message &message)
 {
 	_socket->sendBinaryMessage(message.serialize());

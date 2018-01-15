@@ -174,7 +174,7 @@ bool CryptoController::hasKeyUpdate() const
 	return settings()->contains(keyNextSymKey);
 }
 
-bool CryptoController::acquireStore(bool existing)
+void CryptoController::acquireStore(bool existing)
 {
 	closeStore();
 	QString provider;
@@ -188,7 +188,7 @@ bool CryptoController::acquireStore(bool existing)
 
 	if(_keyStore) {
 		if(_keyStore->providerName() == provider) //keystore is already loaded - no need to delete and load again
-			return true;
+			return;
 		else {
 			_keyStore->deleteLater();
 			_keyStore = nullptr;
@@ -196,14 +196,8 @@ bool CryptoController::acquireStore(bool existing)
 	}
 
 	_keyStore = factory->createInstance(provider, defaults(), this);
-	if(!_keyStore) {
-		logCritical() << "Keystore"
-					  << provider
-					  << "not available - synchronization will be temporarily disabled";
-		return false;
-	}
-
-	return true;
+	if(!_keyStore)
+		throw QtDataSync::Exception(defaults(), QStringLiteral("Keystore %1 not available").arg(provider));
 }
 
 void CryptoController::loadKeyMaterial(const QUuid &deviceId)

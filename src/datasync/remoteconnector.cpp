@@ -462,6 +462,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		}
 	} catch(DataStreamException &e) {
 		onError({ErrorMessage::IncompatibleVersionError, QString::fromUtf8(e.what())}, "invalid remote message");
+	} catch(IncompatibleVersionException &e) {
+		onError({ErrorMessage::IncompatibleVersionError, QString::fromUtf8(e.what())}, "server version not accepted");
 	} catch(Exception &e) {
 		//simulate a "normal" client error
 		onError({ErrorMessage::ClientError, e.qWhat()}, name);
@@ -708,8 +710,7 @@ bool RemoteConnector::loadIdentity()
 		if(nId != _deviceId || nId.isNull()) { //only if new id is null or id has changed
 			_deviceId = nId;
 			_cryptoController->clearKeyMaterial();
-			if(!_cryptoController->acquireStore(!_deviceId.isNull())) //no keystore -> can neither save nor load...
-				return false;
+			_cryptoController->acquireStore(!_deviceId.isNull());
 
 			if(_deviceId.isNull()) //no user -> nothing to be loaded
 				return true;
@@ -718,7 +719,9 @@ bool RemoteConnector::loadIdentity()
 		}
 		return true;
 	} catch(Exception &e) {
-		logCritical() << e.what();
+		logCritical() << "Failed to load identity with error:"
+					  << e.what();
+		emit controllerError(tr("Failed to load user identity! Make shure your keystore is available."));
 		return false;
 	}
 }

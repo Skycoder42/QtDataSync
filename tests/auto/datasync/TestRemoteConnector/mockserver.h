@@ -17,6 +17,7 @@ class MockConnection : public QObject
 public:
 	explicit MockConnection(QWebSocket *socket, QObject *parent = nullptr);
 
+	void sendBytes(const QByteArray &data);
 	void send(const QtDataSync::Message &message);
 	void sendPing();
 	void close();
