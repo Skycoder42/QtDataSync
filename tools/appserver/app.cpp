@@ -175,11 +175,12 @@ void App::onSignal(int signal)
 
 QString App::findConfig() const
 {
-	auto configPath = qEnvironmentVariable("QDSAPP_CONFIG");//NOTE document
+	auto configPath = qEnvironmentVariable("QDSAPP_CONFIG_FILE");//NOTE document
 	if(!configPath.isEmpty())
 		return configPath;
 
-	QStringList tmpPaths;
+	//if not set: empty list
+	auto tmpPaths = qEnvironmentVariable("QDSAPP_CONFIG_PATH").split(QDir::listSeparator(), QString::SkipEmptyParts);//NOTE document
 	tmpPaths.append(QStandardPaths::standardLocations(QStandardPaths::ConfigLocation));
 	tmpPaths.append(QStandardPaths::standardLocations(QStandardPaths::GenericConfigLocation));
 #ifdef Q_OS_UNIX

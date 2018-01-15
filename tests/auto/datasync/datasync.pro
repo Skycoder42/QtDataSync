@@ -3,14 +3,15 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	TestLib \
 	TestLocalStore \
-    TestDataStore \
-    TestDataTypeStore \
-    TestChangeController \
-    TestCryptoController \
-    TestSyncController \
-    TestRoThreadedBackend \
-    TestMessages \
-    TestKeystorePlugins \
-    TestRemoteConnector
+	TestDataStore \
+	TestDataTypeStore \
+	TestChangeController \
+	TestCryptoController \
+	TestSyncController \
+	TestRoThreadedBackend \
+	TestMessages \
+	TestKeystorePlugins \
+	TestRemoteConnector
 
-CONFIG += ordered
+include_server_tests: SUBDIRS +=  \
+	TestAppServer

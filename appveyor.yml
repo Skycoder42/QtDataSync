@@ -6,9 +6,9 @@ version: build-{build}
 
 environment:
   QT_VER: 5.10.0
-  EXTRA_MODULES: .qtremoteobjects;.skycoder42.jsonserializer;.skycoder42.backgroundprocess
+  EXTRA_MODULES: .qtremoteobjects;.skycoder42.jsonserializer
   STATIC_QT_MODS: qttools qtwebsockets qtscxml qtremoteobjects
-  STATIC_EXTRA_MODS: qtjsonserializer qtbackgroundprocess
+  STATIC_EXTRA_MODS: qtjsonserializer
 
   matrix:
     - PLATFORM: msvc2017_64

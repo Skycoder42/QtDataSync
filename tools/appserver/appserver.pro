@@ -8,7 +8,8 @@ CONFIG -= app_bundle
 
 APPNAME = qdsapp
 unix: TARGET = $${APPNAME}d
-win32: TARGET = $${APPNAME}svc
+else:win32: TARGET = $${APPNAME}svc
+else: TARGET = $$APPNAME
 
 VERSION = $$MODULE_VERSION
 COMPANY = Skycoder42
@@ -47,7 +48,7 @@ DISTFILES += \
 	dockerbuild/qt-installer-script.qs \
 	qdsapp.service \
 	qdsapp.socket \
-    qdsapp.conf
+	qdsapp.conf
 
 include(../../src/datasync/messages/messages.pri)
 include(../../src/3rdparty/cryptopp/cryptopp.pri)
