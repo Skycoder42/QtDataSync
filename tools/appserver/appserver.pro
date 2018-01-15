@@ -1,12 +1,15 @@
 TEMPLATE = app
 
-QT += websockets backgroundprocess sql concurrent
+QT += websockets sql concurrent
 QT -= gui
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
 
-TARGET = qdatasyncserver
+TARGET = qdsapp
+unix: TARGET = $${TARGET}d
+win32: TARGET = $${TARGET}svc
+
 VERSION = $$MODULE_VERSION
 COMPANY = Skycoder42
 BUNDLE_PREFIX = de.skycoder42
@@ -25,14 +28,14 @@ HEADERS += \
 	app.h \
 	client.h \
 	databasecontroller.h \
-    singletaskqueue.h
+	singletaskqueue.h
 
 SOURCES += \
 	clientconnector.cpp \
 	app.cpp \
 	client.cpp \
 	databasecontroller.cpp \
-    singletaskqueue.cpp
+	singletaskqueue.cpp
 
 DISTFILES += \
 	setup.conf \

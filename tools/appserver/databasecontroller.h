@@ -43,7 +43,9 @@ class DatabaseController : public QObject
 public:
 	explicit DatabaseController(QObject *parent = nullptr);
 
-	void cleanupDevices(quint64 offlineSinceDays);
+	void initialize();
+
+	void cleanupDevices();
 
 	QUuid addNewDevice(const QString &name,
 					   const QByteArray &signScheme,
@@ -95,9 +97,9 @@ Q_SIGNALS:
 	void notifyChanged(const QUuid &deviceId);
 
 	void databaseInitDone(bool success);
-	void cleanupOperationDone(int rowsAffected, const QString &error = {});
 
 private Q_SLOTS:
+	void dbInitDone(bool success);
 	void onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload);
 	void timeout();
 

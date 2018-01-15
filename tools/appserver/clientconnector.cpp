@@ -27,12 +27,18 @@ ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) 
 		connect(server, &QWebSocketServer::originAuthenticationRequired,
 				this, &ClientConnector::verifySecret);
 	}
+
+	connect(database, &DatabaseController::notifyChanged,
+			this, &ClientConnector::notifyChanged,
+			Qt::QueuedConnection);
 }
 
 bool ClientConnector::setupWss()
 {
-	if(server->secureMode() != QWebSocketServer::SecureMode)
+	if(server->secureMode() != QWebSocketServer::SecureMode) {
+		qDebug() << "Server running in WS (unsecure) mode";
 		return true;
+	}
 
 	auto filePath = qApp->configuration()->value(QStringLiteral("server/wss/pfx")).toString();
 	filePath = qApp->absolutePath(filePath);
@@ -42,8 +48,13 @@ bool ClientConnector::setupWss()
 	QList<QSslCertificate> caCerts;
 
 	QFile file(filePath);
-	if(!file.open(QIODevice::ReadOnly))
+	if(!file.open(QIODevice::ReadOnly)) {
+		qCritical() << "Failed to open"
+					<< filePath
+					<< "with error:"
+					<< file.errorString();
 		return false;
+	}
 
 	if(QSslCertificate::importPkcs12(&file,
 								  &privateKey,
@@ -56,23 +67,56 @@ bool ClientConnector::setupWss()
 		caCerts.append(conf.caCertificates());
 		conf.setCaCertificates(caCerts);
 		server->setSslConfiguration(conf);
+
+		qDebug() << "Setup server to run in WSS (secure) mode";
 		return true;
-	} else
+	} else {
+		qCritical() << "File"
+					<< filePath
+					<< "is not a valid PKCS#12 file, or the passphrase was wrong";
 		return false;
+	}
 }
 
 bool ClientConnector::listen()
 {
-	auto host = qApp->configuration()->value(QStringLiteral("server/host"), QHostAddress(QHostAddress::Any).toString()).toString();
+	QHostAddress host {
+		qApp->configuration()->value(QStringLiteral("server/host"),
+									 QHostAddress(QHostAddress::Any).toString())
+				.toString()
+	};
+
 	auto port = static_cast<quint16>(qApp->configuration()->value(QStringLiteral("server/port"), 4242).toUInt());
-	if(server->listen(QHostAddress(host), port)) {
-		qInfo() << "Listening on port" << server->serverPort();
+	if(server->listen(host, port)) {
+		if(port != server->serverPort())
+			qInfo() << "Listening on port" << server->serverPort();
+		else
+			qDebug() << "Listening on port" << port;
 		return true;
 	} else {
-		qCritical() << "Failed to create server with error:"
+		qCritical() << "Failed to listen as"
+					<< host
+					<< "on port"
+					<< port
+					<< "with error:"
 					<< server->errorString();
 		return false;
 	}
+}
+
+void ClientConnector::close()
+{
+	server->close();
+	emit disconnectAll();
+}
+
+void ClientConnector::setPaused(bool paused)
+{
+	if(paused) {
+		server->pauseAccepting();
+		emit disconnectAll();
+	} else
+		server->resumeAccepting();
 }
 
 void ClientConnector::notifyChanged(const QUuid &deviceId)
@@ -102,6 +146,8 @@ void ClientConnector::newConnection()
 		connect(client, &Client::proofRequested,
 				this, &ClientConnector::proofRequested,
 				Qt::QueuedConnection);
+		connect(this, &ClientConnector::disconnectAll,
+				client, &Client::dropConnection);
 	}
 }
 

@@ -15,9 +15,15 @@ public:
 
 	bool setupWss();
 	bool listen();
+	void close();
+
+	void setPaused(bool paused);
 
 public Q_SLOTS:
 	void notifyChanged(const QUuid &deviceId);
+
+Q_SIGNALS:
+	void disconnectAll();
 
 private Q_SLOTS:
 	void verifySecret(QWebSocketCorsAuthenticator *authenticator);

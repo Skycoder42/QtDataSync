@@ -35,34 +35,16 @@ DatabaseController::DatabaseController(QObject *parent) :
 	QObject(parent),
 	_threadStore(),
 	_keepAliveTimer(nullptr)
+{}
+
+void DatabaseController::initialize()
 {
-	connect(this, &DatabaseController::databaseInitDone, this, [this](bool ok) {
-		if(ok) { //done on the main thread to make sure the connection does not die with threads
-			auto driver = _threadStore.localData().database().driver();
-			connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
-					this, &DatabaseController::onNotify);
-			if(!driver->subscribeToNotification(QStringLiteral("deviceDataEvent")))
-				qCritical() << "Unabled to notify to change events. Devices will not receive updates!";
-			else
-				qDebug() << "Event subscription active";
-
-			auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
-			if(delay > 0) {
-				_keepAliveTimer = new QTimer(this);
-				_keepAliveTimer->setInterval(scdtime(std::chrono::minutes(delay)));
-				_keepAliveTimer->setTimerType(Qt::VeryCoarseTimer);
-				connect(_keepAliveTimer, &QTimer::timeout,
-						this, &DatabaseController::timeout);
-				_keepAliveTimer->start();
-			}
-		}
-	}, Qt::QueuedConnection);
-
 	QtConcurrent::run(qApp->threadPool(), this, &DatabaseController::initDatabase);
 }
 
-void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
+void DatabaseController::cleanupDevices()
 {
+	quint64 offlineSinceDays = 0;//TODO
 	QtConcurrent::run(qApp->threadPool(), [this, offlineSinceDays]() {
 		try {
 			auto db = _threadStore.localData().database();
@@ -73,16 +55,14 @@ void DatabaseController::cleanupDevices(quint64 offlineSinceDays)
 				//TODO IMPLEMENT
 				Q_UNIMPLEMENTED();
 
-				if(db.commit())
-					emit cleanupOperationDone(0);
-				else
+				if(!db.commit())
 					throw DatabaseException(db);
 			} catch(...) {
 				db.rollback();
 				throw;
 			}
 		} catch (DatabaseException &e) {
-			emit cleanupOperationDone(-1, e.error().text());
+			qWarning() << "Database cleanup failed with error:" << e.what();
 		}
 	});
 }
@@ -607,6 +587,34 @@ std::tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::load
 		return std::make_tuple((quint32)0, QByteArray(), QByteArray(), QByteArray());
 }
 
+void DatabaseController::dbInitDone(bool success)
+{
+	if(success) { //done on the main thread to make sure the connection does not die with threads
+		auto driver = _threadStore.localData().database().driver();
+		connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
+				this, &DatabaseController::onNotify);
+		if(!driver->subscribeToNotification(QStringLiteral("deviceDataEvent"))) {
+			qCritical() << "Unabled to notify to change events. Devices will not receive updates!";
+			success = false;
+		} else {
+			qDebug() << "Event subscription active";
+
+			auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
+			if(delay > 0) {
+				_keepAliveTimer = new QTimer(this);
+				_keepAliveTimer->setInterval(scdtime(std::chrono::minutes(delay)));
+				_keepAliveTimer->setTimerType(Qt::VeryCoarseTimer);
+				connect(_keepAliveTimer, &QTimer::timeout,
+						this, &DatabaseController::timeout);
+				_keepAliveTimer->start();
+				qDebug() << "Keepalives started";
+			} else
+				qDebug() << "Running without keepalives";
+		}
+	}
+	emit databaseInitDone(success);
+}
+
 void DatabaseController::onNotify(const QString &name, QSqlDriver::NotificationSource source, const QVariant &payload)
 {
 	Q_UNUSED(source)
@@ -635,7 +643,8 @@ void DatabaseController::initDatabase()
 {
 	auto db = _threadStore.localData().database();
 	if(!db.isOpen()) {
-		emit databaseInitDone(false);
+		QMetaObject::invokeMethod(this, "dbInitDone", Qt::QueuedConnection,
+								  Q_ARG(bool, false));
 		return;
 	}
 
@@ -807,10 +816,12 @@ void DatabaseController::initDatabase()
 			}
 		}
 
-		emit databaseInitDone(true);
+		QMetaObject::invokeMethod(this, "dbInitDone", Qt::QueuedConnection,
+								  Q_ARG(bool, true));
 	} catch(DatabaseException &e) {
 		qCritical() << "Failed to setup database:" << e.what();
-		emit databaseInitDone(false);
+		QMetaObject::invokeMethod(this, "dbInitDone", Qt::QueuedConnection,
+								  Q_ARG(bool, false));
 	}
 }
 

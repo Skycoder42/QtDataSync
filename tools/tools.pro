@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 
 !android:!ios:!winrt {
-	SUBDIRS = qdatasyncserver
+	SUBDIRS = appserver
 	qdatasyncserver.CONFIG = host_build
 }
 
