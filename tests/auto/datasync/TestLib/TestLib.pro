@@ -1,7 +1,9 @@
 TEMPLATE = lib
 
 QT += datasync-private testlib
-CONFIG += static
+!linux: CONFIG += static
+
+linux: DESTDIR = $$shadowed($$dirname(_QMAKE_CONF_))/lib
 
 HEADERS += \
 	testlib.h \
