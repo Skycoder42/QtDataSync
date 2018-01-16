@@ -49,7 +49,7 @@ App::App(int &argc, char **argv) :
 #endif
 }
 
-QSettings *App::configuration() const
+const QSettings *App::configuration() const
 {
 	return _config;
 }

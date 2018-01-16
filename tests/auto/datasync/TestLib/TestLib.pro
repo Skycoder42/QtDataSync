@@ -8,14 +8,16 @@ HEADERS += \
 	testdata.h \
 	testobject.h \
 	mockserver.h \
-	mockconnection.h
+	mockconnection.h \
+    mockclient.h
 
 SOURCES += \
 	testlib.cpp \
 	testdata.cpp \
 	testobject.cpp \
 	mockserver.cpp \
-	mockconnection.cpp
+	mockconnection.cpp \
+    mockclient.cpp
 
 INCLUDEPATH += ../../../../src/datasync/messages
 

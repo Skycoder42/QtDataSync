@@ -2,6 +2,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <testlib.h>
+#include <mockserver.h>
 #include <QLoggingCategory>
 #include <cryptopp/osrng.h>
 
@@ -17,7 +18,6 @@
 #include <QtDataSync/private/syncmessage_p.h>
 #include <QtDataSync/private/keychangemessage_p.h>
 
-#include "mockserver.h"
 using namespace QtDataSync;
 
 Q_DECLARE_METATYPE(QSharedPointer<Message>)
@@ -241,6 +241,7 @@ void TestRemoteConnector::testRegistering()
 		//wait for register message
 		QVERIFY(connection->waitForSignedReply<RegisterMessage>(crypto, [&](RegisterMessage message, bool &ok) {
 			QCOMPARE(message.nonce, iMsg.nonce);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
 			QCOMPARE(message.deviceName, remote->deviceName());
 			AsymmetricCryptoInfo cInfo(rng,
 				message.signAlgorithm,
@@ -289,6 +290,7 @@ void TestRemoteConnector::testLogin(bool hasChanges, bool withDisconnect)
 		//wait for login message
 		QVERIFY(connection->waitForSignedReply<LoginMessage>(crypto, [&](LoginMessage message, bool &ok) {
 			QCOMPARE(message.nonce, iMsg.nonce);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
 			QCOMPARE(message.deviceId, devId);
 			QCOMPARE(message.deviceName, remote->deviceName());
 			ok = true;

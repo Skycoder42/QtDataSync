@@ -8,6 +8,7 @@
 #include <QtDataSync/private/message_p.h>
 #include <QtDataSync/private/cryptocontroller_p.h>
 #include <QtDataSync/private/errormessage_p.h>
+#include <QtDataSync/private/cryptocontroller_p.h>
 
 class MockConnection : public QObject
 {
@@ -18,6 +19,7 @@ public:
 
 	void sendBytes(const QByteArray &data);
 	void send(const QtDataSync::Message &message);
+	void sendSigned(const QtDataSync::Message &message, QtDataSync::ClientCrypto *crypto);
 	void sendPing();
 	void close();
 	//server does not need signed sending
@@ -31,9 +33,10 @@ public:
 	bool waitForError(QtDataSync::ErrorMessage::ErrorType type, bool recoverable = false);
 	bool waitForDisconnect();
 
-private:
+protected:
 	QWebSocket *_socket;
 
+private:
 	QSignalSpy _msgSpy;
 	QSignalSpy _closeSpy;
 	bool _hasPing;
@@ -55,7 +58,7 @@ bool MockConnection::waitForReply(const std::function<void(TMessage, bool&)> &fn
 		if(!stream.commitTransaction())
 			throw QtDataSync::DataStreamException(stream);
 
-		QVERIFY(QtDataSync::Message::isType<TMessage>(name));
+		QVERIFY2(QtDataSync::Message::isType<TMessage>(name), name.constData());
 		fn(QtDataSync::Message::deserializeMessage<TMessage>(stream), ok);
 	});
 }

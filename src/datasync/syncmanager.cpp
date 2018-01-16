@@ -84,6 +84,9 @@ void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::functio
 	auto state = d->syncState();
 	auto skipDOnly = false;
 
+	//TODO move to engine in order to prevent "race conditions"?
+	//i.e. M says wait for synced and is in uploading, but E already synced ->
+	//leads to M seeing that synced as his, but is actually just beeing started
 	switch(state) {
 	case Error: //wont sync -> simply complete
 	case Disconnected:

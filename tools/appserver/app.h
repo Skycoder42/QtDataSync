@@ -21,7 +21,7 @@ public:
 
 	explicit App(int &argc, char **argv);
 
-	QSettings *configuration() const;
+	const QSettings *configuration() const;
 	QThreadPool *threadPool() const;
 	QString absolutePath(const QString &path) const;
 
@@ -38,7 +38,7 @@ private Q_SLOTS:
 	void onSignal(int signal);
 
 private:
-	QSettings *_config;
+	const QSettings *_config;
 	QThreadPool *_mainPool;
 	ClientConnector *_connector;
 	DatabaseController *_database;

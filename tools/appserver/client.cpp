@@ -370,7 +370,7 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 											message.cryptKey,
 											crypto->ownFingerprint(),
 											message.cmac);
-	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+	} catch(CryptoPP::SignatureVerificationFilter::SignatureVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}
@@ -398,7 +398,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 		if(!crypto)
 			throw ClientErrorException(ErrorMessage::AuthenticationError);
 		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
-	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+	} catch(CryptoPP::SignatureVerificationFilter::SignatureVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}
@@ -435,7 +435,7 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 		QScopedPointer<AsymmetricCryptoInfo> crypto(message.createCryptoInfo(rngPool.localData()));
 		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
 		_cachedFingerPrint = crypto->ownFingerprint();
-	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+	} catch(CryptoPP::SignatureVerificationFilter::SignatureVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}
@@ -528,7 +528,7 @@ void Client::onAccept(const AcceptMessage &message, QDataStream &stream)
 		if(!crypto)
 			throw ClientErrorException(ErrorMessage::AuthenticationError);
 		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
-	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+	} catch(CryptoPP::SignatureVerificationFilter::SignatureVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}
@@ -576,7 +576,7 @@ void Client::onNewKey(const NewKeyMessage &message, QDataStream &stream)
 		if(!crypto)
 			throw ClientErrorException(ErrorMessage::AuthenticationError);
 		Message::verifySignature(stream, crypto->signatureKey(), crypto.data());
-	} catch(CryptoPP::HashVerificationFilter::HashVerificationFailed &e) {
+	} catch(CryptoPP::SignatureVerificationFilter::SignatureVerificationFailed &e) {
 		qWarning() << "Authentication error:" << e.what();
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}

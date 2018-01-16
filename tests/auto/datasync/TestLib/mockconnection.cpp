@@ -32,6 +32,11 @@ void MockConnection::send(const QtDataSync::Message &message)
 	_socket->sendBinaryMessage(message.serialize());
 }
 
+void MockConnection::sendSigned(const QtDataSync::Message &message, QtDataSync::ClientCrypto *crypto)
+{
+	_socket->sendBinaryMessage(message.serializeSigned(crypto->privateSignKey(), crypto->rng(), crypto));
+}
+
 void MockConnection::sendPing()
 {
 	_socket->sendBinaryMessage(QtDataSync::Message::PingMessage);
