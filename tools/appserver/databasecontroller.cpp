@@ -45,6 +45,7 @@ void DatabaseController::initialize()
 
 void DatabaseController::cleanupDevices()
 {
+	//TODO run periodically
 	auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"),
 														 90ull) //default interval of ca 3 months
 							.toULongLong();
@@ -55,8 +56,19 @@ void DatabaseController::cleanupDevices()
 				throw DatabaseException(db);
 
 			try {
-				//TODO IMPLEMENT
-				Q_UNIMPLEMENTED();
+				Query deleteDevicesQuery(db);
+				deleteDevicesQuery.prepare(QStringLiteral("DELETE FROM devices "
+														  "WHERE (current_date - lastlogin) > ?"));
+				deleteDevicesQuery.addBindValue(offlineSinceDays);
+				deleteDevicesQuery.exec();
+
+				Query deleteUsersQuery(db);
+				deleteUsersQuery.prepare(QStringLiteral("DELETE FROM users "
+														"WHERE NOT EXISTS ( "
+														"	SELECT 1 FROM devices "
+														"	WHERE userid = users.id "
+														")"));
+				deleteUsersQuery.exec();
 
 				if(!db.commit())
 					throw DatabaseException(db);
@@ -158,7 +170,7 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	auto db = _threadStore.localData().database();
 
 	Query updateNameQuery(db);
-	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?, lastlogin = 'today'"
+	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?, lastlogin = current_date"
 										   "WHERE id = ?"));
 	updateNameQuery.addBindValue(name);
 	updateNameQuery.addBindValue(deviceId);
@@ -700,7 +712,7 @@ void DatabaseController::initDatabase()
 												  "		cryptkey	BYTEA NOT NULL, "
 												  "		fingerprint	BYTEA NOT NULL, "
 												  "		keymac		BYTEA, "
-												  "		lastlogin	DATE NOT NULL DEFAULT 'today' "
+												  "		lastlogin	DATE NOT NULL DEFAULT current_date "
 												  ")"))) {
 				throw DatabaseException(createDevices);
 			}
