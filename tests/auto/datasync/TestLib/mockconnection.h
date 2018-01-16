@@ -1,8 +1,7 @@
-#ifndef MOCKSERVER_H
-#define MOCKSERVER_H
+#ifndef MOCKCONNECTION_H
+#define MOCKCONNECTION_H
 
 #include <QObject>
-#include <QWebSocketServer>
 #include <QWebSocket>
 #include <QtTest>
 
@@ -40,25 +39,6 @@ private:
 	bool _hasPing;
 
 	bool waitForReplyImpl(const std::function<void(QByteArray,bool&)> &msgFn);
-};
-
-class MockServer : public QObject
-{
-	Q_OBJECT
-
-public:
-	explicit MockServer(QObject *parent = nullptr);
-
-	void init();
-	QUrl url() const;
-
-	void clear();
-	bool waitForConnected(MockConnection **connection, int timeout = 5000);
-
-private:
-	QWebSocketServer *_server;
-
-	QSignalSpy _connectedSpy;
 };
 
 
@@ -99,5 +79,4 @@ bool MockConnection::waitForSignedReply(QtDataSync::ClientCrypto *crypto, const 
 	});
 }
 
-
-#endif // MOCKSERVER_H
+#endif // MOCKCONNECTION_H

@@ -1,6 +1,6 @@
 include(../tests.pri)
 
-QT += datasync-private gui widgets #required for kde
+QT += gui widgets #required for kde
 
 TARGET = tst_keystoreplugins
 

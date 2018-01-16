@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-	TestLib \
+	TestLib \ #must be compiled first
 	TestLocalStore \
 	TestDataStore \
 	TestDataTypeStore \
@@ -12,6 +12,8 @@ SUBDIRS += \
 	TestMessages \
 	TestKeystorePlugins \
 	TestRemoteConnector
+
+CONFIG += ordered
 
 include_server_tests: SUBDIRS +=  \
 	TestAppServer

@@ -1,7 +1,5 @@
 include(../tests.pri)
 
-QT += datasync-private
-
 TARGET = tst_rothreadedbackend
 
 SOURCES += \
