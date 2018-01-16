@@ -25,3 +25,5 @@ INCLUDEPATH += $$PWD/../../../src/datasync/messages
 mac: QMAKE_LFLAGS += '-Wl,-rpath,\'$$OUT_PWD/../../../../lib\''
 
 DEFINES += KEYSTORE_PATH=\\\"$$OUT_PWD/../../../../plugins/keystores/\\\"
+
+include(../../../src/3rdparty/cryptopp/cryptopp.pri)

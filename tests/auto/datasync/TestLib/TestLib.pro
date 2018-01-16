@@ -9,7 +9,7 @@ HEADERS += \
 	testobject.h \
 	mockserver.h \
 	mockconnection.h \
-    mockclient.h
+	mockclient.h
 
 SOURCES += \
 	testlib.cpp \
@@ -17,8 +17,10 @@ SOURCES += \
 	testobject.cpp \
 	mockserver.cpp \
 	mockconnection.cpp \
-    mockclient.cpp
+	mockclient.cpp
 
 INCLUDEPATH += ../../../../src/datasync/messages
 
 verbose_tests: DEFINES += VERBOSE_TESTS
+
+include(../../../../src/3rdparty/cryptopp/cryptopp.pri)
