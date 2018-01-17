@@ -10,8 +10,8 @@ DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_/\\\"
 linux: BUILD_LIB_DIR = $$shadowed($$dirname(_QMAKE_CONF_))/lib
 else: BUILD_LIB_DIR = $$OUT_PWD/../TestLib/
 
-win32:CONFIG(release, debug|release): LIBS += -L$$BUILD_LIB_DIR -lTestLib
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$BUILD_LIB_DIR -lTestLib
+win32:CONFIG(release, debug|release): LIBS += -L$$BUILD_LIB_DIR/release -lTestLib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$BUILD_LIB_DIR/debug -lTestLib
 else:unix: LIBS += -L$$BUILD_LIB_DIR -lTestLib
 
 INCLUDEPATH += $$PWD/TestLib
