@@ -1711,8 +1711,10 @@ void TestRemoteConnector::testRetry()
 		QVERIFY(partnerConnection);
 
 		//reconnect, the wait 3 times to check timouts working
+		qDebug() << "starting reconnect";
 		partner->reconnect();
 		for(auto i = 0; i < 3; i++) {
+			qDebug() << "wait for connect" << i;
 			QVERIFY(server->waitForConnected(&partnerConnection, 12000*(i+1)));
 			if(eventSpy.size() != 2)
 				QVERIFY(eventSpy.wait());

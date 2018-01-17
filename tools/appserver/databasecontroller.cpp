@@ -170,7 +170,7 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	auto db = _threadStore.localData().database();
 
 	Query updateNameQuery(db);
-	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?, lastlogin = current_date"
+	updateNameQuery.prepare(QStringLiteral("UPDATE devices SET name = ?, lastlogin = current_date "
 										   "WHERE id = ?"));
 	updateNameQuery.addBindValue(name);
 	updateNameQuery.addBindValue(deviceId);
@@ -189,7 +189,7 @@ bool DatabaseController::updateCmac(const QUuid &deviceId, quint32 keyIndex, con
 											   "WHERE id = ? AND ( "
 											   "	SELECT keycount FROM users "
 											   "	WHERE id = deviceUserId(?) "
-											   ") <= ?"));
+											   ") = ?"));
 		updateCmacQuery.addBindValue(cmac);
 		updateCmacQuery.addBindValue(deviceId);
 		updateCmacQuery.addBindValue(deviceId);
@@ -200,7 +200,7 @@ bool DatabaseController::updateCmac(const QUuid &deviceId, quint32 keyIndex, con
 			Query removeChangesQuery(db);
 			removeChangesQuery.prepare(QStringLiteral("DELETE FROM keychanges "
 													  "WHERE deviceid = ? "
-													  "AND keyindex <= ?"));
+													  "AND keyindex = ?"));
 			removeChangesQuery.addBindValue(deviceId);
 			removeChangesQuery.addBindValue(keyIndex);
 			removeChangesQuery.exec();
@@ -518,7 +518,7 @@ QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController:
 	}
 }
 
-bool DatabaseController::updateExchageKey(const QUuid &deviceId, quint32 keyIndex, const QByteArray &scheme, const QByteArray &cmac, const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys)
+bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyIndex, const QByteArray &scheme, const QByteArray &cmac, const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())

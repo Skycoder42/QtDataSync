@@ -581,7 +581,7 @@ void Client::onNewKey(const NewKeyMessage &message, QDataStream &stream)
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}
 
-	auto ok = _database->updateExchageKey(_deviceId,
+	auto ok = _database->updateExchangeKey(_deviceId,
 										  message.keyIndex,
 										  message.scheme,
 										  message.cmac,

@@ -43,7 +43,14 @@ private Q_SLOTS:
 	void testInvalidLoginDevId();
 	void testLogin();
 
-	void testAddDeviceUntrusted();
+	void testAddDevice();
+	void testInvalidAccessNonce();
+	void testInvalidAccessSignature();
+	void testDenyAddDevice();
+	void testOfflineAddDevice();
+	void testInvalidAcceptSignature();
+	void testAddDeviceInvalidKeyIndex();
+	void testSendDoubleAccept();
 
 	void testStop();
 
@@ -392,17 +399,18 @@ void TestAppServer::testLogin()
 	}
 }
 
-void TestAppServer::testAddDeviceUntrusted()
+void TestAppServer::testAddDevice()
 {
 	QByteArray pNonce = "partner_nonce";
 	QByteArray macscheme = "macscheme";
 	QByteArray cmac = "cmac";
 	QByteArray trustmac = "trustmac";
-	quint32 keyIndex = 0;//TODO test what happens if 5 is send -> should fail?
+	quint32 keyIndex = 0;
 	QByteArray keyScheme = "keyScheme";
 	QByteArray keySecret = "keySecret";
 
 	try {
+		QVERIFY(client);
 		//establish connection
 		partner = new MockClient(this);
 		QVERIFY(partner->waitForConnected());
@@ -467,7 +475,7 @@ void TestAppServer::testAddDeviceUntrusted()
 
 		//send mac update
 		partner->send(MacUpdateMessage {
-						  keyIndex, //TODO test what happens if different
+						  keyIndex,
 						  partnerDevId.toByteArray() //dummy cmac
 					  });
 
@@ -477,6 +485,419 @@ void TestAppServer::testAddDeviceUntrusted()
 			ok = true;
 		}));
 
+		//keep partner
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testInvalidAccessNonce()
+{
+	try {
+		QVERIFY(client);
+
+		MockClient *partner = nullptr;
+		//use crypto and name from real partner
+
+		//establish connection
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			ok = true;
+		}));
+
+		//Send access message
+		partner->sendSigned(AccessMessage {
+								partnerName,
+								"not the original nonce, but still long enough to be considered one",
+								partnerCrypto->signKey(),
+								partnerCrypto->cryptKey(),
+								partnerCrypto,
+								"pNonce",
+								devId,
+								"macscheme",
+								"cmac",
+								"trustmac"
+							}, partnerCrypto);
+
+		QVERIFY(partner->waitForError(ErrorMessage::ClientError));
+		clean(partner);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testInvalidAccessSignature()
+{
+	try {
+		QVERIFY(client);
+
+		MockClient *partner = nullptr;
+		//use crypto and name from real partner
+
+		//establish connection
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//Send access message
+		QByteArray sData = AccessMessage {
+			partnerName,
+			mNonce,
+			partnerCrypto->signKey(),
+			partnerCrypto->cryptKey(),
+			partnerCrypto,
+			"pNonce",
+			devId,
+			"macscheme",
+			"cmac",
+			"trustmac"
+		}.serializeSigned(partnerCrypto->privateSignKey(), partnerCrypto->rng(), partnerCrypto);
+		sData[sData.size() - 1] = sData[sData.size() - 1] + 'x';
+		partner->sendBytes(sData); //message + fake signature
+
+		QVERIFY(partner->waitForError(ErrorMessage::AuthenticationError));
+		clean(partner);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testDenyAddDevice()
+{
+	QByteArray pNonce = "partner_nonce";
+	QByteArray macscheme = "macscheme";
+	QByteArray cmac = "cmac";
+	QByteArray trustmac = "trustmac";
+
+	try {
+		QVERIFY(client);
+
+		MockClient *partner = nullptr;
+		QUuid partnerDevId;
+		//use crypto and name from real partner
+
+		//establish connection
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//Send access message
+		partner->sendSigned(AccessMessage {
+								partnerName,
+								mNonce,
+								partnerCrypto->signKey(),
+								partnerCrypto->cryptKey(),
+								partnerCrypto,
+								pNonce,
+								devId,
+								macscheme,
+								cmac,
+								trustmac
+							}, partnerCrypto);
+
+		//wait for proof message on client
+		QVERIFY(client->waitForReply<ProofMessage>([&](ProofMessage message, bool &ok) {
+			QCOMPARE(message.pNonce, pNonce);
+			QVERIFY(!message.deviceId.isNull());
+			partnerDevId = message.deviceId;
+			QCOMPARE(message.deviceName, partnerName);
+			QCOMPARE(message.macscheme, macscheme);
+			QCOMPARE(message.cmac, cmac);
+			QCOMPARE(message.trustmac, trustmac);
+			AsymmetricCryptoInfo cInfo {crypto->rng(),
+				message.signAlgorithm,
+				message.signKey,
+				message.cryptAlgorithm,
+				message.cryptKey
+			};
+			QCOMPARE(cInfo.ownFingerprint(), partnerCrypto->ownFingerprint());
+			ok = true;
+		}));
+
+		//accept the proof
+		client->send(DenyMessage { partnerDevId });
+
+		QVERIFY(partner->waitForError(ErrorMessage::AccessError));
+		clean(partner);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testOfflineAddDevice()
+{
+	try {
+		QVERIFY(client);
+		clean(client);
+
+		MockClient *partner = nullptr;
+		//use crypto and name from real partner
+
+		//establish connection
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//Send access message for offline device
+		partner->sendSigned(AccessMessage {
+								partnerName,
+								mNonce,
+								partnerCrypto->signKey(),
+								partnerCrypto->cryptKey(),
+								partnerCrypto,
+								"pNonce",
+								devId,
+								"macscheme",
+								"cmac",
+								"trustmac"
+							}, partnerCrypto);
+
+		QVERIFY(partner->waitForError(ErrorMessage::AccessError));
+		clean(partner);
+
+		//reconnect main device
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testInvalidAcceptSignature()
+{
+	try {
+		QVERIFY(client);
+
+		//invalid accept
+		AcceptMessage accMsg { QUuid::createUuid() };
+		accMsg.index = 42;
+		accMsg.scheme = "keyScheme";
+		accMsg.secret = "keySecret";
+		auto sData = accMsg.serializeSigned(crypto->privateSignKey(), crypto->rng(), crypto);
+		sData[sData.size() - 1] = sData[sData.size() - 1] + 'x';
+		client->sendBytes(sData); //message + fake signature
+
+		QVERIFY(client->waitForError(ErrorMessage::AuthenticationError));
+		clean(client);
+
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testAddDeviceInvalidKeyIndex()
+{
+	QByteArray pNonce = "partner_nonce";
+	QByteArray macscheme = "macscheme";
+	QByteArray cmac = "cmac";
+	QByteArray trustmac = "trustmac";
+	quint32 keyIndex = 5; //fake key index
+	QByteArray keyScheme = "keyScheme";
+	QByteArray keySecret = "keySecret";
+
+	try {
+		QVERIFY(client);
+		MockClient *partner = nullptr;
+		QUuid partnerDevId;
+
+		//establish connection
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//Send access message
+		partner->sendSigned(AccessMessage {
+								partnerName,
+								mNonce,
+								partnerCrypto->signKey(),
+								partnerCrypto->cryptKey(),
+								partnerCrypto,
+								pNonce,
+								devId,
+								macscheme,
+								cmac,
+								trustmac
+							}, partnerCrypto);
+
+		//wait for proof message on client
+		QVERIFY(client->waitForReply<ProofMessage>([&](ProofMessage message, bool &ok) {
+			QCOMPARE(message.pNonce, pNonce);
+			QVERIFY(!message.deviceId.isNull());
+			partnerDevId = message.deviceId;
+			QCOMPARE(message.deviceName, partnerName);
+			QCOMPARE(message.macscheme, macscheme);
+			QCOMPARE(message.cmac, cmac);
+			QCOMPARE(message.trustmac, trustmac);
+			AsymmetricCryptoInfo cInfo {crypto->rng(),
+				message.signAlgorithm,
+				message.signKey,
+				message.cryptAlgorithm,
+				message.cryptKey
+			};
+			QCOMPARE(cInfo.ownFingerprint(), partnerCrypto->ownFingerprint());
+			ok = true;
+		}));
+
+		//accept the proof
+		AcceptMessage accMsg { partnerDevId };
+		accMsg.index = keyIndex;
+		accMsg.scheme = keyScheme;
+		accMsg.secret = keySecret;
+		client->sendSigned(accMsg, crypto);
+
+		//wait for granted
+		QVERIFY(partner->waitForReply<GrantMessage>([&](GrantMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			QCOMPARE(message.index, keyIndex);
+			QCOMPARE(message.scheme, keyScheme);
+			QCOMPARE(message.secret, keySecret);
+			ok = true;
+		}));
+
+		//send mac update
+		partner->send(MacUpdateMessage {
+						  keyIndex,
+						  partnerDevId.toByteArray() //dummy cmac
+					  });
+
+		QVERIFY(partner->waitForError(ErrorMessage::KeyIndexError));
+		clean(partner);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testSendDoubleAccept()
+{
+	QByteArray pNonce = "partner_nonce";
+	QByteArray macscheme = "macscheme";
+	QByteArray cmac = "cmac";
+	QByteArray trustmac = "trustmac";
+	quint32 keyIndex = 0;
+	QByteArray keyScheme = "keyScheme";
+	QByteArray keySecret = "keySecret";
+
+	try {
+		QVERIFY(client);
+		MockClient *partner = nullptr;
+		QUuid partnerDevId;
+
+		//establish connection
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//Send access message
+		partner->sendSigned(AccessMessage {
+								partnerName,
+								mNonce,
+								partnerCrypto->signKey(),
+								partnerCrypto->cryptKey(),
+								partnerCrypto,
+								pNonce,
+								devId,
+								macscheme,
+								cmac,
+								trustmac
+							}, partnerCrypto);
+
+		//wait for proof message on client
+		QVERIFY(client->waitForReply<ProofMessage>([&](ProofMessage message, bool &ok) {
+			QCOMPARE(message.pNonce, pNonce);
+			QVERIFY(!message.deviceId.isNull());
+			partnerDevId = message.deviceId;
+			QCOMPARE(message.deviceName, partnerName);
+			QCOMPARE(message.macscheme, macscheme);
+			QCOMPARE(message.cmac, cmac);
+			QCOMPARE(message.trustmac, trustmac);
+			AsymmetricCryptoInfo cInfo {crypto->rng(),
+				message.signAlgorithm,
+				message.signKey,
+				message.cryptAlgorithm,
+				message.cryptKey
+			};
+			QCOMPARE(cInfo.ownFingerprint(), partnerCrypto->ownFingerprint());
+			ok = true;
+		}));
+
+		//accept the proof
+		AcceptMessage accMsg { partnerDevId };
+		accMsg.index = keyIndex;
+		accMsg.scheme = keyScheme;
+		accMsg.secret = keySecret;
+		client->sendSigned(accMsg, crypto);
+
+		//wait for granted
+		QVERIFY(partner->waitForReply<GrantMessage>([&](GrantMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			QCOMPARE(message.index, keyIndex);
+			QCOMPARE(message.scheme, keyScheme);
+			QCOMPARE(message.secret, keySecret);
+			ok = true;
+		}));
+
+		//send mac update
+		partner->send(MacUpdateMessage {
+						  keyIndex,
+						  partnerDevId.toByteArray() //dummy cmac
+					  });
+
+		//wait for mac ack
+		QVERIFY(partner->waitForReply<MacUpdateAckMessage>([&](MacUpdateAckMessage message, bool &ok) {
+			Q_UNUSED(message);
+			ok = true;
+		}));
+
+		//send another proof accept
+		client->sendSigned(accMsg, crypto);
+		QVERIFY(partner->waitForNothing());
+
+		//clean partner
 		clean(partner);
 	} catch(std::exception &e) {
 		QFAIL(e.what());

@@ -87,10 +87,10 @@ public:
 	void completeChange(const QUuid &deviceId, quint64 dataIndex);
 
 	QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset); //(deviceid, scheme, key, cmac)
-	bool updateExchageKey(const QUuid &deviceId,
-						  quint32 keyIndex,
-						  const QByteArray &scheme, const QByteArray &cmac,
-						  const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys);// (deviceId, key, cmac)
+	bool updateExchangeKey(const QUuid &deviceId,
+						   quint32 keyIndex,
+						   const QByteArray &scheme, const QByteArray &cmac,
+						   const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys);// (deviceId, key, cmac)
 	std::tuple<quint32, QByteArray, QByteArray, QByteArray> loadKeyChanges(const QUuid &deviceId);// (keyIndex, scheme, key, cmac)
 
 Q_SIGNALS:
