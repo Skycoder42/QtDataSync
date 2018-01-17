@@ -1,20 +1,22 @@
 #ifndef USEREXCHANGEMANAGER_P_H
 #define USEREXCHANGEMANAGER_P_H
 
-#include <QtNetwork/qudpsocket.h>
+#include <QtCore/QTimer>
+
+#include <QtNetwork/QUdpSocket>
+#include <QtNetwork/QNetworkDatagram>
 
 #include "qtdatasync_global.h"
 #include "userexchangemanager.h"
 #include "accountmanager.h"
+#include "logger.h"
 
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT UserInfoPrivate : public QSharedData
 {
 public:
-	UserInfoPrivate(const QString &name = {},
-					const QHostAddress &address = {},
-					const quint16 port = 0);
+	UserInfoPrivate(const QString &name = {}, const QNetworkDatagram &datagram = {});
 	UserInfoPrivate(const UserInfoPrivate &other);
 
 	QString name;
@@ -25,10 +27,20 @@ public:
 class Q_DATASYNC_EXPORT UserExchangeManagerPrivate
 {
 public:
+	enum DatagramType {
+		DeviceInfo,
+		DeviceDataUntrusted,
+		DeviceDataTrusted
+	};
+
+	UserExchangeManagerPrivate(AccountManager *manager, UserExchangeManager *q_ptr);
+
 	AccountManager *manager;
 	QUdpSocket *socket;
+	QTimer *timer;
 
-	QList<UserInfo> users;
+	QHash<UserInfo, quint8> devices;
+	QHash<UserInfo, QByteArray> exchangeData;
 };
 
 }

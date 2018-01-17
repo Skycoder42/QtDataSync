@@ -1,6 +1,14 @@
 #include "userexchangemanager.h"
 #include "userexchangemanager_p.h"
+#include "message_p.h"
+
 using namespace QtDataSync;
+
+#if QT_HAS_INCLUDE(<chrono>)
+#define scdtime(x) x
+#else
+#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#endif
 
 const quint16 UserExchangeManager::DataExchangePort(13742);
 
@@ -16,8 +24,20 @@ UserExchangeManager::UserExchangeManager(const QString &setupName, QObject *pare
 
 UserExchangeManager::UserExchangeManager(AccountManager *manager, QObject *parent) :
 	QObject(parent),
-	d(new UserExchangeManagerPrivate())
-{}
+	d(new UserExchangeManagerPrivate(manager, this))
+{
+	d->timer->setInterval(scdtime(std::chrono::seconds(2)));
+	d->timer->setTimerType(Qt::VeryCoarseTimer);
+	connect(d->timer, &QTimer::timeout,
+			this, &UserExchangeManager::timeout);
+
+	connect(d->socket, &QUdpSocket::readyRead,
+			this, &UserExchangeManager::readDatagram);
+	connect(d->socket, QOverload<QAbstractSocket::SocketError>::of(&QUdpSocket::error),
+			this, [this]() {
+		emit exchangeError(d->socket->errorString());
+	});
+}
 
 UserExchangeManager::~UserExchangeManager() {}
 
@@ -36,20 +56,17 @@ bool UserExchangeManager::isActive() const
 	return d->socket->state() == QAbstractSocket::BoundState;
 }
 
-QList<UserInfo> UserExchangeManager::users() const
+QList<UserInfo> UserExchangeManager::devices() const
 {
-	return d->users;
-}
-
-QString UserExchangeManager::lastError() const
-{
-	return d->socket->errorString();
+	return d->devices.keys();
 }
 
 bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint16 port, bool allowReuseAddress)
 {
-	d->users.clear();
-	emit usersChanged(d->users);
+	d->devices.clear();
+	d->exchangeData.clear();
+	d->timer->stop();
+	emit devicesChanged(d->devices.keys());
 
 	if(d->socket->isOpen())
 		d->socket->close();
@@ -62,34 +79,188 @@ bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint
 		return false;
 	}
 
+	d->timer->start();
 	emit activeChanged(true);
 	return true;
 }
 
 void UserExchangeManager::stopExchange()
 {
+	d->timer->stop();
+
 	if(d->socket->isOpen())
 		d->socket->close();
 	emit activeChanged(false);
 
-	d->users.clear();
-	emit usersChanged(d->users);
+	d->devices.clear();
+	d->exchangeData.clear();
+	emit devicesChanged(d->devices.keys());
 }
 
-void UserExchangeManager::exportTo(const UserInfo &userInfo)
+void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 {
+	QPointer<UserExchangeManager> thisPtr(this);
+	d->manager->exportAccount(includeServer, [thisPtr, this, userInfo](QByteArray exportData) {
+		if(!thisPtr)
+			return;
 
+		QByteArray datagram;
+		QDataStream stream(&datagram, QIODevice::WriteOnly | QIODevice::Unbuffered);
+		Message::setupStream(stream);
+		stream << static_cast<qint32>(UserExchangeManagerPrivate::DeviceDataUntrusted)
+			   << exportData;
+
+		d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
+	}, [thisPtr, this](QString error) {
+		if(!thisPtr)
+			return;
+
+		emit exchangeError(error);
+	});
 }
 
-void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, const QString &password)
+void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, bool includeServer, const QString &password)
 {
+	QPointer<UserExchangeManager> thisPtr(this);
+	d->manager->exportAccountTrusted(includeServer, password, [thisPtr, this, userInfo](QByteArray exportData) {
+		if(!thisPtr)
+			return;
 
+		QByteArray datagram;
+		QDataStream stream(&datagram, QIODevice::WriteOnly | QIODevice::Unbuffered);
+		Message::setupStream(stream);
+		stream << static_cast<qint32>(UserExchangeManagerPrivate::DeviceDataTrusted)
+			   << exportData;
+
+		d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
+	}, [thisPtr, this](QString error) {
+		if(!thisPtr)
+			return;
+
+		emit exchangeError(error);
+	});
 }
 
-void UserExchangeManager::importFrom(const UserInfo &userInfo, const QString &password)
+void UserExchangeManager::importFrom(const UserInfo &userInfo, const std::function<void(bool,QString)> &completedFn, bool keepData)
 {
-
+	auto data = d->exchangeData.take(userInfo);
+	if(data.isNull())
+		emit exchangeError(tr("No exchange data received from passed user"));//TODO is the rest translated too? (manager)
+	else
+		d->manager->importAccount(data, completedFn, keepData);
 }
+
+void UserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QString &password, const std::function<void(bool,QString)> &completedFn, bool keepData)
+{
+	auto data = d->exchangeData.take(userInfo);
+	if(data.isNull())
+		emit exchangeError(tr("No exchange data received from passed user"));//TODO is the rest translated too? (manager)
+	else
+		d->manager->importAccountTrusted(data, password, completedFn, keepData);
+}
+
+void UserExchangeManager::timeout()
+{
+	for(auto it = d->devices.begin(); it != d->devices.end();) {
+		if(*it >= 5) {
+			d->exchangeData.remove(it.key());
+			it = d->devices.erase(it);
+		} else {
+			(*it)++;
+			it++;
+		}
+	}
+
+	QByteArray datagram;
+	QDataStream stream(&datagram, QIODevice::WriteOnly | QIODevice::Unbuffered);
+	Message::setupStream(stream);
+	stream << static_cast<qint32>(UserExchangeManagerPrivate::DeviceInfo)
+		   << d->manager->deviceName();
+}
+
+void UserExchangeManager::readDatagram()
+{
+	while(d->socket->hasPendingDatagrams()) {
+		auto datagram = d->socket->receiveDatagram();
+
+		QDataStream stream(datagram.data());
+		Message::setupStream(stream);
+		qint32 type;
+		stream.startTransaction();
+		stream >> type;
+
+		auto isInfo = true;
+		QString name;
+		auto trusted = false;
+		QByteArray data;
+		switch (type) {
+		case UserExchangeManagerPrivate::DeviceInfo:
+			isInfo = true;
+			stream >> name;
+			break;
+		case UserExchangeManagerPrivate::DeviceDataUntrusted:
+			isInfo = false;
+			trusted = false;
+			stream >> data;
+			break;
+		case UserExchangeManagerPrivate::DeviceDataTrusted:
+			isInfo = false;
+			trusted = true;
+			stream >> data;
+			break;
+		default:
+			qWarning() << "UserExchangeManager: Skipped invalid message from"
+					   << UserInfo(new UserInfoPrivate(name, datagram));
+			continue; //jump to next loop iteration
+		}
+
+		if(stream.commitTransaction()) {
+			if(name.isEmpty())
+				name = tr("<Unnamed>");
+			UserInfo info(new UserInfoPrivate(name, datagram));
+
+			//try to find the already existing user info for that data
+			bool found = false;
+			foreach(auto key, d->devices.keys()) {
+				if(info == key) {
+					found = true;
+					if(isInfo) { //isInfo -> reset timeout, update name if neccessary
+						d->devices.insert(info, 0);
+						if(info.name() != key.name())
+							emit devicesChanged(d->devices.keys());
+					} else //!isInfo -> get the entry name
+						info = key;
+					break;
+				}
+			}
+
+			if(isInfo) {
+				if(!found) {//if not found -> simpy add to list
+					d->devices.insert(info, 0);
+					emit devicesChanged(d->devices.keys());
+				}
+			} else { //data -> store it and emit
+				d->exchangeData.insert(info, data);
+				emit userDataReceived(info, trusted);
+			}
+		} else {
+			emit exchangeError(tr("Invalid data received from %1:%2")
+							   .arg(datagram.senderAddress().toString())
+							   .arg(datagram.senderPort()));
+		}
+	}
+}
+
+
+
+UserExchangeManagerPrivate::UserExchangeManagerPrivate(AccountManager *manager, UserExchangeManager *q_ptr) :
+	manager(manager),
+	socket(new QUdpSocket(q_ptr)),
+	timer(new QTimer(q_ptr)),
+	devices(),
+	exchangeData()
+{}
+
 
 // ------------- UserInfo Implementation -------------
 
@@ -154,11 +325,11 @@ QDebug QtDataSync::operator<<(QDebug stream, const UserInfo &userInfo)
 
 
 
-UserInfoPrivate::UserInfoPrivate(const QString &name, const QHostAddress &address, const quint16 port) :
+UserInfoPrivate::UserInfoPrivate(const QString &name, const QNetworkDatagram &datagram) :
 	QSharedData(),
 	name(name),
-	address(address),
-	port(port)
+	address(datagram.senderAddress()),
+	port(static_cast<quint16>(datagram.senderPort()))
 {}
 
 UserInfoPrivate::UserInfoPrivate(const UserInfoPrivate &other) :

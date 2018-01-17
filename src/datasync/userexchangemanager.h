@@ -61,7 +61,7 @@ class Q_DATASYNC_EXPORT UserExchangeManager : public QObject
 	//! Reports whether the instance is currently exchanging or not
 	Q_PROPERTY(bool active READ isActive NOTIFY activeChanged)
 	//! Holds all currently discovered users
-	Q_PROPERTY(QList<QtDataSync::UserInfo> users READ users NOTIFY usersChanged)
+	Q_PROPERTY(QList<QtDataSync::UserInfo> devices READ devices NOTIFY devicesChanged)
 
 public:
 	//! The default port (13742) for the data exchange
@@ -79,10 +79,7 @@ public:
 	//! @readAcFn{UserInfo::active}
 	bool isActive() const;
 	//! @readAcFn{UserInfo::users}
-	QList<UserInfo> users() const;
-
-	//! Returns the last socket error
-	QString lastError() const;//TODO signal?
+	QList<UserInfo> devices() const;
 
 public Q_SLOTS:
 	//! Start the exchange discovery on the specified port
@@ -95,19 +92,30 @@ public Q_SLOTS:
 	void stopExchange();
 
 	//! Sends the user identity of the setup to the given user
-	void exportTo(const QtDataSync::UserInfo &userInfo);
-	void exportTrustedTo(const QtDataSync::UserInfo &userInfo, const QString &password);
+	void exportTo(const QtDataSync::UserInfo &userInfo, bool includeServer);
+	void exportTrustedTo(const QtDataSync::UserInfo &userInfo, bool includeServer, const QString &password);
 	//! Imports the user identity, previously received by the given user
-	void importFrom(const QtDataSync::UserInfo &userInfo, const QString &password = {});
+	void importFrom(const QtDataSync::UserInfo &userInfo,
+					const std::function<void(bool,QString)> &completedFn,
+					bool keepData = false);
+	void importTrustedFrom(const QtDataSync::UserInfo &userInfo,
+						   const QString &password,
+						   const std::function<void(bool,QString)> &completedFn,
+						   bool keepData = false);
 
 Q_SIGNALS:
 	//! Is emitted, when a user identity was received from the given user
 	void userDataReceived(const QtDataSync::UserInfo &userInfo, bool trusted);
+	void exchangeError(const QString &errorString);
 
 	//! @notifyAcFn{UserInfo::active}
 	void activeChanged(bool active);
 	//! @notifyAcFn{UserInfo::users}
-	void usersChanged(QList<QtDataSync::UserInfo> users);
+	void devicesChanged(QList<QtDataSync::UserInfo> devices);
+
+private Q_SLOTS:
+	void timeout();
+	void readDatagram();
 
 private:
 	QScopedPointer<UserExchangeManagerPrivate> d;
