@@ -2,6 +2,8 @@
 #include "userexchangemanager_p.h"
 #include "message_p.h"
 
+#include <QtCore/QPointer>
+
 using namespace QtDataSync;
 
 #if QT_HAS_INCLUDE(<chrono>)
