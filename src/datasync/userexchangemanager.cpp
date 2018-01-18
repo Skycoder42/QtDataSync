@@ -147,7 +147,7 @@ void UserExchangeManager::importFrom(const UserInfo &userInfo, const std::functi
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())
-		emit exchangeError(tr("No exchange data received from passed user"));//TODO is the rest translated too? (manager)
+		emit exchangeError(tr("No exchange data received from passed user"));
 	else
 		d->manager->importAccount(data, completedFn, keepData);
 }
@@ -156,7 +156,7 @@ void UserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QStr
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())
-		emit exchangeError(tr("No exchange data received from passed user"));//TODO is the rest translated too? (manager)
+		emit exchangeError(tr("No exchange data received from passed user"));
 	else
 		d->manager->importAccountTrusted(data, password, completedFn, keepData);
 }

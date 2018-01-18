@@ -103,7 +103,7 @@ void TestRemoteConnector::initTestCase()
 	remote = nullptr;
 	connection = nullptr;
 	partner = nullptr;
-	partnerConnection = nullptr;//TODO cleanup
+	partnerConnection = nullptr;
 
 	try {
 		TestLib::init();
@@ -699,7 +699,6 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 		//send macack
 		partnerConnection->send(MacUpdateAckMessage());
 		//cannot really check if received... but simple enough to assume worked
-		//TODO test mac resending
 
 		QVERIFY(errorSpy.isEmpty());
 		QVERIFY(partnerErrorSpy.isEmpty());
@@ -802,7 +801,6 @@ void TestRemoteConnector::testAddDeviceTrusted()
 		//send macack
 		partnerCon->send(MacUpdateAckMessage());
 		//cannot really check if received... but simple enough to assume worked
-		//TODO test mac resending
 
 		QVERIFY(errorSpy.isEmpty());
 		QVERIFY(partnerErrorSpy.isEmpty());

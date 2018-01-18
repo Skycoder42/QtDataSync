@@ -629,28 +629,32 @@ std::tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::load
 void DatabaseController::dbInitDone(bool success)
 {
 	if(success) { //done on the main thread to make sure the connection does not die with threads
-		//TODO make subscribe optional via config
-		auto driver = _threadStore.localData().database().driver();
-		connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
-				this, &DatabaseController::onNotify);
-		if(!driver->subscribeToNotification(QStringLiteral("deviceDataEvent"))) {
-			qCritical() << "Unabled to notify to change events. Devices will not receive updates!";
-			success = false;
-		} else {
-			qDebug() << "Event subscription active";
-
-			auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
-			if(delay > 0) {
-				_keepAliveTimer = new QTimer(this);
-				_keepAliveTimer->setInterval(scdtime(std::chrono::minutes(delay)));
-				_keepAliveTimer->setTimerType(Qt::VeryCoarseTimer);
-				connect(_keepAliveTimer, &QTimer::timeout,
-						this, &DatabaseController::timeout);
-				_keepAliveTimer->start();
-				qDebug() << "Keepalives started";
+		auto liveSync = qApp->configuration()->value(QStringLiteral("livesync"), true).toBool();
+		if(liveSync) {
+			auto driver = _threadStore.localData().database().driver();
+			connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
+					this, &DatabaseController::onNotify);
+			if(!driver->subscribeToNotification(QStringLiteral("deviceDataEvent"))) {
+				qCritical() << "Unabled to notify to change events. Devices will not receive updates!";
+				success = false;
 			} else
-				qDebug() << "Running without keepalives";
-		}
+				qDebug() << "Event subscription active";
+		} else
+			qDebug() << "Running without live sync";
+	}
+
+	if(success) {
+		auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
+		if(delay > 0) {
+			_keepAliveTimer = new QTimer(this);
+			_keepAliveTimer->setInterval(scdtime(std::chrono::minutes(delay)));
+			_keepAliveTimer->setTimerType(Qt::VeryCoarseTimer);
+			connect(_keepAliveTimer, &QTimer::timeout,
+					this, &DatabaseController::timeout);
+			_keepAliveTimer->start();
+			qDebug() << "Keepalives started";
+		} else
+			qDebug() << "Running without keepalives";
 	}
 	emit databaseInitDone(success);
 }

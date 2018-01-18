@@ -91,11 +91,11 @@ void RemoteConnector::initialize(const QVariantHash &params)
 								  this, ConnectorStateMachine::onExit(this, &RemoteConnector::onExitActiveState));
 	_stateMachine->connectToEvent(QStringLiteral("doDisconnect"),
 								  this, &RemoteConnector::doDisconnect);
-//TODO #ifndef QT_NO_DEBUG
+#ifndef QT_NO_DEBUG
 	connect(_stateMachine, &ConnectorStateMachine::reachedStableState, this, [this](){
 		logDebug() << "Reached stable states:" << _stateMachine->activeStateNames(false);
 	});
-//#endif
+#endif
 	if(!_stateMachine->init())
 		throw Exception(defaults(), QStringLiteral("Failed to initialize RemoteConnector statemachine"));
 
