@@ -26,7 +26,6 @@ private Q_SLOTS:
 	void testChanges();
 
 	void testDeviceChanges();
-	//TODO test progress
 
 	//last test, to avoid problems
 	void testChangeTriggers();
@@ -119,6 +118,8 @@ void TestChangeController::testChanges()
 	QCoreApplication::processEvents();
 	QSignalSpy activeSpy(controller, &ChangeController::uploadingChanged);
 	QSignalSpy changeSpy(controller, &ChangeController::uploadChange);
+	QSignalSpy addedSpy(controller, &ChangeController::progressAdded);
+	QSignalSpy incrementSpy(controller, &ChangeController::progressIncrement);
 	QSignalSpy errorSpy(controller, &ChangeController::controllerError);
 
 	try {
@@ -142,6 +143,8 @@ void TestChangeController::testChanges()
 
 		QCOMPARE(changeSpy.size(), 1);
 		QVERIFY(activeSpy.last()[0].toBool());
+		QCOMPARE(addedSpy.size(), 1);
+		QCOMPARE(addedSpy.takeFirst()[0].toUInt(), 1u);
 		auto change = changeSpy.takeFirst();
 		auto keyHash = change[0].toByteArray();
 		auto syncData = SyncHelper::extract(change[1].toByteArray());
@@ -153,7 +156,9 @@ void TestChangeController::testChanges()
 		if(complete) {
 			controller->uploadDone(keyHash);
 			QCOMPARE(store->changeCount(), 0u);
-		}
+			QCOMPARE(incrementSpy.size(), 1);
+		} else
+			QVERIFY(incrementSpy.isEmpty());
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -168,6 +173,8 @@ void TestChangeController::testDeviceChanges()
 	QSignalSpy activeSpy(controller, &ChangeController::uploadingChanged);
 	QSignalSpy changeSpy(controller, &ChangeController::uploadChange);
 	QSignalSpy deviceChangeSpy(controller, &ChangeController::uploadDeviceChange);
+	QSignalSpy addedSpy(controller, &ChangeController::progressAdded);
+	QSignalSpy incrementSpy(controller, &ChangeController::progressIncrement);
 	QSignalSpy errorSpy(controller, &ChangeController::controllerError);
 
 	try {
@@ -192,6 +199,8 @@ void TestChangeController::testDeviceChanges()
 
 		QCOMPARE(changeSpy.size(), 2);
 		QCOMPARE(deviceChangeSpy.size(), 3);
+		QCOMPARE(addedSpy.size(), 1);
+		QCOMPARE(addedSpy.takeFirst()[0].toUInt(), 5u);
 		QVERIFY(activeSpy.last()[0].toBool());
 		QCOMPARE(store->changeCount(), 5u);
 
@@ -201,6 +210,7 @@ void TestChangeController::testDeviceChanges()
 		QCOMPARE(changeSpy.size(), 1);
 		QCOMPARE(deviceChangeSpy.size(), 3);
 		QCOMPARE(store->changeCount(), 4u);
+		QCOMPARE(incrementSpy.size(), 1);
 
 		change = changeSpy.takeFirst();
 		keyHash = change[0].toByteArray();
@@ -208,6 +218,7 @@ void TestChangeController::testDeviceChanges()
 		QCOMPARE(changeSpy.size(), 0);
 		QCOMPARE(deviceChangeSpy.size(), 3);
 		QCOMPARE(store->changeCount(), 3u);
+		QCOMPARE(incrementSpy.size(), 2);
 
 		change = deviceChangeSpy.takeFirst();
 		keyHash = change[0].toByteArray();
@@ -215,6 +226,7 @@ void TestChangeController::testDeviceChanges()
 		QCOMPARE(changeSpy.size(), 0);
 		QCOMPARE(deviceChangeSpy.size(), 2);
 		QCOMPARE(store->changeCount(), 2u);
+		QCOMPARE(incrementSpy.size(), 3);
 
 		change = deviceChangeSpy.takeFirst();
 		keyHash = change[0].toByteArray();
@@ -222,6 +234,7 @@ void TestChangeController::testDeviceChanges()
 		QCOMPARE(changeSpy.size(), 0);
 		QCOMPARE(deviceChangeSpy.size(), 1);
 		QCOMPARE(store->changeCount(), 1u);
+		QCOMPARE(incrementSpy.size(), 4);
 
 		change = deviceChangeSpy.takeFirst();
 		keyHash = change[0].toByteArray();
@@ -229,6 +242,7 @@ void TestChangeController::testDeviceChanges()
 		QCOMPARE(changeSpy.size(), 0);
 		QCOMPARE(deviceChangeSpy.size(), 0);
 		QCOMPARE(store->changeCount(), 0u);
+		QCOMPARE(incrementSpy.size(), 5);
 
 		QVERIFY(!deviceChangeSpy.wait());
 		QVERIFY(changeSpy.isEmpty());
@@ -259,6 +273,8 @@ void TestChangeController::testChangeTriggers()
 
 	QSignalSpy activeSpy(controller, &ChangeController::uploadingChanged);
 	QSignalSpy changeSpy(controller, &ChangeController::uploadChange);
+	QSignalSpy addedSpy(controller, &ChangeController::progressAdded);
+	QSignalSpy incrementSpy(controller, &ChangeController::progressIncrement);
 	QSignalSpy errorSpy(controller, &ChangeController::controllerError);
 
 	try {
@@ -274,6 +290,8 @@ void TestChangeController::testChangeTriggers()
 		store->save(key, data);
 		QVERIFY(changeSpy.wait());
 		QVERIFY(activeSpy.last()[0].toBool());
+		QCOMPARE(addedSpy.size(), 1);
+		QCOMPARE(addedSpy.takeFirst()[0].toUInt(), 1u);
 
 		if(!errorSpy.isEmpty())
 			QFAIL(errorSpy.takeFirst()[0].toString().toUtf8().constData());
@@ -287,12 +305,15 @@ void TestChangeController::testChangeTriggers()
 		QVERIFY(activeSpy.wait());
 		QVERIFY(!activeSpy.last()[0].toBool());
 		QVERIFY(changeSpy.isEmpty());
+		QCOMPARE(incrementSpy.size(), 1);
 		QVERIFY(errorSpy.isEmpty());
 
 		//now a delete
 		store->remove(key);
 		QVERIFY(changeSpy.wait());
 		QVERIFY(activeSpy.last()[0].toBool());
+		QCOMPARE(addedSpy.size(), 1);
+		QCOMPARE(addedSpy.takeFirst()[0].toUInt(), 1u);
 
 		if(!errorSpy.isEmpty())
 			QFAIL(errorSpy.takeFirst()[0].toString().toUtf8().constData());
@@ -307,6 +328,7 @@ void TestChangeController::testChangeTriggers()
 		QVERIFY(!activeSpy.last()[0].toBool());
 		QVERIFY(changeSpy.isEmpty());
 		QVERIFY(errorSpy.isEmpty());
+		QCOMPARE(incrementSpy.size(), 2);
 
 		engine->_changeController = old;
 	} catch(QException &e) {
