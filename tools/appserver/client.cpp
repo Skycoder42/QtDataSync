@@ -486,6 +486,8 @@ void Client::onDeviceChange(const DeviceChangeMessage &message)
 
 void Client::onChangedAck(const ChangedAckMessage &message)
 {
+	checkIdle(message);
+
 	_database->completeChange(_deviceId, message.dataIndex);
 	_activeDownloads.removeOne(message.dataIndex);
 	//trigger next download. method itself decides when and how etc.

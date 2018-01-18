@@ -28,8 +28,12 @@
 #include <QtDataSync/private/keychangemessage_p.h>
 #include <QtDataSync/private/devicekeysmessage_p.h>
 #include <QtDataSync/private/newkeymessage_p.h>
+#include <QtDataSync/private/devicesmessage_p.h>
+#include <QtDataSync/private/removemessage_p.h>
 
 using namespace QtDataSync;
+
+Q_DECLARE_METATYPE(QSharedPointer<Message>)
 
 class TestAppServer : public QObject
 {
@@ -74,6 +78,20 @@ private Q_SLOTS:
 	void testAddNewKeyPendingChanges();
 	void testKeyChangeNoAck();
 
+	void testListAndRemoveDevices();
+
+	void testUnexpectedMessage_data();
+	void testUnexpectedMessage();
+	void testUnknownMessage();
+	void testBrokenMessage();
+
+#ifdef TEST_PING_MSG
+	void testPingMessages();
+#endif
+
+	//TODO test cleanup
+
+	void testRemoveSelf();
 	void testStop();
 
 private:
@@ -93,6 +111,11 @@ private:
 
 	void clean(bool disconnect = true);
 	void clean(MockClient *&client, bool disconnect = true);
+
+	template <typename TMessage, typename... Args>
+	inline QSharedPointer<Message> create(Args... args);
+	template <typename TMessage, typename... Args>
+	inline QSharedPointer<Message> createNonced(Args... args);
 };
 
 void TestAppServer::initTestCase()
@@ -1533,6 +1556,253 @@ void TestAppServer::testKeyChangeNoAck()
 	}
 }
 
+void TestAppServer::testListAndRemoveDevices()
+{
+	try {
+		QVERIFY(client);
+		QVERIFY(partner);
+
+		//list devices
+		client->send(ListDevicesMessage {});
+		QList<DevicesMessage::DeviceInfo> infos;
+		QVERIFY(client->waitForReply<DevicesMessage>([&](DevicesMessage message, bool &ok) {
+			QCOMPARE(message.devices.size(), 4); //testAddDevice, testAddDeviceInvalidKeyIndex, testSendDoubleAccept, testDeviceUploading
+			infos = message.devices;
+			ok = true;
+		}));
+
+		//verify the keys, verify partner, remove others
+		auto ok = false;
+		foreach (auto info, infos) {
+			QVERIFY(std::get<0>(info) != devId);
+			if(std::get<0>(info) == partnerDevId) {
+				QCOMPARE(std::get<1>(info), partnerName);
+				QCOMPARE(std::get<2>(info), partnerCrypto->ownFingerprint());
+				ok = true;
+			} else {
+				client->send(RemoveMessage {std::get<0>(info)});
+				QVERIFY(client->waitForReply<RemoveAckMessage>([&](RemoveAckMessage message, bool &ok) {
+					QCOMPARE(message.deviceId, std::get<0>(info));
+					ok = true;
+				}));
+			}
+		}
+		QVERIFY(ok);
+
+		//list from partners side
+		partner->send(ListDevicesMessage {});
+		QVERIFY(partner->waitForReply<DevicesMessage>([&](DevicesMessage message, bool &ok) {
+			QCOMPARE(message.devices.size(), 1);
+			auto info = message.devices.first();
+			QCOMPARE(std::get<0>(info), devId);
+			QCOMPARE(std::get<1>(info), devName);
+			QCOMPARE(std::get<2>(info), crypto->ownFingerprint());
+			ok = true;
+		}));
+
+		//now delete partner
+		client->send(RemoveMessage {partnerDevId});
+		QVERIFY(client->waitForReply<RemoveAckMessage>([&](RemoveAckMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			ok = true;
+		}));
+
+		//wait for partner disconnect and reconnect
+		QVERIFY(partner->waitForDisconnect());
+		partner->deleteLater();
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//send back a valid login message (but partner does not exist anymore
+		partner->sendSigned(LoginMessage {
+							   partnerDevId,
+							   partnerName,
+							   mNonce
+						   }, partnerCrypto);
+
+		QVERIFY(partner->waitForError(ErrorMessage::AuthenticationError));
+		clean(partner);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testUnexpectedMessage_data()
+{
+	QTest::addColumn<QSharedPointer<Message>>("message");
+	QTest::addColumn<bool>("whenIdle");
+	QTest::addColumn<bool>("isSigned");
+
+	QTest::newRow("RegisterMessage") << createNonced<RegisterMessage>()
+									 << true
+									 << true;
+	QTest::newRow("LoginMessage") << createNonced<LoginMessage>(devId, devName, "nonce")
+								  << true
+								  << true;
+	QTest::newRow("AccessMessage") << createNonced<AccessMessage>()
+								   << true
+								   << true;
+	QTest::newRow("SyncMessage") << create<SyncMessage>()
+								 << false
+								 << false;
+	QTest::newRow("ChangeMessage") << create<ChangeMessage>("data_id")
+								   << false
+								   << false;
+	QTest::newRow("DeviceChangeMessage") << create<DeviceChangeMessage>("data_id", partnerDevId)
+										 << false
+										 << false;
+	QTest::newRow("ChangedAckMessage") << create<ChangedAckMessage>(42ull)
+									   << false
+									   << false;
+	QTest::newRow("ListDevicesMessage") << create<ListDevicesMessage>()
+										<< false
+										<< false;
+	QTest::newRow("RemoveMessage") << create<RemoveMessage>(partnerDevId)
+								   << false
+								   << false;
+	QTest::newRow("AcceptMessage") << create<AcceptMessage>(partnerDevId)
+								   << false
+								   << true;
+	QTest::newRow("DenyMessage") << create<DenyMessage>(partnerDevId)
+								 << false
+								 << false;
+	QTest::newRow("MacUpdateMessage") << create<MacUpdateMessage>(42, "cmac")
+									  << false
+									  << false;
+	QTest::newRow("KeyChangeMessage") << create<KeyChangeMessage>(42)
+									  << false
+									  << false;
+	QTest::newRow("NewKeyMessage") << create<NewKeyMessage>()
+								   << false
+								   << true;
+}
+
+void TestAppServer::testUnexpectedMessage()
+{
+	QFETCH(QSharedPointer<Message>, message);
+	QFETCH(bool, whenIdle);
+	QFETCH(bool, isSigned);
+
+	QVERIFY(message);
+
+	try {
+		//assume already logged in
+		QVERIFY(client);
+
+		if(!whenIdle) {
+			clean(client);
+			client = new MockClient(this);
+			QVERIFY(client->waitForConnected());
+
+			//wait for identify message
+			QVERIFY(client->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+				QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+				QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+				ok = true;
+			}));
+		}
+
+		if(isSigned)
+			client->sendSigned(*message, crypto);
+		else
+			client->send(*message);
+		QVERIFY(client->waitForError(ErrorMessage::UnexpectedMessageError, true));
+
+		clean(client);
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testUnknownMessage()
+{
+	try {
+		//assume already logged in
+		QVERIFY(client);
+
+		client->send(LastChangedMessage()); //unknown of the server
+		QVERIFY(client->waitForError(ErrorMessage::IncompatibleVersionError));
+
+		clean(client);
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testBrokenMessage()
+{
+	try {
+		//assume already logged in
+		QVERIFY(client);
+
+		client->sendBytes("\x00\x00\x00\x06Change\x00followed_by_gibberish");//header looks right, but not the rest
+		QVERIFY(client->waitForError(ErrorMessage::ClientError));
+
+		clean(client);
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testRemoveSelf()
+{
+	try {
+		QVERIFY(client);
+
+		//list devices
+		client->send(ListDevicesMessage {});
+		QList<DevicesMessage::DeviceInfo> infos;
+		QVERIFY(client->waitForReply<DevicesMessage>([&](DevicesMessage message, bool &ok) {
+			QVERIFY(message.devices.isEmpty());
+			ok = true;
+		}));
+
+		//now delete self
+		client->send(RemoveMessage {devId});
+		QVERIFY(client->waitForReply<RemoveAckMessage>([&](RemoveAckMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, devId);
+			ok = true;
+		}));
+
+		clean(client);
+		client = new MockClient(this);
+		QVERIFY(client->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(client->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//send back a valid login message (but partner does not exist anymore
+		client->sendSigned(LoginMessage {
+							   devId,
+							   devName,
+							   mNonce
+						   }, crypto);
+
+		QVERIFY(client->waitForError(ErrorMessage::AuthenticationError));
+		clean(client);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
 void TestAppServer::testStop()
 {
 	//send a signal to stop
@@ -1561,6 +1831,22 @@ void TestAppServer::clean(MockClient *&client, bool disconnect)
 	QVERIFY(client->waitForDisconnect());
 	client->deleteLater();
 	client = nullptr;
+}
+
+template<typename TMessage, typename... Args>
+inline QSharedPointer<Message> TestAppServer::create(Args... args)
+{
+	return QSharedPointer<TMessage>::create(args...).template staticCast<Message>();
+}
+
+
+
+template<typename TMessage, typename... Args>
+inline QSharedPointer<Message> TestAppServer::createNonced(Args... args)
+{
+	auto msg = create<TMessage>(args...).template dynamicCast<InitMessage>();
+	msg->nonce = QByteArray(InitMessage::NonceSize, 'x');
+	return msg;
 }
 
 QTEST_MAIN(TestAppServer)
