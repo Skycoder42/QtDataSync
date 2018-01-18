@@ -21,6 +21,10 @@
 #include <QtDataSync/private/proofmessage_p.h>
 #include <QtDataSync/private/grantmessage_p.h>
 #include <QtDataSync/private/macupdatemessage_p.h>
+#include <QtDataSync/private/changemessage_p.h>
+#include <QtDataSync/private/changedmessage_p.h>
+#include <QtDataSync/private/syncmessage_p.h>
+#include <QtDataSync/private/devicechangemessage_p.h>
 
 using namespace QtDataSync;
 
@@ -52,6 +56,12 @@ private Q_SLOTS:
 	void testAddDeviceInvalidKeyIndex();
 	void testSendDoubleAccept();
 
+	void testChangeUpload();
+	void testChangeDownloadOnLogin();
+	void testLiveChanges();
+	void testSyncCommand();
+	void testDeviceUploading();
+
 	void testStop();
 
 private:
@@ -67,8 +77,10 @@ private:
 	QUuid partnerDevId;
 	ClientCrypto *partnerCrypto;
 
+	void testAddDevice(MockClient *&partner, QUuid &partnerDevId, bool keepPartner = false);
+
 	void clean(bool disconnect = true);
-	void clean(MockClient *client, bool disconnect = true);
+	void clean(MockClient *&client, bool disconnect = true);
 };
 
 void TestAppServer::initTestCase()
@@ -401,6 +413,11 @@ void TestAppServer::testLogin()
 
 void TestAppServer::testAddDevice()
 {
+	testAddDevice(partner, partnerDevId);
+}
+
+void TestAppServer::testAddDevice(MockClient *&partner, QUuid &partnerDevId, bool keepPartner) //not executed as test
+{
 	QByteArray pNonce = "partner_nonce";
 	QByteArray macscheme = "macscheme";
 	QByteArray cmac = "cmac";
@@ -485,7 +502,8 @@ void TestAppServer::testAddDevice()
 			ok = true;
 		}));
 
-		//keep partner
+		if(!keepPartner)
+			clean(partner);
 	} catch(std::exception &e) {
 		QFAIL(e.what());
 	}
@@ -904,6 +922,248 @@ void TestAppServer::testSendDoubleAccept()
 	}
 }
 
+void TestAppServer::testChangeUpload()
+{
+	QByteArray dataId1 = "dataId1";
+	QByteArray dataId2 = "dataId2";
+	quint32 keyIndex = 0;
+	QByteArray salt = "salt";
+	QByteArray data = "data";
+
+	try {
+		QVERIFY(client);
+		QVERIFY(!partner);
+
+		//send an upload 1 and 2
+		ChangeMessage changeMsg { dataId1 };
+		changeMsg.keyIndex = keyIndex;
+		changeMsg.salt = salt;
+		changeMsg.data = data;
+		client->send(changeMsg);
+		changeMsg.dataId = dataId2;
+		client->send(changeMsg);
+
+		//wait for ack
+		QVERIFY(client->waitForReply<ChangeAckMessage>([&](ChangeAckMessage message, bool &ok) {
+			QCOMPARE(message.dataId, dataId1);
+			ok = true;
+		}));
+		QVERIFY(client->waitForReply<ChangeAckMessage>([&](ChangeAckMessage message, bool &ok) {
+			QCOMPARE(message.dataId, dataId2);
+			ok = true;
+		}));
+
+		//send 1 again
+		changeMsg.dataId = dataId1;
+		client->send(changeMsg);
+
+		//wait for ack
+		QVERIFY(client->waitForReply<ChangeAckMessage>([&](ChangeAckMessage message, bool &ok) {
+			QCOMPARE(message.dataId, dataId1);
+			ok = true;
+		}));
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testChangeDownloadOnLogin()
+{
+	quint32 keyIndex = 0;
+	QByteArray salt = "salt";
+	QByteArray data = "data";
+
+	try {
+		QVERIFY(client);
+		QVERIFY(!partner);
+
+		//establish connection
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//send back a valid login message
+		partner->sendSigned(LoginMessage {
+							   partnerDevId,
+							   partnerName,
+							   mNonce
+						   }, partnerCrypto);
+
+		//wait for the account message
+		QVERIFY(partner->waitForReply<WelcomeMessage>([&](WelcomeMessage message, bool &ok) {
+			QVERIFY(message.hasChanges);//Must have changes now
+			QCOMPARE(message.keyIndex, 0u);
+			QVERIFY(message.scheme.isNull());
+			QVERIFY(message.key.isNull());
+			QVERIFY(message.cmac.isNull());
+			ok = true;
+		}));
+
+		//wait for change info message
+		quint64 dataId1 = 0;
+		QVERIFY(partner->waitForReply<ChangedInfoMessage>([&](ChangedInfoMessage message, bool &ok) {
+			QCOMPARE(message.changeEstimate, 2u);
+			QCOMPARE(message.keyIndex, keyIndex);
+			QCOMPARE(message.salt, salt);
+			QCOMPARE(message.data, data);
+			dataId1 = message.dataIndex;
+			ok = true;
+		}));
+
+		//wait for the second message
+		quint64 dataId2 = 0;
+		QVERIFY(partner->waitForReply<ChangedMessage>([&](ChangedMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, keyIndex);
+			QCOMPARE(message.salt, salt);
+			QCOMPARE(message.data, data);
+			dataId2 = message.dataIndex;
+			ok = true;
+		}));
+
+		//send the first ack
+		partner->send(ChangedAckMessage { dataId1 });
+		QVERIFY(partner->waitForNothing());
+
+		//send second ack
+		partner->send(ChangedAckMessage { dataId2 });
+		QVERIFY(partner->waitForReply<LastChangedMessage>([&](LastChangedMessage message, bool &ok) {
+			Q_UNUSED(message)
+			ok = true;
+		}));
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testLiveChanges()
+{
+	QByteArray dataId1 = "dataId3";
+	quint32 keyIndex = 0;
+	QByteArray salt = "salt";
+	QByteArray data = "data";
+
+	try {
+		QVERIFY(client);
+		QVERIFY(partner);
+
+		//send an upload
+		ChangeMessage changeMsg { dataId1 };
+		changeMsg.keyIndex = keyIndex;
+		changeMsg.salt = salt;
+		changeMsg.data = data;
+		client->send(changeMsg);
+
+		//wait for ack
+		QVERIFY(client->waitForReply<ChangeAckMessage>([&](ChangeAckMessage message, bool &ok) {
+			QCOMPARE(message.dataId, dataId1);
+			ok = true;
+		}));
+
+		//wait for change info message
+		quint64 dataId2 = 0;
+		QVERIFY(partner->waitForReply<ChangedInfoMessage>([&](ChangedInfoMessage message, bool &ok) {
+			QCOMPARE(message.changeEstimate, 1u);
+			QCOMPARE(message.keyIndex, keyIndex);
+			QCOMPARE(message.salt, salt);
+			QCOMPARE(message.data, data);
+			dataId2 = message.dataIndex;
+			ok = true;
+		}));
+
+		//send the ack
+		partner->send(ChangedAckMessage { dataId2 });
+		QVERIFY(partner->waitForReply<LastChangedMessage>([&](LastChangedMessage message, bool &ok) {
+			Q_UNUSED(message)
+			ok = true;
+		}));
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testSyncCommand()
+{
+	try {
+		QVERIFY(client);
+
+		//send sync
+		client->send(SyncMessage{});
+
+		//wait for last changed (as no changes are present)
+		QVERIFY(client->waitForReply<LastChangedMessage>([&](LastChangedMessage message, bool &ok) {
+			Q_UNUSED(message)
+			ok = true;
+		}));
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testDeviceUploading()
+{
+	QByteArray dataId1 = "dataId4";
+	quint32 keyIndex = 0;
+	QByteArray salt = "salt";
+	QByteArray data = "data";
+
+	try {
+		QVERIFY(client);
+		QVERIFY(partner);
+
+		MockClient *partner3 = nullptr;
+		QUuid partner3DevId;
+		testAddDevice(partner3, partner3DevId, true);
+		QVERIFY(partner3);
+
+		//send an upload for partner only
+		DeviceChangeMessage changeMsg { dataId1, partnerDevId };
+		changeMsg.keyIndex = keyIndex;
+		changeMsg.salt = salt;
+		changeMsg.data = data;
+		client->send(changeMsg);
+
+		//wait for ack
+		QVERIFY(client->waitForReply<DeviceChangeAckMessage>([&](DeviceChangeAckMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			QCOMPARE(message.dataId, dataId1);
+			ok = true;
+		}));
+
+		//wait for change info message
+		quint64 dataId2 = 0;
+		QVERIFY(partner->waitForReply<ChangedInfoMessage>([&](ChangedInfoMessage message, bool &ok) {
+			QCOMPARE(message.changeEstimate, 1u);
+			QCOMPARE(message.keyIndex, keyIndex);
+			QCOMPARE(message.salt, salt);
+			QCOMPARE(message.data, data);
+			dataId2 = message.dataIndex;
+			ok = true;
+		}));
+
+		//send the ack
+		partner->send(ChangedAckMessage { dataId2 });
+		QVERIFY(partner->waitForReply<LastChangedMessage>([&](LastChangedMessage message, bool &ok) {
+			Q_UNUSED(message)
+			ok = true;
+		}));
+
+		//patner3: nothing
+		QVERIFY(partner3->waitForNothing());
+
+		clean(partner3);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
 void TestAppServer::testStop()
 {
 	//send a signal to stop
@@ -923,7 +1183,7 @@ void TestAppServer::clean(bool disconnect)
 	clean(client, disconnect);
 }
 
-void TestAppServer::clean(MockClient *client, bool disconnect)
+void TestAppServer::clean(MockClient *&client, bool disconnect)
 {
 	if(!client)
 		return;

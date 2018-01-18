@@ -605,6 +605,7 @@ std::tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::load
 void DatabaseController::dbInitDone(bool success)
 {
 	if(success) { //done on the main thread to make sure the connection does not die with threads
+		//TODO make subscribe optional via config
 		auto driver = _threadStore.localData().database().driver();
 		connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
 				this, &DatabaseController::onNotify);

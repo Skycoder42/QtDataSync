@@ -454,7 +454,6 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 void Client::onSync(const SyncMessage &message)
 {
 	checkIdle(message);
-	Q_UNUSED(message)
 	triggerDownload();
 }
 
