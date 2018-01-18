@@ -470,8 +470,6 @@ void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex
 
 QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset)
 {
-	//TODO fail in case 1 client as unloaded keychanges
-	//TODO then, test that
 	offset = -1;
 
 	auto db = _threadStore.localData().database();
@@ -479,40 +477,62 @@ QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController:
 		throw DatabaseException(db);
 
 	try {
+		//load current key index
 		Query readIndexQuery(db);
-		readIndexQuery.prepare(QStringLiteral("SELECT keycount FROM users "
+		readIndexQuery.prepare(QStringLiteral("SELECT keycount, id FROM users "
 											  "WHERE id = deviceUserId(?)"));
 		readIndexQuery.addBindValue(deviceId);
 		readIndexQuery.exec();
 		if(!readIndexQuery.first())
 			throw DatabaseException(db);
 		auto currentIndex = readIndexQuery.value(0).toUInt();
+		auto userId = readIndexQuery.value(1).toULongLong();
 		offset = proposedIndex - currentIndex;
+		if(offset != 1) { //only when 1 the rest is needed
+			if(!db.commit())
+				throw DatabaseException(db);
+			return {};
+		}
+
+		//check if any device still has keychanges
+		Query hasKeyChangesQuery(db);
+		hasKeyChangesQuery.prepare(QStringLiteral("SELECT 1 FROM keychanges "
+												  "INNER JOIN devices ON keychanges.deviceid = devices.id "
+												  "INNER JOIN users ON devices.userid = users.id "
+												  "WHERE users.id = ?"));
+		hasKeyChangesQuery.addBindValue(userId);
+		hasKeyChangesQuery.exec();
+		if(hasKeyChangesQuery.first()) {
+			offset = -1;
+			if(!db.commit())
+				throw DatabaseException(db);
+			return {};
+		}
+
+		//load device keys
+		Query deviceKeysQuery(db);
+		deviceKeysQuery.prepare(QStringLiteral("SELECT id, cryptscheme, cryptkey, keymac FROM devices "
+											   "WHERE id != ? "
+											   "AND userid = ?"));
+		deviceKeysQuery.addBindValue(deviceId);
+		deviceKeysQuery.addBindValue(userId);
+		deviceKeysQuery.exec();
 
 		QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> result;
-		if(offset == 1) { //proposed = current + 1
-			Query deviceKeysQuery(db);
-			deviceKeysQuery.prepare(QStringLiteral("SELECT id, cryptscheme, cryptkey, keymac FROM devices "
-												   "WHERE id != ? "
-												   "AND userid = deviceUserId(?)"));
-			deviceKeysQuery.addBindValue(deviceId);
-			deviceKeysQuery.addBindValue(deviceId);
-			deviceKeysQuery.exec();
-
-			while(deviceKeysQuery.next()) {
-				result.append(std::make_tuple(
-								  deviceKeysQuery.value(0).toUuid(),
-								  deviceKeysQuery.value(1).toByteArray(),
-								  deviceKeysQuery.value(2).toByteArray(),
-								  deviceKeysQuery.value(3).toByteArray()
-							  ));
-			}
+		while(deviceKeysQuery.next()) {
+			result.append(std::make_tuple(
+							  deviceKeysQuery.value(0).toUuid(),
+							  deviceKeysQuery.value(1).toByteArray(),
+							  deviceKeysQuery.value(2).toByteArray(),
+							  deviceKeysQuery.value(3).toByteArray()
+						  ));
 		}
 
 		if(!db.commit())
 			throw DatabaseException(db);
 		return result;
 	} catch(...) {
+		offset = -1;
 		db.rollback();
 		throw;
 	}
@@ -528,7 +548,8 @@ bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyInd
 		Query updateKeyCountQuery(db);
 		updateKeyCountQuery.prepare(QStringLiteral("UPDATE users SET keycount = keycount + 1"
 												   "WHERE id = deviceUserId(?) "
-												   "AND (keycount + 1) = ?"));
+												   "AND (keycount + 1) = ? "
+												   "RETURNING id"));
 		updateKeyCountQuery.addBindValue(deviceId);
 		updateKeyCountQuery.addBindValue(keyIndex);
 		updateKeyCountQuery.exec();
@@ -536,15 +557,18 @@ bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyInd
 			db.rollback();
 			return false;
 		}
+		if(!updateKeyCountQuery.first())
+			throw DatabaseException(db);
+		auto userId = updateKeyCountQuery.value(0).toULongLong();
 
 		foreach(auto device, deviceKeys) {
 			//check if the device belongs to the same user
 			Query checkAllowedQuery(db);
-			checkAllowedQuery.prepare(QStringLiteral("SELECT id FROM devices "
+			checkAllowedQuery.prepare(QStringLiteral("SELECT 1 FROM devices "
 													 "WHERE id = ? "
-													 "AND userid = deviceUserId(?)"));
+													 "AND userid = ?"));
 			checkAllowedQuery.addBindValue(std::get<0>(device));
-			checkAllowedQuery.addBindValue(deviceId);
+			checkAllowedQuery.addBindValue(userId);
 			checkAllowedQuery.exec();
 			if(!checkAllowedQuery.first())
 				throw DatabaseException(db);

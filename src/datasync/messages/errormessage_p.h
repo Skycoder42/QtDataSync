@@ -24,7 +24,8 @@ public:
 		ClientError = 4,
 		AuthenticationError = 5,
 		AccessError = 6,
-		KeyIndexError = 7
+		KeyIndexError = 7,
+		KeyPendingError = 8
 	};
 	Q_ENUM(ErrorType)
 

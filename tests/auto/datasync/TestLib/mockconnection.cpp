@@ -49,7 +49,9 @@ void MockConnection::close()
 
 bool MockConnection::waitForNothing()
 {
-	return !_msgSpy.wait();
+	return _msgSpy.isEmpty() &&
+			!_msgSpy.wait() &&
+			_closeSpy.isEmpty();
 }
 
 bool MockConnection::waitForPing()

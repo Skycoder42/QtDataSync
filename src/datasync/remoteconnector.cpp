@@ -846,6 +846,9 @@ void RemoteConnector::onError(const ErrorMessage &message, const QByteArray &mes
 		case ErrorMessage::KeyIndexError:
 			emit controllerError(tr("Cannot update key! This client is not using the latest existing keys."));
 			break;
+		case ErrorMessage::KeyPendingError:
+			emit controllerError(tr("Cannot update key! At least one client did not receive the previous key update."));
+			break;
 		case ErrorMessage::ClientError:
 		case ErrorMessage::ServerError:
 		case ErrorMessage::UnexpectedMessageError:

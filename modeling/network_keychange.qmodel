@@ -126,8 +126,8 @@
                            <item>message</item>
                           </qlist>
                          </stereotypes>
-                         <name>DEVICEKEYS(&lt;deviceId, cryptScheme, pubKey, cmac&gt;, ...)</name>
-                         <pos>x:425;y:260</pos>
+                         <name>DEVICEKEYS(indey, duplicated=false, &lt;deviceId, cryptScheme, pubKey, cmac&gt;, ...)</name>
+                         <pos>x:830;y:75</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -285,7 +285,7 @@
                           </qlist>
                          </stereotypes>
                          <name> KeyIndexError</name>
-                         <pos>x:830;y:75</pos>
+                         <pos>x:215;y:260</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -467,25 +467,6 @@
                      </instance>
                     </item>
                     <item>
-                     <instance type="DDependency">
-                      <DDependency>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{3ba0d819-47ec-4ac0-84a0-c40e84342fe3}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{76afa888-42aa-490d-82ee-648389f3254e}</object>
-                         <a>{be4f870e-f62b-45c9-842f-0216faeea16a}</a>
-                         <b>{551c345e-51cc-4268-9361-3ea134e59b63}</b>
-                         <name>true</name>
-                        </DRelation>
-                       </base-DRelation>
-                      </DDependency>
-                     </instance>
-                    </item>
-                    <item>
                      <instance type="DItem">
                       <DItem>
                        <base-DObject>
@@ -497,7 +478,7 @@
                          </base-DElement>
                          <object>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</object>
                          <name>newIndex == currentIndex</name>
-                         <pos>x:625;y:75</pos>
+                         <pos>x:425;y:260</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -540,9 +521,42 @@
                       </DAnnotation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{447a9195-6d82-4b12-88a8-8b547ce3dc05}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{33516989-ef08-4bf9-b74e-1fb4aebf3a54}</object>
+                         <a>{be4f870e-f62b-45c9-842f-0216faeea16a}</a>
+                         <b>{368f683b-09d4-4bee-be22-80ba61dd6fa3}</b>
+                         <name>true</name>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DAnnotation">
+                      <DAnnotation>
+                       <base-DElement>
+                        <DElement>
+                         <uid>{46b7c89b-9092-4f9b-a41c-4c643ed165a3}</uid>
+                        </DElement>
+                       </base-DElement>
+                       <text>remcon must update local state</text>
+                       <pos>x:245;y:345</pos>
+                       <rect>x:0;y:0;w:179.234;h:32</rect>
+                      </DAnnotation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515944743712</last-modified>
+                  <last-modified>1516282246030</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -685,7 +699,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>DEVICEKEYS(&lt;deviceId, cryptScheme, pubKey, cmac&gt;, ...)</name>
+                  <name>DEVICEKEYS(indey, duplicated=false, &lt;deviceId, cryptScheme, pubKey, cmac&gt;, ...)</name>
                   <relations>
                    <handles>
                     <handles>
@@ -1101,29 +1115,6 @@
                      <qlist>
                       <item>
                        <handle>
-                        <uid>{76afa888-42aa-490d-82ee-648389f3254e}</uid>
-                        <target>
-                         <instance type="MDependency">
-                          <MDependency>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{76afa888-42aa-490d-82ee-648389f3254e}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <name>true</name>
-                             <a>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</a>
-                             <b>{faaadac9-3588-406f-8699-be30c0f7d659}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MDependency>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
                         <uid>{c3e3de75-405e-4d07-9ad2-a17831962eaa}</uid>
                         <target>
                          <instance type="MDependency">
@@ -1138,6 +1129,29 @@
                              <name>false</name>
                              <a>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</a>
                              <b>{1aa18ee0-c6a3-487a-bd5d-fcc48921feac}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                      <item>
+                       <handle>
+                        <uid>{33516989-ef08-4bf9-b74e-1fb4aebf3a54}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{33516989-ef08-4bf9-b74e-1fb4aebf3a54}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <name>true</name>
+                             <a>{39cba103-cbc1-41e1-81c7-870ffda5e8fb}</a>
+                             <b>{01892bf6-41a4-4e99-85b7-9b121fa1042a}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>

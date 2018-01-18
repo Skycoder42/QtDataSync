@@ -561,6 +561,8 @@ void Client::onKeyChange(const KeyChangeMessage &message)
 		sendMessage(DeviceKeysMessage{message.nextIndex, deviceInfos});
 	else if(offset == 0) //proposed is the same as current (accept as duplicate, but don't send any devices)
 		sendMessage(DeviceKeysMessage{message.nextIndex});
+	else if(offset == -1) //most likely because of client key conflict
+		sendError(ErrorMessage::KeyPendingError);
 	else
 		sendError(ErrorMessage::KeyIndexError);
 }

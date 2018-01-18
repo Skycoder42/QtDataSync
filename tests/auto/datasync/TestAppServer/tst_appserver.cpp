@@ -25,6 +25,9 @@
 #include <QtDataSync/private/changedmessage_p.h>
 #include <QtDataSync/private/syncmessage_p.h>
 #include <QtDataSync/private/devicechangemessage_p.h>
+#include <QtDataSync/private/keychangemessage_p.h>
+#include <QtDataSync/private/devicekeysmessage_p.h>
+#include <QtDataSync/private/newkeymessage_p.h>
 
 using namespace QtDataSync;
 
@@ -61,6 +64,15 @@ private Q_SLOTS:
 	void testLiveChanges();
 	void testSyncCommand();
 	void testDeviceUploading();
+
+	void testChangeKey();
+	void testChangeKeyInvalidIndex();
+	void testChangeKeyDuplicate();
+	void testChangeKeyPendingChanges();
+	void testAddNewKeyInvalidIndex();
+	void testAddNewKeyInvalidSignature();
+	void testAddNewKeyPendingChanges();
+	void testKeyChangeNoAck();
 
 	void testStop();
 
@@ -1159,6 +1171,363 @@ void TestAppServer::testDeviceUploading()
 		QVERIFY(partner3->waitForNothing());
 
 		clean(partner3);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testChangeKey()
+{
+	quint32 nextIndex = 1;
+	QByteArray scheme = "scheme";
+	QByteArray key = "key";
+	QByteArray cmac = "cmac";
+
+	try {
+		QVERIFY(client);
+		QVERIFY(partner);
+
+		//Send the key change proposal
+		client->send(KeyChangeMessage { nextIndex });
+		QList<DeviceKeysMessage::DeviceKey> keys;
+		QVERIFY(client->waitForReply<DeviceKeysMessage>([&](DeviceKeysMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, nextIndex);
+			QVERIFY(!message.duplicated);
+			QCOMPARE(message.devices.size(), 4); //testAddDevice, testAddDeviceInvalidKeyIndex, testSendDoubleAccept, testDeviceUploading
+			keys = message.devices;
+			ok = true;
+		}));
+
+		//verify the keys, extract partner 1 key
+		DeviceKeysMessage::DeviceKey mKey;
+		do {
+			mKey = keys.takeFirst();
+			if(partnerDevId == std::get<0>(mKey))
+				break;
+		} while(!keys.isEmpty());
+		QCOMPARE(std::get<0>(mKey), partnerDevId);
+		QCOMPARE(std::get<3>(mKey), partnerDevId.toByteArray()); //dummy cmac
+
+		//send the actual key update message (ignoring the other 3)
+		NewKeyMessage keyMsg;
+		keyMsg.keyIndex = nextIndex;
+		keyMsg.cmac = devName.toUtf8();
+		keyMsg.scheme = scheme;
+		keyMsg.deviceKeys.append(std::make_tuple(partnerDevId, key, cmac));
+		client->sendSigned(keyMsg, crypto);
+
+		//wait for ack
+		QVERIFY(client->waitForReply<NewKeyAckMessage>([&](NewKeyAckMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, nextIndex);
+			ok = true;
+		}));
+
+		//wait for partner to be disconnected
+		QVERIFY(partner->waitForDisconnect());
+		partner->deleteLater();
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//send back a valid login message
+		partner->sendSigned(LoginMessage {
+							   partnerDevId,
+							   partnerName,
+							   mNonce
+						   }, partnerCrypto);
+
+		//wait for the account message
+		QVERIFY(partner->waitForReply<WelcomeMessage>([&](WelcomeMessage message, bool &ok) {
+			QVERIFY(!message.hasChanges);//Must have changes now
+			QCOMPARE(message.keyIndex, nextIndex);
+			QCOMPARE(message.scheme, scheme);
+			QCOMPARE(message.key, key);
+			QCOMPARE(message.cmac, cmac);
+			ok = true;
+		}));
+
+		//update the mac accordingly
+		partner->send(MacUpdateMessage { nextIndex, partnerName.toUtf8() });
+		QVERIFY(partner->waitForReply<MacUpdateAckMessage>([&](MacUpdateAckMessage message, bool &ok) {
+			Q_UNUSED(message)
+			ok = true;
+		}));
+
+		//connect again, to make shure the ack was stored
+		clean(partner);
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//send back a valid login message
+		partner->sendSigned(LoginMessage {
+							   partnerDevId,
+							   partnerName,
+							   mNonce
+						   }, partnerCrypto);
+
+		//wait for the account message
+		QVERIFY(partner->waitForReply<WelcomeMessage>([&](WelcomeMessage message, bool &ok) {
+			QVERIFY(!message.hasChanges);//Must have changes now
+			QCOMPARE(message.keyIndex, 0u);
+			QVERIFY(message.scheme.isNull());
+			QVERIFY(message.key.isNull());
+			QVERIFY(message.cmac.isNull());
+			ok = true;
+		}));
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testChangeKeyInvalidIndex()
+{
+	try {
+		QVERIFY(partner);
+
+		//Send the key change proposal
+		partner->send(KeyChangeMessage { 42 });
+
+		QVERIFY(partner->waitForError(ErrorMessage::KeyIndexError));
+		clean(partner);
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testChangeKeyDuplicate()
+{
+	quint32 nextIndex = 1;//duplicate to current
+
+	try {
+		QVERIFY(client);
+
+		//Send the key change proposal
+		client->send(KeyChangeMessage { nextIndex });
+		QVERIFY(client->waitForReply<DeviceKeysMessage>([&](DeviceKeysMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, nextIndex);
+			QVERIFY(message.duplicated);
+			QVERIFY(message.devices.isEmpty());
+			ok = true;
+		}));
+
+		//make shure no disconnect
+		QVERIFY(client->waitForNothing());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testChangeKeyPendingChanges()
+{
+	quint32 nextIndex = 2;//valid
+	QByteArray scheme = "scheme2";
+	QByteArray key = "key2";
+	QByteArray cmac = "cmac2";
+
+	try {
+		QVERIFY(client);
+		QVERIFY(!partner);
+
+		//Send the key change proposal
+		client->send(KeyChangeMessage { nextIndex });
+		QVERIFY(client->waitForReply<DeviceKeysMessage>([&](DeviceKeysMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, nextIndex);
+			QVERIFY(!message.duplicated);
+			//skip key checks
+			ok = true;
+		}));
+
+		//send the actual key update message (ignoring the other 3)
+		NewKeyMessage keyMsg;
+		keyMsg.keyIndex = nextIndex;
+		keyMsg.cmac = devName.toUtf8();
+		keyMsg.scheme = scheme;
+		keyMsg.deviceKeys.append(std::make_tuple(partnerDevId, key, cmac));
+		client->sendSigned(keyMsg, crypto);
+
+		//wait for ack
+		QVERIFY(client->waitForReply<NewKeyAckMessage>([&](NewKeyAckMessage message, bool &ok) {
+			QCOMPARE(message.keyIndex, nextIndex);
+			ok = true;
+		}));
+
+		//try to send another keychange
+		client->send(KeyChangeMessage { ++nextIndex });
+		QVERIFY(client->waitForError(ErrorMessage::KeyPendingError));//should have it's own error message
+		clean(client);
+
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testAddNewKeyInvalidIndex()
+{
+	quint32 nextIndex = 42;//invalid index
+
+	try {
+		QVERIFY(client);
+
+		NewKeyMessage keyMsg;
+		keyMsg.keyIndex = nextIndex;
+		keyMsg.cmac = "cmac";
+		keyMsg.scheme = "scheme";
+		keyMsg.deviceKeys.append(std::make_tuple(partnerDevId, "key", "cmac"));
+		client->sendSigned(keyMsg, crypto);
+
+		//make shure no disconnect
+		QVERIFY(client->waitForError(ErrorMessage::KeyIndexError));
+		clean(client);
+
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testAddNewKeyInvalidSignature()
+{
+	quint32 nextIndex = 3;//valid index
+
+	try {
+		QVERIFY(client);
+
+		NewKeyMessage keyMsg;
+		keyMsg.keyIndex = nextIndex;
+		keyMsg.cmac = "cmac";
+		keyMsg.scheme = "scheme";
+		keyMsg.deviceKeys.append(std::make_tuple(partnerDevId, "key", "cmac"));
+		auto sData = keyMsg.serializeSigned(crypto->privateSignKey(), crypto->rng(), crypto);
+		sData[sData.size() - 1] = sData[sData.size() - 1] + 'x';
+		client->sendBytes(sData); //message + fake signature
+
+		//make shure no disconnect
+		QVERIFY(client->waitForError(ErrorMessage::AuthenticationError));
+		clean(client);
+
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testAddNewKeyPendingChanges()
+{
+	//theoretical situtation, that cannot occur normally
+	quint32 nextIndex = 3;//valid index
+
+	try {
+		QVERIFY(client);
+
+		NewKeyMessage keyMsg;
+		keyMsg.keyIndex = nextIndex;
+		keyMsg.cmac = "cmac";
+		keyMsg.scheme = "scheme";
+		keyMsg.deviceKeys.append(std::make_tuple(partnerDevId, "key", "cmac"));
+		client->sendSigned(keyMsg, crypto);
+
+		//make shure no disconnect
+		QVERIFY(client->waitForError(ErrorMessage::ServerError, true));//is ok here, as this case is typically detected by the KeyChangeMessage.
+		clean(client);
+
+		testLogin();
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestAppServer::testKeyChangeNoAck()
+{
+	quint32 nextIndex = 2;
+	QByteArray scheme = "scheme2";
+	QByteArray key = "key2";
+	QByteArray cmac = "cmac2";
+
+	try {
+		QVERIFY(!partner);
+
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QByteArray mNonce;
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//send back a valid login message
+		partner->sendSigned(LoginMessage {
+							   partnerDevId,
+							   partnerName,
+							   mNonce
+						   }, partnerCrypto);
+
+		//wait for the account message
+		QVERIFY(partner->waitForReply<WelcomeMessage>([&](WelcomeMessage message, bool &ok) {
+			QVERIFY(!message.hasChanges);//Must have changes now
+			QCOMPARE(message.keyIndex, nextIndex);
+			QCOMPARE(message.scheme, scheme);
+			QCOMPARE(message.key, key);
+			QCOMPARE(message.cmac, cmac);
+			ok = true;
+		}));
+
+		//do NOT send the mac, but reconnect
+		clean(partner);
+		partner = new MockClient(this);
+		QVERIFY(partner->waitForConnected());
+
+		//wait for identify message
+		QVERIFY(partner->waitForReply<IdentifyMessage>([&](IdentifyMessage message, bool &ok) {
+			QVERIFY(message.nonce.size() >= InitMessage::NonceSize);
+			QCOMPARE(message.protocolVersion, InitMessage::CurrentVersion);
+			mNonce = message.nonce;
+			ok = true;
+		}));
+
+		//send back a valid login message
+		partner->sendSigned(LoginMessage {
+							   partnerDevId,
+							   partnerName,
+							   mNonce
+						   }, partnerCrypto);
+
+		//wait for the account message
+		QVERIFY(partner->waitForReply<WelcomeMessage>([&](WelcomeMessage message, bool &ok) {
+			QVERIFY(!message.hasChanges);//Must have changes now
+			QCOMPARE(message.keyIndex, nextIndex);
+			QCOMPARE(message.scheme, scheme);
+			QCOMPARE(message.key, key);
+			QCOMPARE(message.cmac, cmac);
+			ok = true;
+		}));
+
+		//update the mac accordingly
+		partner->send(MacUpdateMessage { nextIndex, partnerName.toUtf8() });
+		QVERIFY(partner->waitForReply<MacUpdateAckMessage>([&](MacUpdateAckMessage message, bool &ok) {
+			Q_UNUSED(message)
+			ok = true;
+		}));
 	} catch(std::exception &e) {
 		QFAIL(e.what());
 	}
