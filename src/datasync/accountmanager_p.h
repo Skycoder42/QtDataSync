@@ -27,8 +27,8 @@ public Q_SLOTS:
 	void removeDevice(const QUuid &deviceId) override;
 	void updateExchangeKey() override;
 	void resetAccount(bool keepData) override;
-	void exportAccount(quint32 id, bool includeServer) override;
-	void exportAccountTrusted(quint32 id, bool includeServer, const QString &password) override;
+	void exportAccount(const QUuid &id, bool includeServer) override;
+	void exportAccountTrusted(const QUuid &id, bool includeServer, const QString &password) override;
 	void importAccount(const JsonObject &importData, bool keepData) override;
 	void importAccountTrusted(const JsonObject &importData, const QString &password, bool keepData) override;
 	void replyToLogin(const QUuid &deviceId, bool accept) override;

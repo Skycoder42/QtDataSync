@@ -520,7 +520,7 @@
                          </base-DElement>
                          <object>{eb71fa83-8407-41e5-9525-f52d29f958c7}</object>
                          <name>SyncManager</name>
-                         <pos>x:735;y:70</pos>
+                         <pos>x:600;y:185</pos>
                          <rect>x:-45;y:-30;w:90;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -563,7 +563,7 @@
                          </base-DElement>
                          <object>{37410736-0fd8-4a41-b7f8-ec12190e4977}</object>
                          <name>DataStore</name>
-                         <pos>x:255;y:70</pos>
+                         <pos>x:215;y:170</pos>
                          <rect>x:-40;y:-30;w:80;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -613,7 +613,7 @@
                          </base-DElement>
                          <object>{f256c44d-a370-4546-ad4e-b1e5d500ccd7}</object>
                          <name>DataTypeStore</name>
-                         <pos>x:440;y:70</pos>
+                         <pos>x:130;y:55</pos>
                          <rect>x:-50;y:-30;w:100;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -638,14 +638,14 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
-                         <cradinality>1</cradinality>
+                         <cradinality>1..n</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
                        </a>
                        <b>
                         <DAssociationEnd>
-                         <cradinality>1..n</cradinality>
+                         <cradinality>1</cradinality>
                         </DAssociationEnd>
                        </b>
                       </DAssociation>
@@ -663,7 +663,7 @@
                          </base-DElement>
                          <object>{53a61e00-872f-4796-a0e2-65a5573b815f}</object>
                          <name>AccountManager</name>
-                         <pos>x:880;y:70</pos>
+                         <pos>x:780;y:185</pos>
                          <rect>x:-55;y:-30;w:110;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -706,7 +706,7 @@
                          </base-DElement>
                          <object>{d2224ea6-0f05-4545-b267-93ef6dcde52a}</object>
                          <name>DataSyncModel</name>
-                         <pos>x:75;y:70</pos>
+                         <pos>x:65;y:170</pos>
                          <rect>x:-50;y:-30;w:100;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -731,14 +731,14 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
-                         <cradinality>1</cradinality>
+                         <cradinality>1..n</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
                        </a>
                        <b>
                         <DAssociationEnd>
-                         <cradinality>1..n</cradinality>
+                         <cradinality>1</cradinality>
                         </DAssociationEnd>
                        </b>
                       </DAssociation>
@@ -806,7 +806,7 @@
                          </base-DElement>
                          <object>{78ee8c0f-a3b6-4e9f-a5ac-db4785b725fe}</object>
                          <name>CachingDataTypeStore</name>
-                         <pos>x:440;y:175</pos>
+                         <pos>x:355;y:75</pos>
                          <rect>x:-70;y:-30;w:140;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -831,14 +831,14 @@
                        </base-DRelation>
                        <a>
                         <DAssociationEnd>
-                         <cradinality>1</cradinality>
+                         <cradinality>1..n</cradinality>
                          <navigable>true</navigable>
                          <kind>1</kind>
                         </DAssociationEnd>
                        </a>
                        <b>
                         <DAssociationEnd>
-                         <cradinality>1..n</cradinality>
+                         <cradinality>1</cradinality>
                         </DAssociationEnd>
                        </b>
                       </DAssociation>
@@ -928,7 +928,7 @@
                          </base-DElement>
                          <object>{60e8dd0c-4986-486b-b866-372acce0ed03}</object>
                          <name>Setup</name>
-                         <pos>x:600;y:70</pos>
+                         <pos>x:425;y:185</pos>
                          <rect>x:-40;y:-30;w:80;h:60</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -1073,9 +1073,59 @@
                       </DAssociation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DClass">
+                      <DClass>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{cf62ab71-b6f4-472b-b540-0084a9cb7bf1}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{11b3b47a-1b89-43ff-b234-4b4421c99e23}</object>
+                         <name>UserExchangeManager</name>
+                         <pos>x:680;y:70</pos>
+                         <rect>x:-70;y:-30;w:140;h:60</rect>
+                         <visual-role>6</visual-role>
+                        </DObject>
+                       </base-DObject>
+                      </DClass>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DAssociation">
+                      <DAssociation>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{e77d4c32-e42f-4bb9-94c7-83390c4c5647}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{cd13868c-1ecd-4e2c-9fc8-cadab582af8f}</object>
+                         <a>{cf62ab71-b6f4-472b-b540-0084a9cb7bf1}</a>
+                         <b>{ecff1074-9943-4343-82da-4b8449fd8542}</b>
+                        </DRelation>
+                       </base-DRelation>
+                       <a>
+                        <DAssociationEnd>
+                         <cradinality>1..n</cradinality>
+                         <navigable>true</navigable>
+                         <kind>1</kind>
+                        </DAssociationEnd>
+                       </a>
+                       <b>
+                        <DAssociationEnd>
+                         <cradinality>1</cradinality>
+                        </DAssociationEnd>
+                       </b>
+                      </DAssociation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1514318355641</last-modified>
+                  <last-modified>1516294473695</last-modified>
                   <toolbarid>Classes</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1925,14 +1975,14 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
-                             <cardinality>1</cardinality>
+                             <cardinality>1..n</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
                            </a>
                            <b>
                             <MAssociationEnd>
-                             <cardinality>1..n</cardinality>
+                             <cardinality>1</cardinality>
                             </MAssociationEnd>
                            </b>
                           </MAssociation>
@@ -2044,14 +2094,14 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
-                             <cardinality>1</cardinality>
+                             <cardinality>1..n</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
                            </a>
                            <b>
                             <MAssociationEnd>
-                             <cardinality>1..n</cardinality>
+                             <cardinality>1</cardinality>
                             </MAssociationEnd>
                            </b>
                           </MAssociation>
@@ -2170,14 +2220,14 @@
                            </base-MRelation>
                            <a>
                             <MAssociationEnd>
-                             <cardinality>1</cardinality>
+                             <cardinality>1..n</cardinality>
                              <navigable>true</navigable>
                              <kind>1</kind>
                             </MAssociationEnd>
                            </a>
                            <b>
                             <MAssociationEnd>
-                             <cardinality>1..n</cardinality>
+                             <cardinality>1</cardinality>
                             </MAssociationEnd>
                            </b>
                           </MAssociation>
@@ -2327,6 +2377,69 @@
                    </MElement>
                   </base-MElement>
                   <name>SyncHelper</name>
+                 </MObject>
+                </base-MObject>
+               </MClass>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{11b3b47a-1b89-43ff-b234-4b4421c99e23}</uid>
+             <target>
+              <instance type="MClass">
+               <MClass>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{11b3b47a-1b89-43ff-b234-4b4421c99e23}</uid>
+                   </MElement>
+                  </base-MElement>
+                  <name>UserExchangeManager</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{cd13868c-1ecd-4e2c-9fc8-cadab582af8f}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{cd13868c-1ecd-4e2c-9fc8-cadab582af8f}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{11b3b47a-1b89-43ff-b234-4b4421c99e23}</a>
+                             <b>{53a61e00-872f-4796-a0e2-65a5573b815f}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <cardinality>1..n</cardinality>
+                             <navigable>true</navigable>
+                             <kind>1</kind>
+                            </MAssociationEnd>
+                           </a>
+                           <b>
+                            <MAssociationEnd>
+                             <cardinality>1</cardinality>
+                            </MAssociationEnd>
+                           </b>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
                  </MObject>
                 </base-MObject>
                </MClass>

@@ -10,15 +10,15 @@ class AccountManagerPrivate {
 	SLOT(void removeDevice(const QUuid &deviceId)); //TODO emit accountDevices if removed from cached list
 	SLOT(void updateExchangeKey());
 	SLOT(void resetAccount(bool keepData));
-	SLOT(void exportAccount(quint32 id, bool includeServer));
-	SLOT(void exportAccountTrusted(quint32 id, bool includeServer, const QString &password));
+	SLOT(void exportAccount(const QUuid &id, bool includeServer));
+	SLOT(void exportAccountTrusted(const QUuid &id, bool includeServer, const QString &password));
 	SLOT(void importAccount(const QtDataSync::JsonObject &importData, bool keepData));
 	SLOT(void importAccountTrusted(const QtDataSync::JsonObject &importData, const QString &password, bool keepData));
 	SLOT(void replyToLogin(const QUuid &deviceId, bool accept));
 
 	SIGNAL(accountDevices(const QList<QtDataSync::DeviceInfo> &devices));
-	SIGNAL(accountExportReady(quint32 id, const QtDataSync::JsonObject &exportData));
-	SIGNAL(accountExportError(quint32 id, const QString &errorString));
+	SIGNAL(accountExportReady(const QUuid &id, const QtDataSync::JsonObject &exportData));
+	SIGNAL(accountExportError(const QUuid &id, const QString &errorString));
 	SIGNAL(accountImportResult(bool success, const QString &error));
 	SIGNAL(loginRequested(const QtDataSync::DeviceInfo &deviceInfo));
 	SIGNAL(importCompleted());

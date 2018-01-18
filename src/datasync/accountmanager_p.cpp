@@ -70,7 +70,7 @@ void AccountManagerPrivate::resetAccount(bool keepData)
 	_engine->resetAccount(keepData);
 }
 
-void AccountManagerPrivate::exportAccount(quint32 id, bool includeServer)
+void AccountManagerPrivate::exportAccount(const QUuid &id, bool includeServer)
 {
 	try {
 		auto data = _engine->remoteConnector()->exportAccount(includeServer, QString());
@@ -82,7 +82,7 @@ void AccountManagerPrivate::exportAccount(quint32 id, bool includeServer)
 	}
 }
 
-void AccountManagerPrivate::exportAccountTrusted(quint32 id, bool includeServer, const QString &password)
+void AccountManagerPrivate::exportAccountTrusted(const QUuid &id, bool includeServer, const QString &password)
 {
 	if(password.isEmpty()) {
 		emit accountExportError(id, tr("Password must not be empty."));

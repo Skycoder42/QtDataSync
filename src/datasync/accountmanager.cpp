@@ -34,8 +34,8 @@ public:
 	AccountManagerPrivateHolder(AccountManagerPrivateReplica *replica);
 
 	AccountManagerPrivateReplica *replica;
-	QHash<quint32, std::function<void(QJsonObject)>> exportActions;
-	QHash<quint32, std::function<void(QString)>> errorActions;
+	QHash<QUuid, std::function<void(QJsonObject)>> exportActions;
+	QHash<QUuid, std::function<void(QString)>> errorActions;
 	std::function<void(bool,QString)> importAction;
 };
 
@@ -105,12 +105,7 @@ void AccountManager::resetAccount(bool keepData)
 void AccountManager::exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
-
-	quint32 id;
-	do {
-		id = static_cast<quint32>(qrand());
-	} while(d->exportActions.contains(id));
-
+	auto id = QUuid::createUuid();
 	d->exportActions.insert(id, completedFn);
 	if(errorFn)
 		d->errorActions.insert(id, errorFn);
@@ -134,12 +129,7 @@ void AccountManager::exportAccountTrusted(bool includeServer, const QString &pas
 			errorFn(tr("Password must not be empty."));
 		return;
 	}
-
-	quint32 id;
-	do {
-		id = static_cast<quint32>(qrand());
-	} while(d->exportActions.contains(id));
-
+	auto id = QUuid::createUuid();
 	d->exportActions.insert(id, completedFn);
 	if(errorFn)
 		d->errorActions.insert(id, errorFn);
@@ -228,7 +218,7 @@ void AccountManager::resetDeviceName()
 	d->replica->setDeviceName(QString());
 }
 
-void AccountManager::accountExportReady(quint32 id, const QJsonObject &exportData)
+void AccountManager::accountExportReady(const QUuid &id, const QJsonObject &exportData)
 {
 	auto completeFn = d->exportActions.take(id);
 	if(completeFn)
@@ -236,7 +226,7 @@ void AccountManager::accountExportReady(quint32 id, const QJsonObject &exportDat
 	d->errorActions.remove(id);
 }
 
-void AccountManager::accountExportError(quint32 id, const QString &errorString)
+void AccountManager::accountExportError(const QUuid &id, const QString &errorString)
 {
 	auto errorFn = d->errorActions.take(id);
 	if(errorFn)

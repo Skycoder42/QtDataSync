@@ -127,8 +127,8 @@ Q_SIGNALS:
 	void lastErrorChanged(const QString &lastError);
 
 private Q_SLOTS:
-	void accountExportReady(quint32 id, const QJsonObject &exportData);
-	void accountExportError(quint32 id, const QString &errorString);
+	void accountExportReady(const QUuid &id, const QJsonObject &exportData);
+	void accountExportError(const QUuid &id, const QString &errorString);
 	void accountImportResult(bool success, const QString &error);
 	void loginRequestedImpl(const DeviceInfo &deviceInfo);
 
