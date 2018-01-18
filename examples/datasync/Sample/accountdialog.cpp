@@ -6,6 +6,8 @@
 #include <QInputDialog>
 #include <QMessageBox>
 
+#include "exchangedialog.h"
+
 AccountDialog::AccountDialog(const QString &setup, QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::AccountDialog),
@@ -193,4 +195,9 @@ void AccountDialog::on_pushButton_2_clicked()
 		} else
 			_manager->importAccount(data, fn);
 	}
+}
+
+void AccountDialog::on_exchangeButton_clicked()
+{
+	ExchangeDialog::exec(_manager, this);
 }

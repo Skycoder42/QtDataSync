@@ -39,6 +39,7 @@ public:
 	QUdpSocket *socket;
 	QTimer *timer;
 
+	bool allowReuseAddress;
 	QHash<UserInfo, quint8> devices;
 	QHash<UserInfo, QByteArray> exchangeData;
 };

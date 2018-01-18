@@ -157,6 +157,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="exchangeButton">
+       <property name="text">
+        <string>Network Exchange</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="5" column="0" colspan="2">

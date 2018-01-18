@@ -87,7 +87,7 @@ public Q_SLOTS:
 		return startExchange(QHostAddress::Any, port);
 	}
 	//! Start the exchange discovery on the specified address and port
-	bool startExchange(const QHostAddress &listenAddress, quint16 port = DataExchangePort, bool allowReuseAddress = false);
+	bool startExchange(const QHostAddress &listenAddress, quint16 port = DataExchangePort);
 	//! Stops the exchange discovery
 	void stopExchange();
 

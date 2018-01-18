@@ -4,6 +4,8 @@
 
 #include <QtCore/QPointer>
 
+#include <QtNetwork/QNetworkInterface>
+
 using namespace QtDataSync;
 
 #if QT_HAS_INCLUDE(<chrono>)
@@ -63,7 +65,7 @@ QList<UserInfo> UserExchangeManager::devices() const
 	return d->devices.keys();
 }
 
-bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint16 port, bool allowReuseAddress)
+bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint16 port)
 {
 	d->devices.clear();
 	d->exchangeData.clear();
@@ -73,16 +75,13 @@ bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint
 	if(d->socket->isOpen())
 		d->socket->close();
 
-	if(!d->socket->bind(listenAddress,
-						port,
-						allowReuseAddress ?
-							QAbstractSocket::ShareAddress :
-							QAbstractSocket::DontShareAddress)) {
+	if(!d->socket->bind(listenAddress, port)) {
 		return false;
 	}
 
 	d->timer->start();
 	emit activeChanged(true);
+	timeout();
 	return true;
 }
 
@@ -178,12 +177,26 @@ void UserExchangeManager::timeout()
 	Message::setupStream(stream);
 	stream << static_cast<qint32>(UserExchangeManagerPrivate::DeviceInfo)
 		   << d->manager->deviceName();
+
+	d->socket->writeDatagram(datagram, QHostAddress::Broadcast, d->socket->localPort());
 }
 
 void UserExchangeManager::readDatagram()
 {
 	while(d->socket->hasPendingDatagrams()) {
 		auto datagram = d->socket->receiveDatagram();
+
+		auto isSelf = false;
+		if(datagram.senderPort() == d->socket->localPort()) {
+			foreach(auto addr, QNetworkInterface::allAddresses()) {
+				if(addr.isEqual(datagram.senderAddress())) {
+					isSelf = true;
+					break;
+				}
+			}
+		}
+		if(isSelf)
+			continue;
 
 		QDataStream stream(datagram.data());
 		Message::setupStream(stream);
@@ -259,6 +272,7 @@ UserExchangeManagerPrivate::UserExchangeManagerPrivate(AccountManager *manager, 
 	manager(manager),
 	socket(new QUdpSocket(q_ptr)),
 	timer(new QTimer(q_ptr)),
+	allowReuseAddress(false),
 	devices(),
 	exchangeData()
 {}
