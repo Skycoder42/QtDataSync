@@ -71,7 +71,7 @@ bool App::start(const QString &serviceName)
 
 	auto configPath = findConfig();
 	if(configPath.isEmpty()) {
-		qCritical() << "Unable to find any configuration file. Set it explicitly via the QDSAPP_CONFIG environment variable";
+		qCritical() << "Unable to find any configuration file. Set it explicitly via the QDSAPP_CONFIG_FILE environment variable";
 		return false;
 	}
 

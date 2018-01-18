@@ -49,3 +49,60 @@ void SyncManagerPrivate::reconnect()
 {
 	_engine->remoteConnector()->reconnect();
 }
+
+void SyncManagerPrivate::runOnState(const QUuid &id, bool downloadOnly, bool triggerSync)
+{
+	auto state = syncState();
+	auto skipDOnly = false;
+
+	switch(state) {
+	case SyncManager::Error: //wont sync -> simply complete
+	case SyncManager::Disconnected:
+		emit stateReached(id, state);
+		break;
+	case SyncManager::Synchronized: //if wants sync -> trigger it, then...
+		if(triggerSync) {
+			synchronize();
+			skipDOnly = true; //fallthrough in the uploading state
+		} else {
+			emit stateReached(id, state);
+			break;
+		}
+		Q_FALLTHROUGH();
+	case SyncManager::Uploading: //if download only -> done
+		if(downloadOnly && !skipDOnly) {
+			emit stateReached(id, state);
+			break;
+		}
+		Q_FALLTHROUGH();
+	case SyncManager::Initializing: //conntect to react to result
+	case SyncManager::Downloading:
+	{
+		auto resObj = new QObject(this);
+		connect(this, &SyncManagerPrivate::syncStateChanged, resObj, [this, resObj, id, downloadOnly](SyncManager::SyncState state) {
+			switch (state) {
+			case SyncManager::Initializing: //do nothing
+			case SyncManager::Downloading:
+				break;
+			case SyncManager::Uploading: //download only -> done, else do nothing
+				if(!downloadOnly)
+					break;
+				Q_FALLTHROUGH();
+			case SyncManager::Synchronized: //done
+			case SyncManager::Error:
+			case SyncManager::Disconnected:
+				emit stateReached(id, state);
+				resObj->deleteLater();
+				break;
+			default:
+				Q_UNREACHABLE();
+				break;
+			}
+		});
+		break;
+	}
+	default:
+		Q_UNREACHABLE();
+		break;
+	}
+}

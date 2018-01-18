@@ -15,7 +15,6 @@
 
 class QRemoteObjectNode;
 class QRemoteObjectReplica;
-class AccountManagerPrivateReplica;
 
 namespace QtDataSync {
 

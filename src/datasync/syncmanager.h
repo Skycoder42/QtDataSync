@@ -4,16 +4,17 @@
 #include <functional>
 
 #include <QtCore/qobject.h>
+#include <QtCore/qscopedpointer.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
 
 class QRemoteObjectNode;
 class QRemoteObjectReplica;
-class SyncManagerPrivateReplica;
 
 namespace QtDataSync {
 
+class SyncManagerPrivateHolder;
 class Q_DATASYNC_EXPORT SyncManager : public QObject
 {
 	Q_OBJECT
@@ -37,6 +38,7 @@ public:
 	explicit SyncManager(QObject *parent = nullptr);
 	explicit SyncManager(const QString &setupName, QObject *parent = nullptr);
 	explicit SyncManager(QRemoteObjectNode *node, QObject *parent = nullptr);
+	~SyncManager();
 
 	QRemoteObjectReplica *replica() const;
 
@@ -60,8 +62,12 @@ Q_SIGNALS:
 	void syncProgressChanged(qreal syncProgress);
 	void lastErrorChanged(const QString &lastError);
 
+private Q_SLOTS:
+	void onInit();
+	void onStateReached(const QUuid &id, SyncState state);
+
 private:
-	SyncManagerPrivateReplica *d;
+	QScopedPointer<SyncManagerPrivateHolder> d;
 
 	void runImp(bool downloadOnly, bool triggerSync, const std::function<void(SyncState)> &resultFn);
 };

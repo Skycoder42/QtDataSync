@@ -4,6 +4,27 @@
 #include "setup_p.h"
 #include "exchangeengine_p.h"
 #include "defaults_p.h"
+
+#include <tuple>
+
+// ------------- Private classes Definition -------------
+
+namespace QtDataSync {
+
+class SyncManagerPrivateHolder
+{
+public:
+	SyncManagerPrivateHolder(SyncManagerPrivateReplica *replica);
+
+	SyncManagerPrivateReplica *replica;
+	QHash<QUuid, std::function<void(SyncManager::SyncState)>> syncActions;
+	QHash<QUuid, std::tuple<bool, bool>> initActions;
+};
+
+}
+
+// ------------- Implementation -------------
+
 using namespace QtDataSync;
 
 SyncManager::SyncManager(QObject *parent) :
@@ -16,57 +37,63 @@ SyncManager::SyncManager(const QString &setupName, QObject *parent) :
 
 SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent) :
 	QObject(parent),
-	d(node->acquire<SyncManagerPrivateReplica>())
+	d(new SyncManagerPrivateHolder(node->acquire<SyncManagerPrivateReplica>()))
 {
-	d->setParent(this);
-	connect(d, &SyncManagerPrivateReplica::syncEnabledChanged,
+	d->replica->setParent(this);
+	connect(d->replica, &SyncManagerPrivateReplica::syncEnabledChanged,
 			this, &SyncManager::syncEnabledChanged);
-	connect(d, &SyncManagerPrivateReplica::syncStateChanged,
+	connect(d->replica, &SyncManagerPrivateReplica::syncStateChanged,
 			this, &SyncManager::syncStateChanged);
-	connect(d, &SyncManagerPrivateReplica::syncProgressChanged,
+	connect(d->replica, &SyncManagerPrivateReplica::syncProgressChanged,
 			this, &SyncManager::syncProgressChanged);
-	connect(d, &SyncManagerPrivateReplica::lastErrorChanged,
+	connect(d->replica, &SyncManagerPrivateReplica::lastErrorChanged,
 			this, &SyncManager::lastErrorChanged);
+	connect(d->replica, &SyncManagerPrivateReplica::stateReached,
+			this, &SyncManager::onStateReached);
+	connect(d->replica, &SyncManagerPrivateReplica::initialized,
+			this, &SyncManager::onInit);
 }
+
+SyncManager::~SyncManager() {}
 
 QRemoteObjectReplica *SyncManager::replica() const
 {
-	return d;
+	return d->replica;
 }
 
 bool SyncManager::isSyncEnabled() const
 {
-	return d->syncEnabled();
+	return d->replica->syncEnabled();
 }
 
 SyncManager::SyncState SyncManager::syncState() const
 {
-	return d->syncState();
+	return d->replica->syncState();
 }
 
 qreal SyncManager::syncProgress() const
 {
-	return d->syncProgress();
+	return d->replica->syncProgress();
 }
 
 QString SyncManager::lastError() const
 {
-	return d->lastError();
+	return d->replica->lastError();
 }
 
 void SyncManager::setSyncEnabled(bool syncEnabled)
 {
-	d->pushSyncEnabled(syncEnabled);
+	d->replica->pushSyncEnabled(syncEnabled);
 }
 
 void SyncManager::synchronize()
 {
-	d->synchronize();
+	d->replica->synchronize();
 }
 
 void SyncManager::reconnect()
 {
-	d->reconnect();
+	d->replica->reconnect();
 }
 
 void SyncManager::runOnDownloaded(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
@@ -79,65 +106,38 @@ void SyncManager::runOnSynchronized(const std::function<void (SyncManager::SyncS
 	runImp(false, triggerSync, resultFn);
 }
 
+void SyncManager::onInit()
+{
+	for(auto it = d->initActions.constBegin(); it != d->initActions.constEnd(); it++)
+		d->replica->runOnState(it.key(), std::get<0>(*it), std::get<1>(*it));
+	d->initActions.clear();
+}
+
+void SyncManager::onStateReached(const QUuid &id, SyncManager::SyncState state)
+{
+	auto fn = d->syncActions.take(id);
+	if(fn)
+		fn(state);
+}
+
 void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::function<void (SyncManager::SyncState)> &resultFn)
 {
-	auto state = d->syncState();
-	auto skipDOnly = false;
-
-	//TODO move to engine in order to prevent "race conditions"?
-	//i.e. M says wait for synced and is in uploading, but E already synced ->
-	//leads to M seeing that synced as his, but is actually just beeing started
-	switch(state) {
-	case Error: //wont sync -> simply complete
-	case Disconnected:
-		resultFn(state);
-		break;
-	case Synchronized: //if wants sync -> trigger it, then...
-		if(triggerSync) {
-			d->synchronize();
-			skipDOnly = true; //fallthrough in the uploading state
-		} else {
-			resultFn(state);
-			break;
-		}
-		Q_FALLTHROUGH();
-	case Uploading: //if download only -> done
-		if(downloadOnly && !skipDOnly) {
-			resultFn(state);
-			break;
-		}
-		Q_FALLTHROUGH();
-	case Initializing: //conntect to react to result
-	case Downloading:
-	{
-		auto resObj = new QObject(this);
-		connect(d, &SyncManagerPrivateReplica::syncStateChanged, resObj, [resObj, resultFn, downloadOnly](SyncState state) {
-			switch (state) {
-			case Initializing: //do nothing
-			case Downloading:
-				break;
-			case Uploading: //download only -> done, else do nothing
-				if(!downloadOnly)
-					break;
-				Q_FALLTHROUGH();
-			case Synchronized: //done
-			case Error:
-			case Disconnected:
-				resultFn(state);
-				resObj->deleteLater();
-				break;
-			default:
-				Q_UNREACHABLE();
-				break;
-			}
-		});
-		break;
-	}
-	default:
-		Q_UNREACHABLE();
-		break;
-	}
+	Q_ASSERT_X(resultFn, Q_FUNC_INFO, "runOn resultFn must be a valid function");
+	auto id = QUuid::createUuid();
+	d->syncActions.insert(id, resultFn);
+	if(d->replica->isInitialized())
+		d->replica->runOnState(id, downloadOnly, triggerSync);
+	else
+		d->initActions.insert(id, std::make_tuple(downloadOnly, triggerSync));
 }
+
+
+
+SyncManagerPrivateHolder::SyncManagerPrivateHolder(SyncManagerPrivateReplica *replica) :
+	replica(replica),
+	syncActions(),
+	initActions()
+{}
 
 
 
