@@ -35,7 +35,8 @@ QThreadStorage<DatabaseController::DatabaseWrapper> DatabaseController::_threadS
 
 DatabaseController::DatabaseController(QObject *parent) :
 	QObject(parent),
-	_keepAliveTimer(nullptr)
+	_keepAliveTimer(nullptr),
+	_cleanupTimer(nullptr)
 {}
 
 void DatabaseController::initialize()
@@ -45,10 +46,12 @@ void DatabaseController::initialize()
 
 void DatabaseController::cleanupDevices()
 {
-	//TODO run periodically
-	auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"),
+	auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanupInterval"),
 														 90ull) //default interval of ca 3 months
 							.toULongLong();
+	if(offlineSinceDays == 0)
+		return;
+
 	QtConcurrent::run(qApp->threadPool(), [this, offlineSinceDays]() {
 		try {
 			auto db = _threadStore.localData().database();
@@ -638,9 +641,9 @@ void DatabaseController::dbInitDone(bool success)
 				qCritical() << "Unabled to notify to change events. Devices will not receive updates!";
 				success = false;
 			} else
-				qDebug() << "Event subscription active";
+				qInfo() << "Live sync enabled";
 		} else
-			qDebug() << "Running without live sync";
+			qInfo() << "Live sync disabled";
 	}
 
 	if(success) {
@@ -652,10 +655,26 @@ void DatabaseController::dbInitDone(bool success)
 			connect(_keepAliveTimer, &QTimer::timeout,
 					this, &DatabaseController::timeout);
 			_keepAliveTimer->start();
-			qDebug() << "Keepalives started";
+			qInfo() << "Keepalives enabled";
 		} else
-			qDebug() << "Running without keepalives";
+			qInfo() << "Keepalives disabled";
 	}
+
+	if(success) {
+		auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanupInterval"), 90ull)
+								.toULongLong();
+		if(offlineSinceDays > 0) {
+			_cleanupTimer = new QTimer(this);
+			_cleanupTimer->setInterval(scdtime(std::chrono::hours(24)));
+			_cleanupTimer->setTimerType(Qt::VeryCoarseTimer);
+			connect(_cleanupTimer, &QTimer::timeout,
+					this, &DatabaseController::cleanupDevices);
+			_cleanupTimer->start();
+			qInfo() << "Automatic cleanup enabled for" << offlineSinceDays << "day intervals";
+		} else
+			qInfo() << "Automatic cleanup disabled";
+	}
+
 	emit databaseInitDone(success);
 }
 

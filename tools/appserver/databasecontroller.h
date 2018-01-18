@@ -117,6 +117,7 @@ private:
 
 	static QThreadStorage<DatabaseWrapper> _threadStore; //must be static
 	QTimer *_keepAliveTimer;
+	QTimer *_cleanupTimer;
 
 	void initDatabase();
 };
