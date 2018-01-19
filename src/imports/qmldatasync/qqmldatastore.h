@@ -16,6 +16,7 @@ class QQmlDataStore : public QObject, public QQmlParserStatus
 	Q_INTERFACES(QQmlParserStatus)
 
 	Q_PROPERTY(QString setupName READ setupName WRITE setSetupName NOTIFY setupNameChanged)
+	Q_PROPERTY(bool valid READ valid NOTIFY validChanged)
 
 public:
 	explicit QQmlDataStore(QObject *parent = nullptr);
@@ -24,12 +25,14 @@ public:
 	void componentComplete() override;
 
 	QString setupName() const;
+	bool valid() const;
 
-public slots:
+public Q_SLOTS:
 	void setSetupName(QString setupName);
 
-signals:
+Q_SIGNALS:
 	void setupNameChanged(QString setupName);
+	void validChanged(bool valid);
 
 private:
 	DataStore *_store;

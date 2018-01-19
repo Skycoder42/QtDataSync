@@ -14,6 +14,7 @@ void QQmlDataStore::componentComplete()
 {
 	try {
 		_store = new DataStore(_setupName, this);
+		emit validChanged(true);
 	} catch(Exception &e) {
 		qCritical("%s", e.what());//TODO as error property
 	}
@@ -22,6 +23,11 @@ void QQmlDataStore::componentComplete()
 QString QQmlDataStore::setupName() const
 {
 	return _setupName;
+}
+
+bool QQmlDataStore::valid() const
+{
+	return _store;;
 }
 
 void QQmlDataStore::setSetupName(QString setupName)
