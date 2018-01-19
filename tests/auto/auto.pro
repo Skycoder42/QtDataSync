@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
 
 SUBDIRS += cmake \
-    datasync
+    datasync \
+    qml

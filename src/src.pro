@@ -3,7 +3,8 @@ CONFIG += ordered
 
 SUBDIRS += \
 	datasync \
-    plugins
+    plugins \
+    imports
 
 docTarget.target = doxygen
 QMAKE_EXTRA_TARGETS += docTarget
