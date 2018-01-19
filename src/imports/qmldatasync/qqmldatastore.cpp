@@ -16,7 +16,7 @@ void QQmlDataStore::componentComplete()
 		_store = new DataStore(_setupName, this);
 		emit validChanged(true);
 	} catch(Exception &e) {
-		qCritical("%s", e.what());//TODO as error property
+		qCritical("qml: %s", e.what());//TODO as error property
 	}
 }
 

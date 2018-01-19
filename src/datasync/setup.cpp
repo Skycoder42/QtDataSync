@@ -399,7 +399,7 @@ void Setup::create(const QString &name)
 	//determine the ro address
 	if(!d->roAddress.isValid()) {
 		d->roAddress.clear();
-		d->roAddress.setScheme(ThreadedServer::UrlScheme);
+		d->roAddress.setScheme(ThreadedServer::UrlScheme());
 		d->roAddress.setPath(QStringLiteral("/qtdatasync/%2/enginenode").arg(name));
 	}
 

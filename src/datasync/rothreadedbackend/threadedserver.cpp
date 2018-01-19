@@ -1,13 +1,18 @@
 #include "threadedserver_p.h"
 using namespace QtDataSync;
 
-const QString ThreadedServer::UrlScheme(QStringLiteral("threaded"));
 QMutex ThreadedServer::_lock;
 QHash<QString, ThreadedServer*> ThreadedServer::_servers;
 
+const QString ThreadedServer::UrlScheme()
+{
+	static const QString urlScheme(QStringLiteral("threaded"));
+	return urlScheme;
+}
+
 bool ThreadedServer::connectTo(const QUrl &url, ExchangeBuffer *clientBuffer)
 {
-	if(url.scheme() != UrlScheme || !url.isValid()) {
+	if(url.scheme() != UrlScheme() || !url.isValid()) {
 		qCCritical(rothreadedbackend).noquote() << "Unsupported URL-Scheme:" << url.scheme();
 		return false;
 	}
@@ -52,7 +57,7 @@ bool ThreadedServer::listen(const QUrl &address)
 		return false;
 	}
 
-	if(address.scheme() != UrlScheme || !address.isValid()) {
+	if(address.scheme() != UrlScheme() || !address.isValid()) {
 		_lastError = QAbstractSocket::SocketAddressNotAvailableError;
 		return false;
 	} else {

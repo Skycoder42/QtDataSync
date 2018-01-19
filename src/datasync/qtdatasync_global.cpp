@@ -16,8 +16,9 @@ static void setupQtDataSync()
 	qRegisterMetaType<QtDataSync::ChangeController::ChangeInfo>();
 	qRegisterMetaTypeStreamOperators<QtDataSync::ObjectKey>();
 
-	qRegisterRemoteObjectsServer<QtDataSync::ThreadedServer>(QtDataSync::ThreadedServer::UrlScheme);
-	qRegisterRemoteObjectsClient<QtDataSync::ThreadedClientIoDevice>(QtDataSync::ThreadedServer::UrlScheme);
+	qWarning() << QtDataSync::ThreadedServer::UrlScheme();
+	qRegisterRemoteObjectsServer<QtDataSync::ThreadedServer>(QtDataSync::ThreadedServer::UrlScheme());
+	qRegisterRemoteObjectsClient<QtDataSync::ThreadedClientIoDevice>(QtDataSync::ThreadedServer::UrlScheme());
 
 	QtDataSync::Message::registerTypes();
 }

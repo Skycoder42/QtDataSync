@@ -33,7 +33,7 @@ class Q_DATASYNC_EXPORT ThreadedServer : public QConnectionAbstractServer
 	Q_OBJECT
 
 public:
-	static const QString UrlScheme;
+	static const QString UrlScheme();
 
 	static bool connectTo(const QUrl &url, ExchangeBuffer *clientBuffer);
 
