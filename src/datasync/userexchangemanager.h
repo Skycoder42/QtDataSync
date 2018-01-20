@@ -81,6 +81,18 @@ public:
 	//! @readAcFn{UserInfo::users}
 	QList<UserInfo> devices() const;
 
+	//! Sends the user identity of the setup to the given user
+	Q_INVOKABLE void exportTo(const QtDataSync::UserInfo &userInfo, bool includeServer);
+	Q_INVOKABLE void exportTrustedTo(const QtDataSync::UserInfo &userInfo, bool includeServer, const QString &password);
+	//! Imports the user identity, previously received by the given user
+	void importFrom(const QtDataSync::UserInfo &userInfo,
+					const std::function<void(bool,QString)> &completedFn,
+					bool keepData = false);
+	void importTrustedFrom(const QtDataSync::UserInfo &userInfo,
+						   const QString &password,
+						   const std::function<void(bool,QString)> &completedFn,
+						   bool keepData = false);
+
 public Q_SLOTS:
 	//! Start the exchange discovery on the specified port
 	inline bool startExchange(quint16 port = DataExchangePort) {
@@ -91,18 +103,6 @@ public Q_SLOTS:
 	//! Stops the exchange discovery
 	void stopExchange();
 
-	//! Sends the user identity of the setup to the given user
-	void exportTo(const QtDataSync::UserInfo &userInfo, bool includeServer);
-	void exportTrustedTo(const QtDataSync::UserInfo &userInfo, bool includeServer, const QString &password);
-	//! Imports the user identity, previously received by the given user
-	void importFrom(const QtDataSync::UserInfo &userInfo,
-					const std::function<void(bool,QString)> &completedFn,
-					bool keepData = false);
-	void importTrustedFrom(const QtDataSync::UserInfo &userInfo,
-						   const QString &password,
-						   const std::function<void(bool,QString)> &completedFn,
-						   bool keepData = false);
-
 Q_SIGNALS:
 	//! Is emitted, when a user identity was received from the given user
 	void userDataReceived(const QtDataSync::UserInfo &userInfo, bool trusted);
@@ -112,6 +112,10 @@ Q_SIGNALS:
 	void activeChanged(bool active);
 	//! @notifyAcFn{UserInfo::users}
 	void devicesChanged(QList<QtDataSync::UserInfo> devices);
+
+protected:
+	UserExchangeManager(QObject *parent, void*);
+	void initManager(AccountManager *manager);
 
 private Q_SLOTS:
 	void timeout();

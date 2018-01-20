@@ -7,13 +7,15 @@ HEADERS +=  qmldatasync_plugin.h \
 	qqmldatastore.h \
     qqmlsyncmanager.h \
     qqmlaccountmanager.h \
-    qqmldatastoremodel.h
+    qqmldatastoremodel.h \
+    qqmluserexchangemanager.h
 
 SOURCES +=  qmldatasync_plugin.cpp \
 	qqmldatastore.cpp \
     qqmlsyncmanager.cpp \
     qqmlaccountmanager.cpp \
-    qqmldatastoremodel.cpp
+    qqmldatastoremodel.cpp \
+    qqmluserexchangemanager.cpp
 
 OTHER_FILES += qmldir
 

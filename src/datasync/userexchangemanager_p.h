@@ -33,7 +33,7 @@ public:
 		DeviceDataTrusted
 	};
 
-	UserExchangeManagerPrivate(AccountManager *manager, UserExchangeManager *q_ptr);
+	UserExchangeManagerPrivate(UserExchangeManager *q_ptr);
 
 	AccountManager *manager;
 	QUdpSocket *socket;

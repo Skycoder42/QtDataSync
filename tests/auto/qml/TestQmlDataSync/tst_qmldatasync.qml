@@ -29,12 +29,23 @@ Item {
 			id: accountManager
 		}
 
+		UserExchangeManager {
+			id: exchangeManager1
+		}
+
+		UserExchangeManager {
+			id: exchangeManager2
+			manager: accountManager
+		}
+
 		function test_valid() {
 			verify(store.valid);
 			verify(storeModel1.valid);
 			verify(storeModel2.valid);
 			verify(syncManager.valid);
 			verify(accountManager.valid);
+			verify(exchangeManager1.valid);
+			verify(exchangeManager2.valid);
 		}
 	}
 

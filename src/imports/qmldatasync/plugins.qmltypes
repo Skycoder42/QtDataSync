@@ -378,6 +378,60 @@ Module {
         }
     }
     Component {
+        name: "QtDataSync::QQmlUserExchangeManager"
+        prototype: "QtDataSync::UserExchangeManager"
+        exports: ["de.skycoder42.QtDataSync/UserExchangeManager 1.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "DataExchangePort"; type: "ushort"; isReadonly: true }
+        Property { name: "setupName"; type: "string" }
+        Property { name: "manager"; type: "QQmlAccountManager"; isPointer: true }
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+        Signal {
+            name: "setupNameChanged"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Signal {
+            name: "managerChanged"
+            Parameter { name: "manager"; type: "QQmlAccountManager"; isPointer: true }
+        }
+        Signal {
+            name: "validChanged"
+            Parameter { name: "valid"; type: "bool" }
+        }
+        Method {
+            name: "setSetupName"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Method {
+            name: "setManager"
+            Parameter { name: "manager"; type: "QQmlAccountManager"; isPointer: true }
+        }
+        Method {
+            name: "importFrom"
+            Parameter { name: "userInfo"; type: "QtDataSync::UserInfo" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+            Parameter { name: "keepData"; type: "bool" }
+        }
+        Method {
+            name: "importFrom"
+            Parameter { name: "userInfo"; type: "QtDataSync::UserInfo" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+        }
+        Method {
+            name: "importTrustedFrom"
+            Parameter { name: "userInfo"; type: "QtDataSync::UserInfo" }
+            Parameter { name: "password"; type: "string" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+            Parameter { name: "keepData"; type: "bool" }
+        }
+        Method {
+            name: "importTrustedFrom"
+            Parameter { name: "userInfo"; type: "QtDataSync::UserInfo" }
+            Parameter { name: "password"; type: "string" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+        }
+    }
+    Component {
         name: "QtDataSync::SyncManager"
         prototype: "QObject"
         Enum {
@@ -418,5 +472,66 @@ Module {
         Method { name: "synchronize" }
         Method { name: "reconnect" }
         Method { name: "replica"; type: "QRemoteObjectReplica*" }
+    }
+    Component {
+        name: "QtDataSync::UserExchangeManager"
+        prototype: "QObject"
+        Property { name: "active"; type: "bool"; isReadonly: true }
+        Property { name: "devices"; type: "QList<QtDataSync::UserInfo>"; isReadonly: true }
+        Signal {
+            name: "userDataReceived"
+            Parameter { name: "userInfo"; type: "QtDataSync::UserInfo" }
+            Parameter { name: "trusted"; type: "bool" }
+        }
+        Signal {
+            name: "exchangeError"
+            Parameter { name: "errorString"; type: "string" }
+        }
+        Signal {
+            name: "activeChanged"
+            Parameter { name: "active"; type: "bool" }
+        }
+        Signal {
+            name: "devicesChanged"
+            Parameter { name: "devices"; type: "QList<QtDataSync::UserInfo>" }
+        }
+        Method {
+            name: "startExchange"
+            type: "bool"
+            Parameter { name: "port"; type: "ushort" }
+        }
+        Method { name: "startExchange"; type: "bool" }
+        Method {
+            name: "startExchange"
+            type: "bool"
+            Parameter { name: "listenAddress"; type: "QHostAddress" }
+            Parameter { name: "port"; type: "ushort" }
+        }
+        Method {
+            name: "startExchange"
+            type: "bool"
+            Parameter { name: "listenAddress"; type: "QHostAddress" }
+        }
+        Method { name: "stopExchange" }
+        Method {
+            name: "exportTo"
+            Parameter { name: "userInfo"; type: "QtDataSync::UserInfo" }
+            Parameter { name: "includeServer"; type: "bool" }
+        }
+        Method {
+            name: "exportTrustedTo"
+            Parameter { name: "userInfo"; type: "QtDataSync::UserInfo" }
+            Parameter { name: "includeServer"; type: "bool" }
+            Parameter { name: "password"; type: "string" }
+        }
+    }
+    Component {
+        name: "QtDataSync::UserInfo"
+        exports: ["de.skycoder42.QtDataSync/UserInfo 1.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [0]
+        Property { name: "name"; type: "string"; isReadonly: true }
+        Property { name: "address"; type: "QHostAddress"; isReadonly: true }
+        Property { name: "port"; type: "ushort"; isReadonly: true }
     }
 }

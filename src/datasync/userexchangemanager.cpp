@@ -21,15 +21,28 @@ UserExchangeManager::UserExchangeManager(QObject *parent) :
 {}
 
 UserExchangeManager::UserExchangeManager(const QString &setupName, QObject *parent) :
-	UserExchangeManager(new AccountManager(setupName), parent)
+	QObject(parent),
+	d(new UserExchangeManagerPrivate(this))
 {
+	initManager(new AccountManager(setupName, this));
 	d->manager->setParent(this);
 }
 
 UserExchangeManager::UserExchangeManager(AccountManager *manager, QObject *parent) :
 	QObject(parent),
-	d(new UserExchangeManagerPrivate(manager, this))
+	d(new UserExchangeManagerPrivate(this))
 {
+	initManager(manager);
+}
+
+UserExchangeManager::UserExchangeManager(QObject *parent, void *) :
+	QObject(parent),
+	d(new UserExchangeManagerPrivate(this))
+{} //No init
+
+void UserExchangeManager::initManager(AccountManager *manager)
+{
+	d->manager = manager;
 	d->timer->setInterval(scdtime(std::chrono::seconds(2)));
 	d->timer->setTimerType(Qt::VeryCoarseTimer);
 	connect(d->timer, &QTimer::timeout,
@@ -268,8 +281,8 @@ void UserExchangeManager::readDatagram()
 
 
 
-UserExchangeManagerPrivate::UserExchangeManagerPrivate(AccountManager *manager, UserExchangeManager *q_ptr) :
-	manager(manager),
+UserExchangeManagerPrivate::UserExchangeManagerPrivate(UserExchangeManager *q_ptr) :
+	manager(nullptr),
 	socket(new QUdpSocket(q_ptr)),
 	timer(new QTimer(q_ptr)),
 	allowReuseAddress(false),
