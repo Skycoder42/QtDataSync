@@ -30,10 +30,10 @@ HEADERS += qtdatasync_global.h \
 	synccontroller_p.h \
 	conflictresolver.h \
 	conflictresolver_p.h \
-    accountmanager.h \
-    accountmanager_p.h \
-    userexchangemanager.h \
-    userexchangemanager_p.h
+	accountmanager.h \
+	accountmanager_p.h \
+	userexchangemanager.h \
+	userexchangemanager_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -57,9 +57,9 @@ SOURCES += \
 	synccontroller.cpp \
 	conflictresolver.cpp \
 	syncmanager_p.cpp \
-    accountmanager.cpp \
-    accountmanager_p.cpp \
-    userexchangemanager.cpp
+	accountmanager.cpp \
+	accountmanager_p.cpp \
+	userexchangemanager.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
@@ -72,7 +72,6 @@ REPC_REPLICA += $$REPC_SOURCE
 include(rothreadedbackend/rothreadedbackend.pri)
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)
-include(../3rdparty/cryptoqq/cryptoqq.pri) #TODO qpmx
 
 MODULE_PLUGIN_TYPES = keystores
 
