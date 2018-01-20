@@ -8,7 +8,8 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qiodevice.h>
-#include <QtCore/qscopedpointer.h>
+#include <QtCore/qsharedpointer.h>
+#include <QtCore/qsharedpointer.h>
 #include <QtCore/qjsonobject.h>
 
 #include "qtdatasync_global.h"
@@ -53,20 +54,24 @@ private:
 class LoginRequestPrivate;
 class Q_DATASYNC_EXPORT LoginRequest
 {
+	Q_GADGET
 	friend class AccountManager;
 
+	Q_PROPERTY(QtDataSync::DeviceInfo device READ device CONSTANT)
+	Q_PROPERTY(bool handled READ handled CONSTANT)
+
 public:
-	LoginRequest(LoginRequestPrivate *d_ptr);
+	LoginRequest(LoginRequestPrivate *d_ptr = nullptr);
 	~LoginRequest();
 
 	DeviceInfo device() const;
 	bool handled() const;
 
-	void accept();
-	void reject();
+	Q_INVOKABLE void accept();
+	Q_INVOKABLE void reject();
 
 private:
-	QScopedPointer<LoginRequestPrivate> d;
+	QSharedPointer<LoginRequestPrivate> d;
 };
 
 class AccountManagerPrivateHolder;
@@ -84,12 +89,12 @@ public:
 	explicit AccountManager(QRemoteObjectNode *node, QObject *parent = nullptr);
 	~AccountManager();
 
-	QRemoteObjectReplica *replica() const;
+	Q_INVOKABLE QRemoteObjectReplica *replica() const;
 
 	static bool isTrustedImport(const QJsonObject &importData);
 	static bool isTrustedImport(const QByteArray &importData);
 
-	void resetAccount(bool keepData = true);
+	Q_INVOKABLE void resetAccount(bool keepData = true);
 	void exportAccount(bool includeServer, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn = {});
 	void exportAccount(bool includeServer, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn = {});
 	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QJsonObject)> &completedFn, const std::function<void(QString)> &errorFn = {});
@@ -106,7 +111,7 @@ public:
 public Q_SLOTS:
 	void listDevices();
 	void removeDevice(const QUuid &deviceId);
-	inline void removeDevice(const DeviceInfo &deviceInfo) {
+	inline void removeDevice(const QtDataSync::DeviceInfo &deviceInfo) {
 		removeDevice(deviceInfo.deviceId());
 	}
 
@@ -117,13 +122,18 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices);
-	void loginRequested(LoginRequest *request);
+	void loginRequested(LoginRequest request);
 	void importAccepted();
 	void accountAccessGranted(const QUuid &deviceId);
 
 	void deviceNameChanged(const QString &deviceName);
 	void deviceFingerprintChanged(const QByteArray &deviceFingerprint);
 	void lastErrorChanged(const QString &lastError);
+
+protected:
+	AccountManager(QObject *parent, void *);
+	void initReplica(const QString &setupName);
+	void initReplica(QRemoteObjectNode *node);
 
 private Q_SLOTS:
 	void accountExportReady(const QUuid &id, const QJsonObject &exportData);
@@ -153,5 +163,6 @@ QDataStream &operator>>(QDataStream &in, JsonObject &data);
 
 Q_DECLARE_METATYPE(QtDataSync::JsonObject)
 Q_DECLARE_METATYPE(QtDataSync::DeviceInfo)
+Q_DECLARE_METATYPE(QtDataSync::LoginRequest)
 
 #endif // ACCOUNTMANAGER_H

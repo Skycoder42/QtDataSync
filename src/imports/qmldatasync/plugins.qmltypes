@@ -9,6 +9,59 @@ import QtQuick.tooling 1.2
 Module {
     dependencies: ["QtQuick 2.8"]
     Component {
+        name: "QtDataSync::AccountManager"
+        prototype: "QObject"
+        Property { name: "deviceName"; type: "string" }
+        Property { name: "deviceFingerprint"; type: "QByteArray"; isReadonly: true }
+        Property { name: "lastError"; type: "string"; isReadonly: true }
+        Signal {
+            name: "accountDevices"
+            Parameter { name: "devices"; type: "QList<QtDataSync::DeviceInfo>" }
+        }
+        Signal {
+            name: "loginRequested"
+            Parameter { name: "request"; type: "LoginRequest" }
+        }
+        Signal { name: "importAccepted" }
+        Signal {
+            name: "accountAccessGranted"
+            Parameter { name: "deviceId"; type: "QUuid" }
+        }
+        Signal {
+            name: "deviceNameChanged"
+            Parameter { name: "deviceName"; type: "string" }
+        }
+        Signal {
+            name: "deviceFingerprintChanged"
+            Parameter { name: "deviceFingerprint"; type: "QByteArray" }
+        }
+        Signal {
+            name: "lastErrorChanged"
+            Parameter { name: "lastError"; type: "string" }
+        }
+        Method { name: "listDevices" }
+        Method {
+            name: "removeDevice"
+            Parameter { name: "deviceId"; type: "QUuid" }
+        }
+        Method {
+            name: "removeDevice"
+            Parameter { name: "deviceInfo"; type: "QtDataSync::DeviceInfo" }
+        }
+        Method { name: "updateExchangeKey" }
+        Method {
+            name: "setDeviceName"
+            Parameter { name: "deviceName"; type: "string" }
+        }
+        Method { name: "resetDeviceName" }
+        Method { name: "replica"; type: "QRemoteObjectReplica*" }
+        Method {
+            name: "resetAccount"
+            Parameter { name: "keepData"; type: "bool" }
+        }
+        Method { name: "resetAccount" }
+    }
+    Component {
         name: "QtDataSync::DataStore"
         prototype: "QObject"
         Property { name: "cacheSize"; type: "int" }
@@ -28,6 +81,107 @@ Module {
             Parameter { name: "cacheSize"; type: "int" }
         }
         Method { name: "resetCacheSize" }
+    }
+    Component {
+        name: "QtDataSync::DeviceInfo"
+        exports: ["de.skycoder42.QtDataSync/DeviceInfo 1.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [0]
+        Property { name: "deviceId"; type: "QUuid" }
+        Property { name: "name"; type: "string" }
+        Property { name: "fingerprint"; type: "QByteArray" }
+    }
+    Component {
+        name: "QtDataSync::LoginRequest"
+        exports: ["de.skycoder42.QtDataSync/LoginRequest 1.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [0]
+        Property { name: "device"; type: "QtDataSync::DeviceInfo"; isReadonly: true }
+        Property { name: "handled"; type: "bool"; isReadonly: true }
+        Method { name: "accept" }
+        Method { name: "reject" }
+    }
+    Component {
+        name: "QtDataSync::QQmlAccountManager"
+        prototype: "QtDataSync::AccountManager"
+        exports: ["de.skycoder42.QtDataSync/AccountManager 1.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "setupName"; type: "string" }
+        Property { name: "node"; type: "QRemoteObjectNode"; isPointer: true }
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+        Signal {
+            name: "setupNameChanged"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Signal {
+            name: "nodeChanged"
+            Parameter { name: "node"; type: "QRemoteObjectNode"; isPointer: true }
+        }
+        Signal {
+            name: "validChanged"
+            Parameter { name: "valid"; type: "bool" }
+        }
+        Method {
+            name: "setSetupName"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Method {
+            name: "setNode"
+            Parameter { name: "node"; type: "QRemoteObjectNode"; isPointer: true }
+        }
+        Method {
+            name: "isTrustedImport"
+            type: "bool"
+            Parameter { name: "importData"; type: "QJsonObject" }
+        }
+        Method {
+            name: "exportAccount"
+            Parameter { name: "includeServer"; type: "bool" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+            Parameter { name: "errorFn"; type: "QJSValue" }
+        }
+        Method {
+            name: "exportAccount"
+            Parameter { name: "includeServer"; type: "bool" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+        }
+        Method {
+            name: "exportAccountTrusted"
+            Parameter { name: "includeServer"; type: "bool" }
+            Parameter { name: "password"; type: "string" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+            Parameter { name: "errorFn"; type: "QJSValue" }
+        }
+        Method {
+            name: "exportAccountTrusted"
+            Parameter { name: "includeServer"; type: "bool" }
+            Parameter { name: "password"; type: "string" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+        }
+        Method {
+            name: "importAccount"
+            Parameter { name: "importData"; type: "QJsonObject" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+            Parameter { name: "keepData"; type: "bool" }
+        }
+        Method {
+            name: "importAccount"
+            Parameter { name: "importData"; type: "QJsonObject" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+        }
+        Method {
+            name: "importAccountTrusted"
+            Parameter { name: "importData"; type: "QJsonObject" }
+            Parameter { name: "password"; type: "string" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+            Parameter { name: "keepData"; type: "bool" }
+        }
+        Method {
+            name: "importAccountTrusted"
+            Parameter { name: "importData"; type: "QJsonObject" }
+            Parameter { name: "password"; type: "string" }
+            Parameter { name: "completedFn"; type: "QJSValue" }
+        }
     }
     Component {
         name: "QtDataSync::QQmlDataStore"

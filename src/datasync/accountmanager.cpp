@@ -22,16 +22,17 @@ public:
 class LoginRequestPrivate
 {
 public:
-	LoginRequestPrivate(const DeviceInfo &deviceInfo);
+	LoginRequestPrivate(const DeviceInfo &deviceInfo, AccountManagerPrivateReplica *replica);
 	DeviceInfo device;
 	bool acted;
-	bool accepted;
+
+	QPointer<AccountManagerPrivateReplica> replica;
 };
 
 class AccountManagerPrivateHolder
 {
 public:
-	AccountManagerPrivateHolder(AccountManagerPrivateReplica *replica);
+	AccountManagerPrivateHolder();
 
 	AccountManagerPrivateReplica *replica;
 	QHash<QUuid, std::function<void(QJsonObject)>> exportActions;
@@ -50,13 +51,32 @@ AccountManager::AccountManager(QObject *parent) :
 {}
 
 AccountManager::AccountManager(const QString &setupName, QObject *parent) :
-	AccountManager(Defaults(DefaultsPrivate::obtainDefaults(setupName)).remoteNode(), parent)
-{}
+	QObject(parent),
+	d(new AccountManagerPrivateHolder())
+{
+	initReplica(setupName);
+}
 
 AccountManager::AccountManager(QRemoteObjectNode *node, QObject *parent) :
 	QObject(parent),
-	d(new AccountManagerPrivateHolder(node->acquire<AccountManagerPrivateReplica>()))
+	d(new AccountManagerPrivateHolder())
 {
+	initReplica(node);
+}
+
+AccountManager::AccountManager(QObject *parent, void *) :
+	QObject(parent),
+	d(new AccountManagerPrivateHolder())
+{} //No init
+
+void AccountManager::initReplica(const QString &setupName)
+{
+	initReplica(Defaults(DefaultsPrivate::obtainDefaults(setupName)).remoteNode());
+}
+
+void AccountManager::initReplica(QRemoteObjectNode *node)
+{
+	d->replica = node->acquire<AccountManagerPrivateReplica>();
 	d->replica->setParent(this);
 	connect(d->replica, &AccountManagerPrivateReplica::deviceNameChanged,
 			this, &AccountManager::deviceNameChanged);
@@ -244,16 +264,13 @@ void AccountManager::accountImportResult(bool success, const QString &error)
 
 void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
 {
-	LoginRequest request(new LoginRequestPrivate(deviceInfo));
-	emit loginRequested(&request);
-	if(request.d->acted) //if any slot connected actually did something
-		d->replica->replyToLogin(deviceInfo.deviceId(), request.d->accepted);
+	emit loginRequested(new LoginRequestPrivate(deviceInfo, d->replica));
 }
 
 
 
-AccountManagerPrivateHolder::AccountManagerPrivateHolder(AccountManagerPrivateReplica *replica) :
-	replica(replica),
+AccountManagerPrivateHolder::AccountManagerPrivateHolder() :
+	replica(nullptr),
 	exportActions(),
 	errorActions(),
 	importAction()
@@ -279,22 +296,30 @@ bool LoginRequest::handled() const
 
 void LoginRequest::accept()
 {
+	if(d->acted)
+		return;
+
 	d->acted = true;
-	d->accepted = true;
+	if(d->replica)
+		d->replica->replyToLogin(d->device.deviceId(), true);
 }
 
 void LoginRequest::reject()
 {
+	if(d->acted)
+		return;
+
 	d->acted = true;
-	d->accepted = false;
+	if(d->replica)
+		d->replica->replyToLogin(d->device.deviceId(), false);
 }
 
 
 
-LoginRequestPrivate::LoginRequestPrivate(const DeviceInfo &deviceInfo) :
+LoginRequestPrivate::LoginRequestPrivate(const DeviceInfo &deviceInfo, AccountManagerPrivateReplica *replica) :
 	device(deviceInfo),
 	acted(false),
-	accepted(false)
+	replica(replica)
 {}
 
 // ------------- DeviceInfo Implementation -------------

@@ -22,7 +22,7 @@ public:
 
 private Q_SLOTS:
 	void updateDevices(const QList<QtDataSync::DeviceInfo> &devices);
-	void login(QtDataSync::LoginRequest * const request);
+	void login(QtDataSync::LoginRequest request);
 	void importDone();
 	void engineError(const QString &error);
 

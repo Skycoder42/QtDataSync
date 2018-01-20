@@ -16,9 +16,14 @@ Item {
 			id: syncManager
 		}
 
+		AccountManager {
+			id: accountManager
+		}
+
 		function test_valid() {
 			verify(store.valid);
 			verify(syncManager.valid);
+			verify(accountManager.valid);
 		}
 	}
 

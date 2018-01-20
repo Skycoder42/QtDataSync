@@ -90,9 +90,9 @@ void AccountDialog::engineError(const QString &error)
 		QMessageBox::critical(this, tr("Engine Error"), error);
 }
 
-void AccountDialog::login(QtDataSync::LoginRequest *request)
+void AccountDialog::login(QtDataSync::LoginRequest request)
 {
-	if(request->handled())
+	if(request.handled())
 		return;
 	if(QMessageBox::question(this,
 							 tr("Login requested"),
@@ -100,12 +100,12 @@ void AccountDialog::login(QtDataSync::LoginRequest *request)
 								"Name: %1<br/>"
 								"Fingerprint: %2</p>"
 								"Do you want accept the request?")
-							 .arg(request->device().name())
-							 .arg(printFingerprint(request->device().fingerprint())))
+							 .arg(request.device().name())
+							 .arg(printFingerprint(request.device().fingerprint())))
 	   == QMessageBox::Yes)
-		request->accept();
+		request.accept();
 	else
-		request->reject();
+		request.reject();
 }
 
 QString AccountDialog::printFingerprint(const QByteArray &fingerprint)

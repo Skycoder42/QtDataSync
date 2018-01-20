@@ -8,7 +8,6 @@
 #include <QtCore/quuid.h>
 
 #include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/exception.h"
 
 class QRemoteObjectNode;
 class QRemoteObjectReplica;

@@ -1,7 +1,7 @@
 #include "qqmlsyncmanager.h"
 #include <QtQml>
-
 #include <QtRemoteObjects/QRemoteObjectNode>
+#include <QtDataSync/exception.h>
 
 using namespace QtDataSync;
 
