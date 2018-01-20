@@ -83,6 +83,48 @@ Module {
         Method { name: "resetCacheSize" }
     }
     Component {
+        name: "QtDataSync::DataStoreModel"
+        prototype: "QAbstractListModel"
+        Property { name: "typeId"; type: "int" }
+        Property { name: "editable"; type: "bool" }
+        Signal {
+            name: "storeError"
+            Parameter { name: "exception"; type: "QException" }
+        }
+        Signal {
+            name: "editableChanged"
+            Parameter { name: "editable"; type: "bool" }
+        }
+        Method {
+            name: "setTypeId"
+            Parameter { name: "typeId"; type: "int" }
+        }
+        Method {
+            name: "setEditable"
+            Parameter { name: "editable"; type: "bool" }
+        }
+        Method {
+            name: "idIndex"
+            type: "QModelIndex"
+            Parameter { name: "id"; type: "string" }
+        }
+        Method {
+            name: "key"
+            type: "string"
+            Parameter { name: "index"; type: "QModelIndex" }
+        }
+        Method {
+            name: "object"
+            type: "QVariant"
+            Parameter { name: "index"; type: "QModelIndex" }
+        }
+        Method {
+            name: "loadObject"
+            type: "QVariant"
+            Parameter { name: "index"; type: "QModelIndex" }
+        }
+    }
+    Component {
         name: "QtDataSync::DeviceInfo"
         exports: ["de.skycoder42.QtDataSync/DeviceInfo 1.0"]
         isCreatable: false
@@ -248,6 +290,44 @@ Module {
             name: "typeName"
             type: "string"
             Parameter { name: "typeId"; type: "int" }
+        }
+    }
+    Component {
+        name: "QtDataSync::QQmlDataStoreModel"
+        prototype: "QtDataSync::DataStoreModel"
+        exports: ["de.skycoder42.QtDataSync/DataStoreModel 1.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "setupName"; type: "string" }
+        Property { name: "dataStore"; type: "QQmlDataStore"; isPointer: true }
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+        Property { name: "typeName"; type: "string" }
+        Signal {
+            name: "setupNameChanged"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Signal {
+            name: "dataStoreChanged"
+            Parameter { name: "dataStore"; type: "QQmlDataStore"; isPointer: true }
+        }
+        Signal {
+            name: "validChanged"
+            Parameter { name: "valid"; type: "bool" }
+        }
+        Signal {
+            name: "typeNameChanged"
+            Parameter { name: "typeName"; type: "string" }
+        }
+        Method {
+            name: "setSetupName"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Method {
+            name: "setDataStore"
+            Parameter { name: "dataStore"; type: "QQmlDataStore"; isPointer: true }
+        }
+        Method {
+            name: "setTypeName"
+            Parameter { name: "typeName"; type: "string" }
         }
     }
     Component {

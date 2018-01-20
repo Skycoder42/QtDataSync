@@ -12,6 +12,15 @@ Item {
 			id: store
 		}
 
+		DataStoreModel {
+			id: storeModel1
+		}
+
+		DataStoreModel {
+			id: storeModel2
+			dataStore: store
+		}
+
 		SyncManager {
 			id: syncManager
 		}
@@ -22,6 +31,8 @@ Item {
 
 		function test_valid() {
 			verify(store.valid);
+			verify(storeModel1.valid);
+			verify(storeModel2.valid);
 			verify(syncManager.valid);
 			verify(accountManager.valid);
 		}

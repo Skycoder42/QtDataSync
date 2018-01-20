@@ -6,12 +6,14 @@ IMPORT_VERSION = 1.0
 HEADERS +=  qmldatasync_plugin.h \
 	qqmldatastore.h \
     qqmlsyncmanager.h \
-    qqmlaccountmanager.h
+    qqmlaccountmanager.h \
+    qqmldatastoremodel.h
 
 SOURCES +=  qmldatasync_plugin.cpp \
 	qqmldatastore.cpp \
     qqmlsyncmanager.cpp \
-    qqmlaccountmanager.cpp
+    qqmlaccountmanager.cpp \
+    qqmldatastoremodel.cpp
 
 OTHER_FILES += qmldir
 

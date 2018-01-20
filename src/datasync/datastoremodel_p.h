@@ -9,7 +9,7 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT DataStoreModelPrivate
 {
 public:
-	DataStoreModelPrivate(DataStoreModel *q_ptr, DataStore *store);
+	DataStoreModelPrivate(DataStoreModel *q_ptr);
 
 	DataStoreModel *q;
 	DataStore *store;

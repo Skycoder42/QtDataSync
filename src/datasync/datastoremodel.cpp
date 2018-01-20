@@ -11,15 +11,28 @@ DataStoreModel::DataStoreModel(QObject *parent) :
 {}
 
 DataStoreModel::DataStoreModel(const QString &setupName, QObject *parent) :
-	DataStoreModel(new DataStore(setupName), parent)
+	QAbstractListModel(parent),
+	d(new DataStoreModelPrivate(this))
 {
+	initStore(new DataStore(setupName));
 	d->store->setParent(this);
 }
 
 DataStoreModel::DataStoreModel(DataStore *store, QObject *parent) :
 	QAbstractListModel(parent),
-	d(new DataStoreModelPrivate(this, store))
+	d(new DataStoreModelPrivate(this))
 {
+	initStore(store);
+}
+
+DataStoreModel::DataStoreModel(QObject *parent, void *):
+	QAbstractListModel(parent),
+	d(new DataStoreModelPrivate(this))
+{} //No init
+
+void DataStoreModel::initStore(DataStore *store)
+{
+	d->store = store;
 	QObject::connect(d->store, &DataStore::dataChanged,
 					 this, &DataStoreModel::storeChanged);
 	QObject::connect(d->store, &DataStore::dataCleared,
@@ -251,9 +264,9 @@ void DataStoreModel::storeResetted()
 
 // ------------- Private Implementation -------------
 
-DataStoreModelPrivate::DataStoreModelPrivate(DataStoreModel *q_ptr, DataStore *store) :
+DataStoreModelPrivate::DataStoreModelPrivate(DataStoreModel *q_ptr) :
 	q(q_ptr),
-	store(store),
+	store(nullptr),
 	editable(false),
 	type(QMetaType::UnknownType),
 	isObject(false),

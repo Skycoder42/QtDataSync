@@ -49,13 +49,13 @@ public:
 	void fetchMore(const QModelIndex &parent) override;
 
 	//! Returns the index of the item with the given id
-	QModelIndex idIndex(const QString &id) const;
+	Q_INVOKABLE QModelIndex idIndex(const QString &id) const;
 	//! Returns the index of the item with the given id
 	template <typename T>
 	inline QModelIndex idIndex(const T &id) const;
 
 	//! Returns the key of the item at the given index
-	QString key(const QModelIndex &index) const;
+	Q_INVOKABLE QString key(const QModelIndex &index) const;
 	//! Returns the key of the item at the given index
 	template <typename T>
 	inline T key(const QModelIndex &index) const;
@@ -79,7 +79,7 @@ public:
 
 	@sa DataStoreModel::loadObject
 	*/
-	QVariant object(const QModelIndex &index) const;
+	Q_INVOKABLE QVariant object(const QModelIndex &index) const;
 	/*!
 	Returns the object at the given index
 
@@ -98,7 +98,7 @@ public:
 	template <typename T>
 	inline T object(const QModelIndex &index) const;
 	//! Loads the object at the given index from the store via AsyncDataStore::load
-	QVariant loadObject(const QModelIndex &index) const;
+	Q_INVOKABLE QVariant loadObject(const QModelIndex &index) const;
 	//! Loads the object at the given index from the store via AsyncDataStore::load
 	template <typename T>
 	T loadObject(const QModelIndex &index) const;
@@ -119,6 +119,10 @@ Q_SIGNALS:
 	void storeError(const QException &exception);
 	//! @notifyAcFn{DataStoreModel::editable}
 	void editableChanged(bool editable);
+
+protected:
+	explicit DataStoreModel(QObject *parent, void*);
+	void initStore(DataStore *store);
 
 private Q_SLOTS:
 	void storeChanged(int metaTypeId, const QString &key, bool wasDeleted);

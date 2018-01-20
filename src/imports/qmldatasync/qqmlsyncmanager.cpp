@@ -27,7 +27,7 @@ void QQmlSyncManager::componentComplete()
 		qmlWarning(this) << e.what();
 		_valid = false;
 	}
-	emit validChanged(true);
+	emit validChanged(_valid);
 }
 
 QString QQmlSyncManager::setupName() const
