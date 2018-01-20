@@ -23,12 +23,11 @@ void QQmlSyncManager::componentComplete()
 		else
 			initReplica(_setupName);
 		_valid = true;
-		emit validChanged(true);
 	} catch(Exception &e) {
 		qmlWarning(this) << e.what();
 		_valid = false;
-		emit validChanged(false);
 	}
+	emit validChanged(true);
 }
 
 QString QQmlSyncManager::setupName() const

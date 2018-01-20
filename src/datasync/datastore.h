@@ -110,6 +110,10 @@ Q_SIGNALS:
 	void dataCleared(int metaTypeId);
 	void dataResetted();
 
+protected:
+	explicit DataStore(QObject *parent, void*);
+	void initStore(const QString &setupName);
+
 private:
 	QScopedPointer<DataStorePrivate> d;
 };

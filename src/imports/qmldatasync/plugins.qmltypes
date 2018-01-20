@@ -9,8 +9,29 @@ import QtQuick.tooling 1.2
 Module {
     dependencies: ["QtQuick 2.8"]
     Component {
-        name: "QtDataSync::QQmlDataStore"
+        name: "QtDataSync::DataStore"
         prototype: "QObject"
+        Property { name: "cacheSize"; type: "int" }
+        Signal {
+            name: "dataChanged"
+            Parameter { name: "metaTypeId"; type: "int" }
+            Parameter { name: "key"; type: "string" }
+            Parameter { name: "deleted"; type: "bool" }
+        }
+        Signal {
+            name: "dataCleared"
+            Parameter { name: "metaTypeId"; type: "int" }
+        }
+        Signal { name: "dataResetted" }
+        Method {
+            name: "setCacheSize"
+            Parameter { name: "cacheSize"; type: "int" }
+        }
+        Method { name: "resetCacheSize" }
+    }
+    Component {
+        name: "QtDataSync::QQmlDataStore"
+        prototype: "QtDataSync::DataStore"
         exports: ["de.skycoder42.QtDataSync/DataStore 1.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "setupName"; type: "string" }
@@ -68,6 +89,11 @@ Module {
         Method {
             name: "clear"
             Parameter { name: "typeName"; type: "string" }
+        }
+        Method {
+            name: "typeName"
+            type: "string"
+            Parameter { name: "typeId"; type: "int" }
         }
     }
     Component {

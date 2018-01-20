@@ -12,8 +12,19 @@ DataStore::DataStore(QObject *parent) :
 
 DataStore::DataStore(const QString &setupName, QObject *parent) :
 	QObject(parent),
-	d(new DataStorePrivate(this, setupName))
+	d(nullptr)
 {
+	initStore(setupName);
+}
+
+DataStore::DataStore(QObject *parent, void *) :
+	QObject(parent),
+	d(nullptr)
+{}
+
+void DataStore::initStore(const QString &setupName)
+{
+	d.reset(new DataStorePrivate(this, setupName));
 	connect(d->store, &LocalStore::dataChanged,
 			this, [this](const ObjectKey &key, bool deleted) {
 		emit dataChanged(QMetaType::type(key.typeName), key.id, deleted);

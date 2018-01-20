@@ -1,11 +1,12 @@
 #include "qqmldatastore.h"
+#include <QtQml>
 using namespace QtDataSync;
 
 QQmlDataStore::QQmlDataStore(QObject *parent) :
-	QObject(parent),
+	DataStore(parent, nullptr),
 	QQmlParserStatus(),
-	_store(nullptr),
-	_setupName(DefaultSetup)
+	_setupName(DefaultSetup),
+	_valid(false)
 {}
 
 void QQmlDataStore::classBegin() {}
@@ -13,11 +14,13 @@ void QQmlDataStore::classBegin() {}
 void QQmlDataStore::componentComplete()
 {
 	try {
-		_store = new DataStore(_setupName, this);
-		emit validChanged(true);
+		initStore(_setupName);
+		_valid = true;
 	} catch(Exception &e) {
-		qCritical("qml: %s", e.what());//TODO as error property
+		qmlWarning(this) << e.what();
+		_valid = false;
 	}
+	emit validChanged(_valid);
 }
 
 QString QQmlDataStore::setupName() const
@@ -27,47 +30,52 @@ QString QQmlDataStore::setupName() const
 
 bool QQmlDataStore::valid() const
 {
-	return _store;;
+	return _valid;
 }
 
 qint64 QQmlDataStore::count(const QString &typeName) const
 {
-	return _store->count(QMetaType::type(typeName.toUtf8()));
+	return DataStore::count(QMetaType::type(typeName.toUtf8()));
 }
 
 QStringList QQmlDataStore::keys(const QString &typeName) const
 {
-	return _store->keys(QMetaType::type(typeName.toUtf8()));
+	return DataStore::keys(QMetaType::type(typeName.toUtf8()));
 }
 
 QVariantList QQmlDataStore::loadAll(const QString &typeName) const
 {
-	return _store->loadAll(QMetaType::type(typeName.toUtf8()));
+	return DataStore::loadAll(QMetaType::type(typeName.toUtf8()));
 }
 
 QVariant QQmlDataStore::load(const QString &typeName, const QString &key) const
 {
-	return _store->load(QMetaType::type(typeName.toUtf8()), key);
+	return DataStore::load(QMetaType::type(typeName.toUtf8()), key);
 }
 
 void QQmlDataStore::save(const QString &typeName, QVariant value)
 {
-	_store->save(QMetaType::type(typeName.toUtf8()), value);
+	DataStore::save(QMetaType::type(typeName.toUtf8()), value);
 }
 
 bool QQmlDataStore::remove(const QString &typeName, const QString &key)
 {
-	return _store->remove(QMetaType::type(typeName.toUtf8()), key);
+	return DataStore::remove(QMetaType::type(typeName.toUtf8()), key);
 }
 
 QVariantList QQmlDataStore::search(const QString &typeName, const QString &query) const
 {
-	return _store->search(QMetaType::type(typeName.toUtf8()), query);
+	return DataStore::search(QMetaType::type(typeName.toUtf8()), query);
 }
 
 void QQmlDataStore::clear(const QString &typeName)
 {
-	return _store->clear(QMetaType::type(typeName.toUtf8()));
+	return DataStore::clear(QMetaType::type(typeName.toUtf8()));
+}
+
+QString QQmlDataStore::typeName(int typeId) const
+{
+	return QString::fromUtf8(QMetaType::typeName(typeId));
 }
 
 void QQmlDataStore::setSetupName(QString setupName)

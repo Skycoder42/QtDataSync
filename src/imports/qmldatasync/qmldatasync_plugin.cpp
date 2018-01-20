@@ -15,5 +15,4 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 
 	qmlRegisterType<QtDataSync::QQmlDataStore>(uri, 1, 0, "DataStore");
 	qmlRegisterType<QtDataSync::QQmlSyncManager>(uri, 1, 0, "SyncManager");
-	qmlRegisterBaseTypes(0,0,0);
 }
