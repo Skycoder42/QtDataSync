@@ -9,7 +9,7 @@
 
 namespace QtDataSync {
 
-class QQmlDataStore : public QObject, public QQmlParserStatus
+class QQmlDataStore : public QObject, public QQmlParserStatus //TODO extend DataStore
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(QQmlDataStore)
@@ -26,6 +26,15 @@ public:
 
 	QString setupName() const;
 	bool valid() const;
+
+	Q_INVOKABLE qint64 count(const QString &typeName) const;
+	Q_INVOKABLE QStringList keys(const QString &typeName) const;
+	Q_INVOKABLE QVariantList loadAll(const QString &typeName) const;
+	Q_INVOKABLE QVariant load(const QString &typeName, const QString &key) const;
+	Q_INVOKABLE void save(const QString &typeName, QVariant value);
+	Q_INVOKABLE bool remove(const QString &typeName, const QString &key);
+	Q_INVOKABLE QVariantList search(const QString &typeName, const QString &query) const;
+	Q_INVOKABLE void clear(const QString &typeName);
 
 public Q_SLOTS:
 	void setSetupName(QString setupName);

@@ -14,7 +14,7 @@ namespace QtDataSync {
 class SyncManagerPrivateHolder
 {
 public:
-	SyncManagerPrivateHolder(SyncManagerPrivateReplica *replica);
+	SyncManagerPrivateHolder();
 
 	SyncManagerPrivateReplica *replica;
 	QHash<QUuid, std::function<void(SyncManager::SyncState)>> syncActions;
@@ -32,13 +32,32 @@ SyncManager::SyncManager(QObject *parent) :
 {}
 
 SyncManager::SyncManager(const QString &setupName, QObject *parent) :
-	SyncManager(Defaults(DefaultsPrivate::obtainDefaults(setupName)).remoteNode(), parent)
-{}
+	QObject(parent),
+	d(new SyncManagerPrivateHolder())
+{
+	initReplica(setupName);
+}
 
 SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent) :
 	QObject(parent),
-	d(new SyncManagerPrivateHolder(node->acquire<SyncManagerPrivateReplica>()))
+	d(new SyncManagerPrivateHolder())
 {
+	initReplica(node);
+}
+
+SyncManager::SyncManager(QObject *parent, void *) :
+	QObject(parent),
+	d(new SyncManagerPrivateHolder())
+{} //no init yet
+
+void SyncManager::initReplica(const QString &setupName)
+{
+	initReplica(Defaults(DefaultsPrivate::obtainDefaults(setupName)).remoteNode());
+}
+
+void SyncManager::initReplica(QRemoteObjectNode *node)
+{
+	d->replica = node->acquire<SyncManagerPrivateReplica>();
 	d->replica->setParent(this);
 	connect(d->replica, &SyncManagerPrivateReplica::syncEnabledChanged,
 			this, &SyncManager::syncEnabledChanged);
@@ -81,6 +100,16 @@ QString SyncManager::lastError() const
 	return d->replica->lastError();
 }
 
+void SyncManager::runOnDownloaded(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
+{
+	runImp(true, triggerSync, resultFn);
+}
+
+void SyncManager::runOnSynchronized(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
+{
+	runImp(false, triggerSync, resultFn);
+}
+
 void SyncManager::setSyncEnabled(bool syncEnabled)
 {
 	d->replica->pushSyncEnabled(syncEnabled);
@@ -94,16 +123,6 @@ void SyncManager::synchronize()
 void SyncManager::reconnect()
 {
 	d->replica->reconnect();
-}
-
-void SyncManager::runOnDownloaded(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
-{
-	runImp(true, triggerSync, resultFn);
-}
-
-void SyncManager::runOnSynchronized(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
-{
-	runImp(false, triggerSync, resultFn);
 }
 
 void SyncManager::onInit()
@@ -133,8 +152,8 @@ void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::functio
 
 
 
-SyncManagerPrivateHolder::SyncManagerPrivateHolder(SyncManagerPrivateReplica *replica) :
-	replica(replica),
+SyncManagerPrivateHolder::SyncManagerPrivateHolder() :
+	replica(nullptr),
 	syncActions(),
 	initActions()
 {}

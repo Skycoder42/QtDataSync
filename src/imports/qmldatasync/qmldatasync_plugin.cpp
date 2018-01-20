@@ -3,6 +3,7 @@
 #include <QtQml>
 
 #include "qqmldatastore.h"
+#include "qqmlsyncmanager.h"
 
 QtDataSyncDeclarativeModule::QtDataSyncDeclarativeModule(QObject *parent) :
 	QQmlExtensionPlugin(parent)
@@ -10,7 +11,9 @@ QtDataSyncDeclarativeModule::QtDataSyncDeclarativeModule(QObject *parent) :
 
 void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 {
-	Q_ASSERT(uri == QLatin1String("de.skycoder42.QtDataSync"));
+	Q_ASSERT(qstrcmp(uri, "de.skycoder42.QtDataSync") == 0);
 
 	qmlRegisterType<QtDataSync::QQmlDataStore>(uri, 1, 0, "DataStore");
+	qmlRegisterType<QtDataSync::QQmlSyncManager>(uri, 1, 0, "SyncManager");
+	qmlRegisterBaseTypes(0,0,0);
 }

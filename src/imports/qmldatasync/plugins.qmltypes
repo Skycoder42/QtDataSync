@@ -27,5 +27,136 @@ Module {
             name: "setSetupName"
             Parameter { name: "setupName"; type: "string" }
         }
+        Method {
+            name: "count"
+            type: "qlonglong"
+            Parameter { name: "typeName"; type: "string" }
+        }
+        Method {
+            name: "keys"
+            type: "QStringList"
+            Parameter { name: "typeName"; type: "string" }
+        }
+        Method {
+            name: "loadAll"
+            type: "QVariantList"
+            Parameter { name: "typeName"; type: "string" }
+        }
+        Method {
+            name: "load"
+            type: "QVariant"
+            Parameter { name: "typeName"; type: "string" }
+            Parameter { name: "key"; type: "string" }
+        }
+        Method {
+            name: "save"
+            Parameter { name: "typeName"; type: "string" }
+            Parameter { name: "value"; type: "QVariant" }
+        }
+        Method {
+            name: "remove"
+            type: "bool"
+            Parameter { name: "typeName"; type: "string" }
+            Parameter { name: "key"; type: "string" }
+        }
+        Method {
+            name: "search"
+            type: "QVariantList"
+            Parameter { name: "typeName"; type: "string" }
+            Parameter { name: "query"; type: "string" }
+        }
+        Method {
+            name: "clear"
+            Parameter { name: "typeName"; type: "string" }
+        }
+    }
+    Component {
+        name: "QtDataSync::QQmlSyncManager"
+        prototype: "QtDataSync::SyncManager"
+        exports: ["de.skycoder42.QtDataSync/SyncManager 1.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "setupName"; type: "string" }
+        Property { name: "node"; type: "QRemoteObjectNode"; isPointer: true }
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+        Signal {
+            name: "setupNameChanged"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Signal {
+            name: "nodeChanged"
+            Parameter { name: "node"; type: "QRemoteObjectNode"; isPointer: true }
+        }
+        Signal {
+            name: "validChanged"
+            Parameter { name: "valid"; type: "bool" }
+        }
+        Method {
+            name: "setSetupName"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Method {
+            name: "setNode"
+            Parameter { name: "node"; type: "QRemoteObjectNode"; isPointer: true }
+        }
+        Method {
+            name: "runOnDownloaded"
+            Parameter { name: "resultFn"; type: "QJSValue" }
+            Parameter { name: "triggerSync"; type: "bool" }
+        }
+        Method {
+            name: "runOnDownloaded"
+            Parameter { name: "resultFn"; type: "QJSValue" }
+        }
+        Method {
+            name: "runOnSynchronized"
+            Parameter { name: "resultFn"; type: "QJSValue" }
+            Parameter { name: "triggerSync"; type: "bool" }
+        }
+        Method {
+            name: "runOnSynchronized"
+            Parameter { name: "resultFn"; type: "QJSValue" }
+        }
+    }
+    Component {
+        name: "QtDataSync::SyncManager"
+        prototype: "QObject"
+        Enum {
+            name: "SyncState"
+            values: {
+                "Initializing": 0,
+                "Downloading": 1,
+                "Uploading": 2,
+                "Synchronized": 3,
+                "Error": 4,
+                "Disconnected": 5
+            }
+        }
+        Property { name: "syncEnabled"; type: "bool" }
+        Property { name: "syncState"; type: "SyncState"; isReadonly: true }
+        Property { name: "syncProgress"; type: "double"; isReadonly: true }
+        Property { name: "lastError"; type: "string"; isReadonly: true }
+        Signal {
+            name: "syncEnabledChanged"
+            Parameter { name: "syncEnabled"; type: "bool" }
+        }
+        Signal {
+            name: "syncStateChanged"
+            Parameter { name: "syncState"; type: "QtDataSync::SyncManager::SyncState" }
+        }
+        Signal {
+            name: "syncProgressChanged"
+            Parameter { name: "syncProgress"; type: "double" }
+        }
+        Signal {
+            name: "lastErrorChanged"
+            Parameter { name: "lastError"; type: "string" }
+        }
+        Method {
+            name: "setSyncEnabled"
+            Parameter { name: "syncEnabled"; type: "bool" }
+        }
+        Method { name: "synchronize" }
+        Method { name: "reconnect" }
+        Method { name: "replica"; type: "QRemoteObjectReplica*" }
     }
 }

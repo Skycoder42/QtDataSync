@@ -12,6 +12,7 @@
 
 class QRemoteObjectNode;
 class QRemoteObjectReplica;
+class SyncManagerPrivateReplica;
 
 namespace QtDataSync {
 
@@ -41,21 +42,21 @@ public:
 	explicit SyncManager(QRemoteObjectNode *node, QObject *parent = nullptr);
 	~SyncManager();
 
-	QRemoteObjectReplica *replica() const;
+	Q_INVOKABLE QRemoteObjectReplica *replica() const;
 
 	bool isSyncEnabled() const;
 	SyncState syncState() const;
 	qreal syncProgress() const;
 	QString lastError() const;
 
+	void runOnDownloaded(const std::function<void(SyncState)> &resultFn, bool triggerSync = true);
+	void runOnSynchronized(const std::function<void(SyncState)> &resultFn, bool triggerSync = true);
+
 public Q_SLOTS:
 	void setSyncEnabled(bool syncEnabled);
 
 	void synchronize();
 	void reconnect();
-
-	void runOnDownloaded(const std::function<void(SyncState)> &resultFn, bool triggerSync = true);
-	void runOnSynchronized(const std::function<void(SyncState)> &resultFn, bool triggerSync = true);
 
 Q_SIGNALS:
 	void syncEnabledChanged(bool syncEnabled);
@@ -66,6 +67,11 @@ Q_SIGNALS:
 private Q_SLOTS:
 	void onInit();
 	void onStateReached(const QUuid &id, SyncState state);
+
+protected:
+	SyncManager(QObject *parent, void *);
+	void initReplica(const QString &setupName);
+	void initReplica(QRemoteObjectNode *node);
 
 private:
 	QScopedPointer<SyncManagerPrivateHolder> d;

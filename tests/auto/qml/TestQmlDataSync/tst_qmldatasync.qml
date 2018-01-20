@@ -12,8 +12,13 @@ Item {
 			id: store
 		}
 
+		SyncManager {
+			id: syncManager
+		}
+
 		function test_valid() {
 			verify(store.valid);
+			verify(syncManager.valid);
 		}
 	}
 
