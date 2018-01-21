@@ -74,6 +74,11 @@ void QQmlUserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const 
 
 void QQmlUserExchangeManager::setSetupName(QString setupName)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change setupName property after initialization";
+		return;
+	}
+
 	if (_setupName == setupName)
 		return;
 
@@ -83,6 +88,11 @@ void QQmlUserExchangeManager::setSetupName(QString setupName)
 
 void QQmlUserExchangeManager::setManager(QQmlAccountManager *manager)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change manager property after initialization";
+		return;
+	}
+
 	if (_manager == manager)
 		return;
 

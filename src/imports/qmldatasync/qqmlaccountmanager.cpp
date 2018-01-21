@@ -122,6 +122,11 @@ void QQmlAccountManager::importAccountTrusted(const QJsonObject &importData, con
 
 void QQmlAccountManager::setSetupName(QString setupName)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change setupName property after initialization";
+		return;
+	}
+
 	if (_setupName == setupName)
 		return;
 
@@ -131,6 +136,11 @@ void QQmlAccountManager::setSetupName(QString setupName)
 
 void QQmlAccountManager::setNode(QRemoteObjectNode *node)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change node property after initialization";
+		return;
+	}
+
 	if (_node == node)
 		return;
 

@@ -54,6 +54,11 @@ QString QQmlDataStoreModel::typeName() const
 
 void QQmlDataStoreModel::setSetupName(QString setupName)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change setupName property after initialization";
+		return;
+	}
+
 	if (_setupName == setupName)
 		return;
 
@@ -63,6 +68,11 @@ void QQmlDataStoreModel::setSetupName(QString setupName)
 
 void QQmlDataStoreModel::setDataStore(QQmlDataStore *dataStore)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change dataStore property after initialization";
+		return;
+	}
+
 	if (_dataStore == dataStore)
 		return;
 

@@ -80,6 +80,11 @@ QString QQmlDataStore::typeName(int typeId) const
 
 void QQmlDataStore::setSetupName(QString setupName)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change setupName property after initialization";
+		return;
+	}
+
 	if (_setupName == setupName)
 		return;
 

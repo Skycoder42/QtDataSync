@@ -71,6 +71,11 @@ void QQmlSyncManager::runOnSynchronized(QJSValue resultFn, bool triggerSync)
 
 void QQmlSyncManager::setSetupName(QString setupName)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change setupName property after initialization";
+		return;
+	}
+
 	if (_setupName == setupName)
 		return;
 
@@ -80,6 +85,11 @@ void QQmlSyncManager::setSetupName(QString setupName)
 
 void QQmlSyncManager::setNode(QRemoteObjectNode *node)
 {
+	if(valid()) {
+		qmlWarning(this) << "Cannot change node property after initialization";
+		return;
+	}
+
 	if (_node == node)
 		return;
 
