@@ -114,6 +114,8 @@ public Q_SLOTS:
 	//! @writeAcFn{DataStoreModel::editable}
 	void setEditable(bool editable);
 
+	void reload();
+
 Q_SIGNALS:
 	//! Emitted when the store throws an exception
 	void storeError(const QException &exception);

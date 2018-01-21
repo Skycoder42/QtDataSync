@@ -228,13 +228,15 @@ void RemoteConnector::resetAccount(bool clearConfig)
 		_cryptoController->deleteKeyMaterial(devId);
 		if(isIdle()) {//delete yourself. Disconnecting happens after that
 			Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
+			logDebug() << "Deleting self from server";
 			sendMessage(RemoveMessage{devId});
 		} else {
 			_deviceId = QUuid();
+			logDebug() << "Account data resetted. Reconnecting to server";
 			reconnect();
 		}
 	} else {
-		logInfo() << "Skipping server reset, not registered to a server";
+		logDebug() << "Skipping server reset, not registered to a server";
 		//still reconnect, as this "completes" the operation (and is needed for imports)
 		reconnect();
 	}
@@ -257,6 +259,7 @@ void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecB
 	} else
 		settings()->remove(keyImportKey);
 	//after storing, continue with "normal" reset. This MUST be done by the engine, thus not in this function
+	logDebug() << "Imported account data and prepared it for next reconnect";
 }
 
 void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
@@ -278,8 +281,11 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 			std::tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
 			sendSignedMessage(message);
 			emit accountAccessGranted(deviceId);
-		} else
+			logInfo() << "Granted access to account for device" << deviceId;
+		} else {
 			sendMessage(DenyMessage{deviceId});
+			logInfo() << "Rejected access to account for device" << deviceId;
+		}
 	} catch(Exception &e) {
 		logWarning() << "Failed to reply to login with error:" << e.what();
 		//simply send a deny
@@ -290,11 +296,12 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 void RemoteConnector::initKeyUpdate()
 {
 	if(!isIdle()) {
-		logWarning() << "Can't update secret keys when not in idle state. Ignoring request";
+		logWarning() << "Can't update exchange key when not in idle state. Ignoring request";
 		return;
 	}
 
 	try {
+		logDebug() << "Initializing exchange key update";
 		sendMessage(KeyChangeMessage{_cryptoController->keyIndex() + 1});
 	} catch(Exception &e) {
 		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<KeyChangeMessage>());
@@ -509,7 +516,7 @@ void RemoteConnector::ping()
 {
 	if(_awaitingPing) {
 		_awaitingPing = false;
-		logDebug() << "Server connection idle. Reconnecting to server";
+		logDebug() << "Server connection idle (ping timeout). Reconnecting to server";
 		reconnect();
 	} else {
 		_awaitingPing = true;
@@ -560,7 +567,9 @@ void RemoteConnector::doConnect()
 				_pingTimer, QOverload<>::of(&QTimer::start));
 		connect(_socket, &QWebSocket::disconnected,
 				_pingTimer, &QTimer::stop);
-	}
+		logDebug() << "Keepalive ping interval set to" << tOut << "minutes";
+	} else
+		logDebug() << "Keepalive ping disabled";
 
 	QNetworkRequest request(remoteUrl);
 	request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
@@ -602,7 +611,7 @@ void RemoteConnector::doDisconnect()
 			break;
 		case QAbstractSocket::BoundState:
 		case QAbstractSocket::ListeningState:
-			logFatal("Reached impossible client socket state - how?!?");
+			logFatal("Reached impossible client socket state - aborting");
 			break;
 		default:
 			Q_UNREACHABLE();
@@ -822,6 +831,7 @@ void RemoteConnector::sendKeyUpdate()
 	settings()->setValue(keySendCmac, true);
 	auto cmac = _cryptoController->generateEncryptionKeyCmac();
 	sendMessage(MacUpdateMessage{_cryptoController->keyIndex(), cmac});
+	logDebug() << "Sent exchange mac for key with index" << _cryptoController->keyIndex();
 }
 
 void RemoteConnector::onError(const ErrorMessage &message, const QByteArray &messageName)
@@ -1049,11 +1059,12 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 void RemoteConnector::onRemoved(const RemoveAckMessage &message)
 {
 	if(checkIdle(message)) {
-		logDebug() << "Device with id" << message.deviceId << "was removed";
 		if(_deviceId == message.deviceId) {
+			logDebug() << "Own device remove from server. Account reset completed. Reconnecting to server";
 			_deviceId = QUuid();
 			reconnect();
 		} else {
+			logInfo() << "Device with id" << message.deviceId << "was removed from account";
 			//in case the device was known, remove it
 			for(auto it = _deviceCache.begin(); it != _deviceCache.end(); it++) {
 				if(it->deviceId() == message.deviceId) {
@@ -1088,17 +1099,16 @@ void RemoteConnector::onProof(const ProofMessage &message)
 
 			//verify trustmac if given
 			auto trusted = !message.trustmac.isNull();
-			if(trusted) {
+			if(trusted)
 				_cryptoController->verifyImportCmacForCrypto(message.macscheme, key, cryptInfo.data(), message.trustmac);
-				logInfo() << "Accepted trusted import proof request for device" << message.deviceId;
-			} else
-				logInfo() << "Received untrusted import proof request for device" << message.deviceId;
 
 			//all verifications accepted
 			_activeProofs.insert(message.deviceId, cryptInfo);
-			if(trusted) //trusted -> ready to go, send back the accept
+			if(trusted) {//trusted -> ready to go, send back the accept
+				logInfo() << "Accepted trusted import proof request for device" << message.deviceId;
 				loginReply(message.deviceId, true);
-			else { //untrusted -> cache the request and signale that the login must be checked
+			} else { //untrusted -> cache the request and signale that the login must be checked
+				logInfo() << "Received untrusted import proof request for device" << message.deviceId;
 				DeviceInfo info(message.deviceId, message.deviceName, cryptInfo->ownFingerprint());
 				emit loginRequested(info);
 			}
@@ -1107,7 +1117,7 @@ void RemoteConnector::onProof(const ProofMessage &message)
 			auto deviceId = message.deviceId;
 			QTimer::singleShot(scdtime(std::chrono::minutes(10)), Qt::VeryCoarseTimer, this, [this, deviceId]() {
 				if(_activeProofs.remove(deviceId) > 0) {
-					logWarning() << "Rejecting ProofMessage after timeout";
+					logInfo() << "Rejecting ProofMessage after timeout";
 					sendMessage(DenyMessage{deviceId});
 				}
 			});
@@ -1121,16 +1131,19 @@ void RemoteConnector::onProof(const ProofMessage &message)
 void RemoteConnector::onMacUpdateAck(const MacUpdateAckMessage &message)
 {
 	Q_UNUSED(message)
-	if(checkIdle(message))
+	if(checkIdle(message)) {
 		settings()->remove(keySendCmac);
+		logDebug() << "Mac change acknowledged";
+	}
 }
 
 void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 {
 	if(checkIdle(message)) {
-		if(message.duplicated)
+		if(message.duplicated) {
+			logInfo() << "Exchange key already updated (duplicate). Adjusting local state";
 			_cryptoController->activateNextKey(message.keyIndex);
-		else {
+		} else {
 			NewKeyMessage reply;
 			std::tie(reply.keyIndex, reply.scheme) = _cryptoController->generateNextKey();
 			reply.cmac = _cryptoController->generateEncryptionKeyCmac(reply.keyIndex); //cmac for the new key
@@ -1164,15 +1177,17 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 			}
 
 			sendSignedMessage(reply);
-			logDebug() << "Sent key update to server";
+			logDebug() << "Sent exchange key update to server";
 		}
 	}
 }
 
 void RemoteConnector::onNewKeyAck(const NewKeyAckMessage &message)
 {
-	if(checkIdle(message))
+	if(checkIdle(message)) {
+		logInfo() << "Exchange key updated accepted. Setting active key to index" << message.keyIndex;
 		_cryptoController->activateNextKey(message.keyIndex);
+	}
 }
 
 

@@ -57,7 +57,7 @@ void Controller::beginOp(const std::chrono::minutes &interval, bool startIfNotRu
 	if(_opTimer->remainingTime() < scdtime(interval))
 		_opTimer->start(scdtime(interval));
 #endif
-	logDebug() << "started operation timeout";
+	logDebug() << "Started or refreshed operation timeout";
 }
 
 void Controller::beginSpecialOp(const std::chrono::minutes &interval)
@@ -75,7 +75,7 @@ void Controller::endOp()
 {
 	_opTimer->stop();
 	_specialOp.setDeadline(QDeadlineTimer::Forever);
-	logDebug() << "ended all operation timeouts";
+	logDebug() << "Cleared operation timeout";
 }
 
 void Controller::onTimeout()

@@ -58,6 +58,7 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 									  createQuery.executedQuery().simplified(),
 									  createQuery.lastError().text());
 		}
+		logDebug() << "Created DataIndex table";
 	}
 
 	if(!_database->tables().contains(QStringLiteral("DeviceUploads"))) {
@@ -75,6 +76,7 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 									  createQuery.executedQuery().simplified(),
 									  createQuery.lastError().text());
 		}
+		logDebug() << "Created DeviceUploads table";
 	}
 }
 

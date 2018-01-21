@@ -55,8 +55,7 @@ public:
 	QVariantList search(int metaTypeId, const QString &query) const;
 	//! @copybrief DataStore::iterate(const std::function<bool(T)> &, const std::function<void(const QException &)> &)
 	void iterate(int metaTypeId,
-				 const std::function<bool(QVariant)> &iterator,
-				 const std::function<void(const QException &)> &onExcept = {}) const;
+				 const std::function<bool(QVariant)> &iterator) const;
 	void clear(int metaTypeId);
 	void update(int metaTypeId, QObject *object);
 
@@ -92,8 +91,7 @@ public:
 	QList<T> search(const QString &query);
 	//! Asynchronously iterates over all existing datasets of the given types
 	template<typename T>
-	void iterate(const std::function<bool(T)> &iterator,
-				 const std::function<void(const QException &)> &onExcept = {});
+	void iterate(const std::function<bool(T)> &iterator);
 	template<typename T>
 	void clear();
 
@@ -268,12 +266,12 @@ QList<T> DataStore::search(const QString &query)
 }
 
 template<typename T>
-void DataStore::iterate(const std::function<bool (T)> &iterator, const std::function<void (const QException &)> &onExcept)
+void DataStore::iterate(const std::function<bool (T)> &iterator)
 {
 	QTDATASYNC_STORE_ASSERT(T);
 	iterate(qMetaTypeId<T>(), [iterator](QVariant v) {
 		return iterator(v.template value<T>());
-	}, onExcept);
+	});
 }
 
 template<typename T>

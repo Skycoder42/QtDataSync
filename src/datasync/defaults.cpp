@@ -174,7 +174,7 @@ QSqlDatabase *DatabaseRef::operator->() const
 	return &(d->db());
 }
 
-// ------------- PRIVAZE IMPLEMENTATION Defaults -------------
+// ------------- PRIVATE IMPLEMENTATION Defaults -------------
 
 #undef QTDATASYNC_LOG
 #define QTDATASYNC_LOG logger
@@ -192,13 +192,15 @@ void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &stora
 		d->resolver->setDefaults(d);
 
 	//create the default propertie values if unset
-	if(!d->properties.contains(Defaults::SignKeyParam))
+	if(!d->properties.contains(Defaults::SignKeyParam)) {
 		d->properties.insert(Defaults::SignKeyParam,
 							 Defaults::defaultParam(static_cast<Setup::SignatureScheme>(d->properties.value(Defaults::SignScheme).toInt())));
+	}
 
-	if(!d->properties.contains(Defaults::CryptKeyParam))
+	if(!d->properties.contains(Defaults::CryptKeyParam)) {
 		d->properties.insert(Defaults::CryptKeyParam,
 							 Defaults::defaultParam(static_cast<Setup::EncryptionScheme>(d->properties.value(Defaults::CryptScheme).toInt())));
+	}
 
 	if(d->thread() != qApp->thread())
 		d->moveToThread(qApp->thread());
@@ -293,7 +295,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		if(!database.open()) {
 			logFatal(QStringLiteral("Failed to open database local database. Database error:\n\t") +
-					 database.lastError().text());
+					 database.lastError().text()); //TODO check where else needed
 		}
 	}
 
@@ -322,7 +324,7 @@ void DefaultsPrivate::roThreadDone()
 	}
 }
 
-// ------------- PRIVAZE IMPLEMENTATION DatabaseRef -------------
+// ------------- PRIVATE IMPLEMENTATION DatabaseRef -------------
 
 DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object) :
 	_defaultsPrivate(defaultsPrivate),

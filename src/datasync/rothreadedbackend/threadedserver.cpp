@@ -53,12 +53,12 @@ QUrl ThreadedServer::address() const
 bool ThreadedServer::listen(const QUrl &address)
 {
 	if(_listenAddress.isValid()) {
-		_lastError = QAbstractSocket::SocketAddressNotAvailableError;
+		_lastError = QAbstractSocket::SocketResourceError;
 		return false;
 	}
 
 	if(address.scheme() != UrlScheme() || !address.isValid()) {
-		_lastError = QAbstractSocket::SocketAddressNotAvailableError;
+		_lastError = QAbstractSocket::UnsupportedSocketOperationError;
 		return false;
 	} else {
 		QMutexLocker _(&_lock);
@@ -96,6 +96,8 @@ ServerIoDevice *ThreadedServer::configureNewConnection()
 
 	auto buffer = new ExchangeBuffer();
 	if(!buffer->connectTo(_pending.dequeue())) {
+		qCWarning(rothreadedbackend).noquote() << "Failed to connect to buffer with error:"
+											   << buffer->errorString();
 		_lastError = QAbstractSocket::ConnectionRefusedError;
 		buffer->deleteLater();
 		return nullptr;

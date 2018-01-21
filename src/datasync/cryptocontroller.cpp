@@ -198,6 +198,8 @@ void CryptoController::acquireStore(bool existing)
 	_keyStore = factory->createInstance(provider, defaults(), this);
 	if(!_keyStore)
 		throw QtDataSync::Exception(defaults(), QStringLiteral("Keystore %1 not available").arg(provider));
+
+	logDebug() << "Created keystore instance of type" << provider;
 }
 
 void CryptoController::loadKeyMaterial(const QUuid &deviceId)
@@ -222,7 +224,8 @@ void CryptoController::loadKeyMaterial(const QUuid &deviceId)
 		_localCipher = settings()->value(keyLocalSymKey, 0).toUInt();
 		getInfo(_localCipher);
 
-		logDebug() << "Loaded keys for" << deviceId;
+		logDebug().noquote() << "Loaded keys for" << deviceId
+							 << "with key fingerprint:" << _fingerprint.toHex();
 		closeStore();
 #ifdef __clang__
 	} catch(QException &e) { //prevent catching the std::exception
@@ -290,7 +293,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 		_localCipher = 0;
 		_loadedChiphers.insert(_localCipher, info);
 
-		logDebug().noquote() << "Generated new keys. Public keys fingerprint:"
+		logDebug().noquote() << "Generated new keys. Public key fingerprint:"
 							 << _fingerprint.toHex();
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
@@ -410,7 +413,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(A
 #endif
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to encrypt secret key for peer"),
+							  QStringLiteral("Failed to encrypt exchange key for peer"),
 							  e);
 	}
 }
@@ -425,7 +428,7 @@ QByteArray CryptoController::encryptSecretKey(quint32 keyIndex, AsymmetricCrypto
 		return data;
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to encrypt secret key for peer"),
+							  QStringLiteral("Failed to encrypt exchange key for peer"),
 							  e);
 	}
 }
@@ -440,20 +443,23 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 		info.key.Assign(reinterpret_cast<const byte*>(key.constData()), key.size());
 
 		_loadedChiphers.insert(keyIndex, info);
-		if(grantInit)
+		if(grantInit) {//only set key index. Storing is done a step later for granting
 			_localCipher = keyIndex;
-		else {
+			logDebug() << "Loaded initial exchange key with index" << _localCipher;
+		} else {
 			storeCipherKey(keyIndex);
 			if(keyIndex > _localCipher) {
 				_localCipher = keyIndex;
 				settings()->setValue(keyLocalSymKey, _localCipher);
-				logInfo() << "Update cipher key to index" << _localCipher;
+				logInfo() << "Imported exchange key with index" << _localCipher
+						  << "and updated local key to this index";
 				cleanCiphers();
-			}
+			} else
+				logDebug() << "Imported old exchange key with index" << keyIndex;
 		}
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to decrypt secret key from peer"),
+							  QStringLiteral("Failed to exchange secret key from peer"),
 							  e);
 	}
 }
@@ -472,7 +478,7 @@ QByteArray CryptoController::generateEncryptionKeyCmac(quint32 keyIndex) const
 		return createCmacImpl(info, message);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed create CMAC for private encryption key"),
+							  QStringLiteral("Failed to create CMAC for private encryption key"),
 							  e);
 	}
 }
@@ -486,7 +492,7 @@ void CryptoController::verifyEncryptionKeyCmac(AsymmetricCrypto *crypto, const X
 		verifyCmacImpl(info, message, cmac);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed create CMAC for private encryption key"),
+							  QStringLiteral("Failed to verify CMAC for private encryption key"),
 							  e);
 	}
 }
@@ -505,7 +511,7 @@ std::tuple<quint32, QByteArray> CryptoController::generateNextKey()
 			storeCipherKey(keyIndex);
 			settings()->setValue(keyNextSymKey, keyIndex);
 			//not set as active key yet
-			logDebug().noquote() << "Generated new exchange key";
+			logDebug().noquote() << "Generated new exchange key with index" << keyIndex;
 		}
 		return std::make_tuple(keyIndex, info.scheme->name());
 	} catch(CppException &e) {
@@ -688,7 +694,7 @@ QByteArray CryptoController::importDecrypt(const QByteArray &scheme, const QByte
 		return decryptImpl(info, salt, data);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
-							  QStringLiteral("Failed to decrypt downloaded data"),
+							  QStringLiteral("Failed to decrypt import data"),
 							  e);
 	}
 }
@@ -747,8 +753,10 @@ void CryptoController::createScheme(Setup::CipherScheme scheme, QSharedPointer<C
 void CryptoController::ensureStoreOpen() const
 {
 	if(_keyStore) {
-		if(!_keyStore->isOpen())
+		if(!_keyStore->isOpen()) {
 			_keyStore->openStore();
+			logDebug() << "Opened keystore to access keys";
+		}
 	} else
 		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "No keystore available");
 }
@@ -756,8 +764,10 @@ void CryptoController::ensureStoreOpen() const
 void CryptoController::closeStore() const
 {
 	try {
-		if(_keyStore && _keyStore->isOpen())
+		if(_keyStore && _keyStore->isOpen()) {
 			_keyStore->closeStore();
+			logDebug() << "Closed keystore access";
+		}
 	} catch(QException &e) {
 		logCritical() << "Failed to close keystore with error:" << e.what();
 	}
@@ -809,6 +819,7 @@ const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) 
 		if(info.key.size() != info.scheme->toKeyLength(static_cast<quint32>(info.key.size())))
 			throw CryptoPP::Exception(CryptoPP::Exception::OTHER_ERROR, "Key size is not valid for cipher scheme " + info.scheme->name().toStdString());
 		_loadedChiphers.insert(keyIndex, info);
+		logDebug() << "Loaded stored exchange key for index" << keyIndex;
 	}
 
 	return _loadedChiphers[keyIndex];
@@ -847,7 +858,7 @@ void CryptoController::cleanCiphers() const
 		if((keyIndex + 5) < _localCipher) {
 			settings()->remove(keySymKeysTemplate.arg(keyIndex));
 			if(!keyDir.remove(keyKeyFileTemplate.arg(keyIndex)))
-				logWarning() << "Failed to delete file of cleared key" << keyIndex;
+				logWarning() << "Failed to delete file of cleared key with index" << keyIndex;
 			_loadedChiphers.remove(keyIndex);
 		}
 	}

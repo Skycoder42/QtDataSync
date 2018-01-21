@@ -111,7 +111,16 @@ void hashNext(QCryptographicHash &hash, const QJsonValue &value)
 	case QJsonValue::Object:
 	{
 		auto obj = value.toObject();
+		//helper code to assert the obj iterator is sorted.
+#ifndef QT_NO_DEBUG
+		QString pKey;
+#endif
 		for(auto it = obj.begin(); it != obj.end(); it++) { //if "keys" is sorted, this must be as well
+#ifndef QT_NO_DEBUG
+			if(!pKey.isNull())
+				Q_ASSERT(pKey < it.key());
+			pKey = it.key();
+#endif
 			hash.addData(it.key().toUtf8());
 			hashNext(hash, it.value());
 		}

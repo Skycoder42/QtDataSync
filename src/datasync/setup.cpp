@@ -9,8 +9,11 @@
 #include <QtCore/QLockFile>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QThreadStorage>
+#include <QtCore/QLoggingCategory>
 
 #include "threadedserver_p.h"
+
+Q_LOGGING_CATEGORY(qdssetup, "qtdatasync.setup", QtInfoMsg)
 
 using namespace QtDataSync;
 
@@ -28,14 +31,19 @@ void Setup::removeSetup(const QString &name, bool waitForFinished)
 	if(SetupPrivate::engines.contains(name)) {
 		auto &info = SetupPrivate::engines[name];
 		if(info.engine) {
+			qCDebug(qdssetup) << "Finalizing engine of setup" << name;
 			QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
 			info.engine = nullptr;
-		}
+		} else
+			qCDebug(qdssetup) << "Engine of setup" << name << "already finalizing";
 
 		if(waitForFinished) {
 			if(!info.thread->wait(SetupPrivate::timeout)) {
+				qCWarning(qdssetup) << "Workerthread of setup" << name << "did not finish before the timout. Terminating...";
 				info.thread->terminate();
-				info.thread->wait(100);
+				auto wRes = info.thread->wait(100);
+				qCDebug(qdssetup) << "Terminate result for setup" << name << ":"
+								  << wRes;
 			}
 			info.thread->deleteLater();
 			QCoreApplication::processEvents();//required to perform queued events
@@ -65,9 +73,9 @@ bool Setup::keystoreAvailable(const QString &provider)
 QString Setup::defaultKeystoreProvider()
 {
 	//NOTE add envvar to doc
-	auto prefered = qgetenv("QTDATASYNC_KEYSTORE");
+	auto prefered = qEnvironmentVariable("QTDATASYNC_KEYSTORE");
 	if(!prefered.isEmpty())
-		RETURN_IF_AVAILABLE(QString::fromUtf8(prefered));
+		RETURN_IF_AVAILABLE(prefered);
 #ifdef Q_OS_WIN
 	RETURN_IF_AVAILABLE(QStringLiteral("wincred"));
 #endif
@@ -389,18 +397,21 @@ void Setup::create(const QString &name)
 		storageDir.cd(d->localDir);
 		QFile::setPermissions(storageDir.absolutePath(),
 							  QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ExeUser);
+		qCDebug(qdssetup) << "Created storage directory for setup" << name;
 	}
 
 	// lock the setup
 	auto lockFile = new QLockFile(storageDir.absoluteFilePath(QStringLiteral(".lock")));
 	if(!lockFile->tryLock())
 		throw SetupLockedException(lockFile, name);
+	qCDebug(qdssetup) << "Created lockfile for setup" << name;
 
 	//determine the ro address
 	if(!d->roAddress.isValid()) {
 		d->roAddress.clear();
 		d->roAddress.setScheme(ThreadedServer::UrlScheme());
 		d->roAddress.setPath(QStringLiteral("/qtdatasync/%2/enginenode").arg(name));
+		qCDebug(qdssetup) << "Using default remote object address for setup" << name << "as" << d->roAddress;
 	}
 
 	// create defaults + engine
@@ -420,17 +431,19 @@ void Setup::create(const QString &name)
 	QObject::connect(thread, &QThread::finished,
 					 engine, &ExchangeEngine::deleteLater);
 	// unlock as soon as the engine has been destroyed
-	QObject::connect(engine, &ExchangeEngine::destroyed, qApp, [lockFile](){
+	QObject::connect(engine, &ExchangeEngine::destroyed, qApp, [lockFile, name](){
+		qCDebug(qdssetup) << "Engine for setup" << name << "destroyed - removing lockfile";
 		lockFile->unlock();
 		delete lockFile;
-	}, Qt::DirectConnection);
+	}, Qt::DirectConnection); //direct connection required
 	// once the thread finished, clear the engine from the cache of known ones
 	QObject::connect(thread, &QThread::finished, thread, [name, thread](){
+		qCDebug(qdssetup) << "Thread for setup" << name << "stopped - setup completly removed";
 		QMutexLocker _(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
 		DefaultsPrivate::removeDefaults(name);
 		thread->deleteLater();
-	}, Qt::QueuedConnection);
+	}, Qt::QueuedConnection); //queued connection, sent from within the thread to thread object on current thread
 
 	// start the thread and cache engine data
 	thread->start();
@@ -545,18 +558,22 @@ unsigned long SetupPrivate::timeout = ULONG_MAX;
 void SetupPrivate::cleanupHandler()
 {
 	QMutexLocker _(&setupMutex);
-	foreach (auto info, engines) {
-		if(info.engine) {
-			QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
-			info.engine = nullptr;
+	for (auto it = engines.begin(); it != engines.end(); it++) {
+		if(it->engine) {
+			qCDebug(qdssetup) << "Finalizing engine of setup" << it.key() << "because of app quit";
+			QMetaObject::invokeMethod(it->engine, "finalize", Qt::QueuedConnection);
+			it->engine = nullptr;
 		}
 	}
-	foreach (auto info, engines) {
-		if(!info.thread->wait(timeout)) {
-			info.thread->terminate();
-			info.thread->wait(100);
+	for (auto it = engines.constBegin(); it != engines.constEnd(); it++) {
+		if(!it->thread->wait(timeout)) {
+			qCWarning(qdssetup) << "Workerthread of setup" << it.key() << "did not finish before the timout. Terminating...";
+			it->thread->terminate();
+			auto wRes = it->thread->wait(100);
+			qCDebug(qdssetup) << "Terminate result for setup" << it.key() << ":"
+							  << wRes;
 		}
-		info.thread->deleteLater();
+		it->thread->deleteLater();
 	}
 	engines.clear();
 	DefaultsPrivate::clearDefaults();

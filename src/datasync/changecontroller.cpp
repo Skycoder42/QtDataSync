@@ -32,6 +32,7 @@ void ChangeController::triggerDataChange(Defaults defaults, const QWriteLocker &
 void ChangeController::setUploadingEnabled(bool uploading)
 {
 	_uploadingEnabled = uploading;
+	logDebug() << "Change uploading enabled to" << uploading;
 	if(uploading)
 		uploadNext(true);
 	else {
@@ -43,6 +44,8 @@ void ChangeController::setUploadingEnabled(bool uploading)
 void ChangeController::clearUploads()
 {
 	setUploadingEnabled(false);
+	if(!_activeUploads.isEmpty())
+		logDebug() << "Finished uploading changes";
 	_activeUploads.clear();
 	_changeEstimate = 0;
 }
@@ -65,7 +68,9 @@ void ChangeController::uploadDone(const QByteArray &key)
 		_store->markUnchanged(info.key, info.version, info.isDelete);
 		_changeEstimate--;
 		emit progressIncrement();
-		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
+		logDebug() << "Completed upload. Marked"
+				   << info.key << "as unchanged ( Active uploads:"
+				   << _activeUploads.size() << ")";
 
 		if(_uploadingEnabled && _activeUploads.size() < _uploadLimit) //queued, so we may have the luck to complete a few more before uploading again
 			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection,
@@ -88,7 +93,9 @@ void ChangeController::deviceUploadDone(const QByteArray &key, const QUuid &devi
 		_store->removeDeviceChange(info.key, deviceId);
 		_changeEstimate--;
 		emit progressIncrement();
-		logDebug() << "Completed upload. Marked" << info.key << "as unchanged ( Active uploads:" << _activeUploads.size() << ")";
+		logDebug() << "Completed device upload. Marked"
+				   << info.key << "for device" << deviceId << "as unchanged ( Active uploads:"
+				   << _activeUploads.size() << ")";
 
 		if(_uploadingEnabled && _activeUploads.size() < _uploadLimit) //queued, so we may have the luck to complete a few more before uploading again
 			QMetaObject::invokeMethod(this, "uploadNext", Qt::QueuedConnection,
@@ -110,6 +117,7 @@ void ChangeController::uploadNext(bool emitStarted)
 	//uploads already exists: emit started no matter whether any are actually started from this call
 	if(emitStarted && !_activeUploads.isEmpty()) {
 		emitStarted = false;
+		logDebug() << "Beginning uploading changes";
 		emit uploadingChanged(true);
 	}
 
@@ -146,6 +154,7 @@ void ChangeController::uploadNext(bool emitStarted)
 			//signale that uploading has started
 			if(emitStarted) {
 				emitStarted = false;
+				logDebug() << "Beginning uploading changes";
 				emit uploadingChanged(true);
 				if(emitProgress)
 					emit progressAdded(_changeEstimate);
@@ -156,19 +165,29 @@ void ChangeController::uploadNext(bool emitStarted)
 			_activeUploads.insert(key, {key, version, isDelete});
 			beginOp(); //start the default timeout
 			if(isDelete) {//deleted
-				if(deviceId.isNull())
+				if(deviceId.isNull()) {
 					emit uploadChange(keyHash, SyncHelper::combine(key, version));
-				else
+					logDebug() << "Started upload of deleted" << key
+							   << "( Active uploads:" << _activeUploads.size() << ")";
+				} else {
 					emit uploadDeviceChange(keyHash, deviceId, SyncHelper::combine(key, version));
-				logDebug() << "Started upload of deleted" << key << "( Active uploads:" << _activeUploads.size() << ")";
+					logDebug() << "Started device upload of deleted"
+							   << key << "for device" << deviceId
+							   << "( Active uploads:" << _activeUploads.size() << ")";
+				}
 			} else { //changed
 				try {
 					auto json = _store->readJson(key, file);
-					if(deviceId.isNull())
+					if(deviceId.isNull()) {
 						emit uploadChange(keyHash, SyncHelper::combine(key, version, json));
-					else
+						logDebug() << "Started upload of changed" << key
+								   << "( Active uploads:" << _activeUploads.size() << ")";
+					} else {
 						emit uploadDeviceChange(keyHash, deviceId, SyncHelper::combine(key, version, json));
-					logDebug() << "Started upload of changed" << key << "( Active uploads:" << _activeUploads.size() << ")";
+						logDebug() << "Started device upload of changed"
+								   << key << "for device" << deviceId
+								   << "( Active uploads:" << _activeUploads.size() << ")";
+					}
 				} catch (Exception &e) {
 					logWarning() << "Failed to read json for upload. Assuming unchanged. Error:" << e.what();
 					QMetaObject::invokeMethod(this, "uploadDone", Qt::QueuedConnection,
@@ -181,6 +200,7 @@ void ChangeController::uploadNext(bool emitStarted)
 
 		if(_activeUploads.isEmpty()) {
 			endOp(); //stop any timeouts
+			logDebug() << "Finished uploading changes";
 			emit uploadingChanged(false);
 		}
 	} catch(Exception &e) {

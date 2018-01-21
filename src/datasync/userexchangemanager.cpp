@@ -88,9 +88,8 @@ bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint
 	if(d->socket->isOpen())
 		d->socket->close();
 
-	if(!d->socket->bind(listenAddress, port)) {
+	if(!d->socket->bind(listenAddress, port))
 		return false;
-	}
 
 	d->timer->start();
 	emit activeChanged(true);

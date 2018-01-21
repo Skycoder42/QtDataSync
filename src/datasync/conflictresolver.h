@@ -8,6 +8,7 @@
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
+#include "QtDataSync/logger.h"
 
 namespace QtDataSync {
 
@@ -72,8 +73,11 @@ public:
 			auto d1 = ser->deserialize<T1>(data1, const_cast<GenericConflictResolver<T1>*>(this));
 			auto d2 = ser->deserialize<T1>(data2, const_cast<GenericConflictResolver<T1>*>(this));
 			return ser->serialize<T1>(resolveConflict(d1, d2));
-		} else
+		} else {
+			QT_DATASYNC_LOG_BASE.warning(logger()->loggingCategory()) << "Unsupported type in conflict resolver:"
+																	  << QMetaType::typeName(typeId);
 			return QJsonObject();
+		}
 	}
 };
 

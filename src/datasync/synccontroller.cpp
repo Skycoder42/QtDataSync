@@ -42,30 +42,39 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 		QByteArray localChecksum;
 		std::tie(localState, localVersion, localFileName, localChecksum) = _store->loadChangeInfo(scope);
 
+		const char *syncActionStr = "invalid";
+		const char *syncActionRes = "invalid";
+
 		switch (localState) {
 		case LocalStore::Exists:
 			if(remoteDeleted) { // exists<->deleted
+				syncActionStr = "exists<->deleted";
 				if(localVersion < remoteVersion) {
 					auto persist = defaults().property(Defaults::PersistDeleted).toBool();
 					_store->storeDeleted(scope, remoteVersion, !persist, localState); //store the delete either unchanged or changed, see exchange.txt
+					syncActionRes = "remote";
 				} else if(localVersion == remoteVersion) {
 					switch (static_cast<Setup::SyncPolicy>(defaults().property(Defaults::ConflictPolicy).toInt())) {
 					case Setup::PreferChanged:
 						_store->updateVersion(scope, localVersion, localVersion + 1ull, true); //keep as "v1 + 1"
+						syncActionRes = "local";
 						break;
 					case Setup::PreferDeleted:
 						_store->storeDeleted(scope, remoteVersion + 1ull, true, localState); //store as "v2 + 1"
+						syncActionRes = "remote";
 						break;
 					default:
 						Q_UNREACHABLE();
 						break;
 					}
-				} //else (localVersion > remoteVersion): do nothing
-				logDebug() << "Synced" << objKey << "with action(exists<->deleted)";
+				} else //(localVersion > remoteVersion): do nothing
+					syncActionRes = "local";
 			} else { // exists<->changed
-				if(localVersion < remoteVersion)
+				syncActionStr = "exists<->changed";
+				if(localVersion < remoteVersion) {
 					_store->storeChanged(scope, remoteVersion, localFileName, remoteData, false, localState); //simply update the local data
-				else if(localVersion == remoteVersion) {
+					syncActionRes = "remote";
+				} else if(localVersion == remoteVersion) {
 					auto remoteChecksum = SyncHelper::jsonHash(remoteData);
 					if(localChecksum != remoteChecksum) { //conflict!
 						QJsonObject resolvedData;
@@ -75,62 +84,79 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 							resolvedData = resolver->resolveConflict(QMetaType::type(objKey.typeName.constData()), localData, remoteData);
 						}
 						//deterministic alg the chooses 1 dataset no matter which one is local
-						if(!resolvedData.isEmpty())
+						if(!resolvedData.isEmpty()) {
 							_store->storeChanged(scope, localVersion + 1ull, localFileName, resolvedData, true, localState); //store as "v2 + 1"
-						else if(localChecksum > remoteChecksum)
+							syncActionRes = "merged";
+						} else if(localChecksum > remoteChecksum) {
 							_store->updateVersion(scope, localVersion, localVersion + 1ull, true); //keep as "v1 + 1"
-						else
+							syncActionRes = "local";
+						} else {
 							_store->storeChanged(scope, remoteVersion + 1ull, localFileName, remoteData, true, localState); //store as "v2 + 1"
-					} else //(localChecksum == remoteChecksum): mark unchanged, if it was changed, because same data does not need another upload
+							syncActionRes = "remote";
+						}
+					} else {//(localChecksum == remoteChecksum): mark unchanged, if it was changed, because same data does not need another upload
 						_store->markUnchanged(scope, localVersion, false);
-				} //else (localVersion > remoteVersion): do nothing
-				logDebug() << "Synced" << objKey << "with action(exists<->changed)";
+						syncActionRes = "identical";
+					}
+				} else //(localVersion > remoteVersion): do nothing
+					syncActionRes = "local";
 			}
 			break;
 		case LocalStore::ExistsDeleted:
 			if(remoteDeleted) { // cachedDelete<->deleted
+				syncActionStr = "cachedDelete<->deleted";
+				syncActionRes = "identical";
 				if(localVersion <= remoteVersion) {
 					if(defaults().property(Defaults::PersistDeleted).toBool()) //when persisting, store the delete
 						_store->updateVersion(scope, localVersion, remoteVersion, false);
 					else //if not, simply delete the cached delete as it is not needed anymore
 						_store->markUnchanged(scope, localVersion, true); //pass local version to make shure it's accepted
 				} //else: do nothing
-				logDebug() << "Synced" << objKey << "with action(cachedDelete<->deleted)";
 			} else { // cachedDelete<->changed
-				if(localVersion < remoteVersion)
+				syncActionStr = "cachedDelete<->changed";
+				if(localVersion < remoteVersion) {
 					_store->storeChanged(scope, remoteVersion, localFileName, remoteData, false, localState); //simply update the local data
-				else if(localVersion == remoteVersion) {
+					syncActionRes = "remote";
+				} else if(localVersion == remoteVersion) {
 					switch (static_cast<Setup::SyncPolicy>(defaults().property(Defaults::ConflictPolicy).toInt())) {
 					case Setup::PreferChanged:
 						_store->storeChanged(scope, remoteVersion + 1ull, localFileName, remoteData, true, localState); //store as "v2 + 1"
+						syncActionRes = "remote";
 						break;
 					case Setup::PreferDeleted:
 						_store->updateVersion(scope, localVersion, localVersion + 1ull, true); //keep as "v1 + 1"
+						syncActionRes = "local";
 						break;
 					default:
 						Q_UNREACHABLE();
 						break;
 					}
-				} //else (localVersion > remoteVersion): do nothing
-				logDebug() << "Synced" << objKey << "with action(cachedDelete<->changed)";
+				} else //(localVersion > remoteVersion): do nothing
+					syncActionRes = "local";
 			}
 			break;
 		case LocalStore::NoExists:
 			if(remoteDeleted) { // noexists<->deleted
+				syncActionStr = "noexists<->deleted";
+				syncActionRes = "identical";
 				if(defaults().property(Defaults::PersistDeleted).toBool()) //when persisting, store the delete
 					_store->storeDeleted(scope, remoteVersion, false, localState);
 				//else: do nothing
-				logDebug() << "Synced" << objKey << "with action(noexists<->deleted)";
 			} else { // noexists<->changed
+				syncActionStr = "noexists<->changed";
+				syncActionRes = "remote";
 				//no additional info, simply take it (See exchange.txt)
 				_store->storeChanged(scope, remoteVersion, localFileName, remoteData, false, localState);
-				logDebug() << "Synced" << objKey << "with action(noexists<->changed)";
 			}
 			break;
 		default:
 			Q_UNREACHABLE();
 			break;
 		}
+
+		logDebug().nospace() << "Synced " << objKey
+							 << " with action(" << syncActionStr << "), result is data of: "
+							 << syncActionRes;
 
 		_store->commitSync(scope);
 		emit syncDone(key);

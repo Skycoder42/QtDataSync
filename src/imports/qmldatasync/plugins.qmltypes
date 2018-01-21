@@ -103,6 +103,7 @@ Module {
             name: "setEditable"
             Parameter { name: "editable"; type: "bool" }
         }
+        Method { name: "reload" }
         Method {
             name: "idIndex"
             type: "QModelIndex"

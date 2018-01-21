@@ -190,9 +190,14 @@ void DataStoreModel::setTypeId(int typeId)
 		d->keyList.clear();
 		d->clearHashObjects();
 		d->createRoleNames();
-		endResetModel();
 
-		d->keyList = d->store->keys(typeId);
+		try {
+			d->keyList = d->store->keys(typeId);
+			endResetModel();
+		} catch(...) {
+			endResetModel();
+			throw;
+		}
 	} else
 		throw InvalidDataException(d->store->d->defaults, QMetaType::typeName(typeId), QStringLiteral("Type is neither a gadget nor a pointer to an object"));
 }
@@ -206,6 +211,20 @@ void DataStoreModel::setEditable(bool editable)
 	emit editableChanged(editable);
 }
 
+void DataStoreModel::reload()
+{
+	beginResetModel();
+	d->keyList.clear();
+	d->clearHashObjects();
+	try {
+		d->keyList = d->store->keys(d->type);
+		endResetModel();
+	} catch(QException &e) {
+		endResetModel();
+		emit storeError(e);
+	}
+}
+
 void DataStoreModel::storeChanged(int metaTypeId, const QString &key, bool wasDeleted)
 {
 	if(metaTypeId != d->type)
@@ -214,14 +233,14 @@ void DataStoreModel::storeChanged(int metaTypeId, const QString &key, bool wasDe
 	if(wasDeleted) {
 		auto index = d->keyList.indexOf(key);
 		if(index != -1) {
-			if(index < d->dataHash.size()) {
+			if(index < d->dataHash.size()) { //is already fetched
 				beginRemoveRows(QModelIndex(), index, index);
 				d->keyList.removeAt(index);
 				d->deleteObject(d->dataHash.take(key));
 				endRemoveRows();
-			} else
+			} else //not fetched yet -> no signals needed
 				d->keyList.removeAt(index);
-		}
+		} //else no need to remove something already not existing
 	} else {
 		auto index = d->keyList.indexOf(key);
 		if(index != -1) { //key already know
@@ -238,11 +257,11 @@ void DataStoreModel::storeChanged(int metaTypeId, const QString &key, bool wasDe
 					emit storeError(e);
 				}
 			}
-		} else { //key unknown
-			if(d->keyList.size() == d->dataHash.size()) { //already fully loaded
+		} else { //key unknown -> append it
+			if(d->keyList.size() == d->dataHash.size()) { //already fully loaded -> needs to be loaded as well
 				d->keyList.append(key);
 				fetchMore(QModelIndex());//simply call fetch more does the loading
-			} else
+			} else //only append
 				d->keyList.append(key);
 		}
 	}

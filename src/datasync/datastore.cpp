@@ -84,7 +84,7 @@ void DataStore::save(int metaTypeId, QVariant value)
 
 	QString key;
 	auto flags = QMetaType::typeFlags(metaTypeId);
-	if(flags.testFlag(QMetaType::IsGadget))
+	if(flags.testFlag(QMetaType::IsGadget)) //TODO test all variants READ AND WRITE
 		key = userProp.readOnGadget(value.data()).toString();
 	else if(flags.testFlag(QMetaType::PointerToQObject))
 		key = userProp.read(value.value<QObject*>()).toString();
@@ -98,7 +98,7 @@ void DataStore::save(int metaTypeId, QVariant value)
 		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Type is neither a gadget nor a pointer to an object"));
 
 	if(key.isEmpty())
-		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Failed to convert user property value to a string"));
+		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Failed to convert USER property to a string"));
 	auto json = d->serializer->serialize(value);
 	if(!json.isObject())
 		throw InvalidDataException(d->defaults, typeName, QStringLiteral("Serialization converted to invalid json type. Only json objects are allowed"));
@@ -119,19 +119,12 @@ QVariantList DataStore::search(int metaTypeId, const QString &query) const
 	return resList;
 }
 
-void DataStore::iterate(int metaTypeId, const std::function<bool (QVariant)> &iterator, const std::function<void (const QException &)> &onExcept) const
+void DataStore::iterate(int metaTypeId, const std::function<bool (QVariant)> &iterator) const
 {
-	try {
-		auto keyList = keys(metaTypeId);
-		foreach(auto key, keyList) {
-			if(!iterator(load(metaTypeId, key)))
-				break;
-		}
-	} catch (QException &e) {
-		if(onExcept)
-			onExcept(e);
-		else
-			throw;
+	auto keyList = keys(metaTypeId);
+	foreach(auto key, keyList) {
+		if(!iterator(load(metaTypeId, key)))
+			break;
 	}
 }
 

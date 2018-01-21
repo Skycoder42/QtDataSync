@@ -302,6 +302,8 @@ void LoginRequest::accept()
 	d->acted = true;
 	if(d->replica)
 		d->replica->replyToLogin(d->device.deviceId(), true);
+	else
+		QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC, "qtdatasync.LoginRequest").debug() << "skipping accept of already handled login reply";
 }
 
 void LoginRequest::reject()
@@ -312,6 +314,8 @@ void LoginRequest::reject()
 	d->acted = true;
 	if(d->replica)
 		d->replica->replyToLogin(d->device.deviceId(), false);
+	else
+		QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC, "qtdatasync.LoginRequest").debug() << "skipping reject of already handled login reply";
 }
 
 

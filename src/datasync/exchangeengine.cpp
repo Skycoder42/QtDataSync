@@ -82,6 +82,7 @@ QString ExchangeEngine::lastError() const
 
 void ExchangeEngine::initialize()
 {
+	logDebug() << "Beginning engine initialization";
 	try {
 		_localStore = new LocalStore(_defaults, this);
 
@@ -120,7 +121,7 @@ void ExchangeEngine::initialize()
 		_changeController->initialize(params);
 		_syncController->initialize(params);
 		_remoteConnector->initialize(params);
-		logDebug() << "Initialization completed";
+		logDebug() << "Controller initialization completed";
 
 		//create remote object stuff
 		_roHost = new QRemoteObjectHost(_defaults.remoteAddress(), this);
@@ -128,6 +129,7 @@ void ExchangeEngine::initialize()
 		_roHost->enableRemoting(_syncManager);
 		_accountManager = new AccountManagerPrivate(this);
 		_roHost->enableRemoting(_accountManager);
+		logDebug() << "RemoteObject host node initialized";
 	} catch (Exception &e) {
 		logFatal(e.qWhat());
 	} catch (std::exception &e) {
@@ -137,6 +139,8 @@ void ExchangeEngine::initialize()
 
 void ExchangeEngine::finalize()
 {
+	logDebug() << "Beginning engine finalization";
+
 	//TODO make generic for ALL controls classes
 	connect(_remoteConnector, &RemoteConnector::finalized,
 			this, [this](){
@@ -144,13 +148,14 @@ void ExchangeEngine::finalize()
 		thread()->quit();
 	});
 
-	_remoteConnector->finalize();
 	_syncController->finalize();
 	_changeController->finalize();
+	_remoteConnector->finalize();
 }
 
 void ExchangeEngine::resetAccount(bool keepData, bool clearConfig)
 {
+	logDebug() << "Resetting local account. Keep local data:" << keepData;
 	_syncController->setSyncEnabled(false);
 	_changeController->clearUploads();
 	_localStore->reset(keepData);
@@ -160,7 +165,7 @@ void ExchangeEngine::resetAccount(bool keepData, bool clearConfig)
 void ExchangeEngine::controllerError(const QString &errorMessage)
 {
 	_lastError = errorMessage;
-	emit lastErrorChanged(errorMessage); //first error, that state (so someone that reacts to states can read the error)
+	emit lastErrorChanged(errorMessage); //first error, than state (so someone that reacts to states can read the error)
 	upstate(SyncManager::Error);
 
 	//stop up/downloading etc.
@@ -170,11 +175,9 @@ void ExchangeEngine::controllerError(const QString &errorMessage)
 
 void ExchangeEngine::controllerTimeout()
 {
-	logWarning() << "Internal operation timeout from" << QObject::sender()->metaObject()->className();
-	if(QObject::sender() == _remoteConnector)
-		;
-	else
-		_remoteConnector->reconnect();
+	logWarning() << "Internal operation timeout from" << QObject::sender()->metaObject()->className()
+				 << "- reconnecting to remote";
+	_remoteConnector->reconnect();
 }
 
 void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
@@ -183,6 +186,7 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 	   event != RemoteConnector::RemoteConnecting) //only a reconnect event can get the system out of the error state
 		return;
 
+	logDebug() << "Handling remote event:" << event;
 	switch (event) {
 	case RemoteConnector::RemoteDisconnected:
 		upstate(SyncManager::Disconnected);
@@ -207,7 +211,7 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 		if(upstate(SyncManager::Downloading))
 			resetProgress(_remoteConnector); //allows rcon changes
 		_syncController->setSyncEnabled(true);
-		_changeController->setUploadingEnabled(false);
+		_changeController->setUploadingEnabled(false);//disable uploads, but allow finishing
 		break;
 	default:
 		Q_UNREACHABLE();
@@ -217,6 +221,7 @@ void ExchangeEngine::remoteEvent(RemoteConnector::RemoteEvent event)
 
 void ExchangeEngine::uploadingChanged(bool uploading)
 {
+	logDebug() << "Uploading state change to:" << uploading;
 	if(_state == SyncManager::Error)
 		return;
 	else if(uploading) {
