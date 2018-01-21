@@ -143,8 +143,9 @@ void Client::proofResult(bool success, const AcceptMessage &message)
 		} else {
 			qDebug() << "Proof completed with result:" << success;
 			if(success) {
+				auto pDevId = _cachedAccessRequest.partnerId;
 				_database->addNewDeviceToUser(_deviceId,
-											  _cachedAccessRequest.partnerId,
+											  pDevId,
 											  _cachedAccessRequest.deviceName,
 											  _cachedAccessRequest.signAlgorithm,
 											  _cachedAccessRequest.signKey,
@@ -154,7 +155,7 @@ void Client::proofResult(bool success, const AcceptMessage &message)
 				_cachedAccessRequest = AccessMessage();
 				_cachedFingerPrint.clear();
 
-				qDebug() << "Created new device and user accounts";
+				qDebug() << "Created new device and added to account of device" << pDevId;
 				sendMessage(GrantMessage{_deviceId, message});
 				_state = Idle;
 				emit connected(_deviceId);
@@ -446,7 +447,7 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 	_catStr = "client." + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
-	qDebug() << "New Devices requested account access for" << message.partnerId;
+	qDebug() << "New Devices requested account access from" << message.partnerId;
 	_state = AwatingGrant;
 	emit proofRequested(message.partnerId, ProofMessage{message, _deviceId});
 }
@@ -513,10 +514,13 @@ void Client::onRemove(const RemoveMessage &message)
 	_database->removeDevice(_deviceId, message.deviceId);
 	sendMessage(RemoveAckMessage{message.deviceId});
 	if(_deviceId == message.deviceId) {
+		qDebug() << "Removed self from account";
 		_state = Error;
 		closeLater(); //in case the client does not get the message...
-	} else
+	} else {
+		qDebug() << "Removed device from account:" << message.deviceId;
 		emit forceDisconnect(message.deviceId);
+	}
 }
 
 void Client::onAccept(const AcceptMessage &message, QDataStream &stream)

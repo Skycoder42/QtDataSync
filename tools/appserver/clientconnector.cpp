@@ -36,7 +36,7 @@ ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) 
 bool ClientConnector::setupWss()
 {
 	if(server->secureMode() != QWebSocketServer::SecureMode) {
-		qDebug() << "Server running in WS (unsecure) mode";
+		qInfo() << "Server running in WS (unsecure) mode";
 		return true;
 	}
 
@@ -68,7 +68,7 @@ bool ClientConnector::setupWss()
 		conf.setCaCertificates(caCerts);
 		server->setSslConfiguration(conf);
 
-		qDebug() << "Setup server to run in WSS (secure) mode";
+		qInfo() << "Setup server to run in WSS (secure) mode";
 		return true;
 	} else {
 		qCritical() << "File"

@@ -64,6 +64,7 @@ void DatabaseController::cleanupDevices()
 														  "WHERE (current_date - lastlogin) > ?"));
 				deleteDevicesQuery.addBindValue(offlineSinceDays);
 				deleteDevicesQuery.exec();
+				auto devNum = deleteDevicesQuery.numRowsAffected();
 
 				Query deleteUsersQuery(db);
 				deleteUsersQuery.prepare(QStringLiteral("DELETE FROM users "
@@ -72,9 +73,17 @@ void DatabaseController::cleanupDevices()
 														"	WHERE userid = users.id "
 														")"));
 				deleteUsersQuery.exec();
+				auto usrNum = deleteUsersQuery.numRowsAffected();
 
 				if(!db.commit())
 					throw DatabaseException(db);
+
+				if(devNum == 0 && usrNum == 0)
+					qDebug() << "Successfully cleanup up database. No devices or users removed";
+				else {
+					qInfo() << "Successfully cleanup up database. Removed" << devNum
+							<< "devices and" << usrNum << "users";
+				}
 			} catch(...) {
 				db.rollback();
 				throw;
@@ -746,6 +755,8 @@ void DatabaseController::initDatabase()
 											   ")"))) {
 				throw DatabaseException(createUsers);
 			}
+
+			qDebug() << "Created table users (+ functions and triggers)";
 		}
 
 		if(!db.tables().contains(QStringLiteral("devices"))) {
@@ -777,6 +788,8 @@ void DatabaseController::initDatabase()
 												   "$BODY$ LANGUAGE plpgsql;"))) {
 				throw DatabaseException(createUserIdFn);
 			}
+
+			qDebug() << "Created table devices (+ functions and triggers)";
 		}
 
 		if(!db.tables().contains(QStringLiteral("datachanges"))) {
@@ -834,6 +847,8 @@ void DatabaseController::initDatabase()
 														   "EXECUTE PROCEDURE downquota();"))) {
 				throw DatabaseException(createDownquotaTrigger);
 			}
+
+			qDebug() << "Created table datachanges (+ functions and triggers)";
 		}
 
 		if(!db.tables().contains(QStringLiteral("devicechanges"))) {
@@ -864,6 +879,8 @@ void DatabaseController::initDatabase()
 														"EXECUTE PROCEDURE notifyDeviceChange();"))) {
 				throw DatabaseException(createNotifyTrigger);
 			}
+
+			qDebug() << "Created table devicechanges (+ functions and triggers)";
 		}
 
 		if(!db.tables().contains(QStringLiteral("keychanges"))) {
@@ -877,6 +894,8 @@ void DatabaseController::initDatabase()
 														")"))) {
 				throw DatabaseException(createKeyChanges);
 			}
+
+			qDebug() << "Created table keychanges (+ functions and triggers)";
 		}
 
 		QMetaObject::invokeMethod(this, "dbInitDone", Qt::QueuedConnection,
