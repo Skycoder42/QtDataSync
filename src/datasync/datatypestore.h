@@ -53,8 +53,7 @@ public:
 	bool remove(const TKey &key);
 	QList<TType> search(const QString &query);
 	//! Asynchronously iterates over all existing datasets of the given types
-	void iterate(const std::function<bool(TType)> &iterator,
-				 const std::function<void(const QException &)> &onExcept = {});
+	void iterate(const std::function<bool(TType)> &iterator);
 	void clear();
 
 	//! Shortcut to convert a string to the store key type
@@ -243,9 +242,9 @@ QList<TType> DataTypeStore<TType, TKey>::search(const QString &query)
 }
 
 template<typename TType, typename TKey>
-void DataTypeStore<TType, TKey>::iterate(const std::function<bool (TType)> &iterator, const std::function<void (const QException &)> &onExcept)
+void DataTypeStore<TType, TKey>::iterate(const std::function<bool (TType)> &iterator)
 {
-	_store->iterate(iterator, onExcept);
+	_store->iterate(iterator);
 }
 
 template<typename TType, typename TKey>
