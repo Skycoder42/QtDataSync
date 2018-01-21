@@ -70,12 +70,12 @@ public:
 	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId); // (deviceid, name, fingerprint)
 	void removeDevice(const QUuid &deviceId, const QUuid &deleteId);
 
-	void addChange(const QUuid &deviceId,
+	bool addChange(const QUuid &deviceId,
 				   const QByteArray &dataId,
 				   const quint32 keyIndex,
 				   const QByteArray &salt,
 				   const QByteArray &data);
-	void addDeviceChange(const QUuid &deviceId,
+	bool addDeviceChange(const QUuid &deviceId,
 						 const QUuid &targetId,
 						 const QByteArray &dataId,
 						 const quint32 keyIndex,

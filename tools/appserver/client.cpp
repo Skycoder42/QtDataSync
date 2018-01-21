@@ -462,27 +462,30 @@ void Client::onChange(const ChangeMessage &message)
 {
 	checkIdle(message);
 
-	_database->addChange(_deviceId,
-						 message.dataId,
-						 message.keyIndex,
-						 message.salt,
-						 message.data);
-
-	sendMessage(ChangeAckMessage{message});
+	if(_database->addChange(_deviceId,
+							message.dataId,
+							message.keyIndex,
+							message.salt,
+							message.data))
+		sendMessage(ChangeAckMessage{message});
+	else
+		sendError(ErrorMessage::QuotaHitError);
 }
 
 void Client::onDeviceChange(const DeviceChangeMessage &message)
 {
 	checkIdle(message);
 
-	_database->addDeviceChange(_deviceId,
-							   message.deviceId,
-							   message.dataId,
-							   message.keyIndex,
-							   message.salt,
-							   message.data);
+	if(_database->addDeviceChange(_deviceId,
+								  message.deviceId,
+								  message.dataId,
+								  message.keyIndex,
+								  message.salt,
+								  message.data))
+		sendMessage(DeviceChangeAckMessage{message});
+	else
+		sendError(ErrorMessage::QuotaHitError);
 
-	sendMessage(DeviceChangeAckMessage{message});
 }
 
 void Client::onChangedAck(const ChangedAckMessage &message)

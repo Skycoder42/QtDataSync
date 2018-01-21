@@ -25,7 +25,8 @@ public:
 		AuthenticationError = 5,
 		AccessError = 6,
 		KeyIndexError = 7,
-		KeyPendingError = 8
+		KeyPendingError = 8,
+		QuotaHitError = 9
 	};
 	Q_ENUM(ErrorType)
 

@@ -297,7 +297,7 @@ void DatabaseController::removeDevice(const QUuid &deviceId, const QUuid &delete
 	}
 }
 
-void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
+bool DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -349,13 +349,23 @@ void DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 
 		if(!db.commit())
 			throw DatabaseException(db);
+		return true;
+	} catch(DatabaseException &e) {
+		//check_violation from https://www.postgresql.org/docs/current/static/errcodes-appendix.html
+		auto isCheck = (e.error().nativeErrorCode() == QStringLiteral("23514"));
+		db.rollback();
+		if(isCheck) {
+			qWarning() << "Device" << deviceId << "hit quota limit";
+			return false;
+		} else
+			throw;
 	} catch(...) {
 		db.rollback();
 		throw;
 	}
 }
 
-void DatabaseController::addDeviceChange(const QUuid &deviceId, const QUuid &targetId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
+bool DatabaseController::addDeviceChange(const QUuid &deviceId, const QUuid &targetId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -403,6 +413,16 @@ void DatabaseController::addDeviceChange(const QUuid &deviceId, const QUuid &tar
 
 		if(!db.commit())
 			throw DatabaseException(db);
+		return true;
+	} catch(DatabaseException &e) {
+		//check_violation from https://www.postgresql.org/docs/current/static/errcodes-appendix.html
+		auto isCheck = (e.error().nativeErrorCode() == QStringLiteral("23514"));
+		db.rollback();
+		if(isCheck) {
+			qWarning() << "Device" << deviceId << "hit quota limit";
+			return false;
+		} else
+			throw;
 	} catch(...) {
 		db.rollback();
 		throw;
@@ -751,7 +771,8 @@ void DatabaseController::initDatabase()
 											   "	id			BIGSERIAL PRIMARY KEY NOT NULL, "
 											   "	keycount	INT NOT NULL DEFAULT 0, "
 											   "	quota		BIGINT NOT NULL DEFAULT 0, "
-											   "	CHECK(quota < 10000000) " //10 MB
+											   "	quotalimit	BIGINT NOT NULL DEFAULT 10000000, "
+											   "	CHECK(quota < quotalimit) " //10 MB
 											   ")"))) {
 				throw DatabaseException(createUsers);
 			}
