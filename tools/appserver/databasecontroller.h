@@ -119,7 +119,8 @@ private:
 	QTimer *_keepAliveTimer;
 	QTimer *_cleanupTimer;
 
-	void initDatabase();
+	void initDatabase(quint64 quota, bool forceQuota);
+	void updateQuotaLimit(quint64 quota, bool forceQuota);
 };
 
 #endif // DATABASECONTROLLER_H

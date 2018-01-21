@@ -41,12 +41,15 @@ DatabaseController::DatabaseController(QObject *parent) :
 
 void DatabaseController::initialize()
 {
-	QtConcurrent::run(qApp->threadPool(), this, &DatabaseController::initDatabase);
+	auto quota = qApp->configuration()->value(QStringLiteral("quota/limit"), 10485760).toULongLong(); //10MB
+	auto force = qApp->configuration()->value(QStringLiteral("quota/force"), false).toBool();
+	QtConcurrent::run(qApp->threadPool(), this, &DatabaseController::initDatabase,
+					  quota, force);
 }
 
 void DatabaseController::cleanupDevices()
 {
-	auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanupInterval"),
+	auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanup/interval"),
 														 90ull) //default interval of ca 3 months
 							.toULongLong();
 	if(offlineSinceDays == 0)
@@ -690,16 +693,18 @@ void DatabaseController::dbInitDone(bool success)
 	}
 
 	if(success) {
-		auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanupInterval"), 90ull)
-								.toULongLong();
-		if(offlineSinceDays > 0) {
+		if(qApp->configuration()->value(QStringLiteral("cleanup/auto"), true).toBool()) {
 			_cleanupTimer = new QTimer(this);
 			_cleanupTimer->setInterval(scdtime(std::chrono::hours(24)));
 			_cleanupTimer->setTimerType(Qt::VeryCoarseTimer);
 			connect(_cleanupTimer, &QTimer::timeout,
 					this, &DatabaseController::cleanupDevices);
 			_cleanupTimer->start();
-			qInfo() << "Automatic cleanup enabled for" << offlineSinceDays << "day intervals";
+
+			auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanup/interval"),
+																 90ull) //default interval of ca 3 months
+									.toULongLong();
+			qInfo() << "Automatic cleanup enabled with" << offlineSinceDays << "day intervals";
 		} else
 			qInfo() << "Automatic cleanup disabled";
 	}
@@ -731,7 +736,7 @@ void DatabaseController::timeout()
 		qDebug() << "Keepalive succeeded";
 }
 
-void DatabaseController::initDatabase()
+void DatabaseController::initDatabase(quint64 quota, bool forceQuota)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.isOpen()) {
@@ -771,14 +776,16 @@ void DatabaseController::initDatabase()
 											   "	id			BIGSERIAL PRIMARY KEY NOT NULL, "
 											   "	keycount	INT NOT NULL DEFAULT 0, "
 											   "	quota		BIGINT NOT NULL DEFAULT 0, "
-											   "	quotalimit	BIGINT NOT NULL DEFAULT 10000000, "
+											   "	quotalimit	BIGINT NOT NULL DEFAULT %1, "
 											   "	CHECK(quota < quotalimit) " //10 MB
-											   ")"))) {
+											   ")")
+								 .arg(quota))) {
 				throw DatabaseException(createUsers);
 			}
 
 			qDebug() << "Created table users (+ functions and triggers)";
-		}
+		} else
+			updateQuotaLimit(quota, forceQuota);
 
 		if(!db.tables().contains(QStringLiteral("devices"))) {
 			QSqlQuery createDevices(db);
@@ -925,6 +932,84 @@ void DatabaseController::initDatabase()
 		qCritical() << "Failed to setup database:" << e.what();
 		QMetaObject::invokeMethod(this, "dbInitDone", Qt::QueuedConnection,
 								  Q_ARG(bool, false));
+	}
+}
+
+void DatabaseController::updateQuotaLimit(quint64 quota, bool forceQuota)
+{
+	auto db = _threadStore.localData().database();
+	if(!db.transaction())
+		throw DatabaseException(db);
+
+	try {
+		if(forceQuota) {
+			Query deleteOverQuotaDevicesQuery(db);
+			deleteOverQuotaDevicesQuery.prepare(QStringLiteral("DELETE FROM devices "
+															   "WHERE userid IN ( "
+															   "	SELECT id FROM users "
+															   "	WHERE quotalimit != ? "
+															   "	AND quota >= ? "
+															   ")"));
+			deleteOverQuotaDevicesQuery.addBindValue(quota);
+			deleteOverQuotaDevicesQuery.addBindValue(quota);
+			deleteOverQuotaDevicesQuery.exec();
+			auto devNum = deleteOverQuotaDevicesQuery.numRowsAffected();
+
+			Query deleteOverQuotaUsersQuery(db);
+			deleteOverQuotaUsersQuery.prepare(QStringLiteral("DELETE FROM users "
+															 "WHERE quotalimit != ? "
+															 "AND quota >= ?"));
+			deleteOverQuotaUsersQuery.addBindValue(quota);
+			deleteOverQuotaUsersQuery.addBindValue(quota);
+			deleteOverQuotaUsersQuery.exec();
+			auto usrNum = deleteOverQuotaUsersQuery.numRowsAffected();
+
+			if(usrNum == 0 && devNum == 0)
+				qDebug() << "No users or devices deleted that exceed quota limit";
+			else {
+				qInfo() << "Deleted" << devNum << "devices and" << usrNum
+						<< "users because their quota exceeded the limit of" << quota;
+			}
+		}
+
+		Query updateQuotaLimitQuery(db);
+		updateQuotaLimitQuery.prepare(QStringLiteral("UPDATE users SET quotalimit = ? "
+													 "WHERE quotalimit != ? "
+													 "AND quota < ?"));
+		updateQuotaLimitQuery.addBindValue(quota);
+		updateQuotaLimitQuery.addBindValue(quota);
+		updateQuotaLimitQuery.addBindValue(quota);
+		updateQuotaLimitQuery.exec();
+		auto quotaChanged = updateQuotaLimitQuery.numRowsAffected();
+		if(quotaChanged > 0) {
+			qInfo() << "Updated quota limit of" << quotaChanged
+					<< "users to the new limit" << quota;
+		} else
+			qDebug() << "No quota changed for any user";
+
+		if(!forceQuota) {
+			Query checkQuotaLimitQuery(db);
+			checkQuotaLimitQuery.prepare(QStringLiteral("SELECT Count(*) FROM users "
+														"WHERE quotalimit != ? "));
+			checkQuotaLimitQuery.addBindValue(quota);
+			checkQuotaLimitQuery.exec();
+
+			if(!checkQuotaLimitQuery.first())
+				throw DatabaseException(db);
+			else {
+				auto unmatching = checkQuotaLimitQuery.value(0).toULongLong();
+				if(unmatching > 0) {
+					qWarning() << "Currently" << unmatching << "users cannot be update to new quota"
+							   << quota << "because they would exceed that limit.";
+				}
+			}
+		}
+
+		if(!db.commit())
+			throw DatabaseException(db);
+	} catch(...) {
+		db.rollback();
+		throw;
 	}
 }
 
