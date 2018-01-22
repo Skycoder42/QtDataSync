@@ -48,7 +48,7 @@ public:
 
 	void initialize(const QVariantHash &params) final;
 
-	static void triggerDataChange(Defaults defaults, const QWriteLocker &);
+	static void triggerDataChange(Defaults defaults);
 
 public Q_SLOTS:
 	void setUploadingEnabled(bool uploading);

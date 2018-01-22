@@ -7,7 +7,6 @@
 #include <QtCore/qsettings.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qreadwritelock.h>
 
 #include <QtRemoteObjects/qremoteobjectnode.h>
 
@@ -94,7 +93,6 @@ public:
 
 	//! Aquire the standard sqlite database
 	DatabaseRef aquireDatabase(QObject *object) const;
-	QReadWriteLock *databaseLock() const;
 
 private:
 	QSharedPointer<DefaultsPrivate> d;

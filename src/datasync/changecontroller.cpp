@@ -23,7 +23,7 @@ void ChangeController::initialize(const QVariantHash &params)
 	Q_ASSERT_X(_store, Q_FUNC_INFO, "Missing parameter: store (LocalStore)");
 }
 
-void ChangeController::triggerDataChange(Defaults defaults, const QWriteLocker &)
+void ChangeController::triggerDataChange(Defaults defaults)
 {
 	auto instance = SetupPrivate::engine(defaults.setupName())->changeController();
 	QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);

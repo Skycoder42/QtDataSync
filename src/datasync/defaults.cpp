@@ -124,11 +124,6 @@ DatabaseRef Defaults::aquireDatabase(QObject *object) const
 	return DatabaseRef(new DatabaseRefPrivate(d, object));
 }
 
-QReadWriteLock *Defaults::databaseLock() const
-{
-	return &(d->dbLock);
-}
-
 // ------------- DatabaseRef -------------
 
 DatabaseRef::DatabaseRef() :
@@ -268,7 +263,6 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	serializer(serializer),
 	resolver(resolver),
 	properties(properties),
-	dbLock(),
 	roMutex(),
 	roNodes()
 {
@@ -293,10 +287,18 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 	if((dbRefHash.localData()[setupName])++ == 0) {
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
+		database.setConnectOptions(QStringLiteral("QSQLITE_BUSY_TIMEOUT=30000;"
+												  "QSQLITE_ENABLE_REGEXP"));//TODO implement regex in localstore
 		if(!database.open()) {
-			logFatal(QStringLiteral("Failed to open database local database. Database error:\n\t") +
+			logFatal(QStringLiteral("Failed to open local database. Database error:\n\t") +
 					 database.lastError().text()); //TODO check where else needed
 		}
+
+		//TODO use PRAGMA compile_options; to detect THREADSAFE
+
+		QSqlQuery pragma1(database);
+		if(!pragma1.exec(QStringLiteral("PRAGMA foreign_keys = ON;")))
+			logWarning() << "Failed to enable foreign_keys support";
 	}
 
 	return QSqlDatabase::database(name);

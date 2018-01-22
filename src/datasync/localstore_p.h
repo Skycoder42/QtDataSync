@@ -7,7 +7,6 @@
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 #include <QtCore/QCache>
-#include <QtCore/QReadWriteLock>
 #include <QtCore/QJsonObject>
 #include <QtCore/QUuid>
 
@@ -59,7 +58,6 @@ public:
 		struct Q_DATASYNC_EXPORT Private {
 			ObjectKey key;
 			DatabaseRef database;
-			QWriteLocker lock;
 			std::function<void()> afterCommit;
 
 			Private(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
@@ -143,6 +141,7 @@ private:
 	QString filePath(const QDir &typeDir, const QString &baseName) const;
 	QString filePath(const ObjectKey &key, const QString &baseName) const;
 
+	void beginWriteTransaction(const ObjectKey &key = ObjectKey{"any"}, bool exclusive = false) const;
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 
 	Q_REQUIRED_RESULT std::function<void()> storeChangedImpl(const DatabaseRef &db,
@@ -151,13 +150,11 @@ private:
 															 const QString &filePath,
 															 const QJsonObject &data,
 															 bool changed,
-															 bool existing,
-															 const QWriteLocker &lock);
+															 bool existing);
 	void markUnchangedImpl(const DatabaseRef &db,
 						   const ObjectKey &key,
 						   quint64 version,
-						   bool isDelete,
-						   const QWriteLocker &);
+						   bool isDelete);
 };
 
 }

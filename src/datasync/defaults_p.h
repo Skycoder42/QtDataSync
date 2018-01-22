@@ -73,7 +73,6 @@ private:
 	QJsonSerializer *serializer;
 	ConflictResolver *resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;
-	QReadWriteLock dbLock;
 
 	QMutex roMutex;
 	QHash<QThread*, QRemoteObjectNode*> roNodes;
