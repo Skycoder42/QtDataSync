@@ -63,9 +63,9 @@ bool QQmlDataStore::remove(const QString &typeName, const QString &key)
 	return DataStore::remove(QMetaType::type(typeName.toUtf8()), key);
 }
 
-QVariantList QQmlDataStore::search(const QString &typeName, const QString &query) const
+QVariantList QQmlDataStore::search(const QString &typeName, const QString &query, DataStore::SearchMode mode) const
 {
-	return DataStore::search(QMetaType::type(typeName.toUtf8()), query);
+	return DataStore::search(QMetaType::type(typeName.toUtf8()), query, mode);
 }
 
 void QQmlDataStore::clear(const QString &typeName)

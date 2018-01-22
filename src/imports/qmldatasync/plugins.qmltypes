@@ -64,6 +64,16 @@ Module {
     Component {
         name: "QtDataSync::DataStore"
         prototype: "QObject"
+        Enum {
+            name: "SearchMode"
+            values: {
+                "RegexpMode": 0,
+                "WildcardMode": 1,
+                "ContainsMode": 2,
+                "StartsWithMode": 3,
+                "EndsWithMode": 4
+            }
+        }
         Property { name: "cacheSize"; type: "int" }
         Signal {
             name: "dataChanged"
@@ -276,6 +286,13 @@ Module {
             type: "bool"
             Parameter { name: "typeName"; type: "string" }
             Parameter { name: "key"; type: "string" }
+        }
+        Method {
+            name: "search"
+            type: "QVariantList"
+            Parameter { name: "typeName"; type: "string" }
+            Parameter { name: "query"; type: "string" }
+            Parameter { name: "mode"; type: "DataStore::SearchMode" }
         }
         Method {
             name: "search"
