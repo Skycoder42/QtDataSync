@@ -20,6 +20,7 @@ private Q_SLOTS:
 	void testSave_data();
 	void testSave();
 	void testAll();
+	void testFind_data();
 	void testFind();
 	void testUncached();
 	void testRemove_data();
@@ -112,15 +113,54 @@ void TestLocalStore::testAll()
 	testAllImpl(store);
 }
 
+void TestLocalStore::testFind_data()
+{
+	QTest::addColumn<QString>("query");
+	QTest::addColumn<DataStore::SearchMode>("mode");
+	QTest::addColumn<QList<QJsonObject>>("result");
+
+	QTest::newRow("regexp") << QStringLiteral(R"__((3(?!1)|.*2.+))__")
+							<< DataStore::RegexpMode
+							<< QList<QJsonObject> {
+								  TestLib::generateDataJson(429),
+								  TestLib::generateDataJson(430),
+								  TestLib::generateDataJson(432)
+							   };
+	QTest::newRow("wildcard") << QStringLiteral("*2*")
+							  << DataStore::WildcardMode
+							  << QList<QJsonObject> {
+									TestLib::generateDataJson(429),
+									TestLib::generateDataJson(432)
+								 };
+	QTest::newRow("startswith") << QStringLiteral("4")
+								<< DataStore::StartsWithMode
+								<< QList<QJsonObject> {
+									  TestLib::generateDataJson(429),
+									  TestLib::generateDataJson(430),
+									  TestLib::generateDataJson(431),
+									  TestLib::generateDataJson(432)
+								   };
+	QTest::newRow("endswith") << QStringLiteral("1")
+							  << DataStore::EndsWithMode
+							  << QList<QJsonObject> {
+									TestLib::generateDataJson(431)
+								 };
+	QTest::newRow("contains") << QStringLiteral("2")
+							  << DataStore::ContainsMode
+							  << QList<QJsonObject> {
+									TestLib::generateDataJson(429),
+									TestLib::generateDataJson(432)
+								 };
+}
+
 void TestLocalStore::testFind()
 {
-	const QList<QJsonObject> objects {
-		TestLib::generateDataJson(429),
-		TestLib::generateDataJson(432)
-	};
+	QFETCH(QString, query);
+	QFETCH(DataStore::SearchMode, mode);
+	QFETCH(QList<QJsonObject>, result);
 
 	try {
-		QCOMPARE(store->find(TestLib::TypeName, QStringLiteral("*2*")), objects);
+		QCOMPAREUNORDERED(store->find(TestLib::TypeName, query, mode), result);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

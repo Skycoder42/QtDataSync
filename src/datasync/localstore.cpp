@@ -1,5 +1,4 @@
 #include "localstore_p.h"
-#include "datastore.h"
 #include "changecontroller_p.h"
 #include "synchelper_p.h"
 
@@ -9,6 +8,7 @@
 #include <QtCore/QGlobalStatic>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSaveFile>
+#include <QtCore/QRegularExpression>
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -282,17 +282,49 @@ bool LocalStore::remove(const ObjectKey &key)
 	}
 }
 
-QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &query) const
+QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &query, DataStore::SearchMode mode) const
 {
 	auto searchQuery = query;
-	searchQuery.replace(QLatin1Char('*'), QLatin1Char('%'));
-	searchQuery.replace(QLatin1Char('?'), QLatin1Char('_'));
+	if(mode != DataStore::RegexpMode) { //escape any of the like wildcard literals
+		if(mode != DataStore::WildcardMode)
+			searchQuery.replace(QLatin1Char('\\'), QStringLiteral("\\\\"));
+		searchQuery.replace(QLatin1Char('%'), QStringLiteral("\\%"));
+		searchQuery.replace(QLatin1Char('_'), QStringLiteral("\\_"));
+	}
+
+	switch(mode) {
+	case DataStore::WildcardMode:
+	{
+		//replace any unescaped * or ? by % and _
+		const QRegularExpression searchRepRegex1(QStringLiteral(R"__(((?<!\\)(?:\\\\)*)\*)__"));
+		const QRegularExpression searchRepRegex2(QStringLiteral(R"__(((?<!\\)(?:\\\\)*)\?)__"));
+		searchQuery.replace(searchRepRegex1, QStringLiteral("\\1%"));
+		searchQuery.replace(searchRepRegex2, QStringLiteral("\\1_"));
+		break;
+	}
+	case DataStore::ContainsMode:
+		searchQuery = QLatin1Char('%') + searchQuery + QLatin1Char('%');
+		break;
+	case DataStore::StartsWithMode:
+		searchQuery = searchQuery + QLatin1Char('%');
+		break;
+	case DataStore::EndsWithMode:
+		searchQuery = QLatin1Char('%') + searchQuery;
+		break;
+	default:
+		break;
+	}
 
 	beginReadTransaction(typeName);
 
 	try {
 		QSqlQuery findQuery(_database);
-	findQuery.prepare(QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND Id LIKE ? AND File IS NOT NULL"));
+		auto queryStr = QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND %1 AND File IS NOT NULL");
+		if(mode == DataStore::RegexpMode)
+			queryStr = queryStr.arg(QStringLiteral("Id REGEXP ?"));
+		else
+			queryStr = queryStr.arg(QStringLiteral("Id LIKE ? ESCAPE '\\'"));
+		findQuery.prepare(queryStr);
 		findQuery.addBindValue(typeName);
 		findQuery.addBindValue(searchQuery);
 		exec(findQuery, typeName);

@@ -25,6 +25,16 @@ class Q_DATASYNC_EXPORT DataStore : public QObject
 	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 
 public:
+	enum SearchMode
+	{
+		RegexpMode,
+		WildcardMode,
+		ContainsMode,
+		StartsWithMode,
+		EndsWithMode
+	};
+	Q_ENUM(SearchMode)
+
 	explicit DataStore(QObject *parent = nullptr);
 	explicit DataStore(const QString &setupName, QObject *parent = nullptr);
 	~DataStore();
@@ -52,7 +62,7 @@ public:
 		return remove(metaTypeId, key.toString());
 	}
 	//! @copybrief DataStore::search(const QString &)
-	QVariantList search(int metaTypeId, const QString &query) const;
+	QVariantList search(int metaTypeId, const QString &query, SearchMode mode = RegexpMode) const;
 	//! @copybrief DataStore::iterate(const std::function<bool(T)> &, const std::function<void(const QException &)> &)
 	void iterate(int metaTypeId,
 				 const std::function<bool(QVariant)> &iterator) const;
@@ -88,7 +98,7 @@ public:
 	bool remove(const K &key);
 	//! Searches the store for datasets of the given type where the key matches the query
 	template<typename T>
-	QList<T> search(const QString &query);
+	QList<T> search(const QString &query, SearchMode mode = RegexpMode);
 	//! Asynchronously iterates over all existing datasets of the given types
 	template<typename T>
 	void iterate(const std::function<bool(T)> &iterator);
@@ -255,10 +265,10 @@ bool DataStore::remove(const K &key)
 }
 
 template<typename T>
-QList<T> DataStore::search(const QString &query)
+QList<T> DataStore::search(const QString &query, SearchMode mode)
 {
 	QTDATASYNC_STORE_ASSERT(T);
-	auto mList = search(qMetaTypeId<T>(), query);
+	auto mList = search(qMetaTypeId<T>(), query, mode);
 	QList<T> rList;
 	foreach(auto v, mList)
 		rList.append(v.template value<T>());

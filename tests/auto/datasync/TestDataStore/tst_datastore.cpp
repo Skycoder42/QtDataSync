@@ -125,7 +125,7 @@ void TestDataStore::testFind()
 	};
 
 	try {
-		QCOMPARE(store->search<TestData>(QStringLiteral("*2*")), objects);
+		QCOMPARE(store->search<TestData>(QStringLiteral("*2*"), DataStore::WildcardMode), objects);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

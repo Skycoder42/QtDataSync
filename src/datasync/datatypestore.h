@@ -51,7 +51,7 @@ public:
 	void save(const TType &value);
 	//! Removes the dataset with the given key
 	bool remove(const TKey &key);
-	QList<TType> search(const QString &query);
+	QList<TType> search(const QString &query, DataStore::SearchMode mode = DataStore::RegexpMode);
 	//! Asynchronously iterates over all existing datasets of the given types
 	void iterate(const std::function<bool(TType)> &iterator);
 	void clear();
@@ -236,9 +236,9 @@ bool DataTypeStore<TType, TKey>::remove(const TKey &key)
 }
 
 template<typename TType, typename TKey>
-QList<TType> DataTypeStore<TType, TKey>::search(const QString &query)
+QList<TType> DataTypeStore<TType, TKey>::search(const QString &query, DataStore::SearchMode mode)
 {
-	return _store->search<TType>(query);
+	return _store->search<TType>(query, mode);
 }
 
 template<typename TType, typename TKey>

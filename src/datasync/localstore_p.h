@@ -17,6 +17,7 @@
 #include "defaults.h"
 #include "logger.h"
 #include "exception.h"
+#include "datastore.h"
 
 namespace QtDataSync {
 
@@ -81,7 +82,7 @@ public:
 	void save(const ObjectKey &key, const QJsonObject &data);
 	bool remove(const ObjectKey &key);
 
-	QList<QJsonObject> find(const QByteArray &typeName, const QString &query) const;
+	QList<QJsonObject> find(const QByteArray &typeName, const QString &query, DataStore::SearchMode mode) const;
 	void clear(const QByteArray &typeName);
 	void reset(bool keepData);
 

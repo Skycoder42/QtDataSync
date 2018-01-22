@@ -110,9 +110,9 @@ bool DataStore::remove(int metaTypeId, const QString &key)
 	return d->store->remove({d->typeName(metaTypeId), key});
 }
 
-QVariantList DataStore::search(int metaTypeId, const QString &query) const
+QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode mode) const
 {
-	auto jsonList = d->store->find(d->typeName(metaTypeId), query);
+	auto jsonList = d->store->find(d->typeName(metaTypeId), query, mode);
 	QVariantList resList;
 	foreach(auto val, jsonList)
 		resList.append(d->serializer->deserialize(val, metaTypeId));
