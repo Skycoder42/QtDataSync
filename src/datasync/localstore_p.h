@@ -141,7 +141,8 @@ private:
 	QString filePath(const QDir &typeDir, const QString &baseName) const;
 	QString filePath(const ObjectKey &key, const QString &baseName) const;
 
-	void beginWriteTransaction(const ObjectKey &key = ObjectKey{"any"}, bool exclusive = false) const;
+	void beginReadTransaction(const ObjectKey &key = ObjectKey{"any"}) const;
+	void beginWriteTransaction(const ObjectKey &key = ObjectKey{"any"}, bool exclusive = false);
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 
 	Q_REQUIRED_RESULT std::function<void()> storeChangedImpl(const DatabaseRef &db,

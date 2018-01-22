@@ -119,20 +119,33 @@ QStringList LocalStore::keys(const QByteArray &typeName) const
 
 QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName) const
 {
-	QSqlQuery loadQuery(_database);
-	loadQuery.prepare(QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
-	loadQuery.addBindValue(typeName);
-	exec(loadQuery, typeName);
+	//read transaction used to prevent writes while reading json files
+	beginReadTransaction(typeName);
 
-	QList<QJsonObject> array;
-	while(loadQuery.next()) {
-		int size;
-		ObjectKey key {typeName, loadQuery.value(0).toString()};
-		auto json = readJson(key, loadQuery.value(1).toString(), &size);
-		array.append(json);
-		_dataCache.insert(key, new QJsonObject(json), size);
+	try {
+		QSqlQuery loadQuery(_database);
+		loadQuery.prepare(QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND File IS NOT NULL"));
+		loadQuery.addBindValue(typeName);
+		exec(loadQuery, typeName);
+
+		QList<QJsonObject> array;
+		while(loadQuery.next()) {
+			int size;
+			ObjectKey key {typeName, loadQuery.value(0).toString()};
+			auto json = readJson(key, loadQuery.value(1).toString(), &size);
+			array.append(json);
+			_dataCache.insert(key, new QJsonObject(json), size);
+		}
+
+		//commit db
+		if(!_database->commit())
+			throw LocalStoreException(_defaults, typeName, _database->databaseName(), _database->lastError().text());
+
+		return array;
+	} catch(...) {
+		_database->rollback();
+		throw;
 	}
-	return array;
 }
 
 QJsonObject LocalStore::load(const ObjectKey &key) const
@@ -142,7 +155,7 @@ QJsonObject LocalStore::load(const ObjectKey &key) const
 	if(data)
 		return *data;
 
-	if(!_database->transaction()) //TODO more read transactions
+	if(!_database->transaction())
 		throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
 
 	try {
@@ -245,14 +258,14 @@ bool LocalStore::remove(const ObjectKey &key)
 			if(!_database->commit())
 				throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
 
+			//notify change controller
+			ChangeController::triggerDataChange(_defaults);
+
 			//update cache
 			_dataCache.remove(key);
 
 			//notify others
 			emit emitter->dataChanged(this, key, {}, 0);
-
-			//notify change controller
-			ChangeController::triggerDataChange(_defaults);
 
 			//own signal
 			emit dataChanged(key, true);
@@ -275,21 +288,32 @@ QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &q
 	searchQuery.replace(QLatin1Char('*'), QLatin1Char('%'));
 	searchQuery.replace(QLatin1Char('?'), QLatin1Char('_'));
 
-	QSqlQuery findQuery(_database);
-	findQuery.prepare(QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND Id LIKE ? AND File IS NOT NULL"));
-	findQuery.addBindValue(typeName);
-	findQuery.addBindValue(searchQuery);
-	exec(findQuery, typeName);
+	beginReadTransaction(typeName);
 
-	QList<QJsonObject> array;
-	while(findQuery.next()) {
-		int size;
-		ObjectKey key {typeName, findQuery.value(0).toString()};
-		auto json = readJson(key, findQuery.value(1).toString(), &size);
-		array.append(json);
-		_dataCache.insert(key, new QJsonObject(json), size);
+	try {
+		QSqlQuery findQuery(_database);
+	findQuery.prepare(QStringLiteral("SELECT Id, File FROM DataIndex WHERE Type = ? AND Id LIKE ? AND File IS NOT NULL"));
+		findQuery.addBindValue(typeName);
+		findQuery.addBindValue(searchQuery);
+		exec(findQuery, typeName);
+
+		QList<QJsonObject> array;
+		while(findQuery.next()) {
+			int size;
+			ObjectKey key {typeName, findQuery.value(0).toString()};
+			auto json = readJson(key, findQuery.value(1).toString(), &size);
+			array.append(json);
+			_dataCache.insert(key, new QJsonObject(json), size);
+		}
+
+		if(!_database->commit())
+			throw LocalStoreException(_defaults, typeName, _database->databaseName(), _database->lastError().text());
+
+		return array;
+	} catch(...) {
+		_database->rollback();
+		throw;
 	}
-	return array;
 }
 
 void LocalStore::clear(const QByteArray &typeName)
@@ -389,39 +413,54 @@ quint32 LocalStore::changeCount() const
 
 void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const
 {
-	QSqlQuery readChangesQuery(_database);
-	readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File FROM DataIndex WHERE Changed = 1 LIMIT ?"));
-	readChangesQuery.addBindValue(limit);
-	exec(readChangesQuery);
+	beginReadTransaction();
 
-	auto cnt = 0;
-	while(readChangesQuery.next()) {
-		cnt++;
-		if(!visitor({readChangesQuery.value(0).toByteArray(), readChangesQuery.value(1).toString()},
-					readChangesQuery.value(2).toULongLong(),
-					readChangesQuery.value(3).toString(),
-					QUuid()))
-			return;
-	}
+	try {
+		QSqlQuery readChangesQuery(_database);
+		readChangesQuery.prepare(QStringLiteral("SELECT Type, Id, Version, File FROM DataIndex WHERE Changed = 1 LIMIT ?"));
+		readChangesQuery.addBindValue(limit);
+		exec(readChangesQuery);
 
-	if(cnt < limit) {
-		QSqlQuery readDeviceChangesQuery(_database);
-		readDeviceChangesQuery.prepare(QStringLiteral("SELECT DeviceUploads.Type, DeviceUploads.Id, DataIndex.Version, DataIndex.File, DeviceUploads.Device "
-													  "FROM DeviceUploads "
-													  "INNER JOIN DataIndex "
-													  "ON (DeviceUploads.Type = DataIndex.Type AND DeviceUploads.Id = DataIndex.Id) "
-													  "WHERE NOT (DataIndex.Changed = 1 AND File IS NULL) " //only those that haven't been operated on before
-													  "LIMIT ?"));
-		readDeviceChangesQuery.addBindValue(limit - cnt);
-		exec(readDeviceChangesQuery);
-
-		while(readDeviceChangesQuery.next()) {
-			if(!visitor({readDeviceChangesQuery.value(0).toByteArray(), readDeviceChangesQuery.value(1).toString()},
-						readDeviceChangesQuery.value(2).toULongLong(),
-						readDeviceChangesQuery.value(3).toString(),
-						readDeviceChangesQuery.value(4).toUuid()))
-				return;
+		auto cnt = 0;
+		auto skip = false;
+		while(readChangesQuery.next()) {
+			cnt++;
+			if(!visitor({readChangesQuery.value(0).toByteArray(), readChangesQuery.value(1).toString()},
+						readChangesQuery.value(2).toULongLong(),
+						readChangesQuery.value(3).toString(),
+						QUuid())) {
+				skip = true;
+				break;
+			}
 		}
+
+		if(!skip && cnt < limit) {
+			QSqlQuery readDeviceChangesQuery(_database);
+			readDeviceChangesQuery.prepare(QStringLiteral("SELECT DeviceUploads.Type, DeviceUploads.Id, DataIndex.Version, DataIndex.File, DeviceUploads.Device "
+														  "FROM DeviceUploads "
+														  "INNER JOIN DataIndex "
+														  "ON (DeviceUploads.Type = DataIndex.Type AND DeviceUploads.Id = DataIndex.Id) "
+														  "WHERE NOT (DataIndex.Changed = 1 AND File IS NULL) " //only those that haven't been operated on before
+														  "LIMIT ?"));
+			readDeviceChangesQuery.addBindValue(limit - cnt);
+			exec(readDeviceChangesQuery);
+
+			while(readDeviceChangesQuery.next()) {
+				if(!visitor({readDeviceChangesQuery.value(0).toByteArray(), readDeviceChangesQuery.value(1).toString()},
+							readDeviceChangesQuery.value(2).toULongLong(),
+							readDeviceChangesQuery.value(3).toString(),
+							readDeviceChangesQuery.value(4).toUuid())) {
+					skip = true;
+					break;
+				}
+			}
+		}
+
+		if(!_database->commit())
+			throw LocalStoreException(_defaults, QByteArray("<any>"), _database->databaseName(), _database->lastError().text());
+	} catch(...) {
+		_database->rollback();
+		throw;
 	}
 }
 
@@ -670,7 +709,13 @@ QString LocalStore::filePath(const ObjectKey &key, const QString &baseName) cons
 	return filePath(typeDirectory(key), baseName);
 }
 
-void LocalStore::beginWriteTransaction(const ObjectKey &key, bool exclusive) const
+void LocalStore::beginReadTransaction(const ObjectKey &key) const
+{
+	if(!_database->transaction())
+		throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
+}
+
+void LocalStore::beginWriteTransaction(const ObjectKey &key, bool exclusive)
 {
 	QSqlQuery transactQuery(_database);
 	if(!transactQuery.exec(QStringLiteral("BEGIN %1 TRANSACTION")
@@ -757,11 +802,10 @@ std::function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const 
 	if(!commitFn(device.data()))
 		throw LocalStoreException(_defaults, key, device->fileName(), device->errorString());
 
-	//notify change controller
-	if(changed)
-		ChangeController::triggerDataChange(_defaults);
-
-	return [this, key, data, info]() {
+	return [this, key, data, info, changed]() {
+		//notify change controller
+		if(changed)
+			ChangeController::triggerDataChange(_defaults);
 		//update cache
 		_dataCache.insert(key, new QJsonObject(data), info.size());
 		//notify others

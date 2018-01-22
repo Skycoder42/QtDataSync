@@ -294,10 +294,31 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 					 database.lastError().text()); //TODO check where else needed
 		}
 
-		//TODO use PRAGMA compile_options; to detect THREADSAFE
+		//verify sqlite is threadsafe
+		QSqlQuery pragmaThreadSafe(database);
+		if(!pragmaThreadSafe.exec(QStringLiteral("PRAGMA compile_options")))
+			logWarning() << "Failed to verify sqlite threadsafety";
+		else {
+			auto found = false;
+			while(pragmaThreadSafe.next()) {
+				auto tSafe = pragmaThreadSafe.value(0).toString().split(QLatin1Char('='));
+				if(tSafe.size() == 2 &&
+				   tSafe[0] == QStringLiteral("THREADSAFE")) {
+					if(tSafe[1].toInt() == 0)
+						logCritical() << "sqlite was NOT compiled threadsafe. This can lead to crashes and corrupted data";
+					else
+						logDebug() << "Verified sqlite threadsafety";
+					found = true;
+					break;
+				}
+			}
+			if(!found)
+				logWarning() << "Failed to verify sqlite threadsafety";
+		}
 
-		QSqlQuery pragma1(database);
-		if(!pragma1.exec(QStringLiteral("PRAGMA foreign_keys = ON;")))
+		//enable foreign keys
+		QSqlQuery pragmaForeignKeys(database);
+		if(!pragmaForeignKeys.exec(QStringLiteral("PRAGMA foreign_keys = ON")))
 			logWarning() << "Failed to enable foreign_keys support";
 	}
 
