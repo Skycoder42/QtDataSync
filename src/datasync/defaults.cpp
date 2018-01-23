@@ -124,6 +124,11 @@ DatabaseRef Defaults::aquireDatabase(QObject *object) const
 	return DatabaseRef(new DatabaseRefPrivate(d, object));
 }
 
+QVariant Defaults::cacheHandle() const
+{
+	return QVariant::fromValue(d->cacheInfo);
+}
+
 // ------------- DatabaseRef -------------
 
 DatabaseRef::DatabaseRef() :

@@ -96,6 +96,9 @@ public:
 	//! Aquire the standard sqlite database
 	DatabaseRef aquireDatabase(QObject *object) const;
 
+	//special case
+	QVariant cacheHandle() const;
+
 private:
 	QSharedPointer<DefaultsPrivate> d;
 };

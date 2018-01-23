@@ -38,6 +38,7 @@ private Q_SLOTS:
 	//special
 	void testChangeSignals();
 	void testAsync();
+	void testPassiveSetup();
 
 private:
 	LocalStore *store;
@@ -637,6 +638,69 @@ void TestLocalStore::testAsync()
 
 		foreach(auto f, futures)
 			f.waitForFinished();
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestLocalStore::testPassiveSetup()
+{
+	const auto key = TestLib::generateKey(77);
+	auto data = TestLib::generateDataJson(77);
+
+	QCoreApplication::processEvents();
+	QThread::sleep(1);
+	QCoreApplication::processEvents();
+
+	try {
+		auto nName = QStringLiteral("setup2");
+		Setup setup;
+		TestLib::setup(setup);
+		setup.setRemoteObjectHost(QStringLiteral("threaded:/qtdatasync/default/enginenode"));
+		QVERIFY(setup.createPassive(nName, 5000));
+
+		LocalStore second(DefaultsPrivate::obtainDefaults(nName));
+
+		QSignalSpy store1Spy(store, &LocalStore::dataChanged);
+		QSignalSpy store2Spy(&second, &LocalStore::dataChanged);
+
+		store->reset(false);
+
+		store->save(key, data);
+		QCOMPARE(store->load(key), data);
+		QCOMPARE(second.load(key), data);//only works because nothing is cached yet
+
+		QCOMPARE(store1Spy.size(), 1);
+		auto sig = store1Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		QVERIFY(store2Spy.wait());
+		QCOMPARE(store2Spy.size(), 1);
+		sig = store2Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		data.insert(QStringLiteral("baum"), 42);
+		second.save(key, data);
+		QCOMPARE(second.load(key), data);
+		QVERIFY(store->load(key) != data);//must be different, because change did not reach it yet (no atomicity for passive setups!)
+
+		QVERIFY(store2Spy.wait());
+		QCOMPARE(store2Spy.size(), 1);
+		sig = store2Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		if(store1Spy.isEmpty())
+			QVERIFY(store1Spy.wait());
+		QCOMPARE(store->load(key), data);//now it's here
+		QCOMPARE(store1Spy.size(), 1);
+		sig = store1Spy.takeFirst();
+		QCOMPARE(sig[0].value<ObjectKey>(), key);
+		QCOMPARE(sig[1].toBool(), false);
+
+		Setup::removeSetup(nName);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

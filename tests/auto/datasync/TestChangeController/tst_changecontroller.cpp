@@ -29,6 +29,7 @@ private Q_SLOTS:
 
 	//last test, to avoid problems
 	void testChangeTriggers();
+	void testPassiveTriggers();
 
 private:
 	LocalStore *store;
@@ -335,6 +336,51 @@ void TestChangeController::testChangeTriggers()
 		QVERIFY(errorSpy.isEmpty());
 		QCOMPARE(incrementSpy.size(), 2);
 
+		engine->_changeController = old;
+	} catch(QException &e) {
+		engine->_changeController = old;
+		QFAIL(e.what());
+	}
+}
+
+void TestChangeController::testPassiveTriggers()
+{
+	for(auto i = 0; i < 5; i++) { //wait for the engine to init itself
+		QCoreApplication::processEvents();
+		QThread::msleep(100);
+	}
+
+	//DIRTY HACK: force the engine pass the local controller to anyone asking
+	auto engine = SetupPrivate::engine(DefaultSetup);
+	auto old = engine->_changeController;
+	engine->_changeController = controller;
+
+	//enable changes
+	controller->setUploadingEnabled(true);
+	QCoreApplication::processEvents();
+
+	QSignalSpy changeSpy(controller, &ChangeController::uploadChange);
+
+	try {
+		auto nName = QStringLiteral("setup2");
+		Setup setup;
+		TestLib::setup(setup);
+		setup.setRemoteObjectHost(QStringLiteral("threaded:/qtdatasync/default/enginenode"));
+		QVERIFY(setup.createPassive(nName, 5000));
+
+		auto key = TestLib::generateKey(22);
+		auto data = TestLib::generateDataJson(22);
+
+		{
+			LocalStore second(DefaultsPrivate::obtainDefaults(nName));
+			second.save(key, data);
+			QVERIFY(changeSpy.wait());
+			QCOMPARE(changeSpy.size(), 1);
+			auto change = changeSpy.takeFirst();
+			QCOMPARE(change[1].toByteArray(), SyncHelper::combine(key, 1, data));
+		}
+
+		Setup::removeSetup(nName);
 		engine->_changeController = old;
 	} catch(QException &e) {
 		engine->_changeController = old;

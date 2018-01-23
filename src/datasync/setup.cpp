@@ -49,7 +49,8 @@ void Setup::removeSetup(const QString &name, bool waitForFinished)
 			info.thread->deleteLater();
 			QCoreApplication::processEvents();//required to perform queued events
 		}
-	}
+	} else //no there -> remove defaults (either already removed does nothing, or remove passive)
+		DefaultsPrivate::removeDefaults(name);
 }
 
 QStringList Setup::keystoreProviders()

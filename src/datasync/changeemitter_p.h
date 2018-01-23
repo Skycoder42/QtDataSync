@@ -5,6 +5,8 @@
 #include <QtCore/QJsonObject>
 
 #include "qtdatasync_global.h"
+#include "defaults.h"
+#include "emitteradapter_p.h"
 
 #include "rep_changeemitter_p_source.h"
 
@@ -15,7 +17,7 @@ class Q_DATASYNC_EXPORT ChangeEmitter : public ChangeEmitterSource
 	Q_OBJECT
 
 public:
-	explicit ChangeEmitter(QObject *parent = nullptr);
+	explicit ChangeEmitter(const Defaults &defaults, QObject *parent = nullptr);
 
 public Q_SLOTS:
 	void triggerChange(QObject *origin,
@@ -37,6 +39,9 @@ protected Q_SLOTS:
 	void triggerRemoteChange(const ObjectKey &key, bool deleted, bool changed) override;
 	void triggerRemoteClear(const QByteArray &typeName) override;
 	void triggerRemoteReset() override;
+
+private:
+	QSharedPointer<EmitterAdapter::CacheInfo> _cache;//needed to clear cache on remote changes
 };
 
 }

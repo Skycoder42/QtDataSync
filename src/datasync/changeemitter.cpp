@@ -1,8 +1,9 @@
 #include "changeemitter_p.h"
 using namespace QtDataSync;
 
-ChangeEmitter::ChangeEmitter(QObject *parent) :
-	ChangeEmitterSource(parent)
+ChangeEmitter::ChangeEmitter(const Defaults &defaults, QObject *parent) :
+	ChangeEmitterSource(parent),
+	_cache(defaults.cacheHandle().value<QSharedPointer<EmitterAdapter::CacheInfo>>())
 {}
 
 void ChangeEmitter::triggerChange(QObject *origin, const ObjectKey &key, bool deleted, bool changed)
@@ -34,6 +35,19 @@ void ChangeEmitter::triggerUpload()
 
 void ChangeEmitter::triggerRemoteChange(const ObjectKey &key, bool deleted, bool changed)
 {
+	if(_cache) {
+		auto contains = false;
+		//check if cached
+		{
+			QReadLocker _(&_cache->lock);
+			contains = _cache->cache.contains(key);
+		}
+		//if chached, remove
+		if(contains) {
+			QWriteLocker _(&_cache->lock);
+			_cache->cache.remove(key);
+		}
+	}
 	if(changed)
 		emit uploadNeeded();
 	emit dataChanged(nullptr, key, deleted);
@@ -42,6 +56,13 @@ void ChangeEmitter::triggerRemoteChange(const ObjectKey &key, bool deleted, bool
 
 void ChangeEmitter::triggerRemoteClear(const QByteArray &typeName)
 {
+	if(_cache) {
+		QWriteLocker _(&_cache->lock);
+		foreach(auto key, _cache->cache.keys()) {
+			if(key.typeName == typeName)
+				_cache->cache.remove(key);
+		}
+	}
 	emit uploadNeeded();
 	emit dataResetted(nullptr, typeName);
 	emit remoteDataResetted(typeName);
@@ -49,6 +70,10 @@ void ChangeEmitter::triggerRemoteClear(const QByteArray &typeName)
 
 void ChangeEmitter::triggerRemoteReset()
 {
+	if(_cache) {
+		QWriteLocker _(&_cache->lock);
+		_cache->cache.clear();
+	}
 	emit uploadNeeded();
 	emit dataResetted(nullptr, {});
 	emit remoteDataResetted({});

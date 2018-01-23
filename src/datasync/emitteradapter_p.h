@@ -58,4 +58,6 @@ private:
 
 }
 
+Q_DECLARE_METATYPE(QSharedPointer<QtDataSync::EmitterAdapter::CacheInfo>)
+
 #endif // EMITTERADAPTER_P_H

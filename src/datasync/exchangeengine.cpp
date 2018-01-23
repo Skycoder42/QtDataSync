@@ -32,7 +32,7 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_roHost(nullptr),
 	_syncManager(nullptr),
 	_accountManager(nullptr),
-	_emitter(new ChangeEmitter(this)) //must be created here, because of access
+	_emitter(new ChangeEmitter(_defaults, this)) //must be created here, because of access
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
