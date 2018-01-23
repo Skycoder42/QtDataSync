@@ -3,6 +3,7 @@
 #include <QLoggingCategory>
 #include <QInputDialog>
 #include <QSettings>
+#include <QMessageBox>
 #include <QtDataSync/syncmanager.h>
 #include <QtDataSync/setup.h>
 #include "sampledata.h"
@@ -44,11 +45,22 @@ int main(int argc, char *argv[])
 	}
 
 	//setup datasync
-	QtDataSync::Setup()
-			.setLocalDir(QStringLiteral("./%1").arg(name))
+	QtDataSync::Setup setup;
+	setup.setLocalDir(QStringLiteral("./%1").arg(name))
 			.setRemoteConfiguration(QUrl(QStringLiteral("ws://localhost:4242")))
-			.setSignatureScheme(QtDataSync::Setup::ECDSA_ECP_SHA3_512)
-			.create(name);
+			.setRemoteObjectHost(QStringLiteral("local:qtdssample_%1").arg(name)) //use local to enable passive setup
+			.setSignatureScheme(QtDataSync::Setup::ECDSA_ECP_SHA3_512);
+	try {
+		setup.create(name);
+	} catch(QtDataSync::SetupLockedException &e) {
+		qDebug() << e.what();
+		if(QMessageBox::question(nullptr,
+								 QCoreApplication::translate("GLOBAL", "Setup locked"),
+								 QCoreApplication::translate("GLOBAL", "Setup already locked. Start as passive setup?")))
+			setup.createPassive(name);
+		else
+			return EXIT_FAILURE;
+	}
 
 	Widget w(name);
 	w.show();
