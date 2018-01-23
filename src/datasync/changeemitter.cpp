@@ -27,6 +27,11 @@ void ChangeEmitter::triggerReset(QObject *origin)
 	emit remoteDataResetted({});
 }
 
+void ChangeEmitter::triggerUpload()
+{
+	emit uploadNeeded();
+}
+
 void ChangeEmitter::triggerRemoteChange(const ObjectKey &key, bool deleted, bool changed)
 {
 	if(changed)

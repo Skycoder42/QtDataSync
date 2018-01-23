@@ -50,8 +50,6 @@ public:
 
 	void initialize(const QVariantHash &params) final;
 
-	static void triggerDataChange(Defaults defaults);
-
 public Q_SLOTS:
 	void setUploadingEnabled(bool uploading);
 	void clearUploads();

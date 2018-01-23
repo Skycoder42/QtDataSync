@@ -30,11 +30,6 @@ void ChangeController::initialize(const QVariantHash &params)
 			this, &ChangeController::changeTriggered);
 }
 
-void ChangeController::triggerDataChange(Defaults defaults)
-{
-	Q_UNREACHABLE();
-}
-
 void ChangeController::setUploadingEnabled(bool uploading)
 {
 	_uploadingEnabled = uploading;

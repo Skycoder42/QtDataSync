@@ -23,13 +23,15 @@ public:
 					   bool changed);
 	void triggerClear(const QByteArray &typeName);
 	void triggerReset();
+	void triggerUpload();
 
 Q_SIGNALS:
 	void dataChanged(const QtDataSync::ObjectKey &key,
 					 bool deleted,
 					 const QJsonObject data,
-					 int size);
-	void dataResetted(const QByteArray &typeName);
+					 int size,
+					 bool skipCache);
+	void dataResetted(const QByteArray &typeName, bool skipCache);
 
 private Q_SLOTS:
 	void dataChangedImpl(QObject *origin,

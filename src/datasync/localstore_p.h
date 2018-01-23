@@ -21,18 +21,6 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT LocalStoreEmitter : public QObject
-{
-	Q_OBJECT
-
-public:
-	LocalStoreEmitter(QObject *parent = nullptr);
-
-Q_SIGNALS:
-	void dataChanged(QObject *origin, const QtDataSync::ObjectKey &key, const QJsonObject data, int size);
-	void dataResetted(QObject *origin, const QByteArray &typeName = {});
-};
-
 class Q_DATASYNC_EXPORT LocalStore : public QObject
 {
 	Q_OBJECT
@@ -128,8 +116,8 @@ Q_SIGNALS:
 	void dataResetted();
 
 private Q_SLOTS:
-	void onDataChange(QObject *origin, const QtDataSync::ObjectKey &key, const QJsonObject &data, int size);
-	void onDataReset(QObject *origin, const QByteArray &typeName);
+	void onDataChange(const QtDataSync::ObjectKey &key, bool deleted, const QJsonObject &data, int size, bool skipCache);
+	void onDataReset(const QByteArray &typeName, bool skipCache);
 
 private:
 	Defaults _defaults;
@@ -137,6 +125,7 @@ private:
 
 	DatabaseRef _database;
 	mutable QCache<ObjectKey, QJsonObject> _dataCache;
+	EmitterAdapter *_emitter;
 
 	QDir typeDirectory(const ObjectKey &key) const;
 	QString filePath(const QDir &typeDir, const QString &baseName) const;

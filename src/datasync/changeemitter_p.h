@@ -25,6 +25,7 @@ public Q_SLOTS:
 					   bool changed);
 	void triggerClear(QObject *origin, const QByteArray &typeName);
 	void triggerReset(QObject *origin);
+	void triggerUpload() override;
 
 Q_SIGNALS:
 	void uploadNeeded();

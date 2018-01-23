@@ -1,11 +1,11 @@
 #include "localstore_p.h"
 #include "changecontroller_p.h"
 #include "synchelper_p.h"
+#include "emitteradapter_p.h"
 
 #include <QtCore/QUrl>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QTemporaryFile>
-#include <QtCore/QGlobalStatic>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSaveFile>
 #include <QtCore/QRegularExpression>
@@ -18,21 +18,18 @@ using namespace QtDataSync;
 #define QTDATASYNC_LOG _logger
 #define SCOPE_ASSERT() Q_ASSERT_X(scope.d->database.isValid(), Q_FUNC_INFO, "Cannot use SyncScope after committing it")
 
-Q_GLOBAL_STATIC(LocalStoreEmitter, emitter)
-
 LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 	QObject(parent),
 	_defaults(defaults),
 	_logger(_defaults.createLogger("store", this)),
 	_database(_defaults.aquireDatabase(this)),
-	_dataCache(_defaults.property(Defaults::CacheSize).toInt())
+	_dataCache(_defaults.property(Defaults::CacheSize).toInt()),
+	_emitter(_defaults.createEmitter(this))
 {
-	connect(emitter, &LocalStoreEmitter::dataChanged,
-			this, &LocalStore::onDataChange,
-			Qt::DirectConnection);
-	connect(emitter, &LocalStoreEmitter::dataResetted,
-			this, &LocalStore::onDataReset,
-			Qt::DirectConnection);
+	connect(_emitter, &EmitterAdapter::dataChanged,
+			this, &LocalStore::onDataChange);
+	connect(_emitter, &EmitterAdapter::dataResetted,
+			this, &LocalStore::onDataReset);
 
 	if(!_database->tables().contains(QStringLiteral("DataIndex"))) {
 		QSqlQuery createQuery(_database);
@@ -217,9 +214,6 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 
 		//after commit action
 		resFn();
-
-		//own signal
-		emit dataChanged(key, false);
 	} catch(...) {
 		_database->rollback();
 		throw;
@@ -258,17 +252,11 @@ bool LocalStore::remove(const ObjectKey &key)
 			if(!_database->commit())
 				throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
 
-			//notify change controller
-			ChangeController::triggerDataChange(_defaults);
-
 			//update cache
 			_dataCache.remove(key);
+			//trigger change signals
+			_emitter->triggerChange(key, {}, 0, true);
 
-			//notify others
-			emit emitter->dataChanged(this, key, {}, 0);
-
-			//own signal
-			emit dataChanged(key, true);
 			return true;
 		} else { //not stored -> done
 			if(!_database->commit())
@@ -369,14 +357,10 @@ void LocalStore::clear(const QByteArray &typeName)
 		if(!_database->commit())
 			throw LocalStoreException(_defaults, typeName, _database->databaseName(), _database->lastError().text());
 
-		//notify others (and self)
-		emit emitter->dataResetted(this, typeName);
-
-		//notify change controller
-		ChangeController::triggerDataChange(_defaults);
-
-		//own signal
-		emit dataCleared(typeName);
+		//clear cache
+		_dataCache.clear();
+		//trigger change signals
+		_emitter->triggerClear(typeName);
 	} catch(...) {
 		_database->rollback();
 		throw;
@@ -409,13 +393,13 @@ void LocalStore::reset(bool keepData)
 		if(!_database->commit())
 			throw LocalStoreException(_defaults, QByteArray("<any>"), _database->databaseName(), _database->lastError().text());
 
-		//notify others (and self)
-		if(!keepData)
-			emit emitter->dataResetted(this);
-
-		//own signal
-		if(!keepData)
-			emit dataResetted();
+		//only if data was actually deleted
+		if(!keepData) {
+			//clear cache
+			_dataCache.clear();
+			//trigger change signals
+			_emitter->triggerReset();
+		}
 	} catch(...) {
 		_database->rollback();
 		throw;
@@ -551,8 +535,13 @@ void LocalStore::updateVersion(SyncScope &scope, quint64 oldVersion, quint64 new
 	exec(updateQuery, scope.d->key);
 
 	//notify change controller
-	if(changed)
-		ChangeController::triggerDataChange(_defaults);
+	if(changed) {
+		Q_ASSERT_X(!scope.d->afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
+		scope.d->afterCommit = [this]() {
+			//trigger a change upload
+			_emitter->triggerUpload();
+		};
+	}
 }
 
 void LocalStore::storeChanged(SyncScope &scope, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, LocalStore::ChangeType localState)
@@ -617,18 +606,19 @@ void LocalStore::storeDeleted(SyncScope &scope, quint64 version, bool changed, C
 			throw LocalStoreException(_defaults, scope.d->key, rmFile.fileName(), rmFile.errorString());
 	}
 
-	//notify change controller
-	if(changed)
-		ChangeController::triggerDataChange(_defaults);
-
+	Q_ASSERT_X(!scope.d->afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
 	if(localState == Exists) {
-		Q_ASSERT_X(!scope.d->afterCommit, Q_FUNC_INFO, "Only 1 after commit action can be defined");
 		auto key = scope.d->key;
-		scope.d->afterCommit = [this, key]() {
+		scope.d->afterCommit = [this, key, changed]() {
 			//update cache
 			_dataCache.remove(key);
 			//notify others
-			emit emitter->dataChanged(this, key, {}, 0);
+			_emitter->triggerChange(key, {}, 0, changed);
+		};
+	} else if(changed){
+		scope.d->afterCommit = [this]() {
+			//trigger a change upload
+			_emitter->triggerUpload();
 		};
 	}
 }
@@ -677,46 +667,32 @@ void LocalStore::prepareAccountAdded(const QUuid &deviceId)
 		exec(insertQuery);
 
 		if(insertQuery.numRowsAffected() != 0) //in case of -1 (unknown), simply assue changed
-			ChangeController::triggerDataChange(_defaults);
+			_emitter->triggerUpload();
 	} catch(Exception &e) {
 		logCritical() << "Failed to prepare added account with error:" << e.what();
 	}
 }
 
-void LocalStore::onDataChange(QObject *origin, const ObjectKey &key, const QJsonObject &data, int size)
+void LocalStore::onDataChange(const ObjectKey &key, bool deleted, const QJsonObject &data, int size, bool skipCache)
 {
-	if(origin != this) {
-		if(_dataCache.contains(key)) {
-			if(data.isEmpty())
-				_dataCache.remove(key);
-			else
-				_dataCache.insert(key, new QJsonObject(data), size);
-		}
-
-		QMetaObject::invokeMethod(this, "dataChanged", Qt::QueuedConnection,
-								  Q_ARG(QtDataSync::ObjectKey, key),
-								  Q_ARG(bool, data.isEmpty()));
+	if(!skipCache && _dataCache.contains(key)) {
+		if(data.isEmpty()) //deleted or changed without data
+			_dataCache.remove(key);
+		else
+			_dataCache.insert(key, new QJsonObject(data), size);
 	}
+	emit dataChanged(key, deleted);
 }
 
-void LocalStore::onDataReset(QObject *origin, const QByteArray &typeName)
+void LocalStore::onDataReset(const QByteArray &typeName, bool skipCache)
 {
-	if(typeName.isNull()) {
+	if(!skipCache)
 		_dataCache.clear();
 
-		if(origin != this)
-			QMetaObject::invokeMethod(this, "dataResetted", Qt::QueuedConnection);
-	} else {
-		foreach(auto key, _dataCache.keys()) {
-			if(key.typeName == typeName)
-				_dataCache.remove(key);
-		}
-
-		if(origin != this) {
-			QMetaObject::invokeMethod(this, "dataCleared", Qt::QueuedConnection,
-									  Q_ARG(QByteArray, typeName));
-		}
-	}
+	if(typeName.isNull())
+		emit dataResetted();
+	else
+		emit dataCleared(typeName);
 }
 
 QDir LocalStore::typeDirectory(const ObjectKey &key) const
@@ -835,13 +811,10 @@ std::function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const 
 		throw LocalStoreException(_defaults, key, device->fileName(), device->errorString());
 
 	return [this, key, data, info, changed]() {
-		//notify change controller
-		if(changed)
-			ChangeController::triggerDataChange(_defaults);
 		//update cache
 		_dataCache.insert(key, new QJsonObject(data), info.size());
-		//notify others
-		emit emitter->dataChanged(this, key, data, info.size());
+		//trigger change signals
+		_emitter->triggerChange(key, data, info.size(), changed);
 	};
 }
 
@@ -884,15 +857,7 @@ LocalStore::SyncScope::~SyncScope()
 		d->database->rollback();
 }
 
-// ------------- Emitter -------------
 
-LocalStoreEmitter::LocalStoreEmitter(QObject *parent) :
-	QObject(parent)
-{
-	auto coreThread = qApp->thread();
-	if(thread() != coreThread)
-		moveToThread(coreThread);
-}
 
 LocalStore::SyncScope::Private::Private(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
 	key(key),
