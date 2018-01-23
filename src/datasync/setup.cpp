@@ -10,6 +10,7 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QThreadStorage>
 #include <QtCore/QLoggingCategory>
+#include <QtCore/QEventLoop>
 
 #include "threadedserver_p.h"
 
@@ -391,14 +392,7 @@ void Setup::create(const QString &name)
 		throw SetupExistsException(name);
 
 	// create storage dir
-	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-	if(!storageDir.cd(d->localDir)) {
-		storageDir.mkpath(d->localDir);
-		storageDir.cd(d->localDir);
-		QFile::setPermissions(storageDir.absolutePath(),
-							  QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ExeUser);
-		qCDebug(qdssetup) << "Created storage directory for setup" << name;
-	}
+	auto storageDir = d->createStorageDir(name);
 
 	// lock the setup
 	auto lockFile = new QLockFile(storageDir.absoluteFilePath(QStringLiteral(".lock")));
@@ -406,21 +400,8 @@ void Setup::create(const QString &name)
 		throw SetupLockedException(lockFile, name);
 	qCDebug(qdssetup) << "Created lockfile for setup" << name;
 
-	//determine the ro address
-	if(!d->roAddress.isValid()) {
-		d->roAddress.clear();
-		d->roAddress.setScheme(ThreadedServer::UrlScheme());
-		d->roAddress.setPath(QStringLiteral("/qtdatasync/%2/enginenode").arg(name));
-		qCDebug(qdssetup) << "Using default remote object address for setup" << name << "as" << d->roAddress;
-	}
-
 	// create defaults + engine
-	DefaultsPrivate::createDefaults(name,
-									storageDir,
-									d->roAddress,
-									d->properties,
-									d->serializer.take(),
-									d->resolver.take());
+	d->createDefaults(name, storageDir, false);
 	auto engine = new ExchangeEngine(name, d->fatalErrorHandler);
 
 	// create and connect the new thread
@@ -448,6 +429,33 @@ void Setup::create(const QString &name)
 	// start the thread and cache engine data
 	thread->start();
 	SetupPrivate::engines.insert(name, {thread, engine});
+}
+
+bool Setup::createPassive(const QString &name, int timeout)
+{
+	QMutexLocker _(&SetupPrivate::setupMutex);
+
+	// create storage dir and defaults
+	auto storageDir = d->createStorageDir(name);
+	d->createDefaults(name, storageDir, true);
+
+	//wait for the setup to complete initialization
+	auto defaults = DefaultsPrivate::obtainDefaults(name);
+	auto isCreated = false;
+	QEventLoop waitLoop;
+	QObject::connect(defaults.data(), &DefaultsPrivate::passiveCreated,
+					 &waitLoop, [&]() {
+		isCreated = true;
+	});
+	QObject::connect(defaults.data(), &DefaultsPrivate::passiveReady,
+					 &waitLoop, &QEventLoop::quit);
+	QTimer::singleShot(timeout, &waitLoop, [&]() {
+		waitLoop.exit(EXIT_FAILURE);
+	});
+
+	auto res = waitLoop.exec();
+	Q_ASSERT_X(isCreated, Q_FUNC_INFO, "Timeout to low for the eventloop to pickup the object creation");
+	return res == EXIT_SUCCESS;
 }
 
 // ------------- RemoteConfig -------------
@@ -592,6 +600,39 @@ ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 		throw SetupDoesNotExistException(setupName);
 	else
 		return engine;
+}
+
+QDir SetupPrivate::createStorageDir(const QString &setupName)
+{
+	QDir storageDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+	if(!storageDir.cd(localDir)) {
+		storageDir.mkpath(localDir);
+		storageDir.cd(localDir);
+		QFile::setPermissions(storageDir.absolutePath(),
+							  QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ExeUser);
+		qCDebug(qdssetup) << "Created storage directory for setup" << setupName;
+	}
+	return storageDir;
+}
+
+void SetupPrivate::createDefaults(const QString &setupName, const QDir &storageDir, bool passive)
+{
+	//determine the ro address
+	if(!roAddress.isValid()) {
+		roAddress.clear();
+		roAddress.setScheme(ThreadedServer::UrlScheme());
+		roAddress.setPath(QStringLiteral("/qtdatasync/%2/enginenode").arg(setupName));
+		qCDebug(qdssetup) << "Using default remote object address for setup" << setupName << "as" << roAddress;
+	}
+
+	// create defaults + engine
+	DefaultsPrivate::createDefaults(setupName,
+									passive,
+									storageDir,
+									roAddress,
+									properties,
+									serializer.take(),
+									resolver.take());
 }
 
 SetupPrivate::SetupPrivate() :

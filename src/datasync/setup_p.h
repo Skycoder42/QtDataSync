@@ -39,6 +39,9 @@ public:
 
 	static ExchangeEngine *engine(const QString &setupName);
 
+	QDir createStorageDir(const QString &setupName);
+	void createDefaults(const QString &setupName, const QDir &storageDir, bool passive);
+
 private:
 	struct SetupInfo {
 		QThread *thread;

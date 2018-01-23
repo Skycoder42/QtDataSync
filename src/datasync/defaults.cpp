@@ -15,6 +15,8 @@
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
 
+#include "rep_changeemitter_p_replica.h"
+
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger
@@ -69,10 +71,12 @@ QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 
 EmitterAdapter *Defaults::createEmitter(QObject *parent) const
 {
-	auto engine = SetupPrivate::engine(d->setupName);
-	return new EmitterAdapter(engine->emitter(),
-							  d->cacheInfo,
-							  parent);
+	QObject *emitter = nullptr;
+	if(d->passiveEmitter)
+		emitter = d->passiveEmitter;
+	else
+		emitter = SetupPrivate::engine(d->setupName)->emitter();
+	return new EmitterAdapter(emitter, d->cacheInfo, parent);
 }
 
 const QJsonSerializer *Defaults::serializer() const
@@ -175,26 +179,25 @@ QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
 QThreadStorage<QHash<QString, quint64>> DefaultsPrivate::dbRefHash;
 
-void DefaultsPrivate::createDefaults(const QString &setupName, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver)
+void DefaultsPrivate::createDefaults(const QString &setupName, bool isPassive, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver)
 {
-	QMutexLocker _(&setupDefaultsMutex);
+	//create the defaults and do additional setup
 	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, roAddress, properties, serializer, resolver);
+	//following must be done after the constructor
 	if(d->resolver)
 		d->resolver->setDefaults(d);
 
-	//create the default propertie values if unset
-	if(!d->properties.contains(Defaults::SignKeyParam)) {
-		d->properties.insert(Defaults::SignKeyParam,
-							 Defaults::defaultParam(static_cast<Setup::SignatureScheme>(d->properties.value(Defaults::SignScheme).toInt())));
-	}
-
-	if(!d->properties.contains(Defaults::CryptKeyParam)) {
-		d->properties.insert(Defaults::CryptKeyParam,
-							 Defaults::defaultParam(static_cast<Setup::EncryptionScheme>(d->properties.value(Defaults::CryptScheme).toInt())));
-	}
-
+	//final steps (must be last things done): move to the correct thread and make passive if needed
 	if(d->thread() != qApp->thread())
 		d->moveToThread(qApp->thread());
+	if(isPassive) {
+		QMetaObject::invokeMethod(d.data(), "makePassive",
+								  Qt::QueuedConnection);
+	}
+
+	QMutexLocker _(&setupDefaultsMutex);
+	if(setupDefaults.contains(setupName))
+		throw SetupExistsException(setupName);
 	setupDefaults.insert(setupName, d);
 }
 
@@ -258,16 +261,29 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	roAddress(roAddress),
 	serializer(serializer),
 	resolver(resolver),
-	emitter(nullptr),
 	properties(properties),
 	roMutex(),
 	roNodes(),
-	cacheInfo(nullptr)
+	cacheInfo(nullptr),
+	passiveEmitter(nullptr)
 {
+	//parenting
 	serializer->setParent(this);
 	if(resolver)
 		resolver->setParent(this);
 
+	//create the default property values if unset
+	if(!this->properties.contains(Defaults::SignKeyParam)) {
+		this->properties.insert(Defaults::SignKeyParam,
+								Defaults::defaultParam(static_cast<Setup::SignatureScheme>(this->properties.value(Defaults::SignScheme).toInt())));
+	}
+
+	if(!this->properties.contains(Defaults::CryptKeyParam)) {
+		this->properties.insert(Defaults::CryptKeyParam,
+								Defaults::defaultParam(static_cast<Setup::EncryptionScheme>(this->properties.value(Defaults::CryptScheme).toInt())));
+	}
+
+	//create cache
 	auto maxSize = properties.value(Defaults::CacheSize).toInt();
 	if(maxSize > 0)
 		cacheInfo = QSharedPointer<EmitterAdapter::CacheInfo>::create(maxSize);
@@ -367,6 +383,19 @@ void DefaultsPrivate::roThreadDone()
 		auto node = roNodes.take(cThread);
 		if(node)
 			node->deleteLater();
+	}
+}
+
+void DefaultsPrivate::makePassive()
+{
+	auto node = acquireNode();
+	passiveEmitter = node->acquire<ChangeEmitterReplica>();
+	emit passiveCreated();
+	if(passiveEmitter->isInitialized())
+		emit passiveReady();
+	else {
+		connect(passiveEmitter, &ChangeEmitterReplica::initialized,
+				this, &DefaultsPrivate::passiveReady);
 	}
 }
 

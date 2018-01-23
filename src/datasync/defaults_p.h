@@ -15,6 +15,8 @@
 #include "conflictresolver.h"
 #include "emitteradapter_p.h"
 
+class ChangeEmitterReplica;
+
 namespace QtDataSync {
 
 class ChangeEmitter;
@@ -37,11 +39,13 @@ private:
 class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject
 {
 	friend class Defaults;
+	Q_OBJECT
 
 public:
 	static const QString DatabaseName;
 
 	static void createDefaults(const QString &setupName,
+							   bool isPassive,
 							   const QDir &storageDir,
 							   const QUrl &roAddress,
 							   const QHash<Defaults::PropertyKey, QVariant> &properties,
@@ -67,6 +71,13 @@ public:
 public Q_SLOTS:
 	void roThreadDone();
 
+Q_SIGNALS:
+	void passiveCreated();
+	void passiveReady();
+
+private Q_SLOTS:
+	void makePassive();
+
 private:
 	static QMutex setupDefaultsMutex;
 	static QHash<QString, QSharedPointer<DefaultsPrivate>> setupDefaults;
@@ -78,13 +89,14 @@ private:
 	QUrl roAddress;
 	QJsonSerializer *serializer;
 	ConflictResolver *resolver;
-	ChangeEmitter *emitter;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 
 	QMutex roMutex;
 	QHash<QThread*, QRemoteObjectNode*> roNodes;
 
 	QSharedPointer<EmitterAdapter::CacheInfo> cacheInfo;
+
+	ChangeEmitterReplica *passiveEmitter;
 };
 
 }

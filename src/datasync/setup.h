@@ -232,6 +232,7 @@ public:
 
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);
+	bool createPassive(const QString &name = DefaultSetup, int timeout = 30000);
 
 private:
 	QScopedPointer<SetupPrivate> d;
