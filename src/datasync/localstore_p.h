@@ -6,7 +6,6 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
-#include <QtCore/QCache>
 #include <QtCore/QJsonObject>
 #include <QtCore/QUuid>
 
@@ -24,8 +23,6 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT LocalStore : public QObject
 {
 	Q_OBJECT
-
-	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
 
 public:
 	enum ChangeType {
@@ -102,12 +99,6 @@ public:
 					   bool isDelete);
 	void commitSync(SyncScope &scope) const;
 
-	int cacheSize() const;
-
-public Q_SLOTS:
-	void setCacheSize(int cacheSize);
-	void resetCacheSize();
-
 	void prepareAccountAdded(const QUuid &deviceId);
 
 Q_SIGNALS:
@@ -115,17 +106,11 @@ Q_SIGNALS:
 	void dataCleared(const QByteArray &typeName);
 	void dataResetted();
 
-private Q_SLOTS:
-	void onDataChange(const QtDataSync::ObjectKey &key, bool deleted, const QJsonObject &data, int size, bool skipCache);
-	void onDataReset(const QByteArray &typeName, bool skipCache);
-
 private:
 	Defaults _defaults;
 	Logger *_logger;
-
-	DatabaseRef _database;
-	mutable QCache<ObjectKey, QJsonObject> _dataCache;
 	EmitterAdapter *_emitter;
+	DatabaseRef _database;
 
 	QDir typeDirectory(const ObjectKey &key) const;
 	QString filePath(const QDir &typeDir, const QString &baseName) const;
@@ -135,13 +120,13 @@ private:
 	void beginWriteTransaction(const ObjectKey &key = ObjectKey{"any"}, bool exclusive = false);
 	void exec(QSqlQuery &query, const ObjectKey &key = ObjectKey{"any"}) const;
 
-	Q_REQUIRED_RESULT std::function<void()> storeChangedImpl(const DatabaseRef &db,
-															 const ObjectKey &key,
-															 quint64 version,
-															 const QString &filePath,
-															 const QJsonObject &data,
-															 bool changed,
-															 bool existing);
+	Q_REQUIRED_RESULT std::function<void ()> storeChangedImpl(const DatabaseRef &db,
+																 const ObjectKey &key,
+																 quint64 version,
+																 const QString &filePath,
+																 const QJsonObject &data,
+																 bool changed,
+																 bool existing);
 	void markUnchangedImpl(const DatabaseRef &db,
 						   const ObjectKey &key,
 						   quint64 version,

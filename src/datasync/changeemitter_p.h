@@ -20,8 +20,7 @@ public:
 public Q_SLOTS:
 	void triggerChange(QObject *origin,
 					   const QtDataSync::ObjectKey &key,
-					   const QJsonObject data,
-					   int size,
+					   bool deleted,
 					   bool changed);
 	void triggerClear(QObject *origin, const QByteArray &typeName);
 	void triggerReset(QObject *origin);
@@ -30,11 +29,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void uploadNeeded();
 
-	void dataChanged(QObject *origin,
-					 const QtDataSync::ObjectKey &key,
-					 bool deleted,
-					 const QJsonObject data,
-					 int size);
+	void dataChanged(QObject *origin, const QtDataSync::ObjectKey &key, bool deleted);
 	void dataResetted(QObject *origin, const QByteArray &typeName);
 
 protected Q_SLOTS:

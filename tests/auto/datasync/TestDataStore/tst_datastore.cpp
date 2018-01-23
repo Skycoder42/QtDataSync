@@ -218,6 +218,10 @@ void TestDataStore::testChangeSignals()
 	const auto key = 77;
 	auto data = TestLib::generateData(77);
 
+	QCoreApplication::processEvents();
+	QThread::sleep(1);
+	QCoreApplication::processEvents();
+
 	DataStore second(this);
 
 	QSignalSpy store1Spy(store, &DataStore::dataChanged);

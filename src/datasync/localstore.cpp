@@ -22,14 +22,15 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 	QObject(parent),
 	_defaults(defaults),
 	_logger(_defaults.createLogger("store", this)),
-	_database(_defaults.aquireDatabase(this)),
-	_dataCache(_defaults.property(Defaults::CacheSize).toInt()),
-	_emitter(_defaults.createEmitter(this))
+	_emitter(_defaults.createEmitter(this)),
+	_database(_defaults.aquireDatabase(this))
 {
 	connect(_emitter, &EmitterAdapter::dataChanged,
-			this, &LocalStore::onDataChange);
+			this, &LocalStore::dataChanged);
+	connect(_emitter, &EmitterAdapter::dataCleared,
+			this, &LocalStore::dataCleared);
 	connect(_emitter, &EmitterAdapter::dataResetted,
-			this, &LocalStore::onDataReset);
+			this, &LocalStore::dataResetted);
 
 	if(!_database->tables().contains(QStringLiteral("DataIndex"))) {
 		QSqlQuery createQuery(_database);
@@ -125,14 +126,19 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName) const
 		loadQuery.addBindValue(typeName);
 		exec(loadQuery, typeName);
 
+		QList<ObjectKey> keys;
 		QList<QJsonObject> array;
+		QList<int> sizes;
 		while(loadQuery.next()) {
 			int size;
 			ObjectKey key {typeName, loadQuery.value(0).toString()};
 			auto json = readJson(key, loadQuery.value(1).toString(), &size);
+			keys.append(key);
 			array.append(json);
-			_dataCache.insert(key, new QJsonObject(json), size);
+			sizes.append(size);
 		}
+
+		_emitter->putCached(keys, array, sizes);
 
 		//commit db
 		if(!_database->commit())
@@ -148,9 +154,9 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName) const
 QJsonObject LocalStore::load(const ObjectKey &key) const
 {
 	//check if cached
-	auto data = _dataCache.object(key);
-	if(data)
-		return *data;
+	QJsonObject json;
+	if(_emitter->getCached(key, json))
+		return json;
 
 	if(!_database->transaction())
 		throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
@@ -162,11 +168,10 @@ QJsonObject LocalStore::load(const ObjectKey &key) const
 		loadQuery.addBindValue(key.id);
 		exec(loadQuery, key);
 
-		QJsonObject json;
 		if(loadQuery.first()) {
 			int size;
 			json = readJson(key, loadQuery.value(0).toString(), &size);
-			_dataCache.insert(key, new QJsonObject(json), size);
+			_emitter->putCached(key, json, size);
 		} else
 			throw NoDataException(_defaults, key);
 
@@ -212,9 +217,9 @@ void LocalStore::save(const ObjectKey &key, const QJsonObject &data)
 		if(!_database->commit())
 			throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
 
-		//after commit action
 		resFn();
 	} catch(...) {
+		_emitter->dropCached(key);
 		_database->rollback();
 		throw;
 	}
@@ -253,9 +258,9 @@ bool LocalStore::remove(const ObjectKey &key)
 				throw LocalStoreException(_defaults, key, _database->databaseName(), _database->lastError().text());
 
 			//update cache
-			_dataCache.remove(key);
+			_emitter->dropCached(key);
 			//trigger change signals
-			_emitter->triggerChange(key, {}, 0, true);
+			_emitter->triggerChange(key, true, true);
 
 			return true;
 		} else { //not stored -> done
@@ -317,14 +322,19 @@ QList<QJsonObject> LocalStore::find(const QByteArray &typeName, const QString &q
 		findQuery.addBindValue(searchQuery);
 		exec(findQuery, typeName);
 
+		QList<ObjectKey> keys;
 		QList<QJsonObject> array;
+		QList<int> sizes;
 		while(findQuery.next()) {
 			int size;
 			ObjectKey key {typeName, findQuery.value(0).toString()};
 			auto json = readJson(key, findQuery.value(1).toString(), &size);
+			keys.append(key);
 			array.append(json);
-			_dataCache.insert(key, new QJsonObject(json), size);
+			sizes.append(size);
 		}
+
+		_emitter->putCached(keys, array, sizes);
 
 		if(!_database->commit())
 			throw LocalStoreException(_defaults, typeName, _database->databaseName(), _database->lastError().text());
@@ -358,7 +368,7 @@ void LocalStore::clear(const QByteArray &typeName)
 			throw LocalStoreException(_defaults, typeName, _database->databaseName(), _database->lastError().text());
 
 		//clear cache
-		_dataCache.clear();
+		_emitter->dropCached(typeName);
 		//trigger change signals
 		_emitter->triggerClear(typeName);
 	} catch(...) {
@@ -396,7 +406,7 @@ void LocalStore::reset(bool keepData)
 		//only if data was actually deleted
 		if(!keepData) {
 			//clear cache
-			_dataCache.clear();
+			_emitter->dropCached();
 			//trigger change signals
 			_emitter->triggerReset();
 		}
@@ -611,9 +621,9 @@ void LocalStore::storeDeleted(SyncScope &scope, quint64 version, bool changed, C
 		auto key = scope.d->key;
 		scope.d->afterCommit = [this, key, changed]() {
 			//update cache
-			_dataCache.remove(key);
+			_emitter->dropCached(key);
 			//notify others
-			_emitter->triggerChange(key, {}, 0, changed);
+			_emitter->triggerChange(key, true, changed);
 		};
 	} else if(changed){
 		scope.d->afterCommit = [this]() {
@@ -642,21 +652,6 @@ void LocalStore::commitSync(SyncScope &scope) const
 	scope.d->database = DatabaseRef(); //clear the ref, so it won't rollback
 }
 
-int LocalStore::cacheSize() const
-{
-	return _dataCache.maxCost();
-}
-
-void LocalStore::setCacheSize(int cacheSize)
-{
-	_dataCache.setMaxCost(cacheSize);
-}
-
-void LocalStore::resetCacheSize()
-{
-	_dataCache.setMaxCost(_defaults.property(Defaults::CacheSize).toInt());
-}
-
 void LocalStore::prepareAccountAdded(const QUuid &deviceId)
 {
 	try {
@@ -671,28 +666,6 @@ void LocalStore::prepareAccountAdded(const QUuid &deviceId)
 	} catch(Exception &e) {
 		logCritical() << "Failed to prepare added account with error:" << e.what();
 	}
-}
-
-void LocalStore::onDataChange(const ObjectKey &key, bool deleted, const QJsonObject &data, int size, bool skipCache)
-{
-	if(!skipCache && _dataCache.contains(key)) {
-		if(data.isEmpty()) //deleted or changed without data
-			_dataCache.remove(key);
-		else
-			_dataCache.insert(key, new QJsonObject(data), size);
-	}
-	emit dataChanged(key, deleted);
-}
-
-void LocalStore::onDataReset(const QByteArray &typeName, bool skipCache)
-{
-	if(!skipCache)
-		_dataCache.clear();
-
-	if(typeName.isNull())
-		emit dataResetted();
-	else
-		emit dataCleared(typeName);
 }
 
 QDir LocalStore::typeDirectory(const ObjectKey &key) const
@@ -749,14 +722,14 @@ std::function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const 
 {
 	auto tableDir = typeDirectory(key);
 	QScopedPointer<QFileDevice> device;
-	std::function<bool(QFileDevice*)> commitFn;
+	std::function<bool(QFileDevice*)> fileCommitFn;
 
 	if(existing && !fileName.isNull()) {
 		auto file = new QSaveFile(filePath(tableDir, fileName));
 		device.reset(file);
 		if(!file->open(QIODevice::WriteOnly))
 			throw LocalStoreException(_defaults, key, file->fileName(), file->errorString());
-		commitFn = [](QFileDevice *d){
+		fileCommitFn = [](QFileDevice *d){
 			return static_cast<QSaveFile*>(d)->commit();
 		};
 	} else {
@@ -766,7 +739,7 @@ std::function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const 
 		device.reset(file);
 		if(!file->open())
 			throw LocalStoreException(_defaults, key, file->fileName(), file->errorString());
-		commitFn = [](QFileDevice *d){
+		fileCommitFn = [](QFileDevice *d){
 			auto f = static_cast<QTemporaryFile*>(d);
 			f->close();
 			if(f->error() == QFile::NoError) {
@@ -807,14 +780,15 @@ std::function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const 
 	}
 
 	//complete the file-save (last before commit!)
-	if(!commitFn(device.data()))
+	if(!fileCommitFn(device.data()))
 		throw LocalStoreException(_defaults, key, device->fileName(), device->errorString());
 
-	return [this, key, data, info, changed]() {
-		//update cache
-		_dataCache.insert(key, new QJsonObject(data), info.size());
+	//update cache
+	_emitter->putCached(key, data, info.size());
+
+	return [this, key, changed]() {
 		//trigger change signals
-		_emitter->triggerChange(key, data, info.size(), changed);
+		_emitter->triggerChange(key, false, changed);
 	};
 }
 

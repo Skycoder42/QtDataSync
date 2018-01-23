@@ -9,9 +9,11 @@
 #include <QtJsonSerializer/QJsonSerializer>
 
 #include "qtdatasync_global.h"
+#include "objectkey.h"
 #include "defaults.h"
 #include "logger.h"
 #include "conflictresolver.h"
+#include "emitteradapter_p.h"
 
 namespace QtDataSync {
 
@@ -81,6 +83,8 @@ private:
 
 	QMutex roMutex;
 	QHash<QThread*, QRemoteObjectNode*> roNodes;
+
+	QSharedPointer<EmitterAdapter::CacheInfo> cacheInfo;
 };
 
 }

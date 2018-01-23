@@ -22,7 +22,6 @@ private Q_SLOTS:
 	void testAll();
 	void testFind_data();
 	void testFind();
-	void testUncached();
 	void testRemove_data();
 	void testRemove();
 	void testClear();
@@ -42,8 +41,6 @@ private Q_SLOTS:
 
 private:
 	LocalStore *store;
-
-	static void testAllImpl(LocalStore *store);
 };
 
 void TestLocalStore::initTestCase()
@@ -110,7 +107,22 @@ void TestLocalStore::testSave()
 
 void TestLocalStore::testAll()
 {
-	testAllImpl(store);
+	const quint64 count = 4;
+	const QStringList keys {
+		QStringLiteral("429"),
+		QStringLiteral("430"),
+		QStringLiteral("431"),
+		QStringLiteral("432")
+	};
+	const QList<QJsonObject> objects = TestLib::generateDataJson(429, 432).values();
+
+	try {
+		QCOMPARE(store->count(TestLib::TypeName), count);
+		QCOMPAREUNORDERED(store->keys(TestLib::TypeName), keys);
+		QCOMPAREUNORDERED(store->loadAll(TestLib::TypeName), objects);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
 }
 
 void TestLocalStore::testFind_data()
@@ -164,13 +176,6 @@ void TestLocalStore::testFind()
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
-}
-
-void TestLocalStore::testUncached()
-{
-	LocalStore second(DefaultsPrivate::obtainDefaults(DefaultSetup));
-	second.setCacheSize(0);
-	testAllImpl(&second);
 }
 
 void TestLocalStore::testRemove_data()
@@ -543,6 +548,10 @@ void TestLocalStore::testChangeSignals()
 	const auto key = TestLib::generateKey(77);
 	auto data = TestLib::generateDataJson(77);
 
+	QCoreApplication::processEvents();
+	QThread::sleep(1);
+	QCoreApplication::processEvents();
+
 	LocalStore second(DefaultsPrivate::obtainDefaults(DefaultSetup));
 
 	QSignalSpy store1Spy(store, &LocalStore::dataChanged);
@@ -628,26 +637,6 @@ void TestLocalStore::testAsync()
 
 		foreach(auto f, futures)
 			f.waitForFinished();
-	} catch(QException &e) {
-		QFAIL(e.what());
-	}
-}
-
-void TestLocalStore::testAllImpl(LocalStore *store)
-{
-	const quint64 count = 4;
-	const QStringList keys {
-		QStringLiteral("429"),
-		QStringLiteral("430"),
-		QStringLiteral("431"),
-		QStringLiteral("432")
-	};
-	const QList<QJsonObject> objects = TestLib::generateDataJson(429, 432).values();
-
-	try {
-		QCOMPARE(store->count(TestLib::TypeName), count);
-		QCOMPAREUNORDERED(store->keys(TestLib::TypeName), keys);
-		QCOMPAREUNORDERED(store->loadAll(TestLib::TypeName), objects);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

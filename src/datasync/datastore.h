@@ -22,8 +22,6 @@ class Q_DATASYNC_EXPORT DataStore : public QObject
 	Q_OBJECT
 	friend class DataStoreModel;
 
-	Q_PROPERTY(int cacheSize READ cacheSize WRITE setCacheSize RESET resetCacheSize)
-
 public:
 	enum SearchMode
 	{
@@ -38,8 +36,6 @@ public:
 	explicit DataStore(QObject *parent = nullptr);
 	explicit DataStore(const QString &setupName, QObject *parent = nullptr);
 	~DataStore();
-
-	int cacheSize() const;
 
 	//! @copybrief DataStore::count()
 	qint64 count(int metaTypeId) const;
@@ -108,10 +104,6 @@ public:
 	//! Loads the dataset with the given key for the given type into the existing object by updating it's properties
 	template<typename T>
 	void update(T object);
-
-public Q_SLOTS:
-	void setCacheSize(int cacheSize);
-	void resetCacheSize();
 
 Q_SIGNALS:
 	void dataChanged(int metaTypeId, const QString &key, bool deleted);

@@ -43,9 +43,14 @@ void TestChangeController::initTestCase()
 		TestLib::setup(setup);
 		setup.create();
 
+		auto engine = SetupPrivate::engine(DefaultSetup);
+
 		store = new LocalStore(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 		controller = new ChangeController(DefaultsPrivate::obtainDefaults(DefaultSetup), this);
-		controller->initialize({{QStringLiteral("store"), QVariant::fromValue(store)}});
+		controller->initialize({
+								   {QStringLiteral("store"), QVariant::fromValue(store)},
+								   {QStringLiteral("emitter"), QVariant::fromValue<QObject*>(reinterpret_cast<QObject*>(engine->emitter()))}, //trick to pass the unexported type to qvariant
+							   });
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

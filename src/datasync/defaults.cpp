@@ -70,7 +70,9 @@ QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 EmitterAdapter *Defaults::createEmitter(QObject *parent) const
 {
 	auto engine = SetupPrivate::engine(d->setupName);
-	return new EmitterAdapter(engine->emitter(), parent);
+	return new EmitterAdapter(engine->emitter(),
+							  d->cacheInfo,
+							  parent);
 }
 
 const QJsonSerializer *Defaults::serializer() const
@@ -259,11 +261,16 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	emitter(nullptr),
 	properties(properties),
 	roMutex(),
-	roNodes()
+	roNodes(),
+	cacheInfo(nullptr)
 {
 	serializer->setParent(this);
 	if(resolver)
 		resolver->setParent(this);
+
+	auto maxSize = properties.value(Defaults::CacheSize).toInt();
+	if(maxSize > 0)
+		cacheInfo = QSharedPointer<EmitterAdapter::CacheInfo>::create(maxSize);
 }
 
 DefaultsPrivate::~DefaultsPrivate()
@@ -283,7 +290,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		database.setConnectOptions(QStringLiteral("QSQLITE_BUSY_TIMEOUT=30000;"
-												  "QSQLITE_ENABLE_REGEXP"));//TODO implement regex in localstore
+												  "QSQLITE_ENABLE_REGEXP"));
 		if(!database.open()) {
 			logFatal(QStringLiteral("Failed to open local database. Database error:\n\t") +
 					 database.lastError().text()); //TODO check where else needed

@@ -5,12 +5,12 @@ ChangeEmitter::ChangeEmitter(QObject *parent) :
 	ChangeEmitterSource(parent)
 {}
 
-void ChangeEmitter::triggerChange(QObject *origin, const ObjectKey &key, const QJsonObject data, int size, bool changed)
+void ChangeEmitter::triggerChange(QObject *origin, const ObjectKey &key, bool deleted, bool changed)
 {
 	if(changed)
 		emit uploadNeeded();
-	emit dataChanged(origin, key, data.isEmpty(), data, size);
-	emit remoteDataChanged(key, data.isEmpty());
+	emit dataChanged(origin, key, deleted);
+	emit remoteDataChanged(key, deleted);
 }
 
 void ChangeEmitter::triggerClear(QObject *origin, const QByteArray &typeName)
@@ -36,7 +36,7 @@ void ChangeEmitter::triggerRemoteChange(const ObjectKey &key, bool deleted, bool
 {
 	if(changed)
 		emit uploadNeeded();
-	emit dataChanged(nullptr, key, deleted, {}, 0);
+	emit dataChanged(nullptr, key, deleted);
 	emit remoteDataChanged(key, deleted);
 }
 

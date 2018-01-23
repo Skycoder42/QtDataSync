@@ -74,7 +74,6 @@ Module {
                 "EndsWithMode": 4
             }
         }
-        Property { name: "cacheSize"; type: "int" }
         Signal {
             name: "dataChanged"
             Parameter { name: "metaTypeId"; type: "int" }
@@ -86,11 +85,6 @@ Module {
             Parameter { name: "metaTypeId"; type: "int" }
         }
         Signal { name: "dataResetted" }
-        Method {
-            name: "setCacheSize"
-            Parameter { name: "cacheSize"; type: "int" }
-        }
-        Method { name: "resetCacheSize" }
     }
     Component {
         name: "QtDataSync::DataStoreModel"
