@@ -21,6 +21,7 @@ namespace QtDataSync {
 
 class Logger;
 class Defaults;
+class EmitterAdapter;
 
 class DatabaseRefPrivate;
 class Q_DATASYNC_EXPORT DatabaseRef
@@ -83,6 +84,7 @@ public:
 	QRemoteObjectNode *remoteNode() const;
 	//! Returns a new instance of QSettings for this setup
 	QSettings *createSettings(QObject *parent = nullptr, const QString &group = {}) const;
+	EmitterAdapter *createEmitter(QObject *parent = nullptr) const;
 	//! Returns the serializer of the current setup
 	const QJsonSerializer *serializer() const;
 	const ConflictResolver *conflictResolver() const;

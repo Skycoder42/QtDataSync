@@ -15,6 +15,8 @@
 
 namespace QtDataSync {
 
+class ChangeEmitter;
+
 class Q_DATASYNC_EXPORT DatabaseRefPrivate : public QObject
 {
 public:
@@ -58,6 +60,8 @@ public:
 	QSqlDatabase acquireDatabase();
 	void releaseDatabase();
 
+	QRemoteObjectNode *acquireNode();
+
 public Q_SLOTS:
 	void roThreadDone();
 
@@ -72,6 +76,7 @@ private:
 	QUrl roAddress;
 	QJsonSerializer *serializer;
 	ConflictResolver *resolver;
+	ChangeEmitter *emitter;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 
 	QMutex roMutex;

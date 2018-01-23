@@ -1,6 +1,10 @@
 #include "defaults.h"
 #include "defaults_p.h"
 #include "datastore.h"
+#include "setup_p.h"
+#include "exchangeengine_p.h"
+#include "changeemitter_p.h"
+#include "emitteradapter_p.h"
 
 #include <QtCore/QThread>
 #include <QtCore/QStandardPaths>
@@ -51,23 +55,7 @@ QUrl Defaults::remoteAddress() const
 
 QRemoteObjectNode *Defaults::remoteNode() const
 {
-	auto cThread = QThread::currentThread();
-	if(!cThread)
-		throw Exception(d->setupName, QStringLiteral("Cannot access replicated classes from a non-Qt thread"));
-
-	QMutexLocker _(&d->roMutex);
-	auto node = d->roNodes.value(cThread);
-	if(!node) {
-		node = new QRemoteObjectNode();
-		if(!node->connectToNode(d->roAddress))
-			throw Exception(d->setupName, QStringLiteral("Unable to connect to remote object host"));
-		QObject::connect(cThread, &QThread::finished,
-						 d.data(), &DefaultsPrivate::roThreadDone,
-						 Qt::DirectConnection); //direct connect
-		d->roNodes.insert(cThread, node);
-	}
-
-	return node;
+	return d->acquireNode();
 }
 
 QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
@@ -77,6 +65,12 @@ QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 	if(!group.isNull())
 		settings->beginGroup(group);
 	return settings;
+}
+
+EmitterAdapter *Defaults::createEmitter(QObject *parent) const
+{
+	auto engine = SetupPrivate::engine(d->setupName);
+	return new EmitterAdapter(engine->emitter(), parent);
 }
 
 const QJsonSerializer *Defaults::serializer() const
@@ -262,6 +256,7 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 	roAddress(roAddress),
 	serializer(serializer),
 	resolver(resolver),
+	emitter(nullptr),
 	properties(properties),
 	roMutex(),
 	roNodes()
@@ -334,6 +329,27 @@ void DefaultsPrivate::releaseDatabase()
 		QSqlDatabase::database(name).close();
 		QSqlDatabase::removeDatabase(name);
 	}
+}
+
+QRemoteObjectNode *DefaultsPrivate::acquireNode()
+{
+	auto cThread = QThread::currentThread();
+	if(!cThread)
+		throw Exception(setupName, QStringLiteral("Cannot access replicated classes from a non-Qt thread"));
+
+	QMutexLocker _(&roMutex);
+	auto node = roNodes.value(cThread);
+	if(!node) {
+		node = new QRemoteObjectNode();
+		if(!node->connectToNode(roAddress))
+			throw Exception(setupName, QStringLiteral("Unable to connect to remote object host"));
+		QObject::connect(cThread, &QThread::finished,
+						 this, &DefaultsPrivate::roThreadDone,
+						 Qt::DirectConnection); //direct connect
+		roNodes.insert(cThread, node);
+	}
+
+	return node;
 }
 
 void DefaultsPrivate::roThreadDone()

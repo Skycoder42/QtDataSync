@@ -2,7 +2,8 @@ TARGET = QtDataSync
 
 QT = core jsonserializer sql websockets scxml remoteobjects
 
-HEADERS += qtdatasync_global.h \
+HEADERS += \
+	qtdatasync_global.h \
 	localstore_p.h \
 	defaults_p.h \
 	defaults.h \
@@ -33,7 +34,9 @@ HEADERS += qtdatasync_global.h \
 	accountmanager.h \
 	accountmanager_p.h \
 	userexchangemanager.h \
-	userexchangemanager_p.h
+	userexchangemanager_p.h \
+	emitteradapter_p.h \
+    changeemitter_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -59,12 +62,18 @@ SOURCES += \
 	syncmanager_p.cpp \
 	accountmanager.cpp \
 	accountmanager_p.cpp \
-	userexchangemanager.cpp
+	userexchangemanager.cpp \
+	emitteradapter.cpp \
+    changeemitter.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
 
-REPC_SOURCE += syncmanager_p.rep accountmanager_p.rep
+REPC_SOURCE += \
+	syncmanager_p.rep \
+	accountmanager_p.rep \
+	changeemitter_p.rep
+
 REPC_REPLICA += $$REPC_SOURCE
 
 # TODO add rep and statemachine headers to syncqt.pl

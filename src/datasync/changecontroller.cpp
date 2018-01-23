@@ -3,6 +3,7 @@
 #include "setup_p.h"
 #include "exchangeengine_p.h"
 #include "synchelper_p.h"
+#include "changeemitter_p.h"
 
 using namespace QtDataSync;
 
@@ -11,6 +12,7 @@ using namespace QtDataSync;
 ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
 	Controller("change", defaults, parent),
 	_store(nullptr),
+	_emitter(nullptr),
 	_uploadingEnabled(false),
 	_uploadLimit(10), //good default
 	_activeUploads(),
@@ -21,12 +23,16 @@ void ChangeController::initialize(const QVariantHash &params)
 {
 	_store = params.value(QStringLiteral("store")).value<LocalStore*>();
 	Q_ASSERT_X(_store, Q_FUNC_INFO, "Missing parameter: store (LocalStore)");
+	_emitter = params.value(QStringLiteral("emitter")).value<ChangeEmitter*>();
+	Q_ASSERT_X(_emitter, Q_FUNC_INFO, "Missing parameter: emitter (ChangeEmitter)");
+
+	connect(_emitter, &ChangeEmitter::uploadNeeded,
+			this, &ChangeController::changeTriggered);
 }
 
 void ChangeController::triggerDataChange(Defaults defaults)
 {
-	auto instance = SetupPrivate::engine(defaults.setupName())->changeController();
-	QMetaObject::invokeMethod(instance, "changeTriggered", Qt::QueuedConnection);
+	Q_UNREACHABLE();
 }
 
 void ChangeController::setUploadingEnabled(bool uploading)

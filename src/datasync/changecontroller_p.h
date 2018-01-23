@@ -12,6 +12,8 @@
 
 namespace QtDataSync {
 
+class ChangeEmitter;
+
 class Q_DATASYNC_EXPORT ChangeController : public Controller
 {
 	Q_OBJECT
@@ -75,6 +77,7 @@ private:
 	};
 
 	LocalStore *_store;
+	ChangeEmitter *_emitter;
 	bool _uploadingEnabled;
 	int _uploadLimit;
 	QHash<CachedObjectKey, UploadInfo> _activeUploads;

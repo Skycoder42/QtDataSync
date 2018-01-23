@@ -7,6 +7,7 @@
 #include "changecontroller_p.h"
 #include "remoteconnector_p.h"
 #include "syncmanager_p.h"
+#include "changeemitter_p.h"
 
 #include <QtCore/QThread>
 
@@ -30,7 +31,8 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_remoteConnector(new RemoteConnector(_defaults, this)),
 	_roHost(nullptr),
 	_syncManager(nullptr),
-	_accountManager(nullptr)
+	_accountManager(nullptr),
+	_emitter(new ChangeEmitter(this)) //must be created here, because of access
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
@@ -60,6 +62,11 @@ RemoteConnector *ExchangeEngine::remoteConnector() const
 CryptoController *ExchangeEngine::cryptoController() const
 {
 	return _remoteConnector->cryptoController();
+}
+
+ChangeEmitter *ExchangeEngine::emitter() const
+{
+	return _emitter;
 }
 
 SyncManager::SyncState ExchangeEngine::state() const
@@ -118,6 +125,7 @@ void ExchangeEngine::initialize()
 		//initialize all
 		QVariantHash params;
 		params.insert(QStringLiteral("store"), QVariant::fromValue(_localStore));
+		params.insert(QStringLiteral("emitter"), QVariant::fromValue(_emitter));
 		_changeController->initialize(params);
 		_syncController->initialize(params);
 		_remoteConnector->initialize(params);
@@ -125,6 +133,7 @@ void ExchangeEngine::initialize()
 
 		//create remote object stuff
 		_roHost = new QRemoteObjectHost(_defaults.remoteAddress(), this);
+		_roHost->enableRemoting(_emitter);
 		_syncManager = new SyncManagerPrivate(this);
 		_roHost->enableRemoting(_syncManager);
 		_accountManager = new AccountManagerPrivate(this);
