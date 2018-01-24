@@ -19,6 +19,9 @@
 #include <QtDataSync/private/keychangemessage_p.h>
 
 using namespace QtDataSync;
+#if CRYPTOPP_VERSION >= 600
+using byte = CryptoPP::byte;
+#endif
 
 Q_DECLARE_METATYPE(QSharedPointer<Message>)
 

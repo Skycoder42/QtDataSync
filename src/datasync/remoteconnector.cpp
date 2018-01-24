@@ -19,6 +19,9 @@
 #endif
 
 using namespace QtDataSync;
+#if CRYPTOPP_VERSION >= 600
+using byte = CryptoPP::byte;
+#endif
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 

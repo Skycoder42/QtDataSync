@@ -111,6 +111,14 @@ QVariant Defaults::defaultParam(Setup::SignatureScheme scheme)
 QVariant Defaults::defaultParam(Setup::EncryptionScheme scheme)
 {
 	switch (scheme) {
+	case Setup::ECIES_ECP_SHA3_512:
+#if CRYPTOPP_VERSION >= 600
+		return Setup::brainpoolP384r1;
+#else
+		logWarning() << "Encryption scheme" << scheme
+					 << "can only be used with cryptopp > 6.0. Falling back to" << Setup::RSA_OAEP_SHA3_512;
+		Q_FALLTHROUGH();
+#endif
 	case Setup::RSA_OAEP_SHA3_512:
 		return 4096;
 	default:

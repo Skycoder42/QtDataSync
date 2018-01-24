@@ -1,6 +1,9 @@
 #include "identifymessage_p.h"
 
 using namespace QtDataSync;
+#if CRYPTOPP_VERSION >= 600
+using byte = CryptoPP::byte;
+#endif
 
 const QVersionNumber InitMessage::CurrentVersion(1); //NOTE update accordingly
 const QVersionNumber InitMessage::CompatVersion(1);

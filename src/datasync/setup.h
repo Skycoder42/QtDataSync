@@ -109,7 +109,8 @@ public:
 	Q_ENUM(SignatureScheme)
 
 	enum EncryptionScheme {
-		RSA_OAEP_SHA3_512
+		RSA_OAEP_SHA3_512,
+		ECIES_ECP_SHA3_512
 	};
 	Q_ENUM(EncryptionScheme)
 

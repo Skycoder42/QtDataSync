@@ -36,6 +36,10 @@ class Q_DATASYNC_EXPORT CryptoController : public Controller
 	Q_PROPERTY(QByteArray fingerprint READ fingerprint NOTIFY fingerprintChanged)
 
 public:
+#if CRYPTOPP_VERSION >= 600
+	using byte = CryptoPP::byte;
+#endif
+
 	class Q_DATASYNC_EXPORT CipherScheme
 	{
 	public:

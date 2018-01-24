@@ -152,8 +152,10 @@ void AsymmetricCrypto::setEncryptionScheme(const QByteArray &name)
 	auto stdStr = name.toStdString();
 	if(stdStr == RsaesScheme::StaticAlgorithmName())
 		_encryption.reset(new EncryptionScheme<RsaesScheme>());
-//	else if(stdStr == EccScheme::StaticAlgorithmName())
-//		_encryption.reset(new EncryptionScheme<EccScheme>());
+#if CRYPTOPP_VERSION >= 600
+	else if(stdStr == EciesScheme::StaticAlgorithmName())
+		_encryption.reset(new EncryptionScheme<EciesScheme>());
+#endif
 	else
 		throw Exception(Exception::NOT_IMPLEMENTED, "Encryption Scheme \"" + stdStr + "\" not supported");
 }

@@ -94,7 +94,7 @@ private:
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
-const byte CryptoController::PwPurpose(0x42);
+const CryptoController::byte CryptoController::PwPurpose(0x42);
 const int CryptoController::PwRounds = 5;
 
 const QString CryptoController::keyKeystore(QStringLiteral("keystore"));
@@ -1131,6 +1131,10 @@ void ClientCrypto::setEncryptionKey(const QByteArray &name)
 	auto stdStr = name.toStdString();
 	if(stdStr == RsaesScheme::StaticAlgorithmName())
 		_cryptKey.reset(new RsaKeyScheme<RsaesScheme>());
+#if CRYPTOPP_VERSION >= 600
+	else if(stdStr == EciesScheme::StaticAlgorithmName())
+		_cryptKey.reset(new EccKeyScheme<EciesScheme>());
+#endif
 	else
 		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Encryption Scheme \"" + stdStr + "\" not supported");
 }
@@ -1138,6 +1142,15 @@ void ClientCrypto::setEncryptionKey(const QByteArray &name)
 void ClientCrypto::setEncryptionKey(Setup::EncryptionScheme scheme)
 {
 	switch (scheme) {
+	case Setup::ECIES_ECP_SHA3_512:
+#if CRYPTOPP_VERSION >= 600
+		setEncryptionKey(QByteArray::fromStdString(EciesScheme::StaticAlgorithmName()));
+		break;
+#else
+		logWarning() << "Encryption scheme" << scheme
+					 << "can only be used with cryptopp > 6.0. Falling back to" << Setup::RSA_OAEP_SHA3_512;
+		Q_FALLTHROUGH();
+#endif
 	case Setup::RSA_OAEP_SHA3_512:
 		setEncryptionKey(QByteArray::fromStdString(RsaesScheme::StaticAlgorithmName()));
 		break;

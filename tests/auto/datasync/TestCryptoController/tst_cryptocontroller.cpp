@@ -375,15 +375,15 @@ void TestCryptoController::cryptoData()
 
 	QTest::newRow("ECDSA:brainpoolP256r1") << Setup::ECDSA_ECP_SHA3_512
 										   << QVariant(Setup::brainpoolP256r1)
-										   << Setup::RSA_OAEP_SHA3_512
-										   << QVariant(512)
+										   << Setup::ECIES_ECP_SHA3_512
+										   << QVariant(Setup::brainpoolP256r1)
 										   << true
 										   << false;
 
 	QTest::newRow("ECNR:secp256r1") << Setup::ECNR_ECP_SHA3_512
 									<< QVariant(Setup::secp256r1)
-									<< Setup::RSA_OAEP_SHA3_512
-									<< QVariant(512)
+									<< Setup::ECIES_ECP_SHA3_512
+									<< QVariant(Setup::secp256r1)
 									<< true
 									<< false;
 }

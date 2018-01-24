@@ -78,7 +78,9 @@ protected:
 	typedef CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA3_512> EcdsaScheme;
 	typedef CryptoPP::ECNR<CryptoPP::ECP, CryptoPP::SHA3_512> EcnrScheme;
 	typedef CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA3_512>> RsaesScheme;
-	//NOTE cryptopp 6.0: typedef CryptoPP::ECIES<CryptoPP::ECP, CryptoPP::SHA3_512> EccCryptScheme;
+#if CRYPTOPP_VERSION >= 600
+	typedef CryptoPP::ECIES<CryptoPP::ECP, CryptoPP::SHA3_512> EciesScheme;
+#endif
 
 	explicit AsymmetricCrypto(QObject *parent = nullptr);
 
