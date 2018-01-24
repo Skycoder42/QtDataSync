@@ -1,5 +1,5 @@
-#ifndef CRYPTOCONTROLLER_P_H
-#define CRYPTOCONTROLLER_P_H
+#ifndef QTDATASYNC_CRYPTOCONTROLLER_P_H
+#define QTDATASYNC_CRYPTOCONTROLLER_P_H
 
 #include <tuple>
 
@@ -42,7 +42,8 @@ public:
 	using byte = ::byte;
 #endif
 
-	class Q_DATASYNC_EXPORT CipherScheme
+	//not exported, only public to be reimplemented
+	class CipherScheme
 	{
 	public:
 		inline virtual ~CipherScheme() = default;
@@ -135,7 +136,8 @@ Q_SIGNALS:
 	void fingerprintChanged(const QByteArray &fingerprint);
 
 private:
-	struct Q_DATASYNC_EXPORT CipherInfo {
+	//dont export private classes
+	struct CipherInfo {
 		QSharedPointer<CipherScheme> scheme;
 		CryptoPP::SecByteBlock key;
 	};
@@ -185,7 +187,8 @@ class Q_DATASYNC_EXPORT ClientCrypto : public AsymmetricCrypto
 	Q_OBJECT
 
 public:
-	class Q_DATASYNC_EXPORT KeyScheme
+	//not exported, only public to be reimplemented
+	class KeyScheme
 	{
 	public:
 		inline virtual ~KeyScheme() = default;
@@ -279,4 +282,4 @@ protected:
 
 }
 
-#endif // CRYPTOCONTROLLER_P_H
+#endif // QTDATASYNC_CRYPTOCONTROLLER_P_H

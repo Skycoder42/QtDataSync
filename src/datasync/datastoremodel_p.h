@@ -1,12 +1,13 @@
-#ifndef DATASTOREMODEL_P_H
-#define DATASTOREMODEL_P_H
+#ifndef QTDATASYNC_DATASTOREMODEL_P_H
+#define QTDATASYNC_DATASTOREMODEL_P_H
 
 #include "qtdatasync_global.h"
 #include "datastoremodel.h"
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT DataStoreModelPrivate
+//no export needed
+class DataStoreModelPrivate
 {
 public:
 	DataStoreModelPrivate(DataStoreModel *q_ptr);
@@ -34,4 +35,4 @@ public:
 };
 
 }
-#endif // DATASTOREMODEL_P_H
+#endif // QTDATASYNC_DATASTOREMODEL_P_H

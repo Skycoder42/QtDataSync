@@ -14,7 +14,8 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT RemoteConfigPrivate : public QSharedData
+//no export needed
+class RemoteConfigPrivate : public QSharedData
 {
 public:
 	RemoteConfigPrivate(const QUrl &url,
@@ -29,6 +30,7 @@ public:
 	int keepaliveTimeout;
 };
 
+//must be exported for tests
 class Q_DATASYNC_EXPORT SetupPrivate
 {
 	friend class Setup;

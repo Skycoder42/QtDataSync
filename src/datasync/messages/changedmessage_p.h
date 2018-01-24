@@ -1,5 +1,5 @@
-#ifndef CHANGEDMESSAGE_P_H
-#define CHANGEDMESSAGE_P_H
+#ifndef QTDATASYNC_CHANGEDMESSAGE_P_H
+#define QTDATASYNC_CHANGEDMESSAGE_P_H
 
 #include "message_p.h"
 
@@ -74,4 +74,4 @@ Q_DECLARE_METATYPE(QtDataSync::ChangedInfoMessage)
 Q_DECLARE_METATYPE(QtDataSync::LastChangedMessage)
 Q_DECLARE_METATYPE(QtDataSync::ChangedAckMessage)
 
-#endif // CHANGEDMESSAGE_P_H
+#endif // QTDATASYNC_CHANGEDMESSAGE_P_H

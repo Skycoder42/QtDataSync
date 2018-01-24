@@ -1,9 +1,9 @@
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#ifndef QTDATASYNC_EXCEPTION_H
+#define QTDATASYNC_EXCEPTION_H
 
 #include <QtCore/qexception.h>
 
-#include "qtdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
 
 namespace QtDataSync {
 
@@ -51,4 +51,4 @@ protected:
 #define __QTDATASYNC_EXCEPTION_NAME_IMPL(x) #x
 #define QTDATASYNC_EXCEPTION_NAME(x) "QtDataSync::" __QTDATASYNC_EXCEPTION_NAME_IMPL(x)
 
-#endif // EXCEPTION_H
+#endif // QTDATASYNC_EXCEPTION_H

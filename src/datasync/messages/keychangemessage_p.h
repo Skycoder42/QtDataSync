@@ -1,5 +1,5 @@
-#ifndef KEYCHANGEMESSAGE_P_H
-#define KEYCHANGEMESSAGE_P_H
+#ifndef QTDATASYNC_KEYCHANGEMESSAGE_P_H
+#define QTDATASYNC_KEYCHANGEMESSAGE_P_H
 
 #include "message_p.h"
 
@@ -24,4 +24,4 @@ protected:
 
 Q_DECLARE_METATYPE(QtDataSync::KeyChangeMessage)
 
-#endif // KEYCHANGEMESSAGE_P_H
+#endif // QTDATASYNC_KEYCHANGEMESSAGE_P_H

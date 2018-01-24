@@ -1,5 +1,5 @@
-#ifndef REGISTERMESSAGE_H
-#define REGISTERMESSAGE_H
+#ifndef QTDATASYNC_REGISTERMESSAGE_H
+#define QTDATASYNC_REGISTERMESSAGE_H
 
 #include <functional>
 
@@ -67,4 +67,4 @@ protected:
 Q_DECLARE_METATYPE(QtDataSync::RegisterBaseMessage)
 Q_DECLARE_METATYPE(QtDataSync::RegisterMessage)
 
-#endif // REGISTERMESSAGE_H
+#endif // QTDATASYNC_REGISTERMESSAGE_H

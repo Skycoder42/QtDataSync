@@ -21,7 +21,8 @@ namespace QtDataSync {
 
 class ChangeEmitter;
 
-class Q_DATASYNC_EXPORT DatabaseRefPrivate : public QObject
+//no exports needed
+class DatabaseRefPrivate : public QObject
 {
 public:
 	DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object);
@@ -36,6 +37,7 @@ private:
 	QSqlDatabase _database;
 };
 
+//export needed for tests
 class Q_DATASYNC_EXPORT DefaultsPrivate : public QObject
 {
 	friend class Defaults;

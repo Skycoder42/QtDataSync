@@ -1,10 +1,10 @@
-#ifndef DATASTOREMODEL_H
-#define DATASTOREMODEL_H
+#ifndef QTDATASYNC_DATASTOREMODEL_H
+#define QTDATASYNC_DATASTOREMODEL_H
+
+#include <QtCore/qabstractitemmodel.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/datastore.h"
-
-#include <QtCore/qabstractitemmodel.h>
 
 namespace QtDataSync {
 
@@ -169,4 +169,4 @@ T DataStoreModel::loadObject(const QModelIndex &index) const {
 
 }
 
-#endif // DATASTOREMODEL_H
+#endif // QTDATASYNC_DATASTOREMODEL_H

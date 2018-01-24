@@ -82,8 +82,38 @@ bool App::start(const QString &serviceName)
 					<< "with error:"
 					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
 		return false;
-	} else
-		qDebug() << "Using configuration:" << _config->fileName();
+	}
+
+	//before anything else: read log level
+	//NOTE move to service lib
+	auto logLevel = _config->value(QStringLiteral("loglevel"),
+#ifndef QT_NO_DEBUG
+								   4
+#else
+								   3
+#endif
+								   ).toInt();
+	QString logStr;
+	switch (logLevel) {
+	case 0: //log nothing
+		logStr.prepend(QStringLiteral("\n*.critical=false"));
+		Q_FALLTHROUGH();
+	case 1: //log critical
+		logStr.prepend(QStringLiteral("\n*.warning=false"));
+		Q_FALLTHROUGH();
+	case 2: //log warn
+		logStr.prepend(QStringLiteral("\n*.info=false"));
+		Q_FALLTHROUGH();
+	case 3: //log info
+		logStr.prepend(QStringLiteral("*.debug=false"));
+		QLoggingCategory::setFilterRules(logStr);
+		break;
+	case 4: //log any
+	default:
+		break;
+	}
+
+	qDebug() << "Using configuration:" << _config->fileName();
 
 	_mainPool = new QThreadPool(this);
 	_mainPool->setMaxThreadCount(_config->value(QStringLiteral("threads/count"),

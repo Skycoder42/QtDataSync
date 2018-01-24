@@ -1,5 +1,5 @@
-#ifndef ACCOUNTMANAGER_H
-#define ACCOUNTMANAGER_H
+#ifndef QTDATASYNC_ACCOUNTMANAGER_H
+#define QTDATASYNC_ACCOUNTMANAGER_H
 
 #include <functional>
 
@@ -8,7 +8,6 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qiodevice.h>
-#include <QtCore/qsharedpointer.h>
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qjsonobject.h>
 
@@ -148,7 +147,7 @@ private:
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const DeviceInfo &deviceInfo);
 Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, DeviceInfo &deviceInfo);
 
-//helper class until QTBUG-65557 is fixed (not exported, internal only)
+//helper class until QTBUG-65557 is fixed (not exported (!), internal only)
 class JsonObject : public QJsonObject {
 public:
 	inline JsonObject(const QJsonObject &other = {}) :
@@ -165,4 +164,4 @@ Q_DECLARE_METATYPE(QtDataSync::JsonObject)
 Q_DECLARE_METATYPE(QtDataSync::DeviceInfo)
 Q_DECLARE_METATYPE(QtDataSync::LoginRequest)
 
-#endif // ACCOUNTMANAGER_H
+#endif // QTDATASYNC_ACCOUNTMANAGER_H

@@ -1,5 +1,5 @@
-#ifndef LOGINMESSAGE_P_H
-#define LOGINMESSAGE_P_H
+#ifndef QTDATASYNC_LOGINMESSAGE_P_H
+#define QTDATASYNC_LOGINMESSAGE_P_H
 
 #include <QtCore/QUuid>
 
@@ -29,4 +29,4 @@ protected:
 
 Q_DECLARE_METATYPE(QtDataSync::LoginMessage)
 
-#endif // LOGINMESSAGE_P_H
+#endif // QTDATASYNC_LOGINMESSAGE_P_H

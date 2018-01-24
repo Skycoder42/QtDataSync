@@ -1,5 +1,5 @@
-#ifndef USEREXCHANGEMANAGER_H
-#define USEREXCHANGEMANAGER_H
+#ifndef QTDATASYNC_USEREXCHANGEMANAGER_H
+#define QTDATASYNC_USEREXCHANGEMANAGER_H
 
 #include <QtCore/qobject.h>
 #include <QtCore/qscopedpointer.h>
@@ -134,4 +134,4 @@ Q_DATASYNC_EXPORT QDebug operator<<(QDebug stream, const QtDataSync::UserInfo &u
 
 Q_DECLARE_METATYPE(QtDataSync::UserInfo)
 
-#endif // USEREXCHANGEMANAGER_H
+#endif // QTDATASYNC_USEREXCHANGEMANAGER_H

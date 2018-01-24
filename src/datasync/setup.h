@@ -1,6 +1,9 @@
 #ifndef QTDATASYNC_SETUP_H
 #define QTDATASYNC_SETUP_H
 
+#include <functional>
+#include <ratio>
+
 #include <QtCore/qobject.h>
 #include <QtCore/qlogging.h>
 #include <QtCore/qurl.h>
@@ -9,9 +12,6 @@
 class QLockFile;
 
 #include <QtNetwork/qsslconfiguration.h>
-
-#include <functional>
-#include <ratio>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"

@@ -1,5 +1,5 @@
-#ifndef SYNCMANAGER_H
-#define SYNCMANAGER_H
+#ifndef QTDATASYNC_SYNCMANAGER_H
+#define QTDATASYNC_SYNCMANAGER_H
 
 #include <functional>
 
@@ -85,4 +85,4 @@ Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, SyncManager::Sync
 
 Q_DECLARE_METATYPE(QtDataSync::SyncManager::SyncState)
 
-#endif // SYNCMANAGER_H
+#endif // QTDATASYNC_SYNCMANAGER_H

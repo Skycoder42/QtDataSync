@@ -1,10 +1,10 @@
-#ifndef CONFLICTRESOLVER_H
-#define CONFLICTRESOLVER_H
+#ifndef QTDATASYNC_CONFLICTRESOLVER_H
+#define QTDATASYNC_CONFLICTRESOLVER_H
 
 #include <QtCore/qobject.h>
 #include <QtCore/qscopedpointer.h>
 
-#include <QtJsonSerializer/QJsonSerializer>
+#include <QtJsonSerializer/qjsonserializer.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
@@ -44,14 +44,15 @@ public:
 		GenericConflictResolver<Args...>(parent)
 	{}
 
-	virtual T1 resolveConflict(T1 data1, T1 data2) const = 0;
+	virtual T1 resolveConflict(T1 data1, T1 data2, QObject *parent) const = 0;
 
 	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
 		if(typeId == qMetaTypeId<T1>()) {
+			QObject scope;
 			const QJsonSerializer *ser = this->serializer();
-			auto d1 = ser->deserialize<T1>(data1, const_cast<GenericConflictResolver<T1, Args...>*>(this));
-			auto d2 = ser->deserialize<T1>(data2, const_cast<GenericConflictResolver<T1, Args...>*>(this));
-			return ser->serialize<T1>(resolveConflict(d1, d2));
+			auto d1 = ser->deserialize<T1>(data1, &scope);
+			auto d2 = ser->deserialize<T1>(data2, &scope);
+			return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
 		} else
 			return GenericConflictResolver<Args...>::resolveConflict(typeId, data1, data2);
 	}
@@ -65,14 +66,15 @@ public:
 		ConflictResolver(parent)
 	{}
 
-	virtual T1 resolveConflict(T1 data1, T1 data2) const = 0;
+	virtual T1 resolveConflict(T1 data1, T1 data2, QObject *parent) const = 0;
 
 	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
 		if(typeId == qMetaTypeId<T1>()) {
+			QObject scope;
 			const QJsonSerializer *ser = this->serializer();
-			auto d1 = ser->deserialize<T1>(data1, const_cast<GenericConflictResolver<T1>*>(this));
-			auto d2 = ser->deserialize<T1>(data2, const_cast<GenericConflictResolver<T1>*>(this));
-			return ser->serialize<T1>(resolveConflict(d1, d2));
+			auto d1 = ser->deserialize<T1>(data1, &scope);
+			auto d2 = ser->deserialize<T1>(data2, &scope);
+			return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
 		} else {
 			QT_DATASYNC_LOG_BASE.warning(logger()->loggingCategory()) << "Unsupported type in conflict resolver:"
 																	  << QMetaType::typeName(typeId);
@@ -83,4 +85,4 @@ public:
 
 }
 
-#endif // CONFLICTRESOLVER_H
+#endif // QTDATASYNC_CONFLICTRESOLVER_H

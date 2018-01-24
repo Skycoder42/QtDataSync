@@ -1,5 +1,5 @@
-#ifndef DATASTORE_P_H
-#define DATASTORE_P_H
+#ifndef QTDATASYNC_DATASTORE_P_H
+#define QTDATASYNC_DATASTORE_P_H
 
 #include <QtCore/QPointer>
 
@@ -11,7 +11,8 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT DataStorePrivate
+//no export needed
+class DataStorePrivate
 {
 public:
 	DataStorePrivate(DataStore *q, const QString &setupName);
@@ -27,4 +28,4 @@ public:
 
 }
 
-#endif // DATASTORE_P_H
+#endif // QTDATASYNC_DATASTORE_P_H

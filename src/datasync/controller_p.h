@@ -1,5 +1,5 @@
-#ifndef CONTROLLER_P_H
-#define CONTROLLER_P_H
+#ifndef QTDATASYNC_CONTROLLER_P_H
+#define QTDATASYNC_CONTROLLER_P_H
 
 #include <chrono>
 
@@ -22,8 +22,7 @@ public:
 						Defaults defaults,
 						QObject *parent = nullptr);
 
-	//exceptions are allowed!
-	virtual void initialize(const QVariantHash &params);
+	virtual void initialize(const QVariantHash &params); //exceptions are allowed!
 	virtual void finalize();
 
 Q_SIGNALS:
@@ -59,4 +58,4 @@ private:
 
 #define QTDATASYNC_LOG_CONTROLLER logger()
 
-#endif // CONTROLLER_P_H
+#endif // QTDATASYNC_CONTROLLER_P_H

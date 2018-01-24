@@ -1,5 +1,5 @@
-#ifndef SYNCMANAGER_P_H
-#define SYNCMANAGER_P_H
+#ifndef QTDATASYNC_SYNCMANAGER_P_H
+#define QTDATASYNC_SYNCMANAGER_P_H
 
 #include <QtCore/QPointer>
 
@@ -10,7 +10,8 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT SyncManagerPrivate : public SyncManagerPrivateSource
+//not exported because base it not, too
+class SyncManagerPrivate : public SyncManagerPrivateSource
 {
 	Q_OBJECT
 
@@ -35,4 +36,4 @@ private:
 
 }
 
-#endif // SYNCMANAGER_P_H
+#endif // QTDATASYNC_SYNCMANAGER_P_H

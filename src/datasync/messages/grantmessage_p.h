@@ -1,5 +1,5 @@
-#ifndef GRANTMESSAGE_P_H
-#define GRANTMESSAGE_P_H
+#ifndef QTDATASYNC_GRANTMESSAGE_P_H
+#define QTDATASYNC_GRANTMESSAGE_P_H
 
 #include "message_p.h"
 #include "accountmessage_p.h"
@@ -31,4 +31,4 @@ protected:
 
 Q_DECLARE_METATYPE(QtDataSync::GrantMessage)
 
-#endif // GRANTMESSAGE_P_H
+#endif // QTDATASYNC_GRANTMESSAGE_P_H

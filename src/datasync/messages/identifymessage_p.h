@@ -1,10 +1,10 @@
-#ifndef IDENTIFYMESSAGE_H
-#define IDENTIFYMESSAGE_H
-
-#include <cryptopp/rng.h>
+#ifndef QTDATASYNC_IDENTIFYMESSAGE_H
+#define QTDATASYNC_IDENTIFYMESSAGE_H
 
 #include <QtCore/QVersionNumber>
 #include <QtCore/QException>
+
+#include <cryptopp/rng.h>
 
 #include "message_p.h"
 
@@ -71,4 +71,4 @@ protected:
 Q_DECLARE_METATYPE(QtDataSync::InitMessage)
 Q_DECLARE_METATYPE(QtDataSync::IdentifyMessage)
 
-#endif // IDENTIFYMESSAGE_H
+#endif // QTDATASYNC_IDENTIFYMESSAGE_H

@@ -1,5 +1,5 @@
-#ifndef LOCALSTORE_P_H
-#define LOCALSTORE_P_H
+#ifndef QTDATASYNC_LOCALSTORE_P_H
+#define QTDATASYNC_LOCALSTORE_P_H
 
 #include <functional>
 #include <tuple>
@@ -41,7 +41,8 @@ public:
 		~SyncScope();
 
 	private:
-		struct Q_DATASYNC_EXPORT Private {
+		//no export needed
+		struct Private {
 			ObjectKey key;
 			DatabaseRef database;
 			std::function<void()> afterCommit;
@@ -135,4 +136,4 @@ private:
 
 }
 
-#endif // LOCALSTORE_P_H
+#endif // QTDATASYNC_LOCALSTORE_P_H

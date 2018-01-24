@@ -1,5 +1,5 @@
-#ifndef ACCESSMESSAGE_P_H
-#define ACCESSMESSAGE_P_H
+#ifndef QTDATASYNC_ACCESSMESSAGE_P_H
+#define QTDATASYNC_ACCESSMESSAGE_P_H
 
 #include <QtCore/QUuid>
 
@@ -45,4 +45,4 @@ protected:
 
 Q_DECLARE_METATYPE(QtDataSync::AccessMessage)
 
-#endif // ACCESSMESSAGE_P_H
+#endif // QTDATASYNC_ACCESSMESSAGE_P_H

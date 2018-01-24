@@ -6,7 +6,8 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT LoggerPrivate
+//no export needed
+class LoggerPrivate
 {
 public:
 	LoggerPrivate(const QString &setupName, const QByteArray &subCategory);

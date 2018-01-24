@@ -1,5 +1,5 @@
-#ifndef PROOFMESSAGE_P_H
-#define PROOFMESSAGE_P_H
+#ifndef QTDATASYNC_PROOFMESSAGE_P_H
+#define QTDATASYNC_PROOFMESSAGE_P_H
 
 #include "message_p.h"
 #include "accessmessage_p.h"
@@ -82,4 +82,4 @@ Q_DECLARE_METATYPE(QtDataSync::ProofMessage)
 Q_DECLARE_METATYPE(QtDataSync::DenyMessage)
 Q_DECLARE_METATYPE(QtDataSync::AcceptMessage)
 
-#endif // PROOFMESSAGE_P_H
+#endif // QTDATASYNC_PROOFMESSAGE_P_H

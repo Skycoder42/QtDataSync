@@ -1,5 +1,5 @@
-#ifndef SYNCMESSAGE_P_H
-#define SYNCMESSAGE_P_H
+#ifndef QTDATASYNC_SYNCMESSAGE_P_H
+#define QTDATASYNC_SYNCMESSAGE_P_H
 
 #include "message_p.h"
 
@@ -20,4 +20,4 @@ protected:
 
 Q_DECLARE_METATYPE(QtDataSync::SyncMessage)
 
-#endif // SYNCMESSAGE_P_H
+#endif // QTDATASYNC_SYNCMESSAGE_P_H

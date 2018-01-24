@@ -1,11 +1,11 @@
-#ifndef DATASTORE_H
-#define DATASTORE_H
+#ifndef QTDATASYNC_DATASTORE_H
+#define QTDATASYNC_DATASTORE_H
+
+#include <functional>
 
 #include <QtCore/qobject.h>
 #include <QtCore/qscopedpointer.h>
 #include <QtCore/qvariant.h>
-
-#include <functional>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/objectkey.h"
@@ -292,4 +292,4 @@ void DataStore::update(T object)
 
 }
 
-#endif // DATASTORE_H
+#endif // QTDATASYNC_DATASTORE_H

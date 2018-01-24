@@ -1,5 +1,5 @@
-#ifndef DEVICEKEYSMESSAGE_P_H
-#define DEVICEKEYSMESSAGE_P_H
+#ifndef QTDATASYNC_DEVICEKEYSMESSAGE_P_H
+#define QTDATASYNC_DEVICEKEYSMESSAGE_P_H
 
 #include <QtCore/QUuid>
 
@@ -34,4 +34,4 @@ protected:
 Q_DECLARE_METATYPE(QtDataSync::DeviceKeysMessage)
 Q_DECLARE_METATYPE(QtDataSync::DeviceKeysMessage::DeviceKey)
 
-#endif // DEVICEKEYSMESSAGE_P_H
+#endif // QTDATASYNC_DEVICEKEYSMESSAGE_P_H

@@ -1,5 +1,5 @@
-#ifndef WELCOMEMESSAGE_P_H
-#define WELCOMEMESSAGE_P_H
+#ifndef QTDATASYNC_WELCOMEMESSAGE_P_H
+#define QTDATASYNC_WELCOMEMESSAGE_P_H
 
 #include <QtCore/QUuid>
 
@@ -37,4 +37,4 @@ protected:
 
 Q_DECLARE_METATYPE(QtDataSync::WelcomeMessage)
 
-#endif // WELCOMEMESSAGE_P_H
+#endif // QTDATASYNC_WELCOMEMESSAGE_P_H

@@ -1,5 +1,5 @@
-#ifndef EXCHANGEENGINE_P_H
-#define EXCHANGEENGINE_P_H
+#ifndef QTDATASYNC_EXCHANGEENGINE_P_H
+#define QTDATASYNC_EXCHANGEENGINE_P_H
 
 #include <QtCore/QObject>
 #include <QtCore/QAtomicPointer>
@@ -102,4 +102,4 @@ private:
 
 }
 
-#endif // EXCHANGEENGINE_P_H
+#endif // QTDATASYNC_EXCHANGEENGINE_P_H

@@ -1,5 +1,5 @@
-#ifndef DATATYPESTORE_H
-#define DATATYPESTORE_H
+#ifndef QTDATASYNC_DATATYPESTORE_H
+#define QTDATASYNC_DATATYPESTORE_H
 
 #include <QtCore/qobject.h>
 
@@ -590,4 +590,4 @@ void CachingDataTypeStore<TType*, TKey>::evalDataResetted()
 
 }
 
-#endif // DATATYPESTORE_H
+#endif // QTDATASYNC_DATATYPESTORE_H

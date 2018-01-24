@@ -1,14 +1,11 @@
-#ifndef OBJECTKEY_H
-#define OBJECTKEY_H
+#ifndef QTDATASYNC_OBJECTKEY_H
+#define QTDATASYNC_OBJECTKEY_H
 
 #include <QtCore/qmetatype.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 
 namespace QtDataSync {
-
-//! The default setup name
-extern Q_DATASYNC_EXPORT const QString DefaultSetup;
 
 struct Q_DATASYNC_EXPORT ObjectKey
 {
@@ -32,4 +29,4 @@ QDebug Q_DATASYNC_EXPORT operator<<(QDebug debug, const ObjectKey &key);
 
 Q_DECLARE_METATYPE(QtDataSync::ObjectKey)
 
-#endif // OBJECTKEY_H
+#endif // QTDATASYNC_OBJECTKEY_H

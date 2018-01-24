@@ -1,5 +1,5 @@
-#ifndef ACCOUNTMANAGER_P_H
-#define ACCOUNTMANAGER_P_H
+#ifndef QTDATASYNC_ACCOUNTMANAGER_P_H
+#define QTDATASYNC_ACCOUNTMANAGER_P_H
 
 #include <QtCore/QPointer>
 
@@ -10,7 +10,8 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT AccountManagerPrivate : public AccountManagerPrivateSource
+//not exported, because base class is not too
+class AccountManagerPrivate : public AccountManagerPrivateSource
 {
 	Q_OBJECT
 
@@ -47,4 +48,4 @@ private:
 
 }
 
-#endif // ACCOUNTMANAGER_P_H
+#endif // QTDATASYNC_ACCOUNTMANAGER_P_H

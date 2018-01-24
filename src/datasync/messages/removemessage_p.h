@@ -1,5 +1,5 @@
-#ifndef REMOVEMESSAGE_P_H
-#define REMOVEMESSAGE_P_H
+#ifndef QTDATASYNC_REMOVEMESSAGE_P_H
+#define QTDATASYNC_REMOVEMESSAGE_P_H
 
 #include <QtCore/QUuid>
 
@@ -42,4 +42,4 @@ protected:
 Q_DECLARE_METATYPE(QtDataSync::RemoveMessage)
 Q_DECLARE_METATYPE(QtDataSync::RemoveAckMessage)
 
-#endif // REMOVEMESSAGE_P_H
+#endif // QTDATASYNC_REMOVEMESSAGE_P_H

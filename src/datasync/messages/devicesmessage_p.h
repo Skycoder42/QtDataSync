@@ -1,5 +1,5 @@
-#ifndef DEVICESMESSAGE_P_H
-#define DEVICESMESSAGE_P_H
+#ifndef QTDATASYNC_DEVICESMESSAGE_P_H
+#define QTDATASYNC_DEVICESMESSAGE_P_H
 
 #include <tuple>
 
@@ -44,4 +44,4 @@ Q_DECLARE_METATYPE(QtDataSync::ListDevicesMessage)
 Q_DECLARE_METATYPE(QtDataSync::DevicesMessage)
 Q_DECLARE_METATYPE(QtDataSync::DevicesMessage::DeviceInfo)
 
-#endif // DEVICESMESSAGE_P_H
+#endif // QTDATASYNC_DEVICESMESSAGE_P_H

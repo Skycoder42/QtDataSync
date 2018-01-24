@@ -1,5 +1,5 @@
-#ifndef SYNCHELPER_P_H
-#define SYNCHELPER_P_H
+#ifndef QTDATASYNC_SYNCHELPER_P_H
+#define QTDATASYNC_SYNCHELPER_P_H
 
 #include <tuple>
 
@@ -12,6 +12,7 @@ namespace QtDataSync {
 
 namespace SyncHelper {
 
+//exports are needed for tests
 Q_DATASYNC_EXPORT QByteArray jsonHash(const QJsonObject &object);
 
 Q_DATASYNC_EXPORT QByteArray combine(const ObjectKey &key, quint64 version, const QJsonObject &data);
@@ -22,4 +23,4 @@ Q_DATASYNC_EXPORT std::tuple<bool, ObjectKey, quint64, QJsonObject> extract(cons
 
 }
 
-#endif // SYNCHELPER_P_H
+#endif // QTDATASYNC_SYNCHELPER_P_H

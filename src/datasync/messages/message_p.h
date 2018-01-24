@@ -1,5 +1,5 @@
-#ifndef MESSAGE_P_H
-#define MESSAGE_P_H
+#ifndef QTDATASYNC_MESSAGE_P_H
+#define QTDATASYNC_MESSAGE_P_H
 
 #include <tuple>
 
@@ -173,4 +173,4 @@ QDataStream &operator>>(QDataStream &stream, std::tuple<Args...> &message) {
 	return stream;
 }
 
-#endif // MESSAGE_H
+#endif // QTDATASYNC_MESSAGE_H

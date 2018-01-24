@@ -1,7 +1,5 @@
-#ifndef ASYMMETRICCRYPTO_P_H
-#define ASYMMETRICCRYPTO_P_H
-
-#include "message_p.h"
+#ifndef QTDATASYNC_ASYMMETRICCRYPTO_P_H
+#define QTDATASYNC_ASYMMETRICCRYPTO_P_H
 
 #include <QtCore/QObject>
 
@@ -11,6 +9,8 @@
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/sha3.h>
 
+#include "message_p.h"
+
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT AsymmetricCrypto : public QObject
@@ -18,7 +18,8 @@ class Q_DATASYNC_EXPORT AsymmetricCrypto : public QObject
 	Q_OBJECT
 
 public:
-	class Q_DATASYNC_EXPORT Scheme
+	//not exported, only public for implementations
+	class Scheme
 	{
 	public:
 		inline virtual ~Scheme() = default;
@@ -27,14 +28,16 @@ public:
 		virtual QSharedPointer<CryptoPP::X509PublicKey> createNullKey() const = 0;
 	};
 
-	class Q_DATASYNC_EXPORT Signature : public Scheme
+	//not exported, only public for implementations
+	class Signature : public Scheme
 	{
 	public:
 		virtual QSharedPointer<CryptoPP::PK_Signer> sign(const CryptoPP::PKCS8PrivateKey &pKey) const = 0;
 		virtual QSharedPointer<CryptoPP::PK_Verifier> verify(const CryptoPP::X509PublicKey &pubKey) const = 0;
 	};
 
-	class Q_DATASYNC_EXPORT Encryption : public Scheme
+	//not exported, only public for implementations
+	class Encryption : public Scheme
 	{
 	public:
 		virtual QSharedPointer<CryptoPP::PK_Encryptor> encrypt(const CryptoPP::X509PublicKey &pubKey) const = 0;
@@ -123,4 +126,4 @@ private:
 
 Q_DECLARE_METATYPE(CryptoPP::OID)
 
-#endif // ASYMMETRICCRYPTO_P_H
+#endif // QTDATASYNC_ASYMMETRICCRYPTO_P_H

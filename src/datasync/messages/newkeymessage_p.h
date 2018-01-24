@@ -1,5 +1,5 @@
-#ifndef NEWKEYMESSAGE_P_H
-#define NEWKEYMESSAGE_P_H
+#ifndef QTDATASYNC_NEWKEYMESSAGE_P_H
+#define QTDATASYNC_NEWKEYMESSAGE_P_H
 
 #include <QtCore/QUuid>
 
@@ -50,4 +50,4 @@ Q_DECLARE_METATYPE(QtDataSync::NewKeyMessage)
 Q_DECLARE_METATYPE(QtDataSync::NewKeyMessage::KeyUpdate)
 Q_DECLARE_METATYPE(QtDataSync::NewKeyAckMessage)
 
-#endif // NEWKEYMESSAGE_P_H
+#endif // QTDATASYNC_NEWKEYMESSAGE_P_H

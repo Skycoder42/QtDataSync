@@ -1,5 +1,5 @@
-#ifndef EMITTERADAPTER_P_H
-#define EMITTERADAPTER_P_H
+#ifndef QTDATASYNC_EMITTERADAPTER_P_H
+#define QTDATASYNC_EMITTERADAPTER_P_H
 
 #include <QtCore/QObject>
 #include <QtCore/QReadWriteLock>
@@ -60,4 +60,4 @@ private:
 
 Q_DECLARE_METATYPE(QSharedPointer<QtDataSync::EmitterAdapter::CacheInfo>)
 
-#endif // EMITTERADAPTER_P_H
+#endif // QTDATASYNC_EMITTERADAPTER_P_H

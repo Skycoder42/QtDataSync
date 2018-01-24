@@ -1,5 +1,5 @@
-#ifndef MACUPDATEMESSAGE_P_H
-#define MACUPDATEMESSAGE_P_H
+#ifndef QTDATASYNC_MACUPDATEMESSAGE_P_H
+#define QTDATASYNC_MACUPDATEMESSAGE_P_H
 
 #include "message_p.h"
 
@@ -38,4 +38,4 @@ protected:
 Q_DECLARE_METATYPE(QtDataSync::MacUpdateMessage)
 Q_DECLARE_METATYPE(QtDataSync::MacUpdateAckMessage)
 
-#endif // MACUPDATEMESSAGE_P_H
+#endif // QTDATASYNC_MACUPDATEMESSAGE_P_H

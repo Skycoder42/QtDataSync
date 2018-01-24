@@ -1,5 +1,5 @@
-#ifndef USEREXCHANGEMANAGER_P_H
-#define USEREXCHANGEMANAGER_P_H
+#ifndef QTDATASYNC_USEREXCHANGEMANAGER_P_H
+#define QTDATASYNC_USEREXCHANGEMANAGER_P_H
 
 #include <QtCore/QTimer>
 
@@ -13,7 +13,8 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT UserInfoPrivate : public QSharedData
+//no export needed
+class UserInfoPrivate : public QSharedData
 {
 public:
 	UserInfoPrivate(const QString &name = {}, const QNetworkDatagram &datagram = {});
@@ -24,7 +25,8 @@ public:
 	quint16 port;
 };
 
-class Q_DATASYNC_EXPORT UserExchangeManagerPrivate
+//no export needed
+class UserExchangeManagerPrivate
 {
 public:
 	enum DatagramType {
@@ -46,4 +48,4 @@ public:
 
 }
 
-#endif // USEREXCHANGEMANAGER_P_H
+#endif // QTDATASYNC_USEREXCHANGEMANAGER_P_H

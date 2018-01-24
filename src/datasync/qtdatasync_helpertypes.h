@@ -1,9 +1,9 @@
 #ifndef QTDATASYNC_HELPERTYPES_H
 #define QTDATASYNC_HELPERTYPES_H
 
-#include <QtCore/qobject.h>
-
 #include <type_traits>
+
+#include <QtCore/qobject.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 

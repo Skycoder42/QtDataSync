@@ -1,5 +1,5 @@
-#ifndef CHANGECONTROLLER_P_H
-#define CHANGECONTROLLER_P_H
+#ifndef QTDATASYNC_CHANGECONTROLLER_P_H
+#define QTDATASYNC_CHANGECONTROLLER_P_H
 
 #include <QtCore/QObject>
 #include <QtCore/QMutex>
@@ -28,8 +28,8 @@ public:
 		ChangeInfo(const ObjectKey &key, quint64 version, const QByteArray &checksum = {});
 	};
 
-	//INTERNAL USE ONLY
-	class Q_DATASYNC_EXPORT CachedObjectKey : public ObjectKey {
+	//not exported, because of "cheating" api. Declared public because of qHash
+	class CachedObjectKey : public ObjectKey {
 	public:
 		CachedObjectKey();
 		CachedObjectKey(const ObjectKey &other, const QUuid &deviceId = {});
@@ -68,7 +68,8 @@ private Q_SLOTS:
 	void uploadNext(bool emitStarted = false);
 
 private:
-	struct Q_DATASYNC_EXPORT UploadInfo {
+	//unexported private member
+	struct UploadInfo {
 		ObjectKey key;
 		quint64 version;
 		bool isDelete;
@@ -82,10 +83,11 @@ private:
 	quint32 _changeEstimate;
 };
 
-uint Q_DATASYNC_EXPORT qHash(const ChangeController::CachedObjectKey &key, uint seed);
+//not exported, just like the class
+uint qHash(const ChangeController::CachedObjectKey &key, uint seed);
 
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ChangeController::ChangeInfo)
 
-#endif // CHANGECONTROLLER_P_H
+#endif // QTDATASYNC_CHANGECONTROLLER_P_H

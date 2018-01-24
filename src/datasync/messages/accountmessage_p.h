@@ -1,5 +1,5 @@
-#ifndef ACCOUNTMESSAGE_P_H
-#define ACCOUNTMESSAGE_P_H
+#ifndef QTDATASYNC_ACCOUNTMESSAGE_P_H
+#define QTDATASYNC_ACCOUNTMESSAGE_P_H
 
 #include <QtCore/QUuid>
 
@@ -28,4 +28,4 @@ protected:
 
 Q_DECLARE_METATYPE(QtDataSync::AccountMessage)
 
-#endif // ACCOUNTMESSAGE_P_H
+#endif // QTDATASYNC_ACCOUNTMESSAGE_P_H

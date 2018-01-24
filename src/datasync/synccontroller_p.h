@@ -1,5 +1,5 @@
-#ifndef SYNCCONTROLLER_P_H
-#define SYNCCONTROLLER_P_H
+#ifndef QTDATASYNC_SYNCCONTROLLER_P_H
+#define QTDATASYNC_SYNCCONTROLLER_P_H
 
 #include "qtdatasync_global.h"
 #include "controller_p.h"
@@ -30,4 +30,4 @@ private:
 
 }
 
-#endif // SYNCCONTROLLER_P_H
+#endif // QTDATASYNC_SYNCCONTROLLER_P_H

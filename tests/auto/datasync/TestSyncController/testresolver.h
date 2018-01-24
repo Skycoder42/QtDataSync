@@ -13,7 +13,7 @@ class TestResolver : public QtDataSync::GenericConflictResolver<TestData>
 public:
 	explicit TestResolver(QObject *parent = nullptr);
 
-	TestData resolveConflict(TestData data1, TestData data2) const override;
+	TestData resolveConflict(TestData data1, TestData data2, QObject *parent) const override;
 };
 
 #endif // TESTRESOLVER_H

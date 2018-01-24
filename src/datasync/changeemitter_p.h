@@ -1,5 +1,5 @@
-#ifndef CHANGEEMITTER_P_H
-#define CHANGEEMITTER_P_H
+#ifndef QTDATASYNC_CHANGEEMITTER_P_H
+#define QTDATASYNC_CHANGEEMITTER_P_H
 
 #include <QtCore/QObject>
 #include <QtCore/QJsonObject>
@@ -12,7 +12,8 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ChangeEmitter : public ChangeEmitterSource
+//not exported because base it not, too
+class ChangeEmitter : public ChangeEmitterSource
 {
 	Q_OBJECT
 
@@ -46,4 +47,4 @@ private:
 
 }
 
-#endif // CHANGEEMITTER_P_H
+#endif // QTDATASYNC_CHANGEEMITTER_P_H

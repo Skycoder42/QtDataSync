@@ -1,9 +1,7 @@
-#ifndef KEYSTORE_H
-#define KEYSTORE_H
+#ifndef QTDATASYNC_KEYSTORE_H
+#define QTDATASYNC_KEYSTORE_H
 
 #include <QtCore/qobject.h>
-
-#include <QtNetwork/qsslkey.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
@@ -71,4 +69,4 @@ public:
 #define QtDataSync_KeyStorePlugin_Iid "de.skycoder42.QtDataSync.KeyStorePlugin"
 Q_DECLARE_INTERFACE(QtDataSync::KeyStorePlugin, QtDataSync_KeyStorePlugin_Iid)
 
-#endif // KEYSTORE_H
+#endif // QTDATASYNC_KEYSTORE_H

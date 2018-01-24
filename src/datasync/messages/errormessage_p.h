@@ -1,5 +1,5 @@
-#ifndef ERRORMESSAGE_P_H
-#define ERRORMESSAGE_P_H
+#ifndef QTDATASYNC_ERRORMESSAGE_P_H
+#define QTDATASYNC_ERRORMESSAGE_P_H
 
 #include <QtCore/QDebug>
 
@@ -49,4 +49,4 @@ Q_DATASYNC_EXPORT QDebug operator<<(QDebug debug, const ErrorMessage &message);
 
 Q_DECLARE_METATYPE(QtDataSync::ErrorMessage)
 
-#endif // ERRORMESSAGE_P_H
+#endif // QTDATASYNC_ERRORMESSAGE_P_H

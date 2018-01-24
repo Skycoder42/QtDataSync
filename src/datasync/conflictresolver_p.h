@@ -1,12 +1,13 @@
-#ifndef CONFLICTRESOLVER_P_H
-#define CONFLICTRESOLVER_P_H
+#ifndef QTDATASYNC_CONFLICTRESOLVER_P_H
+#define QTDATASYNC_CONFLICTRESOLVER_P_H
 
 #include "qtdatasync_global.h"
 #include "conflictresolver.h"
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT ConflictResolverPrivate
+//no export needed
+class ConflictResolverPrivate
 {
 public:
 	ConflictResolverPrivate();
@@ -18,4 +19,4 @@ public:
 
 }
 
-#endif // CONFLICTRESOLVER_P_H
+#endif // QTDATASYNC_CONFLICTRESOLVER_P_H
