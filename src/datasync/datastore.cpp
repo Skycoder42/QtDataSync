@@ -79,7 +79,7 @@ void DataStore::save(int metaTypeId, QVariant value)
 
 	QString key;
 	auto flags = QMetaType::typeFlags(metaTypeId);
-	if(flags.testFlag(QMetaType::IsGadget)) //TODO test all variants READ AND WRITE
+	if(flags.testFlag(QMetaType::IsGadget))
 		key = userProp.readOnGadget(value.data()).toString();
 	else if(flags.testFlag(QMetaType::PointerToQObject))
 		key = userProp.read(value.value<QObject*>()).toString();

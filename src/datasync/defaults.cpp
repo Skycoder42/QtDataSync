@@ -314,7 +314,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 												  "QSQLITE_ENABLE_REGEXP"));
 		if(!database.open()) {
 			logFatal(QStringLiteral("Failed to open local database. Database error:\n\t") +
-					 database.lastError().text()); //TODO check where else needed
+					 database.lastError().text());
 		}
 
 		//verify sqlite is threadsafe
@@ -328,7 +328,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 				if(tSafe.size() == 2 &&
 				   tSafe[0] == QStringLiteral("THREADSAFE")) {
 					if(tSafe[1].toInt() == 0)
-						logCritical() << "sqlite was NOT compiled threadsafe. This can lead to crashes and corrupted data";
+						logFatal(QStringLiteral("sqlite was NOT compiled threadsafe. This can lead to crashes and corrupted data"));
 					else
 						logDebug() << "Verified sqlite threadsafety";
 					found = true;

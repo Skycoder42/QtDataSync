@@ -864,7 +864,7 @@ void RemoteConnector::onError(const ErrorMessage &message, const QByteArray &mes
 		case ErrorMessage::UnexpectedMessageError:
 			emit controllerError(tr("Internal application error. Check the logs for details."));
 			break;
-		case ErrorMessage::QuotaHitError: //TODO will prevent you from removing devices -> problematic?
+		case ErrorMessage::QuotaHitError:
 			emit controllerError(tr("Data quota hit. You need to synchronize changes to other devices before you can upload more changes."));
 			break;
 		case ErrorMessage::UnknownError:

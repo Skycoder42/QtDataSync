@@ -89,8 +89,6 @@ private Q_SLOTS:
 	void testPingMessages();
 #endif
 
-	//TODO test cleanup
-
 	void testRemoveSelf();
 	void testStop();
 

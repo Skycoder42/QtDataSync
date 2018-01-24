@@ -150,7 +150,7 @@ void ExchangeEngine::finalize()
 {
 	logDebug() << "Beginning engine finalization";
 
-	//TODO make generic for ALL controls classes
+	//remoteconnector is the only one asynchronous (for now)
 	connect(_remoteConnector, &RemoteConnector::finalized,
 			this, [this](){
 		logDebug() << "Finalization completed";
