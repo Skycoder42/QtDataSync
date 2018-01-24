@@ -151,8 +151,6 @@ public:
 		secp192k1,
 		secp224k1,
 		secp256k1
-
-		//NOTE CRYPTOPP6 add curve25519
 	};
 	Q_ENUM(EllipticCurve)
 
