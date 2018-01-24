@@ -16,38 +16,37 @@ qtBins=$3
 qtHeaders=$4
 qtDocs=$5
 doxyTemplate="$srcDir/Doxyfile"
+doxyRes=Doxyfile.generated
 readme="$destDir/README.md"
 doxme="$scriptDir/doxme.py"
 
 python3 "$doxme" "$srcDir/../README.md"
 
-cat "$doxyTemplate" > Doxyfile
-echo "PROJECT_NUMBER = \"$version\"" >> Doxyfile
-echo "INPUT += \"$readme\"" >> Doxyfile
-echo "USE_MDFILE_AS_MAINPAGE = \"$readme\"" >> Doxyfile
-echo "OUTPUT_DIRECTORY = \"$destDir\"" >> Doxyfile
-echo "QHP_NAMESPACE = \"de.skycoder42.qtdatasync.$verTag\"" >> Doxyfile
-echo "QHP_CUST_FILTER_NAME = \"DataSync $version\"" >> Doxyfile
-echo "QHP_CUST_FILTER_ATTRS = \"qtdatasync $version\"" >> Doxyfile
-echo "QHG_LOCATION = \"$qtBins/qhelpgenerator\"" >> Doxyfile
-echo "INCLUDE_PATH += \"$qtHeaders\"" >> Doxyfile
-echo "GENERATE_TAGFILE = \"$destDir/qtdatasync/qtdatasync.tags\"" >> Doxyfile
+cat "$doxyTemplate" > $doxyRes
+echo "PROJECT_NUMBER = \"$version\"" >> $doxyRes
+echo "INPUT += \"$readme\"" >> $doxyRes
+echo "USE_MDFILE_AS_MAINPAGE = \"$readme\"" >> $doxyRes
+echo "OUTPUT_DIRECTORY = \"$destDir\"" >> $doxyRes
+echo "QHP_NAMESPACE = \"de.skycoder42.qtdatasync.$verTag\"" >> $doxyRes
+echo "QHP_CUST_FILTER_NAME = \"DataSync $version\"" >> $doxyRes
+echo "QHP_CUST_FILTER_ATTRS = \"qtdatasync $version\"" >> $doxyRes
+echo "QHG_LOCATION = \"$qtBins/qhelpgenerator\"" >> $doxyRes
+echo "INCLUDE_PATH += \"$qtHeaders\"" >> $doxyRes
+echo "GENERATE_TAGFILE = \"$destDir/qtdatasync/qtdatasync.tags\"" >> $doxyRes
 if [ "$DOXY_STYLE" ]; then
-	echo "HTML_STYLESHEET = \"$DOXY_STYLE\"" >> Doxyfile
+	echo "HTML_STYLESHEET = \"$DOXY_STYLE\"" >> $doxyRes
 fi
 if [ "$DOXY_STYLE_EXTRA" ]; then
-	echo "HTML_EXTRA_STYLESHEET = \"$DOXY_STYLE_EXTRA\"" >> Doxyfile
+	echo "HTML_EXTRA_STYLESHEET = \"$DOXY_STYLE_EXTRA\"" >> $doxyRes
 fi
 
 for tagFile in $(find "$qtDocs" -name *.tags); do
 	if [ $(basename "$tagFile") == "qtjsonserializer.tags" ]; then
-		echo "TAGFILES += \"$tagFile=https://skycoder42.github.io/QJsonSerializer\"" >> Doxyfile
-	elif [ $(basename "$tagFile") == "qtbackgroundprocess.tags" ]; then
-		echo "TAGFILES += \"$tagFile=https://skycoder42.github.io/QtBackgroundProcess\"" >> Doxyfile
+		echo "TAGFILES += \"$tagFile=https://skycoder42.github.io/QJsonSerializer\"" >> $doxyRes
 	elif [ $(basename "$tagFile") != "qtdatasync.tags" ]; then
-		echo "TAGFILES += \"$tagFile=https://doc.qt.io/qt-5\"" >> Doxyfile
+		echo "TAGFILES += \"$tagFile=https://doc.qt.io/qt-5\"" >> $doxyRes
 	fi
 done
 
 cd "$srcDir"
-doxygen "$destDir/Doxyfile"
+doxygen "$destDir/$doxyRes"

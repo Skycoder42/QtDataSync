@@ -1,10 +1,12 @@
 TEMPLATE = subdirs
-CONFIG += ordered
 
 SUBDIRS += \
 	datasync \
-    plugins \
-    imports
+	plugins \
+	imports
 
-docTarget.target = doxygen
-QMAKE_EXTRA_TARGETS += docTarget
+plugins.depends += datasync
+imports.depends += datasync
+
+prepareRecursiveTarget(lrelease)
+QMAKE_EXTRA_TARGETS += lrelease

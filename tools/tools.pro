@@ -5,5 +5,5 @@ TEMPLATE = subdirs
 	qdatasyncserver.CONFIG = host_build
 }
 
-docTarget.target = doxygen
-QMAKE_EXTRA_TARGETS += docTarget
+prepareRecursiveTarget(lrelease)
+QMAKE_EXTRA_TARGETS += lrelease

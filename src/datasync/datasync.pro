@@ -36,7 +36,7 @@ HEADERS += \
 	userexchangemanager.h \
 	userexchangemanager_p.h \
 	emitteradapter_p.h \
-    changeemitter_p.h
+	changeemitter_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -64,7 +64,7 @@ SOURCES += \
 	accountmanager_p.cpp \
 	userexchangemanager.cpp \
 	emitteradapter.cpp \
-    changeemitter.cpp
+	changeemitter.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
@@ -75,6 +75,12 @@ REPC_SOURCE += \
 	changeemitter_p.rep
 
 REPC_REPLICA += $$REPC_SOURCE
+
+TRANSLATIONS += \
+	translations/qtdatasync_de.ts \
+	translations/qtdatasync_template.ts
+
+DISTFILES += $$TRANSLATIONS
 
 # TODO add rep and statemachine headers to syncqt.pl
 
@@ -95,9 +101,6 @@ win32 {
 }
 
 # TODO add prl cleanup + ios ar merge
-
-# IOS workaround until fixed
-ios:exists(qpmx.ios.json):!system(rm qpmx.json && mv qpmx.ios.json qpmx.json):error(Failed to load temporary qpmx.json file)
 
 !ReleaseBuild:!DebugBuild:!system(qpmx -d $$shell_quote($$_PRO_FILE_PWD_) --qmake-run init $$QPMX_EXTRA_OPTIONS $$shell_quote($$QMAKE_QMAKE) $$shell_quote($$OUT_PWD)): error(qpmx initialization failed. Check the compilation log for details.)
 else: include($$OUT_PWD/qpmx_generated.pri)

@@ -16,9 +16,9 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 {
 	Q_ASSERT(qstrcmp(uri, "de.skycoder42.QtDataSync") == 0);
 
-	qmlRegisterUncreatableType<QtDataSync::DeviceInfo>(uri, 1, 0, "DeviceInfo", tr("Q_GADGETS cannot be created from QML"));
-	qmlRegisterUncreatableType<QtDataSync::LoginRequest>(uri, 1, 0, "LoginRequest", tr("Q_GADGETS cannot be created from QML"));
-	qmlRegisterUncreatableType<QtDataSync::UserInfo>(uri, 1, 0, "UserInfo", tr("Q_GADGETS cannot be created from QML"));
+	qmlRegisterUncreatableType<QtDataSync::DeviceInfo>(uri, 1, 0, "DeviceInfo", QStringLiteral("Q_GADGETS cannot be created from QML"));
+	qmlRegisterUncreatableType<QtDataSync::LoginRequest>(uri, 1, 0, "LoginRequest", QStringLiteral("Q_GADGETS cannot be created from QML"));
+	qmlRegisterUncreatableType<QtDataSync::UserInfo>(uri, 1, 0, "UserInfo", QStringLiteral("Q_GADGETS cannot be created from QML"));
 
 	qmlRegisterType<QtDataSync::QQmlDataStore>(uri, 1, 0, "DataStore");
 	qmlRegisterType<QtDataSync::QQmlDataStoreModel>(uri, 1, 0, "DataStoreModel");

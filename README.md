@@ -4,6 +4,7 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 [![Travis Build Status](https://travis-ci.org/Skycoder42/QtDataSync.svg?branch=master)](https://travis-ci.org/Skycoder42/QtDataSync)
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/ygrlpdc6p3dcnmk1/branch/master?svg=true)](https://ci.appveyor.com/project/Skycoder42/qtdatasync/branch/master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3793032e97024b6ebec2f84ec2fd61ad)](https://www.codacy.com/app/Skycoder42/QtDataSync?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Skycoder42/QtDataSync&amp;utm_campaign=Badge_Grade)
+[![AUR](https://img.shields.io/aur/version/qt5-datasync.svg)](https://aur.archlinux.org/packages/qt5-datasync/)
 
 ## Features
 - Document-Store like access, using QObjects and Q_GADGET classes

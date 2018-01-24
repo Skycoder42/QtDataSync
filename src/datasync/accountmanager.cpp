@@ -169,7 +169,7 @@ void AccountManager::importAccount(const QJsonObject &importData, const std::fun
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
 	if(d->importAction)
-		completedFn(false, tr("Already importing. Only one import at a time is possible"));
+		completedFn(false, tr("Already importing. Only one import at a time is possible."));
 	else {
 		d->importAction = completedFn;
 		d->replica->importAccount(importData, keepData);
@@ -186,7 +186,7 @@ void AccountManager::importAccountTrusted(const QJsonObject &importData, const Q
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
 
 	if(d->importAction)
-		completedFn(false, tr("Already importing. Only one import at a time is possible"));
+		completedFn(false, tr("Already importing. Only one import at a time is possible."));
 	else {
 		d->importAction = completedFn;
 		d->replica->importAccountTrusted(importData, password, keepData);

@@ -158,7 +158,7 @@ void UserExchangeManager::importFrom(const UserInfo &userInfo, const std::functi
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())
-		emit exchangeError(tr("No exchange data received from passed user"));
+		emit exchangeError(tr("No import data received from passed user."));
 	else
 		d->manager->importAccount(data, completedFn, keepData);
 }
@@ -167,7 +167,7 @@ void UserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QStr
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())
-		emit exchangeError(tr("No exchange data received from passed user"));
+		emit exchangeError(tr("No import data received from passed user."));
 	else
 		d->manager->importAccountTrusted(data, password, completedFn, keepData);
 }
@@ -271,7 +271,7 @@ void UserExchangeManager::readDatagram()
 				emit userDataReceived(info, trusted);
 			}
 		} else {
-			emit exchangeError(tr("Invalid data received from %1:%2")
+			emit exchangeError(tr("Invalid data received from %1:%2.")
 							   .arg(datagram.senderAddress().toString())
 							   .arg(datagram.senderPort()));
 		}

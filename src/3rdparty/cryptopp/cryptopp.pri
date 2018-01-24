@@ -3,7 +3,7 @@ system_cryptopp:unix {
 	PKGCONFIG += libcrypto++
 
 	# debug
-	INCLUDEPATH += $$PWD/include
+	#INCLUDEPATH += $$PWD/include
 } else {
 	win32:!win32-g++:CONFIG(release, debug|release): LIBS_PRIVATE += -L$$PWD/lib/ -lcryptlib
 	else:win32:!win32-g++:CONFIG(debug, debug|release): LIBS_PRIVATE += -L$$PWD/lib/ -lcryptlibd
