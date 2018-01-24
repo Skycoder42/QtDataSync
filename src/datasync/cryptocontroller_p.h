@@ -38,6 +38,8 @@ class Q_DATASYNC_EXPORT CryptoController : public Controller
 public:
 #if CRYPTOPP_VERSION >= 600
 	using byte = CryptoPP::byte;
+#else
+	using byte = ::byte;
 #endif
 
 	class Q_DATASYNC_EXPORT CipherScheme

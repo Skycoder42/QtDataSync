@@ -1147,8 +1147,8 @@ void ClientCrypto::setEncryptionKey(Setup::EncryptionScheme scheme)
 		setEncryptionKey(QByteArray::fromStdString(EciesScheme::StaticAlgorithmName()));
 		break;
 #else
-		logWarning() << "Encryption scheme" << scheme
-					 << "can only be used with cryptopp > 6.0. Falling back to" << Setup::RSA_OAEP_SHA3_512;
+		qWarning() << "Encryption scheme" << scheme
+				   << "can only be used with cryptopp > 6.0. Falling back to" << Setup::RSA_OAEP_SHA3_512;
 		Q_FALLTHROUGH();
 #endif
 	case Setup::RSA_OAEP_SHA3_512:

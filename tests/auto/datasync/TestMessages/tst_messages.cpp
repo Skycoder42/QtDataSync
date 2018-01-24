@@ -61,7 +61,7 @@ void TestMessages::initTestCase()
 
 	crypto = new ClientCrypto(this);
 	crypto->generate(Setup::ECDSA_ECP_SHA3_512, Setup::brainpoolP256r1,
-					 Setup::ECIES_ECP_SHA3_512, Setup::brainpoolP256r1);
+					 Setup::RSA_OAEP_SHA3_512, 2048);
 }
 
 void TestMessages::cleanupTestCase()
