@@ -36,7 +36,8 @@ HEADERS += \
 	userexchangemanager.h \
 	userexchangemanager_p.h \
 	emitteradapter_p.h \
-	changeemitter_p.h
+	changeemitter_p.h \
+    signal_private_connect_p.h
 
 SOURCES += \
 	localstore.cpp \

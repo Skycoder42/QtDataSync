@@ -120,14 +120,14 @@ public Q_SLOTS:
 	void resetDeviceName();
 
 Q_SIGNALS:
-	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices);
-	void loginRequested(LoginRequest request);
-	void importAccepted();
-	void accountAccessGranted(const QUuid &deviceId);
+	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices, QPrivateSignal);
+	void loginRequested(LoginRequest request, QPrivateSignal);
+	void importAccepted(QPrivateSignal);
+	void accountAccessGranted(const QUuid &deviceId, QPrivateSignal);
 
-	void deviceNameChanged(const QString &deviceName);
-	void deviceFingerprintChanged(const QByteArray &deviceFingerprint);
-	void lastErrorChanged(const QString &lastError);
+	void deviceNameChanged(const QString &deviceName, QPrivateSignal);
+	void deviceFingerprintChanged(const QByteArray &deviceFingerprint, QPrivateSignal);
+	void lastErrorChanged(const QString &lastError, QPrivateSignal);
 
 protected:
 	AccountManager(QObject *parent, void *);

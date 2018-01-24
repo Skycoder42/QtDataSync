@@ -3,6 +3,7 @@
 #include "message_p.h"
 
 #include "rep_accountmanager_p_replica.h"
+#include "signal_private_connect_p.h"
 
 // ------------- Private classes Definition -------------
 
@@ -78,14 +79,15 @@ void AccountManager::initReplica(QRemoteObjectNode *node)
 {
 	d->replica = node->acquire<AccountManagerPrivateReplica>();
 	d->replica->setParent(this);
-	connect(d->replica, &AccountManagerPrivateReplica::deviceNameChanged,
-			this, &AccountManager::deviceNameChanged);
-	connect(d->replica, &AccountManagerPrivateReplica::deviceFingerprintChanged,
-			this, &AccountManager::deviceFingerprintChanged);
-	connect(d->replica, &AccountManagerPrivateReplica::lastErrorChanged,
-			this, &AccountManager::lastErrorChanged);
-	connect(d->replica, &AccountManagerPrivateReplica::accountDevices,
-			this, &AccountManager::accountDevices);
+
+	private_connect(d->replica, &AccountManagerPrivateReplica::deviceNameChanged,
+					this, &AccountManager::deviceNameChanged);
+	private_connect(d->replica, &AccountManagerPrivateReplica::deviceFingerprintChanged,
+					this, &AccountManager::deviceFingerprintChanged);
+	private_connect(d->replica, &AccountManagerPrivateReplica::lastErrorChanged,
+					this, &AccountManager::lastErrorChanged);
+	private_connect(d->replica, &AccountManagerPrivateReplica::accountDevices,
+					this, &AccountManager::accountDevices);
 	connect(d->replica, &AccountManagerPrivateReplica::accountExportReady,
 			this, &AccountManager::accountExportReady);
 	connect(d->replica, &AccountManagerPrivateReplica::accountExportError,
@@ -94,10 +96,10 @@ void AccountManager::initReplica(QRemoteObjectNode *node)
 			this, &AccountManager::accountImportResult);
 	connect(d->replica, &AccountManagerPrivateReplica::loginRequested,
 			this, &AccountManager::loginRequestedImpl);
-	connect(d->replica, &AccountManagerPrivateReplica::importCompleted,
-			this, &AccountManager::importAccepted);
-	connect(d->replica, &AccountManagerPrivateReplica::accountAccessGranted,
-			this, &AccountManager::accountAccessGranted);
+	private_connect(d->replica, &AccountManagerPrivateReplica::importCompleted,
+					this, &AccountManager::importAccepted);
+	private_connect(d->replica, &AccountManagerPrivateReplica::accountAccessGranted,
+					this, &AccountManager::accountAccessGranted);
 }
 
 AccountManager::~AccountManager() {}
@@ -264,7 +266,7 @@ void AccountManager::accountImportResult(bool success, const QString &error)
 
 void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
 {
-	emit loginRequested(new LoginRequestPrivate(deviceInfo, d->replica));
+	emit loginRequested(new LoginRequestPrivate(deviceInfo, d->replica), {});
 }
 
 
