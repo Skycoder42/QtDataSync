@@ -4,6 +4,8 @@
 
 #include <QtJsonSerializer/QJsonSerializer>
 
+#include "signal_private_connect_p.h"
+
 using namespace QtDataSync;
 
 DataStore::DataStore(QObject *parent) :
@@ -27,14 +29,14 @@ void DataStore::initStore(const QString &setupName)
 	d.reset(new DataStorePrivate(this, setupName));
 	connect(d->store, &LocalStore::dataChanged,
 			this, [this](const ObjectKey &key, bool deleted) {
-		emit dataChanged(QMetaType::type(key.typeName), key.id, deleted);
+		emit dataChanged(QMetaType::type(key.typeName), key.id, deleted, {});
 	});
 	connect(d->store, &LocalStore::dataCleared,
 			this, [this](const QByteArray &typeName) {
-		emit dataCleared(QMetaType::type(typeName));
+		emit dataCleared(QMetaType::type(typeName), {});
 	});
-	connect(d->store, &LocalStore::dataResetted,
-			this, &DataStore::dataResetted);
+	private_connect(d->store, &LocalStore::dataResetted,
+					this, &DataStore::dataResetted);
 }
 
 DataStore::~DataStore() {}

@@ -52,7 +52,7 @@ void UserExchangeManager::initManager(AccountManager *manager)
 			this, &UserExchangeManager::readDatagram);
 	connect(d->socket, QOverload<QAbstractSocket::SocketError>::of(&QUdpSocket::error),
 			this, [this]() {
-		emit exchangeError(d->socket->errorString());
+		emit exchangeError(d->socket->errorString(), {});
 	});
 }
 
@@ -83,7 +83,7 @@ bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint
 	d->devices.clear();
 	d->exchangeData.clear();
 	d->timer->stop();
-	emit devicesChanged(d->devices.keys());
+	emit devicesChanged(d->devices.keys(), {});
 
 	if(d->socket->isOpen())
 		d->socket->close();
@@ -92,7 +92,7 @@ bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint
 		return false;
 
 	d->timer->start();
-	emit activeChanged(true);
+	emit activeChanged(true, {});
 	timeout();
 	return true;
 }
@@ -103,11 +103,11 @@ void UserExchangeManager::stopExchange()
 
 	if(d->socket->isOpen())
 		d->socket->close();
-	emit activeChanged(false);
+	emit activeChanged(false, {});
 
 	d->devices.clear();
 	d->exchangeData.clear();
-	emit devicesChanged(d->devices.keys());
+	emit devicesChanged(d->devices.keys(), {});
 }
 
 void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
@@ -128,7 +128,7 @@ void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 		if(!thisPtr)
 			return;
 
-		emit exchangeError(error);
+		emit exchangeError(error, {});
 	});
 }
 
@@ -150,7 +150,7 @@ void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, bool include
 		if(!thisPtr)
 			return;
 
-		emit exchangeError(error);
+		emit exchangeError(error, {});
 	});
 }
 
@@ -158,7 +158,7 @@ void UserExchangeManager::importFrom(const UserInfo &userInfo, const std::functi
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())
-		emit exchangeError(tr("No import data received from passed user."));
+		emit exchangeError(tr("No import data received from passed user."), {});
 	else
 		d->manager->importAccount(data, completedFn, keepData);
 }
@@ -167,7 +167,7 @@ void UserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QStr
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())
-		emit exchangeError(tr("No import data received from passed user."));
+		emit exchangeError(tr("No import data received from passed user."), {});
 	else
 		d->manager->importAccountTrusted(data, password, completedFn, keepData);
 }
@@ -254,7 +254,7 @@ void UserExchangeManager::readDatagram()
 					if(isInfo) { //isInfo -> reset timeout, update name if neccessary
 						d->devices.insert(info, 0);
 						if(info.name() != key.name())
-							emit devicesChanged(d->devices.keys());
+							emit devicesChanged(d->devices.keys(), {});
 					} else //!isInfo -> get the entry name
 						info = key;
 					break;
@@ -264,16 +264,16 @@ void UserExchangeManager::readDatagram()
 			if(isInfo) {
 				if(!found) {//if not found -> simpy add to list
 					d->devices.insert(info, 0);
-					emit devicesChanged(d->devices.keys());
+					emit devicesChanged(d->devices.keys(), {});
 				}
 			} else { //data -> store it and emit
 				d->exchangeData.insert(info, data);
-				emit userDataReceived(info, trusted);
+				emit userDataReceived(info, trusted, {});
 			}
 		} else {
 			emit exchangeError(tr("Invalid data received from %1:%2.")
 							   .arg(datagram.senderAddress().toString())
-							   .arg(datagram.senderPort()));
+							   .arg(datagram.senderPort()), {});
 		}
 	}
 }

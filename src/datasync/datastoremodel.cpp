@@ -101,7 +101,7 @@ void DataStoreModel::fetchMore(const QModelIndex &parent)
 			d->dataHash.unite(loadData);//no duplicates thanks to logic
 			endInsertRows();
 		} catch(QException &e) {
-			emit storeError(e);
+			emit storeError(e, {});
 		}
 	}
 }
@@ -208,7 +208,7 @@ void DataStoreModel::setEditable(bool editable)
 		return;
 
 	d->editable = editable;
-	emit editableChanged(editable);
+	emit editableChanged(editable, {});
 }
 
 void DataStoreModel::reload()
@@ -221,7 +221,7 @@ void DataStoreModel::reload()
 		endResetModel();
 	} catch(QException &e) {
 		endResetModel();
-		emit storeError(e);
+		emit storeError(e, {});
 	}
 }
 
@@ -254,7 +254,7 @@ void DataStoreModel::storeChanged(int metaTypeId, const QString &key, bool wasDe
 					auto mIndex = idIndex(key);
 					emit dataChanged(mIndex, mIndex);
 				} catch(QException &e) {
-					emit storeError(e);
+					emit storeError(e, {});
 				}
 			}
 		} else { //key unknown -> append it

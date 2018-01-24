@@ -118,9 +118,9 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	//! Emitted when the store throws an exception
-	void storeError(const QException &exception);
+	void storeError(const QException &exception, QPrivateSignal);
 	//! @notifyAcFn{DataStoreModel::editable}
-	void editableChanged(bool editable);
+	void editableChanged(bool editable, QPrivateSignal);
 
 protected:
 	explicit DataStoreModel(QObject *parent, void*);

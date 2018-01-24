@@ -105,13 +105,13 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	//! Is emitted, when a user identity was received from the given user
-	void userDataReceived(const QtDataSync::UserInfo &userInfo, bool trusted);
-	void exchangeError(const QString &errorString);
+	void userDataReceived(const QtDataSync::UserInfo &userInfo, bool trusted, QPrivateSignal);
+	void exchangeError(const QString &errorString, QPrivateSignal);
 
 	//! @notifyAcFn{UserInfo::active}
-	void activeChanged(bool active);
+	void activeChanged(bool active, QPrivateSignal);
 	//! @notifyAcFn{UserInfo::users}
-	void devicesChanged(QList<QtDataSync::UserInfo> devices);
+	void devicesChanged(QList<QtDataSync::UserInfo> devices, QPrivateSignal);
 
 protected:
 	UserExchangeManager(QObject *parent, void*);

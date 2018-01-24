@@ -5,6 +5,8 @@
 #include "exchangeengine_p.h"
 #include "defaults_p.h"
 
+#include "signal_private_connect_p.h"
+
 #include <tuple>
 
 // ------------- Private classes Definition -------------
@@ -59,14 +61,14 @@ void SyncManager::initReplica(QRemoteObjectNode *node)
 {
 	d->replica = node->acquire<SyncManagerPrivateReplica>();
 	d->replica->setParent(this);
-	connect(d->replica, &SyncManagerPrivateReplica::syncEnabledChanged,
-			this, &SyncManager::syncEnabledChanged);
-	connect(d->replica, &SyncManagerPrivateReplica::syncStateChanged,
-			this, &SyncManager::syncStateChanged);
-	connect(d->replica, &SyncManagerPrivateReplica::syncProgressChanged,
-			this, &SyncManager::syncProgressChanged);
-	connect(d->replica, &SyncManagerPrivateReplica::lastErrorChanged,
-			this, &SyncManager::lastErrorChanged);
+	private_connect(d->replica, &SyncManagerPrivateReplica::syncEnabledChanged,
+					this, &SyncManager::syncEnabledChanged);
+	private_connect(d->replica, &SyncManagerPrivateReplica::syncStateChanged,
+					this, &SyncManager::syncStateChanged);
+	private_connect(d->replica, &SyncManagerPrivateReplica::syncProgressChanged,
+					this, &SyncManager::syncProgressChanged);
+	private_connect(d->replica, &SyncManagerPrivateReplica::lastErrorChanged,
+					this, &SyncManager::lastErrorChanged);
 	connect(d->replica, &SyncManagerPrivateReplica::stateReached,
 			this, &SyncManager::onStateReached);
 	connect(d->replica, &SyncManagerPrivateReplica::initialized,

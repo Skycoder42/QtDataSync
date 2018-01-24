@@ -106,9 +106,9 @@ public:
 	void update(T object);
 
 Q_SIGNALS:
-	void dataChanged(int metaTypeId, const QString &key, bool deleted);
-	void dataCleared(int metaTypeId);
-	void dataResetted();
+	void dataChanged(int metaTypeId, const QString &key, bool deleted, QPrivateSignal);
+	void dataCleared(int metaTypeId, QPrivateSignal);
+	void dataResetted(QPrivateSignal);
 
 protected:
 	explicit DataStore(QObject *parent, void*);

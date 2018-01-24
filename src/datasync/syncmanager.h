@@ -58,10 +58,10 @@ public Q_SLOTS:
 	void reconnect();
 
 Q_SIGNALS:
-	void syncEnabledChanged(bool syncEnabled);
-	void syncStateChanged(QtDataSync::SyncManager::SyncState syncState);
-	void syncProgressChanged(qreal syncProgress);
-	void lastErrorChanged(const QString &lastError);
+	void syncEnabledChanged(bool syncEnabled, QPrivateSignal);
+	void syncStateChanged(QtDataSync::SyncManager::SyncState syncState, QPrivateSignal);
+	void syncProgressChanged(qreal syncProgress, QPrivateSignal);
+	void lastErrorChanged(const QString &lastError, QPrivateSignal);
 
 private Q_SLOTS:
 	void onInit();
