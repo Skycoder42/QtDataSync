@@ -18,9 +18,6 @@ Q_LOGGING_CATEGORY(qdssetup, "qtdatasync.setup", QtInfoMsg)
 
 using namespace QtDataSync;
 
-static void initCleanupHandlers();
-Q_COREAPP_STARTUP_FUNCTION(initCleanupHandlers)
-
 void Setup::setCleanupTimeout(unsigned long timeout)
 {
 	SetupPrivate::timeout = timeout;
@@ -763,8 +760,14 @@ QException *SetupLockedException::clone() const
 
 // ------------- Application hooks -------------
 
-static void initCleanupHandlers()
+namespace {
+
+void initCleanupHandlers()
 {
 	qRegisterMetaType<QThread*>();
 	qAddPostRoutine(SetupPrivate::cleanupHandler);
 }
+
+}
+
+Q_COREAPP_STARTUP_FUNCTION(initCleanupHandlers)

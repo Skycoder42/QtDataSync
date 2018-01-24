@@ -10,7 +10,9 @@
 
 const QString QtDataSync::DefaultSetup(QStringLiteral("default"));
 
-static void setupQtDataSync()
+namespace {
+
+void setupQtDataSync()
 {
 	qRegisterMetaType<QtDataSync::ObjectKey>();
 	qRegisterMetaType<QtDataSync::ChangeController::ChangeInfo>();
@@ -20,5 +22,7 @@ static void setupQtDataSync()
 	qRegisterRemoteObjectsClient<QtDataSync::ThreadedClientIoDevice>(QtDataSync::ThreadedServer::UrlScheme());
 
 	QtDataSync::Message::registerTypes();
+}
+
 }
 Q_COREAPP_STARTUP_FUNCTION(setupQtDataSync)
