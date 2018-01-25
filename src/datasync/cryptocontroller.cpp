@@ -20,12 +20,15 @@
 
 using namespace QtDataSync;
 using namespace CryptoPP;
+using std::tuple;
+using std::make_tuple;
 using Exception = QtDataSync::Exception;
 #ifndef __clang__
 using CppException = CryptoPP::Exception;
 #else
 using CppException = std::exception;
 #endif
+
 
 namespace {
 
@@ -343,7 +346,7 @@ QByteArray CryptoController::serializeSignedMessage(const Message &message)
 	}
 }
 
-std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptData(const QByteArray &plain)
+tuple<quint32, QByteArray, QByteArray> CryptoController::encryptData(const QByteArray &plain)
 {
 	try {
 		auto info = getInfo(_localCipher);
@@ -352,7 +355,7 @@ std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptData(const 
 
 		auto cipher = encryptImpl(info, salt, plain);
 
-		return std::make_tuple(_localCipher, salt, cipher);
+		return make_tuple(_localCipher, salt, cipher);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to encrypt data for upload"),
@@ -401,12 +404,12 @@ void CryptoController::verifyCmac(quint32 keyIndex, const QByteArray &data, cons
 	}
 }
 
-std::tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
+tuple<quint32, QByteArray, QByteArray> CryptoController::encryptSecretKey(AsymmetricCrypto *crypto, const X509PublicKey &pubKey) const
 {
 	try {
 		auto info = getInfo(_localCipher);
 		auto data = encryptSecretKey(_localCipher, crypto, pubKey);
-		return std::make_tuple(_localCipher, info.scheme->name(), data);
+		return make_tuple(_localCipher, info.scheme->name(), data);
 #ifdef __clang__
 	} catch(QException &e) { //prevent catching the std::exception
 		throw;
@@ -497,7 +500,7 @@ void CryptoController::verifyEncryptionKeyCmac(AsymmetricCrypto *crypto, const X
 	}
 }
 
-std::tuple<quint32, QByteArray> CryptoController::generateNextKey()
+tuple<quint32, QByteArray> CryptoController::generateNextKey()
 {
 	try {
 		auto keyIndex = _localCipher + 1;
@@ -513,7 +516,7 @@ std::tuple<quint32, QByteArray> CryptoController::generateNextKey()
 			//not set as active key yet
 			logDebug().noquote() << "Generated new exchange key with index" << keyIndex;
 		}
-		return std::make_tuple(keyIndex, info.scheme->name());
+		return make_tuple(keyIndex, info.scheme->name());
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate new exchange key"),
@@ -549,7 +552,7 @@ void CryptoController::activateNextKey(quint32 keyIndex)
 	}
 }
 
-std::tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExportKey(const QString &password) const
+tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExportKey(const QString &password) const
 {
 	try {
 		//load the algorithm
@@ -575,7 +578,7 @@ std::tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExpor
 							 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
 		}
 
-		return std::make_tuple(info.scheme->name(), salt, info.key);
+		return make_tuple(info.scheme->name(), salt, info.key);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to generate key from password"),

@@ -1,5 +1,6 @@
 #include "newkeymessage_p.h"
 using namespace QtDataSync;
+using std::get;
 
 NewKeyMessage::NewKeyMessage() :
 	scheme(),
@@ -11,8 +12,8 @@ QByteArray NewKeyMessage::signatureData(const NewKeyMessage::KeyUpdate &deviceIn
 	// keyIndex, scheme, deviceId, key
 	return QByteArray::number(keyIndex) +
 			scheme +
-			std::get<0>(deviceInfo).toRfc4122() +
-			std::get<1>(deviceInfo);
+			get<0>(deviceInfo).toRfc4122() +
+			get<1>(deviceInfo);
 }
 
 const QMetaObject *NewKeyMessage::getMetaObject() const

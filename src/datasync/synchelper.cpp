@@ -8,9 +8,10 @@
 
 #include "message_p.h"
 
-
 using namespace QtDataSync;
 using namespace QtDataSync::SyncHelper;
+using std::tuple;
+using std::make_tuple;
 
 namespace {
 void hashNext(QCryptographicHash &hash, const QJsonValue &value);
@@ -53,7 +54,7 @@ QByteArray SyncHelper::combine(const ObjectKey &key, quint64 version)
 	return out;
 }
 
-std::tuple<bool, ObjectKey, quint64, QJsonObject> SyncHelper::extract(const QByteArray &data)
+tuple<bool, ObjectKey, quint64, QJsonObject> SyncHelper::extract(const QByteArray &data)
 {
 	ObjectKey key;
 	quint64 version;
@@ -84,7 +85,7 @@ std::tuple<bool, ObjectKey, quint64, QJsonObject> SyncHelper::extract(const QByt
 	if(stream.status() != QDataStream::Ok)
 		throw DataStreamException(stream);
 
-	return std::make_tuple(jData.isNull(), key, version, obj);
+	return make_tuple(jData.isNull(), key, version, obj);
 }
 
 namespace {

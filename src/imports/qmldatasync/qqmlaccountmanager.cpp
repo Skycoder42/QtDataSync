@@ -4,6 +4,7 @@
 #include <QtDataSync/exception.h>
 
 using namespace QtDataSync;
+using std::function;
 
 QQmlAccountManager::QQmlAccountManager(QObject *parent) :
 	AccountManager(parent, nullptr),
@@ -57,7 +58,7 @@ void QQmlAccountManager::exportAccount(bool includeServer, QJSValue completedFn,
 	else if(!errorFn.isCallable() && !errorFn.isUndefined())
 		qmlWarning(this) << "exportAccount must be called with a function as third parameter or with only 2 parameters";
 	else {
-		std::function<void(QString)> errFn;
+		function<void(QString)> errFn;
 		if(errorFn.isCallable()) {
 			errFn = [errorFn](QString error) {
 				auto fnCopy = errorFn;
@@ -80,7 +81,7 @@ void QQmlAccountManager::exportAccountTrusted(bool includeServer, const QString 
 	else if(!errorFn.isCallable() && !errorFn.isUndefined())
 		qmlWarning(this) << "exportAccountTrusted must be called with a function as fourth parameter or with only 3 parameters";
 	else {
-		std::function<void(QString)> errFn;
+		function<void(QString)> errFn;
 		if(errorFn.isCallable()) {
 			errFn = [errorFn](QString error) {
 				auto fnCopy = errorFn;

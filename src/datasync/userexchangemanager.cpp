@@ -7,11 +7,13 @@
 #include <QtNetwork/QNetworkInterface>
 
 using namespace QtDataSync;
+using namespace std::chrono;
+using std::function;
 
 #if QT_HAS_INCLUDE(<chrono>)
 #define scdtime(x) x
 #else
-#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#define scdtime(x) duration_cast<milliseconds>(x).count()
 #endif
 
 const quint16 UserExchangeManager::DataExchangePort(13742);
@@ -43,7 +45,7 @@ UserExchangeManager::UserExchangeManager(QObject *parent, void *) :
 void UserExchangeManager::initManager(AccountManager *manager)
 {
 	d->manager = manager;
-	d->timer->setInterval(scdtime(std::chrono::seconds(2)));
+	d->timer->setInterval(scdtime(seconds(2)));
 	d->timer->setTimerType(Qt::VeryCoarseTimer);
 	connect(d->timer, &QTimer::timeout,
 			this, &UserExchangeManager::timeout);
@@ -154,7 +156,7 @@ void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, bool include
 	});
 }
 
-void UserExchangeManager::importFrom(const UserInfo &userInfo, const std::function<void(bool,QString)> &completedFn, bool keepData)
+void UserExchangeManager::importFrom(const UserInfo &userInfo, const function<void(bool,QString)> &completedFn, bool keepData)
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())
@@ -163,7 +165,7 @@ void UserExchangeManager::importFrom(const UserInfo &userInfo, const std::functi
 		d->manager->importAccount(data, completedFn, keepData);
 }
 
-void UserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QString &password, const std::function<void(bool,QString)> &completedFn, bool keepData)
+void UserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QString &password, const function<void(bool,QString)> &completedFn, bool keepData)
 {
 	auto data = d->exchangeData.take(userInfo);
 	if(data.isNull())

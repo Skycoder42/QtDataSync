@@ -14,6 +14,9 @@
 #include <QtSql/QSqlError>
 
 using namespace QtDataSync;
+using std::function;
+using std::tuple;
+using std::make_tuple;
 
 #define QTDATASYNC_LOG _logger
 #define SCOPE_ASSERT() Q_ASSERT_X(scope.d->database.isValid(), Q_FUNC_INFO, "Cannot use SyncScope after committing it")
@@ -437,7 +440,7 @@ quint32 LocalStore::changeCount() const
 		return 0;
 }
 
-void LocalStore::loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const
+void LocalStore::loadChanges(int limit, const function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const
 {
 	beginReadTransaction();
 
@@ -510,7 +513,7 @@ LocalStore::SyncScope LocalStore::startSync(const ObjectKey &key) const
 	return SyncScope(_defaults, key, const_cast<LocalStore*>(this));
 }
 
-std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loadChangeInfo(SyncScope &scope) const
+tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loadChangeInfo(SyncScope &scope) const
 {
 	SCOPE_ASSERT();
 
@@ -525,11 +528,11 @@ std::tuple<LocalStore::ChangeType, quint64, QString, QByteArray> LocalStore::loa
 		auto file = loadChangeQuery.value(1).toString();
 		auto checksum = loadChangeQuery.value(2).toByteArray();
 		if(file.isNull())
-			return std::make_tuple(ExistsDeleted, version, QString(), QByteArray());
+			return make_tuple(ExistsDeleted, version, QString(), QByteArray());
 		else
-			return std::make_tuple(Exists, version, file, checksum);
+			return make_tuple(Exists, version, file, checksum);
 	} else
-		return std::make_tuple(NoExists, 0, QString(), QByteArray());
+		return make_tuple(NoExists, 0, QString(), QByteArray());
 }
 
 void LocalStore::updateVersion(SyncScope &scope, quint64 oldVersion, quint64 newVersion, bool changed)
@@ -718,11 +721,11 @@ void LocalStore::exec(QSqlQuery &query, const ObjectKey &key) const
 	}
 }
 
-std::function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const ObjectKey &key, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, bool existing)
+function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const ObjectKey &key, quint64 version, const QString &fileName, const QJsonObject &data, bool changed, bool existing)
 {
 	auto tableDir = typeDirectory(key);
 	QScopedPointer<QFileDevice> device;
-	std::function<bool(QFileDevice*)> fileCommitFn;
+	function<bool(QFileDevice*)> fileCommitFn;
 
 	if(existing && !fileName.isNull()) {
 		auto file = new QSaveFile(filePath(tableDir, fileName));

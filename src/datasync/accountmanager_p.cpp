@@ -3,6 +3,8 @@
 #include <QJsonDocument>
 
 using namespace QtDataSync;
+using std::get;
+using std::tie;
 
 #define QTDATASYNC_LOG _logger
 
@@ -74,7 +76,7 @@ void AccountManagerPrivate::exportAccount(const QUuid &id, bool includeServer)
 {
 	try {
 		auto data = _engine->remoteConnector()->exportAccount(includeServer, QString());
-		auto json = serializeExportData(std::get<0>(data)); //ignore the salt and key, not needed
+		auto json = serializeExportData(get<0>(data)); //ignore the salt and key, not needed
 		emit accountExportReady(id, json);
 	} catch(QException &e) {
 		logWarning() << "Failed to generate export data with error:" << e.what();
@@ -93,7 +95,7 @@ void AccountManagerPrivate::exportAccountTrusted(const QUuid &id, bool includeSe
 		ExportData data;
 		QByteArray salt;
 		CryptoPP::SecByteBlock key;
-		std::tie(data, salt, key) = _engine->remoteConnector()->exportAccount(includeServer, password);
+		tie(data, salt, key) = _engine->remoteConnector()->exportAccount(includeServer, password);
 		auto json = serializeExportData(data);
 		auto enc = _engine->cryptoController()->exportEncrypt(data.scheme, salt, key, QJsonDocument(json).toJson(QJsonDocument::Compact));
 		QJsonObject res;

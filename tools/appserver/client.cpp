@@ -15,10 +15,14 @@
 #if QT_HAS_INCLUDE(<chrono>)
 #define scdtime(x) x
 #else
-#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#define scdtime(x) duration_cast<milliseconds>(x).count()
 #endif
 
 using namespace QtDataSync;
+using namespace std::chrono;
+using std::function;
+using std::get;
+using std::tie;
 
 #undef qDebug
 #define qDebug(...) qCDebug(logFn, __VA_ARGS__)
@@ -105,7 +109,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	auto idleTimeout = qApp->configuration()->value(QStringLiteral("server/idleTimeout"), 5).toInt();
 	if(idleTimeout > 0) {
 		_idleTimer = new QTimer(this);
-		_idleTimer->setInterval(scdtime(std::chrono::minutes(idleTimeout)));
+		_idleTimer->setInterval(scdtime(minutes(idleTimeout)));
 		_idleTimer->setTimerType(Qt::VeryCoarseTimer);
 		_idleTimer->setSingleShot(true);
 		connect(_idleTimer, &QTimer::timeout,
@@ -279,7 +283,7 @@ void Client::closeClient()
 				deleteLater();
 			}
 		});
-		destroyTimer->start(scdtime(std::chrono::seconds(5)));
+		destroyTimer->start(scdtime(seconds(5)));
 	}
 }
 
@@ -290,7 +294,7 @@ void Client::timeout()
 	_socket->close();
 }
 
-void Client::run(const std::function<void ()> &fn)
+void Client::run(const function<void ()> &fn)
 {
 	_queue->enqueue([fn, this]() {
 		//TODO "log" (hashed) ip on error? to allow blocking???
@@ -328,7 +332,7 @@ void Client::close()
 
 void Client::closeLater()
 {
-	QTimer::singleShot(scdtime(std::chrono::seconds(10)), _socket, [this](){
+	QTimer::singleShot(scdtime(seconds(10)), _socket, [this](){
 		if(_socket && _socket->state() == QAbstractSocket::ConnectedState)
 			_socket->close();
 	});
@@ -414,7 +418,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	//load changecount early to find out if data changed
 	_cachedChanges = _database->changeCount(_deviceId);
 	WelcomeMessage reply(_cachedChanges > 0);
-	std::tie(reply.keyIndex, reply.scheme, reply.key, reply.cmac) = _database->loadKeyChanges(_deviceId);
+	tie(reply.keyIndex, reply.scheme, reply.key, reply.cmac) = _database->loadKeyChanges(_deviceId);
 	sendMessage(reply);
 	_state = Idle;
 	emit connected(_deviceId);
@@ -598,7 +602,7 @@ void Client::onNewKey(const NewKeyMessage &message, QDataStream &stream)
 										  message.deviceKeys);
 	if(ok) {
 		foreach(auto info, message.deviceKeys)
-			emit forceDisconnect(std::get<0>(info));
+			emit forceDisconnect(get<0>(info));
 		sendMessage(NewKeyAckMessage{message});
 	} else
 		sendError(ErrorMessage::KeyIndexError);
@@ -619,15 +623,15 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 
 			if(updateChange) {
 				ChangedInfoMessage message(_cachedChanges);
-				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
+				tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
 				sendMessage(ChangedInfoMessage{message});
 				updateChange = false; //only the first message has that info
 			} else {
 				ChangedMessage message;
-				std::tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
+				tie(message.dataIndex, message.keyIndex, message.salt, message.data) = change;
 				sendMessage(ChangedMessage{message});
 			}
-			_activeDownloads.append(std::get<0>(change));
+			_activeDownloads.append(get<0>(change));
 			_cachedChanges--;
 		}
 	}

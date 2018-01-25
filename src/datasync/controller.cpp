@@ -1,11 +1,12 @@
 #include "controller_p.h"
 
 using namespace QtDataSync;
+using namespace std::chrono;
 
 #if QT_HAS_INCLUDE(<chrono>)
 #define scdtime(x) x
 #else
-#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#define scdtime(x) duration_cast<milliseconds>(x).count()
 #endif
 
 #define QTDATASYNC_LOG _logger
@@ -45,7 +46,7 @@ QSettings *Controller::settings() const
 	return _settings;
 }
 
-void Controller::beginOp(const std::chrono::minutes &interval, bool startIfNotRunning)
+void Controller::beginOp(const minutes &interval, bool startIfNotRunning)
 {
 	if(!startIfNotRunning && !_opTimer->isActive())
 		return;
@@ -60,7 +61,7 @@ void Controller::beginOp(const std::chrono::minutes &interval, bool startIfNotRu
 	logDebug() << "Started or refreshed operation timeout";
 }
 
-void Controller::beginSpecialOp(const std::chrono::minutes &interval)
+void Controller::beginSpecialOp(const minutes &interval)
 {
 #if QT_HAS_INCLUDE(<chrono>)
 	if(interval < _specialOp.remainingTimeAsDuration())

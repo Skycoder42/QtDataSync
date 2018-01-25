@@ -15,10 +15,15 @@
 #if QT_HAS_INCLUDE(<chrono>)
 #define scdtime(x) x
 #else
-#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#define scdtime(x) duration_cast<milliseconds>(x).count()
 #endif
 
 using namespace QtDataSync;
+using namespace std::chrono;
+using std::tuple;
+using std::make_tuple;
+using std::tie;
+using std::get;
 #if CRYPTOPP_VERSION >= 600
 using byte = CryptoPP::byte;
 #endif
@@ -43,12 +48,12 @@ const QString RemoteConnector::keyImportScheme(QStringLiteral("import/scheme"));
 const QString RemoteConnector::keyImportCmac(QStringLiteral("import/cmac"));
 const QString RemoteConnector::keySendCmac(QStringLiteral("sendCmac"));
 
-const QVector<std::chrono::seconds> RemoteConnector::Timeouts = {
-	std::chrono::seconds(5),
-	std::chrono::seconds(10),
-	std::chrono::seconds(30),
-	std::chrono::minutes(1),
-	std::chrono::minutes(5)
+const QVector<seconds> RemoteConnector::Timeouts = {
+	seconds(5),
+	seconds(10),
+	seconds(30),
+	minutes(1),
+	minutes(5)
 };
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
@@ -139,7 +144,7 @@ void RemoteConnector::finalize()
 		emit finalized();
 }
 
-std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::exportAccount(bool includeServer, const QString &password)
+tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::exportAccount(bool includeServer, const QString &password)
 {
 	if(_deviceId.isNull())
 		throw Exception(defaults(), QStringLiteral("Cannot export data without beeing registered on a server."));
@@ -152,14 +157,14 @@ std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::expo
 
 	QByteArray salt;
 	CryptoPP::SecByteBlock key;
-	std::tie(data.scheme, salt, key) = _cryptoController->generateExportKey(password);
+	tie(data.scheme, salt, key) = _cryptoController->generateExportKey(password);
 	data.cmac = _cryptoController->createExportCmac(data.scheme, key, data.signData());
 
 	if(includeServer)
 		data.config = QSharedPointer<RemoteConfig>::create(loadConfig());
 
 	_exportsCache.insert(data.pNonce, key);
-	return std::make_tuple(data, salt, key);
+	return make_tuple(data, salt, key);
 }
 
 bool RemoteConnector::isSyncEnabled() const
@@ -281,7 +286,7 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 
 		if(accept) {
 			AcceptMessage message(deviceId);
-			std::tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
+			tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
 			sendSignedMessage(message);
 			emit accountAccessGranted(deviceId);
 			logInfo() << "Granted access to account for device" << deviceId;
@@ -320,7 +325,7 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 
 	try {
 		ChangeMessage message(key);
-		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
+		tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
 		sendMessage(message);
 	} catch(Exception &e) {
 		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<ChangeMessage>());
@@ -336,7 +341,7 @@ void RemoteConnector::uploadDeviceData(const QByteArray &key, const QUuid &devic
 
 	try {
 		DeviceChangeMessage message(key, deviceId);
-		std::tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
+		tie(message.keyIndex, message.salt, message.data) = _cryptoController->encryptData(changeData);
 		sendMessage(message);
 	} catch(Exception &e) {
 		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<DeviceChangeMessage>());
@@ -354,7 +359,7 @@ void RemoteConnector::downloadDone(const quint64 key)
 		ChangedAckMessage message(key);
 		sendMessage(message);
 		emit progressIncrement();
-		beginOp(std::chrono::minutes(5), false);
+		beginOp(minutes(5), false);
 	} catch(Exception &e) {
 		onError({ErrorMessage::ClientError, e.qWhat()}, Message::messageName<ChangedAckMessage>());
 	}
@@ -564,7 +569,7 @@ void RemoteConnector::doConnect()
 	//initialize keep alive timeout
 	auto tOut = sValue(keyKeepaliveTimeout).toInt();
 	if(tOut > 0) {
-		_pingTimer->setInterval(scdtime(std::chrono::minutes(tOut)));
+		_pingTimer->setInterval(scdtime(minutes(tOut)));
 		_awaitingPing = false;
 		connect(_socket, &QWebSocket::connected,
 				_pingTimer, QOverload<>::of(&QTimer::start));
@@ -584,7 +589,7 @@ void RemoteConnector::doConnect()
 	for(auto it = keys.begin(); it != keys.end(); it++)
 		request.setRawHeader(it.key(), it.value());
 
-	beginSpecialOp(std::chrono::minutes(1)); //wait at most 1 minute for the connection
+	beginSpecialOp(minutes(1)); //wait at most 1 minute for the connection
 	_socket->open(request);
 	logDebug() << "Connecting to remote server...";
 }
@@ -609,7 +614,7 @@ void RemoteConnector::doDisconnect()
 			break;
 		case QAbstractSocket::ConnectedState:
 			logDebug() << "Closing active connection with server";
-			beginSpecialOp(std::chrono::minutes(1)); //wait at most 1 minute for the disconnect
+			beginSpecialOp(minutes(1)); //wait at most 1 minute for the disconnect
 			_socket->close();
 			break;
 		case QAbstractSocket::BoundState:
@@ -628,7 +633,7 @@ void RemoteConnector::scheduleRetry()
 {
 	auto delta = retry();
 	logDebug() << "Retrying to connect to server in"
-			   << std::chrono::duration_cast<std::chrono::seconds>(delta).count()
+			   << duration_cast<seconds>(delta).count()
 			   << "seconds";
 }
 
@@ -745,9 +750,9 @@ void RemoteConnector::tryClose()
 		_socket->close();
 }
 
-std::chrono::seconds RemoteConnector::retry()
+seconds RemoteConnector::retry()
 {
-	std::chrono::seconds retryTimeout;
+	seconds retryTimeout;
 	if(_retryIndex >= Timeouts.size())
 		retryTimeout = Timeouts.last();
 	else
@@ -1057,7 +1062,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
 		_deviceCache.clear();
 		foreach(auto device, message.devices)
-			_deviceCache.append(DeviceInfo{std::get<0>(device), std::get<1>(device), std::get<2>(device)});
+			_deviceCache.append(DeviceInfo{get<0>(device), get<1>(device), get<2>(device)});
 		emit devicesListed(_deviceCache);
 	}
 }
@@ -1121,7 +1126,7 @@ void RemoteConnector::onProof(const ProofMessage &message)
 
 			//simple timer to clean up any unhandelt proof request
 			auto deviceId = message.deviceId;
-			QTimer::singleShot(scdtime(std::chrono::minutes(10)), Qt::VeryCoarseTimer, this, [this, deviceId]() {
+			QTimer::singleShot(scdtime(minutes(10)), Qt::VeryCoarseTimer, this, [this, deviceId]() {
 				if(_activeProofs.remove(deviceId) > 0) {
 					logInfo() << "Rejecting ProofMessage after timeout";
 					sendMessage(DenyMessage{deviceId});
@@ -1151,7 +1156,7 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 			_cryptoController->activateNextKey(message.keyIndex);
 		} else {
 			NewKeyMessage reply;
-			std::tie(reply.keyIndex, reply.scheme) = _cryptoController->generateNextKey();
+			tie(reply.keyIndex, reply.scheme) = _cryptoController->generateNextKey();
 			reply.cmac = _cryptoController->generateEncryptionKeyCmac(reply.keyIndex); //cmac for the new key
 			//do not store this mac to be send again!
 
@@ -1159,24 +1164,24 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 				try {
 					//verify the device knows the previous secret (which is still the current one)
 					auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->rng(),
-																				  std::get<1>(info),
-																				  std::get<2>(info));
+																				  get<1>(info),
+																				  get<2>(info));
 					_cryptoController->verifyEncryptionKeyCmac(cryptInfo.data(),
 															   cryptInfo->encryptionKey(),
-															   std::get<3>(info));
+															   get<3>(info));
 
 					//encrypt the secret key and send the message
 					NewKeyMessage::KeyUpdate keyUpdate {
-						std::get<0>(info),
+						get<0>(info),
 						_cryptoController->encryptSecretKey(reply.keyIndex, cryptInfo.data(), cryptInfo->encryptionKey()),
 						QByteArray()
 					};
-					std::get<2>(keyUpdate) = _cryptoController->createCmac(reply.signatureData(keyUpdate)); //uses the "old" current key
+					get<2>(keyUpdate) = _cryptoController->createCmac(reply.signatureData(keyUpdate)); //uses the "old" current key
 					reply.deviceKeys.append(keyUpdate);
-					logDebug() << "Prepared key update for device" << std::get<0>(info);
+					logDebug() << "Prepared key update for device" << get<0>(info);
 				} catch(std::exception &e) {
 					logWarning() << "Failed to send update exchange key to device"
-								 << std::get<0>(info)
+								 << get<0>(info)
 								 << "- device is going to be excluded from synchronisation. Error:"
 								 << e.what();
 				}

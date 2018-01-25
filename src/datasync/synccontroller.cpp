@@ -3,6 +3,7 @@
 #include "conflictresolver.h"
 
 using namespace QtDataSync;
+using std::tie;
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
@@ -33,14 +34,14 @@ void SyncController::syncChange(quint64 key, const QByteArray &changeData)
 		ObjectKey objKey;
 		quint64 remoteVersion;
 		QJsonObject remoteData;
-		std::tie(remoteDeleted, objKey, remoteVersion, remoteData) = SyncHelper::extract(changeData);
+		tie(remoteDeleted, objKey, remoteVersion, remoteData) = SyncHelper::extract(changeData);
 
 		auto scope = _store->startSync(objKey);
 		LocalStore::ChangeType localState;
 		quint64 localVersion;
 		QString localFileName;
 		QByteArray localChecksum;
-		std::tie(localState, localVersion, localFileName, localChecksum) = _store->loadChangeInfo(scope);
+		tie(localState, localVersion, localFileName, localChecksum) = _store->loadChangeInfo(scope);
 
 		const char *syncActionStr = "invalid";
 		const char *syncActionRes = "invalid";

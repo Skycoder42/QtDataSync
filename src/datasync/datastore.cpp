@@ -7,6 +7,7 @@
 #include "signal_private_connect_p.h"
 
 using namespace QtDataSync;
+using std::function;
 
 DataStore::DataStore(QObject *parent) :
 	DataStore(DefaultSetup, parent)
@@ -116,7 +117,7 @@ QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode 
 	return resList;
 }
 
-void DataStore::iterate(int metaTypeId, const std::function<bool (QVariant)> &iterator) const
+void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
 {
 	auto keyList = keys(metaTypeId);
 	foreach(auto key, keyList) {

@@ -2,11 +2,12 @@
 #include "threadedserver_p.h"
 
 #include <chrono>
+using namespace std::chrono;
 
 #if QT_HAS_INCLUDE(<chrono>)
 #define scdtime(x) x
 #else
-#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#define scdtime(x) duration_cast<milliseconds>(x).count()
 #endif
 
 using namespace QtDataSync;
@@ -25,7 +26,7 @@ ThreadedClientIoDevice::ThreadedClientIoDevice(QObject *parent) :
 
 	_connectTimer->setSingleShot(true);
 	_connectTimer->setTimerType(Qt::VeryCoarseTimer);
-	_connectTimer->setInterval(scdtime(std::chrono::seconds(30)));
+	_connectTimer->setInterval(scdtime(seconds(30)));
 	connect(_connectTimer, &QTimer::timeout,
 			this, &ThreadedClientIoDevice::connectTimeout);
 }

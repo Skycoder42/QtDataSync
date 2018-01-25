@@ -9,6 +9,8 @@
 
 #include "message_p.h"
 
+using namespace std::chrono;
+
 App::App(int &argc, char **argv) :
 	QCoreApplication(argc, argv),
 	_config(nullptr),
@@ -119,7 +121,7 @@ bool App::start(const QString &serviceName)
 	_mainPool->setMaxThreadCount(_config->value(QStringLiteral("threads/count"),
 											  QThread::idealThreadCount()).toInt());
 	auto timeoutMin = _config->value(QStringLiteral("threads/expire"), 10).toInt(); //in minutes
-	_mainPool->setExpiryTimeout(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::minutes(timeoutMin)).count());
+	_mainPool->setExpiryTimeout(duration_cast<milliseconds>(minutes(timeoutMin)).count());
 	qDebug() << "Running with max" << _mainPool->maxThreadCount()
 			 << "threads and an expiry timeout of" << timeoutMin
 			 << "minutes";

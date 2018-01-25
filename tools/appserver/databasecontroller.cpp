@@ -10,10 +10,14 @@
 #if QT_HAS_INCLUDE(<chrono>)
 #define scdtime(x) x
 #else
-#define scdtime(x) std::chrono::duration_cast<std::chrono::milliseconds>(x).count()
+#define scdtime(x) duration_cast<milliseconds>(x).count()
 #endif
 
 using namespace QtDataSync;
+using namespace std::chrono;
+using std::tuple;
+using std::make_tuple;
+using std::get;
 
 namespace {
 
@@ -233,7 +237,7 @@ bool DatabaseController::updateCmac(const QUuid &deviceId, quint32 keyIndex, con
 	}
 }
 
-QList<std::tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(const QUuid &deviceId)
+QList<tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(const QUuid &deviceId)
 {
 	auto db = _threadStore.localData().database();
 	Query loadDevicesQuery(db);
@@ -246,9 +250,9 @@ QList<std::tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(co
 	loadDevicesQuery.addBindValue(deviceId);
 	loadDevicesQuery.exec();
 
-	QList<std::tuple<QUuid, QString, QByteArray>> resList;
+	QList<tuple<QUuid, QString, QByteArray>> resList;
 	while(loadDevicesQuery.next()) {
-		resList.append(std::make_tuple(
+		resList.append(make_tuple(
 						   loadDevicesQuery.value(0).toUuid(),
 						   loadDevicesQuery.value(1).toString(),
 						   loadDevicesQuery.value(2).toByteArray()
@@ -445,7 +449,7 @@ quint32 DatabaseController::changeCount(const QUuid &deviceId)
 		return 0;
 }
 
-QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip)
+QList<tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip)
 {
 	auto db = _threadStore.localData().database();
 
@@ -460,9 +464,9 @@ QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::
 	loadChangesQuery.addBindValue(skip);
 	loadChangesQuery.exec();
 
-	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> resList;
+	QList<tuple<quint64, quint32, QByteArray, QByteArray>> resList;
 	while(loadChangesQuery.next()) {
-		resList.append(std::make_tuple(
+		resList.append(make_tuple(
 						   (quint64)loadChangesQuery.value(0).toULongLong(),
 						   (quint32)loadChangesQuery.value(1).toUInt(),
 						   loadChangesQuery.value(2).toByteArray(),
@@ -503,7 +507,7 @@ void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex
 	}
 }
 
-QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset)
+QList<tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset)
 {
 	offset = -1;
 
@@ -553,9 +557,9 @@ QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController:
 		deviceKeysQuery.addBindValue(userId);
 		deviceKeysQuery.exec();
 
-		QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> result;
+		QList<tuple<QUuid, QByteArray, QByteArray, QByteArray>> result;
 		while(deviceKeysQuery.next()) {
-			result.append(std::make_tuple(
+			result.append(make_tuple(
 							  deviceKeysQuery.value(0).toUuid(),
 							  deviceKeysQuery.value(1).toByteArray(),
 							  deviceKeysQuery.value(2).toByteArray(),
@@ -573,7 +577,7 @@ QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController:
 	}
 }
 
-bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyIndex, const QByteArray &scheme, const QByteArray &cmac, const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys)
+bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyIndex, const QByteArray &scheme, const QByteArray &cmac, const QList<tuple<QUuid, QByteArray, QByteArray>> &deviceKeys)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -602,7 +606,7 @@ bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyInd
 			checkAllowedQuery.prepare(QStringLiteral("SELECT 1 FROM devices "
 													 "WHERE id = ? "
 													 "AND userid = ?"));
-			checkAllowedQuery.addBindValue(std::get<0>(device));
+			checkAllowedQuery.addBindValue(get<0>(device));
 			checkAllowedQuery.addBindValue(userId);
 			checkAllowedQuery.exec();
 			if(!checkAllowedQuery.first())
@@ -613,11 +617,11 @@ bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyInd
 			addKeyQuery.prepare(QStringLiteral("INSERT INTO keychanges "
 											   "(deviceid, keyindex, scheme, key, verifymac) "
 											   "VALUES(?, ?, ?, ?, ?)"));
-			addKeyQuery.addBindValue(std::get<0>(device));
+			addKeyQuery.addBindValue(get<0>(device));
 			addKeyQuery.addBindValue(keyIndex);
 			addKeyQuery.addBindValue(QString::fromUtf8(scheme));
-			addKeyQuery.addBindValue(std::get<1>(device));
-			addKeyQuery.addBindValue(std::get<2>(device));
+			addKeyQuery.addBindValue(get<1>(device));
+			addKeyQuery.addBindValue(get<2>(device));
 			addKeyQuery.exec();
 		}
 
@@ -638,7 +642,7 @@ bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyInd
 	}
 }
 
-std::tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::loadKeyChanges(const QUuid &deviceId)
+tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::loadKeyChanges(const QUuid &deviceId)
 {
 	auto db = _threadStore.localData().database();
 
@@ -649,16 +653,16 @@ std::tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::load
 	keyChangesQuery.addBindValue(deviceId);
 	keyChangesQuery.exec();
 
-	QList<std::tuple<quint32, QByteArray, QByteArray, QByteArray>> result;
+	QList<tuple<quint32, QByteArray, QByteArray, QByteArray>> result;
 	if(keyChangesQuery.first()) {
-		return std::make_tuple(
+		return make_tuple(
 			(quint32)keyChangesQuery.value(0).toUInt(),
 			keyChangesQuery.value(1).toByteArray(),
 			keyChangesQuery.value(2).toByteArray(),
 			keyChangesQuery.value(3).toByteArray()
 		);
 	} else
-		return std::make_tuple((quint32)0, QByteArray(), QByteArray(), QByteArray());
+		return make_tuple((quint32)0, QByteArray(), QByteArray(), QByteArray());
 }
 
 void DatabaseController::dbInitDone(bool success)
@@ -682,7 +686,7 @@ void DatabaseController::dbInitDone(bool success)
 		auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
 		if(delay > 0) {
 			_keepAliveTimer = new QTimer(this);
-			_keepAliveTimer->setInterval(scdtime(std::chrono::minutes(delay)));
+			_keepAliveTimer->setInterval(scdtime(minutes(delay)));
 			_keepAliveTimer->setTimerType(Qt::VeryCoarseTimer);
 			connect(_keepAliveTimer, &QTimer::timeout,
 					this, &DatabaseController::timeout);
@@ -695,7 +699,7 @@ void DatabaseController::dbInitDone(bool success)
 	if(success) {
 		if(qApp->configuration()->value(QStringLiteral("cleanup/auto"), true).toBool()) {
 			_cleanupTimer = new QTimer(this);
-			_cleanupTimer->setInterval(scdtime(std::chrono::hours(24)));
+			_cleanupTimer->setInterval(scdtime(hours(24)));
 			_cleanupTimer->setTimerType(Qt::VeryCoarseTimer);
 			connect(_cleanupTimer, &QTimer::timeout,
 					this, &DatabaseController::cleanupDevices);

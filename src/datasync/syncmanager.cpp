@@ -28,6 +28,10 @@ public:
 // ------------- Implementation -------------
 
 using namespace QtDataSync;
+using std::function;
+using std::tuple;
+using std::make_tuple;
+using std::get;
 
 SyncManager::SyncManager(QObject *parent) :
 	SyncManager(DefaultSetup, parent)
@@ -102,12 +106,12 @@ QString SyncManager::lastError() const
 	return d->replica->lastError();
 }
 
-void SyncManager::runOnDownloaded(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
+void SyncManager::runOnDownloaded(const function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
 {
 	runImp(true, triggerSync, resultFn);
 }
 
-void SyncManager::runOnSynchronized(const std::function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
+void SyncManager::runOnSynchronized(const function<void (SyncManager::SyncState)> &resultFn, bool triggerSync)
 {
 	runImp(false, triggerSync, resultFn);
 }
@@ -130,7 +134,7 @@ void SyncManager::reconnect()
 void SyncManager::onInit()
 {
 	for(auto it = d->initActions.constBegin(); it != d->initActions.constEnd(); it++)
-		d->replica->runOnState(it.key(), std::get<0>(*it), std::get<1>(*it));
+		d->replica->runOnState(it.key(), get<0>(*it), get<1>(*it));
 	d->initActions.clear();
 }
 
@@ -141,7 +145,7 @@ void SyncManager::onStateReached(const QUuid &id, SyncManager::SyncState state)
 		fn(state);
 }
 
-void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::function<void (SyncManager::SyncState)> &resultFn)
+void SyncManager::runImp(bool downloadOnly, bool triggerSync, const function<void (SyncManager::SyncState)> &resultFn)
 {
 	Q_ASSERT_X(resultFn, Q_FUNC_INFO, "runOn resultFn must be a valid function");
 	auto id = QUuid::createUuid();
@@ -149,7 +153,7 @@ void SyncManager::runImp(bool downloadOnly, bool triggerSync, const std::functio
 	if(d->replica->isInitialized())
 		d->replica->runOnState(id, downloadOnly, triggerSync);
 	else
-		d->initActions.insert(id, std::make_tuple(downloadOnly, triggerSync));
+		d->initActions.insert(id, make_tuple(downloadOnly, triggerSync));
 }
 
 
