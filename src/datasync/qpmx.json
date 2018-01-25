@@ -3,7 +3,7 @@
         {
             "package": "de.skycoder42.qpluginfactory",
             "provider": "qpm",
-            "version": "1.2.0"
+            "version": "1.2.1"
         },
         {
             "package": "de.skycoder42.cryptoqq",

@@ -21,7 +21,6 @@ void AndroidKeyStore::openStore()
 	if(!_preferences.isValid()) {
 		QAndroidJniEnvironment env;
 
-		//TODO exception check
 		auto MODE_PRIVATE = QAndroidJniObject::getStaticField<jint>("android/content/Context",
 																	"MODE_PRIVATE");
 		jniThrow(env);

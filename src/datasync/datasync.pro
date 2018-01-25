@@ -37,7 +37,7 @@ HEADERS += \
 	userexchangemanager_p.h \
 	emitteradapter_p.h \
 	changeemitter_p.h \
-    signal_private_connect_p.h
+	signal_private_connect_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -83,8 +83,6 @@ TRANSLATIONS += \
 
 DISTFILES += $$TRANSLATIONS
 
-# TODO add rep and statemachine headers to syncqt.pl
-
 include(rothreadedbackend/rothreadedbackend.pri)
 include(messages/messages.pri)
 include(../3rdparty/cryptopp/cryptopp.pri)
@@ -100,8 +98,6 @@ win32 {
 } else:mac {
 	QMAKE_TARGET_BUNDLE_PREFIX = "de.skycoder42."
 }
-
-# TODO add prl cleanup + ios ar merge
 
 !ReleaseBuild:!DebugBuild:!system(qpmx -d $$shell_quote($$_PRO_FILE_PWD_) --qmake-run init $$QPMX_EXTRA_OPTIONS $$shell_quote($$QMAKE_QMAKE) $$shell_quote($$OUT_PWD)): error(qpmx initialization failed. Check the compilation log for details.)
 else: include($$OUT_PWD/qpmx_generated.pri)
