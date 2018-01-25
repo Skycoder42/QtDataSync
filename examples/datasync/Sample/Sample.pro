@@ -7,20 +7,22 @@ TARGET = Sample
 HEADERS += \
 		widget.h \
 	sampledata.h \
-    accountdialog.h \
-    exchangedialog.h
+	accountdialog.h \
+	exchangedialog.h
 
 SOURCES += \
 		main.cpp \
 		widget.cpp \
 	sampledata.cpp \
-    accountdialog.cpp \
-    exchangedialog.cpp
+	accountdialog.cpp \
+	exchangedialog.cpp
 
 FORMS += \
 		widget.ui \
-    accountdialog.ui \
-    exchangedialog.ui
+	accountdialog.ui \
+	exchangedialog.ui
+
+DISTFILES += docker-compose.yaml
 
 include(../../3rdparty/modeltest.pri)
 

@@ -6,12 +6,15 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3793032e97024b6ebec2f84ec2fd61ad)](https://www.codacy.com/app/Skycoder42/QtDataSync?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Skycoder42/QtDataSync&amp;utm_campaign=Badge_Grade)
 [![AUR](https://img.shields.io/aur/version/qt5-datasync.svg)](https://aur.archlinux.org/packages/qt5-datasync/)
 
+![Demo Animation](./doc/demo.gif)
+
 ## Features
 - Document-Store like access, using QObjects and Q_GADGET classes
-	- Threadsafe Synchronous access with global caching optimizations
+	- Threadsafe synchronous access with global caching optimizations
 	- Change signals on data modifications
+- Cross platform library, works on linux, windows, macos, android and ios and can be used to synchronize data between any of these platforms
 - Qt "model" class (`QAbstractListModel`) to view store data in item views
-- Stable offline storage, to make shure apps work even without network
+- Permanent offline storage, to make shure apps work even without network
 - Remote synchronisation between devices
 	- Multi-user and multi-device system - data is synchronized per user on all his devices
 	- Data is stored permanently on devices, and temporarily on the server
@@ -25,7 +28,9 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 		- Android Shared Preferences
 		- (Unsecure) plain text keystore as fallback
 	- Custom keystores can be implemented via a plugin mechanism
-- Includes a websocket based server application as a backend
+- Includes a server application as a backend
+	- Can be used for multiple applications, independent of any data
+	- Operates as "distribution" service (Does *not* permanently store data, only for transfering it to devices)
 	- Operates with a PostgreSQL database
 	- Includes a docker-compose file for the postgresql server
 	- Is provided as docker image itself
@@ -89,31 +94,39 @@ The `qdsappserver` is also available as docker-image, [`skycoder42/qdsappserver`
 ## Usage
 The datasync library is provided as a Qt module. Thus, all you have to do is add the module, and then, in your project, add `QT += datasync` to your `.pro` file! Please note that when you deploy your application, you need both the library *and* the keystore plugins you intend to use.
 
-To learn how to set up the library and use it, check the examples below.
+### Basics
+There are basically 3 kinds of classes typically used. This first one is the `QtDataSync::Setup`. This one is used to configure a datasync instance and synchronize data to a server. It can also be used to start a passive instance, that does not actively synchronize and only allows access to the data.
+
+The second group are the `QtDataSync::DataStore*` classes. They are used to access the data and perform CRUD operations on it. They only work with the locally stored data, but emit signals whenever data is changed (either by another datastore, or because it was synchronized). The `QtDataSync::DataStore` is the basic class that allows you to generically access any data. The `QtDataSync::DataTypeStore` does the same, but is limited to one type. Finally, the `QtDataSync::CachingDataTypeStore` extend this by initially loading all data of one type and keeping it in the memory. This can be more efficient if our frequently access the data.
+
+The last group are the manager classes. The `QtDataSync::SyncManager` controlls the synchronisation and reports it's status, progress and any errors. The `QtDataSync::AccountManager` is used to manage the devices data is shared with. They can be listed, added and removed. The `QtDataSync::UserExchangeManager` extends the AccountManager by making it possible to easily exchange the account data between devices in the same local network.
+
+The examples below show how to use these different classes. For a full example of what can be done, checkout the `examples/datasync/Sample` example app.
 
 ### Example
-The following examples descibe the different parts of the module, and how to set them up. For a full, simple example, check the `examples/datasync/Sample` app. The following examples show:
-
-- Include QtDataSync into you app, local storage only
-- Access the storage
-- Setup the sync server using docker
-- Enable synchronisation for the app
-- Add a new user
+The following examples descibe the different parts of the module, and how to use them. The following will explain how to:
+- Create a setup and configure it.
+- Access the storage for read/write operations
+- Setup a server to synchronize with it
+- Add a second device to your account to synchronize data between them
 
 #### Initialize QtDataSync
-After adding datasync to your project, the next step is to setup datasync. Typically, you will only have one instance per application, but by adjusting the configuration, you create multiple instances. It's similar to how QSqlDatabase is managed. Please note that there is one important rule: Only one process at a time may access once instance. This is defined via the local storage directory that is used. If you want to use it in multiple processes, you need to use `Setup::createPassive` in all secondary processes. Please read the documentation for more details.
+After adding datasync to your project, the next step is to setup datasync. In your main, you need to once create a setup. This **must** be done before you create any other datasync class, but after that, you can use it in your whole application from any thread. Multi-Process setups are possible, but more complicated. See TODO for more details.
 
 To setup datasync, simply use the Setup class:
 ```cpp
 QtDataSync::Setup()
+	.setRemoteConfiguration(QUrl("ws://localhost:4242")) //url to the server to connect to
 	//do any additional setup, i.e. ".setLocalDir(...)" to specify a different local storage directory
 	.create();
 ```
 
-And thats it! On a second thread, the storage will be initialized. You can now use the different stores or the controller to access the data.
+And thats it! On a second thread, the storage will be initialized. You can now use the different stores or the managers to access the data.
 
 #### Using DataStore
-The data store allows you to access the store. Assuming your datatype looks like this. Please check [QJsonSerializer](https://github.com/Skycoder42/QJsonSerializer) for details on how a datatype can look. The important part here is, that data you want to insert **must** have a `USER` property. This property is used to identify a dataset, it's like it's primary key. Please note that only one property can be mark as user property. You can use any type you want, as long as it can be converted from and to QString via QVariant (This means `QVariant::fromType(myData).toString()`, as well as `QVariant(string).value<MyData>()` have to work as expected).
+The data store allows you to access the store. The store can be used by defining datatypes that can be stored in there. The only limitation is that it must be either a class that extends QObject or has the Q_GADGET macro. Only the Q_PROPERTY fields you define are stored. To identify a dataset the `USER` property is used and thus **must** be present. It's like the primary key. You can use any type you want, as long as it can be converted from and to QString via QVariant (This means `QVariant::fromType(myData).toString()`, as well as `QVariant(string).value<MyData>()` have to work as expected).
+
+One example for such a storable datatype would be the following:
 ```cpp
 struct Data
 {
@@ -130,9 +143,9 @@ public:
 };
 ```
 
-You can for example load all existing datasets for this type by using:
+This can now be stored and loaded using any of the DataStore classes. The code below will save on dataset, then load all that are stored:
 ```cpp
-auto store = new QtDataSync::DataStore(this); //If not specified, the store will use the "default setup"
+auto store = new QtDataSync::DataStore(this); //Use the "default setup"
 
 //store an entry
 store->save<Data>({42, "tree"});
@@ -142,37 +155,41 @@ foreach(Data d, store->loadAll<Data>()) {
 });
 ```
 
-#### Setting up the remote server (qdatasyncserver)
-In order to actually synchronize data, you will need some kind of remote server. This is a tool thats part of this module. It operates on a PostgreSQL database to store data. The following steps show you how to configure and run the server application.
+#### Setting up the remote server (qdsapp)
+In order to synchronize data, some server is needed. The quickest way for development is to use the prepared docker image in the sample projects folder. Just run `docker-compose up -d` to start it. It will create a postgres as well as a qdsapp instance to be used on port 4242. More details on how to configure the the server can be found TODO.
 
-##### Setting up PostgreSQL
-The server itself will perform the neccessary setups. All you need is a running PostgreSQL instance. Create an empty database on it, and specify credentials etc. in the configuration file. If you just want to try it out, the example contains a docker-compose file that will setup such a server for you `tools/appserver/docker-compose.yaml`. Simply cd to that folder and run `docker-compose up -d` to start the database.
+Once thats done, the library will automatically connect to the server and create an account, if the server was correctly configured with the setup. To synchronize changes, all you need to do now is to add a second device to your account.
 
-##### Setting up qdatasyncserver
-Once the database was started, you can run the server. It uses a configuration file for setup.
-TODO write more
+#### Adding a second device to your account
+Adding a second devices is done via an exchange between those two devices. This is required to ensure no attacker can easily add himself to your account. The general idea is: You export the data from device A, then import it on device B. The part of getting the data from A to B must be done by your application, e.g. by storing it to a file or sending it over the local network. A must then accept B to be added to the account. It is also possible to secure the exported data with a password. In that case no confirmation is needed. Please note that device A must be connected to the remote for the whole login process. After device B was added, A will upload all it's local data to B. From that point on, any data changes on A or B are synchronized between the two.
 
-#### Adding the remote to your app to enable sync
-The last step is to tell you application which remote to use. Assuming you are running the server with the `docker_setup.conf`, the following setup will connect the server.
+The first partis to export the data from A. For this example, we use the password secured variant, as it is simpler.
 ```cpp
-QtDataSync::Setup()
-	.setRemoteConfiguration(QUrl("ws://localhost:4242")) //url to the server to connect to
-	.create();
+auto manager = new QtDataSync::AccountManager(this); //class used to access the account
+manager->exportAccountTrusted(true, "some_password", [this](QByteArray data) {
+	saveToFile(data);//somehow get the data to device B
+});
 ```
 
-Once thats done, the library will automatically connect to the server and create an account. To synchronize changes, all you need to do now is to add a second device to your account.
+On device B, that exported data must be read and then imported:
+```cpp
+auto manager = new QtDataSync::AccountManager(this); //class used to access the account
+auto data = loadFromFile();
+manager->importAccountTrusted(data, "some_password", [this](bool ok, QString error) {
+	if(ok)
+		qDebug() << "Import done!";
+	else
+		qDebug() << "Import failed with error:" << error;
+});
+```
 
-##### Adding a second device to your account
-TODO write
+If the import succeeded, the devices will automatically start synchronizing
 
 ## Security
-### Encryption Protocol
-### Server
+The library uses end to end encryption and does not require a trusted server, as the server can neither read or write data, nor can he add a device to your account. Modern and secure crypto is used by making use of the [CryptoPP library](https://www.cryptopp.com/) library. More details on the whole (security) protocol will follow in the future.
 
 ## Documentation
 The documentation is available on [github pages](https://skycoder42.github.io/QtDataSync/). It was created using [doxygen](http://www.doxygen.org/). The HTML-documentation and Qt-Help files are shipped together with the module for both the custom repository and the package on the release page. Please note that doxygen docs do not perfectly integrate with QtCreator/QtAssistant.
 
 ## References
-TODO
-
-- https://github.com/frankosterfeld/qtkeychain
+Many of the keystore implementations have been inspired by the awesome Qt library [QtKeychain](https://github.com/frankosterfeld/qtkeychain) by frankosterfeld.

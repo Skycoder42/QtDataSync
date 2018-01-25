@@ -1,20 +1,15 @@
-FROM ubuntu:rolling
+FROM ubuntu:rolling #rolling until bionic was released. Qt 5.5 is just to old
 
-ADD qt-installer-script.qs /tmp/qt/qt-installer-script.qs
-ADD install.sh /tmp/qt/install.sh
+ADD install.sh /tmp/install.sh
+RUN /tmp/install.sh
 
-RUN /tmp/qt/install.sh
-
-ADD env_start.sh /opt/qdatasyncserver/bin/env_start.sh
-
+ADD env_start.sh /usr/bin/env_start.sh
 # create env vars & ready for usage
-ENV DATASYNC_DIR=/opt/qdatasyncserver/data
-ENV DATASYNC_LOG_FILE=
-ENV DATASYNC_SECRET=
-ENV DATABASE_HOST=
-ENV DATABASE_PORT=5432
-ENV DATABASE_USER=postgres
-ENV DATABASE_PASSWORD=
-ENV DATABASE_NAME=$DATABASE_USER
+ENV QDSAPP_CONFIG_FILE=/etc/qdsapp.conf
+# must be set: ENV QDSAPP_DATABASE_HOST=
+ENV QDSAPP_DATABASE_PORT=5432
+ENV QDSAPP_DATABASE_USER=postgres
+# must be set: ENV QDSAPP_DATABASE_PASSWORD=
+ENV QDSAPP_DATABASE_NAME=$QDSAPP_DATABASE_USER
 
-CMD ["/opt/qdatasyncserver/bin/env_start.sh"]
+CMD ["/usr/bin/env_start.sh"]
