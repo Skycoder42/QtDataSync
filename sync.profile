@@ -2,5 +2,5 @@
 	"QtDataSync" => "$basedir/src/datasync",
 );
 
-%classnames = (
-);
+# Force generation of camel case headers for classes inside QtDataSync namespaces
+$publicclassregexp = "QtDataSync::(?!__helpertypes|JsonObject).+";
