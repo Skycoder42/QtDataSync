@@ -61,14 +61,14 @@ void SyncManager::initReplica(QRemoteObjectNode *node)
 {
 	d->replica = node->acquire<SyncManagerPrivateReplica>();
 	d->replica->setParent(this);
-	private_connect(d->replica, &SyncManagerPrivateReplica::syncEnabledChanged,
-					this, &SyncManager::syncEnabledChanged);
-	private_connect(d->replica, &SyncManagerPrivateReplica::syncStateChanged,
-					this, &SyncManager::syncStateChanged);
-	private_connect(d->replica, &SyncManagerPrivateReplica::syncProgressChanged,
-					this, &SyncManager::syncProgressChanged);
-	private_connect(d->replica, &SyncManagerPrivateReplica::lastErrorChanged,
-					this, &SyncManager::lastErrorChanged);
+	connect(d->replica, &SyncManagerPrivateReplica::syncEnabledChanged,
+			this, PSIG(&SyncManager::syncEnabledChanged));
+	connect(d->replica, &SyncManagerPrivateReplica::syncStateChanged,
+			this, PSIG(&SyncManager::syncStateChanged));
+	connect(d->replica, &SyncManagerPrivateReplica::syncProgressChanged,
+			this, PSIG(&SyncManager::syncProgressChanged));
+	connect(d->replica, &SyncManagerPrivateReplica::lastErrorChanged,
+			this, PSIG(&SyncManager::lastErrorChanged));
 	connect(d->replica, &SyncManagerPrivateReplica::stateReached,
 			this, &SyncManager::onStateReached);
 	connect(d->replica, &SyncManagerPrivateReplica::initialized,

@@ -35,8 +35,8 @@ void DataStore::initStore(const QString &setupName)
 			this, [this](const QByteArray &typeName) {
 		emit dataCleared(QMetaType::type(typeName), {});
 	});
-	private_connect(d->store, &LocalStore::dataResetted,
-					this, &DataStore::dataResetted);
+	connect(d->store, &LocalStore::dataResetted,
+			this, PSIG(&DataStore::dataResetted));
 }
 
 DataStore::~DataStore() {}

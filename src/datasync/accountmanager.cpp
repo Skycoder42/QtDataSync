@@ -80,14 +80,14 @@ void AccountManager::initReplica(QRemoteObjectNode *node)
 	d->replica = node->acquire<AccountManagerPrivateReplica>();
 	d->replica->setParent(this);
 
-	private_connect(d->replica, &AccountManagerPrivateReplica::deviceNameChanged,
-					this, &AccountManager::deviceNameChanged);
-	private_connect(d->replica, &AccountManagerPrivateReplica::deviceFingerprintChanged,
-					this, &AccountManager::deviceFingerprintChanged);
-	private_connect(d->replica, &AccountManagerPrivateReplica::lastErrorChanged,
-					this, &AccountManager::lastErrorChanged);
-	private_connect(d->replica, &AccountManagerPrivateReplica::accountDevices,
-					this, &AccountManager::accountDevices);
+	connect(d->replica, &AccountManagerPrivateReplica::deviceNameChanged,
+			this, PSIG(&AccountManager::deviceNameChanged));
+	connect(d->replica, &AccountManagerPrivateReplica::deviceFingerprintChanged,
+			this, PSIG(&AccountManager::deviceFingerprintChanged));
+	connect(d->replica, &AccountManagerPrivateReplica::lastErrorChanged,
+			this, PSIG(&AccountManager::lastErrorChanged));
+	connect(d->replica, &AccountManagerPrivateReplica::accountDevices,
+			this, PSIG(&AccountManager::accountDevices));
 	connect(d->replica, &AccountManagerPrivateReplica::accountExportReady,
 			this, &AccountManager::accountExportReady);
 	connect(d->replica, &AccountManagerPrivateReplica::accountExportError,
@@ -96,10 +96,10 @@ void AccountManager::initReplica(QRemoteObjectNode *node)
 			this, &AccountManager::accountImportResult);
 	connect(d->replica, &AccountManagerPrivateReplica::loginRequested,
 			this, &AccountManager::loginRequestedImpl);
-	private_connect(d->replica, &AccountManagerPrivateReplica::importCompleted,
-					this, &AccountManager::importAccepted);
-	private_connect(d->replica, &AccountManagerPrivateReplica::accountAccessGranted,
-					this, &AccountManager::accountAccessGranted);
+	connect(d->replica, &AccountManagerPrivateReplica::importCompleted,
+			this, PSIG(&AccountManager::importAccepted));
+	connect(d->replica, &AccountManagerPrivateReplica::accountAccessGranted,
+			this, PSIG(&AccountManager::accountAccessGranted));
 }
 
 AccountManager::~AccountManager() {}

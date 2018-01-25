@@ -16,7 +16,6 @@ environment:
     - PLATFORM: winrt_x86_msvc2017
     - PLATFORM: msvc2015_64
     - PLATFORM: msvc2015
-    - PLATFORM: mingw53_32
 
 matrix:
   exclude:
@@ -25,8 +24,6 @@ matrix:
     - PLATFORM: winrt_x64_msvc2017
       image: Visual Studio 2015
     - PLATFORM: winrt_x86_msvc2017
-      image: Visual Studio 2015
-    - PLATFORM: mingw53_32
       image: Visual Studio 2015
     - PLATFORM: msvc2015_64
       image: Visual Studio 2017
