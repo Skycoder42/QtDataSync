@@ -42,12 +42,17 @@ Module {
         Method { name: "listDevices" }
         Method {
             name: "removeDevice"
-            Parameter { name: "deviceId"; type: "QUuid" }
+            Parameter { name: "deviceInfo"; type: "QUuid" }
         }
         Method {
             name: "removeDevice"
             Parameter { name: "deviceInfo"; type: "QtDataSync::DeviceInfo" }
         }
+        Method {
+            name: "resetAccount"
+            Parameter { name: "keepData"; type: "bool" }
+        }
+        Method { name: "resetAccount" }
         Method { name: "updateExchangeKey" }
         Method {
             name: "setDeviceName"
@@ -55,11 +60,6 @@ Module {
         }
         Method { name: "resetDeviceName" }
         Method { name: "replica"; type: "QRemoteObjectReplica*" }
-        Method {
-            name: "resetAccount"
-            Parameter { name: "keepData"; type: "bool" }
-        }
-        Method { name: "resetAccount" }
     }
     Component {
         name: "QtDataSync::DataStore"

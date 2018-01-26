@@ -6,7 +6,7 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3793032e97024b6ebec2f84ec2fd61ad)](https://www.codacy.com/app/Skycoder42/QtDataSync?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Skycoder42/QtDataSync&amp;utm_campaign=Badge_Grade)
 [![AUR](https://img.shields.io/aur/version/qt5-datasync.svg)](https://aur.archlinux.org/packages/qt5-datasync/)
 
-![Demo Animation](./doc/demo.gif)
+![Demo Animation](./doc/images/demo.gif)
 
 ## Features
 - Document-Store like access, using QObjects and Q_GADGET classes
@@ -41,7 +41,15 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 - Provides convenient QML bindings
 
 ## Download/Installation
-1. **Arch-Linux only:** If you are building against your system Qt, you can use my AUR-Repository: [qt5-datasync](https://aur.archlinux.org/packages/qt5-datasync/)
+1. Package Managers: The library is available via:
+	- **Arch-Linux:** AUR-Repository: [`qt5-datasync`](https://aur.archlinux.org/packages/qt5-datasync/)
+	- **Ubuntu:** Launchpad-PPA:
+		- Since Artful: [ppa:skycoder42/qt-modules](https://launchpad.net/~skycoder42/+archive/ubuntu/qt-modules), package `libqt5datasync[4/-dev]`
+		- Xenial: [ppa:skycoder42/qt-modules-opt](https://launchpad.net/~skycoder42/+archive/ubuntu/qt-modules-opt), package `qtdatasync`
+	- **MacOs:**
+		- Tap: [`brew tap Skycoder42/qt-modules`](https://github.com/Skycoder42/homebrew-qt-modules)
+		- Package: `qtdatasync`
+		- **IMPORTANT:** Due to limitations of homebrew, you must run `source /usr/local/opt/qtdatasync/bashrc.sh` before you can use the module. Some goes for the `qtjsonserializer` dependency.
 2. Simply add my repository to your Qt MaintenanceTool (Image-based How-To here: [Add custom repository](https://github.com/Skycoder42/QtModules/blob/master/README.md#add-my-repositories-to-qt-maintenancetool)):
 	1. Open the MaintenanceTool, located in your Qt install directory (e.g. `~/Qt/MaintenanceTool`)
 	2. Select `Add or remove components` and click on the `Settings` button
@@ -89,7 +97,7 @@ The library as a high level synchronisation backend has a few dependencies. They
 To actually run the server, it needs to connect to a SQL Database. A little more specific: A PostgreSQL database. You can specify a different one, by setting a custom database driver in the configuration file, **but** the SQL used is PostgreSQL, so unless your DBS supports the same SQL flavor, you won't be able to get it running without modifications. You can host a PostgreSQL database using docker by running `docker-compose up -d` from `tools/qdatasyncserver`. This is further described in the example explaining how to set up the server.
 
 ### Docker
-The `qdsappserver` is also available as docker-image, [`skycoder42/qdsappserver`](https://hub.docker.com/r/skycoder42/qdsappserver/). The versions are equal, i.e. QtDataSync version 4.0.0 will work with the server Version 4.0.0 as well. The server is somewhat backwards compatible. This is checked on runtime for any client that connects.
+The `qdsapp` is also available as docker-image, [`skycoder42/qdsapp`](https://hub.docker.com/r/skycoder42/qdsapp/). The versions are equal, i.e. QtDataSync version 4.0.0 will work with the server Version 4.0.0 as well. The server is somewhat backwards compatible. This is checked on runtime for any client that connects.
 
 ## Usage
 The datasync library is provided as a Qt module. Thus, all you have to do is add the module, and then, in your project, add `QT += datasync` to your `.pro` file! Please note that when you deploy your application, you need both the library *and* the keystore plugins you intend to use.

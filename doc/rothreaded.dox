@@ -1,0 +1,33 @@
+/*!
+@page ro_threaded Threaded remote objects
+@brief Details on the "threaded" scheme extension to remote objects
+
+@tableofcontents
+
+@section ro_intro Threaded RemoteObjects connection
+QtRemoteObjects allows to register custom transport protocols. This library implements such a
+custom connection mode called `threaded`. Unlike most other protocls, this one only works
+within the same process and uses signals in order to transfer the data between source and
+replica.
+
+@section ro_motivation Motivation for such a connection
+The reasons are simply: security and performance. For most applications, a single process setup
+will be used, and there is no need to expose any of the engines interfaces outside of the
+process. This increases the security, as these interfaces could be used by an attacker to add
+a new device to your account without you noticing.
+
+@section ro_usage How to use
+The protocol can be used by anyone that links to the datasync library. The protocol gets
+selected by specifying a special scheme for the url. One example would be:
+@code
+threaded://some/identifier
+@endcode
+
+@section ro_multiproc Multi-Process setups
+In case you want to use datasync in a multi process context, you cannot use the threaded mode.
+Instead, use the QtDataSync::Setup::remoteObjectHost property to specify a custom url on all
+setups. As long as you stay on the same machine, it is recommended to use the "local" mode:
+@code{.cpp}
+setup.setRemoteObjectHost(QUrl("local:datasync_setup_myapp"));
+@endcode
+*/

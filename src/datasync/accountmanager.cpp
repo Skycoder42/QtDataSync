@@ -222,9 +222,9 @@ void AccountManager::listDevices()
 	d->replica->listDevices();
 }
 
-void AccountManager::removeDevice(const QUuid &deviceId)
+void AccountManager::removeDevice(const QUuid &deviceInfo)
 {
-	d->replica->removeDevice(deviceId);
+	d->replica->removeDevice(deviceInfo);
 }
 
 void AccountManager::updateExchangeKey()

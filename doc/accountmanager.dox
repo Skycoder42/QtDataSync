@@ -1,0 +1,441 @@
+/*!
+@class QtDataSync::DeviceInfo
+
+@sa LoginRequest, AccountManager
+*/
+
+/*!
+@property QtDataSync::DeviceInfo::deviceId
+
+@default{`{00000000-0000-0000-0000-000000000000}`}
+
+@accessors{
+	@readAc{deviceId()}
+	@writeAc{setDeviceId()}
+}
+
+@sa AccountManager::removeDevice
+*/
+
+/*!
+@property QtDataSync::DeviceInfo::name
+
+@default{<i>empty</i>}
+
+@accessors{
+	@readAc{name()}
+	@writeAc{setName()}
+}
+
+@sa AccountManager::deviceName
+*/
+
+/*!
+@property QtDataSync::DeviceInfo::fingerprint
+
+@default{<i>empty</i>}
+
+@accessors{
+	@readAc{fingerprint()}
+	@writeAc{setFingerprint()}
+}
+
+@sa AccountManager::deviceFingerprint
+*/
+
+
+
+/*!
+@class QtDataSync::LoginRequest
+
+@sa AccountManager::loginRequested
+*/
+
+/*!
+@property QtDataSync::LoginRequest::device
+
+@default{<i>The device that requested the login</i>}
+
+@accessors{
+	@readAc{device()}
+	@constantAc{}
+}
+
+@sa DeviceInfo
+*/
+
+/*!
+@property QtDataSync::LoginRequest::handled
+
+@default{`false`}
+
+@note This property gets updated to `true` as accept() or reject() have been called the first
+time
+
+@accessors{
+	@readAc{handled()}
+	@constantAc{}
+}
+
+@sa LoginRequest::accept, LoginRequest::reject
+*/
+
+
+
+/*!
+@class QtDataSync::AccountManager
+
+It can be used to list the devices that belong to the current account, remove device from the
+account and to export and import account data in order to add a new device to an existing
+account
+
+The manager connects to the engine via a QRemoteObjectNode. Internally the class holds a replica
+of a source that is part of the datasync engine which is created by the setup. Typically, this
+node is managed by the setup too, but you can specify your own node in the constructor. In order
+to increase security and performance a special remote object connection is used that utilizes
+events to deliver messages within the same process only. See
+@ref ro_threaded "Threaded remote objects" for details.
+*/
+
+/*!
+@property QtDataSync::AccountManager::deviceName
+
+@default{QSysInfo::machineHostName()}
+
+This name will be displayed on other devices as name for this device, in combination with the
+fingerprint.
+
+@accessors{
+	@readAc{deviceName()}
+	@writeAc{setDeviceName()}
+	@resetAc{resetDeviceName()}
+	@notifyAc{deviceNameChanged()}
+}
+
+@sa AccountManager::deviceFingerprint, DeviceInfo::name
+*/
+
+/*!
+@property QtDataSync::AccountManager::deviceFingerprint
+
+@default{<i>Derived from the public keys</i>}
+
+The fingerprint is generated as Sha3 with a length of 256bit by hashing the public keys and
+schemes used. It should *not* be used to identify a device, but can be used to verify that the
+keys belong to a device.
+
+@accessors{
+	@readAc{deviceFingerprint()}
+	@notifyAc{deviceFingerprintChanged()}
+}
+
+@sa AccountManager::deviceName, DeviceInfo::fingerprint
+*/
+
+/*!
+@property QtDataSync::AccountManager::lastError
+
+@default{<i>empty</i>}
+
+The last error that happend internally. The returned string is a localized string ment to be
+displayed to a user. There is no need to log such an error, as interally the error has already
+been logged with even more details. Use this property to inform the user something went wrong.
+
+@accessors{
+	@readAc{lastError()}
+	@notifyAc{lastErrorChanged()}
+}
+
+@sa SyncManager::lastError
+*/
+
+/*!
+@fn QtDataSync::AccountManager::AccountManager(QObject *)
+
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the default setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::AccountManager::AccountManager(const QString &, QObject *)
+
+@param setupName The name of the setup to connect to
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the given setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::AccountManager::AccountManager(QRemoteObjectNode *, QObject *)
+
+@param node The remote object node used to connect to the source objects
+@param parent The parent object
+*/
+
+/*!
+@fn QtDataSync::AccountManager::replica
+
+@returns A pointer to the interal replica object
+
+Returns a reference to the internally used replica which connects to the engine. The replica is
+only valid as long as the AccountManager exists. You can use the replica reference to get
+information about it's state etc.
+*/
+
+/*!
+@fn QtDataSync::AccountManager::isTrustedImport(const QJsonObject &)
+
+@param importData The import data to be scanned for the trusted flag
+@returns `true` if the data is trusted, `false` if not
+
+No validity checks are performed. If the data is not valid, simply `false` is returned
+
+@sa AccountManager::importAccount, AccountManager::importAccountTrusted
+*/
+
+/*!
+@fn QtDataSync::AccountManager::exportAccount(bool, const std::function<void(QJsonObject)> &, const std::function<void(QString)> &)
+
+@param includeServer Specify whether the server address and configuration should be included into
+the export data
+@param completedFn A function that is called with the exported data as parameter
+@param errorFn A function that is called if the export fails.
+
+Semantics of the `completedFn`:
+- **Parameter 1:** The export data as result of the export
+
+Semantics of the `errorFn`:
+- **Parameter 1:** A localized error string to be displayed to the user
+
+The function initiates an asynchronous export of the user data. When is is finished, one of the
+two result functions is called on the AccountManagers thread. They are only called as long as the
+manager still exists.
+
+The export is untrusted, which means a device that uses that data to add itself to the account
+will trigger the loginRequested() signal and must explicitly be accepted.
+
+@attention Export data is only valid as long as the datasync instance that created the export is
+still running. It is **not** preserved beyond multiple runs and thus is only a temporary
+allowance
+
+The `includeServer` parameter can be set to true to include the servers address and
+configuration. This is needed in cases where the server data is not hard coded into the
+application (for example when the load balancer is used).
+
+@sa AccountManager::exportAccountTrusted, AccountManager::importAccount,
+AccountManager::loginRequested
+*/
+
+/*!
+@fn QtDataSync::AccountManager::exportAccountTrusted(bool, const QString &, const std::function<void(QJsonObject)> &, const std::function<void(QString)> &)
+
+@param includeServer Specify whether the server address and configuration should be included into
+the export data
+@param password The password used to encrypt the exported data with
+@param completedFn A function that is called with the exported data as parameter
+@param errorFn A function that is called if the export fails.
+
+Semantics of the `completedFn`:
+- **Parameter 1:** The export data as result of the export
+
+Semantics of the `errorFn`:
+- **Parameter 1:** A localized error string to be displayed to the user
+
+The function initiates an asynchronous export of the user data. When is is finished, one of the
+two result functions is called on the AccountManagers thread. They are only called as long as the
+manager still exists.
+
+The export is trusted, which means that is encrypted with the given password and can only be
+import by someone who knows the password. Since the password serves as token of trust, no
+additional confirmation is needed. As soon as the partner requests to be added and can confirm
+he knows the shared password, the device is added to the account.
+
+@attention Export data is only valid as long as the datasync instance that created the export is
+still running. It is **not** preserved beyond multiple runs and thus is only a temporary
+allowance
+
+The `includeServer` parameter can be set to true to include the servers address and
+configuration. This is needed in cases where the server data is not hard coded into the
+application (for example when the load balancer is used).
+
+@sa AccountManager::exportAccount, AccountManager::importAccountTrusted,
+AccountManager::accountAccessGranted
+*/
+
+/*!
+@fn QtDataSync::AccountManager::importAccount(const QJsonObject &, const std::function<void(bool,QString)> &, bool)
+
+@param importData The account data to be imported
+@param completedFn A function that is called once the import has been finished
+@param keepData Specify whether the stored data should be preserved
+
+Semantics of the `completedFn`:
+- **Parameter 1:** `true` if the import was successful, `false` if not
+- **Parameter 2:** A localized error string to be displayed to the user. Only set in case of a
+failed import, otherwise empty
+
+The function initiates an asynchronous import of the user data. When is is finished, the result
+functions is called on the AccountManagers thread. It is only called as long as the
+manager still exists.
+
+The import is untrusted, which means that the device that created the export must explicitly
+accept this device to be added to the account.
+
+@attention Just because an import succeeded does not mean that the device is accept to the
+account. It only means that the data was valid import data that can be used to initiate an
+import. The engine will perform the import in the background, and either emit importAccepted()
+or lastErrorChanged() as soon as the import finished.
+
+If `keepData` is false (the default), all local data is deleted before the import. This way only
+the data that already belongs to the account is imported. If true, the local data is kept and
+will be synchronized to the account as soon as access was granted.
+
+@sa AccountManager::importAccountTrusted, AccountManager::exportAccount,
+AccountManager::importAccepted, AccountManager::lastErrorChanged, AccountManager::loginRequested
+*/
+
+/*!
+@fn QtDataSync::AccountManager::importAccountTrusted(const QJsonObject &, const QString &, const std::function<void(bool,QString)> &, bool)
+
+@param importData The account data to be imported
+@param password The password used to decrypt the imported data with. Must be the same as used for
+the export
+@param completedFn A function that is called once the import has been finished
+@param keepData Specify whether the stored data should be preserved
+
+Semantics of the `completedFn`:
+- **Parameter 1:** `true` if the import was successful, `false` if not
+- **Parameter 2:** A localized error string to be displayed to the user. Only set in case of a
+failed import, otherwise empty
+
+The function initiates an asynchronous import of the user data. When is is finished, the result
+functions is called on the AccountManagers thread. It is only called as long as the
+manager still exists.
+
+The import is trusted, which means that as long as the password is correct and the export data
+still valid, the import will be accepted. Event though no confirmation is needed, the device
+that exported the data must still be connected.
+
+@attention Just because an import succeeded does not mean that the device is accept to the
+account. It only means that the data was valid import data that can be used to initiate an
+import. The engine will perform the import in the background, and either emit importAccepted()
+or lastErrorChanged() as soon as the import finished.
+
+If `keepData` is false (the default), all local data is deleted before the import. This way only
+the data that already belongs to the account is imported. If true, the local data is kept and
+will be synchronized to the account as soon as access was granted.
+
+@sa AccountManager::importAccount, AccountManager::exportAccountTrusted,
+AccountManager::importAccepted, AccountManager::lastErrorChanged
+*/
+
+/*!
+@fn QtDataSync::AccountManager::listDevices
+
+The request is processed asynchronously. As soon as the server replied, the accountDevices()
+signal is emitted with all the device that currently belong to the account *except* the current
+device that sent the request. This method will do nothing if the remote is not connected.
+
+@sa AccountManager::accountDevices, AccountManager::removeDevice
+*/
+
+/*!
+@fn QtDataSync::AccountManager::removeDevice(const QUuid &)
+
+@param deviceInfo The id of the device to be removed
+
+The device is deleted from the account and disconnected from the server if it was connected.
+This method cannot be used to remove the current device. Use resetAccount() instead.
+listDevices() was called before this method and the device was part of the account at that time,
+accountDevices() will be emitted again, now without the removed device. This method will do
+nothing if the remote is not connected.
+
+@note After removing a device you should always update the exchange key to prevent the device
+from accessing the encrypted data. Use updateExchangeKey() to do so.
+
+@sa AccountManager::resetAccount, AccountManager::accountDevices, AccountManager::listDevices,
+AccountManager::updateExchangeKey
+*/
+
+/*!
+@fn QtDataSync::AccountManager::removeDevice(const QtDataSync::DeviceInfo &)
+@copydetails AccountManager::removeDevice(const QUuid &)
+*/
+
+/*!
+@fn QtDataSync::AccountManager::resetAccount
+
+@param keepData Specify whether the stored data should be preserved
+
+If connected to the remote, this device is removed from the current account. If the device was
+the last device in the account, the account gets deleted as well. If the remote is not connected
+that step is not performed, and other devices will still see this one as part of their account.
+
+Internally, all private encryption and signing keys are permanently deleted and new ones are
+created. The engine will reconnect to the server and register a completly new account with new
+ids.
+
+If `keepData` is false, all local data is deleted. This is basically a full reset. If it is true
+(the default) then all data is kept.
+
+@sa AccountManager::importAccount, AccountManager::importAccountTrusted
+*/
+
+/*!
+@fn QtDataSync::AccountManager::updateExchangeKey
+
+Generates a new exchange key and sends it to all devices of the current account. This key is used
+to verify that a device belongs to your account and to encrypt data between the devices. Thi
+method will do nothing if the remote is not connected.
+*/
+
+/*!
+@fn QtDataSync::AccountManager::accountDevices
+
+@param devices The devices that currently belong to the current account
+
+@privsig
+
+The list does not contain this device, it only shows the other devices that belong to the same
+account as this one. Gets emitted as reply to listDevices(). In case removeDevice() gets called
+after listDevices() and the device removed was emitted via this signal, the new list without that
+device gets emittet as well.
+
+@sa AccountManager::listDevices, AccountManager::removeDevice
+*/
+
+/*!
+@fn QtDataSync::AccountManager::loginRequested
+
+@param request The login request to be handeled
+
+@privsig
+
+Gets emitted when a device imports untrusted account data that was exported from this device. Use
+the passed login request object to get more details about the device and to react to it.
+
+@sa AccountManager::importAccount, AccountManager::exportAccount, LoginRequest
+*/
+
+/*!
+@fn QtDataSync::AccountManager::importAccepted
+
+@privsig
+
+Gets emitted when an import completly succeeded, i.e. as soon as the device that export the data
+accept this device and shared the secret keys with it.
+
+@sa AccountManager::importAccount, AccountManager::importAccountTrusted
+*/
+
+/*!
+@fn QtDataSync::AccountManager::accountAccessGranted
+
+@param deviceId The device id of the device that has been granted access
+
+@privsig
+
+Gets emitted when this device accepted the import of another device and sent it the secret keys.
+Gets only emitted for exports done by this device, not by other devices.
+
+@sa AccountManager::exportAccount, AccountManager::exportAccountTrusted
+*/

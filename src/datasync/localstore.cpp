@@ -389,6 +389,11 @@ void LocalStore::reset(bool keepData)
 			QSqlQuery resetQuery(_database);
 			resetQuery.prepare(QStringLiteral("UPDATE DataIndex SET Changed = 1"));
 			exec(resetQuery);
+
+			//also: delete all not done device changes
+			QSqlQuery clearDevicesQuery(_database);
+			clearDevicesQuery.prepare(QStringLiteral("DELETE FROM DeviceUploads"));
+			exec(clearDevicesQuery);
 		} else { //delete everything
 			QSqlQuery resetQuery(_database);
 			resetQuery.prepare(QStringLiteral("DELETE FROM DataIndex"));

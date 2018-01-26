@@ -257,7 +257,8 @@ ALIASES                = "accessors{1}=<table><tr><th colspan= 2>Accessors</th><
 						 "notifyAcFn{1}=NOTIFY accessor for \1" \
 						 "resetAcFn{1}=RESET accessor for \1" \
 						 "memberAcFn{1}=MEMBER accessor for \1" \
-						 "inherit{1}=Inherits \1"
+						 "inherit{1}=Inherits \1" \
+						 "privsig=<i>This is a private signal. It can be connect to as usual, but can only be emitted by the class it belongs to</i>"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -892,7 +893,9 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../src/3rdparty
+EXCLUDE                = ../src/3rdparty \
+						 ../src/imports \
+						 ../src/plugins
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -924,9 +927,13 @@ EXCLUDE_PATTERNS       = moc_* \
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories use the pattern */test/*
 
-EXCLUDE_SYMBOLS        = QAbstractAspect \
+EXCLUDE_SYMBOLS        = QtDataSync::__helpertypes::* \
+						 QtDataSync::JsonObject \
+						 \
+						 QAbstractAspect \
 						 QBasicAtomicInteger \
 						 QBasicAtomicPointer \
+						 QBasicMutex \
 						 QComponent \
 						 QEntity \
 						 QFutureWatcherBase \
@@ -937,8 +944,7 @@ EXCLUDE_SYMBOLS        = QAbstractAspect \
 						 QNodeCreatedChangeBase \
 						 QPaintEngineEx \
 						 QQmlExtensionInterface \
-						 QTechniqueFilter \
-						 QBasicMutex
+						 QTechniqueFilter
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include

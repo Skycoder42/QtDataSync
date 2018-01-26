@@ -10,6 +10,7 @@
 #	define Q_DATASYNC_EXPORT Q_DECL_IMPORT
 #endif
 
+//! The primary namespace of the QtDataSync library
 namespace QtDataSync {
 //! The default setup name
 extern Q_DATASYNC_EXPORT const QString DefaultSetup;
