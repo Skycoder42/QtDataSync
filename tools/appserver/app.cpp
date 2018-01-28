@@ -207,12 +207,20 @@ void App::onSignal(int signal)
 
 QString App::findConfig() const
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 	auto configPath = qEnvironmentVariable("QDSAPP_CONFIG_FILE");//NOTE document
+#else
+	auto configPath = QString::fromUtf8(qgetenv("QDSAPP_CONFIG_FILE"));
+#endif
 	if(!configPath.isEmpty())
 		return configPath;
 
 	//if not set: empty list
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 	auto tmpPaths = qEnvironmentVariable("QDSAPP_CONFIG_PATH").split(QDir::listSeparator(), QString::SkipEmptyParts);//NOTE document
+#else
+	auto tmpPaths = QString::fromUtf8(qgetenv("QDSAPP_CONFIG_PATH")).split(QDir::listSeparator(), QString::SkipEmptyParts);
+#endif
 	tmpPaths.append(QStandardPaths::standardLocations(QStandardPaths::ConfigLocation));
 	tmpPaths.append(QStandardPaths::standardLocations(QStandardPaths::GenericConfigLocation));
 #ifdef Q_OS_UNIX

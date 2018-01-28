@@ -72,7 +72,11 @@ bool Setup::keystoreAvailable(const QString &provider)
 QString Setup::defaultKeystoreProvider()
 {
 	//NOTE add envvar to doc
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 	auto prefered = qEnvironmentVariable("QTDATASYNC_KEYSTORE");
+#else
+	auto prefered = QString::fromUtf8(qgetenv("QTDATASYNC_KEYSTORE"));
+#endif
 	if(!prefered.isEmpty())
 		RETURN_IF_AVAILABLE(prefered);
 #ifdef Q_OS_WIN

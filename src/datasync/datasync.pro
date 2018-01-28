@@ -99,5 +99,13 @@ win32 {
 	QMAKE_TARGET_BUNDLE_PREFIX = "de.skycoder42."
 }
 
+qpmx_ts_target.path = $$[QT_INSTALL_TRANSLATIONS]
+qpmx_ts_target.depends += lrelease
+INSTALLS += qpmx_ts_target
+
 !ReleaseBuild:!DebugBuild:!system(qpmx -d $$shell_quote($$_PRO_FILE_PWD_) --qmake-run init $$QPMX_EXTRA_OPTIONS $$shell_quote($$QMAKE_QMAKE) $$shell_quote($$OUT_PWD)): error(qpmx initialization failed. Check the compilation log for details.)
 else: include($$OUT_PWD/qpmx_generated.pri)
+
+#replace template qm by ts
+qpmx_ts_target.files -= $$OUT_PWD/$$QPMX_WORKINGDIR/qtdatasync_template.qm
+qpmx_ts_target.files += translations/qtdatasync_template.ts
