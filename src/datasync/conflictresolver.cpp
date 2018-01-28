@@ -36,11 +36,6 @@ QSettings *ConflictResolver::settings() const
 	return d->settings;
 }
 
-const QJsonSerializer *ConflictResolver::serializer() const
-{
-	return d->defaults.serializer();
-}
-
 // ------------- Private Implementation -------------
 
 ConflictResolverPrivate::ConflictResolverPrivate() :

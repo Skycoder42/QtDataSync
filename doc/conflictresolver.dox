@@ -1,0 +1,58 @@
+/*!
+@class QtDataSync::ConflictResolver
+
+When a merge conflict is detected (both local and remote have modified data, with none seeming to
+be newer than the other) by default one of the two is choosen "by fate" by comparing their
+checksums - which is basically a random decision. If you need more control about how such conflicts
+are treated, you can reimplement this class and pass it to the setup.
+
+@sa Setup::conflictResolver, ConflictResolver::resolveConflict, GenericConflictResolver
+*/
+
+/*!
+@fn QtDataSync::ConflictResolver::name
+
+@returns The name to be used for logging
+
+@sa ConflictResolver::logger, Logger
+*/
+
+/*!
+@fn QtDataSync::ConflictResolver::resolveConflict
+
+@param typeId The id of the type of which the two conflicted objects are
+@param data1 The first dataset
+@param data2 The second dataset
+@returns The independent merge result of the two datasets
+@throws QException In case data corruption was detected an exception can be thrown to abort the
+synchronization. This will put the engine in an (unrecoverable) error state.
+
+Must be implemented as the main method of the resolver. The method *must* always return something.
+If you find that you cannot decide how to merge, simply return a default constructed json object.
+In that case, the library will ignore the result and proceed to merge as if no conflict resolver
+was present.
+
+@warning This method **must** be deterministic and independent of the parameter order. This means
+if you assume you have 2 objects, no matter at what point in time and in which order they are
+passed to this method, the returned object **must** always be the same. If thats not the case it
+can lead to infinite synchronisation loops.
+
+@sa ConflictResolver, GenericConflictResolver::resolveConflict
+*/
+
+
+
+/*!
+@class QtDataSync::GenericConflictResolver
+
+@tparam Args The types this resolver should be able resolve conflicts for
+
+The class is basically a wrapper around the ConflictResolver that deserializes all incoming data
+and that passes the objects to a generic resolveConflict() method. The result is then serialized
+again and returned. In order to handle a type it must be passed as a template parameter. The
+resulting generic class will have one pure virtual method for any passed type you need to
+reimplement. In order to handle types that have not been captured that way you can reimplement the
+resolveUnknownConflict() method.
+
+@sa ConflictResolver, QJsonSerializer
+*/
