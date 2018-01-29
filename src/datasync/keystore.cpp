@@ -6,7 +6,7 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT KeyStorePrivate
 {
 public:
-	KeyStorePrivate(const Defaults &defaults);
+	explicit KeyStorePrivate(const Defaults &defaults);
 	Defaults defaults;
 };
 }

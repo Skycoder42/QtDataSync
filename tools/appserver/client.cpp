@@ -38,7 +38,7 @@ using std::tie;
 class MessageException : public QException
 {
 public:
-	MessageException(const QByteArray &message);
+	explicit MessageException(const QByteArray &message);
 
 	const char *what() const noexcept override;
 	void raise() const override;

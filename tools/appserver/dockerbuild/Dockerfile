@@ -1,9 +1,10 @@
+LABEL maintainer="skycoder42.de@gmx.de"
 FROM ubuntu:rolling #rolling until bionic was released. Qt 5.5 is just to old
 
-ADD install.sh /tmp/install.sh
+COPY install.sh /tmp/install.sh
 RUN /tmp/install.sh
 
-ADD env_start.sh /usr/bin/env_start.sh
+COPY env_start.sh /usr/bin/env_start.sh
 # create env vars & ready for usage
 ENV QDSAPP_CONFIG_FILE=/etc/qdsapp.conf
 # must be set: ENV QDSAPP_DATABASE_HOST=

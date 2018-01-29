@@ -24,7 +24,7 @@ namespace {
 class Query : public QSqlQuery
 {
 public:
-	Query(QSqlDatabase db);
+	explicit Query(QSqlDatabase db);
 
 	void prepare(const QString &query);
 	void exec();
