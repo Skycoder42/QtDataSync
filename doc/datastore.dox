@@ -1,0 +1,327 @@
+/*!
+@class QtDataSync::DataStore
+
+The class is used as base for all other stores. It provides a generic API to access the store that
+is simple to use, as well as a the same API for use with metatype ids and qvariant to access the
+store non generically. All access is atomic and synchronous. A single store can only be used from
+within one thread, but you can create a store on any thread. It also provides change signals to
+notify you in case a dataset has been changed.
+
+@sa DataTypeStore, CachingDataTypeStore, DataStoreModel
+*/
+
+/*!
+@fn QtDataSync::DataStore::DataStore(QObject *)
+
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the default setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::DataStore::DataStore(const QString &, QObject *)
+
+@param setupName The name of the setup to connect to
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the given setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::DataStore::count(int) const
+
+@param metaTypeId The QMetaType type id of the type
+@returns The number of datasets of the given type stored
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::keys
+*/
+
+/*!
+@fn QtDataSync::DataStore::count() const
+
+@tparam T The type to be counted
+@returns The number of datasets of the given type stored
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::keys
+*/
+
+/*!
+@fn QtDataSync::DataStore::keys(int) const
+
+@param metaTypeId The QMetaType type id of the type
+@returns A list of all keys stored for the given type
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::count, DataStore::loadAll, DataStore::search, DataStore::load
+*/
+
+/*!
+@fn QtDataSync::DataStore::keys() const
+
+@tparam T The type to load keys for
+@returns A list of all keys stored for the given type
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::count, DataStore::loadAll, DataStore::search, DataStore::load
+*/
+
+/*!
+@fn QtDataSync::DataStore::loadAll(int) const
+
+@param metaTypeId The QMetaType type id of the type
+@returns A list of all datasets stored for the given type
+@throws LocalStoreException In case of an internal error
+
+@attention Depending on how many data is stored for a given type, this method can take long to
+return and cosume very much memory. For most situations however, this is not the case
+
+@sa DataStore::iterate, DataStore::search, DataStore::load, DataStore::keys
+*/
+
+/*!
+@fn QtDataSync::DataStore::loadAll() const
+
+@tparam T The type to load the datasets for
+@returns A list of all datasets stored for the given type
+@throws LocalStoreException In case of an internal error
+
+@attention Depending on how many data is stored for a given type, this method can take long to
+return and cosume very much memory. For most situations however, this is not the case
+
+@sa DataStore::iterate, DataStore::search, DataStore::load, DataStore::keys
+*/
+
+/*!
+@fn QtDataSync::DataStore::load(int, const QString &) const
+
+@param metaTypeId The QMetaType type id of the type
+@param key The key of the dataset to be loaded
+@returns The dataset that was found for the given type and key
+@throw NoDataException In case no dataset for the given type and key was found
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::loadAll, DataStore::keys, DataStore::iterate
+*/
+
+/*!
+@fn QtDataSync::DataStore::load(const QString &) const
+
+@tparam T The type to load the dataset for
+@param key The key of the dataset to be loaded
+@returns The dataset that was found for the given type and key
+@throws NoDataException In case no dataset for the given type and key was found
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::loadAll, DataStore::keys, DataStore::iterate
+*/
+
+/*!
+@fn QtDataSync::DataStore::load(int, const QVariant &) const
+@copydetails DataStore::load(int, const QString &) const
+@note The given QVariant must be convertible to a QString
+*/
+
+/*!
+@fn QtDataSync::DataStore::load(const K &) const
+@tparam K The type of the key to be returned as list
+@copydetails DataStore::load(const QString &) const
+@note The given type K must be convertible to a QString
+*/
+
+/*!
+@fn QtDataSync::DataStore::save(int, QVariant)
+
+@param metaTypeId The QMetaType type id of the type
+@param value The dataset to be stored
+@throws InvalidDataException In case the given type cannot be stored
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::remove, DataStore::load, DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataStore::save(const T &)
+
+@tparam T The type to load the dataset for
+@param value The dataset to be stored
+@throws InvalidDataException In case the given type cannot be stored
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::remove, DataStore::load, DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataStore::remove(int, const QString &)
+
+@param metaTypeId The QMetaType type id of the type
+@param key The key of the dataset to be removed
+@returns `true` in case the dataset was removed, `false` if it did not exist
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::save, DataStore::clear, DataStore::load, DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataStore::remove(const QString &)
+
+@tparam T The type to remove the dataset from
+@param key The key of the dataset to be removed
+@returns `true` in case the dataset was removed, `false` if it did not exist
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::save, DataStore::clear, DataStore::load, DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataStore::remove(int, const QVariant &)
+@copydetails DataStore::remove(int, const QString &)
+@note The given QVariant must be convertible to a QString
+*/
+
+/*!
+@fn QtDataSync::DataStore::remove(const K &)
+@tparam K The type of the key of the dataset to be removed
+@copydetails DataStore::remove(const QString &)
+@note The given type K must be convertible to a QString
+*/
+
+/*!
+@fn QtDataSync::DataStore::update(int, QObject *) const
+
+@param metaTypeId The QMetaType type id of the type. Must be the id of a type that extends
+QObject and is a pointer
+@param object A pointer to the object to load the data into
+@throws NoDataException In case no dataset for the given type and key was found
+@throws InvalidDataException In case the given type cannot be stored
+@throws LocalStoreException In case of an internal error
+
+This method extracts the key from the passed object and uses load() to load the data. Then it
+simply updates all the objects properties to the values that have been loaded. This way you can
+load changes for an object from the store without having to exchange the pointer. In addition, all
+change signals for updated properties will be emitted.
+
+@sa DataStore::load, DataStore::save, DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataStore::update(T) const
+
+@tparam T The type to load the dataset for. Must extend QObject and be a pointer
+@param object A pointer to the object to load the data into
+@throws NoDataException In case no dataset for the given type and key was found
+@throws InvalidDataException In case the given type cannot be stored
+@throws LocalStoreException In case of an internal error
+
+This method extracts the key from the passed object and uses load() to load the data. Then it
+simply updates all the objects properties to the values that have been loaded. This way you can
+load changes for an object from the store without having to exchange the pointer. In addition, all
+change signals for updated properties will be emitted.
+
+@sa DataStore::load, DataStore::save, DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataStore::search(int, const QString &, SearchMode) const
+
+@param metaTypeId The QMetaType type id of the type
+@param query A search query to be used to find fitting datasets. Format depends on mode
+@param mode Specifies how to interpret the search `query` See DataStore::SearchMode documentation
+@returns A list with all datasets that keys matched the search query for the given type
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::SearchMode, DataStore::load, DataStore::keys, DataStore::loadAll
+*/
+
+/*!
+@fn QtDataSync::DataStore::search(const QString &, SearchMode) const
+
+@tparam T The type to be searched for datasets
+@param query A search query to be used to find fitting datasets. Format depends on mode
+@param mode Specifies how to interpret the search `query` See DataStore::SearchMode documentation
+@returns A list with all datasets that keys matched the search query for the given type
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::SearchMode, DataStore::load, DataStore::keys, DataStore::loadAll
+*/
+
+/*!
+@fn QtDataSync::DataStore::iterate(int, const std::function<bool(QVariant)> &) const
+
+@param metaTypeId The QMetaType type id of the type
+@param iterator An iterator function that is called for every dataset of the given type
+@throws LocalStoreException In case of an internal error
+
+Semantics of the `iterator`:
+- **Parameter 1:** The loaded dataset
+- **Returns:** `true` to continue the iteration, `false` to prematurely abort it
+
+@sa DataStore::search, DataStore::keys, DataStore::loadAll
+*/
+
+/*!
+@fn QtDataSync::DataStore::iterate(const std::function<bool(T)> &) const
+
+@tparam T The type to be iterated over
+@param iterator An iterator function that is called for every dataset of the given type
+@throws LocalStoreException In case of an internal error
+
+Semantics of the `iterator`:
+- **Parameter 1:** The loaded dataset
+- **Returns:** `true` to continue the iteration, `false` to prematurely abort it
+
+@sa DataStore::search, DataStore::keys, DataStore::loadAll
+*/
+
+/*!
+@fn QtDataSync::DataStore::clear(int)
+
+@param metaTypeId The QMetaType type id of the type
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::dataCleared, DataStore::remove
+*/
+
+/*!
+@fn QtDataSync::DataStore::clear()
+
+@tparam T The type to be cleard
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::dataCleared, DataStore::remove
+*/
+
+/*!
+@fn QtDataSync::DataStore::dataChanged()
+
+@param metaTypeId The QMetaType type id of the dataset that was changed
+@param key The key of the dataset that was changed
+@param deleted `true` if the dataset was deleted, `false` if it was created or changed
+
+Is emitted for any local or remote data change. For local changes, it is emitted from within the
+method that performs the changed. For passive setups or remote changes, it is emitted as queued
+signal instead.
+
+@sa DataStore::save, DataStore::remove
+*/
+
+/*!
+@fn QtDataSync::DataStore::dataCleared()
+
+@param metaTypeId The QMetaType type id of the type that was cleard
+
+This signal is only emitted when a type was completly removed locally. If data was removed by a
+remote, dataChanged() will instead be called for every single remove dataset. Locally, only this
+signal will be emitted.
+
+@sa DataStore::clear, DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataStore::dataResetted()
+
+This one is only emitted on account resets where the whole store (i.e. all types in it) have been
+deleted. It indicates a total reset of the store.
+
+@sa DataStore::clear, AccountManager::resetAccount, AccountManager::importAccount,
+AccountManager::importAccountTrusted
+*/

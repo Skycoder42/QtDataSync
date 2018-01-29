@@ -108,30 +108,7 @@ bool DataStore::remove(int metaTypeId, const QString &key)
 	return d->store->remove({d->typeName(metaTypeId), key});
 }
 
-QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode mode) const
-{
-	auto jsonList = d->store->find(d->typeName(metaTypeId), query, mode);
-	QVariantList resList;
-	foreach(auto val, jsonList)
-		resList.append(d->serializer->deserialize(val, metaTypeId));
-	return resList;
-}
-
-void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
-{
-	auto keyList = keys(metaTypeId);
-	foreach(auto key, keyList) {
-		if(!iterator(load(metaTypeId, key)))
-			break;
-	}
-}
-
-void DataStore::clear(int metaTypeId)
-{
-	d->store->clear(d->typeName(metaTypeId));
-}
-
-void DataStore::update(int metaTypeId, QObject *object)
+void DataStore::update(int metaTypeId, QObject *object) const
 {
 	auto typeName = d->typeName(metaTypeId);
 	auto meta = QMetaType::metaObjectForType(metaTypeId);
@@ -158,6 +135,30 @@ void DataStore::update(int metaTypeId, QObject *object)
 		prop.write(object, prop.read(nObj));
 	}
 	nObj->deleteLater();
+}
+
+QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode mode) const
+{
+	auto jsonList = d->store->find(d->typeName(metaTypeId), query, mode);
+	QVariantList resList;
+	foreach(auto val, jsonList)
+		resList.append(d->serializer->deserialize(val, metaTypeId));
+	return resList;
+}
+
+void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
+{
+	//TODO make atomic
+	auto keyList = keys(metaTypeId);
+	foreach(auto key, keyList) {
+		if(!iterator(load(metaTypeId, key)))
+			break;
+	}
+}
+
+void DataStore::clear(int metaTypeId)
+{
+	d->store->clear(d->typeName(metaTypeId));
 }
 
 // ------------- PRIVATE IMPLEMENTATION -------------
