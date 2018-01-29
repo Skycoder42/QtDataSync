@@ -68,7 +68,10 @@ public:
 
 	//! Returns the object at the given index
 	Q_INVOKABLE QVariant object(const QModelIndex &index) const;
-	//! @copybrief DataStoreModel::object(const QModelIndex &index) const
+	/*! @copybrief DataStoreModel::object(const QModelIndex &) const
+	 * @tparam T The type of object to return. Must match DataStoreModel::typeId
+	 * @copydetails DataStoreModel::object(const QModelIndex &) const
+	 */
 	template <typename T>
 	inline T object(const QModelIndex &index) const;
 	//! Loads the object at the given index from the store via DataStore::load

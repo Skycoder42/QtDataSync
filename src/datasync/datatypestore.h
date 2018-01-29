@@ -1,6 +1,8 @@
 #ifndef QTDATASYNC_DATATYPESTORE_H
 #define QTDATASYNC_DATATYPESTORE_H
 
+#include <type_traits>
+
 #include <QtCore/qobject.h>
 
 #include "QtDataSync/qtdatasync_global.h"
@@ -8,22 +10,26 @@
 
 namespace QtDataSync {
 
+//! Base class for all DataTypeStore like classes
 class Q_DATASYNC_EXPORT DataTypeStoreBase : public QObject
 {
 	Q_OBJECT
 
 public:
+	//! Default constructor
 	explicit DataTypeStoreBase(QObject *parent = nullptr);
 
+	//! Returns a reference to the internally used DataStore
 	virtual DataStore *store() const = 0;
 
 Q_SIGNALS:
 	//! Will be emitted when a dataset in the store has changed
 	void dataChanged(const QString &key, const QVariant &value);
-	//! Will be emitted when the store has be reset (or cleared)
+	//! Will be emitted when the store was reset or cleared
 	void dataResetted();
 };
 
+//! A wrapper around the DataStore limited to one type to make access simpler
 template <typename TType, typename TKey = QString>
 class DataTypeStore : public DataTypeStoreBase
 {
@@ -39,24 +45,29 @@ public:
 
 	DataStore *store() const override;
 
-	//! Counts the number of datasets in the store
-	int count() const;
-	//! Returns all keys in the store
+	//! @copybrief DataStore::count() const
+	qint64 count() const;
+	//! @copybrief DataStore::keys() const
 	QList<TKey> keys() const;
-	//! Loads all existing datasets
+	//! @copybrief DataStore::loadAll() const
 	QList<TType> loadAll() const;
-	//! Loads the dataset with the given key
+	//! @copybrief DataStore::load(const K &) const
 	TType load(const TKey &key) const;
-	//! Saves the given dataset
+	//! @copybrief DataStore::save(const T &)
 	void save(const TType &value);
-	//! Removes the dataset with the given key
+	//! @copybrief DataStore::remove(const K &)
 	bool remove(const TKey &key);
+	//! @copybrief DataStore::update(T) const
+	template <typename TX = TType>
+	void update(std::enable_if_t<__helpertypes::is_object<TX>::value, TX> object) const;
+	//! @copybrief DataStore::search(const QString &, SearchMode) const
 	QList<TType> search(const QString &query, DataStore::SearchMode mode = DataStore::RegexpMode);
-	//! Asynchronously iterates over all existing datasets of the given types
+	//! @copybrief DataStore::iterate(const std::function<bool(T)> &) const
 	void iterate(const std::function<bool(TType)> &iterator);
+	//! @copybrief DataStore::clear()
 	void clear();
 
-	//! Shortcut to convert a string to the store key type
+	//! Shortcut to convert a string to the stores key type
 	static TKey toKey(const QString &key);
 
 private:
@@ -66,45 +77,52 @@ private:
 	void evalDataCleared(int metaTypeId);
 };
 
+//! A DataTypeStore that caches all loaded data internally for faster access
 template <typename TType, typename TKey = QString>
 class CachingDataTypeStore : public DataTypeStoreBase
 {
 	static_assert(__helpertypes::is_gadget<TType>::value, "TType must be a Q_GADGET");
 
 public:
+	//! Typedef for QHash::const_iterator
 	typedef typename QHash<TKey, TType>::const_iterator const_iterator;
+	//! Typedef for QHash::const_iterator
 	typedef const_iterator iterator;
 
-	//! Constructs a store for the default setup
+	//! @copydoc DataTypeStore::DataTypeStore(QObject*)
 	explicit CachingDataTypeStore(QObject *parent = nullptr);
-	//! Constructs a store for the given setup
+	//! @copydoc DataTypeStore::DataTypeStore(const QString &, QObject*)
 	explicit CachingDataTypeStore(const QString &setupName, QObject *parent = nullptr);
-	//! Constructs a store for the given setup
+	//! @copydoc DataTypeStore::DataTypeStore(DataStore *, QObject*)
 	explicit CachingDataTypeStore(DataStore *store, QObject *parent = nullptr);
 
 	DataStore *store() const override;
 
-	//! Counts the number of datasets in the store
-	int count() const;
-	//! Returns all keys in the store
+	//! @copybrief DataTypeStore::count
+	qint64 count() const;
+	//! @copybrief DataTypeStore::keys
 	QList<TKey> keys() const;
-	//!@copydoc CachingDataTypeStore::contains
+	//! Checks if a dataset for the given key exists
 	bool contains(const TKey &key) const;
-	//! Loads all existing datasets
+	//! @copybrief DataTypeStore::loadAll
 	QList<TType> loadAll() const;
-	//! Loads the dataset with the given key
+	//! @copybrief DataTypeStore::load
 	TType load(const TKey &key) const;
-	//! Saves the given dataset
+	//! @copydoc DataTypeStore::save
 	void save(const TType &value);
-	//! Removes the dataset with the given key
+	//! @copydoc DataTypeStore::remove
 	bool remove(const TKey &key);
+	//! Returns the dataset for the given key and removes it from the store
 	TType take(const TKey &key);
+	//! @copydoc DataTypeStore::clear
 	void clear();
 
+	//! Returns the begin iterator of the internal hash
 	const_iterator begin() const;
+	//! Returns the end iterator of the internal hash
 	const_iterator end() const;
 
-	//! Shortcut to convert a string to the store key type
+	//! @copydoc DataTypeStore::toKey
 	static TKey toKey(const QString &key);
 
 private:
@@ -116,26 +134,29 @@ private:
 	void evalDataResetted();
 };
 
+//! @copydoc QtDataSync::CachingDataTypeStore
 template <typename TType, typename TKey>
 class CachingDataTypeStore<TType*, TKey> : public DataTypeStoreBase
 {
 	static_assert(__helpertypes::is_object<TType*>::value, "TType must inherit QObject");
 
 public:
+	//! @copybrief CachingDataTypeStore::const_iterator
 	typedef typename QHash<TKey, TType*>::const_iterator const_iterator;
+	//! @copybrief CachingDataTypeStore::iterator
 	typedef const_iterator iterator;
 
-	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(QObject *, bool)
+	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(QObject *)
 	explicit CachingDataTypeStore(QObject *parent = nullptr);
-	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(const QString &, QObject *, bool)
+	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(const QString &, QObject *)
 	explicit CachingDataTypeStore(const QString &setupName, QObject *parent = nullptr);
-	//! Constructs a store for the given setup
+	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(DataStore*, QObject *)
 	explicit CachingDataTypeStore(DataStore *store, QObject *parent = nullptr);
 
 	DataStore *store() const override;
 
 	//!@copydoc CachingDataTypeStore::count
-	int count() const;
+	qint64 count() const;
 	//!@copydoc CachingDataTypeStore::keys
 	QList<TKey> keys() const;
 	//!@copydoc CachingDataTypeStore::contains
@@ -148,10 +169,14 @@ public:
 	void save(TType *value);
 	//!@copydoc CachingDataTypeStore::remove
 	bool remove(const TKey &key);
+	//!@copydoc CachingDataTypeStore::take
 	TType* take(const TKey &key);
+	//!@copydoc CachingDataTypeStore::clear
 	void clear();
 
+	//!@copydoc CachingDataTypeStore::begin
 	const_iterator begin() const;
+	//!@copydoc CachingDataTypeStore::end
 	const_iterator end() const;
 
 	//!@copydoc CachingDataTypeStore::toKey
@@ -200,7 +225,7 @@ DataStore *DataTypeStore<TType, TKey>::store() const
 }
 
 template <typename TType, typename TKey>
-int DataTypeStore<TType, TKey>::count() const
+qint64 DataTypeStore<TType, TKey>::count() const
 {
 	return _store->count<TType>();
 }
@@ -233,6 +258,13 @@ template <typename TType, typename TKey>
 bool DataTypeStore<TType, TKey>::remove(const TKey &key)
 {
 	return _store->remove<TType>(key);
+}
+
+template<typename TType, typename TKey>
+template <typename TX>
+void DataTypeStore<TType, TKey>::update(std::enable_if_t<__helpertypes::is_object<TX>::value, TX> object) const
+{
+	_store->update<TType>(object);
 }
 
 template<typename TType, typename TKey>
@@ -316,7 +348,7 @@ DataStore *CachingDataTypeStore<TType, TKey>::store() const
 }
 
 template <typename TType, typename TKey>
-int CachingDataTypeStore<TType, TKey>::count() const
+qint64 CachingDataTypeStore<TType, TKey>::count() const
 {
 	return _data.size();
 }
@@ -462,7 +494,7 @@ DataStore *CachingDataTypeStore<TType*, TKey>::store() const
 }
 
 template <typename TType, typename TKey>
-int CachingDataTypeStore<TType*, TKey>::count() const
+qint64 CachingDataTypeStore<TType*, TKey>::count() const
 {
 	return _data.size();
 }

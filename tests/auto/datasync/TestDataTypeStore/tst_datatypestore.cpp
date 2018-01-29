@@ -200,31 +200,45 @@ static void dataTypeStoreCompiletest_DO_NOT_CALL()
 	});
 	t1.clear();
 
-	CachingDataTypeStore<TestData, int> t2;
+	DataTypeStore<TestObject*, int> t2;
 	t2.count();
 	t2.keys();
-	t2.contains(42);
 	t2.load(0);
 	t2.loadAll();
-	t2.save(TestData());
+	t2.save(nullptr);
 	t2.remove(5);
-	t2.take(4);
+	t2.update(nullptr);
+	t2.search(QStringLiteral("47"));
+	t2.iterate([](TestObject*) {
+		return false;
+	});
 	t2.clear();
-	t2.begin();
-	t2.end();
 
-	CachingDataTypeStore<TestObject*, int> t3;
+	CachingDataTypeStore<TestData, int> t3;
 	t3.count();
 	t3.keys();
 	t3.contains(42);
 	t3.load(0);
 	t3.loadAll();
-	t3.save(nullptr);
+	t3.save(TestData());
 	t3.remove(5);
 	t3.take(4);
 	t3.clear();
 	t3.begin();
 	t3.end();
+
+	CachingDataTypeStore<TestObject*, int> t4;
+	t4.count();
+	t4.keys();
+	t4.contains(42);
+	t4.load(0);
+	t4.loadAll();
+	t4.save(nullptr);
+	t4.remove(5);
+	t4.take(4);
+	t4.clear();
+	t4.begin();
+	t4.end();
 }
 
 QTEST_MAIN(TestDataTypeStore)

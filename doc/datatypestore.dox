@@ -1,0 +1,275 @@
+/*!
+@class QtDataSync::DataTypeStoreBase
+
+@note This is an internal class and should not directly be used. It simpyl exists in order to be
+able to have the change signals for the generic classes that extend this class.
+
+Use instead:
+- DataTypeStore
+- CachingDataTypeStore
+*/
+
+/*!
+@fn QtDataSync::DataTypeStoreBase::store
+
+@returns A reference to the internally used store
+
+@note Most models do own their own datastore (only not the case if the store was passed via the
+constructor). The most returned stores are thus deleted as soon as the model gets destroyed.
+*/
+
+/*!
+@fn QtDataSync::DataTypeStoreBase::dataChanged()
+
+@param key The key of the dataset that was changed
+@param value The changed data. If data was deleted it is an invalid QVariant. For changes, the
+variant contains the changed data.
+
+Is emitted for any local or remote data change. For local changes, it is emitted from within the
+method that performs the changed. For passive setups or remote changes, it is emitted as queued
+signal instead.
+
+@sa DataStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataTypeStoreBase::dataResetted()
+
+This signal is emitted when a type was completly removed locally. If data was removed by a remote,
+dataChanged() will instead be called for every single remove dataset. Locally, only this signal
+will be emitted. This is also the case on account resets where the whole store (i.e. all types in
+it) have been deleted. It indicates a total reset of the store.
+
+@sa DataStore::dataCleared, DataStore::dataResetted
+*/
+
+
+
+/*!
+@class QtDataSync::DataTypeStore
+
+@tparam TType The type of datasets this store should handle
+@tparam TKey The type of the user property of the TType datatype. Must be convertible from and to
+QString
+
+This class simplifies the API of the DataStore by allowing access to just one specific datatype.
+This way the type does not have to be specified for every method call, and it's generally cleaner
+to use. As long as you only need a single type, you should prefer this class over the DataStore
+
+@sa DataStore, CachingDataTypeStore
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::DataTypeStore(QObject *)
+
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the default setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::DataTypeStore(const QString &, QObject *)
+
+@param setupName The name of the setup to connect to
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the given setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::DataTypeStore(DataStore *, QObject *)
+
+@param store The store to be used by the model
+@param parent The parent object
+
+@attention The type store does **not** take ownership of the passed store. Thus, the store must
+stay valid as long as the model exists.
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::count
+
+@returns The number of datasets of the given type stored
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::keys
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::keys
+
+@returns A list of all keys stored for the given type
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::count, DataTypeStore::loadAll, DataTypeStore::search, DataTypeStore::load
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::loadAll
+
+@returns A list of all datasets stored for the given type
+@throws LocalStoreException In case of an internal error
+
+@attention Depending on how many data is stored for a given type, this method can take long to
+return and cosume very much memory. For most situations however, this is not the case
+
+@sa DataTypeStore::iterate, DataTypeStore::search, DataTypeStore::load, DataTypeStore::keys
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::load
+
+@param key The key of the dataset to be loaded
+@returns The dataset that was found for the given type and key
+@throws NoDataException In case no dataset for the given type and key was found
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::loadAll, DataTypeStore::keys, DataTypeStore::iterate
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::save
+
+@param value The dataset to be stored
+@throws InvalidDataException In case the given type cannot be stored
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::remove, DataTypeStore::load, DataTypeStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::remove
+
+@param key The key of the dataset to be removed
+@returns `true` in case the dataset was removed, `false` if it did not exist
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::save, DataTypeStore::clear, DataTypeStore::load, DataTypeStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::update
+
+@tparam TX Must be the same as TType. Required for the enable if statement
+@param object A pointer to the object to load the data into
+@throws NoDataException In case no dataset for the given type and key was found
+@throws InvalidDataException In case the given type cannot be stored
+@throws LocalStoreException In case of an internal error
+
+@note This method is only defined if TType is a pointer to a class that extends QObject
+
+This method extracts the key from the passed object and uses load() to load the data. Then it
+simply updates all the objects properties to the values that have been loaded. This way you can
+load changes for an object from the store without having to exchange the pointer. In addition, all
+change signals for updated properties will be emitted.
+
+@sa DataTypeStore::load, DataTypeStore::save, DataTypeStore::dataChanged
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::search
+
+@param query A search query to be used to find fitting datasets. Format depends on mode
+@param mode Specifies how to interpret the search `query` See DataStore::SearchMode documentation
+@returns A list with all datasets that keys matched the search query for the given type
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::SearchMode, DataTypeStore::load, DataTypeStore::keys, DataTypeStore::loadAll
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::iterate
+
+@param iterator An iterator function that is called for every dataset of the given type
+@throws LocalStoreException In case of an internal error
+
+Semantics of the `iterator`:
+- **Parameter 1:** The loaded dataset
+- **Returns:** `true` to continue the iteration, `false` to prematurely abort it
+
+@sa DataTypeStore::search, DataTypeStore::keys, DataTypeStore::loadAll
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::clear
+
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::dataResetted, DataTypeStore::remove
+*/
+
+/*!
+@fn QtDataSync::DataTypeStore::toKey
+
+@param key The key as a string
+@returns The key as a TKey type
+
+The conversion is performed by using QVariant::convert
+*/
+
+
+
+/*!
+@class QtDataSync::CachingDataTypeStore
+
+The caching store is an extension to the DataTypeStore. Instead of making requests to the store for
+any operation, the caching store loads all datasets for one type once on it's creation. All changes
+you make are directly passed to the store, which means they can trigger exceptions and are
+permanent, if successful. Changes in the main store are automatically detected and applied to the
+cached data. If a change operation fails, the cache will not be changed as well.
+
+The main advantage here is that read operations won't access the store but instead used the cached
+data and thus are much faster and cannot fail. This store is most useful when doing much work with
+the data with frequent accesses.
+
+@attention The constructors will call DataStore::loadAll to load all data of the stores type
+initially. This can be a potentially long operation, and thus you should only use this store if the
+number of datasets does not get extremly big.
+
+One additional feature of the store is that it provides read-only STL iterators for easy access.
+Using it with foreach however is currently not possible, as the store is not a value type.
+
+@sa DataStore, DataStore::loadAll, DataTypeStore
+*/
+
+/*!
+@fn QtDataSync::CachingDataTypeStore::count
+
+@returns The number of datasets available in the cache
+
+@sa CachingDataTypeStore::keys
+*/
+
+/*!
+@fn QtDataSync::CachingDataTypeStore::keys
+
+@returns A list of all keys of all cached datasets
+
+@sa CachingDataTypeStore::count, CachingDataTypeStore::loadAll, CachingDataTypeStore::contains,
+CachingDataTypeStore::load
+*/
+
+/*!
+@fn QtDataSync::CachingDataTypeStore::loadAll
+
+@returns A list of all cached datasets
+
+Unlike with the DataStore or DataTypeStore, this method will not take extremly long blocking the
+store, as it only needs to pass the cached values.
+
+@sa CachingDataTypeStore::begin, CachingDataTypeStore::end, CachingDataTypeStore::load,
+CachingDataTypeStore::keys
+*/
+
+/*!
+@fn QtDataSync::CachingDataTypeStore::take
+
+@param key The key of the dataset to be taken
+@returns The dataset for the given type and key if currently cached, a default constructed value
+otherwise
+@throws LocalStoreException In case of an internal error
+
+@note If the data you are trying to take is not cached, nothing will be done. If it is cached, it
+is removed from the cache *and* the permanent store. If that remove operation fails with an
+exception, neither happens.
+
+@sa CachingDataTypeStore::loadAll, CachingDataTypeStore::keys, CachingDataTypeStore::contains
+*/

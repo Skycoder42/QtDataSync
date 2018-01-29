@@ -103,16 +103,64 @@ automatically passed to the store and thus are permanent data changes.
 */
 
 /*!
+@fn QtDataSync::DataStoreModel::DataStoreModel(QObject *)
+
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the default setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::DataStoreModel::DataStoreModel(const QString &, QObject *)
+
+@param setupName The name of the setup to connect to
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the given setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::DataStoreModel::DataStoreModel(DataStore *, QObject *)
+
+@param store The store to be used by the model
+@param parent The parent object
+
+@attention The model does **not** take ownership of the passed store. Thus, the store must stay
+valid as long as the model exists.
+*/
+
+/*!
+@fn QtDataSync::DataStoreModel::store
+
+@returns A reference to the internally used store
+
+@note Most models do own their own datastore (only not the case if the store was passed via the
+constructor). The most returned stores are thus deleted as soon as the model gets destroyed.
+*/
+
+/*!
+@fn QVariant QtDataSync::DataStoreModel::object(const QModelIndex &) const
+
+@param index The model index to return the object for
+@returns The data at the index, or a default constructed value
+
+@warning When working with QObjects, the method is potentially dangerous, as the returned object
+is owend by the model, and can be deleted any time. It is fine to use the returned object in a
+local scope. Do not leave a local scope, or use QPointer to be able to react in case the object
+gets deleted. To get a copy that you own, use the loadObject() method.
+
+@sa DataStoreModel::loadObject, DataStore::data
+*/
+
+/*!
 @fn QVariant QtDataSync::DataStoreModel::loadObject(const QModelIndex &) const
 
 @param index The model index to return the object for
-@returns The data at the index, or an invalid variant
+@returns The data at the index, or a default constructed value
+@throw NoDataException In case no dataset for the given type and key was found
+@throws LocalStoreException In case of an internal error
 
-@warning When working with QObjects, the method is potentially dangerous, as the
-returned object is owend by the model, and can be deleted any time. It is fine
-to use the returned object in a local scope. Do not leave a local scope,
-or use QPointer to be able to react in case the object gets deleted. To get
-a copy that you own, use the loadObject() method.
+The method uses the store() to load a new instance of the data using the very key of the dataset
+the given index identifies. The returned data is owned by the caller. For more details, check
+DataStore::load.
 
 @sa DataStoreModel::object, DataStore::load
 */
