@@ -7,6 +7,11 @@ store non generically. All access is atomic and synchronous. A single store can 
 within one thread, but you can create a store on any thread. It also provides change signals to
 notify you in case a dataset has been changed.
 
+@warning If you are using the stores with QObject classes, please be aware that the store
+**never** takes ownership of those objects, neither for saving nor for loading. You as the
+caller of those methods are responsible for deleting the objects after the operations have been
+completed. This of course only applies to pointer classes, as gadgets are used as value types.
+
 @sa DataTypeStore, CachingDataTypeStore, DataStoreModel
 */
 

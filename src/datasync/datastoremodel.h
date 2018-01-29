@@ -27,7 +27,6 @@ public:
 	explicit DataStoreModel(const QString &setupName, QObject *parent = nullptr);
 	//! Constructs a model on the given store
 	explicit DataStoreModel(DataStore *store, QObject *parent = nullptr);
-	//! Destructor
 	~DataStoreModel();
 
 	//! Returns the data store the model works on
@@ -45,12 +44,14 @@ public:
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 	//! @inherit{QAbstractListModel::rowCount}
 	int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+	//! @inherit{QAbstractListModel::canFetchMore}
 	bool canFetchMore(const QModelIndex &parent) const override;
+	//! @inherit{QAbstractListModel::fetchMore}
 	void fetchMore(const QModelIndex &parent) override;
 
 	//! Returns the index of the item with the given id
 	Q_INVOKABLE QModelIndex idIndex(const QString &id) const;
-	//! Returns the index of the item with the given id
+	//! @copybrief DataStoreModel::idIndex(const QString &) const
 	template <typename T>
 	inline QModelIndex idIndex(const T &id) const;
 
@@ -65,41 +66,17 @@ public:
 	//! @inherit{QAbstractListModel::setData}
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-	/*!
-	Returns the object at the given index
-
-	@param index The model index to return the object for
-	@returns The data at the index, or an invalid variant
-
-	@warning When working with QObjects, the method is potentially dangerous, as the
-	returned object is owend by the model, and can be deleted any time. It is fine
-	to use the returned object in a local scope. Do not leave a local scope,
-	or use QPointer to be able to react in case the object gets deleted. To get
-	a copy that you own, use the loadObject() method.
-
-	@sa DataStoreModel::loadObject
-	*/
+	//! Returns the object at the given index
 	Q_INVOKABLE QVariant object(const QModelIndex &index) const;
-	/*!
-	Returns the object at the given index
-
-	@tparam The type of object to return. Must match DataStoreModel::typeId
-	@param index The model index to return the object for
-	@returns The data at the index, or an invalid variant
-
-	@warning When working with QObjects, the method is potentially dangerous, as the
-	returned object is owend by the model, and can be deleted any time. It is fine
-	to use the returned object in a local scope. Do not leave a local scope,
-	or use QPointer to be able to react in case the object gets deleted. To get
-	a copy that you own, use the loadObject() method.
-
-	@sa DataStoreModel::loadObject
-	*/
+	//! @copybrief DataStoreModel::object(const QModelIndex &index) const
 	template <typename T>
 	inline T object(const QModelIndex &index) const;
-	//! Loads the object at the given index from the store via AsyncDataStore::load
+	//! Loads the object at the given index from the store via DataStore::load
 	Q_INVOKABLE QVariant loadObject(const QModelIndex &index) const;
-	//! Loads the object at the given index from the store via AsyncDataStore::load
+	/*! @copybrief DataStoreModel::loadObject(const QModelIndex &) const
+	 * @tparam T The type of object to return. Must match DataStoreModel::typeId
+	 * @copydetails DataStoreModel::loadObject(const QModelIndex &) const
+	 */
 	template <typename T>
 	T loadObject(const QModelIndex &index) const;
 
@@ -114,16 +91,19 @@ public Q_SLOTS:
 	//! @writeAcFn{DataStoreModel::editable}
 	void setEditable(bool editable);
 
+	//! Reloads all data in the model
 	void reload();
 
 Q_SIGNALS:
-	//! Emitted when the store throws an exception
+	//! Emitted when the underlying DataStore throws an exception
 	void storeError(const QException &exception, QPrivateSignal);
 	//! @notifyAcFn{DataStoreModel::editable}
 	void editableChanged(bool editable, QPrivateSignal);
 
 protected:
+	//! @private
 	explicit DataStoreModel(QObject *parent, void*);
+	//! @private
 	void initStore(DataStore *store);
 
 private Q_SLOTS:
