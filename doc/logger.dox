@@ -1,0 +1,65 @@
+/*!
+@class QtDataSync::Logger
+
+@note Do not use this class and it's methods directly. Instead, make use of the macros defined in the header
+
+The macros behave just like their `qDebug` equivalents. The macros are:
+
+- #logDebug
+- #logInfo
+- #logWarning
+- #logCritical
+- #logFatal (special case, read the Logger::reportFatalError documentation)
+
+To use this macros, you must define the `QTDATASYNC_LOG` macro to a pointer to a logger instance. The
+recommended way is do this is to define the macro in your sourcefile to the logger member:
+
+@code{.cpp}
+#include <QtDataSync/Logger>
+
+#define QTDATASYNC_LOG this->logger
+
+//...
+
+void MyClass::initialize(Defaults *defaults)
+{
+	this->logger = defaults->createLogger("myclass", this);
+
+	//...
+
+	logDebug() << "It is working";
+}
+@endcode
+
+@sa Defaults::createLogger
+*/
+
+/*!
+@fn QtDataSync::Logger::loggingCategory
+
+@returns The logging category (constant reference)
+
+The category will have the format `qtdatasync.<setupName>.<subCategory>`, with both
+beeing the the constructor parameters. When using Defaults::createLogger, the setup
+name is taken from the defaults.
+
+@sa #logDebug, #logInfo, #logWarning, #logCritical, #logFatal
+*/
+
+/*!
+@fn QtDataSync::Logger::reportFatalError(const QString &, const char *, int, const char *)
+
+@param error A string describing what went wrong
+@param file The file where the error happend
+@param line The line in the file where the error happend
+@param function The function in where the error happend
+@returns This method does not return!
+
+When using #logFatal, this method is used to report the error. It is first printed
+out, using #logCritical, and then the Setup::fatalErrorHandler is called to react to the
+error. The default error handler implementation will abort the application using std::abort
+
+A custom handler can be set via the Setup
+
+@sa Setup::fatalErrorHandler, #logFatal
+*/
