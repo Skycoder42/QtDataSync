@@ -1,0 +1,443 @@
+/*!
+@class QtDataSync::Setup
+
+The Setup class is what you need for configuration. Before you can use datasync, you always have
+to create at least one instance by using this setup. For most applications, it's sufficient to
+simply use the default constructed setup and set the remote configuration. However, if you want
+to use custom implementations or change the way specific components behave, the setup is where
+to do so. Once all the configuration part has been done, you can call create() (or
+createPassive()) to create the instance.
+
+@sa Setup::create, Setup::createPassive, Setup::removeSetup, Defaults
+*/
+
+/*!
+@property QtDataSync::Setup::localDir
+
+@default{`"./qtdatasync"`}
+
+The local directory is the heart of the datasync instance. It's where the actual data,
+configurations etc. are stored. A datasync instance is identified by it's local directory across
+multiple processes. There can only be one active (but many passive) instances per storage
+folder. If you want to make use of multiple setups within an application, they all need their
+own storage directory
+
+@note The path is resolved relative to the applications local data folder. See
+QStandardPaths::AppLocalDataLocation
+
+@accessors{
+	@readAc{localDir()}
+	@writeAc{setLocalDir()}
+	@resetAc{resetLocalDir()}
+}
+
+@sa Setup::create, Setup::createPassive, Defaults::storageDir
+*/
+
+/*!
+@property QtDataSync::Setup::remoteObjectHost
+
+@default{<i>invalid</i>}
+
+@note If the url is invalid when calling create(), the setup generates a default url based of
+the setups properties. It is: `"threaded://qtdatasync/<setupName>/enginenode"`
+
+This url is used to create the host node in the engine that provides internal remote object
+sources, and to create the QRemoteObjectNode instances to connect to this host node and acquire
+the replicas. This is all happening internally, so you don't not to worry about the how to.
+
+The default url uses the threaded connection, which is only valid within the same process. For
+more details, and the alternatives, see @ref ro_threaded "Threaded remote objects"
+
+@accessors{
+	@readAc{remoteObjectHost()}
+	@writeAc{setRemoteObjectHost()}
+	@resetAc{resetRemoteObjectHost()}
+}
+
+@sa Defaults::remoteNode, Defaults::remoteAddress, @ref ro_threaded "Threaded remote objects",
+AccountManager, SyncManager
+*/
+
+/*!
+@property QtDataSync::Setup::serializer
+
+@default{<i>A pointer to a valid serializer</i>}
+
+You can use this property to customize how the serializer should serialize data and to register
+converters for custom types.
+
+@attention The serializer is owned by the setup, and later transfered to the engine. When
+calling the WRITE or RESET accessors, the old instance gets deleted first. The one passed via
+write will become owned by the setup as well. If the setup goes out of scope without beeing
+created, the serializer gets deleted as well.
+
+@accessors{
+	@readAc{serializer()}
+	@writeAc{setSerializer()}
+	@resetAc{resetSerializer()}
+}
+
+@sa Defaults::serializer, QJsonSerializer
+*/
+
+/*!
+@property QtDataSync::Setup::conflictResolver
+
+@default{`nullptr`}
+
+If you want to use a custom conflict resolver to handle merge conflicts, you can set one for
+the engine here.
+
+@attention The resolver is owned by the setup, and later transfered to the engine. When
+calling the WRITE accessor, the old instance gets deleted first. The one passed via write will
+become owned by the setup as well. If the setup goes out of scope without beeing created, the
+resolver gets deleted as well.
+
+@accessors{
+	@readAc{conflictResolver()}
+	@writeAc{setConflictResolver()}
+	@resetAc{resetConflictResolver()}
+}
+
+@sa Defaults::conflictResolver, ConflictResolver
+*/
+
+/*!
+@property QtDataSync::Setup::fatalErrorHandler
+
+@default{<i>invalid</i>}
+
+When a fatal error occurs it is reported to the engine via #logFatal (which uses
+Logger::reportFatalError). Such a fatal error must be handelt immediatly, and this method sets
+the method to be called in such cases.
+
+It is called on the thread where the error happends, and should be used to react to the error in
+whatever way. A fatal error will render the datasync instance invalid, leading to the
+unavoidable abortion of the application. You can set a custom handler in order to custom log the
+error or perform other operations, but at the end the method should not return. This can be
+archieved by calling for example std::abort in the end.
+
+The default handler, which is used in case no custom handler is set, calls qFatal to present the
+error and abort the application.
+
+Semantics of the `fatalErrorHandler`:
+- **Parameter 1:** descriptive string of the error
+- **Parameter 2:** The name of the setup in which the error occured
+- **Parameter 3:** A const reference to the context where the error occured
+- The method must not return (if it does std::abort is called)
+
+@accessors{
+	@readAc{fatalErrorHandler()}
+	@writeAc{setFatalErrorHandler()}
+	@resetAc{resetFatalErrorHandler()}
+}
+
+@sa #logFatal, Logger::reportFatalError, Setup::FatalErrorHandler
+*/
+
+/*!
+@property QtDataSync::Setup::cacheSize
+
+@default{`100_mb`}
+
+All loaded json data is internally cached to speed up frequent read operations on the same
+items. This property limits the size in bytes that cache can hold at most. If you set it to 0,
+the caching gets completly deactivated.
+
+@note Make shure to not exceed INT_MAX. Negative cache values can lead to undefined behaviour.
+
+@accessors{
+	@readAc{cacheSize()}
+	@writeAc{setCacheSize()}
+	@resetAc{resetCacheSize()}
+}
+
+@sa Defaults::property, Defaults::CacheSize, QtDataSync::KB, QtDataSync::MB, QtDataSync::GB,
+QtDataSync::literals
+*/
+
+/*!
+@property QtDataSync::Setup::persistDeletedVersion
+
+@default{`false`}
+
+Persisting deleted datasets means that even after a dataset has been deleted and all changes
+synchronized, the information that is was deleted is kept around. This can prevent problems with
+the synchronisation when keys are reused, as the engine is now able to detect which operation
+(change or delete) was newer. If not persisting, there is no way to tell if a dataset was
+deleted or never existed in the first place. In exchange, The database gets filled with deleted
+entries for every deleted dataset.
+
+Rule of thumb: If you frequently reuse keys, set it to `true`. If you create your keys randomly
+or chances of a key beeing reused are low, do not persist.
+
+@accessors{
+	@readAc{persistDeletedVersion()}
+	@writeAc{setPersistDeletedVersion()}
+	@resetAc{resetPersistDeletedVersion()}
+}
+
+@sa Defaults::property, Defaults::PersistDeleted
+*/
+
+/*!
+@property QtDataSync::Setup::syncPolicy
+
+@default{`Setup::PreferChanged`}
+
+In case a conflict is detected, and one of the changes is a data change, and one is a deletion,
+this policy decides which of the two should be kept, and which one gets discarded.
+
+@accessors{
+	@readAc{syncPolicy()}
+	@writeAc{setSyncPolicy()}
+	@resetAc{resetSyncPolicy()}
+}
+
+@sa Defaults::property, Defaults::ConflictPolicy, Setup::SyncPolicy
+*/
+
+/*!
+@property QtDataSync::Setup::sslConfiguration
+
+@default{`QSslConfiguration::defaultConfiguration()`}
+
+Is used by the internal websocket server. If you need a configuration different from the one for
+the application, you can set one via this property
+
+@accessors{
+	@readAc{sslConfiguration()}
+	@writeAc{setSslConfiguration()}
+	@resetAc{resetSslConfiguration()}
+}
+
+@sa Defaults::property, Defaults::SslConfiguration, QSslConfiguration::defaultConfiguration
+*/
+
+/*!
+@property QtDataSync::Setup::remoteConfiguration
+
+@default{<i>empty</i>}
+
+This part must be set in order to connect to a remote. It is however possible to import the
+remote configuration instead of using the one provided via this property.
+
+@accessors{
+	@readAc{remoteConfiguration()}
+	@writeAc{setRemoteConfiguration()}
+	@resetAc{resetRemoteConfiguration()}
+}
+
+@sa Defaults::property, Defaults::RemoteConfig, RemoteConfiguration,
+AccountManager::exportAccount, AccountManager::exportAccountTrusted
+*/
+
+/*!
+@property QtDataSync::Setup::keyStoreProvider
+
+@default{<i>empty</i>}
+
+@note If the provider is an invalid string, the engine uses the default provider, which is
+decided by Setup::defaultKeystoreProvider
+
+The keystore is used to securely store private keys on the users device. You can use
+Setup::availableKeystores to find out which keystores are currently available
+
+The following keystores are support via a plugin that is part of the Library:
+- KWallet (KDE only)
+- SecretService (based on the gnome library, works with any keystore that implements it.
+Currently known:)
+	- gnome-keyring
+- Windows Credentials store (Desktop windows only)
+- Android Shared Preferences (Not completly secure, Android only)
+- Apple Keychain (macOs and iOs only)
+- Plain (An **unsecure** fallback implementation that works on any platform)
+
+More keystores can be added by creating a custom KeyStorePlugin
+
+@accessors{
+	@readAc{keyStoreProvider()}
+	@writeAc{setKeyStoreProvider()}
+	@resetAc{resetKeyStoreProvider()}
+}
+
+@sa Defaults::property, Defaults::KeyStoreProvider, Setup::keystoreProviders,
+Setup::availableKeystores, KeyStore, KeyStorePlugin
+*/
+
+/*!
+@property QtDataSync::Setup::signatureScheme
+
+@default{`Setup::RSA_PSS_SHA3_512`}
+
+@accessors{
+	@readAc{signatureScheme()}
+	@writeAc{setSignatureScheme()}
+	@resetAc{resetSignatureScheme()}
+}
+
+@sa Defaults::property, Defaults::SignScheme, Setup::signatureKeyParam
+*/
+
+/*!
+@property QtDataSync::Setup::signatureKeyParam
+
+@default{<i>invalid</i>}
+
+The type and interpretation of this parameter depend on the Setup::signatureScheme. If this
+property is an invalid QVariant, Defaults::defaultParam is used to determine the default key
+parameter for each type. The following table shows what the key param must be per scheme:
+
+ Scheme						| Type					| Default value				| Description
+----------------------------|-----------------------|---------------------------|-------------
+ Setup::RSA_PSS_SHA3_512	| int					| 4096						| The size of the RSA key
+ Setup::ECDSA_ECP_SHA3_512	| Setup::EllipticCurve	| Setup::brainpoolP384r1	| The elliptic curve and the key size
+ Setup::ECNR_ECP_SHA3_512	| Setup::EllipticCurve	| Setup::brainpoolP384r1	| The elliptic curve and the key size
+
+@accessors{
+	@readAc{signatureKeyParam()}
+	@writeAc{setSignatureKeyParam()}
+	@resetAc{resetSignatureKeyParam()}
+}
+
+@sa Defaults::property, Defaults::SignKeyParam, Setup::signatureScheme, Defaults::defaultParam
+*/
+
+/*!
+@property QtDataSync::Setup::encryptionScheme
+
+@default{`Setup::RSA_OAEP_SHA3_512`}
+
+@accessors{
+	@readAc{encryptionScheme()}
+	@writeAc{setEncryptionScheme()}
+	@resetAc{resetEncryptionScheme()}
+}
+
+@sa Defaults::property, Defaults::CryptScheme, Setup::encryptionKeyParam
+*/
+
+/*!
+@property QtDataSync::Setup::encryptionKeyParam
+
+@default{<i>invalid</i>}
+
+The type and interpretation of this parameter depend on the Setup::encryptionScheme. If this
+property is an invalid QVariant, Defaults::defaultParam is used to determine the default key
+parameter for each type. The following table shows what the key param must be per scheme:
+
+ Scheme						| Type					| Default value				| Description
+----------------------------|-----------------------|---------------------------|-------------
+ Setup::RSA_OAEP_SHA3_512	| int					| 4096						| The size of the RSA key
+ Setup::ECIES_ECP_SHA3_512	| Setup::EllipticCurve	| Setup::brainpoolP384r1	| The elliptic curve and the key size
+
+@accessors{
+	@readAc{encryptionKeyParam()}
+	@writeAc{setEncryptionKeyParam()}
+	@resetAc{resetEncryptionKeyParam()}
+}
+
+@sa Defaults::property, Defaults::CryptKeyParam, Setup::encryptionScheme, Defaults::defaultParam
+*/
+
+/*!
+@property QtDataSync::Setup::cipherScheme
+
+@default{`Setup::AES_EAX`}
+
+@accessors{
+	@readAc{cipherScheme()}
+	@writeAc{setCipherScheme()}
+	@resetAc{resetCipherScheme()}
+}
+
+@sa Defaults::property, Defaults::SymScheme, Setup::cipherKeySize
+*/
+
+/*!
+@property QtDataSync::Setup::cipherKeySize
+
+@default{`0`}
+
+The size of the key depends on the Setup::cipherScheme. If this property is 0, the maximum key
+size for each algorithm is used. The following table shows what size limits apply per algorithm.
+Please note that the key size is independend of the mode of operation, i.e. the keysize for
+AES applies for both, Setup::AES_EAX and Setup::AES_GCM:
+
+ Algorithm	| Allowed key sizes in bytes, default marked bold
+------------|-------------------------------------------------
+ AEX		| 16, 24, **32**
+ Twofish	| 16, 24, **32**
+ Serpent	| 16, 24, **32**
+ IDEA		| **16**
+
+@accessors{
+	@readAc{cipherKeySize()}
+	@writeAc{setCipherKeySize()}
+	@resetAc{resetCipherKeySize()}
+}
+
+@sa Defaults::property, Defaults::SymKeyParam, Setup::cipherScheme
+*/
+
+
+
+
+/*!
+@fn QtDataSync::Setup::setCleanupTimeout
+
+@param timeout The new timeout to be used.
+
+When shutting down the application, the datasync instances, which are running on a different
+thread, have to shut down as well. Upon destructions, all instances are told to stop, and then
+the main thread will block until they are done or a timout is reached. the cleanup timout is
+the maximum time to wait for each thread to finish. The default value is -1, which means the
+is no timeout. The app will wait infinitely.
+
+@attention Typically, you won't notice the delay the instances need. They finish fast, and
+since all windows etc have already been destroyed at that time, the user won't notice anything.
+Only use a timeout if absolutely neccessary, since a terminated thread (and thats what happens
+after a timeout) results in undefined states, and may even corrupt the stored data.
+
+@sa Setup::removeSetup, qAddPostRoutine()
+*/
+
+/*!
+@fn QtDataSync::Setup::removeSetup
+
+@param name The name of the setup to be removed
+@param waitForFinished If set to `true`, the method will wait until finished
+
+Removing a setup stops the instances and delets it. This happens asynchronously and gracefully
+in the background. All setup functions will work as expected. However, you cannot register
+another setup with the same name until the previous one has been deleted.
+
+If you wait for the method to finish, the cleanup timeout will be used to terminate if the
+instance does not finish in time. This is **not** the case if you don't wait. Please note that
+waiting is blocking, and thus not recommended to use for GUI apps.
+
+@sa Setup::setCleanupTimeout
+*/
+
+/*!
+@fn QtDataSync::Setup::create
+
+@param name The unique name of the setup to be created
+@throws SetupExistsException If a datasync instance with the same name already exists
+@throws SetupLockedException If the local directory is already locked by another instance
+
+This method creates and starts a new datasync instance from the configuration of the setup. It
+will automatically launch the new thread and initialize it. This is done asynchronously, but
+you don't need to wait for it. After this method returned, you can use the instance as you
+please, with i.e. AsyncDataStore, SyncController, etc.
+
+@attention If you get a SetupLockedException, it's propably because two instances of your
+application have started, and try to use the same local storage directory. You can either
+make your application a single instance app (See
+[QSingleInstance](https://github.com/Skycoder42/QSingleInstance)) or use different local dirs
+per instance.
+
+@warning After this method, you **must not** access any other of the setups methods. Consider
+it deleted. Not following this will propably crash your application.
+*/

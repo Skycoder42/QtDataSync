@@ -131,6 +131,8 @@ public:
 	 * @sa ConflictResolver::resolveConflict
 	 */
 	virtual inline QJsonObject resolveUnknownConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const {
+		Q_UNUSED(data1)
+		Q_UNUSED(data2)
 		QT_DATASYNC_LOG_BASE.warning(logger()->loggingCategory()) << "Unsupported type in conflict resolver:"
 																  << QMetaType::typeName(typeId);
 		return QJsonObject();

@@ -95,6 +95,8 @@ node is managed by the setup too, but you can specify your own node in the const
 to increase security and performance a special remote object connection is used that utilizes
 events to deliver messages within the same process only. See
 @ref ro_threaded "Threaded remote objects" for details.
+
+@sa @ref ro_threaded "Threaded remote objects", Setup::remoteObjectHost
 */
 
 /*!

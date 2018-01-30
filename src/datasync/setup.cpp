@@ -318,7 +318,7 @@ Setup &Setup::resetFatalErrorHandler()
 
 Setup &Setup::resetCacheSize()
 {
-	d->properties.insert(Defaults::CacheSize, MB(10));
+	d->properties.insert(Defaults::CacheSize, MB(100));
 	return *this;
 }
 
@@ -643,7 +643,7 @@ SetupPrivate::SetupPrivate() :
 	serializer(new QJsonSerializer()),
 	resolver(nullptr),
 	properties({
-		{Defaults::CacheSize, MB(10)},
+		{Defaults::CacheSize, MB(100)},
 		{Defaults::PersistDeleted, false},
 		{Defaults::ConflictPolicy, Setup::PreferChanged},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
