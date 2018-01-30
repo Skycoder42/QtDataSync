@@ -24,20 +24,29 @@ class Defaults;
 class EmitterAdapter;
 
 class DatabaseRefPrivate;
+//! A wrapper around QSqlDatabase to manage the connections
 class Q_DATASYNC_EXPORT DatabaseRef
 {
 	Q_DISABLE_COPY(DatabaseRef)
 
 public:
+	//! Default constructor. Constructs an invalid database reference
 	DatabaseRef();
 	~DatabaseRef();
+	//! @private
 	DatabaseRef(DatabaseRefPrivate *d);
+	//! Move constructor
 	DatabaseRef(DatabaseRef &&other);
+	//! Move assignment operator
 	DatabaseRef &operator=(DatabaseRef &&other);
 
+	//! Returns true if this reference points to a valid database
 	bool isValid() const;
+	//! Returns the database that is managed by this reference
 	QSqlDatabase database() const;
+	//! Implicit cast operator to the managed database
 	operator QSqlDatabase() const;
+	//! Arrow operator to access the database
 	QSqlDatabase *operator->() const;
 
 private:
@@ -52,24 +61,28 @@ class Q_DATASYNC_EXPORT Defaults
 	friend class DefaultsPrivate;
 
 public:
+	//! The keys of special properties set on the defaults
 	enum PropertyKey {
-		CacheSize,
-		PersistDeleted,
-		ConflictPolicy,
-		SslConfiguration,
-		RemoteConfiguration,
-		KeyStoreProvider,
-		SignScheme,
-		SignKeyParam,
-		CryptScheme,
-		CryptKeyParam,
-		SymScheme,
-		SymKeyParam
+		CacheSize, //!< The size of the internal database cache, in bytes
+		PersistDeleted, //!< Specify whether deleted datasets should persist
+		ConflictPolicy, //!< The policiy for how to handle conflicts
+		SslConfiguration, //!< The ssl configuration to be used to connect to the remote
+		RemoteConfiguration, //!< The configuration to be used to connect to the remote
+		KeyStoreProvider, //!< The name of the preferred keystore provider
+		SignScheme, //!< The algorithmic scheme to be used for new signature keys
+		SignKeyParam, //!< The generation parameter for the signature key
+		CryptScheme, //!< The algorithmic scheme to be used for new encryption keys
+		CryptKeyParam, //!< The generation parameter for the encryption key
+		SymScheme, //!< The algorithmic scheme to be used for new secret exchange keys (which are symmetric)
+		SymKeyParam //!< The generation parameter for the secret exchange key (which is symmetric)
 	};
 	Q_ENUM(PropertyKey)
 
+	//! Default constructor. Constructs an invalid defaults object
 	Defaults();
+	//! @private
 	Defaults(const QSharedPointer<DefaultsPrivate> &d);
+	//! Copy constructor
 	Defaults(const Defaults &other);
 	~Defaults();
 
@@ -80,23 +93,30 @@ public:
 	QString setupName() const;
 	//! Returns the storage directory
 	QDir storageDir() const;
+	//! Returns the url to use for the remote object connection
 	QUrl remoteAddress() const;
+	//! Returns the remote object node for the current thread to connect to the engine
 	QRemoteObjectNode *remoteNode() const;
 	//! Returns a new instance of QSettings for this setup
 	QSettings *createSettings(QObject *parent = nullptr, const QString &group = {}) const;
-	EmitterAdapter *createEmitter(QObject *parent = nullptr) const;
 	//! Returns the serializer of the current setup
 	const QJsonSerializer *serializer() const;
+	//! Returns the conflict resolver of the current setup
 	const ConflictResolver *conflictResolver() const;
+	//! Returns the extra property defined by the given key
 	QVariant property(PropertyKey key) const;
 
+	//! Returns the standard key parameter for the given signature scheme
 	static QVariant defaultParam(Setup::SignatureScheme scheme);
+	//! Returns the standard key parameter for the given encryption scheme
 	static QVariant defaultParam(Setup::EncryptionScheme scheme);
 
-	//! Aquire the standard sqlite database
+	//! Aquire a reference to the standard sqlite database
 	DatabaseRef aquireDatabase(QObject *object) const;
 
-	//special case
+	//! @private
+	EmitterAdapter *createEmitter(QObject *parent = nullptr) const;
+	//! @private
 	QVariant cacheHandle() const;
 
 private:

@@ -1,0 +1,212 @@
+/*!
+@class QtDataSync::DatabaseRef
+
+Internally, this class holds a reference to a sqlite database. The first reference created form
+a Defaults instance will also create the database connection. From there on, the references to
+the database are counted with this class. Once the last instance gets destroyed, the database
+connection closes and gets deleted. Because of this it's important to **not** extract the
+QSqlDatabase from this class to "permanent" variable. Try to use the reference class where
+possible and only pass the internal database to scoped objects.
+
+@sa Defaults::aquireDatabase, QSqlDatabase
+*/
+
+
+
+/*!
+@class QtDataSync::Defaults
+
+This class is internally used to easily get "defaults" that vary between different setups.
+Unless you are extending data sync with a custom implementation, this class has no relevance
+for you. The things you can access from the defaults are all defined by the Setup.
+
+Using this defaults provides save storage locations, settings, logging and more, that won't
+interfere with other instances of data sync. If you need to store files, settings or do some
+logging, you should use this defaults to do so.
+
+@sa Setup
+*/
+
+/*!
+@enum QtDataSync::Defaults::PropertyKey
+
+For a more details explanation, see property()
+
+@sa Defaults::property
+*/
+
+/*!
+@fn QtDataSync::Defaults::createLogger
+
+@param subCategory The sub category, passed to the logger constructor
+@param parent The object parent of the created logger
+@returns A new created instance of a logger
+
+Uses the setup this defaults belong to and the passed category to create a logger. Read the
+Logger documentation for more details. The returned logger is owner by the caller (or the
+parent) and will use the `subCategory` for the logging string.
+
+@sa Logger
+*/
+
+/*!
+@fn QtDataSync::Defaults::storageDir
+
+@returns The local storage directory
+
+The storage directory contains everything regarding configuration and data, and thus basically
+identifies the datasync instance. It is also used for locking.
+
+When implementing a part of qtdatasync, you may need to store data on the local file system.
+You should **always** store data inside this folder. Consider it your "root folder". Storing
+in different locations can lead to undefined behaviour. Of cause you can create subdirs etc
+inside this folder as you please. However, there are some special files, like the lock file or
+the settings you should not modify yourself.
+
+@sa Defaults::createSettings, Setup::localDir
+*/
+
+/*!
+@fn QtDataSync::Defaults::remoteAddress
+
+@returns The url of the remote object host created by the engine
+
+Use this address to create QRemoteObjectNode instances to connect to the engines host node.
+Typically you can use remoteNode() directly, as this one works threadsafe.
+
+@sa Defaults::remoteNode, Setup::remoteObjectHost
+*/
+
+/*!
+@fn QtDataSync::Defaults::remoteNode
+
+@returns A remote node for the current thread connected to the engines host node
+
+The method creates a node for each thread and cleans them up automatically. The returned node is
+connected to the engines host node, and thus can be immediatly used to obtain replicas. If you
+need the url used to connect, see remoteAddress().
+
+@note Even though this method is threadsafe, the returned node is **not**. If you need to switch
+the thread, call this method again on the new thread to obtain a new node for that thread.
+If you don't, replicas of the new thread will not work.
+
+@sa Defaults::remoteAddress, Setup::remoteObjectHost
+*/
+
+/*!
+@fn QtDataSync::Defaults::createSettings
+
+@param parent The parent object for the settings
+@param group A sub-group to use as root for the returned settings
+@returns A newly created settings instance
+
+Creates a QSettings instance that will persist data for this setup. The settings reside inside
+of the settings storage directory, and thus are not bound to the setup name. If you want to
+store data persistently, like usernames etc, use this settings.
+
+@note You should **always** pass a group that idenfifies your component. This keeps the settings
+clean and prevents naming conflicts with other components.
+
+@sa Defaults::storageDir
+*/
+
+/*!
+@fn QtDataSync::Defaults::serializer
+
+@returns The json serializer
+
+The serializer is the one used by datasync internally. If you need to de/serializer data
+in your custom implementations, make shure to use this one.
+
+@attention This instance is shared across the whole setup, do not delete or change it, use
+it only to de/serializer data. Please do not const_cast it ;)
+
+@sa Setup::serializer, QJsonSerializer
+*/
+
+/*!
+@fn QtDataSync::Defaults::conflictResolver
+
+@returns The conflict resolver. Can be `nullptr`
+
+An optional conflict resolver used to handle merge conflicts. Is null by default, but can be set
+by the setup.
+
+@attention This instance is shared across the whole setup, do not delete or change it, use
+it only to resolve conflicts. Please do not const_cast it ;)
+
+@sa Setup::conflictResolver, ConflictResolver
+*/
+
+/*!
+@fn QtDataSync::Defaults::property
+
+@param key The key of the property to be obtained
+@returns The value of the stored property for that key.
+
+This method is used instead of many direct methods to obtains various extra properties passed
+from the setup. The following table shows what these are. Please read the documentation of the
+corresponsing Setup properties for more details on what these properties mean in details and how
+they may be used internally.
+
+ Key							| Type						| Setup property
+--------------------------------|---------------------------|----------------
+ Defaults::CacheSize			| int						| Setup::cacheSize
+ Defaults::PersistDeleted		| bool						| Setup::persistDeletedVersion
+ Defaults::ConflictPolicy		| Setup::SyncPolicy			| Setup::syncPolicy
+ Defaults::SslConfiguration		| QSslConfiguration			| Setup::sslConfigurationn
+ Defaults::RemoteConfiguration	| RemoteConfig				| Setup::remoteConfiguration
+ Defaults::KeyStoreProvider		| QString					| Setup::keyStoreProvider
+ Defaults::SignScheme			| Setup::SignatureScheme	| Setup::signatureScheme
+ Defaults::SignKeyParam			| QVariant					| Setup::signatureKeyParam
+ Defaults::CryptScheme			| Setup::EncryptionScheme	| Setup::encryptionScheme
+ Defaults::CryptKeyParam		| QVariant					| Setup::encryptionKeyParam
+ Defaults::SymScheme			| Setup::CipherScheme		| Setup::cipherScheme
+ Defaults::SymKeyParam			| qint32					| Setup::cipherKeySize
+
+@sa Defaults::PropertyKey, Setup
+*/
+
+/*!
+@fn QtDataSync::Defaults::defaultParam(Setup::SignatureScheme)
+
+@returns The default key parameter for the given scheme
+
+If the Setup::signatureKeyParam is an invalid QVariant, this method can be used to obtain the
+default value for the corresponding signature scheme. For more details on what this parameter is
+for each scheme, check the setups key param documentation.
+
+@sa Setup::signatureScheme, Setup::signatureKeyParam
+*/
+
+/*!
+@fn QtDataSync::Defaults::defaultParam(Setup::EncryptionScheme)
+
+@returns The default key parameter for the given scheme
+
+If the Setup::encryptionKeyParam is an invalid QVariant, this method can be used to obtain the
+default value for the corresponding encryption scheme. For more details on what this parameter
+is for each scheme, check the setups key param documentation.
+
+@sa Setup::encryptionScheme, Setup::encryptionKeyParam
+*/
+
+/*!
+@fn QtDataSync::Defaults::aquireDatabase
+
+@param object The object the wants the reference.
+@returns An instance of the local sqlite database, wrapped in a database ref
+
+If you are working with sqlite databases, you can use this function to get a reference to one.
+This allows multiple components to share one database, instead of create many. Of cause, this
+means will will have to be careful to not interfere with the data of other components. The
+database itself will be created inside the storage directory. Reference counting is used to
+automatically clean up connections. See the DatabaseRef documentation.
+
+The object is used to install an event filter to detect if the object was moved to a different
+thread. This is needed, as a connection is only valid per thread, and thus changing a thread
+means creating a new connection. This is completly handeled internally, so it is save to move
+the databaseref to another thread via that object.
+
+@sa DatabaseRef, Defaults::storageDir
+*/

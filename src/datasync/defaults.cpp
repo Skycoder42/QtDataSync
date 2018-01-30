@@ -69,16 +69,6 @@ QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 	return settings;
 }
 
-EmitterAdapter *Defaults::createEmitter(QObject *parent) const
-{
-	QObject *emitter = nullptr;
-	if(d->passiveEmitter)
-		emitter = d->passiveEmitter;
-	else
-		emitter = SetupPrivate::engine(d->setupName)->emitter();
-	return new EmitterAdapter(emitter, d->cacheInfo, parent);
-}
-
 const QJsonSerializer *Defaults::serializer() const
 {
 	return d->serializer;
@@ -130,6 +120,16 @@ QVariant Defaults::defaultParam(Setup::EncryptionScheme scheme)
 DatabaseRef Defaults::aquireDatabase(QObject *object) const
 {
 	return DatabaseRef(new DatabaseRefPrivate(d, object));
+}
+
+EmitterAdapter *Defaults::createEmitter(QObject *parent) const
+{
+	QObject *emitter = nullptr;
+	if(d->passiveEmitter)
+		emitter = d->passiveEmitter;
+	else
+		emitter = SetupPrivate::engine(d->setupName)->emitter();
+	return new EmitterAdapter(emitter, d->cacheInfo, parent);
 }
 
 QVariant Defaults::cacheHandle() const
