@@ -41,7 +41,7 @@ KeyStoreException::KeyStoreException(const KeyStoreException * const other) :
 	_keyStoreName(other->_keyStoreName)
 {}
 
-QString KeyStoreException::keyStoreName() const
+QString KeyStoreException::storeProviderName() const
 {
 	return _keyStoreName;
 }

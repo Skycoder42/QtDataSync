@@ -269,6 +269,10 @@ void CryptoController::deleteKeyMaterial(const QUuid &deviceId)
 		ensureStoreOpen();
 		_keyStore->remove(keySignKeyTemplate.arg(deviceId.toString()));
 		_keyStore->remove(keyCryptKeyTemplate.arg(deviceId.toString()));
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
 	} catch(CppException &e) {
 		logWarning() << "Failed to delete private keys from keystore with error:" << e.what();
 	}
@@ -325,6 +329,10 @@ void CryptoController::storePrivateKeys(const QUuid &deviceId) const
 		closeStore();
 
 		settings()->setValue(keyKeystore, _keyStore->providerName());
+#ifdef __clang__
+	} catch(QException &e) { //prevent catching the std::exception
+		throw;
+#endif
 	} catch(CppException &e) {
 		closeStore();
 		throw CryptoException(defaults(),
