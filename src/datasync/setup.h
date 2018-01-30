@@ -20,15 +20,20 @@ class QJsonSerializer;
 
 namespace QtDataSync {
 
+//! @private
 template<typename TRatio>
 Q_DECL_CONSTEXPR inline int ratioBytes(const intmax_t &value);
+//! Interprets value as kilobytes and returns it converted to bytes
 Q_DECL_CONSTEXPR inline int KB(const intmax_t &value);
+//! Interprets value as megabytes and returns it converted to bytes
 Q_DECL_CONSTEXPR inline int MB(const intmax_t &value);
+//! Interprets value as gigabytes and returns it converted to bytes
 Q_DECL_CONSTEXPR inline int GB(const intmax_t &value);
 
 class ConflictResolver;
 
 class RemoteConfigPrivate;
+//! A configuration on how to connect to a remote server
 class Q_DATASYNC_EXPORT RemoteConfig
 {
 	Q_GADGET
@@ -37,6 +42,7 @@ class Q_DATASYNC_EXPORT RemoteConfig
 	Q_PROPERTY(QString accessKey READ accessKey WRITE setAccessKey)
 	Q_PROPERTY(HeaderHash headers READ headers WRITE setHeaders)
 	Q_PROPERTY(int keepaliveTimeout READ keepaliveTimeout WRITE setKeepaliveTimeout)
+	//TODO add ssl config -> make serializing hard...
 
 public:
 	typedef QHash<QByteArray, QByteArray> HeaderHash;
@@ -317,5 +323,6 @@ Q_DECL_CONSTEXPR inline int GB(const intmax_t &value)
 }
 
 Q_DECLARE_METATYPE(QtDataSync::RemoteConfig)
+Q_DECLARE_TYPEINFO(QtDataSync::RemoteConfig, Q_MOVABLE_TYPE);
 
 #endif // QTDATASYNC_SETUP_H

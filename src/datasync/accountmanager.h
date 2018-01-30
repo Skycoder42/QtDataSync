@@ -227,6 +227,7 @@ QDataStream &operator>>(QDataStream &in, JsonObject &data);
 
 Q_DECLARE_METATYPE(QtDataSync::JsonObject)
 Q_DECLARE_METATYPE(QtDataSync::DeviceInfo)
+Q_DECLARE_TYPEINFO(QtDataSync::DeviceInfo, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(QtDataSync::LoginRequest)
 
 #endif // QTDATASYNC_ACCOUNTMANAGER_H

@@ -89,5 +89,6 @@ uint qHash(const ChangeController::CachedObjectKey &key, uint seed);
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ChangeController::ChangeInfo)
+Q_DECLARE_TYPEINFO(QtDataSync::ChangeController::ChangeInfo, Q_MOVABLE_TYPE);
 
 #endif // QTDATASYNC_CHANGECONTROLLER_P_H

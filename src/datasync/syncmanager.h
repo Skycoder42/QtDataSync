@@ -84,5 +84,6 @@ Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, SyncManager::Sync
 }
 
 Q_DECLARE_METATYPE(QtDataSync::SyncManager::SyncState)
+Q_DECLARE_TYPEINFO(QtDataSync::SyncManager::SyncState, Q_PRIMITIVE_TYPE);
 
 #endif // QTDATASYNC_SYNCMANAGER_H

@@ -39,5 +39,6 @@ QDebug Q_DATASYNC_EXPORT operator<<(QDebug debug, const ObjectKey &key);
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ObjectKey)
+Q_DECLARE_TYPEINFO(QtDataSync::ObjectKey, Q_MOVABLE_TYPE);
 
 #endif // QTDATASYNC_OBJECTKEY_H

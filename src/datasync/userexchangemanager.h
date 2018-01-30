@@ -133,5 +133,6 @@ Q_DATASYNC_EXPORT QDebug operator<<(QDebug stream, const QtDataSync::UserInfo &u
 }
 
 Q_DECLARE_METATYPE(QtDataSync::UserInfo)
+Q_DECLARE_TYPEINFO(QtDataSync::UserInfo, Q_MOVABLE_TYPE);
 
 #endif // QTDATASYNC_USEREXCHANGEMANAGER_H
