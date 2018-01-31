@@ -381,18 +381,15 @@ AES applies for both, Setup::AES_EAX and Setup::AES_GCM:
 @sa Defaults::property, Defaults::SymKeyParam, Setup::cipherScheme
 */
 
-
-
-
 /*!
 @fn QtDataSync::Setup::setCleanupTimeout
 
 @param timeout The new timeout to be used.
 
-When shutting down the application, the datasync instances, which are running on a different
-thread, have to shut down as well. Upon destructions, all instances are told to stop, and then
+When shutting down the application, the datasync instances, which are running on different
+threads, have to shut down as well. Upon destruction, all instances are told to stop, and then
 the main thread will block until they are done or a timout is reached. the cleanup timout is
-the maximum time to wait for each thread to finish. The default value is -1, which means the
+the maximum time to wait for each thread to finish. The default value is -1, which means there
 is no timeout. The app will wait infinitely.
 
 @attention Typically, you won't notice the delay the instances need. They finish fast, and
@@ -410,14 +407,73 @@ after a timeout) results in undefined states, and may even corrupt the stored da
 @param waitForFinished If set to `true`, the method will wait until finished
 
 Removing a setup stops the instances and delets it. This happens asynchronously and gracefully
-in the background. All setup functions will work as expected. However, you cannot register
-another setup with the same name until the previous one has been deleted.
+in the background. However, you cannot register another setup with the same name until the
+previous one has been deleted.
 
 If you wait for the method to finish, the cleanup timeout will be used to terminate if the
 instance does not finish in time. This is **not** the case if you don't wait. Please note that
 waiting is blocking, and thus not recommended to use for GUI apps.
 
 @sa Setup::setCleanupTimeout
+*/
+
+/*!
+@fn QtDataSync::Setup::keystoreProviders
+
+@returns All providers possible via the plugins
+
+The list contains all providers of all found plugins. In order to obtain a list of providers
+that are actually currently usable (available), use availableKeystores()
+
+@sa Setup::availableKeystores, Setup::keystoreAvailable
+*/
+
+/*!
+@fn QtDataSync::Setup::availableKeystores
+
+@returns All providers the are currently usable
+
+This list contains only the providers that can currently access the keystore and thus are
+usable. For a list of all existing providers, use keystoreProviders()
+
+@note If you only want to check if a specific provider is available, it is more efficient to
+use keystoreAvailable(), as this method will perform the same for all existing keystores.
+
+@sa Setup::keystoreProviders, Setup::keystoreAvailable
+*/
+
+/*!
+@fn QtDataSync::Setup::keystoreAvailable
+
+@param provider The name of the keystore type to be checked
+@returns `true` if the provider exists and is usable, `false` if not
+
+A useable provider is one that can access it's keystore and thus be used. If order to find out
+whether a provider exists, use keystoreProviders().
+
+Internally, the plugin gets temporarily loaded in order to check if the keystore is accessible.
+This may take a moment to complete, depending on the keystore beeing used.
+
+@sa Setup::keystoreProviders, Setup::availableKeystores
+*/
+
+/*!
+@fn QtDataSync::Setup::defaultKeystoreProvider
+
+@returns The default provider to be used, limited to the ones actually available
+
+Internally, the method has a list of all providers for each platform. It will check for all of
+these they are available and return the first one that actually is. If no provider is found,
+the plain provider is returned, even if it is not available. The list is sorted as follows:
+
+1. The provider in the `QTDATASYNC_KEYSTORE` environment variable
+2. *Windows only:* Windows credential store
+3. *Apple only:* Keychain
+4. Secret Service
+5. KWallet
+6. Plain
+
+@sa Setup::keystoreProviders, Setup::availableKeystores
 */
 
 /*!
@@ -430,14 +486,50 @@ waiting is blocking, and thus not recommended to use for GUI apps.
 This method creates and starts a new datasync instance from the configuration of the setup. It
 will automatically launch the new thread and initialize it. This is done asynchronously, but
 you don't need to wait for it. After this method returned, you can use the instance as you
-please, with i.e. AsyncDataStore, SyncController, etc.
+please, with i.e. DataStore, SyncManager, etc.
 
 @attention If you get a SetupLockedException, it's propably because two instances of your
 application have started, and try to use the same local storage directory. You can either
 make your application a single instance app (See
-[QSingleInstance](https://github.com/Skycoder42/QSingleInstance)) or use different local dirs
-per instance.
+[QSingleInstance](https://github.com/Skycoder42/QSingleInstance)), use different local dirs
+per instance. Or make use of passive setups.
 
 @warning After this method, you **must not** access any other of the setups methods. Consider
 it deleted. Not following this will propably crash your application.
+
+@sa Setup::createPassive, Setup::removeSetup
+*/
+
+/*!
+@fn QtDataSync::Setup::createPassive
+
+@param name The unique name of the setup to be created
+@param timeout An optional timeout to wait for the setup to connect to the active instance
+@returns `true` if the setup could connect to the active setup, `false` if not
+@throws SetupExistsException If a datasync instance with the same name already exists
+
+The passive setup differs from the active one greatly. It does **not** create a datasync
+instance, but instead tries to connect to an active one. This means, you typically have one
+process that uses a normal (active) setup, and one or more other processes, that connect to it
+by using a passive setup. If the setup fails to connect within the timeout, `false` is returned.
+Please make shure to not make the timeout to small, as that can lead to crashes. You should
+always give it at least 1000ms.
+
+@attention In order for the passive setup to connect to the primary one, it must be able to
+connect to the remote object host. This means that Setup::remoteObjectHost must be accessible
+from the passive setup. Passive setups are typically used in a multi process context, which
+means you will have to use a local or tcp url on both, the active and the passive setups.
+
+After beeing created, the passive setup can be used just like a normal setup, as long as it did
+successfully connect to the active one. Classes like the SyncManager and AccountManager will
+simply connect to the active instance. The DataStore classes access data directly, but use the
+active instance for communicating changes.
+
+@note If the method returns `false` you can still use the setup. This only means that no active
+instance was found, which makes the Manager classes do nothing, and prevents the store classes
+from emitting any change signals. Accessing the stores however is still possible, and no data
+is lost. However, since the change signals are not working, most applications will not work
+correctly without having an active setup available.
+
+@sa Setup::create, Setup::removeSetup, Setup::remoteObjectHost
 */
