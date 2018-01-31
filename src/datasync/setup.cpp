@@ -559,7 +559,7 @@ RemoteConfigPrivate::RemoteConfigPrivate(const RemoteConfigPrivate &other) :
 
 // ------------- Private Implementation -------------
 
-const QString SetupPrivate::DefaultLocalDir = QStringLiteral("./qtdatasync");
+const QString SetupPrivate::DefaultLocalDir = QStringLiteral("./qtdatasync/default");
 QMutex SetupPrivate::setupMutex(QMutex::Recursive);
 QHash<QString, SetupPrivate::SetupInfo> SetupPrivate::engines;
 unsigned long SetupPrivate::timeout = ULONG_MAX;

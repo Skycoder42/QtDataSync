@@ -14,7 +14,7 @@ createPassive()) to create the instance.
 /*!
 @property QtDataSync::Setup::localDir
 
-@default{`"./qtdatasync"`}
+@default{`"./qtdatasync/default"`}
 
 The local directory is the heart of the datasync instance. It's where the actual data,
 configurations etc. are stored. A datasync instance is identified by it's local directory across

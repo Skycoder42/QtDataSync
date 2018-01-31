@@ -37,7 +37,9 @@ HEADERS += \
 	userexchangemanager_p.h \
 	emitteradapter_p.h \
 	changeemitter_p.h \
-	signal_private_connect_p.h
+	signal_private_connect_p.h \
+    migrationhelper.h \
+    migrationhelper_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -65,7 +67,8 @@ SOURCES += \
 	accountmanager_p.cpp \
 	userexchangemanager.cpp \
 	emitteradapter.cpp \
-	changeemitter.cpp
+	changeemitter.cpp \
+    migrationhelper.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
