@@ -1,0 +1,140 @@
+/*!
+@page datasync_appserver qdsapp Documentation
+
+@brief The documentation for the backend server application coming with datasync
+
+This page describes how to use appserver. You can follow this document to find out
+what you can configure etc.
+
+@tableofcontents
+
+@section datasync_appserver_install Requirements and installation
+@subsection datasync_appserver_install_postgre PostgreSQL
+All appserver needs as additional setup is a connection to a postgresql database. Simply
+install PostgreSQL on your server machine, and create a database (and a user). If you want to use
+docker, you can use the [docker image](https://hub.docker.com/_/postgres/) of PostgreSQL. There is
+no additional setup needed. Since table creation etc is done by the server itself.
+
+@subsection datasync_appserver_install_qdsapp qdsapp server
+For the server, all you need is a standard deployment, e.g. the Qt libraries. The application
+itself can be copied from the bin folder of your installation. If you use the libraries from there
+as well, it will work fine. Have a look at the deployment pages for details:
+- [Linux](https://doc.qt.io/qt-5/linux-deployment.html)
+- [Windows](https://doc.qt.io/qt-5/windows-deployment.html)
+- [MacOs](https://doc.qt.io/qt-5/osx-deployment.html)
+
+If you install it via one of the package managers, it becomes even easier Check the README for the
+support package managers. The server also comes with systemd and launchd files to use it as system
+service, and implements the windows service API, so it can be used as windows service as well.
+
+qdsapp is also available as a docker image based on ubuntu rolling. Have a look at
+[qdsapp](https://hub.docker.com/r/skycoder42/qdsapp/) on dockerhub.
+
+@section datasync_appserver_usage Usage
+For now, there is not really a CLI implemented. This will come as soon as the service API
+has been implemented. For now, all you can do is start the server. The configuration is
+done via a configuration file
+
+@subsection datasync_appserver_usage_service Using it as a service
+TODO comming soon
+
+@subsection datasync_appserver_usage_config The configuration file
+The configuration file is all you need to properly setup the server. It's a rather
+small config, in the `.ini` file format. On start, the server will search for the
+file in usual places. The order used to find the file is as follows:
+
+1. The path defined in the `QDSAPP_CONFIG_FILE` environment variable
+2. A file named `qdsappd.conf` (unix), `qdsappsvc.conf` (win) or `qdsapp.conf` (any) in one of the
+following locations, ordered by how they are searched:
+	1. The paths listed in the `QDSAPP_CONFIG_PATH` environment variable, seperated by the system
+path seperator
+	2. The Paths identified by QStandardPaths::ConfigLocation
+	3. The Paths identified by QStandardPaths::GenericConfigLocation
+	4. In `/etc/` (unix)
+	5. In the directoy of the running binary (win)
+
+An simple example for such a config file would be:
+@code{.ini}
+[general]
+loglevel=4
+
+[server]
+host=localhost
+port=4242
+
+[database]
+host=localhost
+port=15432
+password=baum42
+@endcode
+
+The next sections describe the different parts of the configuration file
+
+@subsubsection datasync_appserver_usage_config_general The `general` section
+The general section contains stuff to globally configure the server.
+
+ Key				| Type		| Default value					| Describtion
+--------------------|-----------|-------------------------------|-------------
+ threads/count		| integer	| QThread::idealThreadCount()	| The maximum of threads the server can use in it's threadpool
+ threads/expire		| integer	| 10							| The timeout (in minutes) after which unused threads expire and get removed (Every thread has it's own database connection)
+ livesync			| bool		| true							| Enable or disable live synchronization (change events for clients)
+ cleanup/interval	| integer	| 90							| The number of days a device must be offline to be seen as inactive and thus must be removed
+ cleanup/auto		| bool		| true							| Enable or disable the automatic removal of devices that are inactive (See cleanup/interval)
+ quota/limit		| integer	| 10485760 (10 MB)				| The limit in bytes each account can store on the server at most. This is only temporal storage and thus can be kept small
+ quota/force		| bool		| false							| If enabled and the interval changes, all accounts that have more data then the quota limit are deleted
+ loglevel			| integer	| 3 (release), 4 (debug)		| The loglevel. The levels are: 0 (nothing), 1 (critical), 2 (warning), 3 (info), 4 (debug)
+
+@subsubsection datasync_appserver_usage_config_database The `database` section
+This section is used to set up the database connection.
+
+ Key				| Type		| Default value							| Describtion
+--------------------|-----------|---------------------------------------|-------------
+ driver				| string	| "QPSQL"								| The database driver to use. Leave out for PostgreSQL
+ name				| string	| QCoreApplication::applicationName()	| The name of the database to connect to
+ host				| string	| "localhost"							| The host to connect to
+ port				| integer	| 5432									| The port to connect to
+ username			| string	| ""									| The username to use
+ password			| string	| ""									| The password for that username
+ options			| string	| ""									| Additional database options. See QSqlDatabase::setConnectOptions
+ keepaliveInterval	| integer	| 5										| The interval (in minutes) to send keepalive queries in for the event connection
+
+@subsubsection datasync_appserver_usage_config_server The `server` section
+This section is used to set up the websocker server. This part is what
+clients will connect to.
+
+ Key					| Type		| Default value							| Describtion
+------------------------|-----------|---------------------------------------|-------------
+ name					| string	| QCoreApplication::applicationName()	| The servers name, presented in the websocket handshake
+ host					| string	| "0.0.0.0"	(any)						| The host address to listen on. Can be used to limit access
+ port					| integer	| 0 (random)							| The port to bind to. If 0, a random port is choosen
+ secret					| string	| ""									| The server secret. All clients need to pass it if the want to connect. If left empty, no secret is required. See QtDataSync::RemoteConfig::Secret
+ idleTimeout			| integer	| 5										| A timeout (in minutes) after which a client is automatically disconnected if he did not send the idle ping
+ uploads/limit			| integer	| 10									| The maximum number of parallel uploads from a client
+ downloads/limit		| integer	| 20									| The maximum number of parallel downloads to a client
+ downloads/threshold	| integer	| 10									| A threshold of "free" download spots. Only if a client has less the (limit - threshold) active downloads, new downloads are started
+ wss					| bool		| false									| Enable a secure (SSL) server. If you set it to true, the other wss/ fields need to be set as well
+ wss/pfx				| string	| ""									| A path to a PKCS#12 file, containing the certificate to use by the server, as well as the private key
+ wss/pass				| string	| ""									| The password for the PKCS#12 file
+
+@note The `downloads/limit` and `downloads/threshold` care used to optimize database access. Instead
+of sending one dataset at a time, they are packed into batches. This speeds up the whole process
+and reduces the load on the database. The two can be used to tune that behaviour.
+
+@section datasync_appserver_cleanup The database cleanup
+A final note on the (automatic) cleanup. This procedure simply removes all devices that haven't
+logged in since a defined number of days. For most cases, this means that the user stopped using
+that device or your application. In order to prevent the database from overflowing with garbage
+data, this cleanup can remove such devices.
+
+For the user this means that if he tries to use that device again he will see an authentication
+error and must add the device again to the account just like any new device. In case all devices
+got remove, he must create a new account.
+
+Please note that no local data gets lost, as it is possible to keep all local data when creating a
+new account or adding a device.
+
+It is also possible to completly disable this setting
+`cleanup/auto` to false. In that case only explicit cleanups triggered by explicitly invoking the
+service can be performed. It is also possible to simply increase the interval to like 3 years.
+This reduces the chances of a user actually using the app again after the timeout.
+*/
