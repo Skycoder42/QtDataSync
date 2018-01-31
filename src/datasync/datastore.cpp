@@ -148,7 +148,6 @@ QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode 
 
 void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
 {
-	//TODO make atomic
 	auto keyList = keys(metaTypeId);
 	foreach(auto key, keyList) {
 		if(!iterator(load(metaTypeId, key)))

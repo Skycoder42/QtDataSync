@@ -134,7 +134,7 @@ public:
 	//! @copydoc exportAccountTrusted(bool, const QString &, const std::function<void(QJsonObject)> &, const std::function<void(QString)> &)
 	void exportAccountTrusted(bool includeServer, const QString &password, const std::function<void(QByteArray)> &completedFn, const std::function<void(QString)> &errorFn = {});
 	//! Import an account from the given untrusted export data
-	void importAccount(const QJsonObject &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false); //NOTE doc: completed does not mean accepted from peer, just valid import
+	void importAccount(const QJsonObject &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 	//! @copydoc importAccount(const QJsonObject &, const std::function<void(bool,QString)> &, bool)
 	void importAccount(const QByteArray &importData, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 	//! Import an account from the given trusted export data

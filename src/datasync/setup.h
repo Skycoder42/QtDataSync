@@ -68,7 +68,6 @@ class Q_DATASYNC_EXPORT RemoteConfig
 	Q_PROPERTY(HeaderHash headers READ headers WRITE setHeaders)
 	//! The keep alive timeout to be used to send pings to the server
 	Q_PROPERTY(int keepaliveTimeout READ keepaliveTimeout WRITE setKeepaliveTimeout)
-	//TODO add ssl config -> make serializing hard...
 
 public:
 	//! Typedef for a hash of additional HTTP headers

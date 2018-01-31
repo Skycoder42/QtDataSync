@@ -208,7 +208,7 @@ void App::onSignal(int signal)
 QString App::findConfig() const
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-	auto configPath = qEnvironmentVariable("QDSAPP_CONFIG_FILE");//NOTE document
+	auto configPath = qEnvironmentVariable("QDSAPP_CONFIG_FILE");
 #else
 	auto configPath = QString::fromUtf8(qgetenv("QDSAPP_CONFIG_FILE"));
 #endif
@@ -217,7 +217,7 @@ QString App::findConfig() const
 
 	//if not set: empty list
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-	auto tmpPaths = qEnvironmentVariable("QDSAPP_CONFIG_PATH").split(QDir::listSeparator(), QString::SkipEmptyParts);//NOTE document
+	auto tmpPaths = qEnvironmentVariable("QDSAPP_CONFIG_PATH").split(QDir::listSeparator(), QString::SkipEmptyParts);
 #else
 	auto tmpPaths = QString::fromUtf8(qgetenv("QDSAPP_CONFIG_PATH")).split(QDir::listSeparator(), QString::SkipEmptyParts);
 #endif

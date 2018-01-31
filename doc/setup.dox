@@ -254,6 +254,10 @@ Currently known:)
 - Apple Keychain (macOs and iOs only)
 - Plain (An **unsecure** fallback implementation that works on any platform)
 
+@note Typically the plugin is expected to in the `$QT_INSTALL_PLUGINS/keystores` folder. If you
+have the plugins elsewhere, use the `PLUGIN_KEYSTORES_PATH` environment variable to specify
+additional paths, seperated by the system path seperator (`:` on unix, `;` on windows)
+
 More keystores can be added by creating a custom KeyStorePlugin
 
 @accessors{
