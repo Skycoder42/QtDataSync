@@ -1,0 +1,165 @@
+/*!
+@class QtDataSync::SyncManager
+
+The manager connects to the engine via a QRemoteObjectNode. Internally the class holds a replica
+of a source that is part of the datasync engine which is created by the setup. Typically, this
+node is managed by the setup too, but you can specify your own node in the constructor. In order
+to increase security and performance a special remote object connection is used that utilizes
+events to deliver messages within the same process only. See
+@ref ro_threaded "Threaded remote objects" for details.
+
+@sa @ref ro_threaded "Threaded remote objects", Setup::remoteObjectHost
+*/
+
+/*!
+@property QtDataSync::SyncManager::syncEnabled
+
+@default{`true`}
+
+Changing this property will asynchronously trigger the specific operation in the engine, i.e.
+either disconnect it to disable sync, or start initializing in order to synchronize again.
+Whether the engine can actually connect to a remote can be monitored via SyncManager::syncState.
+
+@accessors{
+	@readAc{isSyncEnabled()}
+	@writeAc{setSyncEnabled()}
+	@notifyAc{syncEnabledChanged()}
+}
+
+@sa SyncManager::syncState
+*/
+
+/*!
+@property QtDataSync::SyncManager::syncState
+
+@default{`SyncManager::Initializing`}
+
+The sync state is simply forwareded form the engine. When in Downloading or Uploading state, the
+SyncManager::syncProgress property can be used to monitor the progress of each of those
+operations. When in the Error state, SyncManager::lastError holds the error string, and the
+engine disconnects from the remote. It will stay in the error state until it is explicitly
+cleared by calling reconnect(). When disconnected, the engine automatically tries to reconnect
+to the remote periodically, unless no remote is defined or synchronization has been disabled.
+Explicit tries to connect can by made by reconnect().
+
+@accessors{
+	@readAc{syncState()}
+	@notifyAc{syncStateChanged()}
+}
+
+@sa SyncManager::SyncState, SyncManager::syncEnabled, SyncManager::syncProgress,
+SyncManager::lastError, SyncManager::synchronize, SyncManager::reconnect
+*/
+
+/*!
+@property QtDataSync::SyncManager::syncProgress
+
+@default{`-1.0`}
+
+When in the SyncManager::Downloading or SyncManager::Uploading state, this property will
+provide a progress of that operation. The possible progress values range from `0.0` to `1.0`.
+If there is currently no active progress (i.e. because the engine is in a state different
+from those two), the progress is set to `-1.0`, meaning that there is no progress to show.
+
+@accessors{
+	@readAc{syncProgress()}
+	@notifyAc{syncProgressChanged()}
+}
+
+@sa SyncManager::syncState
+*/
+
+/*!
+@property QtDataSync::SyncManager::lastError
+
+@default{<i>empty</i>}
+
+When the engine is in the SyncManager::Error state, this property contains a localized
+error string to be displayed to the user. As long as it stays in the error state this
+property keeps the string. As soon as the engine enters another state, the error gets
+cleared. To leave the error state, one must reconnect the engine explicitly by calling
+the reconnect() method.
+
+@accessors{
+	@readAc{lastError()}
+	@notifyAc{lastErrorChanged()}
+}
+
+@sa SyncManager::syncState
+*/
+
+/*!
+@fn QtDataSync::SyncManager::replica
+
+@returns A pointer to the interal replica object
+
+Returns a reference to the internally used replica which connects to the engine. The replica is
+only valid as long as the SyncManager exists. You can use the replica reference to get
+information about it's state etc.
+*/
+
+/*!
+@fn QtDataSync::SyncManager::runOnDownloaded
+
+@param resultFn The function to be called as soon as a target state is reached
+@param triggerSync Trigger a synchronisation in case the engine is currently synchronized
+
+Semantics of the `resultFn`:
+- **Parameter 1:** The state reached that triggered this callback
+
+This method behaves just like runOnSynchronized(), but with the one difference that the
+SyncManager::Uploading state will also trigger the callback (in both phases). This
+method can be used to only wait for all changes to be downloaded from the remote, instead
+of waiting for the uploads as well.
+
+@sa SyncManager::runOnSynchronized
+*/
+
+/*!
+@fn QtDataSync::SyncManager::runOnSynchronized
+
+@param resultFn The function to be called as soon as a target state is reached
+@param triggerSync Trigger a synchronisation in case the engine is currently synchronized
+
+Semantics of the `resultFn`:
+- **Parameter 1:** The state reached that triggered this callback
+
+This method will pass a callback to the engine that is called as soon as a "stable" state is
+reached. The logic is as follows:
+
+If the engine is in the SyncManager::Error or SyncManager::Disconnected state, the callback
+is immediatly called. If it is SyncManager::Synchronized, and `triggerSync` is `false`, it
+will be called too. If it is `true` a new synchronization is triggered and the method is
+not called yet. For all other states, nothing happens yet.
+
+If the method was not directly called, the engine will instead call it as soon as one of the
+SyncManager::Synchronized, SyncManager::Error or SyncManager::Disconnected states is
+reached.
+
+The state that triggerd the function to be called is the one that is passed to the callback.
+
+@sa SyncManager::runOnDownloaded
+*/
+
+/*!
+@fn QtDataSync::SyncManager::synchronize
+
+This method will only work if the engine is currently in the SyncManager::Synchronized state.
+In all other cases it does nothing. To leave the error state, use reconnect() instead.
+
+@sa SyncManager::syncState, SyncManager::reconnect
+*/
+
+/*!
+@fn QtDataSync::SyncManager::reconnect
+
+Completely reconnects to the remote. If currently connected, the remote is first disconnected,
+then reconnected. Can also be used to leave the SyncManager::Error state and go back to the
+normal operational mode. If no remote is defined or the synchronization is disabled, reconnecting
+will not have any effect.
+
+@note If the engine is disconnected, but a remote is defined and sync enabled, it will automatically
+reconnect peridically. There is no need to explicitly reconnect in such a case.
+
+@sa SyncManager::syncState, SyncManager::synchronize
+*/
