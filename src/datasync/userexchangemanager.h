@@ -28,13 +28,11 @@ class Q_DATASYNC_EXPORT UserInfo
 	Q_PROPERTY(quint16 port READ port CONSTANT)
 
 public:
-	//! Constructor
 	UserInfo();
 	//! Copy Constructor
 	UserInfo(const UserInfo &other);
-	//! Internal Constructor
+	//! @private
 	UserInfo(UserInfoPrivate *data);
-	//! Destructor
 	~UserInfo();
 
 	//! @readAcFn{UserInfo::name}
@@ -54,24 +52,29 @@ private:
 };
 
 class UserExchangeManagerPrivate;
+//! A helper class to exchange the account data between devices on the local network
 class Q_DATASYNC_EXPORT UserExchangeManager : public QObject
 {
 	Q_OBJECT
 
 	//! Reports whether the instance is currently exchanging or not
 	Q_PROPERTY(bool active READ isActive NOTIFY activeChanged)
-	//! Holds all currently discovered users
+	//! Holds all currently discovered devices
 	Q_PROPERTY(QList<QtDataSync::UserInfo> devices READ devices NOTIFY devicesChanged)
 
 public:
 	//! The default port (13742) for the data exchange
 	static const quint16 DataExchangePort;
 
+	//! @copydoc AccountManager::AccountManager(QObject *)
 	explicit UserExchangeManager(QObject *parent = nullptr);
+	//! @copydoc AccountManager::AccountManager(const QString &, QObject *)
 	explicit UserExchangeManager(const QString &setupName, QObject *parent = nullptr);
+	//! Constructor with an account manager to use for account import and export
 	explicit UserExchangeManager(AccountManager *manager, QObject *parent = nullptr);
 	~UserExchangeManager();
 
+	//! The internally used account manager used to export and import data
 	AccountManager *accountManager() const;
 
 	//! Returns the currently used port
@@ -81,13 +84,15 @@ public:
 	//! @readAcFn{UserInfo::users}
 	QList<UserInfo> devices() const;
 
-	//! Sends the user identity of the setup to the given user
+	//! Sends the user identity to the given user as untrusted export
 	Q_INVOKABLE void exportTo(const QtDataSync::UserInfo &userInfo, bool includeServer);
+	//! Sends the user identity to the given user as trusted export
 	Q_INVOKABLE void exportTrustedTo(const QtDataSync::UserInfo &userInfo, bool includeServer, const QString &password);
-	//! Imports the user identity, previously received by the given user
+	//! Imports the untrusted user data previously received by the given user
 	void importFrom(const QtDataSync::UserInfo &userInfo,
 					const std::function<void(bool,QString)> &completedFn,
 					bool keepData = false);
+	//! Imports the trusted user data previously received by the given user
 	void importTrustedFrom(const QtDataSync::UserInfo &userInfo,
 						   const QString &password,
 						   const std::function<void(bool,QString)> &completedFn,
@@ -106,6 +111,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	//! Is emitted, when a user identity was received from the given user
 	void userDataReceived(const QtDataSync::UserInfo &userInfo, bool trusted, QPrivateSignal);
+	//! Is emitted when an error occured trying to export or import
 	void exchangeError(const QString &errorString, QPrivateSignal);
 
 	//! @notifyAcFn{UserInfo::active}
@@ -114,7 +120,9 @@ Q_SIGNALS:
 	void devicesChanged(QList<QtDataSync::UserInfo> devices, QPrivateSignal);
 
 protected:
+	//! @private
 	UserExchangeManager(QObject *parent, void*);
+	//! @private
 	void initManager(AccountManager *manager);
 
 private Q_SLOTS:
@@ -125,9 +133,9 @@ private:
 	QScopedPointer<UserExchangeManagerPrivate> d;
 };
 
-//! qHash function overload for UserInfo, see qHash(int)
+//! Overload of qHash to use UserInfo with QHash
 Q_DATASYNC_EXPORT uint qHash(const QtDataSync::UserInfo &info, uint seed = 0);
-//! Stream operator for QDebug
+//! Stream operator to stream into a QDebug
 Q_DATASYNC_EXPORT QDebug operator<<(QDebug stream, const QtDataSync::UserInfo &userInfo);
 
 }

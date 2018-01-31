@@ -1,0 +1,285 @@
+/*!
+@class QtDataSync::UserInfo
+
+This class is used by the UserExchangeManager class to provide information about discovered
+users. The name can be choosen by the remote that sent the user information, address and port
+are detected from the message.
+
+@sa UserExchangeManager, UserExchangeManager::devices
+*/
+
+/*!
+@property QtDataSync::UserInfo::name
+
+@default{`"<Unnamed>"` (Translated)}
+
+The name can be choosen by whoever sent the message. It is
+typically used to identify a device from a users view.
+
+@accessors{
+	@readAc{name()}
+	@constantAc
+}
+
+@sa UserExchangeManager::deviceName
+*/
+
+/*!
+@property QtDataSync::UserInfo::address
+
+@default{<i>Unknown</i>}
+
+The address from where the message came. Is also used
+as target address to send a message back.
+
+@accessors{
+	@readAc{address()}
+	@constantAc
+}
+
+@sa UserInfo::port
+*/
+
+/*!
+@property QtDataSync::UserInfo::port
+
+@default{<i>Unknown</i>}
+
+The port from where the message came. Is also used
+as target port to send a message back.
+
+@accessors{
+	@readAc{port()}
+	@constantAc
+}
+
+@sa UserInfo::address
+*/
+
+
+
+/*!
+@class QtDataSync::UserExchangeManager
+
+This class can be used to exchange the user identity af a setup via the local network. It
+provides an easy way to transfer the identity between devices, without any need of external
+transport mediums to get the exported data to another device.
+
+@note The class makes use of UDP-Broadcasts to discover other devices on the local network.
+This only works if both devices have an active UserExchangeManager running and if the network
+they both are connected to supports broadcasts. It does <b>not</b> work across networks.
+
+@sa AccountManager
+*/
+
+/*!
+@property QtDataSync::UserExchangeManager::active
+
+@default{`false`}
+
+The UserExchangeManager is considered active when actively searching for other devices, ready
+to export or import data from and to other devices.
+
+When inactive, the device is disconnected from the network and does not send or receive any
+data.
+
+@accessors{
+	@readAc{isActive()}
+	@notifyAc{activeChanged()}
+}
+
+@sa UserExchangeManager::startExchange, UserExchangeManager::stopExchange
+*/
+
+/*!
+@property QtDataSync::UserExchangeManager::devices
+
+@default{<i>Empty</i>}
+
+This list contains all devices discovered on the local network (excluding yourself). It only can
+find devices that have the exchange active on the same port. The list will only contain any
+users if active.
+
+@accessors{
+	@readAc{users()}
+	@notifyAc{usersChanged()}
+}
+
+@sa UserInfo, UserExchangeManager::active, UserExchangeManager::userDataReceived,
+UserExchangeManager::exportTo, UserExchangeManager::exportTrustedTo,
+UserExchangeManager::importFrom, UserExchangeManager::importTrustedFrom
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::UserExchangeManager(AccountManager *, QObject *)
+
+@param manager The account manager to use to import and export account data
+@param parent The parent object
+
+@attention The exchange manager does **not** take ownership of the passed account manager. Thus,
+the account manager must stay valid as long as the exchange manager exists.
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::accountManager
+
+@returns A pointer to the interal account manager object
+
+Returns a reference to the internally used manager. The manager is only valid as long as the
+UserExchangeManager exists. You can use the manager reference to get information about it's
+state etc.
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::port
+
+@returns The currently used port, if active
+
+The returned port is only valid whne activly exchanging. Can be used to retrieve the choosen
+port when working with random ports. If not connected, 0 is returned
+
+@sa UserExchangeManager::active, UserExchangeManager::startExchange
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::exportTo
+
+@param userInfo The user to send the identity to
+@param includeServer Specify whether the server address and configuration should be included
+into the export data
+
+The identity of the current user for the setup used on this instance is exported and sent to the
+address represented by the passed userInfo. The userInfo should be a user discovered by the
+exchange from UserExchangeManager::devices
+
+Internally, AccountManager::exportAccount is used to perform the actual export. That data is
+then sent over the network to the partner device. See that documentation for more details.
+
+@sa UserExchangeManager::userDataReceived, UserExchangeManager::importFrom,
+UserExchangeManager::exportTrustedTo, AccountManager::exportAccount
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::exportTrustedTo
+
+@param userInfo The user to send the identity to
+@param includeServer Specify whether the server address and configuration should be included
+into the export data
+@param password The password used to encrypt the exported data with
+
+The identity of the current user for the setup used on this instance is exported and sent to the
+address represented by the passed userInfo. The userInfo should be a user discovered by the
+exchange from UserExchangeManager::devices
+
+Internally, AccountManager::exportAccountTrusted is used to perform the actual export. That data
+is then sent over the network to the partner device. See that documentation for more details.
+
+@sa UserExchangeManager::userDataReceived, UserExchangeManager::importTrustedFrom,
+UserExchangeManager::exportTo, AccountManager::exportAccountTrusted
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::importFrom
+
+@param userInfo The user to that sent the data to import
+@param completedFn A function that is called once the import has been finished
+@param keepData Specify whether the stored data should be preserved
+
+Use this method to perform the actual import of an identity after receiving it via
+userDataReceived(). This only works if data has been received from the user that way. Otherwise
+the operation will fail.
+
+Internally, AccountManager::importAccount is used to perform the actual import. The received
+data is simply passed to that method. See that documentation for more details.
+
+@sa UserExchangeManager::userDataReceived, UserExchangeManager::exportTo,
+UserExchangeManager::importTrustedFrom, AccountManager::importAccount
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::importTrustedFrom
+
+@param userInfo The user to that sent the data to import
+@param password The password used to decrypt the imported data with. Must be the same as used
+for the export
+@param completedFn A function that is called once the import has been finished
+@param keepData Specify whether the stored data should be preserved
+
+Use this method to perform the actual import of an identity after receiving it via
+userDataReceived(). This only works if data has been received from the user that way. Otherwise
+the operation will fail.
+
+Internally, AccountManager::importAccountTrusted is used to perform the actual import. The
+received data is simply passed to that method. See that documentation for more details.
+
+@sa UserExchangeManager::userDataReceived, UserExchangeManager::exportTrustedTo,
+UserExchangeManager::importFrom, AccountManager::importAccountTrusted
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::startExchange(quint16)
+
+@param port The port to start the exchange on
+@returns true, if successfully started, false if not
+
+The exchange is run for all addresses, allowing connections from anywhere and broadcasting to
+anyone in the local network.
+
+If the function fails, the error string describing what went wrong is emitted via
+exchangeError().
+
+@sa UserExchangeManager::active, UserExchangeManager::exchangeError,
+UserExchangeManager::stopExchange
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::startExchange(const QHostAddress &, quint16)
+
+@param listenAddress The address to listen on for incoming messages
+@param port The port to start the exchange on
+@returns true, if successfully started, false if not
+
+The exchange is run for the given addresses, allowing connections only from addresses matching
+the given address and broadcasting to anyone in the local network.
+
+If the function fails, the error string describing what went wrong is emitted via
+exchangeError().
+
+@sa UserExchangeManager::active, UserExchangeManager::exchangeError,
+UserExchangeManager::stopExchange
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::stopExchange
+
+Stops sending and receiving messages, clears all users and pending imports. After stopping,
+this device disappears from the network and can neither be discovered by other exchanges, nor
+discover them.
+
+@sa UserExchangeManager::active, UserExchangeManager::startExchange
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::userDataReceived
+
+@param userInfo The user that sent his identity to this device
+@param trusted `true` if the received data is a trusted export, `false` if it is untrusted
+
+When a user exports his identity to this device via exportTo() or exportTrustedTo(), this signal
+is emitted. Connect to it to react an proposed identity data. The data is <b>not</b> imported
+immediatly. You can use the importFrom() and importTrustedFrom() methods to perform the actual
+import of the data, if you want to accept it. Choose the correct import method based on the
+`trusted` parameter.
+
+@sa UserExchangeManager::importFrom, UserExchangeManager::importTrustedFrom,
+UserExchangeManager::exportTo, UserExchangeManager::exportTrustedTo
+*/
+
+/*!
+@fn QtDataSync::UserExchangeManager::exchangeError
+
+@param errorString A localized error string describing what went wrong
+
+Can be shown to the user to tell him something regarding the import or export (or the general
+exchange) failed.
+*/
