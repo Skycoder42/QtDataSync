@@ -2,6 +2,7 @@
 #define QTDATASYNC_MIGRATIONHELPER_P_H
 
 #include <QtCore/QRunnable>
+#include <QtCore/QPointer>
 
 #include "qtdatasync_global.h"
 #include "migrationhelper.h"

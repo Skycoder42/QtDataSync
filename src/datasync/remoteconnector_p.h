@@ -62,9 +62,9 @@ public:
 	static const QString keyRemoteEnabled;
 	static const QString keyRemoteConfig;
 	static const QString keyRemoteUrl;
-	static const QString keyAccessKey;
-	static const QString keyHeaders;
-	static const QString keyKeepaliveTimeout;
+	static const QString keyRemoteAccessKey;
+	static const QString keyRemoteHeaders;
+	static const QString keyRemoteKeepaliveTimeout;
 	static const QString keyDeviceId;
 	static const QString keyDeviceName;
 	static const QString keyImport;

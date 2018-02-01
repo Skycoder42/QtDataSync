@@ -9,6 +9,7 @@ void TestLib::init(const QByteArray &keystorePath)
 	qputenv("PLUGIN_KEYSTORES_PATH", keystorePath);
 	qRegisterMetaType<TestData>();
 	QJsonSerializer::registerListConverters<TestData>();
+	Setup::setCleanupTimeout(10000);
 #ifdef VERBOSE_TESTS
 	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
 #endif

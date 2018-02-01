@@ -35,9 +35,9 @@ using byte = CryptoPP::byte;
 const QString RemoteConnector::keyRemoteEnabled(QStringLiteral("enabled"));
 const QString RemoteConnector::keyRemoteConfig(QStringLiteral("remote"));
 const QString RemoteConnector::keyRemoteUrl(QStringLiteral("remote/url"));
-const QString RemoteConnector::keyAccessKey(QStringLiteral("remote/accessKey"));
-const QString RemoteConnector::keyHeaders(QStringLiteral("remote/headers"));
-const QString RemoteConnector::keyKeepaliveTimeout(QStringLiteral("remote/keepaliveTimeout"));
+const QString RemoteConnector::keyRemoteAccessKey(QStringLiteral("remote/accessKey"));
+const QString RemoteConnector::keyRemoteHeaders(QStringLiteral("remote/headers"));
+const QString RemoteConnector::keyRemoteKeepaliveTimeout(QStringLiteral("remote/keepaliveTimeout"));
 const QString RemoteConnector::keyDeviceId(QStringLiteral("deviceId"));
 const QString RemoteConnector::keyDeviceName(QStringLiteral("deviceName"));
 const QString RemoteConnector::keyImport(QStringLiteral("import"));
@@ -82,7 +82,7 @@ void RemoteConnector::initialize(const QVariantHash &params)
 
 	//setup keepalive timer
 	_pingTimer = new QTimer(this);
-	_pingTimer->setInterval(sValue(keyKeepaliveTimeout).toInt());
+	_pingTimer->setInterval(sValue(keyRemoteKeepaliveTimeout).toInt());
 	_pingTimer->setTimerType(Qt::VeryCoarseTimer);
 	connect(_pingTimer, &QTimer::timeout,
 			this, &RemoteConnector::ping);
@@ -546,7 +546,7 @@ void RemoteConnector::doConnect()
 		_socket->disconnect(this);
 		_socket->deleteLater();
 	}
-	_socket = new QWebSocket(sValue(keyAccessKey).toString(),
+	_socket = new QWebSocket(sValue(keyRemoteAccessKey).toString(),
 							 QWebSocketProtocol::VersionLatest,
 							 this);
 
@@ -567,7 +567,7 @@ void RemoteConnector::doConnect()
 			Qt::QueuedConnection);
 
 	//initialize keep alive timeout
-	auto tOut = sValue(keyKeepaliveTimeout).toInt();
+	auto tOut = sValue(keyRemoteKeepaliveTimeout).toInt();
 	if(tOut > 0) {
 		_pingTimer->setInterval(scdtime(minutes(tOut)));
 		_awaitingPing = false;
@@ -585,7 +585,7 @@ void RemoteConnector::doConnect()
 	request.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
 	request.setAttribute(QNetworkRequest::HTTP2AllowedAttribute, true);
 
-	auto keys = sValue(keyHeaders).value<RemoteConfig::HeaderHash>();
+	auto keys = sValue(keyRemoteHeaders).value<RemoteConfig::HeaderHash>();
 	for(auto it = keys.begin(); it != keys.end(); it++)
 		request.setRawHeader(it.key(), it.value());
 
@@ -776,9 +776,9 @@ void RemoteConnector::clearCaches(bool includeExport)
 
 QVariant RemoteConnector::sValue(const QString &key) const
 {
-	if(key == keyHeaders) {
-		if(settings()->childGroups().contains(keyHeaders)) {
-			settings()->beginGroup(keyHeaders);
+	if(key == keyRemoteHeaders) {
+		if(settings()->childGroups().contains(keyRemoteHeaders)) {
+			settings()->beginGroup(keyRemoteHeaders);
 			auto keys = settings()->childKeys();
 			RemoteConfig::HeaderHash headers;
 			foreach(auto key, keys)
@@ -795,11 +795,11 @@ QVariant RemoteConnector::sValue(const QString &key) const
 	auto config = defaults().property(Defaults::RemoteConfiguration).value<RemoteConfig>();
 	if(key == keyRemoteUrl)
 		return config.url();
-	else if(key == keyAccessKey)
+	else if(key == keyRemoteAccessKey)
 		return config.accessKey();
-	else if(key == keyHeaders)
+	else if(key == keyRemoteHeaders)
 		return QVariant::fromValue(config.headers());
-	else if(key == keyKeepaliveTimeout)
+	else if(key == keyRemoteKeepaliveTimeout)
 		return QVariant::fromValue(config.keepaliveTimeout());
 	else if(key == keyRemoteEnabled)
 		return true;
@@ -815,9 +815,9 @@ RemoteConfig RemoteConnector::loadConfig() const
 {
 	RemoteConfig config;
 	config.setUrl(sValue(keyRemoteUrl).toUrl());
-	config.setAccessKey(sValue(keyAccessKey).toString());
-	config.setHeaders(sValue(keyHeaders).value<RemoteConfig::HeaderHash>());
-	config.setKeepaliveTimeout(sValue(keyKeepaliveTimeout).toInt());
+	config.setAccessKey(sValue(keyRemoteAccessKey).toString());
+	config.setHeaders(sValue(keyRemoteHeaders).value<RemoteConfig::HeaderHash>());
+	config.setKeepaliveTimeout(sValue(keyRemoteKeepaliveTimeout).toInt());
 	return config;
 }
 
@@ -825,13 +825,13 @@ void RemoteConnector::storeConfig(const RemoteConfig &config)
 {
 	//store remote config as well -> via current values, taken from defaults
 	settings()->setValue(keyRemoteUrl, config.url());
-	settings()->setValue(keyAccessKey, config.accessKey());
-	settings()->beginGroup(keyHeaders);
+	settings()->setValue(keyRemoteAccessKey, config.accessKey());
+	settings()->beginGroup(keyRemoteHeaders);
 	auto headers = config.headers();
 	for(auto it = headers.constBegin(); it != headers.constEnd(); it++)
 		settings()->setValue(QString::fromUtf8(it.key()), it.value());
 	settings()->endGroup();
-	settings()->setValue(keyKeepaliveTimeout, config.keepaliveTimeout());
+	settings()->setValue(keyRemoteKeepaliveTimeout, config.keepaliveTimeout());
 }
 
 void RemoteConnector::sendKeyUpdate()

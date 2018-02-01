@@ -11,7 +11,8 @@ SUBDIRS += \
 	TestRoThreadedBackend \
 	TestMessages \
 	TestKeystorePlugins \
-	TestRemoteConnector
+	TestRemoteConnector \
+    TestMigrationHelper
 
 CONFIG += ordered
 
