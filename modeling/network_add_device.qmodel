@@ -469,7 +469,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>ACCEPT(deviceId, index, scheme, enc{secret})</name>
-                         <pos>x:275;y:340</pos>
+                         <pos>x:450;y:405</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -491,7 +491,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{3496a640-de19-4761-8f05-220007a41c94}</object>
                          <a>{072b5bc7-2f8b-4d5c-bf72-56070557427a}</a>
-                         <b>{69ff2f2e-25aa-4903-8199-8095621e6f17}</b>
+                         <b>{079867e0-aef0-4e94-9941-f73a8d786eef}</b>
                          <name>yes</name>
                         </DRelation>
                        </base-DRelation>
@@ -510,7 +510,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{415e065b-4eef-4c07-a693-63f9d84cbacb}</object>
                          <a>{ffd31f2e-e5ae-4cfe-9658-406f54d2c7fa}</a>
-                         <b>{69ff2f2e-25aa-4903-8199-8095621e6f17}</b>
+                         <b>{079867e0-aef0-4e94-9941-f73a8d786eef}</b>
                          <name>true</name>
                         </DRelation>
                        </base-DRelation>
@@ -534,7 +534,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>GRANT&lt;ACCOUNT&gt;(index, scheme, enc{secret})</name>
-                         <pos>x:155;y:440</pos>
+                         <pos>x:165;y:545</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -556,7 +556,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{457138e6-3c9a-40f0-9d55-e3962f1afede}</object>
                          <a>{079867e0-aef0-4e94-9941-f73a8d786eef}</a>
-                         <b>{91b6303c-2120-4a40-b2c0-dea9919f82b8}</b>
+                         <b>{69ff2f2e-25aa-4903-8199-8095621e6f17}</b>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -579,7 +579,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:255;y:695</pos>
+                         <pos>x:365;y:800</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -623,9 +623,9 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                            <item>parallel</item>
                           </qlist>
                          </stereotypes>
-                         <pos>x:450;y:405</pos>
+                         <pos>x:255;y:405</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
-                         <visual-role>5</visual-role>
+                         <visual-role>8</visual-role>
                         </DObject>
                        </base-DObject>
                        <variety>condition</variety>
@@ -645,7 +645,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{2916e102-40f7-4037-a13a-5182b34bb29c}</object>
                          <a>{69ff2f2e-25aa-4903-8199-8095621e6f17}</a>
-                         <b>{079867e0-aef0-4e94-9941-f73a8d786eef}</b>
+                         <b>{91b6303c-2120-4a40-b2c0-dea9919f82b8}</b>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -663,7 +663,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{7ef4effb-9dd5-4454-86d6-030c637b2d04}</object>
                          <name>has unpassed data</name>
-                         <pos>x:450;y:550</pos>
+                         <pos>x:635;y:545</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -685,7 +685,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                          </base-DElement>
                          <object>{1d883ae0-c9c6-4dd0-b49e-aac6dd535203}</object>
                          <a>{69ff2f2e-25aa-4903-8199-8095621e6f17}</a>
-                         <b>{1527f852-2381-438e-8ce6-e9aa3f20d5b0}</b>
+                         <b>{48dc5309-27f2-465d-853b-f0cd367f6d11}</b>
                         </DRelation>
                        </base-DRelation>
                       </DDependency>
@@ -708,7 +708,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:635;y:550</pos>
+                         <pos>x:880;y:545</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -754,7 +754,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>DEVICECHANGE&lt;CHANGE&gt;(deviceId)</name>
-                         <pos>x:275;y:550</pos>
+                         <pos>x:635;y:675</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>5</visual-role>
                         </DObject>
@@ -800,7 +800,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>DEVICECHANGEACK&lt;CHANGEACK&gt;(deviceId)</name>
-                         <pos>x:450;y:695</pos>
+                         <pos>x:880;y:675</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -863,7 +863,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>MACUPDATE(keyIndex, cmac)</name>
-                         <pos>x:90;y:550</pos>
+                         <pos>x:165;y:675</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -908,7 +908,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>LISTDEVICES</name>
-                         <pos>x:90;y:895</pos>
+                         <pos>x:85;y:985</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -935,7 +935,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>LISTDEVICES()</name>
-                         <pos>x:285;y:895</pos>
+                         <pos>x:280;y:985</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -980,7 +980,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>DEVICES(&lt;name, fingerprint&gt;, ...)</name>
-                         <pos>x:505;y:895</pos>
+                         <pos>x:500;y:985</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -1025,7 +1025,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:735;y:895</pos>
+                         <pos>x:730;y:985</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -1070,7 +1070,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>REMOVEDEVICE</name>
-                         <pos>x:90;y:1060</pos>
+                         <pos>x:85;y:1150</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -1097,7 +1097,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>REMOVE(deviceId)</name>
-                         <pos>x:285;y:1060</pos>
+                         <pos>x:280;y:1150</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>6</visual-role>
                         </DObject>
@@ -1142,7 +1142,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>READY</name>
-                         <pos>x:735;y:1060</pos>
+                         <pos>x:730;y:1150</pos>
                          <rect>x:-20;y:-20;w:40;h:40</rect>
                          <visual-role>9</visual-role>
                         </DObject>
@@ -1187,7 +1187,7 @@ and now reconnected to the (new) server to &quot;Log in&quot;</text>
                           </qlist>
                          </stereotypes>
                          <name>REMOVEACK(deviceId)</name>
-                         <pos>x:495;y:1060</pos>
+                         <pos>x:490;y:1150</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -1247,7 +1247,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                           </qlist>
                          </stereotypes>
                          <name>MACUPDATEACK()</name>
-                         <pos>x:90;y:695</pos>
+                         <pos>x:365;y:675</pos>
                          <rect>x:-40;y:-20;w:80;h:40</rect>
                          <visual-role>8</visual-role>
                         </DObject>
@@ -1275,9 +1275,54 @@ trustmac only for trusted, over the public keys and schemes</text>
                       </DDependency>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DItem">
+                      <DItem>
+                       <base-DObject>
+                        <DObject>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{48dc5309-27f2-465d-853b-f0cd367f6d11}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{0b5ae70a-a868-4381-8176-38f38e96d1f9}</object>
+                         <stereotypes>
+                          <qlist>
+                           <item>message</item>
+                          </qlist>
+                         </stereotypes>
+                         <name>ACCEPTACK(deviceId)</name>
+                         <pos>x:450;y:545</pos>
+                         <rect>x:-40;y:-20;w:80;h:40</rect>
+                         <visual-role>8</visual-role>
+                        </DObject>
+                       </base-DObject>
+                       <variety>activity</variety>
+                       <shape-editable>false</shape-editable>
+                      </DItem>
+                     </instance>
+                    </item>
+                    <item>
+                     <instance type="DDependency">
+                      <DDependency>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{b6fa5215-409f-498b-bfdd-78d9c8bf6282}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{ecf2723e-1bcf-4bb2-8aa8-3010f49eb274}</object>
+                         <a>{48dc5309-27f2-465d-853b-f0cd367f6d11}</a>
+                         <b>{1527f852-2381-438e-8ce6-e9aa3f20d5b0}</b>
+                        </DRelation>
+                       </base-DRelation>
+                      </DDependency>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1515343094114</last-modified>
+                  <last-modified>1517592029350</last-modified>
                   <toolbarid>Activities</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -1656,7 +1701,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                              </base-MElement>
                              <name>yes</name>
                              <a>{b6c1759d-d0cb-4f29-bbc9-e0891836a16c}</a>
-                             <b>{1dc65ea8-a55e-48f6-ab01-9e5935b48bb5}</b>
+                             <b>{1445529b-49e1-46ac-a8b3-0852ad1714ca}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -1761,7 +1806,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                              </base-MElement>
                              <name>true</name>
                              <a>{56782482-b0da-4ac0-8a16-770686ece787}</a>
-                             <b>{1dc65ea8-a55e-48f6-ab01-9e5935b48bb5}</b>
+                             <b>{1445529b-49e1-46ac-a8b3-0852ad1714ca}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -1877,7 +1922,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                               </MElement>
                              </base-MElement>
                              <a>{1445529b-49e1-46ac-a8b3-0852ad1714ca}</a>
-                             <b>{f73a4bac-2a96-4e35-bf34-e1deac2fb279}</b>
+                             <b>{1dc65ea8-a55e-48f6-ab01-9e5935b48bb5}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -2020,7 +2065,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                               </MElement>
                              </base-MElement>
                              <a>{1dc65ea8-a55e-48f6-ab01-9e5935b48bb5}</a>
-                             <b>{1445529b-49e1-46ac-a8b3-0852ad1714ca}</b>
+                             <b>{f73a4bac-2a96-4e35-bf34-e1deac2fb279}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -2042,7 +2087,7 @@ trustmac only for trusted, over the public keys and schemes</text>
                               </MElement>
                              </base-MElement>
                              <a>{1dc65ea8-a55e-48f6-ab01-9e5935b48bb5}</a>
-                             <b>{7ef4effb-9dd5-4454-86d6-030c637b2d04}</b>
+                             <b>{0b5ae70a-a868-4381-8176-38f38e96d1f9}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>
@@ -2784,6 +2829,64 @@ trustmac only for trusted, over the public keys and schemes</text>
                              </base-MElement>
                              <a>{332b2ac8-460f-47d7-9820-2df1d3ebf00a}</a>
                              <b>{4dec097d-9a83-413c-850f-322ac0684871}</b>
+                            </MRelation>
+                           </base-MRelation>
+                          </MDependency>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
+                     </qlist>
+                    </handles>
+                   </handles>
+                  </relations>
+                 </MObject>
+                </base-MObject>
+                <variety-editable>false</variety-editable>
+                <variety>activity</variety>
+               </MItem>
+              </instance>
+             </target>
+            </handle>
+           </item>
+           <item>
+            <handle>
+             <uid>{0b5ae70a-a868-4381-8176-38f38e96d1f9}</uid>
+             <target>
+              <instance type="MItem">
+               <MItem>
+                <base-MObject>
+                 <MObject>
+                  <base-MElement>
+                   <MElement>
+                    <uid>{0b5ae70a-a868-4381-8176-38f38e96d1f9}</uid>
+                    <stereotypes>
+                     <qlist>
+                      <item>message</item>
+                     </qlist>
+                    </stereotypes>
+                   </MElement>
+                  </base-MElement>
+                  <name>ACCEPTACK(deviceId)</name>
+                  <relations>
+                   <handles>
+                    <handles>
+                     <qlist>
+                      <item>
+                       <handle>
+                        <uid>{ecf2723e-1bcf-4bb2-8aa8-3010f49eb274}</uid>
+                        <target>
+                         <instance type="MDependency">
+                          <MDependency>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{ecf2723e-1bcf-4bb2-8aa8-3010f49eb274}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{0b5ae70a-a868-4381-8176-38f38e96d1f9}</a>
+                             <b>{7ef4effb-9dd5-4454-86d6-030c637b2d04}</b>
                             </MRelation>
                            </base-MRelation>
                           </MDependency>

@@ -341,7 +341,7 @@ void TestMessages::addAllData()
 		msg.index = 42;
 		msg.scheme = "key_scheme";
 		msg.secret = "encrypted_key";
-		return GrantMessage(QUuid::createUuid(), msg);
+		return GrantMessage(msg);
 	});
 	addData<DeviceChangeMessage>([&]() {
 		DeviceChangeMessage msg("id_hash", QUuid::createUuid());

@@ -513,6 +513,10 @@ void TestAppServer::testAddDevice(MockClient *&partner, QUuid &partnerDevId, boo
 		accMsg.scheme = keyScheme;
 		accMsg.secret = keySecret;
 		client->sendSigned(accMsg, crypto);
+		QVERIFY(client->waitForReply<AcceptAckMessage>([&](AcceptAckMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			ok = true;
+		}));
 
 		//wait for granted
 		QVERIFY(partner->waitForReply<GrantMessage>([&](GrantMessage message, bool &ok) {
@@ -832,6 +836,10 @@ void TestAppServer::testAddDeviceInvalidKeyIndex()
 		accMsg.scheme = keyScheme;
 		accMsg.secret = keySecret;
 		client->sendSigned(accMsg, crypto);
+		QVERIFY(client->waitForReply<AcceptAckMessage>([&](AcceptAckMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			ok = true;
+		}));
 
 		//wait for granted
 		QVERIFY(partner->waitForReply<GrantMessage>([&](GrantMessage message, bool &ok) {
@@ -922,6 +930,10 @@ void TestAppServer::testSendDoubleAccept()
 		accMsg.scheme = keyScheme;
 		accMsg.secret = keySecret;
 		client->sendSigned(accMsg, crypto);
+		QVERIFY(client->waitForReply<AcceptAckMessage>([&](AcceptAckMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			ok = true;
+		}));
 
 		//wait for granted
 		QVERIFY(partner->waitForReply<GrantMessage>([&](GrantMessage message, bool &ok) {
@@ -946,6 +958,11 @@ void TestAppServer::testSendDoubleAccept()
 
 		//send another proof accept
 		client->sendSigned(accMsg, crypto);
+		//is still sent, event though no accept happend...
+		QVERIFY(client->waitForReply<AcceptAckMessage>([&](AcceptAckMessage message, bool &ok) {
+			QCOMPARE(message.deviceId, partnerDevId);
+			ok = true;
+		}));
 		QVERIFY(partner->waitForNothing());
 
 		//clean partner

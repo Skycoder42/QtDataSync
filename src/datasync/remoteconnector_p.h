@@ -199,6 +199,7 @@ private:
 	void onDevices(const DevicesMessage &message);
 	void onRemoved(const RemoveAckMessage &message);
 	void onProof(const ProofMessage &message);
+	void onAcceptAck(const AcceptAckMessage &message);
 	void onMacUpdateAck(const MacUpdateAckMessage &message);
 	void onDeviceKeys(const DeviceKeysMessage &message);
 	void onNewKeyAck(const NewKeyAckMessage &message);

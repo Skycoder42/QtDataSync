@@ -147,6 +147,12 @@ void Client::proofResult(bool success, const AcceptMessage &message)
 		} else {
 			qDebug() << "Proof completed with result:" << success;
 			if(success) {
+				if(message.deviceId != _deviceId) {
+					qWarning() << "Message device id does not match. Own id:"
+							   << _deviceId << "agains message id:" << message.deviceId;
+					return;
+				}
+
 				auto pDevId = _cachedAccessRequest.partnerId;
 				_database->addNewDeviceToUser(_deviceId,
 											  pDevId,
@@ -160,7 +166,7 @@ void Client::proofResult(bool success, const AcceptMessage &message)
 				_cachedFingerPrint.clear();
 
 				qDebug() << "Created new device and added to account of device" << pDevId;
-				sendMessage(GrantMessage{_deviceId, message});
+				sendMessage(GrantMessage{message});
 				_state = Idle;
 				emit connected(_deviceId);
 			} else
@@ -546,6 +552,7 @@ void Client::onAccept(const AcceptMessage &message, QDataStream &stream)
 	}
 
 	emit proofDone(message.deviceId, true, message);
+	sendMessage(AcceptAckMessage(message));
 }
 
 void Client::onDeny(const DenyMessage &message)

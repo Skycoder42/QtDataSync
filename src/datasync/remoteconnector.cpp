@@ -288,8 +288,7 @@ void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
 			AcceptMessage message(deviceId);
 			tie(message.index, message.scheme, message.secret) = _cryptoController->encryptSecretKey(crypto.data(), crypto->encryptionKey());
 			sendSignedMessage(message);
-			emit accountAccessGranted(deviceId);
-			logInfo() << "Granted access to account for device" << deviceId;
+			logDebug() << "Granting access to account for device" << deviceId;
 		} else {
 			sendMessage(DenyMessage{deviceId});
 			logInfo() << "Rejected access to account for device" << deviceId;
@@ -465,6 +464,8 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 			onRemoved(Message::deserializeMessage<RemoveAckMessage>(stream));
 		else if(Message::isType<ProofMessage>(name))
 			onProof(Message::deserializeMessage<ProofMessage>(stream));
+		else if(Message::isType<AcceptAckMessage>(name))
+			onAcceptAck(Message::deserializeMessage<AcceptAckMessage>(stream));
 		else if(Message::isType<MacUpdateAckMessage>(name))
 			onMacUpdateAck(Message::deserializeMessage<MacUpdateAckMessage>(stream));
 		else if(Message::isType<DeviceKeysMessage>(name))
@@ -1139,9 +1140,16 @@ void RemoteConnector::onProof(const ProofMessage &message)
 	}
 }
 
+void RemoteConnector::onAcceptAck(const AcceptAckMessage &message)
+{
+	if(checkIdle(message)) {
+		emit accountAccessGranted(message.deviceId);
+		logInfo() << "Granted access to account for device" << message.deviceId;
+	}
+}
+
 void RemoteConnector::onMacUpdateAck(const MacUpdateAckMessage &message)
 {
-	Q_UNUSED(message)
 	if(checkIdle(message)) {
 		settings()->remove(keySendCmac);
 		logDebug() << "Mac change acknowledged";

@@ -76,10 +76,26 @@ protected:
 	const QMetaObject *getMetaObject() const override;
 };
 
+class Q_DATASYNC_EXPORT AcceptAckMessage : public Message
+{
+	Q_GADGET
+
+	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
+
+public:
+	AcceptAckMessage(const AcceptMessage &message = {});
+
+	QUuid deviceId;
+
+protected:
+	const QMetaObject *getMetaObject() const override;
+};
+
 }
 
 Q_DECLARE_METATYPE(QtDataSync::ProofMessage)
 Q_DECLARE_METATYPE(QtDataSync::DenyMessage)
 Q_DECLARE_METATYPE(QtDataSync::AcceptMessage)
+Q_DECLARE_METATYPE(QtDataSync::AcceptAckMessage)
 
 #endif // QTDATASYNC_PROOFMESSAGE_P_H

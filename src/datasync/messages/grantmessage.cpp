@@ -8,8 +8,8 @@ GrantMessage::GrantMessage() :
 	secret()
 {}
 
-GrantMessage::GrantMessage(const QUuid &deviceId, const AcceptMessage &message) :
-	AccountMessage(deviceId),
+GrantMessage::GrantMessage(const AcceptMessage &message) :
+	AccountMessage(message.deviceId),
 	index(message.index),
 	scheme(message.scheme),
 	secret(message.secret)

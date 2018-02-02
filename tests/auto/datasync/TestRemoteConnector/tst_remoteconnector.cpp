@@ -679,7 +679,8 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 			ok = true;
 
 			//Send from here because message needed
-			partnerConnection->send(GrantMessage(partnerDevId, message));
+			partnerConnection->send(GrantMessage(message));
+			connection->send(AcceptAckMessage(message));
 		}));
 
 		//verify preperations are done
@@ -689,7 +690,8 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 		QCOMPARE(grantedSpy.takeFirst()[0].toUuid(), partnerDevId);
 
 		//verify grant message received successfully
-		QVERIFY(partnerImportSpy.wait());
+		if(partnerImportSpy.isEmpty())
+			QVERIFY(partnerImportSpy.wait());
 		QCOMPARE(partnerImportSpy.size(), 1);
 
 		//wait for mac update message
@@ -781,7 +783,8 @@ void TestRemoteConnector::testAddDeviceTrusted()
 			ok = true;
 
 			//Send from here because message needed
-			partnerCon->send(GrantMessage(devId2, message));
+			partnerCon->send(GrantMessage(message));
+			connection->send(AcceptAckMessage(message));
 		}));
 
 		//verify preperations are done
@@ -791,7 +794,8 @@ void TestRemoteConnector::testAddDeviceTrusted()
 		QCOMPARE(grantedSpy.takeFirst()[0].toUuid(), devId2);
 
 		//verify grant message received successfully
-		QVERIFY(partnerImportSpy.wait());
+		if(partnerImportSpy.isEmpty())
+			QVERIFY(partnerImportSpy.wait());
 		QCOMPARE(partnerImportSpy.size(), 1);
 
 		//wait for mac update message
@@ -1540,7 +1544,7 @@ void TestRemoteConnector::testUnexpectedMessage_data()
 									<< true;
 	QTest::newRow("WelcomeMessage") << create<WelcomeMessage>(false)
 									<< true;
-	QTest::newRow("GrantMessage") << create<GrantMessage>(devId, AcceptMessage(partnerDevId))
+	QTest::newRow("GrantMessage") << create<GrantMessage>(AcceptMessage(partnerDevId))
 								  << true;
 	QTest::newRow("ChangeAckMessage") << create<ChangeAckMessage>(ChangeMessage("test"))
 									  << false;
@@ -1558,6 +1562,8 @@ void TestRemoteConnector::testUnexpectedMessage_data()
 									  << false;
 	QTest::newRow("ProofMessage") << create<ProofMessage>(AccessMessage(), partnerDevId)
 								  << false;
+	QTest::newRow("AcceptAckMessage") << create<AcceptAckMessage>(AcceptMessage(partnerDevId))
+									  << false;
 	QTest::newRow("MacUpdateAckMessage") << create<MacUpdateAckMessage>()
 										 << false;
 	QTest::newRow("DeviceKeysMessage") << create<DeviceKeysMessage>(7)

@@ -56,3 +56,14 @@ const QMetaObject *AcceptMessage::getMetaObject() const
 {
 	return &staticMetaObject;
 }
+
+
+
+AcceptAckMessage::AcceptAckMessage(const AcceptMessage &message) :
+	deviceId(message.deviceId)
+{}
+
+const QMetaObject *AcceptAckMessage::getMetaObject() const
+{
+	return &staticMetaObject;
+}

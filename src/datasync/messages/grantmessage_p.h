@@ -17,7 +17,7 @@ class Q_DATASYNC_EXPORT GrantMessage : public AccountMessage
 
 public:
 	GrantMessage();
-	GrantMessage(const QUuid &deviceId, const AcceptMessage &message);
+	GrantMessage(const AcceptMessage &message);
 
 	quint32 index;
 	QByteArray scheme;
