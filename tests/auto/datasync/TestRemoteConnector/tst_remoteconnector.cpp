@@ -680,7 +680,7 @@ void TestRemoteConnector::testAddDeviceUntrusted()
 
 			//Send from here because message needed
 			partnerConnection->send(GrantMessage(message));
-			connection->send(AcceptAckMessage(message));
+			connection->send(AcceptAckMessage(message.deviceId));
 		}));
 
 		//verify preperations are done
@@ -784,7 +784,7 @@ void TestRemoteConnector::testAddDeviceTrusted()
 
 			//Send from here because message needed
 			partnerCon->send(GrantMessage(message));
-			connection->send(AcceptAckMessage(message));
+			connection->send(AcceptAckMessage(message.deviceId));
 		}));
 
 		//verify preperations are done
@@ -1562,7 +1562,7 @@ void TestRemoteConnector::testUnexpectedMessage_data()
 									  << false;
 	QTest::newRow("ProofMessage") << create<ProofMessage>(AccessMessage(), partnerDevId)
 								  << false;
-	QTest::newRow("AcceptAckMessage") << create<AcceptAckMessage>(AcceptMessage(partnerDevId))
+	QTest::newRow("AcceptAckMessage") << create<AcceptAckMessage>(partnerDevId)
 									  << false;
 	QTest::newRow("MacUpdateAckMessage") << create<MacUpdateAckMessage>()
 										 << false;

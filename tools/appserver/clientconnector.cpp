@@ -194,9 +194,18 @@ void ClientConnector::proofRequested(const QUuid &partner, const QtDataSync::Pro
 		connect(pClient, &Client::proofDone,
 				client, [devId, pClient, client](const QUuid &partner, bool success, const QtDataSync::AcceptMessage &message) {
 			if(devId == partner) {
-				client->proofResult(success, message);
-				if(pClient)
+				if(pClient) {
+					// remove this connections
 					pClient->disconnect(client);
+					// once client was added, notify pClient so he can ack the accept
+					connect(client, &Client::connected,
+							pClient, [pClient](const QUuid &accPartner) {
+						pClient->acceptDone(accPartner);
+						//no disconnect needed, single time emit
+					}, Qt::QueuedConnection);
+				}
+				// pass message on to client
+				client->proofResult(success, message);
 			}
 		}, Qt::QueuedConnection);
 		pClient->sendProof(message);

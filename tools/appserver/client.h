@@ -55,6 +55,7 @@ public Q_SLOTS:
 	void notifyChanged();
 	void proofResult(bool success, const QtDataSync::AcceptMessage &message = {}); //empty key equals denied
 	void sendProof(const QtDataSync::ProofMessage &message);
+	void acceptDone(const QUuid &deviceId);
 
 Q_SIGNALS:
 	void connected(const QUuid &deviceId);

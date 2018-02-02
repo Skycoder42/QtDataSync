@@ -1,5 +1,11 @@
 #include "mockclient.h"
 
+#ifdef Q_OS_WIN
+#define WAIT_TIMEOUT 15000
+#else
+#define WAIT_TIMEOUT 10000
+#endif
+
 MockClient::MockClient(QObject *parent) :
 	MockConnection(new QWebSocket(), parent),
 	_connectSpy(_socket, &QWebSocket::connected)
@@ -16,7 +22,7 @@ bool MockClient::waitForConnected(quint16 port)
 	auto ok = false;
 	[&]() {
 		if(_connectSpy.isEmpty())
-			QVERIFY(_connectSpy.wait());
+			QVERIFY(_connectSpy.wait(WAIT_TIMEOUT));
 		QVERIFY(!_connectSpy.isEmpty());
 		ok = true;
 	}();

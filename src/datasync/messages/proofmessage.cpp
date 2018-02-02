@@ -59,8 +59,8 @@ const QMetaObject *AcceptMessage::getMetaObject() const
 
 
 
-AcceptAckMessage::AcceptAckMessage(const AcceptMessage &message) :
-	deviceId(message.deviceId)
+AcceptAckMessage::AcceptAckMessage(const QUuid &deviceId) :
+	deviceId(deviceId)
 {}
 
 const QMetaObject *AcceptAckMessage::getMetaObject() const

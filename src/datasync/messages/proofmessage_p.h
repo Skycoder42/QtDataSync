@@ -83,7 +83,7 @@ class Q_DATASYNC_EXPORT AcceptAckMessage : public Message
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	AcceptAckMessage(const AcceptMessage &message = {});
+	AcceptAckMessage(const QUuid &deviceId = {});
 
 	QUuid deviceId;
 

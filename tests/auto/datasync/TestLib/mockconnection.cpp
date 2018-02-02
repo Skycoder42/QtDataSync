@@ -1,6 +1,10 @@
 #include "mockconnection.h"
 
-
+#ifdef Q_OS_WIN
+#define WAIT_TIMEOUT 15000
+#else
+#define WAIT_TIMEOUT 10000
+#endif
 
 MockConnection::MockConnection(QWebSocket *socket, QObject *parent) :
 	QObject(parent),
@@ -50,7 +54,7 @@ void MockConnection::close()
 bool MockConnection::waitForNothing()
 {
 	return _msgSpy.isEmpty() &&
-			!_msgSpy.wait() &&
+			!_msgSpy.wait(WAIT_TIMEOUT) &&
 			_closeSpy.isEmpty();
 }
 
@@ -64,7 +68,7 @@ bool MockConnection::waitForPing()
 	auto ok = false;
 	[&]() {
 		if(_msgSpy.isEmpty())
-			QVERIFY(_msgSpy.wait(65000)); // 1 min 5 secs
+			QVERIFY(_msgSpy.wait(60000 + WAIT_TIMEOUT)); // 1 min + WAIT_TIMEOUT
 		QVERIFY(!_msgSpy.isEmpty());
 		auto msg = _msgSpy.takeFirst()[0].toByteArray();
 		ok = (msg == QtDataSync::Message::PingMessage);
@@ -86,7 +90,7 @@ bool MockConnection::waitForDisconnect()
 	auto ok = false;
 	[&]() {
 		if(_closeSpy.isEmpty())
-			QVERIFY(_closeSpy.wait());
+			QVERIFY(_closeSpy.wait(WAIT_TIMEOUT));
 		QVERIFY(!_closeSpy.isEmpty());
 		ok = true;
 	}();
@@ -100,7 +104,7 @@ bool MockConnection::waitForReplyImpl(const std::function<void(QByteArray, bool&
 		QByteArray msg;
 		do {
 			if(_msgSpy.isEmpty())
-				QVERIFY(_msgSpy.wait());
+				QVERIFY(_msgSpy.wait(WAIT_TIMEOUT));
 			QVERIFY(!_msgSpy.isEmpty());
 			msg = _msgSpy.takeFirst()[0].toByteArray();
 			if(msg == QtDataSync::Message::PingMessage)

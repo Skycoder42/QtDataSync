@@ -186,6 +186,16 @@ void Client::sendProof(const ProofMessage &message)
 	});
 }
 
+void Client::acceptDone(const QUuid &deviceId)
+{
+	run([this, deviceId]() {
+		if(_state != Idle)
+			qWarning() << "Cannot send accept ack when not in idle state";
+		else
+			sendMessage(AcceptAckMessage(deviceId));
+	});
+}
+
 void Client::binaryMessageReceived(const QByteArray &message)
 {
 	if(message == Message::PingMessage) {
@@ -552,7 +562,6 @@ void Client::onAccept(const AcceptMessage &message, QDataStream &stream)
 	}
 
 	emit proofDone(message.deviceId, true, message);
-	sendMessage(AcceptAckMessage(message));
 }
 
 void Client::onDeny(const DenyMessage &message)

@@ -958,12 +958,8 @@ void TestAppServer::testSendDoubleAccept()
 
 		//send another proof accept
 		client->sendSigned(accMsg, crypto);
-		//is still sent, event though no accept happend...
-		QVERIFY(client->waitForReply<AcceptAckMessage>([&](AcceptAckMessage message, bool &ok) {
-			QCOMPARE(message.deviceId, partnerDevId);
-			ok = true;
-		}));
-		QVERIFY(partner->waitForNothing());
+		QVERIFY(client->waitForNothing()); //no accept ack
+		QVERIFY(partner->waitForNothing()); //no grant
 
 		//clean partner
 		clean(partner);

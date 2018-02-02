@@ -1,5 +1,11 @@
 #include "mockserver.h"
 
+#ifdef Q_OS_WIN
+#define WAIT_TIMEOUT 10000
+#else
+#define WAIT_TIMEOUT 5000
+#endif
+
 MockServer::MockServer(QObject *parent) :
 	QObject(parent),
 	_server(new QWebSocketServer(QStringLiteral("mockserver"), QWebSocketServer::NonSecureMode, this)),
@@ -44,7 +50,7 @@ bool MockServer::waitForConnected(MockConnection **connection, int timeout)
 	[&]() {
 		QVERIFY(connection);
 		if(_connectedSpy.isEmpty())
-			QVERIFY(_connectedSpy.wait(timeout));
+			QVERIFY(_connectedSpy.wait(WAIT_TIMEOUT + timeout));
 		QVERIFY(!_connectedSpy.isEmpty());
 		QVERIFY(_server->hasPendingConnections());
 		_connectedSpy.removeFirst();
