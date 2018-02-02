@@ -20,7 +20,7 @@ Module {
         }
         Signal {
             name: "loginRequested"
-            Parameter { name: "request"; type: "LoginRequest" }
+            Parameter { name: "request"; type: "QtDataSync::LoginRequest" }
         }
         Signal { name: "importAccepted" }
         Signal {

@@ -12,9 +12,10 @@ SUBDIRS += \
 	TestMessages \
 	TestKeystorePlugins \
 	TestRemoteConnector \
-    TestMigrationHelper
+	TestMigrationHelper
 
 CONFIG += ordered
 
-include_server_tests: SUBDIRS +=  \
-	TestAppServer
+include_server_tests: SUBDIRS += \
+	TestAppServer \
+	IntegrationTest

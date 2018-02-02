@@ -173,7 +173,7 @@ Q_SIGNALS:
 	//! Is emitted when the accounts devices have been sent by the server
 	void accountDevices(const QList<QtDataSync::DeviceInfo> &devices, QPrivateSignal);
 	//! Is emitted when another device requests permission to be added to the current account
-	void loginRequested(LoginRequest request, QPrivateSignal);
+	void loginRequested(QtDataSync::LoginRequest request, QPrivateSignal);
 	//! Is emitted when the partner accept the account import
 	void importAccepted(QPrivateSignal);
 	//! Is emitted when a device has been granted access to the current account
