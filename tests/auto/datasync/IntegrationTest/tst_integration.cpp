@@ -15,6 +15,8 @@ private Q_SLOTS:
 
 	void testPrepareData();
 	void testAddAccount();
+	void testLiveSync();
+	void testPassiveSync();
 
 Q_SIGNALS:
 	void unlock();
@@ -33,6 +35,8 @@ private:
 
 void IntegrationTest::initTestCase()
 {
+	//QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
+
 	QByteArray confPath { SETUP_FILE };
 	QVERIFY(QFile::exists(QString::fromUtf8(confPath)));
 	qputenv("QDSAPP_CONFIG_FILE", confPath);
@@ -99,13 +103,15 @@ void IntegrationTest::cleanupTestCase()
 	sync1 = nullptr;
 	delete acc1;
 	acc1 = nullptr;
+	Setup::removeSetup(QStringLiteral("setup1"), true);
+
 	delete store2;
 	store2 = nullptr;
 	delete sync2;
 	sync2 = nullptr;
 	delete acc2;
 	acc2 = nullptr;
-	Setup::removeSetup(DefaultSetup, true);
+	Setup::removeSetup(QStringLiteral("setup2"), true);
 
 	//send a signal to stop
 #ifdef Q_OS_UNIX
@@ -255,6 +261,202 @@ void IntegrationTest::testAddAccount()
 		QCOMPARE(devices[0].name(), acc1->deviceName());
 		QCOMPARE(devices[0].fingerprint(), acc1->deviceFingerprint());
 
+		QVERIFY(error1Spy.isEmpty());
+		QVERIFY(error2Spy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void IntegrationTest::testLiveSync()
+{
+	try {
+		QSignalSpy error1Spy(sync1, &SyncManager::lastErrorChanged);
+		QSignalSpy error2Spy(sync2, &SyncManager::lastErrorChanged);
+		QSignalSpy dataSpy(store2, &DataTypeStoreBase::dataChanged);
+		QSignalSpy sync1Spy(sync1, &SyncManager::syncStateChanged);
+		QSignalSpy sync2Spy(sync2, &SyncManager::syncStateChanged);
+		QSignalSpy unlockSpy(this, &IntegrationTest::unlock);
+
+		//sync data from 1
+		for(auto i = 20; i < 40; i++)
+			store1->save(TestLib::generateData(i));
+		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, false);
+		QVERIFY(sync1Spy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Uploading);
+		QVERIFY(unlockSpy.wait());
+		QCOMPARE(sync1Spy.size(), 1);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Synchronized);
+
+		//sync data to 2
+		sync2->runOnDownloaded([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, false);
+		if(sync2Spy.isEmpty())
+			QVERIFY(sync2Spy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Downloading);
+		QVERIFY(unlockSpy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.last()[0].toInt(), SyncManager::Synchronized);
+
+		//verify data changes
+		QCOMPARE(dataSpy.size(), 20);
+		QStringList keys;
+		foreach(auto sig, QList<QList<QVariant>>(dataSpy))
+			keys.append(sig[0].toString());
+		QCOMPAREUNORDERED(keys, TestLib::generateDataKeys(20, 39));
+
+		QVERIFY(!unlockSpy.wait());
+		QVERIFY(error1Spy.isEmpty());
+		QVERIFY(error2Spy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void IntegrationTest::testPassiveSync()
+{
+	try {
+		QSignalSpy error1Spy(sync1, &SyncManager::lastErrorChanged);
+		QSignalSpy error2Spy(sync2, &SyncManager::lastErrorChanged);
+		QSignalSpy data1Spy(store1, &DataTypeStoreBase::dataChanged);
+		QSignalSpy data2Spy(store2, &DataTypeStoreBase::dataChanged);
+		QSignalSpy enabled1Spy(sync1, &SyncManager::syncEnabledChanged);
+		QSignalSpy enabled2Spy(sync2, &SyncManager::syncEnabledChanged);
+		QSignalSpy sync1Spy(sync1, &SyncManager::syncStateChanged);
+		QSignalSpy sync2Spy(sync2, &SyncManager::syncStateChanged);
+		QSignalSpy unlockSpy(this, &IntegrationTest::unlock);
+
+		//disable 1
+		sync1->setSyncEnabled(false);
+		QVERIFY(enabled1Spy.wait());
+		QCOMPARE(enabled1Spy.size(), 1);
+		QCOMPARE(enabled1Spy.takeFirst()[0].toBool(), false);
+		//wait for disconnected
+		if(sync1Spy.isEmpty())
+			QVERIFY(sync1Spy.wait());
+		QCOMPARE(sync1Spy.size(), 1);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Disconnected);
+		//disable 2
+		sync2->setSyncEnabled(false);
+		QVERIFY(enabled2Spy.wait());
+		QCOMPARE(enabled2Spy.size(), 1);
+		QCOMPARE(enabled2Spy.takeFirst()[0].toBool(), false);
+		//wait for disconnected
+		if(sync2Spy.isEmpty())
+			QVERIFY(sync2Spy.wait());
+		QCOMPARE(sync2Spy.size(), 1);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Disconnected);
+
+		//sync data from 2
+		for(auto i = 20; i < 30; i++)
+			store2->remove(TestLib::generateDataKey(i));
+		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Disconnected);
+		}, false);
+		QVERIFY(unlockSpy.wait());
+
+		//enable sync
+		sync2->setSyncEnabled(true);
+		QVERIFY(enabled2Spy.wait());
+		QCOMPARE(enabled2Spy.size(), 1);
+		QCOMPARE(enabled2Spy.takeFirst()[0].toBool(), true);
+		//wait for init
+		QVERIFY(sync2Spy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Initializing);
+		//wait for uploading
+		if(sync2Spy.isEmpty())
+			QVERIFY(sync2Spy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Uploading);
+		//wait for synced
+		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, false);
+		QVERIFY(unlockSpy.wait());
+		QCOMPARE(sync2Spy.size(), 1);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Synchronized);
+
+		//sync data from and to 1
+		for(auto i = 30; i < 40; i++)
+			store1->remove(TestLib::generateDataKey(i));
+		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Disconnected);
+		}, false);
+		QVERIFY(unlockSpy.wait());
+
+		//enable sync
+		sync1->setSyncEnabled(true);
+		QVERIFY(enabled1Spy.wait());
+		QCOMPARE(enabled1Spy.size(), 1);
+		QCOMPARE(enabled1Spy.takeFirst()[0].toBool(), true);
+		//wait for init
+		QVERIFY(sync1Spy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Initializing);
+		//wait for downloading
+		if(sync1Spy.isEmpty())
+			QVERIFY(sync1Spy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Downloading);
+		unlockSpy.clear();
+		sync1->runOnDownloaded([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Uploading);
+		}, false);
+		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, false);
+		//wait for uploading
+		if(sync1Spy.isEmpty())
+			QVERIFY(sync1Spy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Uploading);
+		//wait for synced
+		QVERIFY(unlockSpy.wait());
+		if(unlockSpy.size() != 2)
+			QVERIFY(unlockSpy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.last()[0].toInt(), SyncManager::Synchronized);
+
+		//sync data to 2 again
+		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, false);
+		if(sync2Spy.isEmpty())
+			QVERIFY(sync2Spy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Downloading);
+		QVERIFY(unlockSpy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.last()[0].toInt(), SyncManager::Synchronized);
+
+		//verify data changes on 1
+		QCOMPARE(data1Spy.size(), 20);
+		QStringList keys;
+		foreach(auto sig, QList<QList<QVariant>>(data1Spy))
+			keys.append(sig[0].toString());
+		QCOMPAREUNORDERED(keys, TestLib::generateDataKeys(20, 39));
+		//and on 2
+		QCOMPARE(data2Spy.size(), 20);
+		keys.clear();
+		foreach(auto sig, QList<QList<QVariant>>(data2Spy))
+			keys.append(sig[0].toString());
+		QCOMPAREUNORDERED(keys, TestLib::generateDataKeys(20, 39));
+
+		QVERIFY(!unlockSpy.wait());
 		QVERIFY(error1Spy.isEmpty());
 		QVERIFY(error2Spy.isEmpty());
 	} catch(std::exception &e) {

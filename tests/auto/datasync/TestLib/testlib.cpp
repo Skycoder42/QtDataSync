@@ -45,11 +45,16 @@ QList<TestData> TestLib::generateData(int from, int to)
 	return list;
 }
 
+QString TestLib::generateDataKey(int index)
+{
+	return QString::number(index);
+}
+
 QStringList TestLib::generateDataKeys(int from, int to)
 {
 	QStringList list;
 	for(auto i = from; i <= to; i++)
-		list.append(QString::number(i));
+		list.append(generateDataKey(i));
 	return list;
 }
 

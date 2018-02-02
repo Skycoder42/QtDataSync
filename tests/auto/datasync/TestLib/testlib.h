@@ -21,6 +21,7 @@ public:
 	static QtDataSync::ObjectKey generateKey(int index);
 	static TestData generateData(int index);
 	static QList<TestData> generateData(int from, int to);
+	static QString generateDataKey(int index);
 	static QStringList generateDataKeys(int from, int to);
 	static QJsonObject generateDataJson(int index, const QString &specialText = {});
 	static DataSet generateDataJson(int from, int to);

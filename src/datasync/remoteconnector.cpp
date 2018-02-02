@@ -370,7 +370,10 @@ void RemoteConnector::setSyncEnabled(bool syncEnabled)
 		return;
 
 	settings()->setValue(keyRemoteEnabled, syncEnabled);
-	reconnect();
+	if(syncEnabled)
+		reconnect();
+	else
+		disconnectRemote();
 	emit syncEnabledChanged(syncEnabled);
 }
 
