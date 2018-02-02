@@ -136,8 +136,8 @@ void IntegrationTest::testPrepareData()
 		QCOMPARE(store1->count(), 10);
 
 		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
-			QCOMPARE(s, SyncManager::Synchronized);
 			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
 		}, false);
 		QVERIFY(unlockSpy.wait());
 
@@ -160,8 +160,8 @@ void IntegrationTest::testPrepareData()
 		QCOMPARE(store2->count(), 10);
 
 		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
-			QCOMPARE(s, SyncManager::Synchronized);
 			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
 		}, false);
 		QVERIFY(unlockSpy.wait());
 
@@ -180,6 +180,9 @@ void IntegrationTest::testAddAccount()
 		QSignalSpy requestSpy(acc1, &AccountManager::loginRequested);
 		QSignalSpy acceptSpy(acc2, &AccountManager::importAccepted);
 		QSignalSpy grantSpy(acc1, &AccountManager::accountAccessGranted);
+		QSignalSpy devices1Spy(acc1, &AccountManager::accountDevices);
+		QSignalSpy devices2Spy(acc2, &AccountManager::accountDevices);
+		QSignalSpy unlockSpy(this, &IntegrationTest::unlock);
 
 		//export from acc1
 		acc1->exportAccount(false, [this](QJsonObject exp) {
@@ -197,7 +200,7 @@ void IntegrationTest::testAddAccount()
 		//wait and accept acc1 login request
 		QVERIFY(requestSpy.wait());
 		QCOMPARE(requestSpy.size(), 1);
-		LoginRequest request = requestSpy.takeFirst()[0].value<LoginRequest>();
+		auto request = requestSpy.takeFirst()[0].value<LoginRequest>();
 		QVERIFY(!request.handled());
 		QCOMPARE(request.device().name(), acc2->deviceName());
 		QCOMPARE(request.device().fingerprint(), acc2->deviceFingerprint());
@@ -216,6 +219,41 @@ void IntegrationTest::testAddAccount()
 			QVERIFY(grantSpy.wait());
 		QCOMPARE(grantSpy.size(), 1);
 		QCOMPARE(grantSpy.takeFirst()[0].toUuid(), pId);
+
+		//wait for sync
+		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, true);
+		unlockSpy.wait();
+		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		});
+		unlockSpy.wait();
+
+		QCOMPARE(store1->count(), 20);
+		QCOMPAREUNORDERED(store1->keys(), TestLib::generateDataKeys(0, 19));
+		QCOMPARE(store2->count(), 20);
+		QCOMPAREUNORDERED(store2->keys(), TestLib::generateDataKeys(0, 19));
+
+		//check devices status
+		acc1->listDevices();
+		QVERIFY(devices1Spy.wait());
+		QCOMPARE(devices1Spy.size(), 1);
+		auto devices = devices1Spy.takeFirst()[0].value<QList<DeviceInfo>>();
+		QCOMPARE(devices.size(), 1);
+		QCOMPARE(devices[0].deviceId(), pId);
+		QCOMPARE(devices[0].name(), acc2->deviceName());
+		QCOMPARE(devices[0].fingerprint(), acc2->deviceFingerprint());
+
+		acc2->listDevices();
+		QVERIFY(devices2Spy.wait());
+		QCOMPARE(devices2Spy.size(), 1);
+		devices = devices2Spy.takeFirst()[0].value<QList<DeviceInfo>>();
+		QCOMPARE(devices.size(), 1);
+		QCOMPARE(devices[0].name(), acc1->deviceName());
+		QCOMPARE(devices[0].fingerprint(), acc1->deviceFingerprint());
 
 		QVERIFY(error1Spy.isEmpty());
 		QVERIFY(error2Spy.isEmpty());

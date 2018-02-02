@@ -54,7 +54,7 @@ void MockConnection::close()
 bool MockConnection::waitForNothing()
 {
 	return _msgSpy.isEmpty() &&
-			!_msgSpy.wait(WAIT_TIMEOUT) &&
+			!_msgSpy.wait() &&
 			_closeSpy.isEmpty();
 }
 
