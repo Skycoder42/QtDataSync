@@ -1,0 +1,46 @@
+/*!
+@class QtDataSync::MigrationHelper
+
+If you used QtDataSync below version 4 before, you will have to use this class to migrate the data
+from that old datasync to the current new one, as they are not compatible. This is what this class
+is used for.
+
+The migration is performed asynchronously once started and cannot be stopped. To start a
+migration, use startMigration().
+
+@sa MigrationHelper::startMigration, MigrationHelper::migrationDone
+*/
+
+/*!
+@fn QtDataSync::MigrationHelper::MigrationHelper(QObject *)
+
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the default setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::MigrationHelper::MigrationHelper(const QString &, QObject *)
+
+@param setupName The name of the setup to connect to
+@param parent The parent object
+@throws SetupDoesNotExistException Thrown if the given setup was not created yet
+*/
+
+/*!
+@fn QtDataSync::MigrationHelper::startMigration
+
+@param storageDir The old datasync directory to import the data from
+@param flags Flags to configure what and how to migrate the data
+
+The `storageDir` must be the directory that the old datasync used as storage directory. If you
+did not change it, the DefaultOldStorageDir constant can be used, as it points to the previous
+default datasync storage dir.
+
+Migration is performed asynchronously with the status beeing reported via the signals. Errors,
+warnings and other stuff is logged as usual. Use the `qtdatasync.<setupName>.migration` logging
+category to filter for it.
+
+@sa MigrationHelper::MigrationFlag, MigrationHelper::DefaultOldStorageDir,
+MigrationHelper::migrationDone, MigrationHelper::migrationPrepared,
+MigrationHelper::migrationProgress,
+*/

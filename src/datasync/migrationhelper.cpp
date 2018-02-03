@@ -169,8 +169,6 @@ void MigrationRunnable::run()
 				 currentSettings, QStringLiteral("connector/") + RemoteConnector::keyRemoteEnabled);
 		copyConf(oldSettings, QStringLiteral("RemoteConnector/remoteUrl"),
 				 currentSettings, QStringLiteral("connector/") + RemoteConnector::keyRemoteUrl);
-//		copyConf(oldSettings, QStringLiteral("RemoteConnector/verifyPeer"),
-//				 currentSettings, QStringLiteral("connector/remote/verifyPeer")); //TODO add?
 		copyConf(oldSettings, QStringLiteral("RemoteConnector/sharedSecret"),
 				 currentSettings, QStringLiteral("connector/") + RemoteConnector::keyRemoteAccessKey);
 
