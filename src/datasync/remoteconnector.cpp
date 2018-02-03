@@ -464,7 +464,7 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 		else if(Message::isType<DevicesMessage>(name))
 			onDevices(Message::deserializeMessage<DevicesMessage>(stream));
 		else if(Message::isType<RemoveAckMessage>(name))
-			onRemoved(Message::deserializeMessage<RemoveAckMessage>(stream));
+			onRemoveAck(Message::deserializeMessage<RemoveAckMessage>(stream));
 		else if(Message::isType<ProofMessage>(name))
 			onProof(Message::deserializeMessage<ProofMessage>(stream));
 		else if(Message::isType<AcceptAckMessage>(name))
@@ -1071,7 +1071,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 	}
 }
 
-void RemoteConnector::onRemoved(const RemoveAckMessage &message)
+void RemoteConnector::onRemoveAck(const RemoveAckMessage &message)
 {
 	if(checkIdle(message)) {
 		if(_deviceId == message.deviceId) {

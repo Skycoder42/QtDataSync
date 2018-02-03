@@ -197,7 +197,7 @@ private:
 	void onChangedInfo(const ChangedInfoMessage &message);
 	void onLastChanged(const LastChangedMessage &message);
 	void onDevices(const DevicesMessage &message);
-	void onRemoved(const RemoveAckMessage &message);
+	void onRemoveAck(const RemoveAckMessage &message);
 	void onProof(const ProofMessage &message);
 	void onAcceptAck(const AcceptAckMessage &message);
 	void onMacUpdateAck(const MacUpdateAckMessage &message);

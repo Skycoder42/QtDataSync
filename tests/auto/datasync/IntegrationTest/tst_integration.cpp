@@ -17,6 +17,8 @@ private Q_SLOTS:
 	void testAddAccount();
 	void testLiveSync();
 	void testPassiveSync();
+	void testRemoveAndResetAccount();
+	void testAddAccountTrusted();
 
 Q_SIGNALS:
 	void unlock();
@@ -31,6 +33,8 @@ private:
 	AccountManager *acc2;
 	SyncManager *sync2;
 	DataTypeStore<TestData> *store2;
+
+	QUuid dev2Id;
 };
 
 void IntegrationTest::initTestCase()
@@ -192,6 +196,7 @@ void IntegrationTest::testAddAccount()
 
 		//export from acc1
 		acc1->exportAccount(false, [this](QJsonObject exp) {
+			QVERIFY(!AccountManager::isTrustedImport(exp));
 			acc2->importAccount(exp, [](bool ok, QString e) {
 				QVERIFY2(ok, qUtf8Printable(e));
 			}, true);
@@ -210,8 +215,8 @@ void IntegrationTest::testAddAccount()
 		QVERIFY(!request.handled());
 		QCOMPARE(request.device().name(), acc2->deviceName());
 		QCOMPARE(request.device().fingerprint(), acc2->deviceFingerprint());
-		auto pId = request.device().deviceId();
-		QVERIFY(!pId.isNull());
+		dev2Id = request.device().deviceId();
+		QVERIFY(!dev2Id.isNull());
 		request.accept();
 		QVERIFY(request.handled());
 
@@ -224,7 +229,7 @@ void IntegrationTest::testAddAccount()
 		if(grantSpy.isEmpty())
 			QVERIFY(grantSpy.wait());
 		QCOMPARE(grantSpy.size(), 1);
-		QCOMPARE(grantSpy.takeFirst()[0].toUuid(), pId);
+		QCOMPARE(grantSpy.takeFirst()[0].toUuid(), dev2Id);
 
 		//wait for sync
 		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
@@ -249,7 +254,7 @@ void IntegrationTest::testAddAccount()
 		QCOMPARE(devices1Spy.size(), 1);
 		auto devices = devices1Spy.takeFirst()[0].value<QList<DeviceInfo>>();
 		QCOMPARE(devices.size(), 1);
-		QCOMPARE(devices[0].deviceId(), pId);
+		QCOMPARE(devices[0].deviceId(), dev2Id);
 		QCOMPARE(devices[0].name(), acc2->deviceName());
 		QCOMPARE(devices[0].fingerprint(), acc2->deviceFingerprint());
 
@@ -289,8 +294,9 @@ void IntegrationTest::testLiveSync()
 		QVERIFY(sync1Spy.size() > 0);
 		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Uploading);
 		QVERIFY(unlockSpy.wait());
-		QCOMPARE(sync1Spy.size(), 1);
-		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Synchronized);
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.last()[0].toInt(), SyncManager::Synchronized);
+		sync1Spy.clear();
 
 		//sync data to 2
 		sync2->runOnDownloaded([this](SyncManager::SyncState s) {
@@ -304,6 +310,7 @@ void IntegrationTest::testLiveSync()
 		QVERIFY(unlockSpy.wait());
 		QVERIFY(sync2Spy.size() > 0);
 		QCOMPARE(sync2Spy.last()[0].toInt(), SyncManager::Synchronized);
+		sync2Spy.clear();
 
 		//verify data changes
 		QCOMPARE(dataSpy.size(), 20);
@@ -442,6 +449,7 @@ void IntegrationTest::testPassiveSync()
 		QVERIFY(unlockSpy.wait());
 		QVERIFY(sync2Spy.size() > 0);
 		QCOMPARE(sync2Spy.last()[0].toInt(), SyncManager::Synchronized);
+		sync2Spy.clear();
 
 		//verify data changes on 1
 		QCOMPARE(data1Spy.size(), 20);
@@ -457,6 +465,147 @@ void IntegrationTest::testPassiveSync()
 		QCOMPAREUNORDERED(keys, TestLib::generateDataKeys(20, 39));
 
 		QVERIFY(!unlockSpy.wait());
+		QVERIFY(error1Spy.isEmpty());
+		QVERIFY(error2Spy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void IntegrationTest::testRemoveAndResetAccount()
+{
+	try {
+		QSignalSpy error1Spy(acc1, &AccountManager::lastErrorChanged);
+		QSignalSpy error2Spy(acc2, &AccountManager::lastErrorChanged);
+		QSignalSpy sync1Spy(sync1, &SyncManager::syncStateChanged);
+		QSignalSpy sync2Spy(sync2, &SyncManager::syncStateChanged);
+		QSignalSpy devices1Spy(acc1, &AccountManager::accountDevices);
+		QSignalSpy data1Spy(store1, &DataTypeStoreBase::dataResetted);
+
+		//remove 2
+		acc1->removeDevice(dev2Id);
+		QVERIFY(sync2Spy.wait());
+		QCOMPARE(sync2Spy.size(), 1);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Disconnected);
+
+		//verify devices not there
+		acc1->listDevices();
+		QVERIFY(devices1Spy.wait());
+		QCOMPARE(devices1Spy.size(), 1);
+		auto devices = devices1Spy.takeFirst()[0].value<QList<DeviceInfo>>();
+		QVERIFY(devices.isEmpty());
+
+		//verify connect fails
+		sync2->reconnect();
+		//wait for init
+		if(sync2Spy.isEmpty())
+			QVERIFY(sync2Spy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Initializing);
+		//wait for error
+		if(sync2Spy.isEmpty())
+			QVERIFY(sync2Spy.wait());
+		QVERIFY(sync2Spy.size() > 0);
+		QCOMPARE(sync2Spy.takeFirst()[0].toInt(), SyncManager::Error);
+		//on error
+		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Error);
+		}, false);
+		if(error2Spy.isEmpty())
+			QVERIFY(error2Spy.wait());
+		QCOMPARE(error2Spy.size(), 1);
+		error2Spy.clear();
+
+		//reset 1 to clear it
+		acc1->resetAccount(false);
+		//disconnect
+		if(sync1Spy.isEmpty())
+			QVERIFY(sync1Spy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Disconnected);
+		//reconnect
+		if(sync1Spy.isEmpty())
+			QVERIFY(sync1Spy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Initializing);
+		//uploading
+		if(sync1Spy.isEmpty())
+			QVERIFY(sync1Spy.wait());
+		QVERIFY(sync1Spy.size() > 0);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Uploading);
+		//synced
+		if(sync1Spy.isEmpty())
+			QVERIFY(sync1Spy.wait());
+		QCOMPARE(sync1Spy.size(), 1);
+		QCOMPARE(sync1Spy.takeFirst()[0].toInt(), SyncManager::Synchronized);
+
+		if(data1Spy.isEmpty())
+			QVERIFY(data1Spy.wait());
+
+		QVERIFY(error1Spy.isEmpty());
+		QVERIFY(error2Spy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void IntegrationTest::testAddAccountTrusted()
+{
+	try {
+		QSignalSpy error1Spy(acc1, &AccountManager::lastErrorChanged);
+		QSignalSpy error2Spy(acc2, &AccountManager::lastErrorChanged);
+		QSignalSpy fprintSpy(acc2, &AccountManager::deviceFingerprintChanged);
+		QSignalSpy requestSpy(acc1, &AccountManager::loginRequested);
+		QSignalSpy acceptSpy(acc2, &AccountManager::importAccepted);
+		QSignalSpy grantSpy(acc1, &AccountManager::accountAccessGranted);
+		QSignalSpy unlockSpy(this, &IntegrationTest::unlock);
+
+		//export from acc1
+		auto password = QStringLiteral("password");
+		acc1->exportAccountTrusted(false, password, [&](QJsonObject exp) {
+			QVERIFY(AccountManager::isTrustedImport(exp));
+			acc2->importAccountTrusted(exp, password, [&](bool ok, QString e) {
+				QVERIFY2(ok, qUtf8Printable(e));
+				if(error2Spy.wait())
+					error2Spy.clear();
+			}, false);
+		}, [](QString e) {
+			QFAIL(qUtf8Printable(e));
+		});
+
+		//wait for acc2 fingerprint update
+		QVERIFY(fprintSpy.wait());
+		QCOMPARE(fprintSpy.size(), 1);
+
+		//wait for login request to not come...
+		QVERIFY(!requestSpy.wait());
+
+		//wait for accept
+		if(acceptSpy.isEmpty())
+			QVERIFY(acceptSpy.wait());
+		QCOMPARE(acceptSpy.size(), 1);
+
+		//wait for grant
+		if(grantSpy.isEmpty())
+			QVERIFY(grantSpy.wait());
+		QCOMPARE(grantSpy.size(), 1);
+
+		//wait for sync
+		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, true);
+		unlockSpy.wait();
+		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		});
+		unlockSpy.wait();
+
+		QCOMPARE(store1->count(), 0);
+		QCOMPARE(store2->count(), 0);
+
 		QVERIFY(error1Spy.isEmpty());
 		QVERIFY(error2Spy.isEmpty());
 	} catch(std::exception &e) {
