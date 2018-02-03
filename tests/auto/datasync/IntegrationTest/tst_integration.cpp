@@ -299,9 +299,9 @@ void IntegrationTest::testLiveSync()
 		sync1Spy.clear();
 
 		//sync data to 2
-		sync2->runOnDownloaded([this](SyncManager::SyncState s) {
+		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
 			emit unlock();
-			QCOMPARE(s, SyncManager::Synchronized);
+			QVERIFY(s == SyncManager::Synchronized);
 		}, false);
 		if(sync2Spy.isEmpty())
 			QVERIFY(sync2Spy.wait());
@@ -576,7 +576,7 @@ void IntegrationTest::testAddAccountTrusted()
 
 		//wait for acc2 fingerprint update
 		QVERIFY(fprintSpy.wait());
-		QCOMPARE(fprintSpy.size(), 1);
+		QVERIFY(fprintSpy.size() > 0);
 
 		//wait for login request to not come...
 		QVERIFY(!requestSpy.wait());
