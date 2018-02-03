@@ -33,6 +33,7 @@ mv dockerbuild/env_start.sh /usr/bin/
 
 # remove unused stuff
 apt-get -qq purge $BUILD_DEPS
+apt-get -qq autoremove
 rm -rf /tmp/*
 rm -rf /var/lib/apt/lists/*
 rm -rf $HOME/.cache/qpmx

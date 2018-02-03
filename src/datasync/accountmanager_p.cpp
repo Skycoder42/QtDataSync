@@ -208,7 +208,7 @@ ExportData AccountManagerPrivate::deserializeExportData(const QJsonObject &impor
 	//cant use json serializer because of HeaderHash and config ptr
 	data.trusted = importData[QStringLiteral("trusted")].toBool();
 	data.pNonce = QByteArray::fromBase64(importData[QStringLiteral("nonce")].toString().toUtf8());
-	data.partnerId = QUuid::fromString(importData[QStringLiteral("partner")].toString());
+	data.partnerId = QUuid(importData[QStringLiteral("partner")].toString());
 	data.scheme = importData[QStringLiteral("scheme")].toString().toUtf8();
 	data.cmac = QByteArray::fromBase64(importData[QStringLiteral("cmac")].toString().toUtf8());
 

@@ -41,11 +41,9 @@ SOURCES += \
 DISTFILES += \
 	docker_setup.conf \
 	docker-compose.yaml \
-	dockerbuild/makedocker.sh \
-	dockerbuild/Dockerfile \
+	../../Dockerfile \
 	dockerbuild/env_start.sh \
 	dockerbuild/install.sh \
-	dockerbuild/qt-installer-script.qs \
 	qdsapp.service \
 	qdsapp.socket \
 	qdsapp.conf
