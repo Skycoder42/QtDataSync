@@ -72,6 +72,12 @@ void AccountManagerPrivate::resetAccount(bool keepData)
 	_engine->resetAccount(keepData);
 }
 
+void AccountManagerPrivate::changeRemote(const RemoteConfig &config, bool keepData)
+{
+	_engine->remoteConnector()->changeRemote(config);
+	_engine->resetAccount(keepData, false);
+}
+
 void AccountManagerPrivate::exportAccount(const QUuid &id, bool includeServer)
 {
 	try {

@@ -28,6 +28,7 @@ public Q_SLOTS:
 	void removeDevice(const QUuid &deviceId) override;
 	void updateExchangeKey() override;
 	void resetAccount(bool keepData) override;
+	void changeRemote(const RemoteConfig &config, bool keepData) override;
 	void exportAccount(const QUuid &id, bool includeServer) override;
 	void exportAccountTrusted(const QUuid &id, bool includeServer, const QString &password) override;
 	void importAccount(const JsonObject &importData, bool keepData) override;

@@ -28,9 +28,6 @@ public:
 
 	void prepare(const QString &query);
 	void exec();
-
-private:
-	QSqlDatabase _db;
 };
 
 }

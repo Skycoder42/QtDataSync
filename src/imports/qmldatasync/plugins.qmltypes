@@ -53,6 +53,15 @@ Module {
             Parameter { name: "keepData"; type: "bool" }
         }
         Method { name: "resetAccount" }
+        Method {
+            name: "changeRemote"
+            Parameter { name: "config"; type: "RemoteConfig" }
+            Parameter { name: "keepData"; type: "bool" }
+        }
+        Method {
+            name: "changeRemote"
+            Parameter { name: "config"; type: "RemoteConfig" }
+        }
         Method { name: "updateExchangeKey" }
         Method {
             name: "setDeviceName"

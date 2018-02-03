@@ -10,6 +10,7 @@ class AccountManagerPrivate {
 	SLOT(void removeDevice(const QUuid &deviceId));
 	SLOT(void updateExchangeKey());
 	SLOT(void resetAccount(bool keepData));
+	SLOT(void changeRemote(const QtDataSync::RemoteConfig &config, bool keepData));
 	SLOT(void exportAccount(const QUuid &id, bool includeServer));
 	SLOT(void exportAccountTrusted(const QUuid &id, bool includeServer, const QString &password));
 	SLOT(void importAccount(const QtDataSync::JsonObject &importData, bool keepData));

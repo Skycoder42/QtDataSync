@@ -123,7 +123,12 @@ bool AccountManager::isTrustedImport(const QByteArray &importData)
 
 void AccountManager::resetAccount(bool keepData)
 {
-	return d->replica->resetAccount(keepData);
+	d->replica->resetAccount(keepData);
+}
+
+void AccountManager::changeRemote(const RemoteConfig &config, bool keepData)
+{
+	d->replica->changeRemote(config, keepData);
 }
 
 void AccountManager::exportAccount(bool includeServer, const function<void(QJsonObject)> &completedFn, const function<void(QString)> &errorFn)

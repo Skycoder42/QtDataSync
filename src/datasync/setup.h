@@ -7,14 +7,13 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qlogging.h>
 #include <QtCore/qurl.h>
-#include <QtCore/qhash.h>
-#include <QtCore/qshareddata.h>
 class QLockFile;
 
 #include <QtNetwork/qsslconfiguration.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
+#include "QtDataSync/remoteconfig.h"
 
 class QJsonSerializer;
 
@@ -53,62 +52,6 @@ Q_DECL_CONSTEXPR inline int operator "" _gb(unsigned long long x) {
 #endif
 
 class ConflictResolver;
-
-class RemoteConfigPrivate;
-//! A configuration on how to connect to a remote server
-class Q_DATASYNC_EXPORT RemoteConfig
-{
-	Q_GADGET
-
-	//! The websocket url of the server to connect to
-	Q_PROPERTY(QUrl url READ url WRITE setUrl)
-	//! A access secret needed in order to connect to the server
-	Q_PROPERTY(QString accessKey READ accessKey WRITE setAccessKey)
-	//! A collection of additional HTTP headers to be sent with the request
-	Q_PROPERTY(HeaderHash headers READ headers WRITE setHeaders)
-	//! The keep alive timeout to be used to send pings to the server
-	Q_PROPERTY(int keepaliveTimeout READ keepaliveTimeout WRITE setKeepaliveTimeout)
-
-public:
-	//! Typedef for a hash of additional HTTP headers
-	typedef QHash<QByteArray, QByteArray> HeaderHash;
-
-	//! Default constructor, with optional parameters
-	RemoteConfig(const QUrl &url = {},
-				 const QString &accessKey = {},
-				 const HeaderHash &headers = {},
-				 int keepaliveTimeout = 1); //1 minute between ping messages (nginx timeout is 75 seconds be default)
-	//! Copy constructor
-	RemoteConfig(const RemoteConfig &other);
-	~RemoteConfig();
-
-	//! Assignment operator
-	RemoteConfig &operator=(const RemoteConfig &other);
-
-	//! @readAcFn{RemoteConfig::url}
-	QUrl url() const;
-	//! @readAcFn{RemoteConfig::accessKey}
-	QString accessKey() const;
-	//! @readAcFn{RemoteConfig::headers}
-	HeaderHash headers() const;
-	//! @readAcFn{RemoteConfig::keepaliveTimeout}
-	int keepaliveTimeout() const;
-
-	//! @writeAcFn{RemoteConfig::url}
-	void setUrl(QUrl url);
-	//! @writeAcFn{RemoteConfig::accessKey}
-	void setAccessKey(QString accessKey);
-	//! @writeAcFn{RemoteConfig::headers}
-	void setHeaders(HeaderHash headers);
-	//! @writeAcFn{RemoteConfig::keepaliveTimeout}
-	void setKeepaliveTimeout(int keepaliveTimeout);
-
-private:
-	QSharedDataPointer<RemoteConfigPrivate> d;
-
-	friend Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemoteConfig &deviceInfo);
-	friend Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemoteConfig &deviceInfo);
-};
 
 class SetupPrivate;
 //! The class to setup and create datasync instances
@@ -408,11 +351,6 @@ protected:
 	QString _appname;
 };
 
-//! Stream operator to stream into a QDataStream
-Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemoteConfig &deviceInfo);
-//! Stream operator to stream out of a QDataStream
-Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemoteConfig &deviceInfo);
-
 // ------------- Generic Implementation -------------
 
 template<typename TRatio>
@@ -437,8 +375,4 @@ Q_DECL_CONSTEXPR inline int GB(const intmax_t &value)
 }
 
 }
-
-Q_DECLARE_METATYPE(QtDataSync::RemoteConfig)
-Q_DECLARE_TYPEINFO(QtDataSync::RemoteConfig, Q_MOVABLE_TYPE);
-
 #endif // QTDATASYNC_SETUP_H

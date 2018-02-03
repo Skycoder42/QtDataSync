@@ -103,6 +103,7 @@ public Q_SLOTS:
 	void listDevices();
 	void removeDevice(const QUuid &deviceId);
 	void resetAccount(bool removeConfig);
+	void changeRemote(const RemoteConfig &config);
 	void prepareImport(const ExportData &data, const CryptoPP::SecByteBlock &key);
 	void loginReply(const QUuid &deviceId, bool accept);
 

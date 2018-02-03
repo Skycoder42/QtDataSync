@@ -718,7 +718,7 @@ void LocalStore::beginWriteTransaction(const ObjectKey &key, bool exclusive)
 
 void LocalStore::exec(QSqlQuery &query, const ObjectKey &key) const
 {
-	if(!query.exec()) { //TODO do same for prepare
+	if(!query.exec()) {
 			throw LocalStoreException(_defaults,
 									  key,
 									  query.executedQuery().simplified(),

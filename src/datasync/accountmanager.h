@@ -11,7 +11,8 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qjsonobject.h>
 
-#include "qtdatasync_global.h"
+#include "QtDataSync/qtdatasync_global.h"
+#include "QtDataSync/remoteconfig.h"
 
 class QRemoteObjectNode;
 class QRemoteObjectReplica;
@@ -160,6 +161,8 @@ public Q_SLOTS:
 	}
 	//! Removes this device from the current account and then creates a new one
 	void resetAccount(bool keepData = true);
+	//! Resets the account and connects to the new remote to create a new one
+	void changeRemote(const RemoteConfig &config, bool keepData = true);
 
 	//! Generate a new secret exchange key used to encrypt data
 	void updateExchangeKey();

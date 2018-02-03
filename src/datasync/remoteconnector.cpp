@@ -250,6 +250,13 @@ void RemoteConnector::resetAccount(bool clearConfig)
 	}
 }
 
+void RemoteConnector::changeRemote(const RemoteConfig &config)
+{
+	storeConfig(config);
+	//after storing, continue with "normal" reset. This MUST be done by the engine, thus not in this function
+	logDebug() << "Prepared new remote configuration for next reconnect";
+}
+
 void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecByteBlock &key)
 {
 	//assume data was already "validated"
@@ -827,6 +834,8 @@ RemoteConfig RemoteConnector::loadConfig() const
 
 void RemoteConnector::storeConfig(const RemoteConfig &config)
 {
+	//clean the old config
+	settings()->remove(keyRemoteConfig);
 	//store remote config as well -> via current values, taken from defaults
 	settings()->setValue(keyRemoteUrl, config.url());
 	settings()->setValue(keyRemoteAccessKey, config.accessKey());

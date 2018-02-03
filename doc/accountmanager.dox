@@ -379,7 +379,22 @@ ids.
 If `keepData` is false, all local data is deleted. This is basically a full reset. If it is true
 (the default) then all data is kept.
 
-@sa AccountManager::importAccount, AccountManager::importAccountTrusted
+@sa AccountManager::importAccount, AccountManager::importAccountTrusted,
+AccountManager::changeRemote
+*/
+
+/*!
+@fn QtDataSync::AccountManager::changeRemote
+
+@param config The remote config to be used to connect to the new remote
+@param keepData Specify whether the stored data should be preserved
+
+Disconnects you from the current remote, and then tries to connect to the new remote defined by
+the new config. This operation implicitly performs an account reset. See resetAccount() for
+more details.
+
+@sa AccountManager::importAccount, AccountManager::importAccountTrusted,
+AccountManager::resetAccount
 */
 
 /*!

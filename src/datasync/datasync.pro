@@ -39,7 +39,9 @@ HEADERS += \
 	changeemitter_p.h \
 	signal_private_connect_p.h \
     migrationhelper.h \
-    migrationhelper_p.h
+    migrationhelper_p.h \
+    remoteconfig.h \
+    remoteconfig_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -68,7 +70,8 @@ SOURCES += \
 	userexchangemanager.cpp \
 	emitteradapter.cpp \
 	changeemitter.cpp \
-    migrationhelper.cpp
+    migrationhelper.cpp \
+    remoteconfig.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml
