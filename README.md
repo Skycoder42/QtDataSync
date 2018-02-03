@@ -119,7 +119,7 @@ The following examples descibe the different parts of the module, and how to use
 - Add a second device to your account to synchronize data between them
 
 #### Initialize QtDataSync
-After adding datasync to your project, the next step is to setup datasync. In your main, you need to once create a setup. This **must** be done before you create any other datasync class, but after that, you can use it in your whole application from any thread. Multi-Process setups are possible, but more complicated. See TODO for more details.
+After adding datasync to your project, the next step is to setup datasync. In your main, you need to once create a setup. This **must** be done before you create any other datasync class, but after that, you can use it in your whole application from any thread. Multi-Process setups are possible, but more complicated. See documentation for more details.
 
 To setup datasync, simply use the Setup class:
 ```cpp
@@ -164,7 +164,7 @@ foreach(Data d, store->loadAll<Data>()) {
 ```
 
 #### Setting up the remote server (qdsapp)
-In order to synchronize data, some server is needed. The quickest way for development is to use the prepared docker image in the sample projects folder. Just run `docker-compose up -d` to start it. It will create a postgres as well as a qdsapp instance to be used on port 4242. More details on how to configure the the server can be found TODO.
+In order to synchronize data, some server is needed. The quickest way for development is to use the prepared docker image in the sample projects folder. Just run `docker-compose up -d` to start it. It will create a postgres as well as a qdsapp instance to be used on port 4242. More details on how to configure the the server can be found in the documentation.
 
 Once thats done, the library will automatically connect to the server and create an account, if the server was correctly configured with the setup. To synchronize changes, all you need to do now is to add a second device to your account.
 
