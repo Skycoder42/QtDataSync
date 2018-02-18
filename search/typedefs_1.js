@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['headerhash',['HeaderHash',['https://doc.qt.io/qt-5/namespace_qt_rest_client.html#a7740c5315769e26058b0ddd005885bdd',0,'QtRestClient']]]
+  ['fatalerrorhandler',['FatalErrorHandler',['../class_qt_data_sync_1_1_setup.html#a76521945323edba6aeb6a92a1c56de62',1,'QtDataSync::Setup']]]
 ];

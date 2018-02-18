@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['keeplocal',['KeepLocal',['../class_qt_data_sync_1_1_data_merger.html#a9e15dea9fe10c2f76ba43941f97f0a8ba6eb702166c46b57e6becb40734f63589',1,'QtDataSync::DataMerger']]],
-  ['keepremote',['KeepRemote',['../class_qt_data_sync_1_1_data_merger.html#a9e15dea9fe10c2f76ba43941f97f0a8ba4135a9029ed0d9cc39cc9cab7c96336d',1,'QtDataSync::DataMerger']]]
+  ['disconnected',['Disconnected',['../class_qt_data_sync_1_1_sync_manager.html#a88370b2fba5ecb3602d60e08b0a66699a9fbf10c4826679abe58e857bddaed115',1,'QtDataSync::SyncManager']]],
+  ['downloading',['Downloading',['../class_qt_data_sync_1_1_sync_manager.html#a88370b2fba5ecb3602d60e08b0a66699a7309df3683c803709c5f8d3b4526111f',1,'QtDataSync::SyncManager']]]
 ];

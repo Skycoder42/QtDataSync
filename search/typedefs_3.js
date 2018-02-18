@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jsontype',['JsonType',['https://skycoder42.github.io/QJsonSerializer/struct__qjsonserializer__helpertypes_1_1type__helper.html#a4b12f815d7ea7af56801088fefcc67e9',0,'_qjsonserializer_helpertypes::type_helper::JsonType()'],['https://skycoder42.github.io/QJsonSerializer/struct__qjsonserializer__helpertypes_1_1type__helper_3_01_q_list_3_01_t_01_4_01_4.html#a91921e7acacb02943b492804eb387ffb',0,'_qjsonserializer_helpertypes::type_helper&lt; QList&lt; T &gt; &gt;::JsonType()'],['https://skycoder42.github.io/QJsonSerializer/struct__qjsonserializer__helpertypes_1_1type__helper_3_01_q_variant_01_4.html#a647d88720963f090836d04ee5b75a367',0,'_qjsonserializer_helpertypes::type_helper&lt; QVariant &gt;::JsonType()']]]
+  ['iterator',['iterator',['../class_qt_data_sync_1_1_caching_data_type_store.html#a0fc9b3dbbadc840862b1abcec4995137',1,'QtDataSync::CachingDataTypeStore::iterator()'],['../class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a07b1b2d7d27e19925fceedfa6440292e',1,'QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::iterator()']]]
 ];

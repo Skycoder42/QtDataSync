@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['simple_2eh',['simple.h',['https://doc.qt.io/qt-5/simple_8h.html',0,'']]]
+  ['logger_2eh',['logger.h',['../logger_8h.html',1,'']]]
 ];

@@ -1,10 +1,10 @@
 var searchData=
 [
   ['record',['Record',['https://doc.qt.io/qt-5/qndeffilter-record.html',0,'QNdefFilter']]],
-  ['remoteconnector',['RemoteConnector',['../class_qt_data_sync_1_1_remote_connector.html',1,'QtDataSync']]],
+  ['remoteconfig',['RemoteConfig',['../class_qt_data_sync_1_1_remote_config.html',1,'QtDataSync']]],
   ['renderer',['Renderer',['https://doc.qt.io/qt-5/qquickframebufferobject-renderer.html',0,'QQuickFramebufferObject']]],
   ['renderpassfilter',['RenderPassFilter',['https://doc.qt.io/qt-5/qml-renderpassfilter.html',0,'']]],
-  ['renderstate',['RenderState',['https://doc.qt.io/qt-5/qsgmaterialshader-renderstate.html',0,'QSGMaterialShader::RenderState'],['https://doc.qt.io/qt-5/qml-renderstate.html',0,'RenderState'],['https://doc.qt.io/qt-5/qsgrendernode-renderstate.html',0,'QSGRenderNode::RenderState']]],
+  ['renderstate',['RenderState',['https://doc.qt.io/qt-5/qsgmaterialshader-renderstate.html',0,'QSGMaterialShader::RenderState'],['https://doc.qt.io/qt-5/qsgrendernode-renderstate.html',0,'QSGRenderNode::RenderState'],['https://doc.qt.io/qt-5/qml-renderstate.html',0,'RenderState']]],
   ['renderstateset',['RenderStateSet',['https://doc.qt.io/qt-5/qml-renderstateset.html',0,'']]],
   ['rendertarget',['RenderTarget',['https://doc.qt.io/qt-5/qml-rendertarget.html',0,'']]],
   ['rendertargetoutput',['RenderTargetOutput',['https://doc.qt.io/qt-5/qml-rendertargetoutput.html',0,'']]],

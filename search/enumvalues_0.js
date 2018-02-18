@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['changed',['Changed',['../class_qt_data_sync_1_1_state_holder.html#a3ac1a05a93bb0c3b88bb3f2e04df4b11abca3cf573c55666e9c9491ea38097ae5',1,'QtDataSync::StateHolder']]]
+  ['aes_5feax',['AES_EAX',['../class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7ea945d2b3943d1def7bc6ea801f5b0eaa9',1,'QtDataSync::Setup']]],
+  ['aes_5fgcm',['AES_GCM',['../class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7ea1f4594b0256a099e40f5a46e8fd352db',1,'QtDataSync::Setup']]]
 ];
