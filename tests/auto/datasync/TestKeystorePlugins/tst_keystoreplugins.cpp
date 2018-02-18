@@ -114,7 +114,7 @@ void TestKeystorePlugins::testKeystoreFunctions()
 	QVERIFY(Setup::keystoreAvailable(provider));
 
 	auto key = QStringLiteral("some_random_key");
-	auto data = "random_secret_private_key";
+	QByteArray data = "random_secret_private_key";
 	try {
 		auto instance = plugin->createInstance(provider, DefaultsPrivate::obtainDefaults(DefaultSetup), this);
 		QVERIFY(instance);

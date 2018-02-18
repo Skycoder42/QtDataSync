@@ -26,6 +26,8 @@
 
 using namespace QtDataSync;
 
+Q_DECLARE_METATYPE(QtDataSync::Message*)
+
 class TestMessages : public QObject
 {
 	Q_OBJECT
@@ -55,6 +57,7 @@ void TestMessages::initTestCase()
 	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
 		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
 #endif
+	qRegisterMetaType<QtDataSync::Message*>();
 	QMetaType::registerComparators<Utf8String>();
 	QMetaType::registerComparators<DevicesMessage::DeviceInfo>();
 	QMetaType::registerComparators<QList<DevicesMessage::DeviceInfo>>();
@@ -82,8 +85,8 @@ void TestMessages::testSerialization_data()
 void TestMessages::testSerialization()
 {
 	QFETCH(QByteArray, name);
-	QFETCH(Message*, message);
-	QFETCH(Message*, resultMessage);
+	QFETCH(QtDataSync::Message*, message);
+	QFETCH(QtDataSync::Message*, resultMessage);
 	QFETCH(bool, success);
 	QFETCH(QByteArray, className);
 
@@ -91,8 +94,8 @@ void TestMessages::testSerialization()
 	Message &out = *resultMessage;
 
 	try {
-		QCOMPARE(in.metaObject()->className(), className);
-		QCOMPARE(out.metaObject()->className(), className);
+		QCOMPARE(QByteArray(in.metaObject()->className()), className);
+		QCOMPARE(QByteArray(out.metaObject()->className()), className);
 		QCOMPARE(in.messageName(), name);
 		auto data = in.serialize();
 
@@ -129,8 +132,8 @@ void TestMessages::testSignedSerialization_data()
 void TestMessages::testSignedSerialization()
 {
 	QFETCH(QByteArray, name);
-	QFETCH(Message*, message);
-	QFETCH(Message*, resultMessage);
+	QFETCH(QtDataSync::Message*, message);
+	QFETCH(QtDataSync::Message*, resultMessage);
 	QFETCH(bool, success);
 	QFETCH(QByteArray, className);
 
@@ -138,8 +141,8 @@ void TestMessages::testSignedSerialization()
 	Message &out = *resultMessage;
 
 	try {
-		QCOMPARE(in.metaObject()->className(), className);
-		QCOMPARE(out.metaObject()->className(), className);
+		QCOMPARE(QByteArray(in.metaObject()->className()), className);
+		QCOMPARE(QByteArray(out.metaObject()->className()), className);
 		QCOMPARE(in.messageName(), name);
 		auto data = in.serializeSigned(crypto->privateSignKey(), crypto->rng(), crypto);
 
@@ -173,8 +176,8 @@ void TestMessages::testSignedSerialization()
 void TestMessages::addSignedData()
 {
 	QTest::addColumn<QByteArray>("name");
-	QTest::addColumn<Message*>("message");
-	QTest::addColumn<Message*>("resultMessage");
+	QTest::addColumn<QtDataSync::Message*>("message");
+	QTest::addColumn<QtDataSync::Message*>("resultMessage");
 	QTest::addColumn<bool>("success");
 	QTest::addColumn<QByteArray>("className");
 
