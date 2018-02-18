@@ -330,7 +330,7 @@ CachingDataTypeStore<TType, TKey>::CachingDataTypeStore(DataStore *store, QObjec
 	_data()
 {
 	auto userProp = TType::staticMetaObject.userProperty();
-	foreach(auto data, store->loadAll<TType>())
+	for(auto data : store->loadAll<TType>())
 		_data.insert(userProp.readOnGadget(&data).template value<TKey>(), data);
 
 	connect(_store, &DataStore::dataChanged,
@@ -474,7 +474,7 @@ CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(DataStore *store, QObje
 	_data()
 {
 	auto userProp = TType::staticMetaObject.userProperty();
-	foreach(auto data, store->loadAll<TType*>()){
+	for(auto data : store->loadAll<TType*>()){
 		data->setParent(this);
 		_data.insert(userProp.read(data).template value<TKey>(), data);
 	}
@@ -616,7 +616,7 @@ void CachingDataTypeStore<TType*, TKey>::evalDataResetted()
 	auto data = _data;
 	_data.clear();
 	emit dataResetted();
-	foreach(auto d, data)
+	for(auto d : data)
 		d->deleteLater();
 }
 

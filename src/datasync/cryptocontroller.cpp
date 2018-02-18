@@ -129,7 +129,7 @@ QStringList CryptoController::allKeystoreKeys()
 QStringList CryptoController::availableKeystoreKeys()
 {
 	QStringList keys;
-	foreach(auto key, factory->allKeys()) {
+	for(auto key : factory->allKeys()) {
 		if(factory->isAvailable(key))
 			keys.append(key);
 	}
@@ -860,7 +860,7 @@ void CryptoController::cleanCiphers() const
 	auto keys = settings()->childKeys();
 	settings()->endGroup();
 
-	foreach(auto key, keys) {
+	for(auto key : keys) {
 		auto ok = false;
 		auto keyIndex = key.toUInt(&ok);
 		if(!ok)

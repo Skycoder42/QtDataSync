@@ -35,7 +35,7 @@ void ExchangeDialog::exec(QtDataSync::AccountManager *manager, QWidget *parent)
 void ExchangeDialog::devicesChanged(QList<QtDataSync::UserInfo> devices)
 {
 	ui->treeWidget->clear();
-	foreach(auto dev, devices) {
+	for(auto dev : devices) {
 		auto item = new QTreeWidgetItem(ui->treeWidget);
 		item->setText(0, dev.name());
 		item->setText(1, QStringLiteral("%1:%2").arg(dev.address().toString()).arg(dev.port()));

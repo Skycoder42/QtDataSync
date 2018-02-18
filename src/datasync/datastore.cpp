@@ -54,9 +54,8 @@ QStringList DataStore::keys(int metaTypeId) const
 
 QVariantList DataStore::loadAll(int metaTypeId) const
 {
-	auto jsonList = d->store->loadAll(d->typeName(metaTypeId));
 	QVariantList resList;
-	foreach(auto val, jsonList)
+	for(auto val : d->store->loadAll(d->typeName(metaTypeId)))
 		resList.append(d->serializer->deserialize(val, metaTypeId));
 	return resList;
 }
@@ -139,17 +138,15 @@ void DataStore::update(int metaTypeId, QObject *object) const
 
 QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode mode) const
 {
-	auto jsonList = d->store->find(d->typeName(metaTypeId), query, mode);
 	QVariantList resList;
-	foreach(auto val, jsonList)
+	for(auto val : d->store->find(d->typeName(metaTypeId), query, mode))
 		resList.append(d->serializer->deserialize(val, metaTypeId));
 	return resList;
 }
 
 void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
 {
-	auto keyList = keys(metaTypeId);
-	foreach(auto key, keyList) {
+	for(auto key : keys(metaTypeId)) {
 		if(!iterator(load(metaTypeId, key)))
 			break;
 	}

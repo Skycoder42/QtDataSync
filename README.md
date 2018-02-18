@@ -158,7 +158,7 @@ auto store = new QtDataSync::DataStore(this); //Use the "default setup"
 //store an entry
 store->save<Data>({42, "tree"});
 //load all entries
-foreach(Data d, store->loadAll<Data>()) {
+for(Data d : store->loadAll<Data>()) {
 	qDebug() << d.key << d.value;
 });
 ```

@@ -597,7 +597,7 @@ bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyInd
 			throw DatabaseException(db);
 		auto userId = updateKeyCountQuery.value(0).toULongLong();
 
-		foreach(auto device, deviceKeys) {
+		for(auto device : deviceKeys) {
 			//check if the device belongs to the same user
 			Query checkAllowedQuery(db);
 			checkAllowedQuery.prepare(QStringLiteral("SELECT 1 FROM devices "
@@ -766,7 +766,7 @@ void DatabaseController::initDatabase(quint64 quota, bool forceQuota)
 			QSqlDriver::EventNotifications
 		};
 		auto driver = db.driver();
-		foreach(auto feature, features) {
+		for(auto feature : features) {
 			if(!driver->hasFeature(feature))
 				throw DatabaseException(QSqlError(QStringLiteral("Driver does not support feature %1").arg(feature)));
 		}

@@ -276,7 +276,7 @@ void Client::error()
 
 void Client::sslErrors(const QList<QSslError> &errors)
 {
-	foreach(auto error, errors) {
+	for(auto error : errors) {
 		qWarning() << "SSL error:"
 				   << error.errorString();
 	}
@@ -524,7 +524,7 @@ void Client::onListDevices(const ListDevicesMessage &message)
 	checkIdle(message);
 
 	DevicesMessage devMessage;
-	foreach (auto device, _database->listDevices(_deviceId))
+	for(auto device : _database->listDevices(_deviceId))
 		devMessage.devices.append(device);
 
 	sendMessage(devMessage);
@@ -617,7 +617,7 @@ void Client::onNewKey(const NewKeyMessage &message, QDataStream &stream)
 										  message.cmac,
 										  message.deviceKeys);
 	if(ok) {
-		foreach(auto info, message.deviceKeys)
+		for(auto info : message.deviceKeys)
 			emit forceDisconnect(get<0>(info));
 		sendMessage(NewKeyAckMessage{message});
 	} else
@@ -631,7 +631,7 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 	auto cnt = _downLimit - _activeDownloads.size();
 	if(cnt >= _downThreshold) {
 		auto changes = _database->loadNextChanges(_deviceId, cnt, _activeDownloads.size());
-		foreach(auto change, changes) {
+		for(auto change : changes) {
 			if(_cachedChanges == 0) {
 				updateChange = true;
 				_cachedChanges = _database->changeCount(_deviceId) - _activeDownloads.size();

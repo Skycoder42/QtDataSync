@@ -33,7 +33,7 @@ public:
 namespace Tst {
 
 template <typename T>
-bool compareUnordered(QList<T> actual, QList<T> expected, QByteArray aName, QByteArray eName, const char *file, int line) {
+bool compareUnordered(const QList<T> &actual, QList<T> expected, QByteArray aName, QByteArray eName, const char *file, int line) {
 	if(actual.size() != expected.size()) {
 		QTest::qFail(aName + " and " + eName +
 					 " differ in size (" +
@@ -45,7 +45,7 @@ bool compareUnordered(QList<T> actual, QList<T> expected, QByteArray aName, QByt
 	}
 
 	auto i = 0;
-	foreach(auto a, actual) {
+	for(auto a : actual) {
 		if(!expected.removeOne(a)) {
 			QTest::qFail("Data of " + aName +
 						 " at index" + QByteArray::number(i) +

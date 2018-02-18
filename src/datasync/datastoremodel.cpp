@@ -317,7 +317,7 @@ void DataStoreModelPrivate::createRoleNames()
 void DataStoreModelPrivate::clearHashObjects()
 {
 	if(QMetaType::typeFlags(type).testFlag(QMetaType::PointerToQObject)) {
-		foreach(auto v, dataHash)
+		for(auto v : dataHash)
 			deleteObject(v);
 	}
 	dataHash.clear();

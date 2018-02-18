@@ -106,7 +106,7 @@ void hashNext(QCryptographicHash &hash, const QJsonValue &value)
 		hash.addData(value.toString().toUtf8());
 		break;
 	case QJsonValue::Array:
-		foreach(auto v, value.toArray())
+		for(auto v : value.toArray())
 			hashNext(hash, v);
 		break;
 	case QJsonValue::Object:

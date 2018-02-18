@@ -516,7 +516,7 @@ void RemoteConnector::error(QAbstractSocket::SocketError error)
 void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 {
 	auto shouldClose = true;
-	foreach(auto error, errors) {
+	for(auto error : errors) {
 		if(error.error() == QSslError::SelfSignedCertificate ||
 		   error.error() == QSslError::SelfSignedCertificateInChain)
 			shouldClose = shouldClose &&
@@ -790,9 +790,8 @@ QVariant RemoteConnector::sValue(const QString &key) const
 	if(key == keyRemoteHeaders) {
 		if(settings()->childGroups().contains(keyRemoteHeaders)) {
 			settings()->beginGroup(keyRemoteHeaders);
-			auto keys = settings()->childKeys();
 			RemoteConfig::HeaderHash headers;
-			foreach(auto key, keys)
+			for(auto key : settings()->childKeys())
 				headers.insert(key.toUtf8(), settings()->value(key).toByteArray());
 			settings()->endGroup();
 			return QVariant::fromValue(headers);
@@ -1074,7 +1073,7 @@ void RemoteConnector::onDevices(const DevicesMessage &message)
 	if(checkIdle(message)) {
 		logDebug() << "Received list of devices with" << message.devices.size() << "entries";
 		_deviceCache.clear();
-		foreach(auto device, message.devices)
+		for(auto device : message.devices)
 			_deviceCache.append(DeviceInfo{get<0>(device), get<1>(device), get<2>(device)});
 		emit devicesListed(_deviceCache);
 	}
@@ -1180,7 +1179,7 @@ void RemoteConnector::onDeviceKeys(const DeviceKeysMessage &message)
 			reply.cmac = _cryptoController->generateEncryptionKeyCmac(reply.keyIndex); //cmac for the new key
 			//do not store this mac to be send again!
 
-			foreach(auto info, message.devices) {
+			for(auto info : message.devices) {
 				try {
 					//verify the device knows the previous secret (which is still the current one)
 					auto cryptInfo = QSharedPointer<AsymmetricCryptoInfo>::create(_cryptoController->rng(),

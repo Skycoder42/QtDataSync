@@ -178,7 +178,7 @@ void MigrationRunnable::run()
 		//special: copy headers
 		oldSettings->beginGroup(QStringLiteral("RemoteConnector/headers"));
 		currentSettings->beginGroup(QStringLiteral("connector/") + RemoteConnector::keyRemoteHeaders);
-		foreach(auto key, oldSettings->childKeys()) {
+		for(auto key : oldSettings->childKeys()) {
 			copyConf(oldSettings, key,
 					 currentSettings, key);
 		}

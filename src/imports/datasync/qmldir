@@ -1,4 +1,4 @@
 module de.skycoder42.QtDataSync
-plugin declarative_qmldatasync
+plugin declarative_datasync
 classname QtDataSyncDeclarativeModule
 typeinfo plugins.qmltypes

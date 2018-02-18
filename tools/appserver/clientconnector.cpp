@@ -159,7 +159,7 @@ void ClientConnector::serverError()
 
 void ClientConnector::sslErrors(const QList<QSslError> &errors)
 {
-	foreach(auto error, errors) {
+	for(auto error : errors) {
 		qWarning() << "SSL error:"
 				   << error.errorString();
 	}

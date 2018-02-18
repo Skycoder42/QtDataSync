@@ -39,6 +39,10 @@ private:
 
 void IntegrationTest::initTestCase()
 {
+#ifdef Q_OS_LINUX
+	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
+		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
+#endif
 	//QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
 
 	QByteArray confPath { SETUP_FILE };
@@ -315,7 +319,7 @@ void IntegrationTest::testLiveSync()
 		//verify data changes
 		QCOMPARE(dataSpy.size(), 20);
 		QStringList keys;
-		foreach(auto sig, QList<QList<QVariant>>(dataSpy))
+		for(auto sig : QList<QList<QVariant>>(dataSpy))
 			keys.append(sig[0].toString());
 		QCOMPAREUNORDERED(keys, TestLib::generateDataKeys(20, 39));
 
@@ -454,13 +458,13 @@ void IntegrationTest::testPassiveSync()
 		//verify data changes on 1
 		QCOMPARE(data1Spy.size(), 20);
 		QStringList keys;
-		foreach(auto sig, QList<QList<QVariant>>(data1Spy))
+		for(auto sig : QList<QList<QVariant>>(data1Spy))
 			keys.append(sig[0].toString());
 		QCOMPAREUNORDERED(keys, TestLib::generateDataKeys(20, 39));
 		//and on 2
 		QCOMPARE(data2Spy.size(), 20);
 		keys.clear();
-		foreach(auto sig, QList<QList<QVariant>>(data2Spy))
+		for(auto sig : QList<QList<QVariant>>(data2Spy))
 			keys.append(sig[0].toString());
 		QCOMPAREUNORDERED(keys, TestLib::generateDataKeys(20, 39));
 

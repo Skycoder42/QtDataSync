@@ -202,7 +202,7 @@ void UserExchangeManager::readDatagram()
 
 		auto isSelf = false;
 		if(datagram.senderPort() == d->socket->localPort()) {
-			foreach(auto addr, QNetworkInterface::allAddresses()) {
+			for(auto addr : QNetworkInterface::allAddresses()) {
 				if(addr.isEqual(datagram.senderAddress())) {
 					isSelf = true;
 					break;
@@ -250,7 +250,7 @@ void UserExchangeManager::readDatagram()
 
 			//try to find the already existing user info for that data
 			bool found = false;
-			foreach(auto key, d->devices.keys()) {
+			for(auto key : d->devices.keys()) {
 				if(info == key) {
 					found = true;
 					if(isInfo) { //isInfo -> reset timeout, update name if neccessary

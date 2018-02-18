@@ -9,7 +9,8 @@ osx_image: xcode9.2
 
 env:
   global:
-    - QT_VER=5.10.0
+    - QPMX_CACHE_DIR=$HOME/.qpmx-cache
+    - QT_VER=5.10.1
     - EXTRA_MODULES=".qtremoteobjects .skycoder42.jsonserializer"
     - STATIC_QT_MODS="qttools qtwebsockets qtscxml qtremoteobjects"
     - STATIC_EXTRA_MODS="qtjsonserializer"
@@ -20,7 +21,7 @@ matrix:
       env:
         - PLATFORM=gcc_64
         - BUILD_DOC=true
-        - EXTRA_PKG="libsecret-1-dev gnome-keyring" #in order to build secrectservice keystore
+        - EXTRA_PKG="libsecret-1-dev" #in order to build secrectservice keystore
     - os: linux
       env:
         - PLATFORM=android_armv7
@@ -59,10 +60,10 @@ deploy:
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-  #TODO rm qpmx locks
+  - rm -fr $QPMX_CACHE_DIR/locks
 cache:
   directories:
-    - $HOME/.cache/Skycoder42/qpmx
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
     - $HOME/.android/build-cache
+    - $QPMX_CACHE_DIR

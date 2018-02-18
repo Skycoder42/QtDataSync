@@ -1,40 +1,43 @@
 QT = core datasync qml
 
+CXX_MODULE = datasync
 TARGETPATH = de/skycoder42/QtDataSync
-IMPORT_VERSION = 1.0
+TARGET  = declarative_datasync
+IMPORT_VERSION = $$MODULE_VERSION_IMPORT
+DEFINES += "VERSION_MAJOR=$$MODULE_VERSION_MAJOR"
+DEFINES += "VERSION_MINOR=$$MODULE_VERSION_MINOR"
 
-HEADERS +=  qmldatasync_plugin.h \
+HEADERS +=  \
 	qqmldatastore.h \
 	qqmlsyncmanager.h \
 	qqmlaccountmanager.h \
 	qqmldatastoremodel.h \
-	qqmluserexchangemanager.h
+	qqmluserexchangemanager.h \
+    qtdatasync_plugin.h
 
-SOURCES +=  qmldatasync_plugin.cpp \
+SOURCES +=  \
 	qqmldatastore.cpp \
 	qqmlsyncmanager.cpp \
 	qqmlaccountmanager.cpp \
 	qqmldatastoremodel.cpp \
-	qqmluserexchangemanager.cpp
+	qqmluserexchangemanager.cpp \
+    qtdatasync_plugin.cpp
 
 OTHER_FILES += qmldir
-
-IMPORT_VERSION = 1.0
 
 generate_qmltypes {
 	typeextra1.target = qmltypes
 	typeextra1.depends += export LD_LIBRARY_PATH := "$$shadowed($$dirname(_QMAKE_CONF_))/lib/:$(LD_LIBRARY_PATH)"
-	qmltypes.depends += typeextra1
-
 	typeextra2.target = qmltypes
 	typeextra2.depends += export QML2_IMPORT_PATH := "$$shadowed($$dirname(_QMAKE_CONF_))/qml/"
-	qmltypes.depends += typeextra2
 	QMAKE_EXTRA_TARGETS += typeextra1 typeextra2
 }
 
 load(qml_plugin)
 
 generate_qmltypes {
+	qmltypes.depends = ../../../qml/$$TARGETPATH/$(TARGET)  #overwrite the target deps
+
 	mfirst.target = all
 	mfirst.depends += qmltypes
 	QMAKE_EXTRA_TARGETS += mfirst

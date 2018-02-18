@@ -70,7 +70,7 @@ void AccountDialog::exec(const QString &setup, QWidget *parent)
 void AccountDialog::updateDevices(const QList<QtDataSync::DeviceInfo> &devices)
 {
 	ui->treeWidget->clear();
-	foreach(auto device, devices) {
+	for(auto device : devices) {
 		auto item = new QTreeWidgetItem(ui->treeWidget);
 		item->setText(0, device.name());
 		item->setText(1, printFingerprint(device.fingerprint()));
@@ -111,7 +111,7 @@ void AccountDialog::login(QtDataSync::LoginRequest request)
 QString AccountDialog::printFingerprint(const QByteArray &fingerprint)
 {
 	QByteArrayList res;
-	foreach(char c, fingerprint)
+	for(char c : fingerprint)
 		res.append(QByteArray(1, c).toHex());
 	return QString::fromUtf8(res.join(':'));
 }

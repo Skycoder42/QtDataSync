@@ -1,5 +1,5 @@
-#ifndef QMLDATASYNC_PLUGIN_H
-#define QMLDATASYNC_PLUGIN_H
+#ifndef QTDATASYNC_PLUGIN_H
+#define QTDATASYNC_PLUGIN_H
 
 #include <QQmlExtensionPlugin>
 
@@ -13,4 +13,4 @@ public:
 	void registerTypes(const char *uri) override;
 };
 
-#endif // QMLDATASYNC_PLUGIN_H
+#endif // QTDATASYNC_PLUGIN_H

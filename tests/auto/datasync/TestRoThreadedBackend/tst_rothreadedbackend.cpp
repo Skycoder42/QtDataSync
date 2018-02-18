@@ -26,10 +26,19 @@ class TestRoThreadedBackend : public QObject
 	Q_OBJECT
 
 private Q_SLOTS:
-	void testExchangeDevice();
+	void initTestCase();
 
+	void testExchangeDevice();
 	void testRemoteObjects();
 };
+
+void TestRoThreadedBackend::initTestCase()
+{
+#ifdef Q_OS_LINUX
+	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
+		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
+#endif
+}
 
 void TestRoThreadedBackend::testExchangeDevice()
 {

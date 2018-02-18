@@ -21,7 +21,7 @@ MockConnection::MockConnection(QWebSocket *socket, QObject *parent) :
 		QFAIL(qUtf8Printable(QString::number(error) + QStringLiteral(" - ") + _socket->errorString()));
 	});
 	connect(_socket, &QWebSocket::sslErrors, this, [this](const QList<QSslError> &errors) {
-		foreach(auto error, errors)
+		for(auto error : errors)
 			QFAIL(qUtf8Printable(error.errorString()));
 	});
 }

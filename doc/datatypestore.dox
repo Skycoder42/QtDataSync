@@ -225,7 +225,7 @@ initially. This can be a potentially long operation, and thus you should only us
 number of datasets does not get extremly big.
 
 One additional feature of the store is that it provides read-only STL iterators for easy access.
-Using it with foreach however is currently not possible, as the store is not a value type.
+Using it with for/foreach however is currently not possible, as the store is not a value type.
 
 @sa DataStore, DataStore::loadAll, DataTypeStore
 */

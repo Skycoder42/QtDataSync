@@ -238,9 +238,8 @@ template<typename T, typename K>
 QList<K> DataStore::keys() const
 {
 	QTDATASYNC_STORE_ASSERT(T);
-	auto kList = keys<T>();
 	QList<K> rList;
-	foreach(auto k, kList)
+	for(auto k : keys<T>())
 		rList.append(QVariant(k).template value<K>());
 	return rList;
 }
@@ -249,9 +248,8 @@ template<typename T>
 QList<T> DataStore::loadAll() const
 {
 	QTDATASYNC_STORE_ASSERT(T);
-	auto mList = loadAll(qMetaTypeId<T>());
 	QList<T> rList;
-	foreach(auto v, mList)
+	for(auto v : loadAll(qMetaTypeId<T>()))
 		rList.append(v.template value<T>());
 	return rList;
 }
@@ -302,9 +300,8 @@ template<typename T>
 QList<T> DataStore::search(const QString &query, SearchMode mode) const
 {
 	QTDATASYNC_STORE_ASSERT(T);
-	auto mList = search(qMetaTypeId<T>(), query, mode);
 	QList<T> rList;
-	foreach(auto v, mList)
+	for(auto v : search(qMetaTypeId<T>(), query, mode))
 		rList.append(v.template value<T>());
 	return rList;
 }

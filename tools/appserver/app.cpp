@@ -236,9 +236,9 @@ QString App::findConfig() const
 
 	tmpPaths.removeDuplicates();
 	configNames.removeDuplicates();
-	foreach(auto path, tmpPaths) {
+	for(auto path : tmpPaths) {
 		QDir dir(path);
-		foreach(auto config, configNames) {
+		for(auto config : configNames) {
 			if(dir.exists(config))
 				return dir.absoluteFilePath(config);
 		}

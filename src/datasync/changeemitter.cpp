@@ -58,7 +58,7 @@ void ChangeEmitter::triggerRemoteClear(const QByteArray &typeName)
 {
 	if(_cache) {
 		QWriteLocker _(&_cache->lock);
-		foreach(auto key, _cache->cache.keys()) {
+		for(auto key : _cache->cache.keys()) {
 			if(key.typeName == typeName)
 				_cache->cache.remove(key);
 		}

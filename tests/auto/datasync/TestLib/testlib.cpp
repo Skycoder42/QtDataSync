@@ -77,7 +77,7 @@ TestLib::DataSet TestLib::generateDataJson(int from, int to)
 QJsonArray TestLib::dataListJson(const TestLib::DataSet &data)
 {
 	QJsonArray v;
-	foreach(auto d, data)
+	for(auto d : data)
 		v.append(d);
 	return v;
 }

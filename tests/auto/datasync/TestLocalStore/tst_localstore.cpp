@@ -46,6 +46,10 @@ private:
 
 void TestLocalStore::initTestCase()
 {
+#ifdef Q_OS_LINUX
+	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
+		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
+#endif
 	try {
 		TestLib::init();
 		Setup setup;
@@ -636,7 +640,7 @@ void TestLocalStore::testAsync()
 			}));
 		}
 
-		foreach(auto f, futures)
+		for(auto f : futures)
 			f.waitForFinished();
 	} catch(QException &e) {
 		QFAIL(e.what());

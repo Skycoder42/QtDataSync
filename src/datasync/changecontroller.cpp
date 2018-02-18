@@ -143,7 +143,7 @@ void ChangeController::uploadNext(bool emitStarted)
 
 			//skip stuff already beeing uploaded (could still have changed, but to prevent errors)
 			auto skip = false;
-			foreach(auto mKey, _activeUploads.keys()) {
+			for(auto mKey : _activeUploads.keys()) {
 				if(key == mKey) {
 					skip = true;
 					break;

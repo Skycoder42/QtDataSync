@@ -244,7 +244,7 @@ void DefaultsPrivate::clearDefaults()
 	for(auto it = setupDefaults.constBegin(); it != setupDefaults.constEnd(); it++)
 		weakRefs.append({it.key(), it.value().toWeakRef()});
 	setupDefaults.clear();
-	foreach(auto ref, weakRefs) {
+	for(auto ref : weakRefs) {
 #undef QTDATASYNC_LOG
 #define QTDATASYNC_LOG ref.second.toStrongRef()->logger
 		if(ref.second)
@@ -305,7 +305,7 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 DefaultsPrivate::~DefaultsPrivate()
 {
 	QMutexLocker _(&roMutex);
-	foreach(auto node, roNodes)
+	for(auto node : roNodes)
 		node->deleteLater();
 	roNodes.clear();
 }

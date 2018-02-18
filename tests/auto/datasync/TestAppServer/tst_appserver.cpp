@@ -118,6 +118,10 @@ private:
 
 void TestAppServer::initTestCase()
 {
+#ifdef Q_OS_LINUX
+	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
+		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
+#endif
 	QByteArray confPath { SETUP_FILE };
 	QVERIFY(QFile::exists(QString::fromUtf8(confPath)));
 	qputenv("QDSAPP_CONFIG_FILE", confPath);
@@ -1584,7 +1588,7 @@ void TestAppServer::testListAndRemoveDevices()
 
 		//verify the keys, verify partner, remove others
 		auto ok = false;
-		foreach (auto info, infos) {
+		for(auto info : infos) {
 			QVERIFY(std::get<0>(info) != devId);
 			if(std::get<0>(info) == partnerDevId) {
 				QCOMPARE(std::get<1>(info), partnerName);
