@@ -43,9 +43,7 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 ## Download/Installation
 1. Package Managers: The library is available via:
 	- **Arch-Linux:** AUR-Repository: [`qt5-datasync`](https://aur.archlinux.org/packages/qt5-datasync/)
-	- **Ubuntu:** Launchpad-PPA:
-		- Since Artful: [ppa:skycoder42/qt-modules](https://launchpad.net/~skycoder42/+archive/ubuntu/qt-modules), package `libqt5datasync[4/-dev]`
-		- Xenial: [ppa:skycoder42/qt-modules-opt](https://launchpad.net/~skycoder42/+archive/ubuntu/qt-modules-opt), package `qtdatasync`
+	- **Ubuntu:** Launchpad-PPA: [ppa:skycoder42/qt-modules](https://launchpad.net/~skycoder42/+archive/ubuntu/qt-modules), package `libqt5datasync[4/-dev]`
 	- **MacOs:**
 		- Tap: [`brew tap Skycoder42/qt-modules`](https://github.com/Skycoder42/homebrew-qt-modules)
 		- Package: `qtdatasync`
