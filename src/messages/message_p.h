@@ -15,7 +15,7 @@
 #ifdef BUILD_QDATASYNCSERVER
 #define Q_DATASYNC_EXPORT
 #else
-#include "qtdatasync_global.h"
+#include "../datasync/qtdatasync_global.h"
 #endif
 
 namespace QtDataSync {

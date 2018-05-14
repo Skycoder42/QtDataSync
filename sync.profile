@@ -1,5 +1,5 @@
 %modules = (
-	"QtDataSync" => "$basedir/src/datasync",
+	"QtDataSync" => "$basedir/src/datasync;$basedir/src/messages",
 );
 
 # Force generation of camel case headers for classes inside QtDataSync namespaces

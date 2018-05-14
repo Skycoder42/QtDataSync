@@ -1,6 +1,7 @@
 TEMPLATE = lib
 
 QT += datasync-private testlib
+# TODO why tho
 !linux: CONFIG += static
 
 linux: DESTDIR = $$shadowed($$dirname(_QMAKE_CONF_))/lib
@@ -21,7 +22,7 @@ SOURCES += \
 	mockconnection.cpp \
 	mockclient.cpp
 
-INCLUDEPATH += ../../../../src/datasync/messages
+INCLUDEPATH += ../../../../src/messages
 
 verbose_tests: DEFINES += VERBOSE_TESTS
 

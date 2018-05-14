@@ -48,8 +48,7 @@ DISTFILES += \
 	qdsapp.socket \
 	qdsapp.conf
 
-include(../../src/datasync/messages/messages.pri)
-include(../../src/3rdparty/cryptopp/cryptopp.pri)
+include(../../src/messages/messages.pri)
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "Qt Datasync Server"

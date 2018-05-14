@@ -25,7 +25,7 @@ DEPENDPATH += $$PWD/TestLib
 	else:unix: PRE_TARGETDEPS += $$OUT_PWD/../TestLib/libTestLib.a
 }
 
-INCLUDEPATH += $$PWD/../../../src/datasync/messages
+INCLUDEPATH += $$PWD/../../../src/messages
 
 mac: QMAKE_LFLAGS += '-Wl,-rpath,\'$$OUT_PWD/../../../../lib\''
 

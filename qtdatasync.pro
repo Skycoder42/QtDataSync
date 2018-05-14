@@ -14,6 +14,8 @@ lrelease.recurse_target = lrelease
 lrelease.recurse += sub_src
 QMAKE_EXTRA_TARGETS += lrelease
 
+# TODO make tools depend on src
+
 include(modeling/modeling.pri)
 
 DISTFILES += .qmake.conf \

@@ -90,8 +90,7 @@ TRANSLATIONS += \
 DISTFILES += $$TRANSLATIONS
 
 include(rothreadedbackend/rothreadedbackend.pri)
-include(messages/messages.pri)
-include(../3rdparty/cryptopp/cryptopp.pri)
+include(../messages/messages.pri)
 
 MODULE_PLUGIN_TYPES = keystores
 

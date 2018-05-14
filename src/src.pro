@@ -3,8 +3,10 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	datasync \
 	plugins \
-	imports
+	imports \
+	messages
 
+datasync.depends += messages
 plugins.depends += datasync
 imports.depends += datasync
 
