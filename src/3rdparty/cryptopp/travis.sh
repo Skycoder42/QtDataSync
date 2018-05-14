@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-version=6_0_0
+version=7_0_0
 
 case "$PLATFORM" in
 	gcc_64)

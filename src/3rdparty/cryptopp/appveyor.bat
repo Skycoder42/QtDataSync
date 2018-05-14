@@ -1,6 +1,6 @@
 @echo off
 
-set version=6_0_0
+set version=7_0_0
 
 echo %PLATFORM% | findstr /C:"winrt_x64" > nul && (
 	set pkgName=%PLATFORM:~10%_64
