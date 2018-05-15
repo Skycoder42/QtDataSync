@@ -16,7 +16,7 @@ class Q_DATASYNC_EXPORT NewKeyMessage : public MacUpdateMessage
 	Q_PROPERTY(QList<QtDataSync::NewKeyMessage::KeyUpdate> deviceKeys MEMBER deviceKeys)
 
 public:
-	typedef std::tuple<QUuid, QByteArray, QByteArray> KeyUpdate; //(deviceId, key, cmac)
+	using KeyUpdate = std::tuple<QUuid, QByteArray, QByteArray>; //(deviceId, key, cmac)
 
 	NewKeyMessage();
 

@@ -1,9 +1,9 @@
 #include "macupdatemessage_p.h"
 using namespace QtDataSync;
 
-MacUpdateMessage::MacUpdateMessage(quint32 keyIndex, const QByteArray &cmac) :
+MacUpdateMessage::MacUpdateMessage(quint32 keyIndex, QByteArray cmac) :
 	keyIndex(keyIndex),
-	cmac(cmac)
+	cmac(std::move(cmac))
 {}
 
 const QMetaObject *MacUpdateMessage::getMetaObject() const
@@ -13,7 +13,7 @@ const QMetaObject *MacUpdateMessage::getMetaObject() const
 
 
 
-MacUpdateAckMessage::MacUpdateAckMessage() {}
+MacUpdateAckMessage::MacUpdateAckMessage() = default;
 
 const QMetaObject *MacUpdateAckMessage::getMetaObject() const
 {

@@ -14,7 +14,7 @@ class Q_DATASYNC_EXPORT RemoveMessage : public Message
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	RemoveMessage(const QUuid &deviceId = {});
+	RemoveMessage(QUuid deviceId = {});
 
 	QUuid deviceId;
 
@@ -29,7 +29,7 @@ class Q_DATASYNC_EXPORT RemoveAckMessage : public Message
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	RemoveAckMessage(const QUuid &deviceId = {});
+	RemoveAckMessage(QUuid deviceId = {});
 
 	QUuid deviceId;
 

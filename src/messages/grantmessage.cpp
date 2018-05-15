@@ -1,12 +1,7 @@
 #include "grantmessage_p.h"
 using namespace QtDataSync;
 
-GrantMessage::GrantMessage() :
-	AccountMessage(),
-	index(0),
-	scheme(),
-	secret()
-{}
+GrantMessage::GrantMessage() = default;
 
 GrantMessage::GrantMessage(const AcceptMessage &message) :
 	AccountMessage(message.deviceId),

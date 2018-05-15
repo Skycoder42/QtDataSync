@@ -41,7 +41,9 @@ class Q_DATASYNC_EXPORT Utf8String : public QString
 public:
 	Utf8String();
 	Utf8String(const QByteArray &data);
+	Utf8String(QByteArray &&data);
 	Utf8String(const QString &other);
+	Utf8String(QString &&other);
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const Utf8String &message);
@@ -146,7 +148,7 @@ void writeTuple(QDataStream &stream, const TTuple &data) {
 
 template<typename... Args>
 QDataStream &operator<<(QDataStream &stream, const std::tuple<Args...> &message) {
-	typedef std::tuple<Args...> tpl;
+	using tpl = std::tuple<Args...>;
 	writeTuple<0, tpl, Args...>(stream, message);
 	return stream;
 }
@@ -166,7 +168,7 @@ void readTuple(QDataStream &stream, TTuple &data) {
 
 template<typename... Args>
 QDataStream &operator>>(QDataStream &stream, std::tuple<Args...> &message) {
-	typedef std::tuple<Args...> tpl;
+	using tpl = std::tuple<Args...>;
 	stream.startTransaction();
 	readTuple<0, tpl, Args...>(stream, message);
 	stream.commitTransaction();

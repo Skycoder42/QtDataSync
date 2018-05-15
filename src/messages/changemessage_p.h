@@ -15,7 +15,7 @@ class Q_DATASYNC_EXPORT ChangeMessage : public Message
 	Q_PROPERTY(QByteArray data MEMBER data)
 
 public:
-	ChangeMessage(const QByteArray &dataId = {});
+	ChangeMessage(QByteArray dataId = {});
 
 	QByteArray dataId;
 	quint32 keyIndex;

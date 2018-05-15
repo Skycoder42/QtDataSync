@@ -1,8 +1,8 @@
 #include "changemessage_p.h"
 using namespace QtDataSync;
 
-ChangeMessage::ChangeMessage(const QByteArray &dataId) :
-	dataId(dataId),
+ChangeMessage::ChangeMessage(QByteArray dataId) :
+	dataId(std::move(dataId)),
 	keyIndex(0),
 	salt(),
 	data()

@@ -31,7 +31,7 @@ public:
 	Q_ENUM(ErrorType)
 
 	ErrorMessage(ErrorType type = UnknownError,
-				 const QString &message = {},
+				 QString message = {},
 				 bool canRecover = false);
 
 	ErrorType type;

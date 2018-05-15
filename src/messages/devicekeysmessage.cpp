@@ -6,10 +6,10 @@ DeviceKeysMessage::DeviceKeysMessage(quint32 keyIndex) :
 	duplicated(true)
 {}
 
-DeviceKeysMessage::DeviceKeysMessage(quint32 keyIndex, const QList<DeviceKey> &devices) :
+DeviceKeysMessage::DeviceKeysMessage(quint32 keyIndex, QList<DeviceKey> devices) :
 	keyIndex(keyIndex),
 	duplicated(false),
-	devices(devices)
+	devices(std::move(devices))
 {}
 
 const QMetaObject *DeviceKeysMessage::getMetaObject() const

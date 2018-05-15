@@ -1,9 +1,9 @@
 #include "devicechangemessage_p.h"
 using namespace QtDataSync;
 
-DeviceChangeMessage::DeviceChangeMessage(const QByteArray &dataId, const QUuid &deviceId) :
-	ChangeMessage(dataId),
-	deviceId(deviceId)
+DeviceChangeMessage::DeviceChangeMessage(QByteArray dataId, QUuid deviceId) :
+	ChangeMessage(std::move(dataId)),
+	deviceId(std::move(deviceId))
 {}
 
 const QMetaObject *DeviceChangeMessage::getMetaObject() const

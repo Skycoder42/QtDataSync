@@ -15,7 +15,7 @@ class Q_DATASYNC_EXPORT DeviceChangeMessage : public ChangeMessage
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	DeviceChangeMessage(const QByteArray &dataId = {}, const QUuid &deviceId = {});
+	DeviceChangeMessage(QByteArray dataId = {}, QUuid deviceId = {});
 
 	QUuid deviceId;
 

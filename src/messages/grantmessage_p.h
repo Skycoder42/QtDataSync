@@ -19,7 +19,7 @@ public:
 	GrantMessage();
 	GrantMessage(const AcceptMessage &message);
 
-	quint32 index;
+	quint32 index = 0;
 	QByteArray scheme;
 	QByteArray secret;
 

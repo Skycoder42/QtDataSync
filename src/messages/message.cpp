@@ -213,8 +213,16 @@ Utf8String::Utf8String(const QByteArray &data) :
 	QString(QString::fromUtf8(data))
 {}
 
+Utf8String::Utf8String(QByteArray &&data) :
+	QString(QString::fromUtf8(std::move(data)))
+{}
+
 Utf8String::Utf8String(const QString &other) :
 	QString(other)
+{}
+
+Utf8String::Utf8String(QString &&other) :
+	QString(std::move(other))
 {}
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const Utf8String &message)

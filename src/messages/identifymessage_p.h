@@ -13,7 +13,7 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT IncompatibleVersionException : public QException
 {
 public:
-	IncompatibleVersionException(const QVersionNumber &invalidVersion);
+	IncompatibleVersionException(QVersionNumber invalidVersion);
 
 	QVersionNumber invalidVersion() const;
 
@@ -43,7 +43,7 @@ public:
 	QByteArray nonce;
 
 protected:
-	InitMessage(const QByteArray &nonce);
+	InitMessage(QByteArray nonce);
 
 	const QMetaObject *getMetaObject() const override;
 	bool validate() override;

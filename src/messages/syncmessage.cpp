@@ -4,7 +4,7 @@
 
 using namespace QtDataSync;
 
-SyncMessage::SyncMessage() {}
+SyncMessage::SyncMessage() = default;
 
 const QMetaObject *SyncMessage::getMetaObject() const
 {

@@ -23,8 +23,8 @@ class Q_DATASYNC_EXPORT RegisterBaseMessage : public InitMessage
 
 public:
 	RegisterBaseMessage();
-	RegisterBaseMessage(const QString &deviceName,
-						const QByteArray &nonce,
+	RegisterBaseMessage(QString deviceName,
+						QByteArray nonce,
 						const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
 						const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
 						AsymmetricCrypto *crypto);
@@ -54,7 +54,7 @@ public:
 					const QSharedPointer<CryptoPP::X509PublicKey> &signKey,
 					const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey,
 					AsymmetricCrypto *crypto,
-					const QByteArray &cmac);
+					QByteArray cmac);
 
 	QByteArray cmac;
 

@@ -986,6 +986,7 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		// reset retry index only after successfuly account creation or login
 		_expectChanges = message.hasChanges;
 		_stateMachine->submitEvent(QStringLiteral("account"));
+		//BUG error here: if ChangedInfoMessage is received before sm has processed the event -> fail because not in idle state yet
 
 		auto keyUpdated = false;
 		if(message.hasKeyUpdate()) { //are orderd by index

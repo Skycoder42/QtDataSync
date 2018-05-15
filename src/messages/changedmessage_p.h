@@ -17,8 +17,8 @@ class Q_DATASYNC_EXPORT ChangedMessage : public Message
 public:
 	ChangedMessage();
 
-	quint64 dataIndex;
-	quint32 keyIndex;
+	quint64 dataIndex = 0;
+	quint32 keyIndex = 0;
 	QByteArray salt;
 	QByteArray data;
 

@@ -16,7 +16,7 @@ class Q_DATASYNC_EXPORT LoginMessage : public InitMessage
 	Q_PROPERTY(QtDataSync::Utf8String deviceName MEMBER deviceName)
 
 public:
-	LoginMessage(const QUuid &deviceId = {}, const QString &deviceName = {}, const QByteArray &nonce = {});
+	LoginMessage(QUuid deviceId = {}, QString deviceName = {}, QByteArray nonce = {});
 
 	QUuid deviceId;
 	Utf8String deviceName;

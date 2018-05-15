@@ -115,3 +115,6 @@ else: include($$OUT_PWD/qpmx_generated.pri)
 #replace template qm by ts
 qpmx_ts_target.files -= $$OUT_PWD/$$QPMX_WORKINGDIR/qtdatasync_template.qm
 qpmx_ts_target.files += translations/qtdatasync_template.ts
+
+
+message($$LIBS $$LIBS_PRIVATE)

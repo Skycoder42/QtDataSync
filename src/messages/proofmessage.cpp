@@ -1,22 +1,11 @@
 #include "proofmessage_p.h"
 using namespace QtDataSync;
 
-ProofMessage::ProofMessage() :
-	pNonce(),
-	deviceId(),
-	deviceName(),
-	signAlgorithm(),
-	signKey(),
-	cryptAlgorithm(),
-	cryptKey(),
-	macscheme(),
-	cmac(),
-	trustmac()
-{}
+ProofMessage::ProofMessage() = default;
 
-ProofMessage::ProofMessage(const AccessMessage &access, const QUuid &deviceId) :
+ProofMessage::ProofMessage(const AccessMessage &access, QUuid deviceId) :
 	pNonce(access.pNonce),
-	deviceId(deviceId),
+	deviceId(std::move(deviceId)),
 	deviceName(access.deviceName),
 	signAlgorithm(access.signAlgorithm),
 	signKey(access.signKey),
@@ -34,8 +23,8 @@ const QMetaObject *ProofMessage::getMetaObject() const
 
 
 
-DenyMessage::DenyMessage(const QUuid &deviceId) :
-	deviceId(deviceId)
+DenyMessage::DenyMessage(QUuid deviceId) :
+	deviceId(std::move(deviceId))
 {}
 
 const QMetaObject *DenyMessage::getMetaObject() const
@@ -45,8 +34,8 @@ const QMetaObject *DenyMessage::getMetaObject() const
 
 
 
-AcceptMessage::AcceptMessage(const QUuid &deviceId) :
-	deviceId(deviceId),
+AcceptMessage::AcceptMessage(QUuid deviceId) :
+	deviceId(std::move(deviceId)),
 	index(0),
 	scheme(),
 	secret()
@@ -59,8 +48,8 @@ const QMetaObject *AcceptMessage::getMetaObject() const
 
 
 
-AcceptAckMessage::AcceptAckMessage(const QUuid &deviceId) :
-	deviceId(deviceId)
+AcceptAckMessage::AcceptAckMessage(QUuid deviceId) :
+	deviceId(std::move(deviceId))
 {}
 
 const QMetaObject *AcceptAckMessage::getMetaObject() const

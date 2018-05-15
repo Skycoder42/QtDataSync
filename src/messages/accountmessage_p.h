@@ -16,7 +16,7 @@ class Q_DATASYNC_EXPORT AccountMessage : public Message
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	AccountMessage(const QUuid &deviceId = {});
+	AccountMessage(QUuid deviceId = {});
 
 	QUuid deviceId;
 

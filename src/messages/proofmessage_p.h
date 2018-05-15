@@ -23,7 +23,7 @@ class Q_DATASYNC_EXPORT ProofMessage : public Message
 
 public:
 	ProofMessage();
-	ProofMessage(const AccessMessage &access, const QUuid &deviceId);
+	ProofMessage(const AccessMessage &access, QUuid deviceId);
 
 	QByteArray pNonce;
 	QUuid deviceId;
@@ -47,7 +47,7 @@ class Q_DATASYNC_EXPORT DenyMessage : public Message
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	DenyMessage(const QUuid &deviceId = {});
+	DenyMessage(QUuid deviceId = {});
 
 	QUuid deviceId;
 
@@ -65,7 +65,7 @@ class Q_DATASYNC_EXPORT AcceptMessage : public Message
 	Q_PROPERTY(QByteArray secret MEMBER secret)
 
 public:
-	AcceptMessage(const QUuid &deviceId = {});
+	AcceptMessage(QUuid deviceId = {});
 
 	QUuid deviceId;
 	quint32 index;
@@ -83,7 +83,7 @@ class Q_DATASYNC_EXPORT AcceptAckMessage : public Message
 	Q_PROPERTY(QUuid deviceId MEMBER deviceId)
 
 public:
-	AcceptAckMessage(const QUuid &deviceId = {});
+	AcceptAckMessage(QUuid deviceId = {});
 
 	QUuid deviceId;
 

@@ -9,12 +9,12 @@ const QVersionNumber InitMessage::CurrentVersion(1); //NOTE update accordingly
 const QVersionNumber InitMessage::CompatVersion(1);
 
 InitMessage::InitMessage() :
-	InitMessage(QByteArray())
+	InitMessage(QByteArray{})
 {}
 
-InitMessage::InitMessage(const QByteArray &nonce) :
+InitMessage::InitMessage(QByteArray nonce) :
 	protocolVersion(CurrentVersion),
-	nonce(nonce)
+	nonce(std::move(nonce))
 {}
 
 const QMetaObject *InitMessage::getMetaObject() const
@@ -51,8 +51,8 @@ const QMetaObject *IdentifyMessage::getMetaObject() const
 
 
 
-IncompatibleVersionException::IncompatibleVersionException(const QVersionNumber &invalidVersion) :
-	_version(invalidVersion),
+IncompatibleVersionException::IncompatibleVersionException(QVersionNumber invalidVersion) :
+	_version(std::move(invalidVersion)),
 	_msg(QStringLiteral("Incompatible protocol versions. Must be at least %1, but remote proposed with %2")
 		 .arg(InitMessage::CompatVersion.toString())
 		 .arg(_version.toString())

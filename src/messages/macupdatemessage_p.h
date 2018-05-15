@@ -13,7 +13,7 @@ class Q_DATASYNC_EXPORT MacUpdateMessage : public Message
 	Q_PROPERTY(QByteArray cmac MEMBER cmac)
 
 public:
-	MacUpdateMessage(quint32 keyIndex = 0, const QByteArray &cmac = {});
+	MacUpdateMessage(quint32 keyIndex = 0, QByteArray cmac = {});
 
 	quint32 keyIndex;
 	QByteArray cmac;

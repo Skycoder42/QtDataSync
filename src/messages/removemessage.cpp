@@ -1,8 +1,8 @@
 #include "removemessage_p.h"
 using namespace QtDataSync;
 
-RemoveMessage::RemoveMessage(const QUuid &deviceId) :
-	deviceId(deviceId)
+RemoveMessage::RemoveMessage(QUuid deviceId) :
+	deviceId(std::move(deviceId))
 {}
 
 const QMetaObject *RemoveMessage::getMetaObject() const
@@ -12,8 +12,8 @@ const QMetaObject *RemoveMessage::getMetaObject() const
 
 
 
-RemoveAckMessage::RemoveAckMessage(const QUuid &deviceId) :
-	deviceId(deviceId)
+RemoveAckMessage::RemoveAckMessage(QUuid deviceId) :
+	deviceId(std::move(deviceId))
 {}
 
 const QMetaObject *RemoveAckMessage::getMetaObject() const

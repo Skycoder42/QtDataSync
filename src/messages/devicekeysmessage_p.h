@@ -16,10 +16,10 @@ class Q_DATASYNC_EXPORT DeviceKeysMessage : public Message
 	Q_PROPERTY(QList<QtDataSync::DeviceKeysMessage::DeviceKey> devices MEMBER devices)
 
 public:
-	typedef std::tuple<QUuid, QByteArray, QByteArray, QByteArray> DeviceKey; // (deviceid, scheme, key, mac)
+	using DeviceKey = std::tuple<QUuid, QByteArray, QByteArray, QByteArray>; // (deviceid, scheme, key, mac)
 
 	DeviceKeysMessage(quint32 keyIndex = 0);
-	DeviceKeysMessage(quint32 keyIndex, const QList<DeviceKey> &devices);
+	DeviceKeysMessage(quint32 keyIndex, QList<DeviceKey> devices);
 
 	quint32 keyIndex;
 	bool duplicated;
