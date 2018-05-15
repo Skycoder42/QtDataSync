@@ -60,6 +60,8 @@ RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
 	Controller("connector", defaults, parent),
 	_cryptoController(new CryptoController(defaults, this)),
 	_socket(nullptr),
+	_messageBuffer(),
+	_messageProcessingBlocked(false),
 	_pingTimer(nullptr),
 	_awaitingPing(false),
 	_stateMachine(nullptr),
@@ -99,11 +101,9 @@ void RemoteConnector::initialize(const QVariantHash &params)
 								  this, ConnectorStateMachine::onExit(this, &RemoteConnector::onExitActiveState));
 	_stateMachine->connectToEvent(QStringLiteral("doDisconnect"),
 								  this, &RemoteConnector::doDisconnect);
-#ifndef QT_NO_DEBUG
-	connect(_stateMachine, &ConnectorStateMachine::reachedStableState, this, [this](){
-		logDebug() << "Reached stable states:" << _stateMachine->activeStateNames(false);
-	});
-#endif
+	connect(_stateMachine, &ConnectorStateMachine::reachedStableState,
+			this, &RemoteConnector::machineReady,
+			Qt::QueuedConnection);
 	if(!_stateMachine->init())
 		throw Exception(defaults(), QStringLiteral("Failed to initialize RemoteConnector statemachine"));
 
@@ -130,7 +130,7 @@ void RemoteConnector::finalize()
 													 true,
 													 QStringLiteral("close"));
 		//send "dummy" event to revalute the changed properties and trigger the changes
-		_stateMachine->submitEvent(QStringLiteral("close"));
+		submitEventSync(QStringLiteral("close"));
 
 		//timout from setup, minus a delta have a chance of beeing finished before timeout
 		QTimer::singleShot(qMax<int>(1000, static_cast<int>(SetupPrivate::currentTimeout()) - 1000), this, [this](){
@@ -151,7 +151,8 @@ tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> RemoteConnector::exportAcc
 
 	ExportData data;
 	data.pNonce.resize(InitMessage::NonceSize);
-	_cryptoController->rng().GenerateBlock(reinterpret_cast<byte*>(data.pNonce.data()), data.pNonce.size());
+	_cryptoController->rng().GenerateBlock(reinterpret_cast<byte*>(data.pNonce.data()),
+										   static_cast<size_t>(data.pNonce.size()));
 	data.partnerId = _deviceId;
 	data.trusted = !password.isNull();
 
@@ -179,7 +180,7 @@ QString RemoteConnector::deviceName() const
 
 void RemoteConnector::reconnect()
 {
-	_stateMachine->submitEvent(QStringLiteral("reconnect"));
+	submitEventSync(QStringLiteral("reconnect"));
 }
 
 void RemoteConnector::disconnectRemote()
@@ -406,7 +407,7 @@ void RemoteConnector::connected()
 {
 	endOp();
 	logDebug() << "Successfully connected to remote server";
-	_stateMachine->submitEvent(QStringLiteral("connected"));
+	submitEventSync(QStringLiteral("connected"));
 }
 
 void RemoteConnector::disconnected()
@@ -428,7 +429,7 @@ void RemoteConnector::disconnected()
 		_socket->deleteLater();
 	}
 	_socket = nullptr;
-	_stateMachine->submitEvent(QStringLiteral("disconnected"));
+	submitEventSync(QStringLiteral("disconnected"));
 }
 
 void RemoteConnector::binaryMessageReceived(const QByteArray &message)
@@ -436,6 +437,11 @@ void RemoteConnector::binaryMessageReceived(const QByteArray &message)
 	if(message == Message::PingMessage) {
 		_awaitingPing = false;
 		_pingTimer->start();
+		return;
+	}
+
+	if(_messageProcessingBlocked) { // enqueue messages for later if currently wating for a statemachine update
+		_messageBuffer.enqueue(message);
 		return;
 	}
 
@@ -548,7 +554,7 @@ void RemoteConnector::doConnect()
 	emit remoteEvent(RemoteConnecting);
 	QUrl remoteUrl;
 	if(!checkCanSync(remoteUrl)) {
-		_stateMachine->submitEvent(QStringLiteral("noConnect"));
+		submitEventSync(QStringLiteral("noConnect"));
 		return;
 	}
 
@@ -618,7 +624,7 @@ void RemoteConnector::doDisconnect()
 			_socket->disconnect(this);
 			_socket->deleteLater();
 			_socket = nullptr;
-			_stateMachine->submitEvent(QStringLiteral("disconnected"));
+			submitEventSync(QStringLiteral("disconnected"));
 			break;
 		case QAbstractSocket::ClosingState:
 			logDebug() << "Already disconnecting. Doing nothing";
@@ -631,13 +637,12 @@ void RemoteConnector::doDisconnect()
 		case QAbstractSocket::BoundState:
 		case QAbstractSocket::ListeningState:
 			logFatal("Reached impossible client socket state - aborting");
-			break;
 		default:
 			Q_UNREACHABLE();
 			break;
 		}
 	} else
-		_stateMachine->submitEvent(QStringLiteral("disconnected"));
+		submitEventSync(QStringLiteral("disconnected"));
 }
 
 void RemoteConnector::scheduleRetry()
@@ -669,6 +674,14 @@ void RemoteConnector::onExitActiveState()
 	emit remoteEvent(RemoteDisconnected);
 }
 
+void RemoteConnector::machineReady()
+{
+	logDebug() << "Reached stable states:" << _stateMachine->activeStateNames(false);
+	_messageProcessingBlocked = false;
+	while(!_messageProcessingBlocked && !_messageBuffer.isEmpty())
+		binaryMessageReceived(_messageBuffer.dequeue());
+}
+
 void RemoteConnector::sendMessage(const Message &message)
 {
 	_socket->sendBinaryMessage(message.serialize());
@@ -698,9 +711,15 @@ bool RemoteConnector::checkIdle(const Message &message)
 void RemoteConnector::triggerError(bool canRecover)
 {
 	if(canRecover)
-		_stateMachine->submitEvent(QStringLiteral("basicError"));
+		submitEventSync(QStringLiteral("basicError"));
 	else
-		_stateMachine->submitEvent(QStringLiteral("fatalError"));
+		submitEventSync(QStringLiteral("fatalError"));
+}
+
+void RemoteConnector::submitEventSync(const QString &event)
+{
+	_messageProcessingBlocked = true;
+	_stateMachine->submitEvent(event);
 }
 
 bool RemoteConnector::checkCanSync(QUrl &remoteUrl)
@@ -791,8 +810,8 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		if(settings()->childGroups().contains(keyRemoteHeaders)) {
 			settings()->beginGroup(keyRemoteHeaders);
 			RemoteConfig::HeaderHash headers;
-			for(auto key : settings()->childKeys())
-				headers.insert(key.toUtf8(), settings()->value(key).toByteArray());
+			for(const auto &hKey : settings()->childKeys())
+				headers.insert(hKey.toUtf8(), settings()->value(hKey).toByteArray());
 			settings()->endGroup();
 			return QVariant::fromValue(headers);
 		}
@@ -911,7 +930,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 							 sValue(keyDeviceName).toString(),
 							 message.nonce);
 			sendSignedMessage(msg);
-			_stateMachine->submitEvent(QStringLiteral("awaitLogin"));
+			submitEventSync(QStringLiteral("awaitLogin"));
 			logDebug() << "Sent login message for device id" << _deviceId;
 		} else {
 			_cryptoController->createPrivateKeys(message.nonce);
@@ -927,7 +946,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 									crypto,
 									_cryptoController->generateEncryptionKeyCmac());
 				sendSignedMessage(msg);
-				_stateMachine->submitEvent(QStringLiteral("awaitRegister"));
+				submitEventSync(QStringLiteral("awaitRegister"));
 				logDebug() << "Sent registration message for new id";
 			} else {
 				//calc trustmac
@@ -935,7 +954,8 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 				auto scheme = settings()->value(keyImportScheme).toByteArray();
 				auto key = settings()->value(keyImportKey).toByteArray();
 				if(!key.isEmpty()) {
-					CryptoPP::SecByteBlock secBlock(reinterpret_cast<const byte*>(key.constData()), key.size());
+					CryptoPP::SecByteBlock secBlock(reinterpret_cast<const byte*>(key.constData()),
+													static_cast<size_t>(key.size()));
 					trustmac = _cryptoController->createExportCmacForCrypto(scheme, secBlock);
 				}
 
@@ -951,7 +971,7 @@ void RemoteConnector::onIdentify(const IdentifyMessage &message)
 								  settings()->value(keyImportCmac).toByteArray(),
 								  trustmac);
 				sendSignedMessage(msg);
-				_stateMachine->submitEvent(QStringLiteral("awaitGranted"));
+				submitEventSync(QStringLiteral("awaitGranted"));
 				logDebug() << "Sent access message for new id";
 			}
 		}
@@ -972,7 +992,7 @@ void RemoteConnector::onAccount(const AccountMessage &message, bool checkState)
 		_cryptoController->storePrivateKeys(_deviceId);
 		logDebug() << "Registration successful";
 		_expectChanges = false;
-		_stateMachine->submitEvent(QStringLiteral("account"));
+		submitEventSync(QStringLiteral("account"));
 	}
 }
 
@@ -985,8 +1005,7 @@ void RemoteConnector::onWelcome(const WelcomeMessage &message)
 		logDebug() << "Login successful";
 		// reset retry index only after successfuly account creation or login
 		_expectChanges = message.hasChanges;
-		_stateMachine->submitEvent(QStringLiteral("account"));
-		//BUG error here: if ChangedInfoMessage is received before sm has processed the event -> fail because not in idle state yet
+		submitEventSync(QStringLiteral("account"));
 
 		auto keyUpdated = false;
 		if(message.hasKeyUpdate()) { //are orderd by index

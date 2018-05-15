@@ -1,6 +1,7 @@
 #ifndef QTDATASYNC_REMOTECONNECTOR_P_H
 #define QTDATASYNC_REMOTECONNECTOR_P_H
 
+#include <QQueue>
 #include <chrono>
 
 #include <QtCore/QObject>
@@ -148,6 +149,7 @@ private Q_SLOTS:
 	void scheduleRetry();
 	void onEntryIdleState();
 	void onExitActiveState();
+	void machineReady();
 
 private:
 	static const QVector<std::chrono::seconds> Timeouts;
@@ -155,6 +157,8 @@ private:
 	CryptoController *_cryptoController;
 
 	QWebSocket *_socket;
+	QQueue<QByteArray> _messageBuffer;
+	bool _messageProcessingBlocked;
 
 	QTimer *_pingTimer;
 	bool _awaitingPing;
@@ -174,6 +178,7 @@ private:
 	bool isIdle() const;
 	bool checkIdle(const Message &message);
 	void triggerError(bool canRecover);
+	void submitEventSync(const QString &event);
 
 	bool checkCanSync(QUrl &remoteUrl);
 	bool loadIdentity();
