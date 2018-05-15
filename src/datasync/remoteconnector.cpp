@@ -104,6 +104,10 @@ void RemoteConnector::initialize(const QVariantHash &params)
 	connect(_stateMachine, &ConnectorStateMachine::reachedStableState,
 			this, &RemoteConnector::machineReady,
 			Qt::QueuedConnection);
+	connect(_stateMachine, &ConnectorStateMachine::log,
+			this, [this](const QString &label, const QString &msg){
+		logDebug().nospace() << label << ": " << (msg.isEmpty() ? QStringLiteral("<no message>") : msg);
+	});
 	if(!_stateMachine->init())
 		throw Exception(defaults(), QStringLiteral("Failed to initialize RemoteConnector statemachine"));
 
