@@ -6,6 +6,8 @@ QT = core jsonserializer
 DESTDIR = $$shadowed($$dirname(_QMAKE_CONF_))/lib
 TARGET = qtdatasync-messages
 
+DEFINES += QT_BUILD_DATASYNC_LIB #is build as part of the lib regarding exports
+
 HEADERS += \
 	message_p.h \
 	identifymessage_p.h \

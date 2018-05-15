@@ -12,10 +12,10 @@
 #include <cryptopp/rng.h>
 #include <cryptopp/asn.h>
 
-#ifdef BUILD_QDATASYNCSERVER
-#define Q_DATASYNC_EXPORT
+#if defined(QT_BUILD_DATASYNC_LIB)
+#	define Q_DATASYNC_EXPORT Q_DECL_EXPORT
 #else
-#include "../datasync/qtdatasync_global.h"
+#	define Q_DATASYNC_EXPORT Q_DECL_IMPORT
 #endif
 
 namespace QtDataSync {
