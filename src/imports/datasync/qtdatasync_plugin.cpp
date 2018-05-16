@@ -27,7 +27,10 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 	qmlRegisterType<QtDataSync::QQmlAccountManager>(uri, 4, 0, "AccountManager");
 	qmlRegisterType<QtDataSync::QQmlUserExchangeManager>(uri, 4, 0, "UserExchangeManager");
 
+	//Version 4.1
+	qmlRegisterModule(uri, 4, 1);
+
 	// Check to make shure no module update is forgotten
-	static_assert(VERSION_MAJOR == 4 && VERSION_MINOR == 0, "QML module version needs to be updated");
+	static_assert(VERSION_MAJOR == 4 && VERSION_MINOR == 1, "QML module version needs to be updated");
 
 }
