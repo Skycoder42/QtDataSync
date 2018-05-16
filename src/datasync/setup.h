@@ -52,6 +52,7 @@ Q_DECL_CONSTEXPR inline int operator "" _gb(unsigned long long x) {
 #endif
 
 class ConflictResolver;
+class KeyStore;
 
 class SetupPrivate;
 //! The class to setup and create datasync instances
@@ -176,6 +177,8 @@ public:
 	static bool keystoreAvailable(const QString &provider);
 	//! Returns the default provider to be used based on the current platform and the available providers
 	static QString defaultKeystoreProvider();
+	static KeyStore *loadKeystore(QObject *parent = nullptr, const QString &setupName = DefaultSetup);
+	static KeyStore *loadKeystore(const QString &provider, QObject *parent = nullptr, const QString &setupName = DefaultSetup);
 
 	Setup();
 	~Setup();

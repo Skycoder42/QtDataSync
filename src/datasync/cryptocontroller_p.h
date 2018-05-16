@@ -62,6 +62,7 @@ public:
 	static QStringList allKeystoreKeys();
 	static QStringList availableKeystoreKeys();
 	static bool keystoreAvailable(const QString &provider);
+	static KeyStore *loadKeystore(const QString &provider, QObject *parent, const QString &setupName);
 
 	void initialize(const QVariantHash &params) final;
 	void finalize() final;

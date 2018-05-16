@@ -1,4 +1,5 @@
 #include "cryptocontroller_p.h"
+#include "defaults_p.h"
 #include "logger.h"
 #include "message_p.h"
 
@@ -139,6 +140,11 @@ QStringList CryptoController::availableKeystoreKeys()
 bool CryptoController::keystoreAvailable(const QString &provider)
 {
 	return factory->isAvailable(provider);
+}
+
+KeyStore *CryptoController::loadKeystore(const QString &provider, QObject *parent, const QString &setupName)
+{
+	return factory->createInstance(provider, DefaultsPrivate::obtainDefaults(setupName), parent);
 }
 
 void CryptoController::initialize(const QVariantHash &params)

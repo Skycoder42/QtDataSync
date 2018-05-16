@@ -90,6 +90,16 @@ QString Setup::defaultKeystoreProvider()
 	return QStringLiteral("plain");
 }
 
+KeyStore *Setup::loadKeystore(QObject *parent, const QString &setupName)
+{
+	return loadKeystore(defaultKeystoreProvider(), parent, setupName);
+}
+
+KeyStore *Setup::loadKeystore(const QString &provider, QObject *parent, const QString &setupName)
+{
+	return CryptoController::loadKeystore(provider, parent, setupName);
+}
+
 #undef RETURN_IF_AVAILABLE
 
 Setup::Setup() :
