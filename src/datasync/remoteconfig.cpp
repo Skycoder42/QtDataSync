@@ -7,17 +7,15 @@ RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const Head
 	d(new RemoteConfigPrivate(url, accessKey, headers, keepaliveTimeout))
 {}
 
-RemoteConfig::RemoteConfig(const RemoteConfig &other) :
-	d(other.d)
-{}
+RemoteConfig::RemoteConfig(const RemoteConfig &other) = default;
 
-RemoteConfig::~RemoteConfig() {}
+RemoteConfig::RemoteConfig(RemoteConfig &&other) = default;
 
-RemoteConfig &RemoteConfig::operator=(const RemoteConfig &other)
-{
-	d = other.d;
-	return (*this);
-}
+RemoteConfig::~RemoteConfig() = default;
+
+RemoteConfig &RemoteConfig::operator=(const RemoteConfig &other) = default;
+
+RemoteConfig &RemoteConfig::operator=(RemoteConfig &&other) = default;
 
 QUrl RemoteConfig::url() const
 {

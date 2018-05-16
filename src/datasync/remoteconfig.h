@@ -36,10 +36,14 @@ public:
 				 int keepaliveTimeout = 1); //1 minute between ping messages (nginx timeout is 75 seconds be default)
 	//! Copy constructor
 	RemoteConfig(const RemoteConfig &other);
+	//! Move constructor
+	RemoteConfig(RemoteConfig &&other);
 	~RemoteConfig();
 
-	//! Assignment operator
+	//! Copy-Assignment operator
 	RemoteConfig &operator=(const RemoteConfig &other);
+	//! Move-Assignment operator
+	RemoteConfig &operator=(RemoteConfig &&other);
 
 	//! @readAcFn{RemoteConfig::url}
 	QUrl url() const;

@@ -46,7 +46,7 @@ QString AccountManagerPrivate::lastError() const
 
 void AccountManagerPrivate::setDeviceName(QString deviceName)
 {
-	if(deviceName.isNull())
+	if(deviceName.isEmpty())
 		_engine->remoteConnector()->resetDeviceName();
 	else
 		_engine->remoteConnector()->setDeviceName(deviceName);
