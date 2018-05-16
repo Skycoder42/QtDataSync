@@ -119,7 +119,7 @@ Q_SIGNALS:
 	//! Is emitted whenever a dataset has been changed
 	void dataChanged(int metaTypeId, const QString &key, bool deleted, QPrivateSignal);
 	//! Is emitted when a datatypes has been cleared
-	void dataCleared(int metaTypeId, QPrivateSignal);
+	Q_DECL_DEPRECATED void dataCleared(int metaTypeId, QPrivateSignal);
 	//! Is emitted when the store is resetted due to an account reset
 	void dataResetted(QPrivateSignal);
 

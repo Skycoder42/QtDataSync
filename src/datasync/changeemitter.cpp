@@ -14,18 +14,20 @@ void ChangeEmitter::triggerChange(QObject *origin, const ObjectKey &key, bool de
 	emit remoteDataChanged(key, deleted);
 }
 
-void ChangeEmitter::triggerClear(QObject *origin, const QByteArray &typeName)
+void ChangeEmitter::triggerClear(QObject *origin, const QByteArray &typeName, const QStringList &ids)
 {
 	emit uploadNeeded();
-	emit dataResetted(origin, typeName);
-	emit remoteDataResetted(typeName);
+	for(const auto &id : ids) {
+		emit dataChanged(origin, {typeName, id}, true);
+		emit remoteDataChanged({typeName, id}, true);
+	}
 }
 
 void ChangeEmitter::triggerReset(QObject *origin)
 {
 	emit uploadNeeded();
-	emit dataResetted(origin, {});
-	emit remoteDataResetted({});
+	emit dataResetted(origin);
+	emit remoteDataResetted();
 }
 
 void ChangeEmitter::triggerUpload()
@@ -54,18 +56,18 @@ void ChangeEmitter::triggerRemoteChange(const ObjectKey &key, bool deleted, bool
 	emit remoteDataChanged(key, deleted);
 }
 
-void ChangeEmitter::triggerRemoteClear(const QByteArray &typeName)
+void ChangeEmitter::triggerRemoteClear(const QByteArray &typeName, const QStringList &ids)
 {
 	if(_cache) {
 		QWriteLocker _(&_cache->lock);
-		for(auto key : _cache->cache.keys()) {
-			if(key.typeName == typeName)
-				_cache->cache.remove(key);
-		}
+		for(const auto &id : ids)
+			_cache->cache.remove({typeName, id});
 	}
 	emit uploadNeeded();
-	emit dataResetted(nullptr, typeName);
-	emit remoteDataResetted(typeName);
+	for(const auto &id : ids) {
+		emit dataChanged(nullptr, {typeName, id}, true);
+		emit remoteDataChanged({typeName, id}, true);
+	}
 }
 
 void ChangeEmitter::triggerRemoteReset()
@@ -75,6 +77,6 @@ void ChangeEmitter::triggerRemoteReset()
 		_cache->cache.clear();
 	}
 	emit uploadNeeded();
-	emit dataResetted(nullptr, {});
-	emit remoteDataResetted({});
+	emit dataResetted(nullptr);
+	emit remoteDataResetted();
 }

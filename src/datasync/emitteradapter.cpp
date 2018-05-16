@@ -12,14 +12,14 @@ EmitterAdapter::EmitterAdapter(QObject *changeEmitter, QSharedPointer<CacheInfo>
 		connect(_emitterBackend, SIGNAL(dataChanged(QObject*,QtDataSync::ObjectKey,bool)),
 				this, SLOT(dataChangedImpl(QObject*,QtDataSync::ObjectKey,bool)),
 				Qt::QueuedConnection);
-		connect(_emitterBackend, SIGNAL(dataResetted(QObject*,QByteArray)),
+		connect(_emitterBackend, SIGNAL(dataResetted(QObject*)),
 				this, SLOT(dataResettedImpl(QObject*,QByteArray)),
 				Qt::QueuedConnection);
 	} else {
 		connect(_emitterBackend, SIGNAL(remoteDataChanged(QtDataSync::ObjectKey,bool)),
 				this, SLOT(remoteDataChangedImpl(QtDataSync::ObjectKey,bool)),
 				Qt::QueuedConnection);
-		connect(_emitterBackend, SIGNAL(remoteDataResetted(QByteArray)),
+		connect(_emitterBackend, SIGNAL(remoteDataResetted()),
 				this, SLOT(remoteDataResettedImpl(QByteArray)),
 				Qt::QueuedConnection);
 	}
@@ -45,18 +45,21 @@ void EmitterAdapter::triggerChange(const ObjectKey &key, bool deleted, bool chan
 	}
 }
 
-void EmitterAdapter::triggerClear(const QByteArray &typeName)
+void EmitterAdapter::triggerClear(const QByteArray &typeName, const QStringList &ids)
 {
 	if(_isPrimary) {
 		QMetaObject::invokeMethod(_emitterBackend, "triggerClear",
 								  Qt::QueuedConnection,
 								  Q_ARG(QObject*, parent()),
-								  Q_ARG(QByteArray, typeName));
-		emit dataCleared(typeName);
+								  Q_ARG(QByteArray, typeName),
+								  Q_ARG(QStringList, ids));
+		for(const auto &id : ids)
+			emit dataChanged({typeName, id}, true);
 	} else {
 		QMetaObject::invokeMethod(_emitterBackend, "triggerRemoteClear",
 								  Qt::QueuedConnection,
-								  Q_ARG(QByteArray, typeName));
+								  Q_ARG(QByteArray, typeName),
+								  Q_ARG(QStringList, ids));
 		//no change signal, because operating in passive setup
 	}
 }
@@ -132,16 +135,14 @@ bool EmitterAdapter::dropCached(const ObjectKey &key)
 	return _cache->cache.remove(key);
 }
 
-void EmitterAdapter::dropCached(const QByteArray &typeName)
+void EmitterAdapter::dropCached(const QByteArray &typeName, const QStringList &ids)
 {
 	if(!_cache)
 		return;
 
 	QWriteLocker _(&_cache->lock);
-	for(auto key : _cache->cache.keys()) {
-		if(key.typeName == typeName)
-			_cache->cache.remove(key);
-	}
+	for(const auto &id : ids)
+		_cache->cache.remove({typeName, id});
 }
 
 void EmitterAdapter::dropCached()
@@ -159,27 +160,22 @@ void EmitterAdapter::dataChangedImpl(QObject *origin, const ObjectKey &key, bool
 		emit dataChanged(key, deleted);
 }
 
-void EmitterAdapter::dataResettedImpl(QObject *origin, const QByteArray &typeName)
+void EmitterAdapter::dataResettedImpl(QObject *origin)
 {
-	if(origin == nullptr || origin != parent()) {
-		if(typeName.isEmpty())
-			emit dataResetted();
-		else
-			emit dataCleared(typeName);
-	}
+	if(origin == nullptr || origin != parent())
+		emit dataResetted();
 }
 
 void EmitterAdapter::remoteDataChangedImpl(const ObjectKey &key, bool deleted)
 {
+	//TODO cache clear needed? (in case of 3rd remote, i.e. remote -> main -> remote signaling)
 	emit dataChanged(key, deleted);
 }
 
-void EmitterAdapter::remoteDataResettedImpl(const QByteArray &typeName)
+void EmitterAdapter::remoteDataResettedImpl()
 {
-	if(typeName.isEmpty())
-		emit dataResetted();
-	else
-		emit dataCleared(typeName);
+	//TODO cache clear needed? (in case of 3rd remote, i.e. remote -> main -> remote signaling)
+	emit dataResetted();
 }
 
 

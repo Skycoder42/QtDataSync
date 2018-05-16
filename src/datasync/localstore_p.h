@@ -104,7 +104,6 @@ public:
 
 Q_SIGNALS:
 	void dataChanged(const QtDataSync::ObjectKey &key, bool deleted);
-	void dataCleared(const QByteArray &typeName);
 	void dataResetted();
 
 private:

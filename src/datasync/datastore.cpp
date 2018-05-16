@@ -32,10 +32,6 @@ void DataStore::initStore(const QString &setupName)
 			this, [this](const ObjectKey &key, bool deleted) {
 		emit dataChanged(QMetaType::type(key.typeName), key.id, deleted, {});
 	});
-	connect(d->store, &LocalStore::dataCleared,
-			this, [this](const QByteArray &typeName) {
-		emit dataCleared(QMetaType::type(typeName), {});
-	});
 	connect(d->store, &LocalStore::dataResetted,
 			this, PSIG(&DataStore::dataResetted));
 }

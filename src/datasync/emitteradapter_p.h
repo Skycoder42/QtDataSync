@@ -28,7 +28,7 @@ public:
 							QObject *origin = nullptr);
 
 	void triggerChange(const QtDataSync::ObjectKey &key, bool deleted, bool changed);
-	void triggerClear(const QByteArray &typeName);
+	void triggerClear(const QByteArray &typeName, const QStringList &ids);
 	void triggerReset();
 	void triggerUpload();
 
@@ -36,19 +36,18 @@ public:
 	void putCached(const QList<ObjectKey> &keys, const QList<QJsonObject> &data, const QList<int> &costs);
 	bool getCached(const ObjectKey &key, QJsonObject &data);
 	bool dropCached(const ObjectKey &key);
-	void dropCached(const QByteArray &typeName);
+	void dropCached(const QByteArray &typeName, const QStringList &ids);
 	void dropCached();
 
 Q_SIGNALS:
 	void dataChanged(const QtDataSync::ObjectKey &key, bool deleted);
-	void dataCleared(const QByteArray &typeName);
 	void dataResetted();
 
 private Q_SLOTS:
 	void dataChangedImpl(QObject *origin, const QtDataSync::ObjectKey &key, bool deleted);
-	void dataResettedImpl(QObject *origin, const QByteArray &typeName);
-	void remoteDataChangedImpl(const QtDataSync::ObjectKey & key, bool deleted);
-	void remoteDataResettedImpl(const QByteArray & typeName);
+	void dataResettedImpl(QObject *origin);
+	void remoteDataChangedImpl(const QtDataSync::ObjectKey &key, bool deleted);
+	void remoteDataResettedImpl();
 
 private:
 	bool _isPrimary;

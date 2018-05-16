@@ -35,8 +35,6 @@ void DataStoreModel::initStore(DataStore *store)
 	d->store = store;
 	QObject::connect(d->store, &DataStore::dataChanged,
 					 this, &DataStoreModel::storeChanged);
-	QObject::connect(d->store, &DataStore::dataCleared,
-					 this, &DataStoreModel::storeCleared);
 	QObject::connect(d->store, &DataStore::dataResetted,
 					 this, &DataStoreModel::storeResetted);
 }
@@ -265,12 +263,6 @@ void DataStoreModel::storeChanged(int metaTypeId, const QString &key, bool wasDe
 				d->keyList.append(key);
 		}
 	}
-}
-
-void DataStoreModel::storeCleared(int metaTypeId)
-{
-	if(d->type == metaTypeId)
-		storeResetted();
 }
 
 void DataStoreModel::storeResetted()

@@ -111,7 +111,6 @@ protected:
 
 private Q_SLOTS:
 	void storeChanged(int metaTypeId, const QString &key, bool wasDeleted);
-	void storeCleared(int metaTypeId);
 	void storeResetted();
 
 private:

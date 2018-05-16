@@ -90,7 +90,7 @@ void TestDataTypeStore::testSimple()
 
 		store.clear();
 		QCOMPARE(store.count(), 0);
-		QCOMPARE(resetSpy.size(), 1);
+		QCOMPARE(changeSpy.size(), 3);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
@@ -183,7 +183,7 @@ void TestDataTypeStore::testCaching(std::function<QList<T>(int,int)> generator, 
 
 		store.clear();
 		QCOMPARE(store.count(), 0);
-		QCOMPARE(resetSpy.size(), 1);
+		QCOMPARE(changeSpy.size(), 2);
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

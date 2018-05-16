@@ -211,7 +211,7 @@ void TestLocalStore::testRemove()
 
 void TestLocalStore::testClear()
 {
-	QSignalSpy clearSpy(store, &LocalStore::dataCleared);
+	QSignalSpy changeSpy(store, &LocalStore::dataChanged);
 	QSignalSpy resetSpy(store, &LocalStore::dataResetted);
 
 	try {
@@ -219,8 +219,9 @@ void TestLocalStore::testClear()
 		QCOMPARE(store->count(TestLib::TypeName), 2ull);
 		store->clear(TestLib::TypeName);
 		QCOMPARE(store->count(TestLib::TypeName), 0ull);
-		QCOMPARE(clearSpy.count(), 1);
-		QCOMPARE(clearSpy.takeFirst()[0].toByteArray(), TestLib::TypeName);
+		QCOMPARE(changeSpy.count(), 2);
+		QCOMPARE(changeSpy.takeFirst()[0].value<ObjectKey>().typeName, TestLib::TypeName);
+		QCOMPARE(changeSpy.takeFirst()[0].value<ObjectKey>().typeName, TestLib::TypeName);
 
 		//reset
 		store->save(TestLib::generateKey(42), TestLib::generateDataJson(42));

@@ -25,7 +25,7 @@ public Q_SLOTS:
 					   const QtDataSync::ObjectKey &key,
 					   bool deleted,
 					   bool changed);
-	void triggerClear(QObject *origin, const QByteArray &typeName);
+	void triggerClear(QObject *origin, const QByteArray &typeName, const QStringList &ids);
 	void triggerReset(QObject *origin);
 	void triggerUpload() override;
 
@@ -33,12 +33,12 @@ Q_SIGNALS:
 	void uploadNeeded();
 
 	void dataChanged(QObject *origin, const QtDataSync::ObjectKey &key, bool deleted);
-	void dataResetted(QObject *origin, const QByteArray &typeName);
+	void dataResetted(QObject *origin);
 
 protected Q_SLOTS:
 	//remcon interface
 	void triggerRemoteChange(const ObjectKey &key, bool deleted, bool changed) override;
-	void triggerRemoteClear(const QByteArray &typeName) override;
+	void triggerRemoteClear(const QByteArray &typeName, const QStringList &ids) override;
 	void triggerRemoteReset() override;
 
 private:

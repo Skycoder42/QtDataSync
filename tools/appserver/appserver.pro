@@ -1,9 +1,10 @@
+option(host_build)
 TEMPLATE = app
 
 QT += websockets sql concurrent
 QT -= gui
 
-CONFIG += c++11 console
+CONFIG += console
 CONFIG -= app_bundle
 
 APPNAME = qdsapp
@@ -22,7 +23,6 @@ DEFINES += "COMPANY=\\\"$$COMPANY\\\""
 DEFINES += "BUNDLE_PREFIX=\\\"$$BUNDLE_PREFIX\\\""
 
 load(qt_tool)
-load(resources)
 
 HEADERS += \
 	clientconnector.h \

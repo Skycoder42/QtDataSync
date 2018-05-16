@@ -30,8 +30,6 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 {
 	connect(_emitter, &EmitterAdapter::dataChanged,
 			this, &LocalStore::dataChanged);
-	connect(_emitter, &EmitterAdapter::dataCleared,
-			this, &LocalStore::dataCleared);
 	connect(_emitter, &EmitterAdapter::dataResetted,
 			this, &LocalStore::dataResetted);
 
@@ -354,6 +352,17 @@ void LocalStore::clear(const QByteArray &typeName)
 	beginWriteTransaction(typeName, true);
 
 	try {
+		// get all keys that are to be cleared
+		QSqlQuery clearInfoQuery(_database);
+		clearInfoQuery.prepare(QStringLiteral("SELECT Id FROM DataIndex "
+											  "WHERE Type = ? AND File IS NOT NULL"));
+		clearInfoQuery.addBindValue(typeName);
+		exec(clearInfoQuery, typeName);
+		QStringList clearKeys;
+		while(clearInfoQuery.next())
+			clearKeys.append(clearInfoQuery.value(0).toString());
+
+		// clear them
 		QSqlQuery clearQuery(_database);
 		clearQuery.prepare(QStringLiteral("UPDATE DataIndex "
 										  "SET Version = Version + 1, File = NULL, Checksum = NULL, Changed = 1 "
@@ -373,7 +382,7 @@ void LocalStore::clear(const QByteArray &typeName)
 		//clear cache
 		_emitter->dropCached(typeName);
 		//trigger change signals
-		_emitter->triggerClear(typeName);
+		_emitter->triggerClear(typeName, clearKeys);
 	} catch(...) {
 		_database->rollback();
 		throw;

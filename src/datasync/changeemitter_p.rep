@@ -3,10 +3,10 @@
 
 class ChangeEmitter {
 	SLOT(void triggerRemoteChange(const QtDataSync::ObjectKey &key, bool deleted, bool changed));
-	SLOT(void triggerRemoteClear(const QByteArray &typeName));
+	SLOT(void triggerRemoteClear(const QByteArray &typeName, const QStringList &ids));
 	SLOT(void triggerRemoteReset());
 	SLOT(void triggerUpload());
 
 	SIGNAL(remoteDataChanged(const QtDataSync::ObjectKey &key, bool deleted));
-	SIGNAL(remoteDataResetted(const QByteArray &typeName));
+	SIGNAL(remoteDataResetted());
 };

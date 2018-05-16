@@ -74,7 +74,6 @@ private:
 	DataStore *_store;
 
 	void evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted);
-	void evalDataCleared(int metaTypeId);
 };
 
 //! A DataTypeStore that caches all loaded data internally for faster access
@@ -130,7 +129,6 @@ private:
 	QHash<TKey, TType> _data;
 
 	void evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted);
-	void evalDataCleared(int metaTypeId);
 	void evalDataResetted();
 };
 
@@ -187,7 +185,6 @@ private:
 	QHash<TKey, TType*> _data;
 
 	void evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted);
-	void evalDataCleared(int metaTypeId);
 	void evalDataResetted();
 };
 
@@ -212,8 +209,6 @@ DataTypeStore<TType, TKey>::DataTypeStore(DataStore *store, QObject *parent) :
 {
 	connect(_store, &DataStore::dataChanged,
 			this, &DataTypeStore::evalDataChanged);
-	connect(_store, &DataStore::dataCleared,
-			this, &DataTypeStore::evalDataCleared);
 	connect(_store, &DataStore::dataResetted,
 			this, &DataTypeStore::dataResetted);
 }
@@ -302,13 +297,6 @@ void DataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QString &
 	}
 }
 
-template<typename TType, typename TKey>
-void DataTypeStore<TType, TKey>::evalDataCleared(int metaTypeId)
-{
-	if(metaTypeId == qMetaTypeId<TType>())
-		emit dataResetted();
-}
-
 // ------------- GENERIC IMPLEMENTATION CachingDataTypeStore -------------
 
 template <typename TType, typename TKey>
@@ -335,8 +323,6 @@ CachingDataTypeStore<TType, TKey>::CachingDataTypeStore(DataStore *store, QObjec
 
 	connect(_store, &DataStore::dataChanged,
 			this, &CachingDataTypeStore::evalDataChanged);
-	connect(_store, &DataStore::dataCleared,
-			this, &CachingDataTypeStore::evalDataCleared);
 	connect(_store, &DataStore::dataResetted,
 			this, &CachingDataTypeStore::evalDataResetted);
 }
@@ -440,13 +426,6 @@ void CachingDataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QS
 }
 
 template <typename TType, typename TKey>
-void CachingDataTypeStore<TType, TKey>::evalDataCleared(int metaTypeId)
-{
-	if(metaTypeId == qMetaTypeId<TType>())
-		evalDataResetted();
-}
-
-template <typename TType, typename TKey>
 void CachingDataTypeStore<TType, TKey>::evalDataResetted()
 {
 	_data.clear();
@@ -481,8 +460,6 @@ CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(DataStore *store, QObje
 
 	connect(_store, &DataStore::dataChanged,
 			this, &CachingDataTypeStore::evalDataChanged);
-	connect(_store, &DataStore::dataCleared,
-			this, &CachingDataTypeStore::evalDataCleared);
 	connect(_store, &DataStore::dataResetted,
 			this, &CachingDataTypeStore::evalDataResetted);
 }
@@ -601,13 +578,6 @@ void CachingDataTypeStore<TType*, TKey>::evalDataChanged(int metaTypeId, const Q
 			}
 		}
 	}
-}
-
-template <typename TType, typename TKey>
-void CachingDataTypeStore<TType*, TKey>::evalDataCleared(int metaTypeId)
-{
-	if(metaTypeId == qMetaTypeId<TType*>())
-		evalDataResetted();
 }
 
 template <typename TType, typename TKey>
