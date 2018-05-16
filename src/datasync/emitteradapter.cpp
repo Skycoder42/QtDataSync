@@ -168,13 +168,28 @@ void EmitterAdapter::dataResettedImpl(QObject *origin)
 
 void EmitterAdapter::remoteDataChangedImpl(const ObjectKey &key, bool deleted)
 {
-	//TODO cache clear needed? (in case of 3rd remote, i.e. remote -> main -> remote signaling)
+	if(_cache) {
+		auto contains = false;
+		//check if cached
+		{
+			QReadLocker _(&_cache->lock);
+			contains = _cache->cache.contains(key);
+		}
+		//if chached, remove
+		if(contains) {
+			QWriteLocker _(&_cache->lock);
+			_cache->cache.remove(key);
+		}
+	}
 	emit dataChanged(key, deleted);
 }
 
 void EmitterAdapter::remoteDataResettedImpl()
 {
-	//TODO cache clear needed? (in case of 3rd remote, i.e. remote -> main -> remote signaling)
+	if(_cache) {
+		QWriteLocker _(&_cache->lock);
+		_cache->cache.clear();
+	}
 	emit dataResetted();
 }
 

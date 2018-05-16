@@ -380,7 +380,7 @@ void LocalStore::clear(const QByteArray &typeName)
 			throw LocalStoreException(_defaults, typeName, _database->databaseName(), _database->lastError().text());
 
 		//clear cache
-		_emitter->dropCached(typeName);
+		_emitter->dropCached(typeName, clearKeys);
 		//trigger change signals
 		_emitter->triggerClear(typeName, clearKeys);
 	} catch(...) {
