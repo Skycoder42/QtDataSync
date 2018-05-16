@@ -53,6 +53,25 @@ public:
 		GenericConflictResolver<Args...>(parent)
 	{}
 
+	//! @copydoc ConflictResolver::resolveConflict
+	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
+		if(typeId == qMetaTypeId<T1>()) {
+			try {
+				QObject scope;
+				const QJsonSerializer *ser = this->defaults().serializer();
+				auto d1 = ser->deserialize<T1>(data1, &scope);
+				auto d2 = ser->deserialize<T1>(data2, &scope);
+				return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
+			} catch(NoConflictResultException&) {
+				return QJsonObject();
+			}
+		} else
+			return GenericConflictResolver<Args...>::resolveConflict(typeId, data1, data2);
+	}
+
+protected:
+	using NoConflictResultException = typename GenericConflictResolver<Args...>::NoConflictResultException;
+
 	/*!
 	 * @copybrief ConflictResolver::resolveConflict
 	 *
@@ -75,18 +94,6 @@ public:
 	 * @sa GenericConflictResolver::resolveUnknownConflict, ConflictResolver::resolveConflict
 	 */ //must be documented here because doxygen wont find it otherwise
 	virtual T1 resolveConflict(T1 data1, T1 data2, QObject *parent) const = 0;
-
-	//! @copydoc ConflictResolver::resolveConflict
-	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
-		if(typeId == qMetaTypeId<T1>()) {
-			QObject scope;
-			const QJsonSerializer *ser = this->defaults().serializer();
-			auto d1 = ser->deserialize<T1>(data1, &scope);
-			auto d2 = ser->deserialize<T1>(data2, &scope);
-			return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
-		} else
-			return GenericConflictResolver<Args...>::resolveConflict(typeId, data1, data2);
-	}
 };
 
 //! @copydoc QtDataSync::GenericConflictResolver
@@ -98,6 +105,24 @@ public:
 	inline GenericConflictResolver(QObject *parent = nullptr) :
 		ConflictResolver(parent)
 	{}
+
+	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
+		if(typeId == qMetaTypeId<T1>()) {
+			try {
+				QObject scope;
+				const QJsonSerializer *ser = this->defaults().serializer();
+				auto d1 = ser->deserialize<T1>(data1, &scope);
+				auto d2 = ser->deserialize<T1>(data2, &scope);
+				return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
+			} catch(NoConflictResultException&) {
+				return QJsonObject();
+			}
+		} else
+			return resolveUnknownConflict(typeId, data1, data2);
+	}
+
+protected:
+	class NoConflictResultException {};
 
 	/*!
 	 * @copybrief ConflictResolver::resolveConflict
@@ -136,17 +161,6 @@ public:
 		QT_DATASYNC_LOG_BASE.warning(logger()->loggingCategory()) << "Unsupported type in conflict resolver:"
 																  << QMetaType::typeName(typeId);
 		return QJsonObject();
-	}
-
-	inline QJsonObject resolveConflict(int typeId, const QJsonObject &data1, const QJsonObject &data2) const override {
-		if(typeId == qMetaTypeId<T1>()) {
-			QObject scope;
-			const QJsonSerializer *ser = this->defaults().serializer();
-			auto d1 = ser->deserialize<T1>(data1, &scope);
-			auto d2 = ser->deserialize<T1>(data2, &scope);
-			return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
-		} else
-			return resolveUnknownConflict(typeId, data1, data2);
 	}
 };
 

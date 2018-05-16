@@ -12,7 +12,9 @@ TestData TestResolver::resolveConflict(TestData data1, TestData data2, QObject *
 	TestData resData(data1.id);
 	if(data1.text < data2.text)
 		resData.text = data1.text + QStringLiteral("+conflict");
-	else
+	else if(data2.text < data1.text)
 		resData.text = data2.text + QStringLiteral("+conflict");
+	else
+		throw NoConflictResultException{};
 	return resData;
 }
