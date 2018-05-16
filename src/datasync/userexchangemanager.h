@@ -31,9 +31,16 @@ public:
 	UserInfo();
 	//! Copy Constructor
 	UserInfo(const UserInfo &other);
+	//! Move constructor
+	UserInfo(UserInfo &&other);
 	//! @private
 	UserInfo(UserInfoPrivate *data);
 	~UserInfo();
+
+	//! Copy-Assignment operator
+	UserInfo &operator=(const UserInfo &other);
+	//! Move-Assignment operator
+	UserInfo &operator=(UserInfo &&other);
 
 	//! @readAcFn{UserInfo::name}
 	QString name() const;
@@ -42,10 +49,10 @@ public:
 	//! @readAcFn{UserInfo::port}
 	quint16 port() const;
 
-	//! Assignment operator
-	UserInfo &operator=(const UserInfo &other);
 	//! Equality operator
 	bool operator==(const UserInfo &other) const;
+	//! inequality operator
+	bool operator!=(const UserInfo &other) const;
 
 private:
 	QSharedDataPointer<UserInfoPrivate> d;

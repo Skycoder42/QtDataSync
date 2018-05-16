@@ -298,15 +298,19 @@ UserInfo::UserInfo() :
 	d(new UserInfoPrivate())
 {}
 
-UserInfo::UserInfo(const UserInfo &other) :
-	d(other.d)
-{}
+UserInfo::UserInfo(const UserInfo &other) = default;
+
+UserInfo::UserInfo(UserInfo &&other) = default;
 
 UserInfo::UserInfo(UserInfoPrivate *data) :
 	d(data)
 {}
 
-UserInfo::~UserInfo() {}
+UserInfo::~UserInfo() = default;
+
+UserInfo &UserInfo::operator=(const UserInfo &other) = default;
+
+UserInfo &UserInfo::operator=(UserInfo &&other) = default;
 
 QString UserInfo::name() const
 {
@@ -323,16 +327,18 @@ quint16 UserInfo::port() const
 	return d->port;
 }
 
-UserInfo &UserInfo::operator=(const UserInfo &other)
-{
-	d = other.d;
-	return *this;
-}
-
 bool UserInfo::operator==(const UserInfo &other) const
 {
-	return d->address == other.d->address &&
-			d->port == other.d->port;
+	return d == other.d || (
+		d->address == other.d->address &&
+		d->port == other.d->port);
+}
+
+bool UserInfo::operator!=(const UserInfo &other) const
+{
+	return d != other.d && (
+		d->address != other.d->address ||
+		d->port != other.d->port);
 }
 
 uint QtDataSync::qHash(const UserInfo &info, uint seed)

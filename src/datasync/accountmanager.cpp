@@ -291,7 +291,15 @@ LoginRequest::LoginRequest(LoginRequestPrivate *d_ptr) :
 	d(d_ptr)
 {}
 
-LoginRequest::~LoginRequest() {}
+LoginRequest::LoginRequest(const LoginRequest &other) = default;
+
+LoginRequest::LoginRequest(LoginRequest &&other) = default;
+
+LoginRequest::~LoginRequest() = default;
+
+LoginRequest &LoginRequest::operator=(const LoginRequest &other) = default;
+
+LoginRequest &LoginRequest::operator=(LoginRequest &&other) = default;
 
 DeviceInfo LoginRequest::device() const
 {
@@ -345,17 +353,15 @@ DeviceInfo::DeviceInfo(const QUuid &deviceId, const QString &name, const QByteAr
 	d(new DeviceInfoPrivate(deviceId, name, fingerprint))
 {}
 
-DeviceInfo::DeviceInfo(const DeviceInfo &other) :
-	d(other.d)
-{}
+DeviceInfo::DeviceInfo(const DeviceInfo &other) = default;
 
-DeviceInfo::~DeviceInfo() {}
+DeviceInfo::DeviceInfo(DeviceInfo &&other) = default;
 
-DeviceInfo &DeviceInfo::operator=(const DeviceInfo &other)
-{
-	d = other.d;
-	return (*this);
-}
+DeviceInfo::~DeviceInfo() = default;
+
+DeviceInfo &DeviceInfo::operator=(const DeviceInfo &other) = default;
+
+DeviceInfo &DeviceInfo::operator=(DeviceInfo &&other) = default;
 
 QUuid DeviceInfo::deviceId() const
 {
@@ -385,6 +391,22 @@ void DeviceInfo::setName(const QString &name)
 void DeviceInfo::setFingerprint(const QByteArray &fingerprint)
 {
 	d->fingerprint = fingerprint;
+}
+
+bool DeviceInfo::operator==(const DeviceInfo &other) const
+{
+	return d == other.d || (
+		d->deviceId == other.d->deviceId &&
+		d->name == other.d->name &&
+		d->fingerprint == other.d->fingerprint);
+}
+
+bool DeviceInfo::operator!=(const DeviceInfo &other) const
+{
+	return d != other.d && (
+		d->deviceId != other.d->deviceId ||
+		d->name != other.d->name ||
+		d->fingerprint != other.d->fingerprint);
 }
 
 

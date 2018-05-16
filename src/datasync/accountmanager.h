@@ -39,10 +39,14 @@ public:
 	DeviceInfo(const QUuid &deviceId, const QString &name, const QByteArray &fingerprint);
 	//! Copy constructor
 	DeviceInfo(const DeviceInfo &other);
+	//! Move constructor
+	DeviceInfo(DeviceInfo &&other);
 	~DeviceInfo();
 
-	//! Assignment operator
+	//! Copy-Assignment operator
 	DeviceInfo &operator=(const DeviceInfo &other);
+	//! Move-Assignment operator
+	DeviceInfo &operator=(DeviceInfo &&other);
 
 	//! @readAcFn{DeviceInfo::deviceId}
 	QUuid deviceId() const;
@@ -57,6 +61,11 @@ public:
 	void setName(const QString &name);
 	//! @writeAcFn{DeviceInfo::fingerprint}
 	void setFingerprint(const QByteArray &fingerprint);
+
+	//! Equality operator
+	bool operator==(const DeviceInfo &other) const;
+	//! Inequality operator
+	bool operator!=(const DeviceInfo &other) const;
 
 private:
 	QSharedDataPointer<DeviceInfoPrivate> d;
@@ -80,7 +89,16 @@ class Q_DATASYNC_EXPORT LoginRequest
 public:
 	//! @private
 	LoginRequest(LoginRequestPrivate *d_ptr = nullptr);
+	//! Copy constructor
+	LoginRequest(const LoginRequest &other);
+	//! Move constructor
+	LoginRequest(LoginRequest &&other);
 	~LoginRequest();
+
+	//! Copy-Assignment operator
+	LoginRequest &operator=(const LoginRequest &other);
+	//! Move-Assignment operator
+	LoginRequest &operator=(LoginRequest &&other);
 
 	//! @readAcFn{LoginRequest::device}
 	DeviceInfo device() const;
