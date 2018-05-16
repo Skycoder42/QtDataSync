@@ -352,7 +352,7 @@ Setup &Setup::resetKeyStoreProvider()
 
 Setup &Setup::resetSignatureScheme()
 {
-	d->properties.insert(Defaults::SignScheme, RSA_PSS_SHA3_512);
+	d->properties.insert(Defaults::SignScheme, ECDSA_ECP_SHA3_512);
 	return *this;
 }
 
@@ -364,7 +364,7 @@ Setup &Setup::resetSignatureKeyParam()
 
 Setup &Setup::resetEncryptionScheme()
 {
-	d->properties.insert(Defaults::CryptScheme, RSA_OAEP_SHA3_512);
+	d->properties.insert(Defaults::CryptScheme, ECIES_ECP_SHA3_512);
 	return *this;
 }
 
@@ -548,8 +548,8 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::PersistDeleted, false},
 		{Defaults::ConflictPolicy, Setup::PreferChanged},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
-		{Defaults::SignScheme, Setup::RSA_PSS_SHA3_512},
-		{Defaults::CryptScheme, Setup::RSA_OAEP_SHA3_512},
+		{Defaults::SignScheme, Setup::ECDSA_ECP_SHA3_512},
+		{Defaults::CryptScheme, Setup::ECIES_ECP_SHA3_512},
 		{Defaults::SymScheme, Setup::AES_EAX}
 	}),
 	fatalErrorHandler()

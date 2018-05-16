@@ -13,7 +13,7 @@ HEADERS +=  \
 	qqmlaccountmanager.h \
 	qqmldatastoremodel.h \
 	qqmluserexchangemanager.h \
-    qtdatasync_plugin.h
+	qtdatasync_plugin.h
 
 SOURCES +=  \
 	qqmldatastore.cpp \
@@ -21,7 +21,7 @@ SOURCES +=  \
 	qqmlaccountmanager.cpp \
 	qqmldatastoremodel.cpp \
 	qqmluserexchangemanager.cpp \
-    qtdatasync_plugin.cpp
+	qtdatasync_plugin.cpp
 
 OTHER_FILES += qmldir
 
@@ -33,6 +33,7 @@ generate_qmltypes {
 	QMAKE_EXTRA_TARGETS += typeextra1 typeextra2
 }
 
+CONFIG += qmlcache
 load(qml_plugin)
 
 generate_qmltypes {
