@@ -1,15 +1,11 @@
 #!/bin/sh
 set -ex
 
-cd /tmp/src/tools/appserver
-
 export MAKEFLAGS=-j$(nproc)
 
 DS_NAME=qdsappd
 TOOL_DEPS="libqt5sql5 libqt5sql5-psql libqt5concurrent5 libqt5websockets5 libcrypto++6 libicu57"
 BUILD_DEPS="build-essential qtbase5-dev qtdeclarative5-dev libqt5scxml-dev libqt5remoteobjects-dev libqt5websockets5-dev libqt5jsonserializer-dev libcrypto++-dev libicu-dev qt5-qmake qpmx pkg-config curl ca-certificates"
-
-echo "CONFIG+=system_cryptopp" >> .qmake.conf
 
 # install deps
 apt-get -qq update
@@ -20,7 +16,20 @@ apt-get -qq install --no-install-recommends $TOOL_DEPS $BUILD_DEPS
 curl -O https://www.qpm.io/download/v0.10.0/linux_386/qpm
 install -m 755 ./qpm /usr/local/bin/
 
+# build messages
+cd /tmp/src/src/messages
+ln -s ../../tools/appserver/.qmake.conf
+
+echo "CONFIG+=system_cryptopp" >> .qmake.conf
+qmake -qt5
+make qmake_all
+make
+
 # build the server and install it
+cd /tmp/src/tools/appserver
+ln -s ../../src/messages/lib lib
+
+# already done for messages: echo "CONFIG+=system_cryptopp" >> .qmake.conf
 qmake -qt5
 make qmake_all
 make

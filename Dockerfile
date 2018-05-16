@@ -3,7 +3,7 @@ FROM ubuntu:rolling
 
 COPY tools /tmp/src/tools
 COPY src/3rdparty/cryptopp/cryptopp.pri /tmp/src/src/3rdparty/cryptopp/cryptopp.pri
-COPY src/datasync/messages /tmp/src/src/datasync/messages
+COPY src/messages /tmp/src/src/messages
 COPY .qmake.conf /tmp/src/tools/appserver/.qmake.conf
 RUN /tmp/src/tools/appserver/dockerbuild/install.sh
 

@@ -12,4 +12,4 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$MSG_DI
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$MSG_DIR/qtdatasync-messagesd.lib
 else:unix: PRE_TARGETDEPS += $$MSG_DIR/libqtdatasync-messages.a
 
-include(../3rdparty/cryptopp/cryptopp.pri)
+include($$PWD/../3rdparty/cryptopp/cryptopp.pri)
