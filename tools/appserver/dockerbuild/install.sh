@@ -4,7 +4,7 @@ set -ex
 export MAKEFLAGS=-j$(nproc)
 
 DS_NAME=qdsappd
-TOOL_DEPS="libqt5sql5 libqt5sql5-psql libqt5concurrent5 libqt5websockets5 libcrypto++6 libicu57"
+TOOL_DEPS="libqt5sql5 libqt5sql5-psql libqt5concurrent5 libqt5websockets5 libcrypto++6 libicu60"
 BUILD_DEPS="build-essential qtbase5-dev qtdeclarative5-dev libqt5scxml-dev libqt5remoteobjects-dev libqt5websockets5-dev libqt5jsonserializer-dev libcrypto++-dev libicu-dev qt5-qmake qpmx pkg-config curl ca-certificates"
 
 # install deps
