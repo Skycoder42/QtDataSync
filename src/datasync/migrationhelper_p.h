@@ -12,6 +12,7 @@ namespace QtDataSync {
 
 class MigrationRunnable : public QRunnable
 {
+	Q_DISABLE_COPY(MigrationRunnable)
 public:
 	MigrationRunnable(const Defaults &defaults,
 					  MigrationHelper *helper,

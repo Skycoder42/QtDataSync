@@ -13,9 +13,9 @@ using namespace std::chrono;
 
 QtDataSync::Controller::Controller(const QByteArray &name, Defaults defaults, QObject *parent) :
 	QObject(parent),
-	_defaults(defaults),
-	_logger(defaults.createLogger(name, this)),
-	_settings(defaults.createSettings(this, QString::fromUtf8(name))),
+	_defaults(std::move(defaults)),
+	_logger(_defaults.createLogger(name, this)),
+	_settings(_defaults.createSettings(this, QString::fromUtf8(name))),
 	_opTimer(new QTimer(this))
 {
 	connect(_opTimer, &QTimer::timeout,
@@ -46,7 +46,7 @@ QSettings *Controller::settings() const
 	return _settings;
 }
 
-void Controller::beginOp(const minutes &interval, bool startIfNotRunning)
+void Controller::beginOp(minutes interval, bool startIfNotRunning)
 {
 	if(!startIfNotRunning && !_opTimer->isActive())
 		return;
@@ -61,7 +61,7 @@ void Controller::beginOp(const minutes &interval, bool startIfNotRunning)
 	logDebug() << "Started or refreshed operation timeout";
 }
 
-void Controller::beginSpecialOp(const minutes &interval)
+void Controller::beginSpecialOp(minutes interval)
 {
 #if QT_HAS_INCLUDE(<chrono>)
 	if(interval < _specialOp.remainingTimeAsDuration())

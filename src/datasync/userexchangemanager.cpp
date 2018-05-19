@@ -58,7 +58,7 @@ void UserExchangeManager::initManager(AccountManager *manager)
 	});
 }
 
-UserExchangeManager::~UserExchangeManager() {}
+UserExchangeManager::~UserExchangeManager() = default;
 
 AccountManager *UserExchangeManager::accountManager() const
 {
@@ -115,7 +115,7 @@ void UserExchangeManager::stopExchange()
 void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 {
 	QPointer<UserExchangeManager> thisPtr(this);
-	d->manager->exportAccount(includeServer, [thisPtr, this, userInfo](QByteArray exportData) {
+	d->manager->exportAccount(includeServer, [thisPtr, this, userInfo](const QByteArray &exportData) {
 		if(!thisPtr)
 			return;
 
@@ -126,7 +126,7 @@ void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 			   << exportData;
 
 		d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
-	}, [thisPtr, this](QString error) {
+	}, [thisPtr, this](const QString &error) {
 		if(!thisPtr)
 			return;
 
@@ -137,7 +137,7 @@ void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, bool includeServer, const QString &password)
 {
 	QPointer<UserExchangeManager> thisPtr(this);
-	d->manager->exportAccountTrusted(includeServer, password, [thisPtr, this, userInfo](QByteArray exportData) {
+	d->manager->exportAccountTrusted(includeServer, password, [thisPtr, this, userInfo](const QByteArray &exportData) {
 		if(!thisPtr)
 			return;
 
@@ -148,7 +148,7 @@ void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, bool include
 			   << exportData;
 
 		d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
-	}, [thisPtr, this](QString error) {
+	}, [thisPtr, this](const QString &error) {
 		if(!thisPtr)
 			return;
 
@@ -202,7 +202,7 @@ void UserExchangeManager::readDatagram()
 
 		auto isSelf = false;
 		if(datagram.senderPort() == d->socket->localPort()) {
-			for(auto addr : QNetworkInterface::allAddresses()) {
+			for(const auto &addr : QNetworkInterface::allAddresses()) {
 				if(addr.isEqual(datagram.senderAddress())) {
 					isSelf = true;
 					break;
@@ -250,7 +250,7 @@ void UserExchangeManager::readDatagram()
 
 			//try to find the already existing user info for that data
 			bool found = false;
-			for(auto key : d->devices.keys()) {
+			for(const auto &key : d->devices.keys()) {
 				if(info == key) {
 					found = true;
 					if(isInfo) { //isInfo -> reset timeout, update name if neccessary
@@ -361,16 +361,11 @@ QDebug QtDataSync::operator<<(QDebug stream, const UserInfo &userInfo)
 
 
 
-UserInfoPrivate::UserInfoPrivate(const QString &name, const QNetworkDatagram &datagram) :
+UserInfoPrivate::UserInfoPrivate(QString name, const QNetworkDatagram &datagram) :
 	QSharedData(),
-	name(name),
+	name(std::move(name)),
 	address(datagram.senderAddress()),
 	port(static_cast<quint16>(datagram.senderPort()))
 {}
 
-UserInfoPrivate::UserInfoPrivate(const UserInfoPrivate &other) :
-	QSharedData(other),
-	name(other.name),
-	address(other.address),
-	port(other.port)
-{}
+UserInfoPrivate::UserInfoPrivate(const UserInfoPrivate &other) = default;

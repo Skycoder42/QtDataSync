@@ -7,7 +7,7 @@ ConflictResolver::ConflictResolver(QObject *parent) :
 	d(new ConflictResolverPrivate())
 {}
 
-ConflictResolver::~ConflictResolver() {}
+ConflictResolver::~ConflictResolver() = default;
 
 void ConflictResolver::setDefaults(const Defaults &defaults)
 {

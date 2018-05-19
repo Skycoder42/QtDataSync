@@ -55,7 +55,7 @@ public:
 	};
 
 	explicit LocalStore(const Defaults &defaults, QObject *parent = nullptr);
-	~LocalStore();
+	~LocalStore() override;
 
 	QJsonObject readJson(const ObjectKey &key, const QString &filePath, int *costs = nullptr) const;
 

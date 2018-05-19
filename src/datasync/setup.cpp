@@ -106,7 +106,7 @@ Setup::Setup() :
 	d(new SetupPrivate())
 {}
 
-Setup::~Setup() {}
+Setup::~Setup() = default;
 
 QString Setup::localDir() const
 {
@@ -190,7 +190,7 @@ Setup::CipherScheme Setup::cipherScheme() const
 
 qint32 Setup::cipherKeySize() const
 {
-	return d->properties.value(Defaults::SymKeyParam).toUInt();
+	return d->properties.value(Defaults::SymKeyParam).toInt();
 }
 
 Setup &Setup::setLocalDir(QString localDir)
@@ -431,7 +431,7 @@ void Setup::create(const QString &name)
 	// once the thread finished, clear the engine from the cache of known ones
 	QObject::connect(thread, &QThread::finished, thread, [name, thread](){
 		qCDebug(qdssetup) << "Thread for setup" << name << "stopped - setup completly removed";
-		QMutexLocker _(&SetupPrivate::setupMutex);
+		QMutexLocker _cn(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
 		DefaultsPrivate::removeDefaults(name);
 		thread->deleteLater();
@@ -657,8 +657,7 @@ QString SetupLockedException::qWhat() const
 							  "\n\t\tHostname: %2"
 							  "\n\t\tAppname: %3")
 			   .arg(_pid)
-			   .arg(_hostname)
-			   .arg(_appname);
+			   .arg(_hostname, _appname);
 	}
 	return msg;
 }

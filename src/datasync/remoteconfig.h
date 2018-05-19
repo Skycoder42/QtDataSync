@@ -27,7 +27,7 @@ class Q_DATASYNC_EXPORT RemoteConfig
 
 public:
 	//! Typedef for a hash of additional HTTP headers
-	typedef QHash<QByteArray, QByteArray> HeaderHash;
+	using HeaderHash = QHash<QByteArray, QByteArray>;
 
 	//! Default constructor, with optional parameters
 	RemoteConfig(const QUrl &url = {},

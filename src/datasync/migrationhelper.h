@@ -37,7 +37,7 @@ public:
 	explicit MigrationHelper(QObject *parent = nullptr);
 	//! Constructor with an explicit setup
 	explicit MigrationHelper(const QString &setupName, QObject *parent = nullptr);
-	~MigrationHelper();
+	~MigrationHelper() override;
 
 public Q_SLOTS:
 	//! Start the migration process from the given directory with flags

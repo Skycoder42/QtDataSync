@@ -79,7 +79,7 @@ public:
 	explicit UserExchangeManager(const QString &setupName, QObject *parent = nullptr);
 	//! Constructor with an account manager to use for account import and export
 	explicit UserExchangeManager(AccountManager *manager, QObject *parent = nullptr);
-	~UserExchangeManager();
+	~UserExchangeManager() override;
 
 	//! The internally used account manager used to export and import data
 	AccountManager *accountManager() const;

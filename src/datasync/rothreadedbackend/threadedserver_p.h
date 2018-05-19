@@ -17,7 +17,7 @@ class Q_DATASYNC_EXPORT ThreadedServerIoDevice : public ServerIoDevice
 
 public:
 	explicit ThreadedServerIoDevice(ExchangeBuffer *buffer, QObject *parent = nullptr);
-	~ThreadedServerIoDevice();
+	~ThreadedServerIoDevice() override;
 
 	QIODevice *connection() const override;
 
@@ -38,7 +38,7 @@ public:
 	static bool connectTo(const QUrl &url, ExchangeBuffer *clientBuffer);
 
 	explicit ThreadedServer(QObject *parent = nullptr);
-	~ThreadedServer();
+	~ThreadedServer() override;
 
 	bool hasPendingConnections() const override;
 	QUrl address() const override;

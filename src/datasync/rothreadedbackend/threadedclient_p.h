@@ -18,7 +18,7 @@ class Q_DATASYNC_EXPORT ThreadedClientIoDevice : public ClientIoDevice
 
 public:
 	explicit ThreadedClientIoDevice(QObject *parent = nullptr);
-	~ThreadedClientIoDevice();
+	~ThreadedClientIoDevice() override;
 
 	void connectToServer() override;
 	bool isOpen() override;

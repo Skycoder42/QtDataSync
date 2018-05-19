@@ -16,7 +16,7 @@ class Q_DATASYNC_EXPORT DataStoreModel : public QAbstractListModel
 	friend class DataStoreModelPrivate;
 
 	//! Holds the type the model loads data for
-	Q_PROPERTY(int typeId READ typeId WRITE setTypeId)
+	Q_PROPERTY(int typeId READ typeId WRITE setTypeId NOTIFY typeIdChanged)
 	//! Specifies whether the model items can be edited
 	Q_PROPERTY(bool editable READ isEditable WRITE setEditable NOTIFY editableChanged)
 
@@ -27,7 +27,7 @@ public:
 	explicit DataStoreModel(const QString &setupName, QObject *parent = nullptr);
 	//! Constructs a model on the given store
 	explicit DataStoreModel(DataStore *store, QObject *parent = nullptr);
-	~DataStoreModel();
+	~DataStoreModel() override;
 
 	//! Returns the data store the model works on
 	DataStore *store() const;
@@ -100,6 +100,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	//! Emitted when the underlying DataStore throws an exception
 	void storeError(const QException &exception, QPrivateSignal);
+	void typeIdChanged(int typeId, QPrivateSignal);
 	//! @notifyAcFn{DataStoreModel::editable}
 	void editableChanged(bool editable, QPrivateSignal);
 

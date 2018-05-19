@@ -182,8 +182,10 @@ void DataStoreModel::setTypeId(int typeId)
 	auto flags = QMetaType::typeFlags(typeId);
 	if(flags.testFlag(QMetaType::IsGadget) ||
 	   flags.testFlag(QMetaType::PointerToQObject)) {
-		beginResetModel();
 		d->type = typeId;
+		emit typeIdChanged(typeId, {});
+
+		beginResetModel();
 		d->isObject = flags.testFlag(QMetaType::PointerToQObject);
 		d->keyList.clear();
 		d->clearHashObjects();

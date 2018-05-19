@@ -42,7 +42,7 @@ class Q_DATASYNC_EXPORT KeyStore : public QObject
 public:
 	//! Default constructor for a specific setup
 	explicit KeyStore(const Defaults &defaults, QObject *parent = nullptr);
-	~KeyStore();
+	~KeyStore() override;
 
 	//! Returns the provider type the keystore is of
 	virtual QString providerName() const = 0;
@@ -74,7 +74,9 @@ private:
 //! The keystore plugin to be implemented to provide custom keystores
 class Q_DATASYNC_EXPORT KeyStorePlugin
 {
+	Q_DISABLE_COPY(KeyStorePlugin)
 public:
+	inline KeyStorePlugin() = default;
 	virtual inline ~KeyStorePlugin() = default;
 
 	//! Check if the keystore type identified by the provider is currently accessible

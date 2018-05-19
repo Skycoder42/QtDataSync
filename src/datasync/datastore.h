@@ -39,7 +39,7 @@ public:
 	explicit DataStore(QObject *parent = nullptr);
 	//! Constructor with an explicit setup
 	explicit DataStore(const QString &setupName, QObject *parent = nullptr);
-	~DataStore();
+	~DataStore() override;
 
 	//! @copybrief DataStore::count() const
 	qint64 count(int metaTypeId) const;
@@ -310,7 +310,7 @@ template<typename T>
 void DataStore::iterate(const std::function<bool (T)> &iterator) const
 {
 	QTDATASYNC_STORE_ASSERT(T);
-	iterate(qMetaTypeId<T>(), [iterator](QVariant v) {
+	iterate(qMetaTypeId<T>(), [iterator](const QVariant &v) {
 		return iterator(v.template value<T>());
 	});
 }

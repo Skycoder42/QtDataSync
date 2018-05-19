@@ -48,7 +48,7 @@ public:
 	explicit SyncManager(const QString &setupName, QObject *parent = nullptr);
 	//! @copydoc AccountManager::AccountManager(QRemoteObjectNode *, QObject*)
 	explicit SyncManager(QRemoteObjectNode *node, QObject *parent = nullptr);
-	~SyncManager();
+	~SyncManager() override;
 
 	//! @copybrief AccountManager::replica
 	Q_INVOKABLE QRemoteObjectReplica *replica() const;
@@ -96,7 +96,7 @@ protected:
 
 private Q_SLOTS:
 	void onInit();
-	void onStateReached(const QUuid &id, SyncState state);
+	void onStateReached(QUuid id, SyncState state);
 
 private:
 	QScopedPointer<SyncManagerPrivateHolder> d;

@@ -18,7 +18,7 @@ class Q_DATASYNC_EXPORT Logger : public QObject
 public:
 	//! @private
 	explicit Logger(QByteArray subCategory, const QString &setupName, QObject *parent = nullptr);
-	~Logger();
+	~Logger() override;
 
 	//! Returns the logging category this logger logs to
 	const QLoggingCategory &loggingCategory() const;

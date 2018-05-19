@@ -84,6 +84,9 @@ public:
 	Defaults(const QSharedPointer<DefaultsPrivate> &d);
 	//! Copy constructor
 	Defaults(const Defaults &other);
+	Defaults(Defaults &&other);
+	Defaults &operator=(const Defaults &other);
+	Defaults &operator=(Defaults &&other);
 	~Defaults();
 
 	//! Create a new logger instance

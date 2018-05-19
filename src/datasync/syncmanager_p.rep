@@ -10,6 +10,6 @@ class SyncManagerPrivate {
 	SLOT(void synchronize());
 	SLOT(void reconnect());
 
-	SLOT(void runOnState(const QUuid &id, bool downloadOnly, bool triggerSync));
-	SIGNAL(stateReached(const QUuid &id, QtDataSync::SyncManager::SyncState syncState));
+	SLOT(void runOnState(QUuid id, bool downloadOnly, bool triggerSync));
+	SIGNAL(stateReached(QUuid id, QtDataSync::SyncManager::SyncState syncState));
 };

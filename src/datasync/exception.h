@@ -31,9 +31,9 @@ public:
 	const char *what() const noexcept final; //mark virtual again for doxygen
 
 	//! @inherit{QException::raise}
-	virtual void raise() const override; //mark virtual again for doxygen
+	void raise() const override; //mark virtual again for doxygen
 	//! @inherit{QException::clone}
-	virtual QException *clone() const override; //mark virtual again for doxygen
+	QException *clone() const override; //mark virtual again for doxygen
 
 protected:
 	//! @private

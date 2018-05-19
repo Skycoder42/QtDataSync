@@ -28,7 +28,7 @@ public:
 public Q_SLOTS:
 	void synchronize() override;
 	void reconnect() override;
-	void runOnState(const QUuid &id, bool downloadOnly, bool triggerSync) override;
+	void runOnState(QUuid id, bool downloadOnly, bool triggerSync) override;
 
 private:
 	QPointer<ExchangeEngine> _engine;

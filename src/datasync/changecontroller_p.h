@@ -25,15 +25,15 @@ public:
 		QByteArray checksum;
 
 		ChangeInfo();
-		ChangeInfo(const ObjectKey &key, quint64 version, const QByteArray &checksum = {});
+		ChangeInfo(ObjectKey key, quint64 version, QByteArray checksum = {});
 	};
 
 	//not exported, because of "cheating" api. Declared public because of qHash
 	class CachedObjectKey : public ObjectKey {
 	public:
 		CachedObjectKey();
-		CachedObjectKey(const ObjectKey &other, const QUuid &deviceId = {});
-		CachedObjectKey(const QByteArray &hash, const QUuid &deviceId = {});
+		CachedObjectKey(ObjectKey other, QUuid deviceId = {});
+		CachedObjectKey(QByteArray hash, QUuid deviceId = {});
 
 		QByteArray hashed() const;
 
@@ -56,7 +56,7 @@ public Q_SLOTS:
 	void updateUploadLimit(quint32 limit);
 
 	void uploadDone(const QByteArray &key);
-	void deviceUploadDone(const QByteArray &key, const QUuid &deviceId);
+	void deviceUploadDone(const QByteArray &key, QUuid deviceId);
 
 Q_SIGNALS:
 	void uploadingChanged(bool uploading);

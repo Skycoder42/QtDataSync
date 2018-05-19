@@ -21,13 +21,13 @@ namespace QtDataSync {
 
 //! @private
 template<typename TRatio>
-Q_DECL_CONSTEXPR inline int ratioBytes(const intmax_t &value);
+Q_DECL_CONSTEXPR inline int ratioBytes(intmax_t value);
 //! Interprets value as kilobytes and returns it converted to bytes
-Q_DECL_CONSTEXPR inline int KB(const intmax_t &value);
+Q_DECL_CONSTEXPR inline int KB(intmax_t value);
 //! Interprets value as megabytes and returns it converted to bytes
-Q_DECL_CONSTEXPR inline int MB(const intmax_t &value);
+Q_DECL_CONSTEXPR inline int MB(intmax_t value);
 //! Interprets value as gigabytes and returns it converted to bytes
-Q_DECL_CONSTEXPR inline int GB(const intmax_t &value);
+Q_DECL_CONSTEXPR inline int GB(intmax_t value);
 
 #if __cplusplus >= 201402L
 //! Sub namespace that defines the literals for MB, KB, GB
@@ -94,11 +94,11 @@ class Q_DATASYNC_EXPORT Setup
 	//! The algorithmic scheme to be used for new secret exchange keys (which are symmetric)
 	Q_PROPERTY(CipherScheme cipherScheme READ cipherScheme WRITE setCipherScheme RESET resetCipherScheme)
 	//! The size in bytes for the secret exchange key (which is symmetric)
-	Q_PROPERTY(qint32 cipherKeySize READ cipherKeySize WRITE setCipherKeySize RESET resetCipherKeySize)
+	Q_PROPERTY(qint32 cipherKeySize READ cipherKeySize WRITE setCipherKeySize RESET resetCipherKeySize) //MAJOR make uint
 
 public:
 	//! Typedef of an error handler function. See Setup::fatalErrorHandler
-	typedef std::function<void (QString, QString, const QMessageLogContext &)> FatalErrorHandler;
+	using FatalErrorHandler = std::function<void (QString, QString, const QMessageLogContext &)>;
 
 	//! Defines the possible policies on how to treat merge conflicts between change and delete
 	enum SyncPolicy {
@@ -357,22 +357,22 @@ protected:
 // ------------- Generic Implementation -------------
 
 template<typename TRatio>
-Q_DECL_CONSTEXPR inline int ratioBytes(const intmax_t &value)
+Q_DECL_CONSTEXPR inline int ratioBytes(intmax_t value)
 {
 	return static_cast<int>(qMin(TRatio().num * value, static_cast<intmax_t>(INT_MAX)));
 }
 
-Q_DECL_CONSTEXPR inline int KB(const intmax_t &value)
+Q_DECL_CONSTEXPR inline int KB(intmax_t value)
 {
 	return ratioBytes<std::kilo>(value);
 }
 
-Q_DECL_CONSTEXPR inline int MB(const intmax_t &value)
+Q_DECL_CONSTEXPR inline int MB(intmax_t value)
 {
 	return ratioBytes<std::mega>(value);
 }
 
-Q_DECL_CONSTEXPR inline int GB(const intmax_t &value)
+Q_DECL_CONSTEXPR inline int GB(intmax_t value)
 {
 	return ratioBytes<std::giga>(value);
 }

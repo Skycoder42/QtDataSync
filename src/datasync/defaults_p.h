@@ -26,7 +26,7 @@ class DatabaseRefPrivate : public QObject
 {
 public:
 	DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object);
-	~DatabaseRefPrivate();
+	~DatabaseRefPrivate() override;
 
 	QSqlDatabase &db();
 	bool eventFilter(QObject *watched, QEvent *event) override;
@@ -63,7 +63,7 @@ public:
 					const QHash<Defaults::PropertyKey, QVariant> &properties,
 					QJsonSerializer *serializer,
 					ConflictResolver *resolver);
-	~DefaultsPrivate();
+	~DefaultsPrivate() override;
 
 	QSqlDatabase acquireDatabase();
 	void releaseDatabase();

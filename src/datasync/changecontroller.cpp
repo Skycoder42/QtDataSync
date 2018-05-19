@@ -82,7 +82,7 @@ void ChangeController::uploadDone(const QByteArray &key)
 	}
 }
 
-void ChangeController::deviceUploadDone(const QByteArray &key, const QUuid &deviceId)
+void ChangeController::deviceUploadDone(const QByteArray &key, QUuid deviceId)
 {
 	if(!_activeUploads.contains({key, deviceId})) {
 		logWarning() << "Unknown device key completed:" << key.toHex() << deviceId;
@@ -138,19 +138,21 @@ void ChangeController::uploadNext(bool emitStarted)
 			}
 		}
 
-		_store->loadChanges(_uploadLimit, [this, emitProgress, &emitStarted](ObjectKey objKey, quint64 version, QString file, QUuid deviceId) {
+		_store->loadChanges(_uploadLimit, [this, emitProgress, &emitStarted](const ObjectKey &objKey, quint64 version, const QString &file, QUuid deviceId) {
 			CachedObjectKey key(objKey, deviceId);
 
 			//skip stuff already beeing uploaded (could still have changed, but to prevent errors)
-			auto skip = false;
-			for(auto mKey : _activeUploads.keys()) {
-				if(key == mKey) {
-					skip = true;
-					break;
-				}
-			}
-			if(skip)
+//			auto skip = false;
+			if(_activeUploads.contains(key))
 				return true;
+//			for(const auto &mKey : _activeUploads.keys()) {
+//				if(key == mKey) {
+//					skip = true;
+//					break;
+//				}
+//			}
+//			if(skip)
+//				return true;
 
 			//signale that uploading has started
 			if(emitStarted) {
@@ -218,10 +220,10 @@ ChangeController::ChangeInfo::ChangeInfo() :
 	checksum()
 {}
 
-ChangeController::ChangeInfo::ChangeInfo(const ObjectKey &key, quint64 version, const QByteArray &checksum) :
-	key(key),
+ChangeController::ChangeInfo::ChangeInfo(ObjectKey key, quint64 version, QByteArray checksum) :
+	key(std::move(key)),
 	version(version),
-	checksum(checksum)
+	checksum(std::move(checksum))
 {}
 
 
@@ -231,16 +233,16 @@ ChangeController::CachedObjectKey::CachedObjectKey() :
 	_hash()
 {}
 
-ChangeController::CachedObjectKey::CachedObjectKey(const ObjectKey &other, const QUuid &deviceId) :
-	ObjectKey(other),
-	optionalDevice(deviceId),
+ChangeController::CachedObjectKey::CachedObjectKey(ObjectKey other, QUuid deviceId) :
+	ObjectKey(std::move(other)),
+	optionalDevice(std::move(deviceId)),
 	_hash()
 {}
 
-ChangeController::CachedObjectKey::CachedObjectKey(const QByteArray &hash, const QUuid &deviceId) :
+ChangeController::CachedObjectKey::CachedObjectKey(QByteArray hash, QUuid deviceId) :
 	ObjectKey(),
-	optionalDevice(deviceId),
-	_hash(hash)
+	optionalDevice(std::move(deviceId)),
+	_hash(std::move(hash))
 {}
 
 QByteArray ChangeController::CachedObjectKey::hashed() const

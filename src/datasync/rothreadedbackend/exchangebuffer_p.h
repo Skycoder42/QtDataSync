@@ -16,7 +16,7 @@ class Q_DATASYNC_EXPORT ExchangeBuffer : public QIODevice
 
 public:
 	explicit ExchangeBuffer(QObject *parent = nullptr);
-	~ExchangeBuffer();
+	~ExchangeBuffer() override;
 
 	bool connectTo(ExchangeBuffer *partner, bool blocking = false);
 
@@ -42,7 +42,7 @@ private:
 
 	QQueue<QByteArray> _buffers;
 	int _index;
-	quint64 _size;
+	qint64 _size;
 
 	bool open(OpenMode mode) override;
 };

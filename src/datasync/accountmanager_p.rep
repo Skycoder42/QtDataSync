@@ -7,21 +7,21 @@ class AccountManagerPrivate {
 	PROP(QString lastError READONLY);
 
 	SLOT(void listDevices());
-	SLOT(void removeDevice(const QUuid &deviceId));
+	SLOT(void removeDevice(QUuid deviceId));
 	SLOT(void updateExchangeKey());
 	SLOT(void resetAccount(bool keepData));
 	SLOT(void changeRemote(const QtDataSync::RemoteConfig &config, bool keepData));
-	SLOT(void exportAccount(const QUuid &id, bool includeServer));
-	SLOT(void exportAccountTrusted(const QUuid &id, bool includeServer, const QString &password));
+	SLOT(void exportAccount(QUuid id, bool includeServer));
+	SLOT(void exportAccountTrusted(QUuid id, bool includeServer, const QString &password));
 	SLOT(void importAccount(const QtDataSync::JsonObject &importData, bool keepData));
 	SLOT(void importAccountTrusted(const QtDataSync::JsonObject &importData, const QString &password, bool keepData));
-	SLOT(void replyToLogin(const QUuid &deviceId, bool accept));
+	SLOT(void replyToLogin(QUuid deviceId, bool accept));
 
 	SIGNAL(accountDevices(const QList<QtDataSync::DeviceInfo> &devices));
-	SIGNAL(accountExportReady(const QUuid &id, const QtDataSync::JsonObject &exportData));
-	SIGNAL(accountExportError(const QUuid &id, const QString &errorString));
+	SIGNAL(accountExportReady(QUuid id, const QtDataSync::JsonObject &exportData));
+	SIGNAL(accountExportError(QUuid id, const QString &errorString));
 	SIGNAL(accountImportResult(bool success, const QString &error));
 	SIGNAL(loginRequested(const QtDataSync::DeviceInfo &deviceInfo));
 	SIGNAL(importCompleted());
-	SIGNAL(accountAccessGranted(const QUuid &deviceId));
+	SIGNAL(accountAccessGranted(QUuid deviceId));
 };

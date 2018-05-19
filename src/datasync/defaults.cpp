@@ -21,19 +21,21 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger
 
-Defaults::Defaults() :
-	d(nullptr)
-{}
+Defaults::Defaults() = default;
 
-Defaults::Defaults(const QSharedPointer<DefaultsPrivate> &d) :
+Defaults::Defaults(const QSharedPointer<DefaultsPrivate> &d) : //MAJOR pass by move
 	d(d)
 {}
 
-Defaults::Defaults(const Defaults &other) :
-	d(other.d)
-{}
+Defaults &Defaults::operator=(const Defaults &other) = default;
 
-Defaults::~Defaults() {}
+Defaults &Defaults::operator=(Defaults &&other) = default;
+
+Defaults::Defaults(const Defaults &other) = default;
+
+Defaults::Defaults(Defaults &&other) = default;
+
+Defaults::~Defaults() = default;
 
 Logger *Defaults::createLogger(const QByteArray &subCategory, QObject *parent) const
 {

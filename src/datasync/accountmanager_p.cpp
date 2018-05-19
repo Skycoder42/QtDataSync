@@ -49,7 +49,7 @@ void AccountManagerPrivate::setDeviceName(QString deviceName)
 	if(deviceName.isEmpty())
 		_engine->remoteConnector()->resetDeviceName();
 	else
-		_engine->remoteConnector()->setDeviceName(deviceName);
+		_engine->remoteConnector()->setDeviceName(std::move(deviceName));
 }
 
 void AccountManagerPrivate::listDevices()
@@ -57,7 +57,7 @@ void AccountManagerPrivate::listDevices()
 	_engine->remoteConnector()->listDevices();
 }
 
-void AccountManagerPrivate::removeDevice(const QUuid &deviceId)
+void AccountManagerPrivate::removeDevice(QUuid deviceId)
 {
 	_engine->remoteConnector()->removeDevice(deviceId);
 }
@@ -78,7 +78,7 @@ void AccountManagerPrivate::changeRemote(const RemoteConfig &config, bool keepDa
 	_engine->resetAccount(keepData, false);
 }
 
-void AccountManagerPrivate::exportAccount(const QUuid &id, bool includeServer)
+void AccountManagerPrivate::exportAccount(QUuid id, bool includeServer)
 {
 	try {
 		auto data = _engine->remoteConnector()->exportAccount(includeServer, QString());
@@ -90,7 +90,7 @@ void AccountManagerPrivate::exportAccount(const QUuid &id, bool includeServer)
 	}
 }
 
-void AccountManagerPrivate::exportAccountTrusted(const QUuid &id, bool includeServer, const QString &password)
+void AccountManagerPrivate::exportAccountTrusted(QUuid id, bool includeServer, const QString &password)
 {
 	if(password.isEmpty()) {
 		emit accountExportError(id, tr("Password must not be empty."));
@@ -158,7 +158,7 @@ void AccountManagerPrivate::importAccountTrusted(const JsonObject &importData, c
 	}
 }
 
-void AccountManagerPrivate::replyToLogin(const QUuid &deviceId, bool accept)
+void AccountManagerPrivate::replyToLogin(QUuid deviceId, bool accept)
 {
 	if(_loginRequests.remove(deviceId))
 		_engine->remoteConnector()->loginReply(deviceId, accept);

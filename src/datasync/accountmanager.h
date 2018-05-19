@@ -134,7 +134,7 @@ public:
 	explicit AccountManager(const QString &setupName, QObject *parent = nullptr);
 	//! Constructor with a remote object node to connect to
 	explicit AccountManager(QRemoteObjectNode *node, QObject *parent = nullptr);
-	~AccountManager();
+	~AccountManager() override;
 
 	//! The internal replica used to connect to the engine
 	Q_INVOKABLE QRemoteObjectReplica *replica() const;

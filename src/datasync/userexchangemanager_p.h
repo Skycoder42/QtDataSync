@@ -17,7 +17,7 @@ namespace QtDataSync {
 class UserInfoPrivate : public QSharedData
 {
 public:
-	UserInfoPrivate(const QString &name = {}, const QNetworkDatagram &datagram = {});
+	UserInfoPrivate(QString name = {}, const QNetworkDatagram &datagram = {});
 	UserInfoPrivate(const UserInfoPrivate &other);
 
 	QString name;

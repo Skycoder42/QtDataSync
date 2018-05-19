@@ -50,7 +50,7 @@ void SyncManagerPrivate::reconnect()
 	_engine->remoteConnector()->reconnect();
 }
 
-void SyncManagerPrivate::runOnState(const QUuid &id, bool downloadOnly, bool triggerSync)
+void SyncManagerPrivate::runOnState(QUuid id, bool downloadOnly, bool triggerSync)
 {
 	auto state = syncState();
 	auto skipDOnly = false;
@@ -79,8 +79,8 @@ void SyncManagerPrivate::runOnState(const QUuid &id, bool downloadOnly, bool tri
 	case SyncManager::Downloading:
 	{
 		auto resObj = new QObject(this);
-		connect(this, &SyncManagerPrivate::syncStateChanged, resObj, [this, resObj, id, downloadOnly](SyncManager::SyncState state) {
-			switch (state) {
+		connect(this, &SyncManagerPrivate::syncStateChanged, resObj, [this, resObj, id, downloadOnly](SyncManager::SyncState newState) {
+			switch (newState) {
 			case SyncManager::Initializing: //do nothing
 			case SyncManager::Downloading:
 				break;
@@ -91,7 +91,7 @@ void SyncManagerPrivate::runOnState(const QUuid &id, bool downloadOnly, bool tri
 			case SyncManager::Synchronized: //done
 			case SyncManager::Error:
 			case SyncManager::Disconnected:
-				emit stateReached(id, state);
+				emit stateReached(id, newState);
 				resObj->deleteLater();
 				break;
 			default:

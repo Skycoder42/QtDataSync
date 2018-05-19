@@ -21,7 +21,7 @@ class Q_DATASYNC_EXPORT ConflictResolver : public QObject
 public:
 	//! Default constructor
 	explicit ConflictResolver(QObject *parent = nullptr);
-	~ConflictResolver();
+	~ConflictResolver() override;
 
 	//! @private
 	void setDefaults(const Defaults &defaults);

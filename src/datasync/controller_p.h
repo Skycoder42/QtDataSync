@@ -37,9 +37,9 @@ protected:
 	Logger *logger() const;
 	QSettings *settings() const;
 
-	void beginOp(const std::chrono::minutes &interval = std::chrono::minutes(5),
+	void beginOp(std::chrono::minutes interval = std::chrono::minutes(5),
 				 bool startIfNotRunning = true);
-	void beginSpecialOp(const std::chrono::minutes &interval);
+	void beginSpecialOp(std::chrono::minutes interval);
 	void endOp();
 
 private Q_SLOTS:

@@ -16,9 +16,7 @@ namespace QtDataSync {
 class SyncManagerPrivateHolder
 {
 public:
-	SyncManagerPrivateHolder();
-
-	SyncManagerPrivateReplica *replica;
+	SyncManagerPrivateReplica *replica = nullptr;
 	QHash<QUuid, std::function<void(SyncManager::SyncState)>> syncActions;
 	QHash<QUuid, std::tuple<bool, bool>> initActions;
 };
@@ -79,7 +77,7 @@ void SyncManager::initReplica(QRemoteObjectNode *node)
 			this, &SyncManager::onInit);
 }
 
-SyncManager::~SyncManager() {}
+SyncManager::~SyncManager() = default;
 
 QRemoteObjectReplica *SyncManager::replica() const
 {
@@ -138,7 +136,7 @@ void SyncManager::onInit()
 	d->initActions.clear();
 }
 
-void SyncManager::onStateReached(const QUuid &id, SyncManager::SyncState state)
+void SyncManager::onStateReached(QUuid id, SyncManager::SyncState state)
 {
 	auto fn = d->syncActions.take(id);
 	if(fn)
@@ -155,14 +153,6 @@ void SyncManager::runImp(bool downloadOnly, bool triggerSync, const function<voi
 	else
 		d->initActions.insert(id, make_tuple(downloadOnly, triggerSync));
 }
-
-
-
-SyncManagerPrivateHolder::SyncManagerPrivateHolder() :
-	replica(nullptr),
-	syncActions(),
-	initActions()
-{}
 
 
 

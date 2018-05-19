@@ -14,7 +14,7 @@ namespace QtDataSync {
 class DeviceInfoPrivate : public QSharedData
 {
 public:
-	DeviceInfoPrivate(const QUuid &deviceId = {}, const QString &name = {}, const QByteArray &fingerprint = {});
+	DeviceInfoPrivate(QUuid deviceId = {}, QString name = {}, QByteArray fingerprint = {});
 	DeviceInfoPrivate(const DeviceInfoPrivate &other);
 
 	QUuid deviceId;
@@ -25,7 +25,7 @@ public:
 class LoginRequestPrivate
 {
 public:
-	LoginRequestPrivate(const DeviceInfo &deviceInfo, AccountManagerPrivateReplica *replica);
+	LoginRequestPrivate(DeviceInfo deviceInfo, AccountManagerPrivateReplica *replica);
 	DeviceInfo device;
 	bool acted;
 
@@ -35,9 +35,7 @@ public:
 class AccountManagerPrivateHolder
 {
 public:
-	AccountManagerPrivateHolder();
-
-	AccountManagerPrivateReplica *replica;
+	AccountManagerPrivateReplica *replica = nullptr;
 	QHash<QUuid, function<void(QJsonObject)>> exportActions;
 	QHash<QUuid, function<void(QString)>> errorActions;
 	function<void(bool,QString)> importAction;
@@ -104,7 +102,7 @@ void AccountManager::initReplica(QRemoteObjectNode *node)
 			this, PSIG(&AccountManager::accountAccessGranted));
 }
 
-AccountManager::~AccountManager() {}
+AccountManager::~AccountManager() = default;
 
 QRemoteObjectReplica *AccountManager::replica() const
 {
@@ -144,7 +142,7 @@ void AccountManager::exportAccount(bool includeServer, const function<void(QJson
 void AccountManager::exportAccount(bool includeServer, const function<void(QByteArray)> &completedFn, const function<void(QString)> &errorFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
-	exportAccount(includeServer, [completedFn](QJsonObject obj) {
+	exportAccount(includeServer, [completedFn](const QJsonObject &obj) {
 		completedFn(QJsonDocument(obj).toJson(QJsonDocument::Compact));
 	}, errorFn);
 }
@@ -168,7 +166,7 @@ void AccountManager::exportAccountTrusted(bool includeServer, const QString &pas
 void AccountManager::exportAccountTrusted(bool includeServer, const QString &password, const function<void(QByteArray)> &completedFn, const function<void(QString)> &errorFn)
 {
 	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
-	exportAccountTrusted(includeServer, password, [completedFn](QJsonObject obj) {
+	exportAccountTrusted(includeServer, password, [completedFn](const QJsonObject &obj) {
 		completedFn(QJsonDocument(obj).toJson(QJsonDocument::Compact));
 	}, errorFn);
 }
@@ -276,15 +274,6 @@ void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
 	emit loginRequested(new LoginRequestPrivate(deviceInfo, d->replica), {});
 }
 
-
-
-AccountManagerPrivateHolder::AccountManagerPrivateHolder() :
-	replica(nullptr),
-	exportActions(),
-	errorActions(),
-	importAction()
-{}
-
 // ------------- LoginRequest Implementation -------------
 
 LoginRequest::LoginRequest(LoginRequestPrivate *d_ptr) :
@@ -337,8 +326,8 @@ void LoginRequest::reject()
 
 
 
-LoginRequestPrivate::LoginRequestPrivate(const DeviceInfo &deviceInfo, AccountManagerPrivateReplica *replica) :
-	device(deviceInfo),
+LoginRequestPrivate::LoginRequestPrivate(DeviceInfo deviceInfo, AccountManagerPrivateReplica *replica) :
+	device(std::move(deviceInfo)),
 	acted(false),
 	replica(replica)
 {}
@@ -411,19 +400,14 @@ bool DeviceInfo::operator!=(const DeviceInfo &other) const
 
 
 
-DeviceInfoPrivate::DeviceInfoPrivate(const QUuid &deviceId, const QString &name, const QByteArray &fingerprint) :
+DeviceInfoPrivate::DeviceInfoPrivate(QUuid deviceId, QString name, QByteArray fingerprint) :
 	QSharedData(),
-	deviceId(deviceId),
-	name(name),
-	fingerprint(fingerprint)
+	deviceId(std::move(deviceId)),
+	name(std::move(name)),
+	fingerprint(std::move(fingerprint))
 {}
 
-DeviceInfoPrivate::DeviceInfoPrivate(const DeviceInfoPrivate &other) :
-	QSharedData(other),
-	deviceId(other.deviceId),
-	name(other.name),
-	fingerprint(other.fingerprint)
-{}
+DeviceInfoPrivate::DeviceInfoPrivate(const DeviceInfoPrivate &other) = default;
 
 
 

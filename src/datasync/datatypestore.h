@@ -84,9 +84,9 @@ class CachingDataTypeStore : public DataTypeStoreBase
 
 public:
 	//! Typedef for QHash::const_iterator
-	typedef typename QHash<TKey, TType>::const_iterator const_iterator;
+	using const_iterator = typename QHash<TKey, TType>::const_iterator;
 	//! Typedef for QHash::const_iterator
-	typedef const_iterator iterator;
+	using iterator = const_iterator;
 
 	//! @copydoc DataTypeStore::DataTypeStore(QObject*)
 	explicit CachingDataTypeStore(QObject *parent = nullptr);
@@ -140,9 +140,9 @@ class CachingDataTypeStore<TType*, TKey> : public DataTypeStoreBase
 
 public:
 	//! @copybrief CachingDataTypeStore::const_iterator
-	typedef typename QHash<TKey, TType*>::const_iterator const_iterator;
+	using const_iterator = typename QHash<TKey, TType*>::const_iterator;
 	//! @copybrief CachingDataTypeStore::iterator
-	typedef const_iterator iterator;
+	using iterator = const_iterator;
 
 	//!@copydoc CachingDataTypeStore::CachingDataTypeStore(QObject *)
 	explicit CachingDataTypeStore(QObject *parent = nullptr);

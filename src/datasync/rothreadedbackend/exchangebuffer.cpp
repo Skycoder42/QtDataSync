@@ -59,7 +59,7 @@ qint64 ExchangeBuffer::readData(char *data, qint64 maxlen)
 	while(written < maxlen && !_buffers.isEmpty()) {
 		auto buffer = _buffers.head();
 		auto delta = qMin<qint64>(buffer.size() - _index, (maxlen - written));
-		memcpy(data + written, buffer.constData() + _index, delta);
+		memcpy(data + written, buffer.constData() + _index, static_cast<size_t>(delta));
 		written += delta;
 		_index += static_cast<int>(delta);
 		if(_index >= buffer.size()) {
@@ -78,7 +78,7 @@ qint64 ExchangeBuffer::writeData(const char *data, qint64 len)
 		return 0;
 
 	if(QMetaObject::invokeMethod(_partner, "receiveData", Qt::QueuedConnection,
-								 Q_ARG(QByteArray, QByteArray(data, len)))) {
+								 Q_ARG(QByteArray, QByteArray(data, static_cast<int>(len))))) {
 		return len;
 	} else {
 		setErrorString(tr("Failed to send data to partner device"));
