@@ -62,7 +62,7 @@ void QQmlDataStoreModel::setSetupName(QString setupName)
 	if (_setupName == setupName)
 		return;
 
-	_setupName = setupName;
+	_setupName = std::move(setupName);
 	emit setupNameChanged(_setupName);
 }
 
@@ -80,7 +80,7 @@ void QQmlDataStoreModel::setDataStore(QQmlDataStore *dataStore)
 	emit dataStoreChanged(_dataStore);
 }
 
-void QQmlDataStoreModel::setTypeName(QString typeName)
+void QQmlDataStoreModel::setTypeName(const QString &typeName)
 {
 	try {
 		setTypeId(QMetaType::type(typeName.toUtf8()));

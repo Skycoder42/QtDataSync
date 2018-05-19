@@ -195,13 +195,13 @@ qint32 Setup::cipherKeySize() const
 
 Setup &Setup::setLocalDir(QString localDir)
 {
-	d->localDir = localDir;
+	d->localDir = std::move(localDir);
 	return *this;
 }
 
 Setup &Setup::setRemoteObjectHost(QUrl remoteObjectHost)
 {
-	d->roAddress = remoteObjectHost;
+	d->roAddress = std::move(remoteObjectHost);
 	return *this;
 }
 
@@ -220,7 +220,7 @@ Setup &Setup::setConflictResolver(ConflictResolver *conflictResolver)
 
 Setup &Setup::setFatalErrorHandler(const FatalErrorHandler &fatalErrorHandler)
 {
-	d->fatalErrorHandler = fatalErrorHandler;
+	d->fatalErrorHandler = fatalErrorHandler;//MAJOR move
 	return *this;
 }
 
@@ -244,19 +244,19 @@ Setup &Setup::setSyncPolicy(Setup::SyncPolicy syncPolicy)
 
 Setup &Setup::setSslConfiguration(QSslConfiguration sslConfiguration)
 {
-	d->properties.insert(Defaults::SslConfiguration, QVariant::fromValue(sslConfiguration));
+	d->properties.insert(Defaults::SslConfiguration, QVariant::fromValue(std::move(sslConfiguration)));
 	return *this;
 }
 
 Setup &Setup::setRemoteConfiguration(RemoteConfig remoteConfiguration)
 {
-	d->properties.insert(Defaults::RemoteConfiguration, QVariant::fromValue(remoteConfiguration));
+	d->properties.insert(Defaults::RemoteConfiguration, QVariant::fromValue(std::move(remoteConfiguration)));
 	return *this;
 }
 
 Setup &Setup::setKeyStoreProvider(QString keyStoreProvider)
 {
-	d->properties.insert(Defaults::KeyStoreProvider, keyStoreProvider);
+	d->properties.insert(Defaults::KeyStoreProvider, std::move(keyStoreProvider));
 	return *this;
 }
 
@@ -268,7 +268,7 @@ Setup &Setup::setSignatureScheme(Setup::SignatureScheme signatureScheme)
 
 Setup &Setup::setSignatureKeyParam(QVariant signatureKeyParam)
 {
-	d->properties.insert(Defaults::SignKeyParam, signatureKeyParam);
+	d->properties.insert(Defaults::SignKeyParam, std::move(signatureKeyParam));
 	return *this;
 }
 
@@ -280,7 +280,7 @@ Setup &Setup::setEncryptionScheme(Setup::EncryptionScheme encryptionScheme)
 
 Setup &Setup::setEncryptionKeyParam(QVariant encryptionKeyParam)
 {
-	d->properties.insert(Defaults::CryptKeyParam, encryptionKeyParam);
+	d->properties.insert(Defaults::CryptKeyParam, std::move(encryptionKeyParam));
 	return *this;
 }
 

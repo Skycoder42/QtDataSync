@@ -37,7 +37,7 @@ public:
 	};
 
 	explicit SingleTaskQueue(QThreadPool *pool, QObject *parent = nullptr);
-	~SingleTaskQueue();
+	~SingleTaskQueue() override;
 
 	void enqueueTask(Task *task);
 	template <typename TFunction>

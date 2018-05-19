@@ -32,10 +32,10 @@ public:
 
 	Q_INVOKABLE bool isTrustedImport(const QJsonObject &importData) const;
 
-	Q_INVOKABLE void exportAccount(bool includeServer, QJSValue completedFn, QJSValue errorFn = {});
-	Q_INVOKABLE void exportAccountTrusted(bool includeServer, const QString &password, QJSValue completedFn, QJSValue errorFn = {});
-	Q_INVOKABLE void importAccount(const QJsonObject &importData, QJSValue completedFn, bool keepData = false);
-	Q_INVOKABLE void importAccountTrusted(const QJsonObject &importData, const QString &password, QJSValue completedFn, bool keepData = false);
+	Q_INVOKABLE void exportAccount(bool includeServer, const QJSValue &completedFn, const QJSValue &errorFn = {});
+	Q_INVOKABLE void exportAccountTrusted(bool includeServer, const QString &password, const QJSValue &completedFn, const QJSValue &errorFn = {});
+	Q_INVOKABLE void importAccount(const QJsonObject &importData, const QJSValue &completedFn, bool keepData = false);
+	Q_INVOKABLE void importAccountTrusted(const QJsonObject &importData, const QString &password, const QJSValue &completedFn, bool keepData = false);
 
 public Q_SLOTS:
 	void setSetupName(QString setupName);

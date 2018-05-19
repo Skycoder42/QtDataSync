@@ -35,11 +35,11 @@ public:
 	bool valid() const;
 
 	Q_INVOKABLE void importFrom(const QtDataSync::UserInfo &userInfo,
-								QJSValue completedFn,
+								const QJSValue &completedFn,
 								bool keepData = false);
 	Q_INVOKABLE void importTrustedFrom(const QtDataSync::UserInfo &userInfo,
 									   const QString &password,
-									   QJSValue completedFn,
+									   const QJSValue &completedFn,
 									   bool keepData = false);
 
 public Q_SLOTS:

@@ -24,7 +24,7 @@ namespace {
 class Query : public QSqlQuery
 {
 public:
-	explicit Query(QSqlDatabase db);
+	explicit Query(const QSqlDatabase &db);
 
 	void prepare(const QString &query);
 	void exec();
@@ -56,7 +56,7 @@ void DatabaseController::cleanupDevices()
 	if(offlineSinceDays == 0)
 		return;
 
-	QtConcurrent::run(qApp->threadPool(), [this, offlineSinceDays]() {
+	QtConcurrent::run(qApp->threadPool(), [offlineSinceDays]() {
 		try {
 			auto db = _threadStore.localData().database();
 			if(!db.transaction())
@@ -141,7 +141,7 @@ QUuid DatabaseController::addNewDevice(const QString &name, const QByteArray &si
 	}
 }
 
-void DatabaseController::addNewDeviceToUser(const QUuid &newDeviceId, const QUuid &partnerDeviceId, const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey, const QByteArray &fingerprint)
+void DatabaseController::addNewDeviceToUser(QUuid newDeviceId, QUuid partnerDeviceId, const QString &name, const QByteArray &signScheme, const QByteArray &signKey, const QByteArray &cryptScheme, const QByteArray &cryptKey, const QByteArray &fingerprint)
 {
 	auto db = _threadStore.localData().database();
 
@@ -160,7 +160,7 @@ void DatabaseController::addNewDeviceToUser(const QUuid &newDeviceId, const QUui
 	createDeviceQuery.exec();
 }
 
-AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, CryptoPP::RandomNumberGenerator &rng, QObject *parent)
+AsymmetricCryptoInfo *DatabaseController::loadCrypto(QUuid deviceId, CryptoPP::RandomNumberGenerator &rng, QObject *parent)
 {
 	auto db = _threadStore.localData().database();
 
@@ -181,7 +181,7 @@ AsymmetricCryptoInfo *DatabaseController::loadCrypto(const QUuid &deviceId, Cryp
 									parent);
 }
 
-void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
+void DatabaseController::updateLogin(QUuid deviceId, const QString &name)
 {
 	auto db = _threadStore.localData().database();
 
@@ -193,7 +193,7 @@ void DatabaseController::updateLogin(const QUuid &deviceId, const QString &name)
 	updateNameQuery.exec();
 }
 
-bool DatabaseController::updateCmac(const QUuid &deviceId, quint32 keyIndex, const QByteArray &cmac)
+bool DatabaseController::updateCmac(QUuid deviceId, quint32 keyIndex, const QByteArray &cmac)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -234,7 +234,7 @@ bool DatabaseController::updateCmac(const QUuid &deviceId, quint32 keyIndex, con
 	}
 }
 
-QList<tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(const QUuid &deviceId)
+QList<tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(QUuid deviceId)
 {
 	auto db = _threadStore.localData().database();
 	Query loadDevicesQuery(db);
@@ -258,7 +258,7 @@ QList<tuple<QUuid, QString, QByteArray>> DatabaseController::listDevices(const Q
 	return resList;
 }
 
-void DatabaseController::removeDevice(const QUuid &deviceId, const QUuid &deleteId)
+void DatabaseController::removeDevice(QUuid deviceId, QUuid deleteId)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -301,7 +301,7 @@ void DatabaseController::removeDevice(const QUuid &deviceId, const QUuid &delete
 	}
 }
 
-bool DatabaseController::addChange(const QUuid &deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
+bool DatabaseController::addChange(QUuid deviceId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -369,7 +369,7 @@ bool DatabaseController::addChange(const QUuid &deviceId, const QByteArray &data
 	}
 }
 
-bool DatabaseController::addDeviceChange(const QUuid &deviceId, const QUuid &targetId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
+bool DatabaseController::addDeviceChange(QUuid deviceId, QUuid targetId, const QByteArray &dataId, const quint32 keyIndex, const QByteArray &salt, const QByteArray &data)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -433,7 +433,7 @@ bool DatabaseController::addDeviceChange(const QUuid &deviceId, const QUuid &tar
 	}
 }
 
-quint32 DatabaseController::changeCount(const QUuid &deviceId)
+quint32 DatabaseController::changeCount(QUuid deviceId)
 {
 	auto db = _threadStore.localData().database();
 	Query countChangesQuery(db);
@@ -446,7 +446,7 @@ quint32 DatabaseController::changeCount(const QUuid &deviceId)
 		return 0;
 }
 
-QList<tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip)
+QList<tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadNextChanges(QUuid deviceId, quint32 count, quint32 skip)
 {
 	auto db = _threadStore.localData().database();
 
@@ -464,8 +464,8 @@ QList<tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadN
 	QList<tuple<quint64, quint32, QByteArray, QByteArray>> resList;
 	while(loadChangesQuery.next()) {
 		resList.append(make_tuple(
-						   (quint64)loadChangesQuery.value(0).toULongLong(),
-						   (quint32)loadChangesQuery.value(1).toUInt(),
+						   static_cast<quint64>(loadChangesQuery.value(0).toULongLong()),
+						   static_cast<quint32>(loadChangesQuery.value(1).toUInt()),
 						   loadChangesQuery.value(2).toByteArray(),
 						   loadChangesQuery.value(3).toByteArray()
 					   ));
@@ -473,7 +473,7 @@ QList<tuple<quint64, quint32, QByteArray, QByteArray>> DatabaseController::loadN
 	return resList;
 }
 
-void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex)
+void DatabaseController::completeChange(QUuid deviceId, quint64 dataIndex)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -504,7 +504,7 @@ void DatabaseController::completeChange(const QUuid &deviceId, quint64 dataIndex
 	}
 }
 
-QList<tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset)
+QList<tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryKeyChange(QUuid deviceId, quint32 proposedIndex, int &offset)
 {
 	offset = -1;
 
@@ -523,7 +523,7 @@ QList<tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryK
 			throw DatabaseException(db);
 		auto currentIndex = readIndexQuery.value(0).toUInt();
 		auto userId = readIndexQuery.value(1).toULongLong();
-		offset = proposedIndex - currentIndex;
+		offset = static_cast<int>(proposedIndex) - static_cast<int>(currentIndex);
 		if(offset != 1) { //only when 1 the rest is needed
 			if(!db.commit())
 				throw DatabaseException(db);
@@ -574,7 +574,7 @@ QList<tuple<QUuid, QByteArray, QByteArray, QByteArray>> DatabaseController::tryK
 	}
 }
 
-bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyIndex, const QByteArray &scheme, const QByteArray &cmac, const QList<tuple<QUuid, QByteArray, QByteArray>> &deviceKeys)
+bool DatabaseController::updateExchangeKey(QUuid deviceId, quint32 keyIndex, const QByteArray &scheme, const QByteArray &cmac, const QList<tuple<QUuid, QByteArray, QByteArray>> &deviceKeys)
 {
 	auto db = _threadStore.localData().database();
 	if(!db.transaction())
@@ -639,7 +639,7 @@ bool DatabaseController::updateExchangeKey(const QUuid &deviceId, quint32 keyInd
 	}
 }
 
-tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::loadKeyChanges(const QUuid &deviceId)
+tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::loadKeyChanges(QUuid deviceId)
 {
 	auto db = _threadStore.localData().database();
 
@@ -650,16 +650,15 @@ tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::loadKeyCh
 	keyChangesQuery.addBindValue(deviceId);
 	keyChangesQuery.exec();
 
-	QList<tuple<quint32, QByteArray, QByteArray, QByteArray>> result;
 	if(keyChangesQuery.first()) {
 		return make_tuple(
-			(quint32)keyChangesQuery.value(0).toUInt(),
+			static_cast<quint32>(keyChangesQuery.value(0).toUInt()),
 			keyChangesQuery.value(1).toByteArray(),
 			keyChangesQuery.value(2).toByteArray(),
 			keyChangesQuery.value(3).toByteArray()
 		);
 	} else
-		return make_tuple((quint32)0, QByteArray(), QByteArray(), QByteArray());
+		return make_tuple(0u, QByteArray(), QByteArray(), QByteArray());
 }
 
 void DatabaseController::dbInitDone(bool success)
@@ -1054,7 +1053,7 @@ DatabaseException::DatabaseException(const QSqlError &error) :
 	_msg("\n ==> Error: " + error.text().toUtf8())
 {}
 
-DatabaseException::DatabaseException(QSqlDatabase db) :
+DatabaseException::DatabaseException(const QSqlDatabase &db) :
 	DatabaseException(db.lastError())
 {}
 
@@ -1086,7 +1085,7 @@ QException *DatabaseException::clone() const
 
 
 
-Query::Query(QSqlDatabase db) :
+Query::Query(const QSqlDatabase &db) :
 	QSqlQuery(db)
 {}
 

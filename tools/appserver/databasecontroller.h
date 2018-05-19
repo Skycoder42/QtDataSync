@@ -22,7 +22,7 @@ class DatabaseException : public QException
 {
 public:
 	DatabaseException(const QSqlError &error);
-	DatabaseException(QSqlDatabase db);
+	DatabaseException(const QSqlDatabase &db);
 	DatabaseException(const QSqlQuery &query);
 
 	QSqlError error() const;
@@ -54,47 +54,47 @@ public:
 					   const QByteArray &cryptKey,
 					   const QByteArray &fingerprint,
 					   const QByteArray &keyCmac);
-	void addNewDeviceToUser(const QUuid &newDeviceId,
-							const QUuid &partnerDeviceId,
+	void addNewDeviceToUser(QUuid newDeviceId,
+							QUuid partnerDeviceId,
 							const QString &name,
 							const QByteArray &signScheme,
 							const QByteArray &signKey,
 							const QByteArray &cryptScheme,
 							const QByteArray &cryptKey,
 							const QByteArray &fingerprint);
-	QtDataSync::AsymmetricCryptoInfo *loadCrypto(const QUuid &deviceId,
+	QtDataSync::AsymmetricCryptoInfo *loadCrypto(QUuid deviceId,
 												 CryptoPP::RandomNumberGenerator &rng,
 												 QObject *parent = nullptr);
-	void updateLogin(const QUuid &deviceId, const QString &name);
-	bool updateCmac(const QUuid &deviceId, quint32 keyIndex, const QByteArray &cmac);
-	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(const QUuid &deviceId); // (deviceid, name, fingerprint)
-	void removeDevice(const QUuid &deviceId, const QUuid &deleteId);
+	void updateLogin(QUuid deviceId, const QString &name);
+	bool updateCmac(QUuid deviceId, quint32 keyIndex, const QByteArray &cmac);
+	QList<std::tuple<QUuid, QString, QByteArray>> listDevices(QUuid deviceId); // (deviceid, name, fingerprint)
+	void removeDevice(QUuid deviceId, QUuid deleteId);
 
-	bool addChange(const QUuid &deviceId,
+	bool addChange(QUuid deviceId,
 				   const QByteArray &dataId,
 				   const quint32 keyIndex,
 				   const QByteArray &salt,
 				   const QByteArray &data);
-	bool addDeviceChange(const QUuid &deviceId,
-						 const QUuid &targetId,
+	bool addDeviceChange(QUuid deviceId,
+						 QUuid targetId,
 						 const QByteArray &dataId,
 						 const quint32 keyIndex,
 						 const QByteArray &salt,
 						 const QByteArray &data);
 
-	quint32 changeCount(const QUuid &deviceId);
-	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(const QUuid &deviceId, quint32 count, quint32 skip); // (dataid, keyindex, salt, data)
-	void completeChange(const QUuid &deviceId, quint64 dataIndex);
+	quint32 changeCount(QUuid deviceId);
+	QList<std::tuple<quint64, quint32, QByteArray, QByteArray>> loadNextChanges(QUuid deviceId, quint32 count, quint32 skip); // (dataid, keyindex, salt, data)
+	void completeChange(QUuid deviceId, quint64 dataIndex);
 
-	QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> tryKeyChange(const QUuid &deviceId, quint32 proposedIndex, int &offset); //(deviceid, scheme, key, cmac)
-	bool updateExchangeKey(const QUuid &deviceId,
+	QList<std::tuple<QUuid, QByteArray, QByteArray, QByteArray>> tryKeyChange(QUuid deviceId, quint32 proposedIndex, int &offset); //(deviceid, scheme, key, cmac)
+	bool updateExchangeKey(QUuid deviceId,
 						   quint32 keyIndex,
 						   const QByteArray &scheme, const QByteArray &cmac,
 						   const QList<std::tuple<QUuid, QByteArray, QByteArray>> &deviceKeys);// (deviceId, key, cmac)
-	std::tuple<quint32, QByteArray, QByteArray, QByteArray> loadKeyChanges(const QUuid &deviceId);// (keyIndex, scheme, key, cmac)
+	std::tuple<quint32, QByteArray, QByteArray, QByteArray> loadKeyChanges(QUuid deviceId);// (keyIndex, scheme, key, cmac)
 
 Q_SIGNALS:
-	void notifyChanged(const QUuid &deviceId);
+	void notifyChanged(QUuid deviceId);
 
 	void databaseInitDone(bool success);
 

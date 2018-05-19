@@ -36,7 +36,7 @@ public:
 public Q_SLOTS:
 	void setSetupName(QString setupName);
 	void setDataStore(QQmlDataStore* dataStore);
-	void setTypeName(QString typeName);
+	void setTypeName(const QString &typeName);
 
 Q_SIGNALS:
 	void setupNameChanged(QString setupName);

@@ -55,13 +55,13 @@ public Q_SLOTS:
 	void notifyChanged();
 	void proofResult(bool success, const QtDataSync::AcceptMessage &message = {}); //empty key equals denied
 	void sendProof(const QtDataSync::ProofMessage &message);
-	void acceptDone(const QUuid &deviceId);
+	void acceptDone(QUuid deviceId);
 
 Q_SIGNALS:
-	void connected(const QUuid &deviceId);
-	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
-	void proofDone(const QUuid &partner, bool success, const QtDataSync::AcceptMessage& message = {});
-	void forceDisconnect(const QUuid &partner);
+	void connected(QUuid deviceId);
+	void proofRequested(QUuid partner, const QtDataSync::ProofMessage &message);
+	void proofDone(QUuid partner, bool success, const QtDataSync::AcceptMessage& message = {});
+	void forceDisconnect(QUuid partner);
 
 private Q_SLOTS:
 	void binaryMessageReceived(const QByteArray &message);

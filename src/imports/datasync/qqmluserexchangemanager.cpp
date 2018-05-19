@@ -48,24 +48,24 @@ bool QQmlUserExchangeManager::valid() const
 	return _manager && _manager->valid();
 }
 
-void QQmlUserExchangeManager::importFrom(const UserInfo &userInfo, QJSValue completedFn, bool keepData)
+void QQmlUserExchangeManager::importFrom(const UserInfo &userInfo, const QJSValue &completedFn, bool keepData)
 {
 	if(!completedFn.isCallable())
 		qmlWarning(this) << "importFrom must be called with a function as second parameter";
 	else {
-		UserExchangeManager::importFrom(userInfo, [completedFn](bool ok, QString error) {
+		UserExchangeManager::importFrom(userInfo, [completedFn](bool ok, const QString &error) {
 			auto fnCopy = completedFn;
 			fnCopy.call({ ok, error });
 		}, keepData);
 	}
 }
 
-void QQmlUserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QString &password, QJSValue completedFn, bool keepData)
+void QQmlUserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QString &password, const QJSValue &completedFn, bool keepData)
 {
 	if(!completedFn.isCallable())
 		qmlWarning(this) << "importTrustedFrom must be called with a function as third parameter";
 	else {
-		UserExchangeManager::importTrustedFrom(userInfo, password, [completedFn](bool ok, QString error) {
+		UserExchangeManager::importTrustedFrom(userInfo, password, [completedFn](bool ok, const QString &error) {
 			auto fnCopy = completedFn;
 			fnCopy.call({ ok, error });
 		}, keepData);
@@ -82,7 +82,7 @@ void QQmlUserExchangeManager::setSetupName(QString setupName)
 	if (_setupName == setupName)
 		return;
 
-	_setupName = setupName;
+	_setupName = std::move(setupName);
 	emit setupNameChanged(_setupName);
 }
 

@@ -20,7 +20,7 @@ public:
 	void setPaused(bool paused);
 
 public Q_SLOTS:
-	void notifyChanged(const QUuid &deviceId);
+	void notifyChanged(QUuid deviceId);
 
 Q_SIGNALS:
 	void disconnectAll();
@@ -31,9 +31,9 @@ private Q_SLOTS:
 	void serverError();
 	void sslErrors(const QList<QSslError> &errors);
 
-	void clientConnected(const QUuid &deviceId);
-	void proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message);
-	void forceDisconnect(const QUuid &partner);
+	void clientConnected(QUuid deviceId);
+	void proofRequested(QUuid partner, const QtDataSync::ProofMessage &message);
+	void forceDisconnect(QUuid partner);
 
 private:
 	DatabaseController *database;

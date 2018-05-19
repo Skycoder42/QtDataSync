@@ -53,7 +53,7 @@ QVariant QQmlDataStore::load(const QString &typeName, const QString &key) const
 	return DataStore::load(QMetaType::type(typeName.toUtf8()), key);
 }
 
-void QQmlDataStore::save(const QString &typeName, QVariant value)
+void QQmlDataStore::save(const QString &typeName, const QVariant &value)
 {
 	DataStore::save(QMetaType::type(typeName.toUtf8()), value);
 }
@@ -70,7 +70,7 @@ QVariantList QQmlDataStore::search(const QString &typeName, const QString &query
 
 void QQmlDataStore::clear(const QString &typeName)
 {
-	return DataStore::clear(QMetaType::type(typeName.toUtf8()));
+	DataStore::clear(QMetaType::type(typeName.toUtf8()));
 }
 
 QString QQmlDataStore::typeName(int typeId) const
@@ -88,6 +88,6 @@ void QQmlDataStore::setSetupName(QString setupName)
 	if (_setupName == setupName)
 		return;
 
-	_setupName = setupName;
+	_setupName = std::move(setupName);
 	emit setupNameChanged(_setupName);
 }

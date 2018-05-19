@@ -119,7 +119,7 @@ void ClientConnector::setPaused(bool paused)
 		server->resumeAccepting();
 }
 
-void ClientConnector::notifyChanged(const QUuid &deviceId)
+void ClientConnector::notifyChanged(QUuid deviceId)
 {
 	auto client = clients.value(deviceId);
 	if(client)
@@ -159,13 +159,13 @@ void ClientConnector::serverError()
 
 void ClientConnector::sslErrors(const QList<QSslError> &errors)
 {
-	for(auto error : errors) {
+	for(const auto &error : errors) {
 		qWarning() << "SSL error:"
 				   << error.errorString();
 	}
 }
 
-void ClientConnector::clientConnected(const QUuid &deviceId)
+void ClientConnector::clientConnected(QUuid deviceId)
 {
 	auto client = qobject_cast<Client*>(sender());
 	if(!client)
@@ -180,7 +180,7 @@ void ClientConnector::clientConnected(const QUuid &deviceId)
 	});
 }
 
-void ClientConnector::proofRequested(const QUuid &partner, const QtDataSync::ProofMessage &message)
+void ClientConnector::proofRequested(QUuid partner, const QtDataSync::ProofMessage &message)
 {
 	auto client = qobject_cast<Client*>(sender());
 	if(!client)
@@ -192,27 +192,27 @@ void ClientConnector::proofRequested(const QUuid &partner, const QtDataSync::Pro
 	else {
 		auto devId = message.deviceId;
 		connect(pClient, &Client::proofDone,
-				client, [devId, pClient, client](const QUuid &partner, bool success, const QtDataSync::AcceptMessage &message) {
-			if(devId == partner) {
+				client, [devId, pClient, client](QUuid cPartner, bool success, const QtDataSync::AcceptMessage &cMessage) {
+			if(devId == cPartner) {
 				if(pClient) {
 					// remove this connections
 					pClient->disconnect(client);
 					// once client was added, notify pClient so he can ack the accept
 					connect(client, &Client::connected,
-							pClient, [pClient](const QUuid &accPartner) {
+							pClient, [pClient](QUuid accPartner) {
 						pClient->acceptDone(accPartner);
 						//no disconnect needed, single time emit
 					}, Qt::QueuedConnection);
 				}
 				// pass message on to client
-				client->proofResult(success, message);
+				client->proofResult(success, cMessage);
 			}
 		}, Qt::QueuedConnection);
 		pClient->sendProof(message);
 	}
 }
 
-void ClientConnector::forceDisconnect(const QUuid &partner)
+void ClientConnector::forceDisconnect(QUuid partner)
 {
 	auto client = clients.value(partner);
 	if(client)

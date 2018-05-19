@@ -31,7 +31,7 @@ public:
 	Q_INVOKABLE QStringList keys(const QString &typeName) const;
 	Q_INVOKABLE QVariantList loadAll(const QString &typeName) const;
 	Q_INVOKABLE QVariant load(const QString &typeName, const QString &key) const;
-	Q_INVOKABLE void save(const QString &typeName, QVariant value);
+	Q_INVOKABLE void save(const QString &typeName, const QVariant &value);
 	Q_INVOKABLE bool remove(const QString &typeName, const QString &key);
 	Q_INVOKABLE QVariantList search(const QString &typeName, const QString &query, DataStore::SearchMode mode = DataStore::RegexpMode) const;
 	Q_INVOKABLE void clear(const QString &typeName);

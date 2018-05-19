@@ -45,7 +45,7 @@ bool QQmlSyncManager::valid() const
 	return _valid;
 }
 
-void QQmlSyncManager::runOnDownloaded(QJSValue resultFn, bool triggerSync)
+void QQmlSyncManager::runOnDownloaded(const QJSValue &resultFn, bool triggerSync)
 {
 	if(!resultFn.isCallable())
 		qmlWarning(this) << "runOnDownloaded must be called with a function as first parameter";
@@ -57,7 +57,7 @@ void QQmlSyncManager::runOnDownloaded(QJSValue resultFn, bool triggerSync)
 	}
 }
 
-void QQmlSyncManager::runOnSynchronized(QJSValue resultFn, bool triggerSync)
+void QQmlSyncManager::runOnSynchronized(const QJSValue &resultFn, bool triggerSync)
 {
 	if(!resultFn.isCallable())
 		qmlWarning(this) << "runOnSynchronized must be called with a function as first parameter";
@@ -79,7 +79,7 @@ void QQmlSyncManager::setSetupName(QString setupName)
 	if (_setupName == setupName)
 		return;
 
-	_setupName = setupName;
+	_setupName = std::move(setupName);
 	emit setupNameChanged(_setupName);
 }
 

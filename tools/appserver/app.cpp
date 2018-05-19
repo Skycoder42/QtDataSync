@@ -121,7 +121,7 @@ bool App::start(const QString &serviceName)
 	_mainPool->setMaxThreadCount(_config->value(QStringLiteral("threads/count"),
 											  QThread::idealThreadCount()).toInt());
 	auto timeoutMin = _config->value(QStringLiteral("threads/expire"), 10).toInt(); //in minutes
-	_mainPool->setExpiryTimeout(duration_cast<milliseconds>(minutes(timeoutMin)).count());
+	_mainPool->setExpiryTimeout(static_cast<int>(duration_cast<milliseconds>(minutes(timeoutMin)).count()));
 	qDebug() << "Running with max" << _mainPool->maxThreadCount()
 			 << "threads and an expiry timeout of" << timeoutMin
 			 << "minutes";
@@ -172,6 +172,7 @@ void App::processCommand(int code)
 	switch (code) {
 	case CleanupCode:
 		_database->cleanupDevices();
+		break;
 	default:
 		break;
 	}
@@ -236,9 +237,9 @@ QString App::findConfig() const
 
 	tmpPaths.removeDuplicates();
 	configNames.removeDuplicates();
-	for(auto path : tmpPaths) {
+	for(const auto &path : qAsConst(tmpPaths)) {
 		QDir dir(path);
-		for(auto config : configNames) {
+		for(const auto &config : qAsConst(configNames)) {
 			if(dir.exists(config))
 				return dir.absoluteFilePath(config);
 		}

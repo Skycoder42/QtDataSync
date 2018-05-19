@@ -38,7 +38,7 @@ using std::tie;
 class MessageException : public QException
 {
 public:
-	explicit MessageException(const QByteArray &message);
+	explicit MessageException(QByteArray message);
 
 	const char *what() const noexcept override;
 	void raise() const override;
@@ -186,7 +186,7 @@ void Client::sendProof(const ProofMessage &message)
 	});
 }
 
-void Client::acceptDone(const QUuid &deviceId)
+void Client::acceptDone(QUuid deviceId)
 {
 	run([this, deviceId]() {
 		if(_state != Idle)
@@ -258,8 +258,7 @@ void Client::binaryMessageReceived(const QByteArray &message)
 			sendError({
 						  ErrorMessage::IncompatibleVersionError,
 						  QStringLiteral("Version %1 is not compatible to server version %2")
-						  .arg(e.invalidVersion().toString())
-						  .arg(InitMessage::CurrentVersion.toString())
+						  .arg(e.invalidVersion().toString(), InitMessage::CurrentVersion.toString())
 					  });
 		}
 	});
@@ -276,7 +275,7 @@ void Client::error()
 
 void Client::sslErrors(const QList<QSslError> &errors)
 {
-	for(auto error : errors) {
+	for(const auto &error : errors) {
 		qWarning() << "SSL error:"
 				   << error.errorString();
 	}
@@ -524,7 +523,7 @@ void Client::onListDevices(const ListDevicesMessage &message)
 	checkIdle(message);
 
 	DevicesMessage devMessage;
-	for(auto device : _database->listDevices(_deviceId))
+	for(const auto &device : _database->listDevices(_deviceId))
 		devMessage.devices.append(device);
 
 	sendMessage(devMessage);
@@ -628,13 +627,13 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 {
 	auto updateChange = forceUpdate;
 
-	auto cnt = _downLimit - _activeDownloads.size();
+	auto cnt = _downLimit - static_cast<quint32>(_activeDownloads.size());
 	if(cnt >= _downThreshold) {
-		auto changes = _database->loadNextChanges(_deviceId, cnt, _activeDownloads.size());
+		auto changes = _database->loadNextChanges(_deviceId, cnt, static_cast<quint32>(_activeDownloads.size()));
 		for(auto change : changes) {
 			if(_cachedChanges == 0) {
 				updateChange = true;
-				_cachedChanges = _database->changeCount(_deviceId) - _activeDownloads.size();
+				_cachedChanges = _database->changeCount(_deviceId) - static_cast<quint32>(_activeDownloads.size());
 			}
 
 			if(updateChange) {
@@ -660,8 +659,8 @@ void Client::triggerDownload(bool forceUpdate, bool skipNoChanges)
 
 // ------------- Exceptions Implementation -------------
 
-MessageException::MessageException(const QByteArray &message) :
-	_msg(message)
+MessageException::MessageException(QByteArray message) :
+	_msg(std::move(message))
 {}
 
 const char *MessageException::what() const noexcept

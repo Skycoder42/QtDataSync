@@ -51,7 +51,7 @@ bool QQmlAccountManager::isTrustedImport(const QJsonObject &importData) const
 	return AccountManager::isTrustedImport(importData);
 }
 
-void QQmlAccountManager::exportAccount(bool includeServer, QJSValue completedFn, QJSValue errorFn)
+void QQmlAccountManager::exportAccount(bool includeServer, const QJSValue &completedFn, const QJSValue &errorFn)
 {
 	if(!completedFn.isCallable())
 		qmlWarning(this) << "exportAccount must be called with a function as second parameter";
@@ -60,12 +60,12 @@ void QQmlAccountManager::exportAccount(bool includeServer, QJSValue completedFn,
 	else {
 		function<void(QString)> errFn;
 		if(errorFn.isCallable()) {
-			errFn = [errorFn](QString error) {
+			errFn = [errorFn](const QString &error) {
 				auto fnCopy = errorFn;
 				fnCopy.call({ error });
 			};
 		}
-		AccountManager::exportAccount(includeServer, [this, completedFn](QJsonObject obj) {
+		AccountManager::exportAccount(includeServer, [this, completedFn](const QJsonObject &obj) {
 			auto fnCopy = completedFn;
 			auto context = QQmlEngine::contextForObject(this);
 			if(context)
@@ -74,7 +74,7 @@ void QQmlAccountManager::exportAccount(bool includeServer, QJSValue completedFn,
 	}
 }
 
-void QQmlAccountManager::exportAccountTrusted(bool includeServer, const QString &password, QJSValue completedFn, QJSValue errorFn)
+void QQmlAccountManager::exportAccountTrusted(bool includeServer, const QString &password, const QJSValue &completedFn, const QJSValue &errorFn)
 {
 	if(!completedFn.isCallable())
 		qmlWarning(this) << "exportAccountTrusted must be called with a function as third parameter";
@@ -83,12 +83,12 @@ void QQmlAccountManager::exportAccountTrusted(bool includeServer, const QString 
 	else {
 		function<void(QString)> errFn;
 		if(errorFn.isCallable()) {
-			errFn = [errorFn](QString error) {
+			errFn = [errorFn](const QString &error) {
 				auto fnCopy = errorFn;
 				fnCopy.call({ error });
 			};
 		}
-		AccountManager::exportAccountTrusted(includeServer, password, [this, completedFn](QJsonObject obj) {
+		AccountManager::exportAccountTrusted(includeServer, password, [this, completedFn](const QJsonObject &obj) {
 			auto fnCopy = completedFn;
 			auto context = QQmlEngine::contextForObject(this);
 			if(context)
@@ -97,24 +97,24 @@ void QQmlAccountManager::exportAccountTrusted(bool includeServer, const QString 
 	}
 }
 
-void QQmlAccountManager::importAccount(const QJsonObject &importData, QJSValue completedFn, bool keepData)
+void QQmlAccountManager::importAccount(const QJsonObject &importData, const QJSValue &completedFn, bool keepData)
 {
 	if(!completedFn.isCallable())
 		qmlWarning(this) << "importAccount must be called with a function as second parameter";
 	else {
-		AccountManager::importAccount(importData, [completedFn](bool ok, QString error) {
+		AccountManager::importAccount(importData, [completedFn](bool ok, const QString &error) {
 			auto fnCopy = completedFn;
 			fnCopy.call({ ok, error });
 		}, keepData);
 	}
 }
 
-void QQmlAccountManager::importAccountTrusted(const QJsonObject &importData, const QString &password, QJSValue completedFn, bool keepData)
+void QQmlAccountManager::importAccountTrusted(const QJsonObject &importData, const QString &password, const QJSValue &completedFn, bool keepData)
 {
 	if(!completedFn.isCallable())
 		qmlWarning(this) << "importAccountTrusted must be called with a function as third parameter";
 	else {
-		AccountManager::importAccountTrusted(importData, password, [completedFn](bool ok, QString error) {
+		AccountManager::importAccountTrusted(importData, password, [completedFn](bool ok, const QString &error) {
 			auto fnCopy = completedFn;
 			fnCopy.call({ ok, error });
 		}, keepData);
@@ -131,7 +131,7 @@ void QQmlAccountManager::setSetupName(QString setupName)
 	if (_setupName == setupName)
 		return;
 
-	_setupName = setupName;
+	_setupName = std::move(setupName);
 	emit setupNameChanged(_setupName);
 }
 

@@ -689,7 +689,6 @@ void TestLocalStore::testPassiveSetup()
 		data.insert(QStringLiteral("baum"), 42);
 		second.save(key, data);
 		QCOMPARE(second.load(key), data);
-		QVERIFY(store->load(key) != data);//must be different, because change did not reach it yet (no atomicity for passive setups!)
 
 		QVERIFY(store2Spy.wait());
 		QCOMPARE(store2Spy.size(), 1);

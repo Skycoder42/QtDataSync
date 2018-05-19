@@ -30,8 +30,8 @@ public:
 	QRemoteObjectNode* node() const;
 	bool valid() const;
 
-	Q_INVOKABLE void runOnDownloaded(QJSValue resultFn, bool triggerSync = true);
-	Q_INVOKABLE void runOnSynchronized(QJSValue resultFn, bool triggerSync = true);
+	Q_INVOKABLE void runOnDownloaded(const QJSValue &resultFn, bool triggerSync = true);
+	Q_INVOKABLE void runOnSynchronized(const QJSValue &resultFn, bool triggerSync = true);
 
 public Q_SLOTS:
 	void setSetupName(QString setupName);
