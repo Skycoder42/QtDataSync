@@ -32,9 +32,9 @@ const QMetaObject *RegisterBaseMessage::getMetaObject() const
 
 RegisterMessage::RegisterMessage() = default;
 
-RegisterMessage::RegisterMessage(const QString &deviceName, const QByteArray &nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto, QByteArray cmac) :
-	RegisterBaseMessage(deviceName,
-						nonce,
+RegisterMessage::RegisterMessage(QString deviceName, QByteArray nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto, QByteArray cmac) :
+	RegisterBaseMessage(std::move(deviceName),
+						std::move(nonce),
 						signKey,
 						cryptKey,
 						crypto),

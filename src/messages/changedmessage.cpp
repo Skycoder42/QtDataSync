@@ -1,8 +1,6 @@
 #include "changedmessage_p.h"
 using namespace QtDataSync;
 
-ChangedMessage::ChangedMessage() = default;
-
 const QMetaObject *ChangedMessage::getMetaObject() const
 {
 	return &staticMetaObject;
@@ -21,8 +19,6 @@ const QMetaObject *ChangedInfoMessage::getMetaObject() const
 }
 
 
-
-LastChangedMessage::LastChangedMessage() = default;
 
 const QMetaObject *LastChangedMessage::getMetaObject() const
 {

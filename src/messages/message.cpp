@@ -33,7 +33,7 @@ void Message::registerTypes()
 	REGISTER_LIST(QtDataSync::NewKeyMessage::KeyUpdate);
 }
 
-Message::~Message() {}
+Message::~Message() = default;
 
 const QMetaObject *Message::metaObject() const
 {
@@ -205,16 +205,14 @@ QException *DataStreamException::clone() const
 
 
 
-Utf8String::Utf8String() :
-	QString()
-{}
+Utf8String::Utf8String() = default;
+
+Utf8String::Utf8String(const Utf8String &other) = default;
+
+Utf8String::Utf8String(Utf8String &&other) = default;
 
 Utf8String::Utf8String(const QByteArray &data) :
 	QString(QString::fromUtf8(data))
-{}
-
-Utf8String::Utf8String(QByteArray &&data) :
-	QString(QString::fromUtf8(std::move(data)))
 {}
 
 Utf8String::Utf8String(const QString &other) :
@@ -224,6 +222,28 @@ Utf8String::Utf8String(const QString &other) :
 Utf8String::Utf8String(QString &&other) :
 	QString(std::move(other))
 {}
+
+Utf8String &Utf8String::operator=(const Utf8String &other) = default;
+
+Utf8String &Utf8String::operator=(Utf8String &&other) = default;
+
+Utf8String &Utf8String::operator=(const QByteArray &other)
+{
+	(*this) = QString::fromUtf8(other);
+	return *this;
+}
+
+Utf8String &Utf8String::operator=(const QString &other)
+{
+	QString::operator=(other);
+	return *this;
+}
+
+Utf8String &Utf8String::operator=(QString &&other)
+{
+	swap(other);
+	return *this;
+}
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const Utf8String &message)
 {

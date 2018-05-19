@@ -14,7 +14,7 @@ bool WelcomeMessage::hasKeyUpdate() const
 	return !key.isEmpty();
 }
 
-QByteArray WelcomeMessage::signatureData(const QUuid &deviceId) const
+QByteArray WelcomeMessage::signatureData(QUuid deviceId) const
 {
 	// keyIndex, scheme, deviceId, key
 	return QByteArray::number(keyIndex) +

@@ -15,8 +15,6 @@ class Q_DATASYNC_EXPORT ChangedMessage : public Message
 	Q_PROPERTY(QByteArray data MEMBER data)
 
 public:
-	ChangedMessage();
-
 	quint64 dataIndex = 0;
 	quint32 keyIndex = 0;
 	QByteArray salt;
@@ -44,9 +42,6 @@ protected:
 class Q_DATASYNC_EXPORT LastChangedMessage : public Message
 {
 	Q_GADGET
-
-public:
-	LastChangedMessage();
 
 protected:
 	const QMetaObject *getMetaObject() const override;

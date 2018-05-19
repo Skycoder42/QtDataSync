@@ -14,9 +14,6 @@ class Q_DATASYNC_EXPORT ListDevicesMessage : public Message
 {
 	Q_GADGET
 
-public:
-	ListDevicesMessage();
-
 protected:
 	const QMetaObject *getMetaObject() const override;
 };
@@ -29,8 +26,6 @@ class Q_DATASYNC_EXPORT DevicesMessage : public Message
 
 public:
 	using DeviceInfo = std::tuple<QUuid, Utf8String, QByteArray>; // (deviceid, name, fingerprint)
-
-	DevicesMessage();
 
 	QList<DeviceInfo> devices;
 

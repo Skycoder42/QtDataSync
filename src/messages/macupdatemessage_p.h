@@ -26,9 +26,6 @@ class Q_DATASYNC_EXPORT MacUpdateAckMessage : public Message
 {
 	Q_GADGET
 
-public:
-	MacUpdateAckMessage();
-
 protected:
 	const QMetaObject *getMetaObject() const override;
 };

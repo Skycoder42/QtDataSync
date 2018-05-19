@@ -13,8 +13,6 @@ const QMetaObject *MacUpdateMessage::getMetaObject() const
 
 
 
-MacUpdateAckMessage::MacUpdateAckMessage() = default;
-
 const QMetaObject *MacUpdateAckMessage::getMetaObject() const
 {
 	return &staticMetaObject;

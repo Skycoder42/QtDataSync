@@ -40,7 +40,8 @@ IdentifyMessage IdentifyMessage::createRandom(quint32 uploadLimit, CryptoPP::Ran
 {
 	IdentifyMessage msg(uploadLimit);
 	msg.nonce.resize(NonceSize);
-	rng.GenerateBlock(reinterpret_cast<byte*>(msg.nonce.data()), msg.nonce.size());
+	rng.GenerateBlock(reinterpret_cast<byte*>(msg.nonce.data()),
+					  static_cast<size_t>(msg.nonce.size()));
 	return msg;
 }
 
@@ -54,8 +55,7 @@ const QMetaObject *IdentifyMessage::getMetaObject() const
 IncompatibleVersionException::IncompatibleVersionException(QVersionNumber invalidVersion) :
 	_version(std::move(invalidVersion)),
 	_msg(QStringLiteral("Incompatible protocol versions. Must be at least %1, but remote proposed with %2")
-		 .arg(InitMessage::CompatVersion.toString())
-		 .arg(_version.toString())
+		 .arg(InitMessage::CompatVersion.toString(), _version.toString())
 		 .toUtf8())
 {}
 

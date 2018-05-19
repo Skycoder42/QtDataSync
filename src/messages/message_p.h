@@ -40,10 +40,17 @@ class Q_DATASYNC_EXPORT Utf8String : public QString
 {
 public:
 	Utf8String();
+	Utf8String(const Utf8String &other);
+	Utf8String(Utf8String &&other);
 	Utf8String(const QByteArray &data);
-	Utf8String(QByteArray &&data);
 	Utf8String(const QString &other);
 	Utf8String(QString &&other);
+
+	Utf8String &operator=(const Utf8String &other);
+	Utf8String &operator=(Utf8String &&other);
+	Utf8String &operator=(const QByteArray &other);
+	Utf8String &operator=(const QString &other);
+	Utf8String &operator=(QString &&other);
 };
 
 Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const Utf8String &message);

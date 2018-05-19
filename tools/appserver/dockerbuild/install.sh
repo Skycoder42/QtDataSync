@@ -13,7 +13,7 @@ apt-get -qq install software-properties-common
 add-apt-repository -y ppa:skycoder42/qt-modules
 apt-get -qq update
 apt-get -qq install --no-install-recommends $TOOL_DEPS $BUILD_DEPS
-curl -O https://www.qpm.io/download/v0.10.0/linux_386/qpm
+curl -O https://www.qpm.io/download/v0.11.0/linux_386/qpm
 install -m 755 ./qpm /usr/local/bin/
 
 # build messages

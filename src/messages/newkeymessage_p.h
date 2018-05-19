@@ -18,8 +18,6 @@ class Q_DATASYNC_EXPORT NewKeyMessage : public MacUpdateMessage
 public:
 	using KeyUpdate = std::tuple<QUuid, QByteArray, QByteArray>; //(deviceId, key, cmac)
 
-	NewKeyMessage();
-
 	QByteArray scheme;
 	QList<KeyUpdate> deviceKeys;
 

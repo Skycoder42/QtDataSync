@@ -27,7 +27,7 @@ public:
 	QByteArray cmac;
 
 	bool hasKeyUpdate() const;
-	QByteArray signatureData(const QUuid &deviceId) const;
+	QByteArray signatureData(QUuid deviceId) const;
 
 protected:
 	const QMetaObject *getMetaObject() const override;

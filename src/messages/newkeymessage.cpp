@@ -2,8 +2,6 @@
 using namespace QtDataSync;
 using std::get;
 
-NewKeyMessage::NewKeyMessage() = default;
-
 QByteArray NewKeyMessage::signatureData(const NewKeyMessage::KeyUpdate &deviceInfo) const
 {
 	// keyIndex, scheme, deviceId, key

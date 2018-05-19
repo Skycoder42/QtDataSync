@@ -200,7 +200,7 @@ QByteArray AsymmetricCryptoInfo::ownFingerprint() const
 
 void AsymmetricCryptoInfo::verify(const QByteArray &message, const QByteArray &signature) const
 {
-	return AsymmetricCrypto::verify(_signKey, message, signature);
+	AsymmetricCrypto::verify(_signKey, message, signature);
 }
 
 QByteArray AsymmetricCryptoInfo::encrypt(RandomNumberGenerator &rng, const QByteArray &message) const

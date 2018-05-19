@@ -9,9 +9,6 @@ class Q_DATASYNC_EXPORT SyncMessage : public Message
 {
 	Q_GADGET
 
-public:
-	SyncMessage();
-
 protected:
 	const QMetaObject *getMetaObject() const override;
 };
