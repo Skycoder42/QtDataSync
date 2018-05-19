@@ -10,7 +10,7 @@ namespace QtDataSync {
 class LoggerPrivate
 {
 public:
-	LoggerPrivate(const QString &setupName, const QByteArray &subCategory);
+	LoggerPrivate(QString setupName, const QByteArray &subCategory);
 
 	QString setupName;
 	QByteArray catName;

@@ -211,7 +211,7 @@ void RemoteConnector::listDevices()
 	sendMessage(ListDevicesMessage());
 }
 
-void RemoteConnector::removeDevice(const QUuid &deviceId)
+void RemoteConnector::removeDevice(QUuid deviceId)
 {
 	if(!isIdle()){
 		logInfo() << "Cannot remove a device when not in idle state. Ignoring request";
@@ -282,7 +282,7 @@ void RemoteConnector::prepareImport(const ExportData &data, const CryptoPP::SecB
 	logDebug() << "Imported account data and prepared it for next reconnect";
 }
 
-void RemoteConnector::loginReply(const QUuid &deviceId, bool accept)
+void RemoteConnector::loginReply(QUuid deviceId, bool accept)
 {
 	if(!isIdle()) {
 		logWarning() << "Can't react to login when not in idle state. Ignoring request";
@@ -343,7 +343,7 @@ void RemoteConnector::uploadData(const QByteArray &key, const QByteArray &change
 	}
 }
 
-void RemoteConnector::uploadDeviceData(const QByteArray &key, const QUuid &deviceId, const QByteArray &changeData)
+void RemoteConnector::uploadDeviceData(const QByteArray &key, QUuid deviceId, const QByteArray &changeData)
 {
 	if(!isIdle()) {
 		logWarning() << "Can't upload when not in idle state. Ignoring request";
@@ -526,7 +526,7 @@ void RemoteConnector::error(QAbstractSocket::SocketError error)
 void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 {
 	auto shouldClose = true;
-	for(auto error : errors) {
+	for(const auto &error : errors) {
 		if(error.error() == QSslError::SelfSignedCertificate ||
 		   error.error() == QSslError::SelfSignedCertificateInChain)
 			shouldClose = shouldClose &&

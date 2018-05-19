@@ -21,9 +21,9 @@ using std::make_tuple;
 #define QTDATASYNC_LOG _logger
 #define SCOPE_ASSERT() Q_ASSERT_X(scope.d->database.isValid(), Q_FUNC_INFO, "Cannot use SyncScope after committing it")
 
-LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
+LocalStore::LocalStore(Defaults defaults, QObject *parent) :
 	QObject(parent),
-	_defaults(defaults),
+	_defaults(std::move(defaults)),
 	_logger(_defaults.createLogger("store", this)),
 	_emitter(_defaults.createEmitter(this)),
 	_database(_defaults.aquireDatabase(this))
@@ -72,7 +72,7 @@ LocalStore::LocalStore(const Defaults &defaults, QObject *parent) :
 	}
 }
 
-LocalStore::~LocalStore() {}
+LocalStore::~LocalStore() = default;
 
 QJsonObject LocalStore::readJson(const ObjectKey &key, const QString &fileName, int *costs) const
 {
@@ -82,7 +82,7 @@ QJsonObject LocalStore::readJson(const ObjectKey &key, const QString &fileName, 
 
 	auto doc = QJsonDocument::fromBinaryData(file.readAll());
 	if(costs)
-		*costs = file.size();
+		*costs = static_cast<int>(file.size());
 	file.close();
 
 	if(!doc.isObject())
@@ -512,7 +512,7 @@ void LocalStore::markUnchanged(const ObjectKey &key, quint64 version, bool isDel
 	markUnchangedImpl(_database, key, version, isDelete);
 }
 
-void LocalStore::removeDeviceChange(const ObjectKey &key, const QUuid &deviceId)
+void LocalStore::removeDeviceChange(const ObjectKey &key, QUuid deviceId)
 {
 	QSqlQuery rmDeviceQuery(_database);
 	rmDeviceQuery.prepare(QStringLiteral("DELETE FROM DeviceUploads WHERE Type = ? AND Id = ? AND Device = ?"));
@@ -669,7 +669,7 @@ void LocalStore::commitSync(SyncScope &scope) const
 	scope.d->database = DatabaseRef(); //clear the ref, so it won't rollback
 }
 
-void LocalStore::prepareAccountAdded(const QUuid &deviceId)
+void LocalStore::prepareAccountAdded(QUuid deviceId)
 {
 	try {
 		QSqlQuery insertQuery(_database);
@@ -750,9 +750,9 @@ function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const Objec
 			return static_cast<QSaveFile*>(d)->commit();
 		};
 	} else {
-		auto fileName = QStringLiteral("%1XXXXXX")
-						.arg(QString::fromUtf8(QUuid::createUuid().toRfc4122().toHex()));
-		auto file = new QTemporaryFile(filePath(tableDir, fileName));
+		auto newFileName = QStringLiteral("%1XXXXXX")
+						   .arg(QString::fromUtf8(QUuid::createUuid().toRfc4122().toHex()));
+		auto file = new QTemporaryFile(filePath(tableDir, newFileName));
 		device.reset(file);
 		if(!file->open())
 			throw LocalStoreException(_defaults, key, file->fileName(), file->errorString());
@@ -801,7 +801,7 @@ function<void()> LocalStore::storeChangedImpl(const DatabaseRef &db, const Objec
 		throw LocalStoreException(_defaults, key, device->fileName(), device->errorString());
 
 	//update cache
-	_emitter->putCached(key, data, info.size());
+	_emitter->putCached(key, data, static_cast<int>(info.size()));
 
 	return [this, key, changed]() {
 		//trigger change signals
@@ -850,8 +850,8 @@ LocalStore::SyncScope::~SyncScope()
 
 
 
-LocalStore::SyncScope::Private::Private(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
-	key(key),
+LocalStore::SyncScope::Private::Private(const Defaults &defaults, ObjectKey key, LocalStore *owner) :
+	key(std::move(key)),
 	database(defaults.aquireDatabase(owner)),
 	afterCommit()
 {}

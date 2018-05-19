@@ -6,7 +6,7 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT KeyStorePrivate
 {
 public:
-	explicit KeyStorePrivate(const Defaults &defaults);
+	explicit KeyStorePrivate(Defaults defaults);
 	Defaults defaults;
 };
 }
@@ -16,7 +16,7 @@ KeyStore::KeyStore(const Defaults &defaults, QObject *parent) :
 	d(new KeyStorePrivate(defaults))
 {}
 
-KeyStore::~KeyStore() {}
+KeyStore::~KeyStore() = default;
 
 Defaults KeyStore::defaults() const
 {
@@ -25,8 +25,8 @@ Defaults KeyStore::defaults() const
 
 
 
-KeyStorePrivate::KeyStorePrivate(const Defaults &defaults) :
-	defaults(defaults)
+KeyStorePrivate::KeyStorePrivate(Defaults defaults) :
+	defaults(std::move(defaults))
 {}
 
 

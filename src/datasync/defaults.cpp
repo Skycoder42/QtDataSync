@@ -145,7 +145,7 @@ DatabaseRef::DatabaseRef() :
 	d(nullptr)
 {}
 
-DatabaseRef::~DatabaseRef() {}
+DatabaseRef::~DatabaseRef() = default;
 
 DatabaseRef::DatabaseRef(DatabaseRefPrivate *d) :
 	d(d)
@@ -246,7 +246,7 @@ void DefaultsPrivate::clearDefaults()
 	for(auto it = setupDefaults.constBegin(); it != setupDefaults.constEnd(); it++)
 		weakRefs.append({it.key(), it.value().toWeakRef()});
 	setupDefaults.clear();
-	for(auto ref : weakRefs) {
+	for(const auto &ref : qAsConst(weakRefs)) {
 #undef QTDATASYNC_LOG
 #define QTDATASYNC_LOG ref.second.toStrongRef()->logger
 		if(ref.second)
@@ -269,14 +269,14 @@ QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &s
 		throw SetupDoesNotExistException(setupName);
 }
 
-DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
-	setupName(setupName),
-	storageDir(storageDir),
-	logger(new Logger("defaults", setupName, this)),
-	roAddress(roAddress),
+DefaultsPrivate::DefaultsPrivate(QString setupName, QDir storageDir, QUrl roAddress, QHash<Defaults::PropertyKey, QVariant> properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
+	setupName(std::move(setupName)),
+	storageDir(std::move(storageDir)),
+	logger(new Logger("defaults", this->setupName, this)),
+	roAddress(std::move(roAddress)),
 	serializer(serializer),
 	resolver(resolver),
-	properties(properties),
+	properties(std::move(properties)),
 	roMutex(),
 	roNodes(),
 	cacheInfo(nullptr),
@@ -307,7 +307,7 @@ DefaultsPrivate::DefaultsPrivate(const QString &setupName, const QDir &storageDi
 DefaultsPrivate::~DefaultsPrivate()
 {
 	QMutexLocker _(&roMutex);
-	for(auto node : roNodes)
+	for(const auto &node : qAsConst(roNodes))
 		node->deleteLater();
 	roNodes.clear();
 }
@@ -315,8 +315,7 @@ DefaultsPrivate::~DefaultsPrivate()
 QSqlDatabase DefaultsPrivate::acquireDatabase()
 {
 	auto name = DefaultsPrivate::DatabaseName
-				.arg(setupName)
-				.arg(QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
+				.arg(setupName, QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
 	if((dbRefHash.localData()[setupName])++ == 0) {
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
@@ -362,8 +361,7 @@ void DefaultsPrivate::releaseDatabase()
 {
 	if(--(dbRefHash.localData()[setupName]) == 0) {
 		auto name = DefaultsPrivate::DatabaseName
-					.arg(setupName)
-					.arg(QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
+					.arg(setupName, QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
 		QSqlDatabase::database(name).close();
 		QSqlDatabase::removeDatabase(name);
 	}
@@ -417,7 +415,7 @@ void DefaultsPrivate::makePassive()
 // ------------- PRIVATE IMPLEMENTATION DatabaseRef -------------
 
 DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object) :
-	_defaultsPrivate(defaultsPrivate),
+	_defaultsPrivate(std::move(defaultsPrivate)),
 	_object(object),
 	_database()
 {

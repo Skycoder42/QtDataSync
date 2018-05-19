@@ -36,11 +36,11 @@ void DataStore::initStore(const QString &setupName)
 			this, PSIG(&DataStore::dataResetted));
 }
 
-DataStore::~DataStore() {}
+DataStore::~DataStore() = default;
 
-qint64 DataStore::count(int metaTypeId) const
+qint64 DataStore::count(int metaTypeId) const //MAJOR change to uint
 {
-	return d->store->count(d->typeName(metaTypeId));
+	return static_cast<qint64>(d->store->count(d->typeName(metaTypeId)));
 }
 
 QStringList DataStore::keys(int metaTypeId) const
@@ -50,8 +50,10 @@ QStringList DataStore::keys(int metaTypeId) const
 
 QVariantList DataStore::loadAll(int metaTypeId) const
 {
+	const auto allData = d->store->loadAll(d->typeName(metaTypeId));
 	QVariantList resList;
-	for(auto val : d->store->loadAll(d->typeName(metaTypeId)))
+	resList.reserve(allData.size());
+	for(const auto &val : allData)
 		resList.append(d->serializer->deserialize(val, metaTypeId));
 	return resList;
 }
@@ -134,15 +136,17 @@ void DataStore::update(int metaTypeId, QObject *object) const
 
 QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode mode) const
 {
+	const auto dataList= d->store->find(d->typeName(metaTypeId), query, mode);
 	QVariantList resList;
-	for(auto val : d->store->find(d->typeName(metaTypeId), query, mode))
+	resList.reserve(dataList.size());
+	for(const auto &val : dataList)
 		resList.append(d->serializer->deserialize(val, metaTypeId));
 	return resList;
 }
 
 void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
 {
-	for(auto key : keys(metaTypeId)) {
+	for(const auto &key : keys(metaTypeId)) {
 		if(!iterator(load(metaTypeId, key)))
 			break;
 	}
@@ -215,8 +219,7 @@ QString LocalStoreException::qWhat() const
 	QString msg = Exception::qWhat() +
 				  QStringLiteral("\n\tContext: %1"
 								 "\n\tTypeName: %2")
-				  .arg(_context)
-				  .arg(QString::fromUtf8(_key.typeName));
+				  .arg(_context, QString::fromUtf8(_key.typeName));
 	if(!_key.id.isNull())
 		msg += QStringLiteral("\n\tKey: %1").arg(_key.id);
 	return msg;
@@ -259,8 +262,7 @@ QString NoDataException::qWhat() const
 	return Exception::qWhat() +
 			QStringLiteral("\n\tTypeName: %1"
 						   "\n\tKey: %2")
-			.arg(QString::fromUtf8(_key.typeName))
-			.arg(_key.id);
+			.arg(QString::fromUtf8(_key.typeName), _key.id);
 }
 
 void NoDataException::raise() const

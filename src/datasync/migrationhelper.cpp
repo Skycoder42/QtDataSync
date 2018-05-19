@@ -27,7 +27,7 @@ MigrationHelper::MigrationHelper(const QString &setupName, QObject *parent) :
 	d(new MigrationHelperPrivate(setupName))
 {}
 
-MigrationHelper::~MigrationHelper() {}
+MigrationHelper::~MigrationHelper() = default;
 
 void MigrationHelper::startMigration(const QString &storageDir, MigrationFlags flags)
 {
@@ -47,10 +47,10 @@ MigrationHelperPrivate::MigrationHelperPrivate(const QString &setupName) :
 
 
 
-MigrationRunnable::MigrationRunnable(const Defaults &defaults, MigrationHelper *helper, const QString &oldDir, MigrationHelper::MigrationFlags flags) :
-	_defaults(defaults),
+MigrationRunnable::MigrationRunnable(Defaults defaults, MigrationHelper *helper, QString oldDir, MigrationHelper::MigrationFlags flags) :
+	_defaults(std::move(defaults)),
 	_helper(helper),
-	_oldDir(oldDir),
+	_oldDir(std::move(oldDir)),
 	_flags(flags),
 	_logger(nullptr),
 	_progress(0)
@@ -178,7 +178,7 @@ void MigrationRunnable::run()
 		//special: copy headers
 		oldSettings->beginGroup(QStringLiteral("RemoteConnector/headers"));
 		currentSettings->beginGroup(QStringLiteral("connector/") + RemoteConnector::keyRemoteHeaders);
-		for(auto key : oldSettings->childKeys()) {
+		for(const auto &key : oldSettings->childKeys()) {
 			copyConf(oldSettings, key,
 					 currentSettings, key);
 		}
@@ -265,18 +265,18 @@ void MigrationRunnable::run()
 					}
 
 					//store in the store...
-					auto scope = store.startSync(key);
+					auto syncScope = store.startSync(key);
 					LocalStore::ChangeType type;
 					quint64 version;
 					QString fileName;
-					tie(type, version, fileName, std::ignore) = store.loadChangeInfo(scope);
+					tie(type, version, fileName, std::ignore) = store.loadChangeInfo(syncScope);
 					if(type != LocalStore::NoExists && !_flags.testFlag(MigrationHelper::MigrateOverwriteData)) {
 						logDebug() << "Skipping" << key << "as it would overwrite existing data";
 						migrationProgress();
 						continue;
 					}
-					store.storeChanged(scope, version + 1, fileName, data, state == 1, type);
-					store.commitSync(scope);
+					store.storeChanged(syncScope, version + 1, fileName, data, state == 1, type);
+					store.commitSync(syncScope);
 					logDebug() << "Migrated dataset" << key << "from the old store to the new one";
 					migrationProgress();
 					break;
@@ -284,17 +284,17 @@ void MigrationRunnable::run()
 				case 2: //deleted
 					if(_flags.testFlag(MigrationHelper::MigrateChanged)) {
 						//only when migrating changes, store the delete change
-						auto scope = store.startSync(key);
+						auto syncScope = store.startSync(key);
 						LocalStore::ChangeType type;
 						quint64 version;
-						tie(type, version, std::ignore, std::ignore) = store.loadChangeInfo(scope);
+						tie(type, version, std::ignore, std::ignore) = store.loadChangeInfo(syncScope);
 						if(type != LocalStore::NoExists && !_flags.testFlag(MigrationHelper::MigrateOverwriteData)) {
 							logDebug() << "Skipping" << key << "as it would overwrite existing data";
 							migrationProgress();
 							continue;
 						}
-						store.storeDeleted(scope, version + 1, true, type);
-						store.commitSync(scope);
+						store.storeDeleted(syncScope, version + 1, true, type);
+						store.commitSync(syncScope);
 						logDebug() << "Migrated deleted dataset" << key << "from the old store to the new one";
 					}
 					migrationProgress();

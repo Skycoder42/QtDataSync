@@ -105,6 +105,10 @@ Module {
             Parameter { name: "exception"; type: "QException" }
         }
         Signal {
+            name: "typeIdChanged"
+            Parameter { name: "typeId"; type: "int" }
+        }
+        Signal {
             name: "editableChanged"
             Parameter { name: "editable"; type: "bool" }
         }

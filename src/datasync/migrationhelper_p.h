@@ -14,9 +14,9 @@ class MigrationRunnable : public QRunnable
 {
 	Q_DISABLE_COPY(MigrationRunnable)
 public:
-	MigrationRunnable(const Defaults &defaults,
+	MigrationRunnable(Defaults defaults,
 					  MigrationHelper *helper,
-					  const QString &oldDir,
+					  QString oldDir,
 					  MigrationHelper::MigrationFlags flags);
 
 	void run() override;

@@ -52,7 +52,7 @@ template <template<class> class TScheme, class TCipher>
 class StandardCipherScheme : public CryptoController::CipherScheme
 {
 public:
-	typedef TScheme<TCipher> Scheme;
+	using Scheme = TScheme<TCipher>;
 
 	QByteArray name() const override;
 	quint32 defaultKeyLength() const override;
@@ -130,7 +130,7 @@ QStringList CryptoController::allKeystoreKeys()
 QStringList CryptoController::availableKeystoreKeys()
 {
 	QStringList keys;
-	for(auto key : factory->allKeys()) {
+	for(const auto &key : factory->allKeys()) {
 		if(factory->isAvailable(key))
 			keys.append(key);
 	}
@@ -211,7 +211,7 @@ void CryptoController::acquireStore(bool existing)
 	logDebug() << "Created keystore instance of type" << provider;
 }
 
-void CryptoController::loadKeyMaterial(const QUuid &deviceId)
+void CryptoController::loadKeyMaterial(QUuid deviceId)
 {
 	try {
 		ensureStoreOpen();
@@ -259,7 +259,7 @@ void CryptoController::clearKeyMaterial()
 	emit fingerprintChanged(QByteArray());
 }
 
-void CryptoController::deleteKeyMaterial(const QUuid &deviceId)
+void CryptoController::deleteKeyMaterial(QUuid deviceId)
 {
 	//remove all saved keys
 	auto keyDir = keysDir();
@@ -291,7 +291,8 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 {
 	try {
 		if(_asymCrypto->rng().CanIncorporateEntropy())
-			_asymCrypto->rng().IncorporateEntropy(reinterpret_cast<const byte*>(nonce.constData()), nonce.size());
+			_asymCrypto->rng().IncorporateEntropy(reinterpret_cast<const byte*>(nonce.constData()),
+												  static_cast<size_t>(nonce.size()));
 
 		//generate private signature and encryption keys
 		_asymCrypto->generate(static_cast<Setup::SignatureScheme>(defaults().property(Defaults::SignScheme).toInt()),
@@ -315,7 +316,7 @@ void CryptoController::createPrivateKeys(const QByteArray &nonce)
 	}
 }
 
-void CryptoController::storePrivateKeys(const QUuid &deviceId) const
+void CryptoController::storePrivateKeys(QUuid deviceId) const
 {
 	try {
 		ensureStoreOpen();
@@ -364,8 +365,9 @@ tuple<quint32, QByteArray, QByteArray> CryptoController::encryptData(const QByte
 {
 	try {
 		auto info = getInfo(_localCipher);
-		QByteArray salt(info.scheme->ivLength(), Qt::Uninitialized);
-		_asymCrypto->rng().GenerateBlock(reinterpret_cast<byte*>(salt.data()), salt.size());
+		QByteArray salt(static_cast<int>(info.scheme->ivLength()), Qt::Uninitialized);
+		_asymCrypto->rng().GenerateBlock(reinterpret_cast<byte*>(salt.data()),
+										 static_cast<size_t>(salt.size()));
 
 		auto cipher = encryptImpl(info, salt, plain);
 
@@ -457,7 +459,8 @@ void CryptoController::decryptSecretKey(quint32 keyIndex, const QByteArray &sche
 
 		CipherInfo info;
 		createScheme(scheme, info.scheme);
-		info.key.Assign(reinterpret_cast<const byte*>(key.constData()), key.size());
+		info.key.Assign(reinterpret_cast<const byte*>(key.constData()),
+						static_cast<size_t>(key.size()));
 
 		_loadedChiphers.insert(keyIndex, info);
 		if(grantInit) {//only set key index. Storing is done a step later for granting
@@ -582,14 +585,18 @@ tuple<QByteArray, QByteArray, SecByteBlock> CryptoController::generateExportKey(
 			auto pw = password.toUtf8();
 
 			//create a salt
-			salt.resize(info.scheme->ivLength());
-			_asymCrypto->rng().GenerateBlock(reinterpret_cast<byte*>(salt.data()), salt.size());
+			salt.resize(static_cast<int>(info.scheme->ivLength()));
+			_asymCrypto->rng().GenerateBlock(reinterpret_cast<byte*>(salt.data()),
+											 static_cast<size_t>(salt.size()));
 
 			//generate the key
 			PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
 			keydev.DeriveKey(info.key.data(), info.key.size(),
-							 PwPurpose, reinterpret_cast<const byte*>(pw.constData()), pw.size(),
-							 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
+							 PwPurpose, reinterpret_cast<const byte*>(pw.constData()),
+							 static_cast<size_t>(pw.size()),
+							 reinterpret_cast<const byte*>(salt.constData()),
+							 static_cast<size_t>(salt.size()),
+							 PwRounds);
 		}
 
 		return make_tuple(info.scheme->name(), salt, info.key);
@@ -613,8 +620,11 @@ SecByteBlock CryptoController::recoverExportKey(const QByteArray &scheme, const 
 		//generate the key
 		PKCS5_PBKDF2_HMAC<SHA3_256> keydev;
 		keydev.DeriveKey(info.key.data(), info.key.size(),
-						 PwPurpose, reinterpret_cast<const byte*>(pw.constData()), pw.size(),
-						 reinterpret_cast<const byte*>(salt.constData()), salt.size(), PwRounds);
+						 PwPurpose, reinterpret_cast<const byte*>(pw.constData()),
+						 static_cast<size_t>(pw.size()),
+						 reinterpret_cast<const byte*>(salt.constData()),
+						 static_cast<size_t>(salt.size()),
+						 PwRounds);
 
 		return info.key;
 	} catch(CppException &e) {
@@ -662,7 +672,7 @@ void CryptoController::verifyImportCmac(const QByteArray &scheme, const SecByteB
 		CipherInfo info;
 		createScheme(scheme, info.scheme);
 		info.key = key;
-		return verifyCmacImpl(info, data, mac);
+		verifyCmacImpl(info, data, mac);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify cmac for import data"),
@@ -680,7 +690,7 @@ void CryptoController::verifyImportCmacForCrypto(const QByteArray &scheme, const
 		CipherInfo info;
 		createScheme(scheme, info.scheme);
 		info.key = key;
-		return verifyCmacImpl(info, trustMessage, mac);
+		verifyCmacImpl(info, trustMessage, mac);
 	} catch(CppException &e) {
 		throw CryptoException(defaults(),
 							  QStringLiteral("Failed to verify cmac for crypto keys"),
@@ -829,8 +839,9 @@ const CryptoController::CipherInfo &CryptoController::getInfo(quint32 keyIndex) 
 		keyFile.close();
 
 		auto key = _asymCrypto->decrypt(encData);
-		info.key.Assign(reinterpret_cast<const byte*>(key.constData()), key.size());
-		memset(key.data(), 0, key.size());
+		info.key.Assign(reinterpret_cast<const byte*>(key.constData()),
+						static_cast<size_t>(key.size()));
+		memset(key.data(), 0, static_cast<size_t>(key.size()));
 
 		//test if the key is of valid length
 		if(info.key.size() != info.scheme->toKeyLength(static_cast<quint32>(info.key.size())))
@@ -866,7 +877,7 @@ void CryptoController::cleanCiphers() const
 	auto keys = settings()->childKeys();
 	settings()->endGroup();
 
-	for(auto key : keys) {
+	for(const auto &key : qAsConst(keys)) {
 		auto ok = false;
 		auto keyIndex = key.toUInt(&ok);
 		if(!ok)
@@ -910,7 +921,8 @@ QByteArray CryptoController::encryptImpl(const CryptoController::CipherInfo &inf
 {
 	auto enc = info.scheme->encryptor();
 	enc->SetKeyWithIV(info.key.data(), info.key.size(),
-					  reinterpret_cast<const byte*>(salt.constData()), salt.size());
+					  reinterpret_cast<const byte*>(salt.constData()),
+					  static_cast<size_t>(salt.size()));
 
 	QByteArray cipher;
 	QByteArraySource(plain, true,
@@ -925,7 +937,8 @@ QByteArray CryptoController::decryptImpl(const CryptoController::CipherInfo &inf
 {
 	auto dec = info.scheme->decryptor();
 	dec->SetKeyWithIV(info.key.data(), info.key.size(),
-					  reinterpret_cast<const byte*>(salt.constData()), salt.size());
+					  reinterpret_cast<const byte*>(salt.constData()),
+					  static_cast<size_t>(salt.size()));
 
 	QByteArray plain;
 	QByteArraySource(cipher, true,

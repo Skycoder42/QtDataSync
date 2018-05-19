@@ -6,21 +6,21 @@ EmitterAdapter::EmitterAdapter(QObject *changeEmitter, QSharedPointer<CacheInfo>
 	QObject(origin),
 	_isPrimary(changeEmitter->metaObject()->inherits(&ChangeEmitter::staticMetaObject)),
 	_emitterBackend(changeEmitter),
-	_cache(cacheInfo)
+	_cache(std::move(cacheInfo))
 {
 	if(_isPrimary) {
 		connect(_emitterBackend, SIGNAL(dataChanged(QObject*,QtDataSync::ObjectKey,bool)),
 				this, SLOT(dataChangedImpl(QObject*,QtDataSync::ObjectKey,bool)),
 				Qt::QueuedConnection);
 		connect(_emitterBackend, SIGNAL(dataResetted(QObject*)),
-				this, SLOT(dataResettedImpl(QObject*,QByteArray)),
+				this, SLOT(dataResettedImpl(QObject*)),
 				Qt::QueuedConnection);
 	} else {
 		connect(_emitterBackend, SIGNAL(remoteDataChanged(QtDataSync::ObjectKey,bool)),
 				this, SLOT(remoteDataChangedImpl(QtDataSync::ObjectKey,bool)),
 				Qt::QueuedConnection);
 		connect(_emitterBackend, SIGNAL(remoteDataResetted()),
-				this, SLOT(remoteDataResettedImpl(QByteArray)),
+				this, SLOT(remoteDataResettedImpl()),
 				Qt::QueuedConnection);
 	}
 }
@@ -151,7 +151,7 @@ void EmitterAdapter::dropCached()
 		return;
 
 	QWriteLocker _(&_cache->lock);
-	return _cache->cache.clear();
+	_cache->cache.clear();
 }
 
 void EmitterAdapter::dataChangedImpl(QObject *origin, const ObjectKey &key, bool deleted)

@@ -10,9 +10,9 @@ namespace QtDataSync {
 class RemoteConfigPrivate : public QSharedData
 {
 public:
-	RemoteConfigPrivate(const QUrl &url,
-						const QString &accessKey,
-						const RemoteConfig::HeaderHash &headers,
+	RemoteConfigPrivate(QUrl url,
+						QString accessKey,
+						RemoteConfig::HeaderHash headers,
 						int keepaliveTimeout);
 	RemoteConfigPrivate(const RemoteConfigPrivate &other);
 

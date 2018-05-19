@@ -39,7 +39,7 @@ void DataStoreModel::initStore(DataStore *store)
 					 this, &DataStoreModel::storeResetted);
 }
 
-DataStoreModel::~DataStoreModel() {}
+DataStoreModel::~DataStoreModel() = default;
 
 DataStore *DataStoreModel::store() const
 {

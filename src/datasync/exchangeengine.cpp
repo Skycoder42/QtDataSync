@@ -15,7 +15,7 @@ using namespace QtDataSync;
 
 #define QTDATASYNC_LOG _logger
 
-ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalErrorHandler &errorHandler) :
+ExchangeEngine::ExchangeEngine(const QString &setupName, Setup::FatalErrorHandler errorHandler) :
 	QObject(),
 	_state(SyncManager::Initializing),
 	_progressCurrent(0),
@@ -24,7 +24,7 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, const Setup::FatalError
 	_lastError(),
 	_defaults(DefaultsPrivate::obtainDefaults(setupName)),
 	_logger(_defaults.createLogger("engine", this)),
-	_fatalErrorHandler(errorHandler),
+	_fatalErrorHandler(std::move(errorHandler)),
 	_localStore(nullptr), //create in init thread!
 	_changeController(new ChangeController(_defaults, this)),
 	_syncController(new SyncController(_defaults, this)),
@@ -258,14 +258,12 @@ void ExchangeEngine::incrementProgress()
 	}
 }
 
-void ExchangeEngine::defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context)
+void ExchangeEngine::defaultFatalErrorHandler(const QString &error, const QString &setup, const QMessageLogContext &context)
 {
-	auto name = setup.toUtf8();
-	auto msg = error.toUtf8();
 	QMessageLogger(context.file, context.line, context.function, context.category)
 			.fatal("Unrecoverable error for \"%s\" - killing application. Error Message:\n\t%s",
-				   name.constData(),
-				   msg.constData());
+					setup.toUtf8().constData(),
+				   error.toUtf8().constData());
 }
 
 void ExchangeEngine::connectController(Controller *controller)

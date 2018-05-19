@@ -76,13 +76,13 @@ public:
 
 	//load, clear, remove key material
 	void acquireStore(bool existing);
-	void loadKeyMaterial(const QUuid &deviceId);
+	void loadKeyMaterial(QUuid deviceId);
 	void clearKeyMaterial();
-	void deleteKeyMaterial(const QUuid &deviceId);
+	void deleteKeyMaterial(QUuid deviceId);
 
 	//create and store new keys
 	void createPrivateKeys(const QByteArray &nonce);
-	void storePrivateKeys(const QUuid &deviceId) const;
+	void storePrivateKeys(QUuid deviceId) const;
 
 	//wrapper to sign a message
 	QByteArray serializeSignedMessage(const Message &message);

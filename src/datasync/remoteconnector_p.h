@@ -102,16 +102,16 @@ public Q_SLOTS:
 	void resync();
 
 	void listDevices();
-	void removeDevice(const QUuid &deviceId);
+	void removeDevice(QUuid deviceId);
 	void resetAccount(bool removeConfig);
 	void changeRemote(const RemoteConfig &config);
 	void prepareImport(const ExportData &data, const CryptoPP::SecByteBlock &key);
-	void loginReply(const QUuid &deviceId, bool accept);
+	void loginReply(QUuid deviceId, bool accept);
 
 	void initKeyUpdate();
 
 	void uploadData(const QByteArray &key, const QByteArray &changeData);
-	void uploadDeviceData(const QByteArray &key, const QUuid &deviceId, const QByteArray &changeData);
+	void uploadDeviceData(const QByteArray &key, QUuid deviceId, const QByteArray &changeData);
 	void downloadDone(const quint64 key);
 
 	void setSyncEnabled(bool syncEnabled);

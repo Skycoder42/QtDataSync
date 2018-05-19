@@ -39,17 +39,17 @@ int RemoteConfig::keepaliveTimeout() const
 
 void RemoteConfig::setUrl(QUrl url)
 {
-	d->url = url;
+	d->url = std::move(url);
 }
 
 void RemoteConfig::setAccessKey(QString accessKey)
 {
-	d->accessKey = accessKey;
+	d->accessKey = std::move(accessKey);
 }
 
 void RemoteConfig::setHeaders(RemoteConfig::HeaderHash headers)
 {
-	d->headers = headers;
+	d->headers = std::move(headers);
 }
 
 void RemoteConfig::setKeepaliveTimeout(int keepaliveTimeout)
@@ -81,18 +81,12 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, RemoteConfig &deviceInf
 
 
 
-RemoteConfigPrivate::RemoteConfigPrivate(const QUrl &url, const QString &accessKey, const RemoteConfig::HeaderHash &headers, int keepaliveTimeout) :
+RemoteConfigPrivate::RemoteConfigPrivate(QUrl url, QString accessKey, RemoteConfig::HeaderHash headers, int keepaliveTimeout) :
 	QSharedData(),
-	url(url),
-	accessKey(accessKey),
-	headers(headers),
+	url(std::move(url)),
+	accessKey(std::move(accessKey)),
+	headers(std::move(headers)),
 	keepaliveTimeout(keepaliveTimeout)
 {}
 
-RemoteConfigPrivate::RemoteConfigPrivate(const RemoteConfigPrivate &other) :
-	QSharedData(other),
-	url(other.url),
-	accessKey(other.accessKey),
-	headers(other.headers),
-	keepaliveTimeout(other.keepaliveTimeout)
-{}
+RemoteConfigPrivate::RemoteConfigPrivate(const RemoteConfigPrivate &other) = default;

@@ -32,7 +32,7 @@ class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 
 public:
 	explicit ExchangeEngine(const QString &setupName,
-							const Setup::FatalErrorHandler &errorHandler);
+							Setup::FatalErrorHandler errorHandler);
 
 	Q_NORETURN void enterFatalState(const QString &error,
 									const char *file,
@@ -92,7 +92,7 @@ private:
 	AccountManagerPrivate *_accountManager;
 	ChangeEmitter *_emitter;
 
-	static Q_NORETURN void defaultFatalErrorHandler(QString error, QString setup, const QMessageLogContext &context);
+	static Q_NORETURN void defaultFatalErrorHandler(const QString &error, const QString &setup, const QMessageLogContext &context);
 
 	void connectController(Controller *controller);
 	bool upstate(SyncManager::SyncState state);

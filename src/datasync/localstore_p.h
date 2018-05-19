@@ -47,14 +47,14 @@ public:
 			DatabaseRef database;
 			std::function<void()> afterCommit;
 
-			Private(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
+			Private(const Defaults &defaults, ObjectKey key, LocalStore *owner);
 		};
 		QScopedPointer<Private> d;
 
 		SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner);
 	};
 
-	explicit LocalStore(const Defaults &defaults, QObject *parent = nullptr);
+	explicit LocalStore(Defaults defaults, QObject *parent = nullptr);
 	~LocalStore() override;
 
 	QJsonObject readJson(const ObjectKey &key, const QString &filePath, int *costs = nullptr) const;
@@ -76,7 +76,7 @@ public:
 	quint32 changeCount() const;
 	void loadChanges(int limit, const std::function<bool(ObjectKey, quint64, QString, QUuid)> &visitor) const; //(key, version, file, device)
 	void markUnchanged(const ObjectKey &key, quint64 version, bool isDelete);
-	void removeDeviceChange(const ObjectKey &key, const QUuid &deviceId);
+	void removeDeviceChange(const ObjectKey &key, QUuid deviceId);
 
 	// sync access
 	SyncScope startSync(const ObjectKey &key) const;
@@ -100,7 +100,7 @@ public:
 					   bool isDelete);
 	void commitSync(SyncScope &scope) const;
 
-	void prepareAccountAdded(const QUuid &deviceId);
+	void prepareAccountAdded(QUuid deviceId);
 
 Q_SIGNALS:
 	void dataChanged(const QtDataSync::ObjectKey &key, bool deleted);

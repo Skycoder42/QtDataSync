@@ -39,9 +39,7 @@ QString Exception::qWhat() const
 	return QStringLiteral("Message: %1"
 						  "\n\tException-Type: %2"
 						  "\n\tSetup: %3")
-			.arg(_message)
-			.arg(QString::fromUtf8(className()))
-			.arg(_setupName);
+			.arg(_message, QString::fromUtf8(className()), _setupName);
 }
 
 const char *Exception::what() const noexcept

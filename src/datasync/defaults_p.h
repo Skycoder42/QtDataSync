@@ -57,10 +57,10 @@ public:
 	static void clearDefaults();
 	static QSharedPointer<DefaultsPrivate> obtainDefaults(const QString &setupName);
 
-	DefaultsPrivate(const QString &setupName,
-					const QDir &storageDir,
-					const QUrl &roAddress,
-					const QHash<Defaults::PropertyKey, QVariant> &properties,
+	DefaultsPrivate(QString setupName,
+					QDir storageDir,
+					QUrl roAddress,
+					QHash<Defaults::PropertyKey, QVariant> properties,
 					QJsonSerializer *serializer,
 					ConflictResolver *resolver);
 	~DefaultsPrivate() override;
