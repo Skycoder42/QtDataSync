@@ -35,42 +35,80 @@ bool QQmlDataStore::valid() const
 
 qint64 QQmlDataStore::count(const QString &typeName) const
 {
-	return DataStore::count(QMetaType::type(typeName.toUtf8()));
+	try {
+		return DataStore::count(QMetaType::type(typeName.toUtf8()));
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+		return 0;
+	}
 }
 
 QStringList QQmlDataStore::keys(const QString &typeName) const
 {
-	return DataStore::keys(QMetaType::type(typeName.toUtf8()));
+	try {
+		return DataStore::keys(QMetaType::type(typeName.toUtf8()));
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+		return {};
+	}
 }
 
 QVariantList QQmlDataStore::loadAll(const QString &typeName) const
 {
-	return DataStore::loadAll(QMetaType::type(typeName.toUtf8()));
+	try {
+		return DataStore::loadAll(QMetaType::type(typeName.toUtf8()));
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+		return {};
+	}
 }
 
 QVariant QQmlDataStore::load(const QString &typeName, const QString &key) const
 {
-	return DataStore::load(QMetaType::type(typeName.toUtf8()), key);
+	try {
+		return DataStore::load(QMetaType::type(typeName.toUtf8()), key);
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+		return {};
+	}
 }
 
 void QQmlDataStore::save(const QString &typeName, const QVariant &value)
 {
-	DataStore::save(QMetaType::type(typeName.toUtf8()), value);
+	try {
+		DataStore::save(QMetaType::type(typeName.toUtf8()), value);
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+	}
 }
 
 bool QQmlDataStore::remove(const QString &typeName, const QString &key)
 {
-	return DataStore::remove(QMetaType::type(typeName.toUtf8()), key);
+	try {
+		return DataStore::remove(QMetaType::type(typeName.toUtf8()), key);
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+		return false;
+	}
 }
 
 QVariantList QQmlDataStore::search(const QString &typeName, const QString &query, DataStore::SearchMode mode) const
 {
-	return DataStore::search(QMetaType::type(typeName.toUtf8()), query, mode);
+	try {
+		return DataStore::search(QMetaType::type(typeName.toUtf8()), query, mode);
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+		return {};
+	}
 }
 
 void QQmlDataStore::clear(const QString &typeName)
 {
-	DataStore::clear(QMetaType::type(typeName.toUtf8()));
+	try {
+		DataStore::clear(QMetaType::type(typeName.toUtf8()));
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+	}
 }
 
 QString QQmlDataStore::typeName(int typeId) const
