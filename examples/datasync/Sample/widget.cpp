@@ -47,6 +47,9 @@ Widget::Widget(const QString &setup, QWidget *parent) :
 
 	new ModelTest(_model, this);
 	_model->setTypeId<SampleData>();
+	_model->addColumn(QStringLiteral("Id"), "id");
+	_model->addColumn(QStringLiteral("Title"), "title");
+	_model->addColumn(QStringLiteral("Description"), "description");
 	ui->dataTreeView->setModel(_model);
 	connect(ui->dataTreeView->selectionModel(), &QItemSelectionModel::currentChanged,
 			this, &Widget::selectionChange);

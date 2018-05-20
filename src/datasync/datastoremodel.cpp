@@ -11,7 +11,7 @@ DataStoreModel::DataStoreModel(QObject *parent) :
 {}
 
 DataStoreModel::DataStoreModel(const QString &setupName, QObject *parent) :
-	QAbstractListModel(parent),
+	QAbstractTableModel(parent),
 	d(new DataStoreModelPrivate(this))
 {
 	initStore(new DataStore(setupName));
@@ -19,14 +19,14 @@ DataStoreModel::DataStoreModel(const QString &setupName, QObject *parent) :
 }
 
 DataStoreModel::DataStoreModel(DataStore *store, QObject *parent) :
-	QAbstractListModel(parent),
+	QAbstractTableModel(parent),
 	d(new DataStoreModelPrivate(this))
 {
 	initStore(store);
 }
 
 DataStoreModel::DataStoreModel(QObject *parent, void *):
-	QAbstractListModel(parent),
+	QAbstractTableModel(parent),
 	d(new DataStoreModelPrivate(this))
 {} //No init
 
@@ -58,19 +58,33 @@ bool DataStoreModel::isEditable() const
 
 QVariant DataStoreModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-	auto metaObject = QMetaType::metaObjectForType(d->type);
-	if(metaObject && section == 0 && orientation == Qt::Horizontal && role == Qt::DisplayRole)
-		return QString::fromUtf8(metaObject->className());
-	else
+	if(orientation != Qt::Horizontal || role != Qt::DisplayRole)
 		return {};
+
+	if(d->columns.isEmpty()) {
+		auto metaObject = QMetaType::metaObjectForType(d->type);
+		if(metaObject && section == 0)
+			return QString::fromUtf8(metaObject->className());
+	} else if(section < d->columns.size())
+		return d->columns.value(section);
+
+	return {};
 }
 
 int DataStoreModel::rowCount(const QModelIndex &parent) const
 {
-	if (parent.isValid())
+	if(parent.isValid())
 		return 0;
 	else
 		return d->dataHash.size();
+}
+
+int DataStoreModel::columnCount(const QModelIndex &parent) const
+{
+	if(parent.isValid())
+		return 0;
+	else
+		return d->columns.isEmpty() ? 1 : d->columns.size();
 }
 
 bool DataStoreModel::canFetchMore(const QModelIndex &parent) const
@@ -104,6 +118,11 @@ void DataStoreModel::fetchMore(const QModelIndex &parent)
 	}
 }
 
+QModelIndex DataStoreModel::index(int row, int column, const QModelIndex &parent) const
+{
+	return QAbstractTableModel::index(row, column, parent);
+}
+
 QModelIndex DataStoreModel::idIndex(const QString &id) const
 {
 	auto idx = d->activeKeys().indexOf(id);
@@ -115,9 +134,8 @@ QModelIndex DataStoreModel::idIndex(const QString &id) const
 
 QString DataStoreModel::key(const QModelIndex &index) const
 {
-	auto active = d->activeKeys();
+	const auto active = d->activeKeys();
 	if(index.isValid() &&
-	   index.column() == 0 &&
 	   index.row() < active.size())
 		return active[index.row()];
 	else
@@ -129,7 +147,7 @@ QVariant DataStoreModel::data(const QModelIndex &index, int role) const
 	if (!d->testValid(index, role))
 		return {};
 
-	return d->readProperty(key(index), d->roleNames.value(role));
+	return d->readProperty(key(index), d->propertyName(index, role));
 }
 
 bool DataStoreModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -137,7 +155,7 @@ bool DataStoreModel::setData(const QModelIndex &index, const QVariant &value, in
 	if (!d->editable || !d->testValid(index, role))
 		return {};
 
-	if(d->writeProperty(key(index), d->roleNames.value(role), value)) {
+	if(d->writeProperty(key(index), d->propertyName(index, role), value)) {
 		emit dataChanged(index, index, {role});
 		return true;
 	} else
@@ -177,7 +195,36 @@ QHash<int, QByteArray> DataStoreModel::roleNames() const
 	return d->roleNames;
 }
 
+int DataStoreModel::addColumn(const QString &text)
+{
+	const auto index = d->columns.size();
+	beginInsertColumns(QModelIndex(), index, index);
+	d->columns.append(text);
+	endInsertColumns();
+	emit headerDataChanged(Qt::Horizontal, index, index);
+	return index;
+}
+
+int DataStoreModel::addColumn(const QString &text, const char *propertyName)
+{
+	const auto index = addColumn(text);
+	addRole(index, Qt::DisplayRole, propertyName);
+	return index;
+}
+
+void DataStoreModel::addRole(int column, int role, const char *propertyName)
+{
+	Q_ASSERT_X(column < d->columns.size(), Q_FUNC_INFO, "Cannot add role to non existant column!");
+	d->roleMapping[column].insert(role, propertyName);
+	emit dataChanged(this->index(0, column), this->index(rowCount(), column), {role});
+}
+
 void DataStoreModel::setTypeId(int typeId)
+{
+	setTypeId(typeId, true);
+}
+
+void DataStoreModel::setTypeId(int typeId, bool resetColumns)
 {
 	auto flags = QMetaType::typeFlags(typeId);
 	if(flags.testFlag(QMetaType::IsGadget) ||
@@ -188,6 +235,10 @@ void DataStoreModel::setTypeId(int typeId)
 		beginResetModel();
 		d->isObject = flags.testFlag(QMetaType::PointerToQObject);
 		d->keyList.clear();
+		if(resetColumns) {
+			d->columns.clear();
+			d->roleMapping.clear();
+		}
 		d->clearHashObjects();
 		d->createRoleNames();
 
@@ -252,7 +303,7 @@ void DataStoreModel::storeChanged(int metaTypeId, const QString &key, bool wasDe
 					} else
 						d->dataHash.insert(key, d->store->load(d->type, key));
 					auto mIndex = idIndex(key);
-					emit dataChanged(mIndex, mIndex);
+					emit dataChanged(mIndex, mIndex.sibling(mIndex.row(), (d->columns.isEmpty() ? 0 : d->columns.size() - 1)));
 				} catch(QException &e) {
 					emit storeError(e, {});
 				}
@@ -285,7 +336,9 @@ DataStoreModelPrivate::DataStoreModelPrivate(DataStoreModel *q_ptr) :
 	isObject(false),
 	roleNames(),
 	keyList(),
-	dataHash()
+	dataHash(),
+	columns(),
+	roleMapping()
 {}
 
 QStringList DataStoreModelPrivate::activeKeys()
@@ -311,7 +364,7 @@ void DataStoreModelPrivate::createRoleNames()
 void DataStoreModelPrivate::clearHashObjects()
 {
 	if(QMetaType::typeFlags(type).testFlag(QMetaType::PointerToQObject)) {
-		for(auto v : dataHash)
+		for(const auto &v : qAsConst(dataHash))
 			deleteObject(v);
 	}
 	dataHash.clear();
@@ -327,9 +380,23 @@ void DataStoreModelPrivate::deleteObject(const QVariant &value)
 bool DataStoreModelPrivate::testValid(const QModelIndex &index, int role) const
 {
 	return index.isValid() &&
-			index.column() == 0 &&
+			index.column() < (columns.isEmpty() ? 1 :columns.size()) &&
 			index.row() < keyList.size() &&
-			(role < 0 || roleNames.contains(role));
+			(role < 0 || roleNames.contains(role) ||
+			  (!columns.isEmpty() && columns[index.column()].contains(role))
+			);
+}
+
+QByteArray DataStoreModelPrivate::propertyName(const QModelIndex &index, int role) const
+{
+	if(!columns.isEmpty()) {
+		const auto &subRoles = roleMapping[index.column()];
+		auto roleName = subRoles.value(role);
+		if(!roleName.isEmpty())
+			return roleName;
+	}
+
+	return roleNames.value(role);
 }
 
 QVariant DataStoreModelPrivate::readProperty(const QString &key, const QByteArray &property)

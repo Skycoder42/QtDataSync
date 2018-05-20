@@ -8,6 +8,7 @@ import QtQuick.tooling 1.2
 
 Module {
     dependencies: ["QtQuick 2.8"]
+    Component { name: "QAbstractTableModel"; prototype: "QAbstractItemModel" }
     Component {
         name: "QtDataSync::AccountManager"
         prototype: "QObject"
@@ -97,7 +98,7 @@ Module {
     }
     Component {
         name: "QtDataSync::DataStoreModel"
-        prototype: "QAbstractListModel"
+        prototype: "QAbstractTableModel"
         Property { name: "typeId"; type: "int" }
         Property { name: "editable"; type: "bool" }
         Signal {
@@ -115,6 +116,11 @@ Module {
         Method {
             name: "setTypeId"
             Parameter { name: "typeId"; type: "int" }
+        }
+        Method {
+            name: "setTypeId"
+            Parameter { name: "typeId"; type: "int" }
+            Parameter { name: "resetColumns"; type: "bool" }
         }
         Method {
             name: "setEditable"

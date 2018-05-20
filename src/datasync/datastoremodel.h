@@ -10,7 +10,7 @@ namespace QtDataSync {
 
 class DataStoreModelPrivate;
 //! A passive item model for a datasync data store
-class Q_DATASYNC_EXPORT DataStoreModel : public QAbstractListModel
+class Q_DATASYNC_EXPORT DataStoreModel : public QAbstractTableModel //TODO test if breaks binary compat
 {
 	Q_OBJECT
 	friend class DataStoreModelPrivate;
@@ -36,7 +36,7 @@ public:
 	int typeId() const;
 	//! @writeAcFn{DataStoreModel::typeId}
 	template <typename T>
-	inline void setTypeId();
+	inline void setTypeId(bool resetColumns = true);
 	//! @readAcFn{DataStoreModel::editable}
 	bool isEditable() const;
 
@@ -44,11 +44,13 @@ public:
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 	//! @inherit{QAbstractListModel::rowCount}
 	int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+	int columnCount(const QModelIndex &parent) const override;
 	//! @inherit{QAbstractListModel::canFetchMore}
 	bool canFetchMore(const QModelIndex &parent) const override;
 	//! @inherit{QAbstractListModel::fetchMore}
 	void fetchMore(const QModelIndex &parent) override;
 
+	QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
 	//! Returns the index of the item with the given id
 	Q_INVOKABLE QModelIndex idIndex(const QString &id) const;
 	//! @copybrief DataStoreModel::idIndex(const QString &) const
@@ -88,9 +90,14 @@ public:
 	//! @inherit{QAbstractListModel::roleNames}
 	QHash<int, QByteArray> roleNames() const override;
 
+	int addColumn(const QString &text);
+	int addColumn(const QString &text, const char *propertyName);
+	void addRole(int column, int role, const char *propertyName);
+
 public Q_SLOTS:
 	//! @writeAcFn{DataStoreModel::typeId}
-	void setTypeId(int typeId);
+	void setTypeId(int typeId); //MAJOR merge methods
+	void setTypeId(int typeId, bool resetColumns);
 	//! @writeAcFn{DataStoreModel::editable}
 	void setEditable(bool editable);
 
@@ -121,9 +128,9 @@ private:
 // ------------- Generic Implementation -------------
 
 template <typename T>
-inline void DataStoreModel::setTypeId() {
+inline void DataStoreModel::setTypeId(bool resetColumns) {
 	QTDATASYNC_STORE_ASSERT(T);
-	setTypeId(qMetaTypeId<T>());
+	setTypeId(qMetaTypeId<T>(), resetColumns);
 }
 
 template <typename T>
