@@ -1,10 +1,12 @@
 TEMPLATE = lib
+
 CONFIG += staticlib
+win32: CONFIG += build_all
 
 QT = core jsonserializer
 
 DESTDIR = $$shadowed($$dirname(_QMAKE_CONF_))/lib
-TARGET = qtdatasync-messages
+TARGET = $$qtLibraryTarget(qtdatasync-messages)
 
 DEFINES += QT_BUILD_DATASYNC_LIB #is build as part of the lib regarding exports
 
