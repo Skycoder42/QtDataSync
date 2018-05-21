@@ -11,7 +11,7 @@ win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$MSG_DIR/libqtdatas
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$MSG_DIR/libqtdatasync-messagesd.a
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$MSG_DIR/qtdatasync-messages.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$MSG_DIR/qtdatasync-messagesd.lib
-else:darwin:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$MSG_DIR/qtdatasync-messages_debug.a
+else:darwin:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$MSG_DIR/libqtdatasync-messages_debug.a
 else: PRE_TARGETDEPS += $$MSG_DIR/libqtdatasync-messages.a
 
 include($$PWD/../3rdparty/cryptopp/cryptopp.pri)
