@@ -176,15 +176,19 @@ void UserExchangeManager::importTrustedFrom(const UserInfo &userInfo, const QStr
 
 void UserExchangeManager::timeout()
 {
+	auto erased = false;
 	for(auto it = d->devices.begin(); it != d->devices.end();) {
 		if(*it >= 5) {
 			d->exchangeData.remove(it.key());
 			it = d->devices.erase(it);
+			erased = true;
 		} else {
 			(*it)++;
 			it++;
 		}
 	}
+	if(erased)
+		emit devicesChanged(d->devices.keys(), {});
 
 	QByteArray datagram;
 	QDataStream stream(&datagram, QIODevice::WriteOnly | QIODevice::Unbuffered);

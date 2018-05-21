@@ -1,6 +1,7 @@
 TEMPLATE = lib
 
-CONFIG += staticlib build_all
+CONFIG += staticlib
+win32|darwin: CONFIG += debug_and_release build_all
 
 QT = core jsonserializer
 
