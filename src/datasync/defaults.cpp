@@ -317,6 +317,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 	auto name = DefaultsPrivate::DatabaseName
 				.arg(setupName, QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
 	if((dbRefHash.localData()[setupName])++ == 0) {
+		logDebug() << "Acquiring database for thread" << QThread::currentThread();
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
 		database.setConnectOptions(QStringLiteral("QSQLITE_BUSY_TIMEOUT=30000;"
@@ -360,6 +361,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 void DefaultsPrivate::releaseDatabase()
 {
 	if(--(dbRefHash.localData()[setupName]) == 0) {
+		logDebug() << "Releasing database for thread" << QThread::currentThread();
 		auto name = DefaultsPrivate::DatabaseName
 					.arg(setupName, QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
 		QSqlDatabase::database(name).close();
