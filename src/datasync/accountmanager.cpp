@@ -1,6 +1,7 @@
 #include "accountmanager.h"
 #include "defaults_p.h"
 #include "message_p.h"
+#include "setup_p.h"
 
 #include "rep_accountmanager_p_replica.h"
 #include "signal_private_connect_p.h"
@@ -185,7 +186,12 @@ void AccountManager::importAccount(const QJsonObject &importData, const function
 
 void AccountManager::importAccount(const QByteArray &importData, const function<void(bool,QString)> &completedFn, bool keepData)
 {
-	importAccount(QJsonDocument::fromJson(importData).object(), completedFn, keepData);
+	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
+	try {
+		importAccount(SetupPrivate::parseObj(importData), completedFn, keepData);
+	} catch(QString &err) {
+		completedFn(false, err);
+	}
 }
 
 void AccountManager::importAccountTrusted(const QJsonObject &importData, const QString &password, const function<void (bool, QString)> &completedFn, bool keepData)
@@ -202,7 +208,12 @@ void AccountManager::importAccountTrusted(const QJsonObject &importData, const Q
 
 void AccountManager::importAccountTrusted(const QByteArray &importData, const QString &password, const function<void (bool, QString)> &completedFn, bool keepData)
 {
-	importAccountTrusted(QJsonDocument::fromJson(importData).object(), password, completedFn, keepData);
+	Q_ASSERT_X(completedFn, Q_FUNC_INFO, "completedFn must be a valid function");
+	try {
+		importAccountTrusted(SetupPrivate::parseObj(importData), password, completedFn, keepData);
+	} catch(QString &err) {
+		completedFn(false, err);
+	}
 }
 
 QString AccountManager::deviceName() const

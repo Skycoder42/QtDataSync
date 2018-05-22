@@ -398,6 +398,49 @@ Setup &Setup::resetCipherKeySize()
 	return *this;
 }
 
+Setup &Setup::setAccount(const QJsonObject &importData, bool keepData, bool allowFailure)
+{
+	d->initialImport = {
+		importData,
+		{},
+		keepData,
+		allowFailure
+	};
+	return *this;
+}
+
+Setup &Setup::setAccount(const QByteArray &importData, bool keepData, bool allowFailure)
+{
+	try {
+		return setAccount(SetupPrivate::parseObj(importData), keepData, allowFailure);
+	} catch(QString &s) {
+		throw Exception(QStringLiteral("<Unnamed>"), s);
+	}
+}
+
+Setup &Setup::setAccountTrusted(const QJsonObject &importData, const QString &password, bool keepData, bool allowFailure)
+{
+	if(password.isEmpty())
+		throw Exception(QStringLiteral("<Unnamed>"), ExchangeEngine::tr("Password for trusted import must not be empty"));
+
+	d->initialImport = {
+		importData,
+		password,
+		keepData,
+		allowFailure
+	};
+	return *this;
+}
+
+Setup &Setup::setAccountTrusted(const QByteArray &importData, const QString &password, bool keepData, bool allowFailure)
+{
+	try {
+		return setAccountTrusted(SetupPrivate::parseObj(importData), password, keepData, allowFailure);
+	} catch(QString &s) {
+		throw Exception(QStringLiteral("<Unnamed>"), s);
+	}
+}
+
 void Setup::create(const QString &name)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
@@ -416,6 +459,8 @@ void Setup::create(const QString &name)
 	// create defaults + engine
 	d->createDefaults(name, storageDir, false);
 	auto engine = new ExchangeEngine(name, d->fatalErrorHandler);
+	if(d->initialImport.isSet())
+		engine->prepareInitialAccount(d->initialImport);
 
 	// create and connect the new thread
 	auto thread = new QThread();
@@ -548,6 +593,17 @@ void SetupPrivate::createDefaults(const QString &setupName, const QDir &storageD
 									properties,
 									serializer.take(),
 									resolver.take());
+}
+
+QJsonObject SetupPrivate::parseObj(const QByteArray &data)
+{
+	QJsonParseError error;
+	const auto doc = QJsonDocument::fromJson(data, &error);
+	if(error.error != QJsonParseError::NoError)
+		throw error.errorString();
+	if(!doc.isObject())
+		throw ExchangeEngine::tr("Import data must be a JSON object");
+	return doc.object();
 }
 
 SetupPrivate::SetupPrivate() :

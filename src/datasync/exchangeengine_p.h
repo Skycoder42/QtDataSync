@@ -31,6 +31,15 @@ class Q_DATASYNC_EXPORT ExchangeEngine : public QObject
 	Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
+	struct Q_DATASYNC_EXPORT ImportData {
+		QJsonObject data;
+		QString password;
+		bool keepData = false;
+		bool allowFailure = false;
+
+		bool isSet() const;
+	};
+
 	explicit ExchangeEngine(const QString &setupName,
 							Setup::FatalErrorHandler errorHandler);
 
@@ -49,6 +58,8 @@ public:
 	SyncManager::SyncState state() const;
 	qreal progress() const;
 	QString lastError() const;
+
+	void prepareInitialAccount(const ImportData &data);
 
 public Q_SLOTS:
 	void initialize();
@@ -91,6 +102,8 @@ private:
 	SyncManagerPrivate *_syncManager;
 	AccountManagerPrivate *_accountManager;
 	ChangeEmitter *_emitter;
+
+	ImportData _initialImport;
 
 	static Q_NORETURN void defaultFatalErrorHandler(const QString &error, const QString &setup, const QMessageLogContext &context);
 

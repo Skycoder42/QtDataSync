@@ -23,6 +23,9 @@ public:
 	QString lastError() const override;
 	void setDeviceName(QString deviceName) override;
 
+	void importAccountInternal(const JsonObject &importData, bool keepData);
+	void importAccountTrustedInternal(const JsonObject &importData, const QString &password, bool keepData);
+
 public Q_SLOTS:
 	void listDevices() override;
 	void removeDevice(QUuid deviceId) override;

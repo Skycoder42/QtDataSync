@@ -288,6 +288,11 @@ public:
 	//! @resetAcFn{Setup::cipherKeySize}
 	Setup &resetCipherKeySize();
 
+	Setup &setAccount(const QJsonObject &importData, bool keepData = false, bool allowFailure = false);
+	Setup &setAccount(const QByteArray &importData, bool keepData = false, bool allowFailure = false);
+	Setup &setAccountTrusted(const QJsonObject &importData, const QString &password, bool keepData = false, bool allowFailure = false);
+	Setup &setAccountTrusted(const QByteArray &importData, const QString &password, bool keepData = false, bool allowFailure = false);
+
 	//! Creates a datasync instance from this setup with the given name
 	void create(const QString &name = DefaultSetup);
 	//! Creates a passive setup with the given name that connects to the primary datasync instance

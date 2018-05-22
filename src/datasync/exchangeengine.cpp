@@ -32,7 +32,8 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, Setup::FatalErrorHandle
 	_roHost(nullptr),
 	_syncManager(nullptr),
 	_accountManager(nullptr),
-	_emitter(new ChangeEmitter(_defaults, this)) //must be created here, because of access
+	_emitter(new ChangeEmitter(_defaults, this)), //must be created here, because of access
+	_initialImport()
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
@@ -87,6 +88,11 @@ QString ExchangeEngine::lastError() const
 	return _lastError;
 }
 
+void ExchangeEngine::prepareInitialAccount(const ExchangeEngine::ImportData &data)
+{
+	_initialImport = data;
+}
+
 void ExchangeEngine::initialize()
 {
 	logDebug() << "Beginning engine initialization";
@@ -124,6 +130,7 @@ void ExchangeEngine::initialize()
 
 		//initialize all
 		QVariantHash params;
+		params.insert(QStringLiteral("delayStart"), _initialImport.isSet());
 		params.insert(QStringLiteral("store"), QVariant::fromValue(_localStore));
 		params.insert(QStringLiteral("emitter"), QVariant::fromValue(_emitter));
 		_changeController->initialize(params);
@@ -139,6 +146,25 @@ void ExchangeEngine::initialize()
 		_accountManager = new AccountManagerPrivate(this);
 		_roHost->enableRemoting(_accountManager);
 		logDebug() << "RemoteObject host node initialized";
+
+		if(_initialImport.isSet()) {
+			try {
+				if(_initialImport.password.isEmpty()) {
+					_accountManager->importAccountInternal(_initialImport.data,
+														   _initialImport.keepData);
+				} else {
+					_accountManager->importAccountTrustedInternal(_initialImport.data,
+																  _initialImport.password,
+																  _initialImport.keepData);
+				}
+			} catch(QException &e) {
+				if(_initialImport.allowFailure)
+					logCritical() << "Failed to start engine with imported account data - starting normally. Import error:" << e.what();
+				else
+					throw;
+			}
+			_remoteConnector->start();
+		}
 	} catch (Exception &e) {
 		logFatal(e.qWhat());
 	} catch (std::exception &e) {
@@ -304,4 +330,11 @@ void ExchangeEngine::resetProgress(Controller *controller)
 	if(changed)
 		emit progressChanged(progress());
 	_progressAllowed = controller;
+}
+
+
+
+bool ExchangeEngine::ImportData::isSet() const
+{
+	return !data.isEmpty();
 }

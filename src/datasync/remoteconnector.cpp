@@ -117,7 +117,15 @@ void RemoteConnector::initialize(const QVariantHash &params)
 		triggerError(true);
 	});
 
-	_stateMachine->start();
+	// start connector (but only if not delayed)
+	if(!params.value(QStringLiteral("delayStart"), false).toBool())
+		_stateMachine->start();
+}
+
+void RemoteConnector::start()
+{
+	if(!_stateMachine->isRunning())
+		_stateMachine->start();
 }
 
 void RemoteConnector::finalize()
@@ -239,6 +247,13 @@ void RemoteConnector::resetAccount(bool clearConfig)
 		clearCaches(true);
 		settings()->remove(keyDeviceId);
 		_cryptoController->deleteKeyMaterial(devId);
+
+		// not running yet -> do nothing else
+		if(!_stateMachine->isRunning()) {
+			logDebug() << "Account data resetted. Waiting for startup to be completed";
+			return;
+		}
+
 		if(isIdle()) {//delete yourself. Disconnecting happens after that
 			Q_ASSERT_X(_deviceId == devId, Q_FUNC_INFO, "Stored deviceid does not match the current one");
 			logDebug() << "Deleting self from server";
@@ -249,6 +264,12 @@ void RemoteConnector::resetAccount(bool clearConfig)
 			reconnect();
 		}
 	} else {
+		// not running yet -> do nothing else
+		if(!_stateMachine->isRunning()) {
+			logDebug() << "Account data resetted. Waiting for startup to be completed";
+			return;
+		}
+
 		logDebug() << "Skipping server reset, not registered to a server";
 		//still reconnect, as this "completes" the operation (and is needed for imports)
 		reconnect();

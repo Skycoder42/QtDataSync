@@ -52,6 +52,31 @@ void AccountManagerPrivate::setDeviceName(QString deviceName)
 		_engine->remoteConnector()->setDeviceName(std::move(deviceName));
 }
 
+void AccountManagerPrivate::importAccountInternal(const JsonObject &importData, bool keepData)
+{
+	auto data = deserializeExportData(importData);
+	_engine->remoteConnector()->prepareImport(data, CryptoPP::SecByteBlock());
+	_engine->resetAccount(keepData, false);
+}
+
+void AccountManagerPrivate::importAccountTrustedInternal(const JsonObject &importData, const QString &password, bool keepData)
+{
+	auto scheme = importData[QStringLiteral("scheme")].toString().toUtf8();
+	auto salt = QByteArray::fromBase64(importData[QStringLiteral("salt")].toString().toUtf8());
+
+	auto key = _engine->cryptoController()->recoverExportKey(scheme, salt, password);
+	auto raw = _engine->cryptoController()->importDecrypt(scheme, salt, key,
+														  QByteArray::fromBase64(importData[QStringLiteral("data")].toString().toUtf8()));
+	QJsonParseError error;
+	auto obj = QJsonDocument::fromJson(raw, &error).object();
+	if(error.error != QJsonParseError::NoError)
+		throw Exception(_engine->defaults(), error.errorString());
+	auto data = deserializeExportData(obj);
+	//verify cmac not needed here, as integrity and authenticity are already part of the encryption scheme
+	_engine->remoteConnector()->prepareImport(data, key);
+	_engine->resetAccount(keepData, false);
+}
+
 void AccountManagerPrivate::listDevices()
 {
 	_engine->remoteConnector()->listDevices();
@@ -119,9 +144,7 @@ void AccountManagerPrivate::exportAccountTrusted(QUuid id, bool includeServer, c
 void AccountManagerPrivate::importAccount(const JsonObject &importData, bool keepData)
 {
 	try {
-		auto data = deserializeExportData(importData);
-		_engine->remoteConnector()->prepareImport(data, CryptoPP::SecByteBlock());
-		_engine->resetAccount(keepData, false);
+		importAccountInternal(importData, keepData);
 		emit accountImportResult(true, {});
 	} catch(QException &e) {
 		logWarning() << "Failed to import data with error:" << e.what();
@@ -137,20 +160,7 @@ void AccountManagerPrivate::importAccountTrusted(const JsonObject &importData, c
 	}
 
 	try {
-		auto scheme = importData[QStringLiteral("scheme")].toString().toUtf8();
-		auto salt = QByteArray::fromBase64(importData[QStringLiteral("salt")].toString().toUtf8());
-
-		auto key = _engine->cryptoController()->recoverExportKey(scheme, salt, password);
-		auto raw = _engine->cryptoController()->importDecrypt(scheme, salt, key,
-															  QByteArray::fromBase64(importData[QStringLiteral("data")].toString().toUtf8()));
-		QJsonParseError error;
-		auto obj = QJsonDocument::fromJson(raw, &error).object();
-		if(error.error != QJsonParseError::NoError)
-			throw Exception(_engine->defaults(), error.errorString());
-		auto data = deserializeExportData(obj);
-		//verify cmac not needed here, as integrity and authenticity are already part of the encryption scheme
-		_engine->remoteConnector()->prepareImport(data, key);
-		_engine->resetAccount(keepData, false);
+		importAccountTrustedInternal(importData, password, keepData);
 		emit accountImportResult(true, {});
 	} catch(QException &e) {
 		logWarning() << "Failed to decrypt import data with error:" << e.what();

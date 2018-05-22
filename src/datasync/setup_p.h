@@ -28,6 +28,8 @@ public:
 	QDir createStorageDir(const QString &setupName);
 	void createDefaults(const QString &setupName, const QDir &storageDir, bool passive);
 
+	static QJsonObject parseObj(const QByteArray &data);
+
 private:
 	struct SetupInfo {
 		QThread *thread;
@@ -49,6 +51,7 @@ private:
 	QScopedPointer<ConflictResolver> resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 	Setup::FatalErrorHandler fatalErrorHandler;
+	ExchangeEngine::ImportData initialImport;
 
 	SetupPrivate();
 };

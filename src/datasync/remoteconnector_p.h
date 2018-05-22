@@ -89,6 +89,7 @@ public:
 	CryptoController *cryptoController() const;
 
 	void initialize(const QVariantHash &params) final;
+	void start();
 	void finalize() final;
 
 	std::tuple<ExportData, QByteArray, CryptoPP::SecByteBlock> exportAccount(bool includeServer, const QString &password); // (exportdata, salt, key)
