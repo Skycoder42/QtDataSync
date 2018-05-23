@@ -4,7 +4,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QMutex>
 
-#include <QtRemoteObjects/QtROServerFactory>
+#include <QtRemoteObjects/private/qconnectionfactories_p.h>
 
 #include "qtdatasync_global.h"
 #include "exchangebuffer_p.h"

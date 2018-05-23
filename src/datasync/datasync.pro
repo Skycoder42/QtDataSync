@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core jsonserializer sql websockets scxml remoteobjects
+QT = core jsonserializer sql websockets scxml remoteobjects remoteobjects-private
 
 HEADERS += \
 	qtdatasync_global.h \
