@@ -6,7 +6,7 @@
 		".qtremoteobjects",
 		".skycoder42.jsonserializer"
 	],
-	"excludes": [ "static", "mingw", "winrt_arm" ],
+	"excludes": [ "mingw", "winrt_arm" ],
 	"license": {
 		"name": "BSD-3-Clause",
 		"path": "LICENSE"
