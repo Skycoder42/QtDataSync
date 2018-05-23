@@ -3,6 +3,7 @@
 	"description": "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices.",
 	"modules": [ "QtDataSync" ],
 	"dependencies": [
+		".qtremoteobjects",
 		".skycoder42.jsonserializer"
 	],
 	"excludes": [ "static", "mingw", "winrt_arm" ],
