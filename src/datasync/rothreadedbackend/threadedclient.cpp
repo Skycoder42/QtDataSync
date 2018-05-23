@@ -55,14 +55,20 @@ void ThreadedClientIoDevice::connectToServer()
 		emit shouldReconnect(this);
 }
 
-bool ThreadedClientIoDevice::isOpen()
+bool ThreadedClientIoDevice::isOpen() const
 {
 	return !isClosing() && _buffer->isOpen();
 }
 
-QIODevice *ThreadedClientIoDevice::connection()
+QIODevice *ThreadedClientIoDevice::connection() const
 {
 	return _buffer;
+}
+
+void ThreadedClientIoDevice::doDisconnectFromServer()
+{
+	if(_buffer->isOpen())
+		_buffer->close();
 }
 
 void ThreadedClientIoDevice::doClose()

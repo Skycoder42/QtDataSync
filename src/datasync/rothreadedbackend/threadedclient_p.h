@@ -4,7 +4,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QTimer>
 
-#include <QtRemoteObjects/QtROServerFactory>
+#include <QtRemoteObjects/private/qconnectionfactories_p.h>
 
 #include "qtdatasync_global.h"
 
@@ -21,10 +21,11 @@ public:
 	~ThreadedClientIoDevice();
 
 	void connectToServer() override;
-	bool isOpen() override;
-	QIODevice *connection() override;
+	bool isOpen() const override;
+	QIODevice *connection() const override;
 
 protected:
+	void doDisconnectFromServer() override;
 	void doClose() override;
 
 private Q_SLOTS:
