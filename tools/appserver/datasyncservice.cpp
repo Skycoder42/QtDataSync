@@ -1,18 +1,16 @@
-#include "app.h"
+#include "datasyncservice.h"
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtCore/QStandardPaths>
 
-#include <QCtrlSignals>
-
 #include "message_p.h"
 
 using namespace std::chrono;
 
-App::App(int &argc, char **argv) :
-	QCoreApplication(argc, argv),
+DatasyncService::DatasyncService(int &argc, char **argv) :
+	Service{argc, argv},
 	_config(nullptr),
 	_mainPool(nullptr),
 	_connector(nullptr),
@@ -23,58 +21,35 @@ App::App(int &argc, char **argv) :
 	QCoreApplication::setOrganizationName(QStringLiteral(COMPANY));
 	QCoreApplication::setOrganizationDomain(QStringLiteral(BUNDLE_PREFIX));
 
-	//setup logging
-	qSetMessagePattern(QStringLiteral("[%{time} "
-									  "%{if-debug}\033[32mDebug\033[0m]    %{endif}"
-									  "%{if-info}\033[36mInfo\033[0m]     %{endif}"
-									  "%{if-warning}\033[33mWarning\033[0m]  %{endif}"
-									  "%{if-critical}\033[31mCritical\033[0m] %{endif}"
-									  "%{if-fatal}\033[35mFatal\033[0m]    %{endif}"
-									  "%{if-category}%{category}: %{endif}"
-									  "%{message}"));
-
-	QtDataSync::Message::registerTypes();
-
-	connect(this, &App::aboutToQuit,
-			this, &App::stop,
-			Qt::DirectConnection);
-
-	auto handler = QCtrlSignalHandler::instance();
-	handler->setAutoQuitActive(true);
-#ifdef Q_OS_UNIX
-	connect(handler, &QCtrlSignalHandler::ctrlSignal,
-			this, &App::onSignal);
-	handler->registerForSignal(SIGHUP);
-	handler->registerForSignal(SIGCONT);
-	handler->registerForSignal(SIGTSTP);
-	handler->registerForSignal(SIGUSR1);
-#endif
+	addCallback("SIGUSR1", &DatasyncService::sigusr1);
+	addCallback("command", &DatasyncService::command);
 }
 
-const QSettings *App::configuration() const
+const QSettings *DatasyncService::configuration() const
 {
 	return _config;
 }
 
-QThreadPool *App::threadPool() const
+QThreadPool *DatasyncService::threadPool() const
 {
 	return _mainPool;
 }
 
-QString App::absolutePath(const QString &path) const
+QString DatasyncService::absolutePath(const QString &path) const
 {
 	auto dir = QFileInfo(_config->fileName()).dir();
 	return QDir::cleanPath(dir.absoluteFilePath(path));
 }
 
-bool App::start(const QString &serviceName)
+QtService::Service::CommandMode DatasyncService::onStart()
 {
-	Q_UNUSED(serviceName)
+	QtDataSync::Message::registerTypes();
 
 	auto configPath = findConfig();
 	if(configPath.isEmpty()) {
 		qCritical() << "Unable to find any configuration file. Set it explicitly via the QDSAPP_CONFIG_FILE environment variable";
-		return false;
+		qApp->exit(EXIT_FAILURE);
+		return Synchronous;
 	}
 
 	_config = new QSettings(configPath, QSettings::IniFormat, this);
@@ -83,7 +58,8 @@ bool App::start(const QString &serviceName)
 					<< configPath
 					<< "with error:"
 					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
-		return false;
+		qApp->exit(EXIT_FAILURE);
+		return Synchronous;
 	}
 
 	//before anything else: read log level
@@ -130,83 +106,60 @@ bool App::start(const QString &serviceName)
 	_connector = new ClientConnector(_database, this);
 
 	connect(_database, &DatabaseController::databaseInitDone,
-			this, &App::completeStartup,
+			this, &DatasyncService::completeStartup,
 			Qt::QueuedConnection);
 
-	if(!_connector->setupWss())
-		return false;
+	if(!_connector->setupWss()) {
+		qApp->exit(EXIT_FAILURE);
+		return Synchronous;
+	}
 	_database->initialize();
 
 	qDebug() << QCoreApplication::applicationName() << "started successfully";
-	return true;
+	return Asynchronous;
 }
 
-void App::stop()
+QtService::Service::CommandMode DatasyncService::onStop(int &exitCode)
 {
 	qDebug() << "Stopping server...";
 	_connector->disconnectAll();
 	_mainPool->clear();
 	_mainPool->waitForDone();
+	exitCode = EXIT_SUCCESS;
 	qDebug() << "Server stopped";
+	return Synchronous;
 }
 
-void App::pause()
+QtService::Service::CommandMode DatasyncService::onReload()
+{
+	//TODO implement
+	Q_UNIMPLEMENTED();
+	return Synchronous;
+}
+
+QtService::Service::CommandMode DatasyncService::onPause()
 {
 	qDebug() << "Pausing server...";
 	_connector->setPaused(true);
+	return Synchronous;
 }
 
-void App::resume()
+QtService::Service::CommandMode DatasyncService::onResume()
 {
 	qDebug() << "Resuming server...";
 	_connector->setPaused(false);
+	return Synchronous;
 }
 
-void App::reload()
-{
-	Q_UNIMPLEMENTED();
-}
-
-void App::processCommand(int code)
-{
-	switch (code) {
-	case CleanupCode:
-		_database->cleanupDevices();
-		break;
-	default:
-		break;
-	}
-}
-
-void App::completeStartup(bool ok)
+void DatasyncService::completeStartup(bool ok)
 {
 	if(!ok || !_connector->listen())
 		qApp->exit();
+	else
+		emit started();
 }
 
-void App::onSignal(int signal)
-{
-#ifdef Q_OS_UNIX
-	switch (signal) {
-	case SIGHUP:
-		reload();
-		break;
-	case SIGCONT:
-		resume();
-		break;
-	case SIGTSTP:
-		pause();
-		break;
-	case SIGUSR1:
-		processCommand(CleanupCode);
-		break;
-	default:
-		break;
-	}
-#endif
-}
-
-QString App::findConfig() const
+QString DatasyncService::findConfig() const
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 	auto configPath = qEnvironmentVariable("QDSAPP_CONFIG_FILE");
@@ -248,10 +201,24 @@ QString App::findConfig() const
 	return {};
 }
 
+void DatasyncService::sigusr1()
+{
+	_database->cleanupDevices();
+}
+
+void DatasyncService::command(int cmd)
+{
+	switch (cmd) {
+	case CleanupCode:
+		_database->cleanupDevices();
+		break;
+	default:
+		break;
+	}
+}
+
 int main(int argc, char *argv[])
 {
-	App a(argc, argv);
-	if(!a.start({}))
-		return EXIT_FAILURE;
+	DatasyncService a(argc, argv);
 	return a.exec();
 }

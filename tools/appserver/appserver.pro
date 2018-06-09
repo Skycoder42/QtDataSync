@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += websockets sql concurrent
+QT += websockets sql concurrent service
 QT -= gui
 
 CONFIG += console
@@ -23,17 +23,17 @@ DEFINES += "BUNDLE_PREFIX=\\\"$$BUNDLE_PREFIX\\\""
 
 HEADERS += \
 	clientconnector.h \
-	app.h \
 	client.h \
 	databasecontroller.h \
-	singletaskqueue.h
+	singletaskqueue.h \
+    datasyncservice.h
 
 SOURCES += \
 	clientconnector.cpp \
-	app.cpp \
 	client.cpp \
 	databasecontroller.cpp \
-	singletaskqueue.cpp
+	singletaskqueue.cpp \
+    datasyncservice.cpp
 
 DISTFILES += \
 	docker_setup.conf \
@@ -43,7 +43,9 @@ DISTFILES += \
 	dockerbuild/install.sh \
 	qdsapp.service \
 	qdsapp.socket \
-	qdsapp.conf
+	qdsapp.conf \
+    de.skycoder42.qtdatasync.qdsapp.plist \
+    qdsapp-install.bat
 
 include(../../src/messages/messages.pri)
 

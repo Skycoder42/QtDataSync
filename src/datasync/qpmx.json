@@ -1,26 +1,27 @@
 {
-	"dependencies": [
-		{
-			"package": "de.skycoder42.qpluginfactory",
-			"provider": "qpm",
-			"version": "1.2.2"
-		},
-		{
-			"package": "de.skycoder42.cryptoqq",
-			"provider": "qpm",
-			"version": "1.1.0"
-		}
-	],
-	"license": {
-		"file": "",
-		"name": ""
-	},
-	"prcFile": "",
-	"priFile": "",
-	"priIncludes": [
-		"../messages"
-	],
-	"publishers": {
-	},
-	"source": true
+    "dependencies": [
+        {
+            "package": "de.skycoder42.qpluginfactory",
+            "provider": "qpm",
+            "version": "1.3.0"
+        },
+        {
+            "package": "de.skycoder42.cryptoqq",
+            "provider": "qpm",
+            "version": "1.1.0"
+        }
+    ],
+    "license": {
+        "file": "",
+        "name": ""
+    },
+    "prcFile": "",
+    "priFile": "",
+    "priIncludes": [
+        "../messages"
+    ],
+    "publishers": {
+    },
+    "qbsFile": "",
+    "source": true
 }

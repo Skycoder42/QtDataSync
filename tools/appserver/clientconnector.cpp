@@ -3,7 +3,7 @@
 #include <QSslKey>
 #include <QWebSocket>
 #include <QWebSocketCorsAuthenticator>
-#include "app.h"
+#include "datasyncservice.h"
 
 ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) :
 	QObject(parent),
@@ -12,9 +12,9 @@ ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) 
 	secret(),
 	clients()
 {
-	auto name = qApp->configuration()->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toString();
-	auto mode = qApp->configuration()->value(QStringLiteral("server/wss"), false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
-	secret = qApp->configuration()->value(QStringLiteral("server/secret")).toString();
+	auto name = qService->configuration()->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toString();
+	auto mode = qService->configuration()->value(QStringLiteral("server/wss"), false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+	secret = qService->configuration()->value(QStringLiteral("server/secret")).toString();
 
 	server = new QWebSocketServer(name, mode, this);
 	connect(server, &QWebSocketServer::newConnection,
@@ -40,8 +40,8 @@ bool ClientConnector::setupWss()
 		return true;
 	}
 
-	auto filePath = qApp->configuration()->value(QStringLiteral("server/wss/pfx")).toString();
-	filePath = qApp->absolutePath(filePath);
+	auto filePath = qService->configuration()->value(QStringLiteral("server/wss/pfx")).toString();
+	filePath = qService->absolutePath(filePath);
 
 	QSslKey privateKey;
 	QSslCertificate localCert;
@@ -60,7 +60,7 @@ bool ClientConnector::setupWss()
 								  &privateKey,
 								  &localCert,
 								  &caCerts,
-								  qApp->configuration()->value(QStringLiteral("server/wss/pass")).toString().toUtf8())) {
+								  qService->configuration()->value(QStringLiteral("server/wss/pass")).toString().toUtf8())) {
 		auto conf = server->sslConfiguration();
 		conf.setLocalCertificate(localCert);
 		conf.setPrivateKey(privateKey);
@@ -80,28 +80,34 @@ bool ClientConnector::setupWss()
 
 bool ClientConnector::listen()
 {
-	QHostAddress host {
-		qApp->configuration()->value(QStringLiteral("server/host"),
-									 QHostAddress(QHostAddress::Any).toString())
-				.toString()
-	};
-
-	auto port = static_cast<quint16>(qApp->configuration()->value(QStringLiteral("server/port"), 4242).toUInt());
-	if(server->listen(host, port)) {
-		if(port != server->serverPort())
-			qInfo() << "Listening on port" << server->serverPort();
-		else
-			qDebug() << "Listening on port" << port;
-		return true;
+	quint16 port = 0;
+	auto dSocket = qService->getSocket();
+	if(dSocket != -1) {
+		server->setSocketDescriptor(dSocket);
+		if(!server->isListening()) {
+			qCritical() << "Failed to listen on activated socket" << dSocket
+						<< "with error:" << server->errorString();
+			return false;
+		}
 	} else {
-		qCritical() << "Failed to listen as"
-					<< host
-					<< "on port"
-					<< port
-					<< "with error:"
-					<< server->errorString();
-		return false;
+		QHostAddress host {
+			qService->configuration()->value(QStringLiteral("server/host"),
+										 QHostAddress(QHostAddress::Any).toString())
+					.toString()
+		};
+		port = static_cast<quint16>(qService->configuration()->value(QStringLiteral("server/port"), 4242).toUInt());
+		if(!server->listen(host, port)) {
+			qCritical() << "Failed to listen on interface" << host << "and port" << port
+						<< "with error:" << server->errorString();
+			return false;
+		}
 	}
+
+	if(port != server->serverPort())
+		qInfo() << "Listening on port" << server->serverPort();
+	else
+		qDebug() << "Listening on port" << port;
+	return true;
 }
 
 void ClientConnector::close()

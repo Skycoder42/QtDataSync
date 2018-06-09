@@ -1,5 +1,5 @@
 #include "client.h"
-#include "app.h"
+#include "datasyncservice.h"
 #include "identifymessage_p.h"
 #include "accountmessage_p.h"
 #include "welcomemessage_p.h"
@@ -85,7 +85,7 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	_uploadLimit(10),
 	_downLimit(20),
 	_downThreshold(10),
-	_queue(new SingleTaskQueue(qApp->threadPool(), this)),
+	_queue(new SingleTaskQueue(qService->threadPool(), this)),
 	_state(Authenticating),
 	_deviceId(),
 	_loginNonce(),
@@ -103,10 +103,10 @@ Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *par
 	connect(_socket, &QWebSocket::sslErrors,
 			this, &Client::sslErrors);
 
-	_uploadLimit = qApp->configuration()->value(QStringLiteral("server/uploads/limit"), _uploadLimit).toUInt();
-	_downLimit = qApp->configuration()->value(QStringLiteral("server/downloads/limit"), _downLimit).toUInt();
-	_downThreshold = qApp->configuration()->value(QStringLiteral("server/downloads/threshold"), _downThreshold).toUInt();
-	auto idleTimeout = qApp->configuration()->value(QStringLiteral("server/idleTimeout"), 5).toInt();
+	_uploadLimit = qService->configuration()->value(QStringLiteral("server/uploads/limit"), _uploadLimit).toUInt();
+	_downLimit = qService->configuration()->value(QStringLiteral("server/downloads/limit"), _downLimit).toUInt();
+	_downThreshold = qService->configuration()->value(QStringLiteral("server/downloads/threshold"), _downThreshold).toUInt();
+	auto idleTimeout = qService->configuration()->value(QStringLiteral("server/idleTimeout"), 5).toInt();
 	if(idleTimeout > 0) {
 		_idleTimer = new QTimer(this);
 		_idleTimer->setInterval(scdtime(minutes(idleTimeout)));

@@ -1,14 +1,15 @@
-#ifndef APP_H
-#define APP_H
+#ifndef DATASYNCSERVICE_H
+#define DATASYNCSERVICE_H
 
-#include <QtCore/QCoreApplication>
+#include <QtService/Service>
+
 #include <QtCore/QSettings>
 #include <QtCore/QPointer>
 
 #include "clientconnector.h"
 #include "databasecontroller.h"
 
-class App : public QCoreApplication
+class DatasyncService : public QtService::Service
 {
 	Q_OBJECT
 
@@ -19,23 +20,21 @@ public:
 	};
 	Q_ENUM(ServiceCodes)
 
-	explicit App(int &argc, char **argv);
+	explicit DatasyncService(int &argc, char **argv);
 
 	const QSettings *configuration() const;
 	QThreadPool *threadPool() const;
 	QString absolutePath(const QString &path) const;
 
-public Q_SLOTS://defined like that to be ready for service inclusion
-	bool start(const QString &serviceName);
-	void stop();
-	void pause();
-	void resume();
-	void reload();
-	void processCommand(int code);
+protected:
+	CommandMode onStart() override;
+	CommandMode onStop(int &exitCode) override;
+	CommandMode onReload() override;
+	CommandMode onPause() override;
+	CommandMode onResume() override;
 
 private Q_SLOTS:
 	void completeStartup(bool ok);
-	void onSignal(int signal);
 
 private:
 	const QSettings *_config;
@@ -44,9 +43,12 @@ private:
 	DatabaseController *_database;
 
 	QString findConfig() const;
+
+	void sigusr1();
+	void command(int cmd);
 };
 
-#undef qApp
-#define qApp static_cast<App*>(QCoreApplication::instance())
+#undef qService
+#define qService static_cast<DatasyncService*>(QtService::Service::instance())
 
-#endif // APP_H
+#endif // DATASYNCSERVICE_H

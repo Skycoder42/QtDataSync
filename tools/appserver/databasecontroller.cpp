@@ -1,5 +1,5 @@
 #include "databasecontroller.h"
-#include "app.h"
+#include "datasyncservice.h"
 
 #include <QtCore/QJsonDocument>
 
@@ -42,21 +42,21 @@ DatabaseController::DatabaseController(QObject *parent) :
 
 void DatabaseController::initialize()
 {
-	auto quota = qApp->configuration()->value(QStringLiteral("quota/limit"), 10485760).toULongLong(); //10MB
-	auto force = qApp->configuration()->value(QStringLiteral("quota/force"), false).toBool();
-	QtConcurrent::run(qApp->threadPool(), this, &DatabaseController::initDatabase,
+	auto quota = qService->configuration()->value(QStringLiteral("quota/limit"), 10485760).toULongLong(); //10MB
+	auto force = qService->configuration()->value(QStringLiteral("quota/force"), false).toBool();
+	QtConcurrent::run(qService->threadPool(), this, &DatabaseController::initDatabase,
 					  quota, force);
 }
 
 void DatabaseController::cleanupDevices()
 {
-	auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanup/interval"),
+	auto offlineSinceDays = qService->configuration()->value(QStringLiteral("cleanup/interval"),
 														 90ull) //default interval of ca 3 months
 							.toULongLong();
 	if(offlineSinceDays == 0)
 		return;
 
-	QtConcurrent::run(qApp->threadPool(), [offlineSinceDays]() {
+	QtConcurrent::run(qService->threadPool(), [offlineSinceDays]() {
 		try {
 			auto db = _threadStore.localData().database();
 			if(!db.transaction())
@@ -664,7 +664,7 @@ tuple<quint32, QByteArray, QByteArray, QByteArray> DatabaseController::loadKeyCh
 void DatabaseController::dbInitDone(bool success)
 {
 	if(success) { //done on the main thread to make sure the connection does not die with threads
-		auto liveSync = qApp->configuration()->value(QStringLiteral("livesync"), true).toBool();
+		auto liveSync = qService->configuration()->value(QStringLiteral("livesync"), true).toBool();
 		if(liveSync) {
 			auto driver = _threadStore.localData().database().driver();
 			connect(driver, QOverload<const QString &, QSqlDriver::NotificationSource, const QVariant &>::of(&QSqlDriver::notification),
@@ -679,7 +679,7 @@ void DatabaseController::dbInitDone(bool success)
 	}
 
 	if(success) {
-		auto delay = qApp->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
+		auto delay = qService->configuration()->value(QStringLiteral("database/keepaliveInterval"), 5).toInt();
 		if(delay > 0) {
 			_keepAliveTimer = new QTimer(this);
 			_keepAliveTimer->setInterval(scdtime(minutes(delay)));
@@ -693,7 +693,7 @@ void DatabaseController::dbInitDone(bool success)
 	}
 
 	if(success) {
-		if(qApp->configuration()->value(QStringLiteral("cleanup/auto"), true).toBool()) {
+		if(qService->configuration()->value(QStringLiteral("cleanup/auto"), true).toBool()) {
 			_cleanupTimer = new QTimer(this);
 			_cleanupTimer->setInterval(scdtime(hours(24)));
 			_cleanupTimer->setTimerType(Qt::VeryCoarseTimer);
@@ -701,7 +701,7 @@ void DatabaseController::dbInitDone(bool success)
 					this, &DatabaseController::cleanupDevices);
 			_cleanupTimer->start();
 
-			auto offlineSinceDays = qApp->configuration()->value(QStringLiteral("cleanup/interval"),
+			auto offlineSinceDays = qService->configuration()->value(QStringLiteral("cleanup/interval"),
 																 90ull) //default interval of ca 3 months
 									.toULongLong();
 			qInfo() << "Automatic cleanup enabled with" << offlineSinceDays << "day intervals";
@@ -1018,7 +1018,7 @@ void DatabaseController::updateQuotaLimit(quint64 quota, bool forceQuota)
 DatabaseController::DatabaseWrapper::DatabaseWrapper() :
 	dbName(QUuid::createUuid().toString())
 {
-	auto config = qApp->configuration();
+	auto config = qService->configuration();
 	auto db = QSqlDatabase::addDatabase(config->value(QStringLiteral("database/driver"), QStringLiteral("QPSQL")).toString(), dbName);
 	db.setDatabaseName(config->value(QStringLiteral("database/name"), QCoreApplication::applicationName()).toString());
 	db.setHostName(config->value(QStringLiteral("database/host"), QStringLiteral("localhost")).toString());
