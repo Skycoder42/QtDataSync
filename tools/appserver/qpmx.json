@@ -1,21 +1,22 @@
 {
-	"dependencies": [
-		{
-			"package": "de.skycoder42.cryptoqq",
-			"provider": "qpm",
-			"version": "1.1.0"
-		}
-	],
-	"license": {
-		"file": "",
-		"name": ""
-	},
-	"prcFile": "",
-	"priFile": "",
-	"priIncludes": [
-		"../../src/messages"
-	],
-	"publishers": {
-	},
-	"source": true
+    "dependencies": [
+        {
+            "package": "de.skycoder42.cryptoqq",
+            "provider": "qpm",
+            "version": "1.1.1"
+        }
+    ],
+    "license": {
+        "file": "",
+        "name": ""
+    },
+    "prcFile": "",
+    "priFile": "",
+    "priIncludes": [
+        "../../src/messages"
+    ],
+    "publishers": {
+    },
+    "qbsFile": "",
+    "source": true
 }

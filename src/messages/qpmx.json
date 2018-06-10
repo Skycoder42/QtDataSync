@@ -3,7 +3,7 @@
         {
             "package": "de.skycoder42.cryptoqq",
             "provider": "qpm",
-            "version": "1.1.0"
+            "version": "1.1.1"
         }
     ],
     "license": {
@@ -16,5 +16,6 @@
     ],
     "publishers": {
     },
+    "qbsFile": "",
     "source": true
 }
