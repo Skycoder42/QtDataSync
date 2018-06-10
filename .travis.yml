@@ -11,7 +11,7 @@ env:
   global:
     - QPMX_CACHE_DIR=$HOME/.qpmx-cache
     - QT_VER=5.11.0
-    - DOCKER_IMAGE=json
+    - DOCKER_IMAGE=common
     - EXTRA_MODULES=".qtremoteobjects .skycoder42.jsonserializer"
 
 matrix:

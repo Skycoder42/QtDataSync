@@ -4,7 +4,8 @@
 	"modules": [ "QtDataSync" ],
 	"dependencies": [
 		".qtremoteobjects",
-		".skycoder42.jsonserializer"
+		".skycoder42.jsonserializer",
+		".skycoder42.service"
 	],
 	"excludes": [ "mingw", "winrt_arm" ],
 	"license": {
