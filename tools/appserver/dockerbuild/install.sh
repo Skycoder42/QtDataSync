@@ -53,7 +53,7 @@ make install
 cd ..
 
 # build qt modules
-for repo in qtwebsockets; do
+for repo in qtwebsockets tools; do
 	git clone --depth 1 https://code.qt.io/qt/$repo.git ./$repo --branch $QT_VERSION
 	cd $repo
 	qmake

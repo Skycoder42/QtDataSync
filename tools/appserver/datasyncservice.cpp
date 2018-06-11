@@ -5,6 +5,8 @@
 #include <QtCore/QTimer>
 #include <QtCore/QStandardPaths>
 
+#include <iostream>
+
 #include "message_p.h"
 
 using namespace std::chrono;
@@ -219,6 +221,14 @@ void DatasyncService::command(int cmd)
 
 int main(int argc, char *argv[])
 {
+	// check if version
+	for(auto i = 0; i < argc; i++) {
+		if(qstrcmp(argv[i], "--version") == 0) {
+			std::cout << VERSION << std::endl;
+			return EXIT_SUCCESS;
+		}
+	}
+
 	DatasyncService a(argc, argv);
 	return a.exec();
 }
