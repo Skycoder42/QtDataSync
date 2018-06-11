@@ -44,8 +44,7 @@ DISTFILES += $$SVC_CONFIG_FILES \
 	docker_setup.conf \
 	docker-compose.yaml \
 	../../Dockerfile \
-	dockerbuild/env_start.sh \
-	dockerbuild/install.sh \
+	dockerbuild/*
 
 include(../../src/messages/messages.pri)
 

@@ -67,7 +67,7 @@ for repo in QtJsonSerializer qpmx QtService; do
 	latesttag=$(git describe --tags --abbrev=0)
 	echo checking out ${latesttag}
 	git checkout ${latesttag}
-	
+
 	if [ "$repo" == "qpmx" ]; then
 		git submodule init
 		git submodule update
@@ -87,11 +87,9 @@ latesttag=$(git describe --tags --abbrev=0)
 echo checking out ${latesttag}
 git checkout ${latesttag}
 
-sed -i -e 's/^CXXFLAGS/#CXXFLAGS/' GNUmakefile
-export CXXFLAGS="${CXXFLAGS} -DNDEBUG -fPIC"
-make -f GNUmakefile
-make libcryptopp.so
-make install
+CXXFLAGS+=" -DNDEBUG -fPIC" make dynamic
+make install PREFIX="/usr"
+install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
 cd ..
 
 # build messages
