@@ -71,7 +71,7 @@ for repo in QtJsonSerializer qpmx QtService; do
 	git submodule init && git submodule update || true
 
 	qmake
-	make > /dev/null || cat /tmp/qpmx-*/* && false
+	make > /dev/null || (cat /tmp/qpmx-*/*; exit 1)
 	make install
 	cd ..
 done
