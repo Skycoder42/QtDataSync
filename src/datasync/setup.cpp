@@ -400,7 +400,7 @@ Setup &Setup::resetCipherKeySize()
 
 Setup &Setup::setAccount(const QJsonObject &importData, bool keepData, bool allowFailure)
 {
-	d->initialImport = {
+	d->initialImport = ExchangeEngine::ImportData {
 		importData,
 		{},
 		keepData,
@@ -423,7 +423,7 @@ Setup &Setup::setAccountTrusted(const QJsonObject &importData, const QString &pa
 	if(password.isEmpty())
 		throw Exception(QStringLiteral("<Unnamed>"), ExchangeEngine::tr("Password for trusted import must not be empty"));
 
-	d->initialImport = {
+	d->initialImport = ExchangeEngine::ImportData {
 		importData,
 		password,
 		keepData,
