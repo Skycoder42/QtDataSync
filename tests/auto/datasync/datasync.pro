@@ -14,8 +14,8 @@ SUBDIRS += \
 	TestRemoteConnector \
 	TestMigrationHelper
 
-CONFIG += ordered
-
 include_server_tests: SUBDIRS += \
 	TestAppServer \
 	IntegrationTest
+
+for(subdir, SUBDIRS):!equals(subdir, "TestLib"): $${subdir}.depends += TestLib
