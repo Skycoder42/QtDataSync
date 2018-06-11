@@ -222,13 +222,12 @@ void TestDataStore::testChangeSignals()
 	const auto key = 77;
 	auto data = TestLib::generateData(77);
 
-	QCoreApplication::processEvents();
-	QThread::sleep(1);
-	QCoreApplication::processEvents();
+	QSignalSpy store1Spy(store, &DataStore::dataChanged);
+	do //clear out any remaining signals
+		store1Spy.clear();
+	while(store1Spy.wait());
 
 	DataStore second(this);
-
-	QSignalSpy store1Spy(store, &DataStore::dataChanged);
 	QSignalSpy store2Spy(&second, &DataStore::dataChanged);
 
 	try {

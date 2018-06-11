@@ -554,13 +554,12 @@ void TestLocalStore::testChangeSignals()
 	const auto key = TestLib::generateKey(77);
 	auto data = TestLib::generateDataJson(77);
 
-	QCoreApplication::processEvents();
-	QThread::sleep(1);
-	QCoreApplication::processEvents();
+	QSignalSpy store1Spy(store, &LocalStore::dataChanged);
+	do //clear out any remaining signals
+		store1Spy.clear();
+	while(store1Spy.wait());
 
 	LocalStore second(DefaultsPrivate::obtainDefaults(DefaultSetup));
-
-	QSignalSpy store1Spy(store, &LocalStore::dataChanged);
 	QSignalSpy store2Spy(&second, &LocalStore::dataChanged);
 
 	try {
