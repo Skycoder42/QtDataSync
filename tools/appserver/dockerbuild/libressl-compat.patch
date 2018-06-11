@@ -1,0 +1,12 @@
+--- ./config.tests/unix/openssl11/openssl.cpp.orig	2018-04-24 09:59:45.918038335 +0200
++++ ./config.tests/unix/openssl11/openssl.cpp	2018-04-24 10:01:21.255182441 +0200
+@@ -42,6 +42,9 @@
+ #if !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER-0 < 0x10100000L
+ #  error "OpenSSL >= 1.1 is required"
+ #endif
++#ifdef LIBRESSL_VERSION_NUMBER
++#  error "LibreSSL does not support all used OpenSSL-1.1 APIs yet."
++#endif
+ 
+ int main()
+ {
