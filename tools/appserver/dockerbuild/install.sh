@@ -76,7 +76,10 @@ for repo in QtJsonSerializer qpmx QtService; do
 		git apply -v /tmp/src/tools/appserver/dockerbuild/qpmx.patch
 	fi
 
-	echo "SUBDIRS -= imports" >> src/src.pro
+	if [ -f src/imports/imports.pro ]; then
+		echo "SUBDIRS -= imports" >> src/src.pro
+	fi
+
 	qmake
 	make > /dev/null || (cat /tmp/qpmx-*/*; exit 1)
 	make install
