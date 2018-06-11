@@ -1,5 +1,5 @@
---- qpmx/template_static.pro.orig	2018-06-11 20:03:29.125075026 +0200
-+++ qpmx/template_static.pro	2018-06-11 20:02:40.421112252 +0200
+--- ./qpmx/template_static.pro.orig	2018-06-11 20:03:29.125075026 +0200
++++ ./qpmx/template_static.pro	2018-06-11 20:02:40.421112252 +0200
 @@ -5,6 +5,7 @@
  else: CONFIG += release
  

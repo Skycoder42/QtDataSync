@@ -2,6 +2,7 @@
 set -ex
 
 export MAKEFLAGS=-j$(nproc)
+export QPMX_CACHE_DIR=/tmp/qpmx-cache
 
 DS_NAME=qdsappd
 QT_VERSION=5.11.0
@@ -49,6 +50,7 @@ _qt5_datadir=/usr/share/qt5
 	-no-gui -no-widgets -no-feature-accessibility -no-feature-dom
 make > /dev/null
 make install
+cd ..
 
 # build qt modules
 for repo in qtwebsockets; do
