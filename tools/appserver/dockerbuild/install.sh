@@ -68,7 +68,11 @@ for repo in QtJsonSerializer qpmx QtService; do
 	echo checking out ${latesttag}
 	git checkout ${latesttag}
 	
-	git submodule init && git submodule update || true
+	if [ "$repo" == "qpmx" ]; then
+		git submodule init
+		git submodule update
+		git apply -v /tmp/src/tools/appserver/dockerbuild/qpmx.patch
+	fi
 
 	qmake
 	make > /dev/null || (cat /tmp/qpmx-*/*; exit 1)
