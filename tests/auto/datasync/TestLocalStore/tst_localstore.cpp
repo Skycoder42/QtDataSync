@@ -576,8 +576,8 @@ void TestLocalStore::testChangeSignals()
 		QCOMPARE(sig[1].toBool(), false);
 
 		QVERIFY(store2Spy.wait());
-		for(const auto &sig : store2Spy)
-			qDebug() << sig;
+		for(const auto &sigmem : store2Spy)
+			qDebug() << sigmem[0].value<ObjectKey>() << sigmem[1].toBool();
 		QCOMPARE(store2Spy.size(), 1);
 		sig = store2Spy.takeFirst();
 		QCOMPARE(sig[0].value<ObjectKey>(), key);
