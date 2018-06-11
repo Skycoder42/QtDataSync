@@ -53,7 +53,7 @@ make install
 cd ..
 
 # build qt modules
-for repo in qtdeclarative qtwebsockets; do
+for repo in qtwebsockets; do
 	git clone --depth 1 https://code.qt.io/qt/$repo.git ./$repo --branch $QT_VERSION
 	cd $repo
 	qmake
@@ -76,6 +76,7 @@ for repo in QtJsonSerializer qpmx QtService; do
 		git apply -v /tmp/src/tools/appserver/dockerbuild/qpmx.patch
 	fi
 
+	echo "SUBDIRS -= imports" >> src/src.pro
 	qmake
 	make > /dev/null || (cat /tmp/qpmx-*/*; exit 1)
 	make install
