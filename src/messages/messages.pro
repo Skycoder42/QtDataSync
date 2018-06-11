@@ -3,7 +3,7 @@ TEMPLATE = lib
 CONFIG += staticlib
 win32|darwin: CONFIG += debug_and_release build_all
 
-QT = core jsonserializer
+QT = core
 
 DESTDIR = $$shadowed($$dirname(_QMAKE_CONF_))/lib
 TARGET = $$qtLibraryTarget(qtdatasync-messages)

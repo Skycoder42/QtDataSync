@@ -1,5 +1,5 @@
 #LABEL maintainer="skycoder42.de@gmx.de"
-FROM ubuntu:rolling
+FROM alpine:edge
 
 COPY tools /tmp/src/tools
 COPY src/3rdparty/cryptopp/cryptopp.pri /tmp/src/src/3rdparty/cryptopp/cryptopp.pri
