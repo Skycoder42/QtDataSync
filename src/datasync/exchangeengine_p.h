@@ -34,10 +34,13 @@ public:
 	struct Q_DATASYNC_EXPORT ImportData {
 		QJsonObject data;
 		QString password;
-		bool keepData = false;
-		bool allowFailure = false;
+		bool keepData;
+		bool allowFailure;
 
 		bool isSet() const;
+
+		// c++14 compat
+		ImportData(QJsonObject data = {}, QString password = {}, bool keepData = false, bool allowFailure = false);
 	};
 
 	explicit ExchangeEngine(const QString &setupName,

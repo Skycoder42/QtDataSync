@@ -338,3 +338,10 @@ bool ExchangeEngine::ImportData::isSet() const
 {
 	return !data.isEmpty();
 }
+
+ExchangeEngine::ImportData::ImportData(QJsonObject data, QString password, bool keepData, bool allowFailure) :
+	data(std::move(data)),
+	password(std::move(password)),
+	keepData(keepData),
+	allowFailure(allowFailure)
+{}
