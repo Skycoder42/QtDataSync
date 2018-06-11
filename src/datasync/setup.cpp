@@ -504,12 +504,19 @@ bool Setup::createPassive(const QString &name, int timeout)
 	QObject::connect(defaults.data(), &DefaultsPrivate::passiveCreated,
 					 &waitLoop, [&]() {
 		isCreated = true;
+		if(timeout == 0)
+			waitLoop.quit();
 	});
 	QObject::connect(defaults.data(), &DefaultsPrivate::passiveReady,
 					 &waitLoop, &QEventLoop::quit);
-	QTimer::singleShot(timeout, &waitLoop, [&]() {
-		waitLoop.exit(EXIT_FAILURE);
-	});
+	if(timeout > 0) {
+		QTimer::singleShot(timeout, &waitLoop, [&]() {
+			if(isCreated)
+				waitLoop.exit(EXIT_FAILURE);
+			else //not created yet -> force exit once it is
+				timeout = 0;
+		});
+	}
 
 	auto res = waitLoop.exec();
 	Q_ASSERT_X(isCreated, Q_FUNC_INFO, "Timeout to low for the eventloop to pickup the object creation");

@@ -516,8 +516,11 @@ The passive setup differs from the active one greatly. It does **not** create a 
 instance, but instead tries to connect to an active one. This means, you typically have one
 process that uses a normal (active) setup, and one or more other processes, that connect to it
 by using a passive setup. If the setup fails to connect within the timeout, `false` is returned.
-Please make shure to not make the timeout to small, as that can lead to crashes. You should
-always give it at least 1000ms.
+
+The behaviour also depends on the timeout. Possible values:
+- < 0: Wait until the connection is ready, infinitely
+- > 0: Wait until the connection is ready, or at most timeout milliseconds.
+- = 0: Only create the internal instances and let the initialize, do not wait for a connection
 
 @attention In order for the passive setup to connect to the primary one, it must be able to
 connect to the remote object host. This means that Setup::remoteObjectHost must be accessible
@@ -527,13 +530,16 @@ means you will have to use a local or tcp url on both, the active and the passiv
 After beeing created, the passive setup can be used just like a normal setup, as long as it did
 successfully connect to the active one. Classes like the SyncManager and AccountManager will
 simply connect to the active instance. The DataStore classes access data directly, but use the
-active instance for communicating changes.
+active instance for communicating changes. This means data changes will still be atomic, but the
+corresponding change signals take a while to be delivered (the must go through the active instance
+due to technical reasons)
 
 @note If the method returns `false` you can still use the setup. This only means that no active
 instance was found, which makes the Manager classes do nothing, and prevents the store classes
 from emitting any change signals. Accessing the stores however is still possible, and no data
 is lost. However, since the change signals are not working, most applications will not work
-correctly without having an active setup available.
+correctly without having an active setup available. So no crashes or fatal errors. It is
+recommended to show an error to the user and gracefully exit in such cases.
 
 @sa Setup::create, Setup::removeSetup, Setup::remoteObjectHost
 */
