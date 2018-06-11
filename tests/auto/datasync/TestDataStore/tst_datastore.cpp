@@ -243,6 +243,8 @@ void TestDataStore::testChangeSignals()
 		QCOMPARE(sig[2].toBool(), false);
 
 		QVERIFY(store2Spy.wait());
+		for(const auto &sig : store2Spy)
+			qDebug() << sig;
 		QCOMPARE(store2Spy.size(), 1);
 		sig = store2Spy.takeFirst();
 		QCOMPARE(sig[0].toInt(), qMetaTypeId<TestData>());
