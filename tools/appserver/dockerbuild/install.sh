@@ -6,7 +6,10 @@ export QPMX_CACHE_DIR=/tmp/qpmx-cache
 
 DS_NAME=qdsappd
 QT_VERSION=5.11.0
-CRYPTOPP_VERSION=7_0_0
+CRYPTOPP_VERSION_MAJOR=7
+CRYPTOPP_VERSION_MINOR=0
+CRYPTOPP_VERSION_PATCH=0
+CRYPTOPP_VERSION=${CRYPTOPP_VERSION_MAJOR}_${CRYPTOPP_VERSION_MINOR}_${CRYPTOPP_VERSION_PATCH}
 MAIN_DEP="libressl zlib dbus-libs glib libgcc libstdc++ libpcre2-16 libpq ca-certificates eudev-libs eudev libpcre2-16"
 DEV_DEP="libressl-dev zlib-dev dbus-dev glib-dev perl eudev-dev gawk pcre2-dev postgresql-dev linux-headers make gcc g++ curl python3 git"
 
@@ -94,7 +97,10 @@ CXXFLAGS="$CXXFLAGS -DNDEBUG -fPIC" make dynamic
 make install PREFIX="/usr"
 install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
 cd ..
-ls -lsa /usr/lib/libcryptopp*
+CPP_PATCHV=${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}.${CRYPTOPP_VERSION_PATCH}
+ln -s /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR} /usr/lib/libcryptopp.so.${CPP_PATCHV}
+ln -s /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR} /usr/lib/libcryptopp.so.${CPP_PATCHV}
+/sbin/ldconfig -n /usr/lib
 
 # build messages
 cd /tmp/src/src/messages
