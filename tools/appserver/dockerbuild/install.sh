@@ -6,6 +6,7 @@ export QPMX_CACHE_DIR=/tmp/qpmx-cache
 
 DS_NAME=qdsappd
 QT_VERSION=5.11.0
+CRYPTOPP_VERSION=7_0_0
 MAIN_DEP="libressl zlib dbus-libs glib libgcc libpcre2-16 libpq ca-certificates"
 DEV_DEP="libressl-dev zlib-dev dbus-dev glib-dev perl eudev-dev gawk pcre2-dev postgresql-dev linux-headers make gcc g++ curl python3 git"
 
@@ -87,12 +88,8 @@ for repo in QtJsonSerializer qpmx QtService; do
 done
 
 # build cryptopp
-git clone --depth 1 https://github.com/weidai11/cryptopp.git ./cryptopp
+git clone --depth 1 https://github.com/weidai11/cryptopp.git ./cryptopp --branch CRYPTOPP_$CRYPTOPP_VERSION
 cd cryptopp
-latesttag=$(git describe --tags --abbrev=0)
-echo checking out ${latesttag}
-git checkout ${latesttag}
-
 CXXFLAGS="$CXXFLAGS -DNDEBUG -fPIC" make dynamic
 make install PREFIX="/usr"
 install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
