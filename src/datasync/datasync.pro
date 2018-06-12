@@ -1,6 +1,7 @@
 TARGET = QtDataSync
 
 QT = core jsonserializer sql websockets scxml remoteobjects remoteobjects-private
+android: QT += androidextras #needed to deploy the android keystore plugin
 
 HEADERS += \
 	qtdatasync_global.h \
@@ -109,12 +110,21 @@ qpmx_ts_target.path = $$[QT_INSTALL_TRANSLATIONS]
 qpmx_ts_target.depends += lrelease
 INSTALLS += qpmx_ts_target
 
+# extra cpp files for translations
+never_true_lupdate_only {
+	SOURCES += ../messages/*.h \
+		../messages/*.cpp \
+		../imports/datasync/*.h \
+		../imports/datasync/*.cpp \
+		../imports/datasync/*.qml
+	PLUGINS = $$files(../plugins/keystores/*)
+	for(plugin, PLUGINS): SOURCES += $$plugin/*.h
+	for(plugin, PLUGINS): SOURCES += $$plugin/*.cpp
+}
+
 !ReleaseBuild:!DebugBuild:!system(qpmx -d $$shell_quote($$_PRO_FILE_PWD_) --qmake-run init $$QPMX_EXTRA_OPTIONS $$shell_quote($$QMAKE_QMAKE) $$shell_quote($$OUT_PWD)): error(qpmx initialization failed. Check the compilation log for details.)
 else: include($$OUT_PWD/qpmx_generated.pri)
 
 #replace template qm by ts
 qpmx_ts_target.files -= $$OUT_PWD/$$QPMX_WORKINGDIR/qtdatasync_template.qm
 qpmx_ts_target.files += translations/qtdatasync_template.ts
-
-
-message($$LIBS $$LIBS_PRIVATE)

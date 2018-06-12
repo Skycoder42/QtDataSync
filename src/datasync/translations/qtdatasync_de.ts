@@ -4,13 +4,13 @@
 <context>
     <name>QtDataSync::AccountManager</name>
     <message>
-        <location filename="../accountmanager.cpp" line="+149"/>
+        <location filename="../accountmanager.cpp" line="+157"/>
         <source>Password must not be empty.</source>
         <translation>Password darf nicht leer sein.</translation>
     </message>
     <message>
         <location line="+23"/>
-        <location line="+17"/>
+        <location line="+22"/>
         <source>Already importing. Only one import at a time is possible.</source>
         <translation>Es wird bereits importiert. Es kann nur ein Import zur gleichen Zeit ausgeführt werden.</translation>
     </message>
@@ -18,14 +18,14 @@
 <context>
     <name>QtDataSync::AccountManagerPrivate</name>
     <message>
-        <location filename="../accountmanager_p.cpp" line="+81"/>
+        <location filename="../accountmanager_p.cpp" line="+114"/>
         <location line="+26"/>
         <source>Failed to generate export data. You must be registered to a server to export data.</source>
         <translation>Export-Daten konnten nicht erstellt werden. Sie müssen registriert sein um exportieren zu können.</translation>
     </message>
     <message>
         <location line="-19"/>
-        <location line="+39"/>
+        <location line="+37"/>
         <source>Password must not be empty.</source>
         <translation>Password darf nicht leer sein.</translation>
     </message>
@@ -35,7 +35,7 @@
         <translation>Daten konnten nicht importiert werden. Daten sind ungültig.</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+16"/>
         <source>Failed to decrypt data. Data invalid or password wrong.</source>
         <translation>Daten konnten nicht entschlüsselt werden. Daten sind ungültig oder das Passwort ist falsch.</translation>
     </message>
@@ -45,7 +45,7 @@
     <message>
         <location filename="../changecontroller.cpp" line="+81"/>
         <location line="+25"/>
-        <location line="+103"/>
+        <location line="+105"/>
         <source>Failed to upload changes to server.</source>
         <translation>Änderungen konnten nicht hochgeladen werden.</translation>
     </message>
@@ -64,14 +64,27 @@
     </message>
 </context>
 <context>
+    <name>QtDataSync::ExchangeEngine</name>
+    <message>
+        <location filename="../setup.cpp" line="+424"/>
+        <source>Password for trusted import must not be empty</source>
+        <translation>Das Passwort für den Import von vertrauten Daten darf nicht leer sein</translation>
+    </message>
+    <message>
+        <location line="+188"/>
+        <source>Import data must be a JSON object</source>
+        <translation>Import-Daten müssen im JSON-Format sein</translation>
+    </message>
+</context>
+<context>
     <name>QtDataSync::RemoteConnector</name>
     <message>
-        <location filename="../remoteconnector.cpp" line="+736"/>
+        <location filename="../remoteconnector.cpp" line="+796"/>
         <source>Failed to load user identity! Make shure your keystore is available.</source>
         <translation>User-Identität konnte nicht geladen werden. Stellen Sie sicher, dass der Schlüsselspeicher verfügbar ist.</translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+116"/>
         <source>Server is not compatibel with your application version.</source>
         <translation>Server ist nicht kompatibel mir Ihrer Anwendungs-Version.</translation>
     </message>
@@ -114,7 +127,7 @@
 <context>
     <name>QtDataSync::SyncController</name>
     <message>
-        <location filename="../synccontroller.cpp" line="+165"/>
+        <location filename="../synccontroller.cpp" line="+166"/>
         <source>Data downloaded from server is invalid.</source>
         <translation>Die vom Server heruntergeladenen Daten sind ungültig.</translation>
     </message>
@@ -122,13 +135,13 @@
 <context>
     <name>QtDataSync::UserExchangeManager</name>
     <message>
-        <location filename="../userexchangemanager.cpp" line="+161"/>
+        <location filename="../userexchangemanager.cpp" line="+163"/>
         <location line="+9"/>
         <source>No import data received from passed user.</source>
         <translation>Es wurden keine zu importierenden Daten vom angegebenen Nutzer erhalten.</translation>
     </message>
     <message>
-        <location line="+76"/>
+        <location line="+80"/>
         <source>&lt;Unnamed&gt;</source>
         <translation>&lt;Unbenannt&gt;</translation>
     </message>
