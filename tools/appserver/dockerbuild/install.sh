@@ -7,7 +7,7 @@ export QPMX_CACHE_DIR=/tmp/qpmx-cache
 DS_NAME=qdsappd
 QT_VERSION=5.11.0
 CRYPTOPP_VERSION=7_0_0
-MAIN_DEP="libressl zlib dbus-libs glib libgcc libpcre2-16 libpq ca-certificates"
+MAIN_DEP="libressl zlib dbus-libs glib libgcc libstdc++ libpcre2-16 libpq ca-certificates eudev-libs eudev libpcre2-16"
 DEV_DEP="libressl-dev zlib-dev dbus-dev glib-dev perl eudev-dev gawk pcre2-dev postgresql-dev linux-headers make gcc g++ curl python3 git"
 
 apk add --no-cache $MAIN_DEP $DEV_DEP
@@ -94,6 +94,7 @@ CXXFLAGS="$CXXFLAGS -DNDEBUG -fPIC" make dynamic
 make install PREFIX="/usr"
 install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
 cd ..
+ls -lsa /usr/lib/libcryptopp*
 
 # build messages
 cd /tmp/src/src/messages
@@ -116,8 +117,11 @@ make install
 
 #create special symlinks, dirs and move the env script
 mkdir -p /etc/$DS_NAME
-ln -s $(qmake -qt5 -query QT_INSTALL_BINS)/$DS_NAME /usr/bin/$DS_NAME || true #allow to fail if already exists
+ln -s $(qmake -query QT_INSTALL_BINS)/$DS_NAME /usr/bin/$DS_NAME || true #allow to fail if already exists
 mv dockerbuild/env_start.sh /usr/bin/
+
+# test if working
+/usr/bin/$DS_NAME --version
 
 # remove unused stuff
 apk del --no-cache --purge "*-dev" $DEV_DEP
@@ -125,5 +129,5 @@ rm -rf /tmp/*
 rm -rf $HOME/.cache/qpmx
 rm -rf /usr/local/bin/qpm
 
-# test if working
+# test if still working
 /usr/bin/$DS_NAME --version
