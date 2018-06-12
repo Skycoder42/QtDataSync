@@ -159,9 +159,9 @@ private:
 	static const QString keyKeyFileTemplate;
 
 	QPointer<KeyStore> _keyStore;
-	ClientCrypto *_asymCrypto;
+	ClientCrypto *_asymCrypto = nullptr;
 	mutable QHash<quint32, CipherInfo> _loadedChiphers;
-	quint32 _localCipher;
+	quint32 _localCipher = 0;
 
 	QByteArray _fingerprint;
 

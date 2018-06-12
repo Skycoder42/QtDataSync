@@ -10,7 +10,7 @@ namespace QtDataSync {
 
 class MigrationHelperPrivate;
 //! A helper class to migrate data from DataSync 3.0 to this version
-class Q_DATASYNC_EXPORT MigrationHelper : public QObject
+class Q_DATASYNC_EXPORT MigrationHelper : public QObject //MAJOR remove
 {
 	Q_OBJECT
 

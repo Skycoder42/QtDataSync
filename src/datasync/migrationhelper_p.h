@@ -28,7 +28,7 @@ private:
 	const MigrationHelper::MigrationFlags _flags;
 
 	QPointer<Logger> _logger;
-	int _progress;
+	int _progress = 0;
 
 	void migrationPrepared(int count);
 	void migrationProgress();

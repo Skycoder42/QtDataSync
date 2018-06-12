@@ -32,26 +32,26 @@ using std::make_tuple;
 using std::get;
 
 SyncManager::SyncManager(QObject *parent) :
-	SyncManager(DefaultSetup, parent)
+	SyncManager{DefaultSetup, parent}
 {}
 
 SyncManager::SyncManager(const QString &setupName, QObject *parent) :
-	QObject(parent),
-	d(new SyncManagerPrivateHolder())
+	QObject{parent},
+	d{new SyncManagerPrivateHolder()}
 {
 	initReplica(setupName);
 }
 
 SyncManager::SyncManager(QRemoteObjectNode *node, QObject *parent) :
-	QObject(parent),
-	d(new SyncManagerPrivateHolder())
+	QObject{parent},
+	d{new SyncManagerPrivateHolder()}
 {
 	initReplica(node);
 }
 
 SyncManager::SyncManager(QObject *parent, void *) :
-	QObject(parent),
-	d(new SyncManagerPrivateHolder())
+	QObject{parent},
+	d{new SyncManagerPrivateHolder()}
 {} //no init yet
 
 void SyncManager::initReplica(const QString &setupName)

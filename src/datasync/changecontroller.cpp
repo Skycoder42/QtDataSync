@@ -10,13 +10,7 @@ using namespace QtDataSync;
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
 ChangeController::ChangeController(const Defaults &defaults, QObject *parent) :
-	Controller("change", defaults, parent),
-	_store(nullptr),
-	_emitter(nullptr),
-	_uploadingEnabled(false),
-	_uploadLimit(10), //good default
-	_activeUploads(),
-	_changeEstimate(0)
+	Controller{"change", defaults, parent}
 {}
 
 void ChangeController::initialize(const QVariantHash &params)
@@ -214,35 +208,27 @@ void ChangeController::uploadNext(bool emitStarted)
 
 
 
-ChangeController::ChangeInfo::ChangeInfo() :
-	key(),
-	version(0),
-	checksum()
-{}
+ChangeController::ChangeInfo::ChangeInfo() = default;
 
 ChangeController::ChangeInfo::ChangeInfo(ObjectKey key, quint64 version, QByteArray checksum) :
-	key(std::move(key)),
-	version(version),
-	checksum(std::move(checksum))
+	key{std::move(key)},
+	version{version},
+	checksum{std::move(checksum)}
 {}
 
 
 
-ChangeController::CachedObjectKey::CachedObjectKey() :
-	ObjectKey(),
-	_hash()
-{}
+ChangeController::CachedObjectKey::CachedObjectKey() = default;
 
 ChangeController::CachedObjectKey::CachedObjectKey(ObjectKey other, QUuid deviceId) :
-	ObjectKey(std::move(other)),
-	optionalDevice(std::move(deviceId)),
-	_hash()
+	ObjectKey{std::move(other)},
+	optionalDevice{std::move(deviceId)}
 {}
 
 ChangeController::CachedObjectKey::CachedObjectKey(QByteArray hash, QUuid deviceId) :
-	ObjectKey(),
-	optionalDevice(std::move(deviceId)),
-	_hash(std::move(hash))
+	ObjectKey{},
+	optionalDevice{std::move(deviceId)},
+	_hash{std::move(hash)}
 {}
 
 QByteArray ChangeController::CachedObjectKey::hashed() const

@@ -7,27 +7,27 @@
 using namespace QtDataSync;
 
 DataStoreModel::DataStoreModel(QObject *parent) :
-	DataStoreModel(DefaultSetup, parent)
+	DataStoreModel{DefaultSetup, parent}
 {}
 
 DataStoreModel::DataStoreModel(const QString &setupName, QObject *parent) :
-	QAbstractTableModel(parent),
-	d(new DataStoreModelPrivate(this))
+	QAbstractTableModel{parent},
+	d{new DataStoreModelPrivate(this)}
 {
 	initStore(new DataStore(setupName));
 	d->store->setParent(this);
 }
 
 DataStoreModel::DataStoreModel(DataStore *store, QObject *parent) :
-	QAbstractTableModel(parent),
-	d(new DataStoreModelPrivate(this))
+	QAbstractTableModel{parent},
+	d{new DataStoreModelPrivate(this)}
 {
 	initStore(store);
 }
 
 DataStoreModel::DataStoreModel(QObject *parent, void *):
-	QAbstractTableModel(parent),
-	d(new DataStoreModelPrivate(this))
+	QAbstractTableModel{parent},
+	d{new DataStoreModelPrivate(this)}
 {} //No init
 
 void DataStoreModel::initStore(DataStore *store)
@@ -350,16 +350,7 @@ void DataStoreModel::storeResetted()
 // ------------- Private Implementation -------------
 
 DataStoreModelPrivate::DataStoreModelPrivate(DataStoreModel *q_ptr) :
-	q(q_ptr),
-	store(nullptr),
-	editable(false),
-	type(QMetaType::UnknownType),
-	isObject(false),
-	roleNames(),
-	keyList(),
-	dataHash(),
-	columns(),
-	roleMapping()
+	q{q_ptr}
 {}
 
 QStringList DataStoreModelPrivate::activeKeys()

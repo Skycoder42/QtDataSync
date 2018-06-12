@@ -10,19 +10,19 @@ using namespace QtDataSync;
 using std::function;
 
 DataStore::DataStore(QObject *parent) :
-	DataStore(DefaultSetup, parent)
+	DataStore{DefaultSetup, parent}
 {}
 
 DataStore::DataStore(const QString &setupName, QObject *parent) :
-	QObject(parent),
-	d(nullptr)
+	QObject{parent},
+	d{nullptr}
 {
 	initStore(setupName);
 }
 
 DataStore::DataStore(QObject *parent, void *) :
-	QObject(parent),
-	d(nullptr)
+	QObject{parent},
+	d{nullptr}
 {}
 
 void DataStore::initStore(const QString &setupName)
@@ -160,10 +160,10 @@ void DataStore::clear(int metaTypeId)
 // ------------- PRIVATE IMPLEMENTATION -------------
 
 DataStorePrivate::DataStorePrivate(DataStore *q, const QString &setupName) :
-	defaults(DefaultsPrivate::obtainDefaults(setupName)),
-	logger(defaults.createLogger("datastore", q)),
-	serializer(defaults.serializer()),
-	store(new LocalStore(defaults, q))
+	defaults{DefaultsPrivate::obtainDefaults(setupName)},
+	logger{defaults.createLogger("datastore", q)},
+	serializer{defaults.serializer()},
+	store{new LocalStore(defaults, q)}
 {}
 
 QByteArray DataStorePrivate::typeName(int metaTypeId) const

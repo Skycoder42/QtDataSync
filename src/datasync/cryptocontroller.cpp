@@ -114,12 +114,7 @@ const QString CryptoController::keyCryptKeyTemplate(QStringLiteral("%1/encryptio
 const QString CryptoController::keyKeyFileTemplate(QStringLiteral("key_%1.enc"));
 
 CryptoController::CryptoController(const Defaults &defaults, QObject *parent) :
-	Controller("crypto", defaults, parent),
-	_keyStore(nullptr),
-	_asymCrypto(nullptr),
-	_loadedChiphers(),
-	_localCipher(0),
-	_fingerprint()
+	Controller{"crypto", defaults, parent}
 {}
 
 QStringList CryptoController::allKeystoreKeys()
@@ -952,14 +947,12 @@ QByteArray CryptoController::decryptImpl(const CryptoController::CipherInfo &inf
 // ------------- ClientCrypto Implementation -------------
 
 ClientCrypto::ClientCrypto(QObject *parent) :
-	AsymmetricCrypto(parent),
+	AsymmetricCrypto{parent},
 #ifdef QT_NO_DEBUG
-	_rng(true, 32),
+	_rng{true, 32}
 #else //fast rng seeding for debug builds
-	_rng(false),
+	_rng{false}
 #endif
-	_signKey(nullptr),
-	_cryptKey(nullptr)
 {}
 
 void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &signKeyParam, Setup::EncryptionScheme cryptScheme, const QVariant &cryptKeyParam)

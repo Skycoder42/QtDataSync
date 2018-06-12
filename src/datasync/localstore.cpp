@@ -22,11 +22,11 @@ using std::make_tuple;
 #define SCOPE_ASSERT() Q_ASSERT_X(scope.d->database.isValid(), Q_FUNC_INFO, "Cannot use SyncScope after committing it")
 
 LocalStore::LocalStore(Defaults defaults, QObject *parent) :
-	QObject(parent),
-	_defaults(std::move(defaults)),
-	_logger(_defaults.createLogger("store", this)),
-	_emitter(_defaults.createEmitter(this)),
-	_database(_defaults.aquireDatabase(this))
+	QObject{parent},
+	_defaults{std::move(defaults)},
+	_logger{_defaults.createLogger("store", this)},
+	_emitter{_defaults.createEmitter(this)},
+	_database{_defaults.aquireDatabase(this)}
 {
 	connect(_emitter, &EmitterAdapter::dataChanged,
 			this, &LocalStore::dataChanged);
@@ -825,7 +825,7 @@ void LocalStore::markUnchangedImpl(const DatabaseRef &db, const ObjectKey &key, 
 // ------------- SyncScope -------------
 
 LocalStore::SyncScope::SyncScope(const Defaults &defaults, const ObjectKey &key, LocalStore *owner) :
-	d(new Private(defaults, key, owner))
+	d{new Private(defaults, key, owner)}
 {
 	QSqlQuery transactQuery(d->database);
 	if(!transactQuery.exec(QStringLiteral("BEGIN IMMEDIATE TRANSACTION"))) {
@@ -851,7 +851,6 @@ LocalStore::SyncScope::~SyncScope()
 
 
 LocalStore::SyncScope::Private::Private(const Defaults &defaults, ObjectKey key, LocalStore *owner) :
-	key(std::move(key)),
-	database(defaults.aquireDatabase(owner)),
-	afterCommit()
+	key{std::move(key)},
+	database{defaults.aquireDatabase(owner)}
 {}

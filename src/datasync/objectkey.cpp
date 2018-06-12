@@ -8,8 +8,8 @@
 using namespace QtDataSync;
 
 ObjectKey::ObjectKey(const QByteArray &typeName, const QString &id) :
-	typeName(typeName),
-	id(id)
+	typeName{typeName},
+	id{id}
 {}
 
 QByteArray ObjectKey::hashed() const

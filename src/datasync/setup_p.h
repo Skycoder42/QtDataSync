@@ -32,8 +32,8 @@ public:
 
 private:
 	struct SetupInfo {
-		QThread *thread;
-		ExchangeEngine *engine;
+		QThread *thread = nullptr;
+		ExchangeEngine *engine = nullptr;
 
 		SetupInfo();
 		SetupInfo(QThread *thread, ExchangeEngine *engine);

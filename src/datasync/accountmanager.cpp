@@ -28,7 +28,7 @@ class LoginRequestPrivate
 public:
 	LoginRequestPrivate(DeviceInfo deviceInfo, AccountManagerPrivateReplica *replica);
 	DeviceInfo device;
-	bool acted;
+	bool acted = false;
 
 	QPointer<AccountManagerPrivateReplica> replica;
 };
@@ -49,26 +49,26 @@ using namespace QtDataSync;
 // ------------- AccountManager Implementation -------------
 
 AccountManager::AccountManager(QObject *parent) :
-	AccountManager(DefaultSetup, parent)
+	AccountManager{DefaultSetup, parent}
 {}
 
 AccountManager::AccountManager(const QString &setupName, QObject *parent) :
-	QObject(parent),
-	d(new AccountManagerPrivateHolder())
+	QObject{parent},
+	d{new AccountManagerPrivateHolder()}
 {
 	initReplica(setupName);
 }
 
 AccountManager::AccountManager(QRemoteObjectNode *node, QObject *parent) :
-	QObject(parent),
-	d(new AccountManagerPrivateHolder())
+	QObject{parent},
+	d{new AccountManagerPrivateHolder()}
 {
 	initReplica(node);
 }
 
 AccountManager::AccountManager(QObject *parent, void *) :
-	QObject(parent),
-	d(new AccountManagerPrivateHolder())
+	QObject{parent},
+	d{new AccountManagerPrivateHolder()}
 {} //No init
 
 void AccountManager::initReplica(const QString &setupName)
@@ -288,7 +288,7 @@ void AccountManager::loginRequestedImpl(const DeviceInfo &deviceInfo)
 // ------------- LoginRequest Implementation -------------
 
 LoginRequest::LoginRequest(LoginRequestPrivate *d_ptr) :
-	d(d_ptr)
+	d{d_ptr}
 {}
 
 LoginRequest::LoginRequest(const LoginRequest &other) = default;
@@ -338,19 +338,18 @@ void LoginRequest::reject()
 
 
 LoginRequestPrivate::LoginRequestPrivate(DeviceInfo deviceInfo, AccountManagerPrivateReplica *replica) :
-	device(std::move(deviceInfo)),
-	acted(false),
-	replica(replica)
+	device{std::move(deviceInfo)},
+	replica{replica}
 {}
 
 // ------------- DeviceInfo Implementation -------------
 
 DeviceInfo::DeviceInfo() :
-	d(new DeviceInfoPrivate())
+	d{new DeviceInfoPrivate()}
 {}
 
 DeviceInfo::DeviceInfo(const QUuid &deviceId, const QString &name, const QByteArray &fingerprint) :
-	d(new DeviceInfoPrivate(deviceId, name, fingerprint))
+	d{new DeviceInfoPrivate(deviceId, name, fingerprint)}
 {}
 
 DeviceInfo::DeviceInfo(const DeviceInfo &other) = default;
@@ -412,10 +411,10 @@ bool DeviceInfo::operator!=(const DeviceInfo &other) const
 
 
 DeviceInfoPrivate::DeviceInfoPrivate(QUuid deviceId, QString name, QByteArray fingerprint) :
-	QSharedData(),
-	deviceId(std::move(deviceId)),
-	name(std::move(name)),
-	fingerprint(std::move(fingerprint))
+	QSharedData{},
+	deviceId{std::move(deviceId)},
+	name{std::move(name)},
+	fingerprint{std::move(fingerprint)}
 {}
 
 DeviceInfoPrivate::DeviceInfoPrivate(const DeviceInfoPrivate &other) = default;

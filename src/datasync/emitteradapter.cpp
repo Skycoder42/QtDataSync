@@ -3,10 +3,10 @@
 using namespace QtDataSync;
 
 EmitterAdapter::EmitterAdapter(QObject *changeEmitter, QSharedPointer<CacheInfo> cacheInfo, QObject *origin) :
-	QObject(origin),
-	_isPrimary(changeEmitter->metaObject()->inherits(&ChangeEmitter::staticMetaObject)),
-	_emitterBackend(changeEmitter),
-	_cache(std::move(cacheInfo))
+	QObject{origin},
+	_isPrimary{changeEmitter->metaObject()->inherits(&ChangeEmitter::staticMetaObject)},
+	_emitterBackend{changeEmitter},
+	_cache{std::move(cacheInfo)}
 {
 	if(_isPrimary) {
 		connect(_emitterBackend, SIGNAL(dataChanged(QObject*,QtDataSync::ObjectKey,bool)),
@@ -196,6 +196,5 @@ void EmitterAdapter::remoteDataResettedImpl()
 
 
 EmitterAdapter::CacheInfo::CacheInfo(int maxSize) :
-	lock(),
-	cache(maxSize)
+	cache{maxSize}
 {}

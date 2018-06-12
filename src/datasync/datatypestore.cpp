@@ -2,5 +2,5 @@
 using namespace QtDataSync;
 
 DataTypeStoreBase::DataTypeStoreBase(QObject *parent) :
-	QObject(parent)
+	QObject{parent}
 {}

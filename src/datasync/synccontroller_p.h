@@ -24,8 +24,8 @@ Q_SIGNALS:
 	void syncDone(quint64 key);
 
 private:
-	LocalStore *_store;
-	bool _enabled;
+	LocalStore *_store = nullptr;
+	bool _enabled = false;
 };
 
 }

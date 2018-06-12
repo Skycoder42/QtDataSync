@@ -105,7 +105,7 @@ KeyStore *Setup::loadKeystore(const QString &provider, QObject *parent, const QS
 #undef RETURN_IF_AVAILABLE
 
 Setup::Setup() :
-	d(new SetupPrivate())
+	d{new SetupPrivate()}
 {}
 
 Setup::~Setup() = default;
@@ -614,11 +614,9 @@ QJsonObject SetupPrivate::parseObj(const QByteArray &data)
 }
 
 SetupPrivate::SetupPrivate() :
-	localDir(DefaultLocalDir),
-	roAddress(),
-	serializer(new QJsonSerializer()),
-	resolver(nullptr),
-	properties({
+	localDir{DefaultLocalDir},
+	serializer{new QJsonSerializer()},
+	properties{
 		{Defaults::CacheSize, MB(100)},
 		{Defaults::PersistDeleted, false},
 		{Defaults::ConflictPolicy, Setup::PreferChanged},
@@ -626,37 +624,34 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::SignScheme, Setup::ECDSA_ECP_SHA3_512},
 		{Defaults::CryptScheme, Setup::ECIES_ECP_SHA3_512},
 		{Defaults::SymScheme, Setup::AES_EAX}
-	}),
-	fatalErrorHandler()
+	}
 {}
 
-SetupPrivate::SetupInfo::SetupInfo() :
-	SetupInfo(nullptr, nullptr)
-{}
+SetupPrivate::SetupInfo::SetupInfo() = default;
 
 SetupPrivate::SetupInfo::SetupInfo(QThread *thread, ExchangeEngine *engine) :
-	thread(thread),
-	engine(engine)
+	thread{thread},
+	engine{engine}
 {}
 
 // ------------- Exceptions -------------
 
 SetupException::SetupException(const QString &setupName, const QString &message) :
-	Exception(setupName, message)
+	Exception{setupName, message}
 {}
 
 SetupException::SetupException(const SetupException * const other) :
-	Exception(other)
+	Exception{other}
 {}
 
 
 
 SetupExistsException::SetupExistsException(const QString &setupName) :
-	SetupException(setupName, QStringLiteral("Failed to create setup! A setup with the given name already exists!"))
+	SetupException{setupName, QStringLiteral("Failed to create setup! A setup with the given name already exists!")}
 {}
 
 SetupExistsException::SetupExistsException(const SetupExistsException *const other) :
-	SetupException(other)
+	SetupException{other}
 {}
 
 QByteArray SetupExistsException::className() const noexcept
@@ -677,10 +672,7 @@ QException *SetupExistsException::clone() const
 
 
 SetupLockedException::SetupLockedException(QLockFile *lockfile, const QString &setupName) :
-	SetupException(setupName, QString()),
-	_pid(-1),
-	_hostname(),
-	_appname()
+	SetupException{setupName, QString()}
 {
 	switch(lockfile->error()) {
 	case QLockFile::LockFailedError:
@@ -705,7 +697,7 @@ SetupLockedException::SetupLockedException(QLockFile *lockfile, const QString &s
 }
 
 SetupLockedException::SetupLockedException(const SetupLockedException *const other) :
-	SetupException(other)
+	SetupException{other}
 {}
 
 QByteArray SetupLockedException::className() const noexcept

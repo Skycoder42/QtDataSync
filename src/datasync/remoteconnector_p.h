@@ -38,9 +38,7 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT ExportData
 {
 public:
-	ExportData();
-
-	bool trusted;
+	bool trusted = false;
 	QByteArray pNonce;
 	QUuid partnerId;
 	QByteArray scheme; //scheme used for the cmac
@@ -157,16 +155,16 @@ private:
 
 	CryptoController *_cryptoController;
 
-	QWebSocket *_socket;
+	QWebSocket *_socket = nullptr;
 	QQueue<QByteArray> _messageBuffer;
-	bool _messageProcessingBlocked;
+	bool _messageProcessingBlocked = false;
 
-	QTimer *_pingTimer;
-	bool _awaitingPing;
+	QTimer *_pingTimer = nullptr;
+	bool _awaitingPing = false;
 
-	ConnectorStateMachine *_stateMachine;
-	int _retryIndex;
-	bool _expectChanges;
+	ConnectorStateMachine *_stateMachine = nullptr;
+	int _retryIndex = 0;
+	bool _expectChanges = false;
 
 	QUuid _deviceId;
 	QList<DeviceInfo> _deviceCache;

@@ -19,27 +19,27 @@ using std::function;
 const quint16 UserExchangeManager::DataExchangePort(13742);
 
 UserExchangeManager::UserExchangeManager(QObject *parent) :
-	UserExchangeManager(DefaultSetup, parent)
+	UserExchangeManager{DefaultSetup, parent}
 {}
 
 UserExchangeManager::UserExchangeManager(const QString &setupName, QObject *parent) :
-	QObject(parent),
-	d(new UserExchangeManagerPrivate(this))
+	QObject{parent},
+	d{new UserExchangeManagerPrivate(this)}
 {
 	initManager(new AccountManager(setupName, this));
 	d->manager->setParent(this);
 }
 
 UserExchangeManager::UserExchangeManager(AccountManager *manager, QObject *parent) :
-	QObject(parent),
-	d(new UserExchangeManagerPrivate(this))
+	QObject{parent},
+	d{new UserExchangeManagerPrivate(this)}
 {
 	initManager(manager);
 }
 
 UserExchangeManager::UserExchangeManager(QObject *parent, void *) :
-	QObject(parent),
-	d(new UserExchangeManagerPrivate(this))
+	QObject{parent},
+	d{new UserExchangeManagerPrivate(this)}
 {} //No init
 
 void UserExchangeManager::initManager(AccountManager *manager)
@@ -287,19 +287,15 @@ void UserExchangeManager::readDatagram()
 
 
 UserExchangeManagerPrivate::UserExchangeManagerPrivate(UserExchangeManager *q_ptr) :
-	manager(nullptr),
-	socket(new QUdpSocket(q_ptr)),
-	timer(new QTimer(q_ptr)),
-	allowReuseAddress(false),
-	devices(),
-	exchangeData()
+	socket{new QUdpSocket(q_ptr)},
+	timer{new QTimer(q_ptr)}
 {}
 
 
 // ------------- UserInfo Implementation -------------
 
 UserInfo::UserInfo() :
-	d(new UserInfoPrivate())
+	d{new UserInfoPrivate()}
 {}
 
 UserInfo::UserInfo(const UserInfo &other) = default;
@@ -366,10 +362,10 @@ QDebug QtDataSync::operator<<(QDebug stream, const UserInfo &userInfo)
 
 
 UserInfoPrivate::UserInfoPrivate(QString name, const QNetworkDatagram &datagram) :
-	QSharedData(),
-	name(std::move(name)),
-	address(datagram.senderAddress()),
-	port(static_cast<quint16>(datagram.senderPort()))
+	QSharedData{},
+	name{std::move(name)},
+	address{datagram.senderAddress()},
+	port{static_cast<quint16>(datagram.senderPort())}
 {}
 
 UserInfoPrivate::UserInfoPrivate(const UserInfoPrivate &other) = default;

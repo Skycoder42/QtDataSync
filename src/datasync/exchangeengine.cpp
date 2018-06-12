@@ -16,24 +16,14 @@ using namespace QtDataSync;
 #define QTDATASYNC_LOG _logger
 
 ExchangeEngine::ExchangeEngine(const QString &setupName, Setup::FatalErrorHandler errorHandler) :
-	QObject(),
-	_state(SyncManager::Initializing),
-	_progressCurrent(0),
-	_progressMax(0),
-	_progressAllowed(nullptr),
-	_lastError(),
-	_defaults(DefaultsPrivate::obtainDefaults(setupName)),
-	_logger(_defaults.createLogger("engine", this)),
-	_fatalErrorHandler(std::move(errorHandler)),
-	_localStore(nullptr), //create in init thread!
-	_changeController(new ChangeController(_defaults, this)),
-	_syncController(new SyncController(_defaults, this)),
-	_remoteConnector(new RemoteConnector(_defaults, this)),
-	_roHost(nullptr),
-	_syncManager(nullptr),
-	_accountManager(nullptr),
-	_emitter(new ChangeEmitter(_defaults, this)), //must be created here, because of access
-	_initialImport()
+	QObject{},
+	_defaults{DefaultsPrivate::obtainDefaults(setupName)},
+	_logger{_defaults.createLogger("engine", this)},
+	_fatalErrorHandler{std::move(errorHandler)},
+	_changeController{new ChangeController(_defaults, this)},
+	_syncController{new SyncController(_defaults, this)},
+	_remoteConnector{new RemoteConnector(_defaults, this)},
+	_emitter{new ChangeEmitter(_defaults, this)} //must be created here, because of access
 {}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
@@ -340,8 +330,8 @@ bool ExchangeEngine::ImportData::isSet() const
 }
 
 ExchangeEngine::ImportData::ImportData(QJsonObject data, QString password, bool keepData, bool allowFailure) :
-	data(std::move(data)),
-	password(std::move(password)),
-	keepData(keepData),
-	allowFailure(allowFailure)
+	data{std::move(data)},
+	password{std::move(password)},
+	keepData{keepData},
+	allowFailure{allowFailure}
 {}

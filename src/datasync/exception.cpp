@@ -3,20 +3,19 @@
 using namespace QtDataSync;
 
 Exception::Exception(const QString &setupName, const QString &message) :
-	QException(),
-	_setupName(setupName),
-	_message(message),
-	_qWhat()
+	QException{},
+	_setupName{setupName},
+	_message{message}
 {}
 
 Exception::Exception(const Defaults &defaults, const QString &message) :
-	Exception(defaults.setupName(), message)
+	Exception{defaults.setupName(), message}
 {}
 
 Exception::Exception(const Exception * const other) :
-	QException(),
-	_setupName(other->_setupName),
-	_message(other->_message)
+	QException{},
+	_setupName{other->_setupName},
+	_message{other->_message}
 {}
 
 QByteArray Exception::className() const noexcept
@@ -62,11 +61,11 @@ QException *Exception::clone() const
 
 
 SetupDoesNotExistException::SetupDoesNotExistException(const QString &setupName) :
-	Exception(setupName, QStringLiteral("The requested setup does not exist! Create it with Setup::create"))
+	Exception{setupName, QStringLiteral("The requested setup does not exist! Create it with Setup::create")}
 {}
 
 SetupDoesNotExistException::SetupDoesNotExistException(const SetupDoesNotExistException * const other) :
-	Exception(other)
+	Exception{other}
 {}
 
 QByteArray SetupDoesNotExistException::className() const noexcept

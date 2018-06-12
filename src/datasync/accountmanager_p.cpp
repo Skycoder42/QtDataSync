@@ -9,9 +9,9 @@ using std::tie;
 #define QTDATASYNC_LOG _logger
 
 AccountManagerPrivate::AccountManagerPrivate(ExchangeEngine *engineParent) :
-	AccountManagerPrivateSource(engineParent),
-	_engine(engineParent),
-	_logger(_engine->defaults().createLogger("account", this))
+	AccountManagerPrivateSource{engineParent},
+	_engine{engineParent},
+	_logger{_engine->defaults().createLogger("account", this)}
 {
 	connect(_engine->remoteConnector(), &RemoteConnector::deviceNameChanged,
 			this, &AccountManagerPrivate::deviceNameChanged);

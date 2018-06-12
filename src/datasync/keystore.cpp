@@ -12,8 +12,8 @@ public:
 }
 
 KeyStore::KeyStore(const Defaults &defaults, QObject *parent) :
-	QObject(parent),
-	d(new KeyStorePrivate(defaults))
+	QObject{parent},
+	d{new KeyStorePrivate(defaults)}
 {}
 
 KeyStore::~KeyStore() = default;
@@ -26,19 +26,19 @@ Defaults KeyStore::defaults() const
 
 
 KeyStorePrivate::KeyStorePrivate(Defaults defaults) :
-	defaults(std::move(defaults))
+	defaults{std::move(defaults)}
 {}
 
 
 
 KeyStoreException::KeyStoreException(const KeyStore * const keyStore, const QString &what) :
-	Exception(keyStore->defaults(), what),
-	_keyStoreName(keyStore->providerName())
+	Exception{keyStore->defaults(), what},
+	_keyStoreName{keyStore->providerName()}
 {}
 
 KeyStoreException::KeyStoreException(const KeyStoreException * const other) :
-	Exception(other),
-	_keyStoreName(other->_keyStoreName)
+	Exception{other},
+	_keyStoreName{other->_keyStoreName}
 {}
 
 QString KeyStoreException::storeProviderName() const

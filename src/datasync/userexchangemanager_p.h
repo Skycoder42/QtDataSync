@@ -37,11 +37,11 @@ public:
 
 	UserExchangeManagerPrivate(UserExchangeManager *q_ptr);
 
-	AccountManager *manager;
+	AccountManager *manager = nullptr;
 	QUdpSocket *socket;
 	QTimer *timer;
 
-	bool allowReuseAddress;
+	bool allowReuseAddress = false;
 	QHash<UserInfo, quint8> devices;
 	QHash<UserInfo, QByteArray> exchangeData;
 };

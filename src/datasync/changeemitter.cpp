@@ -2,8 +2,8 @@
 using namespace QtDataSync;
 
 ChangeEmitter::ChangeEmitter(const Defaults &defaults, QObject *parent) :
-	ChangeEmitterSource(parent),
-	_cache(defaults.cacheHandle().value<QSharedPointer<EmitterAdapter::CacheInfo>>())
+	ChangeEmitterSource{parent},
+	_cache{defaults.cacheHandle().value<QSharedPointer<EmitterAdapter::CacheInfo>>()}
 {}
 
 void ChangeEmitter::triggerChange(QObject *origin, const ObjectKey &key, bool deleted, bool changed)

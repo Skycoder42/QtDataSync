@@ -21,7 +21,7 @@ class Q_DATASYNC_EXPORT ChangeController : public Controller
 public:
 	struct Q_DATASYNC_EXPORT ChangeInfo {
 		ObjectKey key;
-		quint64 version;
+		quint64 version = 0;
 		QByteArray checksum;
 
 		ChangeInfo();
@@ -75,12 +75,12 @@ private:
 		bool isDelete;
 	};
 
-	LocalStore *_store;
-	ChangeEmitter *_emitter;
-	bool _uploadingEnabled;
-	int _uploadLimit;
+	LocalStore *_store = nullptr;
+	ChangeEmitter *_emitter = nullptr;
+	bool _uploadingEnabled = false;
+	int _uploadLimit = 10;
 	QHash<CachedObjectKey, UploadInfo> _activeUploads;
-	quint32 _changeEstimate;
+	quint32 _changeEstimate = 0;
 };
 
 //not exported, just like the class

@@ -4,7 +4,7 @@
 using namespace QtDataSync;
 
 RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const HeaderHash &headers, int keepaliveTimeout) :
-	d(new RemoteConfigPrivate(url, accessKey, headers, keepaliveTimeout))
+	d{new RemoteConfigPrivate(url, accessKey, headers, keepaliveTimeout)}
 {}
 
 RemoteConfig::RemoteConfig(const RemoteConfig &other) = default;
@@ -82,11 +82,11 @@ QDataStream &QtDataSync::operator>>(QDataStream &stream, RemoteConfig &deviceInf
 
 
 RemoteConfigPrivate::RemoteConfigPrivate(QUrl url, QString accessKey, RemoteConfig::HeaderHash headers, int keepaliveTimeout) :
-	QSharedData(),
-	url(std::move(url)),
-	accessKey(std::move(accessKey)),
-	headers(std::move(headers)),
-	keepaliveTimeout(keepaliveTimeout)
+	QSharedData{},
+	url{std::move(url)},
+	accessKey{std::move(accessKey)},
+	headers{std::move(headers)},
+	keepaliveTimeout{keepaliveTimeout}
 {}
 
 RemoteConfigPrivate::RemoteConfigPrivate(const RemoteConfigPrivate &other) = default;

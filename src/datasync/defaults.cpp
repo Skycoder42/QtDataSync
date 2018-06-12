@@ -24,7 +24,7 @@ using namespace QtDataSync;
 Defaults::Defaults() = default;
 
 Defaults::Defaults(const QSharedPointer<DefaultsPrivate> &d) : //MAJOR pass by move
-	d(d)
+	d{d}
 {}
 
 Defaults &Defaults::operator=(const Defaults &other) = default;
@@ -142,17 +142,17 @@ QVariant Defaults::cacheHandle() const
 // ------------- DatabaseRef -------------
 
 DatabaseRef::DatabaseRef() :
-	d(nullptr)
+	d{nullptr}
 {}
 
 DatabaseRef::~DatabaseRef() = default;
 
 DatabaseRef::DatabaseRef(DatabaseRefPrivate *d) :
-	d(d)
+	d{d}
 {}
 
 DatabaseRef::DatabaseRef(DatabaseRef &&other) :
-	d(nullptr)
+	d{nullptr}
 {
 	d.swap(other.d);
 }
@@ -270,17 +270,13 @@ QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &s
 }
 
 DefaultsPrivate::DefaultsPrivate(QString setupName, QDir storageDir, QUrl roAddress, QHash<Defaults::PropertyKey, QVariant> properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
-	setupName(std::move(setupName)),
-	storageDir(std::move(storageDir)),
-	logger(new Logger("defaults", this->setupName, this)),
-	roAddress(std::move(roAddress)),
-	serializer(serializer),
-	resolver(resolver),
-	properties(std::move(properties)),
-	roMutex(),
-	roNodes(),
-	cacheInfo(nullptr),
-	passiveEmitter(nullptr)
+	setupName{std::move(setupName)},
+	storageDir{std::move(storageDir)},
+	logger{new Logger("defaults", this->setupName, this)},
+	roAddress{std::move(roAddress)},
+	serializer{serializer},
+	resolver{resolver},
+	properties{std::move(properties)}
 {
 	//parenting
 	serializer->setParent(this);
@@ -417,9 +413,8 @@ void DefaultsPrivate::makePassive()
 // ------------- PRIVATE IMPLEMENTATION DatabaseRef -------------
 
 DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsPrivate, QObject *object) :
-	_defaultsPrivate(std::move(defaultsPrivate)),
-	_object(object),
-	_database()
+	_defaultsPrivate{std::move(defaultsPrivate)},
+	_object{object}
 {
 	object->installEventFilter(this);
 }

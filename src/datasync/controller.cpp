@@ -12,11 +12,11 @@ using namespace std::chrono;
 #define QTDATASYNC_LOG _logger
 
 QtDataSync::Controller::Controller(const QByteArray &name, Defaults defaults, QObject *parent) :
-	QObject(parent),
-	_defaults(std::move(defaults)),
-	_logger(_defaults.createLogger(name, this)),
-	_settings(_defaults.createSettings(this, QString::fromUtf8(name))),
-	_opTimer(new QTimer(this))
+	QObject{parent},
+	_defaults{std::move(defaults)},
+	_logger{_defaults.createLogger(name, this)},
+	_settings{_defaults.createSettings(this, QString::fromUtf8(name))},
+	_opTimer{new QTimer(this)}
 {
 	connect(_opTimer, &QTimer::timeout,
 			this, &Controller::onTimeout);

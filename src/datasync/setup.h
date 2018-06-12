@@ -352,7 +352,7 @@ protected:
 	SetupLockedException(const SetupLockedException *cloneFrom);
 
 	//! @private
-	qint64 _pid;
+	qint64 _pid = -1;
 	//! @private
 	QString _hostname;
 	//! @private

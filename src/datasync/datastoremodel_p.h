@@ -13,11 +13,11 @@ public:
 	DataStoreModelPrivate(DataStoreModel *q_ptr);
 
 	DataStoreModel *q;
-	DataStore *store;
-	bool editable;
+	DataStore *store = nullptr;
+	bool editable = false;
 
-	int type;
-	bool isObject;
+	int type = QMetaType::UnknownType;
+	bool isObject = false;
 	QHash<int, QByteArray> roleNames;
 
 	QStringList keyList;

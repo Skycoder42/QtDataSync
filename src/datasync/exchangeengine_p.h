@@ -85,9 +85,9 @@ private Q_SLOTS:
 	void incrementProgress();
 
 private:
-	SyncManager::SyncState _state;
-	quint32 _progressCurrent;
-	quint32 _progressMax;
+	SyncManager::SyncState _state = SyncManager::Initializing;
+	quint32 _progressCurrent = 0;
+	quint32 _progressMax = 0;
 	QPointer<Controller> _progressAllowed;
 	QString _lastError;
 
@@ -95,15 +95,15 @@ private:
 	Logger *_logger;
 	Setup::FatalErrorHandler _fatalErrorHandler;
 
-	LocalStore *_localStore;
+	LocalStore *_localStore = nullptr;
 
 	ChangeController *_changeController;
 	SyncController *_syncController;
 	RemoteConnector *_remoteConnector;
 
-	QRemoteObjectHost *_roHost;
-	SyncManagerPrivate *_syncManager;
-	AccountManagerPrivate *_accountManager;
+	QRemoteObjectHost *_roHost = nullptr;
+	SyncManagerPrivate *_syncManager = nullptr;
+	AccountManagerPrivate *_accountManager = nullptr;
 	ChangeEmitter *_emitter;
 
 	ImportData _initialImport;

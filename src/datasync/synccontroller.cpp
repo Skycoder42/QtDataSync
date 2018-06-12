@@ -8,9 +8,7 @@ using std::tie;
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
 
 SyncController::SyncController(const Defaults &defaults, QObject *parent) :
-	Controller("sync", defaults, parent),
-	_store(nullptr),
-	_enabled(false)
+	Controller{"sync", defaults, parent}
 {}
 
 void SyncController::initialize(const QVariantHash &params)

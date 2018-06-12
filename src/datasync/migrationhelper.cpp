@@ -19,12 +19,12 @@ using namespace QtDataSync;
 const QString MigrationHelper::DefaultOldStorageDir = QStringLiteral("./qtdatasync_localstore");
 
 MigrationHelper::MigrationHelper(QObject *parent) :
-	MigrationHelper(DefaultSetup, parent)
+	MigrationHelper{DefaultSetup, parent}
 {}
 
 MigrationHelper::MigrationHelper(const QString &setupName, QObject *parent) :
-	QObject(parent),
-	d(new MigrationHelperPrivate(setupName))
+	QObject{parent},
+	d{new MigrationHelperPrivate(setupName)}
 {}
 
 MigrationHelper::~MigrationHelper() = default;
@@ -48,12 +48,10 @@ MigrationHelperPrivate::MigrationHelperPrivate(const QString &setupName) :
 
 
 MigrationRunnable::MigrationRunnable(Defaults defaults, MigrationHelper *helper, QString oldDir, MigrationHelper::MigrationFlags flags) :
-	_defaults(std::move(defaults)),
-	_helper(helper),
-	_oldDir(std::move(oldDir)),
-	_flags(flags),
-	_logger(nullptr),
-	_progress(0)
+	_defaults{std::move(defaults)},
+	_helper{helper},
+	_oldDir{std::move(oldDir)},
+	_flags{flags}
 {
 	setAutoDelete(true);
 }

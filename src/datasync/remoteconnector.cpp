@@ -49,28 +49,16 @@ const QString RemoteConnector::keyImportCmac(QStringLiteral("import/cmac"));
 const QString RemoteConnector::keySendCmac(QStringLiteral("sendCmac"));
 
 const QVector<seconds> RemoteConnector::Timeouts = {
-	seconds(5),
-	seconds(10),
-	seconds(30),
-	minutes(1),
-	minutes(5)
+	seconds{5},
+	seconds{10},
+	seconds{30},
+	minutes{1},
+	minutes{5}
 };
 
 RemoteConnector::RemoteConnector(const Defaults &defaults, QObject *parent) :
-	Controller("connector", defaults, parent),
-	_cryptoController(new CryptoController(defaults, this)),
-	_socket(nullptr),
-	_messageBuffer(),
-	_messageProcessingBlocked(false),
-	_pingTimer(nullptr),
-	_awaitingPing(false),
-	_stateMachine(nullptr),
-	_retryIndex(0),
-	_expectChanges(false),
-	_deviceId(),
-	_deviceCache(),
-	_exportsCache(),
-	_activeProofs()
+	Controller{"connector", defaults, parent},
+	_cryptoController{new CryptoController(defaults, this)}
 {}
 
 CryptoController *RemoteConnector::cryptoController() const
@@ -1266,15 +1254,6 @@ void RemoteConnector::onNewKeyAck(const NewKeyAckMessage &message)
 }
 
 
-
-ExportData::ExportData() :
-	trusted(false),
-	pNonce(),
-	partnerId(),
-	scheme(),
-	cmac(),
-	config(nullptr)
-{}
 
 QByteArray ExportData::signData() const
 {

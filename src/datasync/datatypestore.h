@@ -192,20 +192,20 @@ private:
 
 template <typename TType, typename TKey>
 DataTypeStore<TType, TKey>::DataTypeStore(QObject *parent) :
-	DataTypeStore(DefaultSetup, parent)
+	DataTypeStore{DefaultSetup, parent}
 {}
 
 template <typename TType, typename TKey>
 DataTypeStore<TType, TKey>::DataTypeStore(const QString &setupName, QObject *parent) :
-	DataTypeStore(new DataStore(setupName, nullptr), parent)
+	DataTypeStore{new DataStore(setupName, nullptr), parent}
 {
 	_store->setParent(this);
 }
 
 template <typename TType, typename TKey>
 DataTypeStore<TType, TKey>::DataTypeStore(DataStore *store, QObject *parent) :
-	DataTypeStoreBase(parent),
-	_store(store)
+	DataTypeStoreBase{parent},
+	_store{store}
 {
 	connect(_store, &DataStore::dataChanged,
 			this, &DataTypeStore::evalDataChanged);
@@ -301,21 +301,20 @@ void DataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QString &
 
 template <typename TType, typename TKey>
 CachingDataTypeStore<TType, TKey>::CachingDataTypeStore(QObject *parent) :
-	CachingDataTypeStore(DefaultSetup, parent)
+	CachingDataTypeStore{DefaultSetup, parent}
 {}
 
 template <typename TType, typename TKey>
 CachingDataTypeStore<TType, TKey>::CachingDataTypeStore(const QString &setupName, QObject *parent) :
-	CachingDataTypeStore(new DataStore(setupName, nullptr), parent)
+	CachingDataTypeStore{new DataStore(setupName, nullptr), parent}
 {
 	_store->setParent(this);
 }
 
 template <typename TType, typename TKey>
 CachingDataTypeStore<TType, TKey>::CachingDataTypeStore(DataStore *store, QObject *parent) :
-	DataTypeStoreBase(parent),
-	_store(store),
-	_data()
+	DataTypeStoreBase{parent},
+	_store{store}
 {
 	auto userProp = TType::staticMetaObject.userProperty();
 	for(auto data : store->loadAll<TType>())
@@ -436,21 +435,21 @@ void CachingDataTypeStore<TType, TKey>::evalDataResetted()
 
 template <typename TType, typename TKey>
 CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(QObject *parent) :
-	CachingDataTypeStore(DefaultSetup, parent)
+	CachingDataTypeStore{DefaultSetup, parent}
 {}
 
 template <typename TType, typename TKey>
 CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(const QString &setupName, QObject *parent) :
-	CachingDataTypeStore(new DataStore(setupName, nullptr), parent)
+	CachingDataTypeStore{new DataStore(setupName, nullptr), parent}
 {
 	_store->setParent(this);
 }
 
 template <typename TType, typename TKey>
 CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(DataStore *store, QObject *parent) :
-	DataTypeStoreBase(parent),
-	_store(store),
-	_data()
+	DataTypeStoreBase{parent},
+	_store{store}
+
 {
 	auto userProp = TType::staticMetaObject.userProperty();
 	for(auto data : store->loadAll<TType*>()){

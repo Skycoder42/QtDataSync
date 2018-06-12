@@ -10,11 +10,9 @@ namespace QtDataSync {
 class ConflictResolverPrivate
 {
 public:
-	ConflictResolverPrivate();
-
 	Defaults defaults;
-	Logger *logger;
-	QSettings *settings;
+	Logger *logger = nullptr;
+	QSettings *settings = nullptr;
 };
 
 }

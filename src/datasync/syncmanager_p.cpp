@@ -2,8 +2,8 @@
 using namespace QtDataSync;
 
 SyncManagerPrivate::SyncManagerPrivate(ExchangeEngine *engineParent) :
-	SyncManagerPrivateSource(engineParent),
-	_engine(engineParent)
+	SyncManagerPrivateSource{engineParent},
+	_engine{engineParent}
 {
 	connect(_engine, &ExchangeEngine::stateChanged,
 			this, &SyncManagerPrivate::syncStateChanged);

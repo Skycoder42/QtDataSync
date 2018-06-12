@@ -3,8 +3,8 @@
 using namespace QtDataSync;
 
 ConflictResolver::ConflictResolver(QObject *parent) :
-	QObject(parent),
-	d(new ConflictResolverPrivate())
+	QObject{parent},
+	d{new ConflictResolverPrivate()}
 {}
 
 ConflictResolver::~ConflictResolver() = default;
@@ -35,11 +35,3 @@ QSettings *ConflictResolver::settings() const
 {
 	return d->settings;
 }
-
-// ------------- Private Implementation -------------
-
-ConflictResolverPrivate::ConflictResolverPrivate() :
-	defaults(),
-	logger(nullptr),
-	settings(nullptr)
-{}

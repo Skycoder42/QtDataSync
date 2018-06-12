@@ -98,7 +98,7 @@ private:
 
 	QSharedPointer<EmitterAdapter::CacheInfo> cacheInfo;
 
-	ChangeEmitterReplica *passiveEmitter;
+	ChangeEmitterReplica *passiveEmitter = nullptr;
 };
 
 }

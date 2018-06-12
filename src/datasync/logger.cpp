@@ -4,8 +4,8 @@
 using namespace QtDataSync;
 
 Logger::Logger(QByteArray subCategory, const QString &setupName, QObject *parent) :
-	QObject(parent),
-	d(new LoggerPrivate(setupName, std::move(subCategory)))
+	QObject{parent},
+	d{new LoggerPrivate(setupName, std::move(subCategory))}
 {}
 
 Logger::~Logger() = default;
@@ -35,7 +35,7 @@ void Logger::reportFatalError(const char *error, const char *file, int line, con
 // ------------- PRIVATE IMPLEMENTATION -------------
 
 LoggerPrivate::LoggerPrivate(QString setupName, const QByteArray &subCategory) :
-	setupName(std::move(setupName)),
-	catName("qtdatasync." + this->setupName.toUtf8() + "." + subCategory),
-	logCat(catName.constData(), QtInfoMsg)
+	setupName{std::move(setupName)},
+	catName{"qtdatasync." + this->setupName.toUtf8() + "." + subCategory},
+	logCat{catName.constData(), QtInfoMsg}
 {}
