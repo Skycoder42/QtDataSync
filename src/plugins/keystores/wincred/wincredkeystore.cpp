@@ -37,7 +37,7 @@ bool WinCredKeyStore::contains(const QString &key) const
 		if(error == ERROR_NOT_FOUND)
 			return false;
 		else
-			throw QtDataSync::KeyStoreException(this, formatWinError(error));
+			throw QtDataSync::KeyStoreException(this, qt_error_string(error));
 	} else
 		return true;
 }
@@ -56,14 +56,14 @@ void WinCredKeyStore::save(const QString &key, const QByteArray &pKey)
 	cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
 
 	if(!CredWriteW(&cred, 0))
-		throw QtDataSync::KeyStoreException(this, formatWinError(GetLastError()));
+		throw QtDataSync::KeyStoreException(this, qt_error_string());
 }
 
 QByteArray WinCredKeyStore::load(const QString &key)
 {
 	auto res = tryLoad(key);
 	if(res.isEmpty())
-		throw QtDataSync::KeyStoreException(this, formatWinError(GetLastError()));
+		throw QtDataSync::KeyStoreException(this, qt_error_string());
 	else
 		return res;
 }
@@ -72,7 +72,7 @@ void WinCredKeyStore::remove(const QString &key)
 {
 	auto fullName = fullKey(key);
 	if(!CredDeleteW(reinterpret_cast<LPWSTR>(const_cast<ushort*>(fullName.utf16())), CRED_TYPE_GENERIC, 0))
-		throw QtDataSync::KeyStoreException(this, formatWinError(GetLastError()));
+		throw QtDataSync::KeyStoreException(this, qt_error_string());
 }
 
 QString WinCredKeyStore::fullKey(const QString &key)
@@ -80,24 +80,6 @@ QString WinCredKeyStore::fullKey(const QString &key)
 	return QStringLiteral("%1_QtDataSync_%2")
 			.arg(QCoreApplication::applicationName())
 			.arg(key);
-}
-
-QString WinCredKeyStore::formatWinError(ulong error)
-{
-	wchar_t *buffer = nullptr;
-	auto num = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-							  NULL,
-							  error,
-							  0,
-							  reinterpret_cast<LPWSTR>(&buffer),
-							  0,
-							  NULL);
-	if(buffer) {
-		auto res = QString::fromWCharArray(buffer, num);
-		LocalFree(buffer);
-		return res;
-	} else
-		return {};
 }
 
 QByteArray WinCredKeyStore::tryLoad(const QString &key) const

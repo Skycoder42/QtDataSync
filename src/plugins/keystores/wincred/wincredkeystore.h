@@ -23,7 +23,6 @@ private:
 	bool _open;
 
 	static QString fullKey(const QString &key);
-	static QString formatWinError(ulong error);
 	QByteArray tryLoad(const QString &key) const;
 };
 
