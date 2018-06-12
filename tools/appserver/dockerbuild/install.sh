@@ -98,8 +98,8 @@ make install PREFIX="/usr"
 install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
 cd ..
 CPP_PATCHV=${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}.${CRYPTOPP_VERSION_PATCH}
-ln -s /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR} /usr/lib/libcryptopp.so.${CPP_PATCHV}
-ln -s /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR} /usr/lib/libcryptopp.so.${CPP_PATCHV}
+ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}
+ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}
 /sbin/ldconfig -n /usr/lib
 
 # build messages
