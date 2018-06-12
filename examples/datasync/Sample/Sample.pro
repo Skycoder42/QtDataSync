@@ -1,30 +1,30 @@
 TEMPLATE = app
 
-QT       += core gui widgets datasync
+QT += core gui widgets datasync
+sample_test_model: QT += testlib
+sample_test_model: DEFINES += SAMPLE_TEST_MODELS
 
 TARGET = Sample
 
 HEADERS += \
-		widget.h \
+	widget.h \
 	sampledata.h \
 	accountdialog.h \
 	exchangedialog.h
 
 SOURCES += \
-		main.cpp \
-		widget.cpp \
+	main.cpp \
+	widget.cpp \
 	sampledata.cpp \
 	accountdialog.cpp \
 	exchangedialog.cpp
 
 FORMS += \
-		widget.ui \
+	widget.ui \
 	accountdialog.ui \
 	exchangedialog.ui
 
 DISTFILES += docker-compose.yaml
-
-include(../../3rdparty/modeltest.pri)
 
 target.path = $$[QT_INSTALL_EXAMPLES]/datasync/$$TARGET
 INSTALLS += target

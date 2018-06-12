@@ -26,12 +26,14 @@ public:
 	QStringList columns;
 	QHash<int, QHash<int, QByteArray>> roleMapping; //column -> (role -> property)
 
+	bool isFetching = false;
+
 	QStringList activeKeys();
 
 	void createRoleNames();
 	void clearHashObjects();
 	void deleteObject(const QVariant &value);
-	bool testValid(const QModelIndex &index, int role) const;
+	bool testRoleValid(const QModelIndex &index, int role) const;
 	QByteArray propertyName(const QModelIndex &index, int role) const;
 
 	QVariant readProperty(const QString &key, const QByteArray &property);
