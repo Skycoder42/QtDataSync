@@ -19,8 +19,8 @@ const QMetaObject *NewKeyMessage::getMetaObject() const
 
 
 NewKeyAckMessage::NewKeyAckMessage(const NewKeyMessage &message) :
-	MacUpdateAckMessage(),
-	keyIndex(message.keyIndex)
+	MacUpdateAckMessage{},
+	keyIndex{message.keyIndex}
 {}
 
 const QMetaObject *NewKeyAckMessage::getMetaObject() const

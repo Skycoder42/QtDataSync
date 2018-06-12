@@ -2,7 +2,7 @@
 using namespace QtDataSync;
 
 KeyChangeMessage::KeyChangeMessage(quint32 nextIndex) :
-	nextIndex(nextIndex)
+	nextIndex{nextIndex}
 {}
 
 const QMetaObject *KeyChangeMessage::getMetaObject() const

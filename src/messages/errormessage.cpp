@@ -5,9 +5,9 @@
 using namespace QtDataSync;
 
 ErrorMessage::ErrorMessage(ErrorMessage::ErrorType type, QString message, bool canRecover) :
-	type(type),
-	message(std::move(message)),
-	canRecover(canRecover)
+	type{type},
+	message{std::move(message)},
+	canRecover{canRecover}
 {}
 
 const QMetaObject *ErrorMessage::getMetaObject() const

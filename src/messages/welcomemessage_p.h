@@ -21,7 +21,7 @@ public:
 	WelcomeMessage(bool hasChanges = false);
 
 	bool hasChanges;
-	quint32 keyIndex;
+	quint32 keyIndex = 0;
 	QByteArray scheme;
 	QByteArray key;
 	QByteArray cmac;

@@ -5,12 +5,12 @@ using namespace QtDataSync;
 RegisterBaseMessage::RegisterBaseMessage() = default;
 
 RegisterBaseMessage::RegisterBaseMessage(QString deviceName, QByteArray nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto) :
-	InitMessage(std::move(nonce)),
-	signAlgorithm(crypto->signatureScheme()),
-	signKey(crypto->writeKey(signKey)),
-	cryptAlgorithm(crypto->encryptionScheme()),
-	cryptKey(crypto->writeKey(cryptKey)),
-	deviceName(std::move(deviceName))
+	InitMessage{std::move(nonce)},
+	signAlgorithm{crypto->signatureScheme()},
+	signKey{crypto->writeKey(signKey)},
+	cryptAlgorithm{crypto->encryptionScheme()},
+	cryptKey{crypto->writeKey(cryptKey)},
+	deviceName{std::move(deviceName)}
 {}
 
 AsymmetricCryptoInfo *RegisterBaseMessage::createCryptoInfo(CryptoPP::RandomNumberGenerator &rng, QObject *parent) const
@@ -33,12 +33,12 @@ const QMetaObject *RegisterBaseMessage::getMetaObject() const
 RegisterMessage::RegisterMessage() = default;
 
 RegisterMessage::RegisterMessage(QString deviceName, QByteArray nonce, const QSharedPointer<CryptoPP::X509PublicKey> &signKey, const QSharedPointer<CryptoPP::X509PublicKey> &cryptKey, AsymmetricCrypto *crypto, QByteArray cmac) :
-	RegisterBaseMessage(std::move(deviceName),
+	RegisterBaseMessage{std::move(deviceName),
 						std::move(nonce),
 						signKey,
 						cryptKey,
-						crypto),
-	cmac(std::move(cmac))
+						crypto},
+	cmac{std::move(cmac)}
 {}
 
 const QMetaObject *RegisterMessage::getMetaObject() const

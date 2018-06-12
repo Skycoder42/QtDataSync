@@ -2,8 +2,8 @@
 using namespace QtDataSync;
 
 MacUpdateMessage::MacUpdateMessage(quint32 keyIndex, QByteArray cmac) :
-	keyIndex(keyIndex),
-	cmac(std::move(cmac))
+	keyIndex{keyIndex},
+	cmac{std::move(cmac)}
 {}
 
 const QMetaObject *MacUpdateMessage::getMetaObject() const

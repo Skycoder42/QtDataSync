@@ -18,7 +18,7 @@ public:
 	ChangeMessage(QByteArray dataId = {});
 
 	QByteArray dataId;
-	quint32 keyIndex;
+	quint32 keyIndex = 0;
 	QByteArray salt;
 	QByteArray data;
 

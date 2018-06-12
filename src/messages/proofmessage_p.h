@@ -68,7 +68,7 @@ public:
 	AcceptMessage(QUuid deviceId = {});
 
 	QUuid deviceId;
-	quint32 index;
+	quint32 index = 0;
 	QByteArray scheme;
 	QByteArray secret;
 

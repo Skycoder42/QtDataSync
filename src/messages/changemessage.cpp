@@ -2,10 +2,7 @@
 using namespace QtDataSync;
 
 ChangeMessage::ChangeMessage(QByteArray dataId) :
-	dataId(std::move(dataId)),
-	keyIndex(0),
-	salt(),
-	data()
+	dataId{std::move(dataId)}
 {}
 
 const QMetaObject *ChangeMessage::getMetaObject() const
@@ -16,7 +13,7 @@ const QMetaObject *ChangeMessage::getMetaObject() const
 
 
 ChangeAckMessage::ChangeAckMessage(const ChangeMessage &message) :
-	dataId(message.dataId)
+	dataId{message.dataId}
 {}
 
 const QMetaObject *ChangeAckMessage::getMetaObject() const

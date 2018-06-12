@@ -8,13 +8,10 @@ using byte = CryptoPP::byte;
 const QVersionNumber InitMessage::CurrentVersion(1); //NOTE update accordingly
 const QVersionNumber InitMessage::CompatVersion(1);
 
-InitMessage::InitMessage() :
-	InitMessage(QByteArray{})
-{}
+InitMessage::InitMessage() = default;
 
 InitMessage::InitMessage(QByteArray nonce) :
-	protocolVersion(CurrentVersion),
-	nonce(std::move(nonce))
+	nonce{std::move(nonce)}
 {}
 
 const QMetaObject *InitMessage::getMetaObject() const
@@ -32,8 +29,8 @@ bool InitMessage::validate()
 
 
 IdentifyMessage::IdentifyMessage(quint32 uploadLimit) :
-	InitMessage(),
-	uploadLimit(uploadLimit)
+	InitMessage{},
+	uploadLimit{uploadLimit}
 {}
 
 IdentifyMessage IdentifyMessage::createRandom(quint32 uploadLimit, CryptoPP::RandomNumberGenerator &rng)

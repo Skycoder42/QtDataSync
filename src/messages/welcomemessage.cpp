@@ -2,11 +2,7 @@
 using namespace QtDataSync;
 
 WelcomeMessage::WelcomeMessage(bool hasChanges) :
-	hasChanges(hasChanges),
-	keyIndex(0),
-	scheme(),
-	key(),
-	cmac()
+	hasChanges{hasChanges}
 {}
 
 bool WelcomeMessage::hasKeyUpdate() const

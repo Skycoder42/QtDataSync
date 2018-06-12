@@ -9,8 +9,8 @@ const QMetaObject *ChangedMessage::getMetaObject() const
 
 
 ChangedInfoMessage::ChangedInfoMessage(quint32 changeEstimate) :
-	ChangedMessage(),
-	changeEstimate(changeEstimate)
+	ChangedMessage{},
+	changeEstimate{changeEstimate}
 {}
 
 const QMetaObject *ChangedInfoMessage::getMetaObject() const
@@ -28,7 +28,7 @@ const QMetaObject *LastChangedMessage::getMetaObject() const
 
 
 ChangedAckMessage::ChangedAckMessage(quint64 dataIndex) :
-	dataIndex(dataIndex)
+	dataIndex{dataIndex}
 {}
 
 const QMetaObject *ChangedAckMessage::getMetaObject() const

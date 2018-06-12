@@ -39,7 +39,7 @@ public:
 	static const int NonceSize = 16;
 	InitMessage();
 
-	QVersionNumber protocolVersion;
+	QVersionNumber protocolVersion = CurrentVersion;
 	QByteArray nonce;
 
 protected:
