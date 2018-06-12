@@ -88,12 +88,12 @@ done
 
 # build cryptopp
 git clone --depth 1 https://github.com/weidai11/cryptopp.git ./cryptopp
-cd $repo
+cd cryptopp
 latesttag=$(git describe --tags --abbrev=0)
 echo checking out ${latesttag}
 git checkout ${latesttag}
 
-CXXFLAGS+=" -DNDEBUG -fPIC" make dynamic
+CXXFLAGS="$CXXFLAGS -DNDEBUG -fPIC" make dynamic
 make install PREFIX="/usr"
 install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
 cd ..
