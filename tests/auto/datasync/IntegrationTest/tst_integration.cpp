@@ -236,16 +236,22 @@ void IntegrationTest::testAddAccount()
 		QCOMPARE(grantSpy.takeFirst()[0].toUuid(), dev2Id);
 
 		//wait for sync
-		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
-			emit unlock();
-			QCOMPARE(s, SyncManager::Synchronized);
-		}, true);
-		unlockSpy.wait();
-		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
-			emit unlock();
-			QCOMPARE(s, SyncManager::Synchronized);
-		});
-		unlockSpy.wait();
+		qint64 oldCnt1 = 0;
+		qint64 oldCnt2 = 0;
+		do {
+			oldCnt1 = store1->count();
+			oldCnt2 = store2->count();
+			sync1->runOnSynchronized([this](SyncManager::SyncState s) {
+				emit unlock();
+				QCOMPARE(s, SyncManager::Synchronized);
+			}, true);
+			unlockSpy.wait();
+			sync2->runOnSynchronized([this](SyncManager::SyncState s) {
+				emit unlock();
+				QCOMPARE(s, SyncManager::Synchronized);
+			});
+			unlockSpy.wait();
+		} while(oldCnt1 != store1->count() || oldCnt2 != store2->count());
 
 		QCOMPARE(store1->count(), 20);
 		QCOMPAREUNORDERED(store1->keys(), TestLib::generateDataKeys(0, 19));
