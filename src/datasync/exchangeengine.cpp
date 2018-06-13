@@ -9,7 +9,8 @@
 #include "syncmanager_p.h"
 #include "changeemitter_p.h"
 
-#include <QtCore/QThread>
+#include <QtCore/QDebug>
+#include <QtCore/QCoreApplication>
 
 using namespace QtDataSync;
 
@@ -25,6 +26,11 @@ ExchangeEngine::ExchangeEngine(const QString &setupName, Setup::FatalErrorHandle
 	_remoteConnector{new RemoteConnector(_defaults, this)},
 	_emitter{new ChangeEmitter(_defaults, this)} //must be created here, because of access
 {}
+
+ExchangeEngine::~ExchangeEngine()
+{
+	logDebug() << "Finalization completed";
+}
 
 void ExchangeEngine::enterFatalState(const QString &error, const char *file, int line, const char *function, const char *category)
 {
@@ -168,10 +174,8 @@ void ExchangeEngine::finalize()
 
 	//remoteconnector is the only one asynchronous (for now)
 	connect(_remoteConnector, &RemoteConnector::finalized,
-			this, [this](){
-		logDebug() << "Finalization completed";
-		thread()->quit();
-	});
+			thread(), &QThread::quit,
+			Qt::DirectConnection); //TODO unsafe?
 
 	_syncController->finalize();
 	_changeController->finalize();
@@ -335,3 +339,97 @@ ExchangeEngine::ImportData::ImportData(QJsonObject data, QString password, bool 
 	keepData{keepData},
 	allowFailure{allowFailure}
 {}
+
+// ------------- Engine Thread -------------
+
+EngineThread::EngineThread(QString setupName, ExchangeEngine *engine, QLockFile *lockFile) :
+	_name{std::move(setupName)},
+	_engine{engine},
+	_lockFile{lockFile}
+{
+	setTerminationEnabled(true);
+	_engine.load()->moveToThread(this);
+
+	connect(thread(), &QThread::finished,
+			this, &EngineThread::stopSelf);
+	//TODO dangerous? find better way
+//	connect(this, &QThread::finished,
+//			this, &QThread::deleteLater);
+}
+
+EngineThread::~EngineThread()
+{
+	Q_ASSERT_X(!isRunning(), Q_FUNC_INFO, "Engine thread destroyed while engine is still running");
+}
+
+QString EngineThread::name() const
+{
+	return _name;
+}
+
+ExchangeEngine *EngineThread::engine() const
+{
+	return _engine.load();
+}
+
+bool EngineThread::isRunning() const
+{
+	return _running;
+}
+
+bool EngineThread::startEngine()
+{
+	if(!_running.testAndSetRelaxed(false, true))
+		return false;
+	start();
+	return true;
+}
+
+bool EngineThread::stopEngine()
+{
+	if(!_running.testAndSetRelaxed(true, false))
+		return false;
+	qCDebug(qdssetup) << "Finalizing engine of setup" << _name;
+	QMetaObject::invokeMethod(_engine, "finalize", Qt::QueuedConnection);
+	return true;
+}
+
+void EngineThread::waitAndTerminate(unsigned long timeout)
+{
+	if(!isRunning())
+		return;
+	if(!wait(timeout)) {
+		qCWarning(qdssetup) << "Workerthread of setup" << _name << "did not finish before the timout. Terminating...";
+		terminate();
+		auto wRes = wait(500);
+		qCDebug(qdssetup) << "Terminate result for setup" << _name << ":"
+						  << wRes;
+	}
+}
+
+void EngineThread::run()
+{
+	try {
+		qCDebug(qdssetup) << "Engine thread for setup" << _name << "has started";
+		_engine.load()->initialize();
+		exec();
+		_running = false;
+		delete _engine;
+		_lockFile->unlock();
+		delete _lockFile;
+		qCDebug(qdssetup) << "Engine thread for setup" << _name << "has stopped";
+	} catch(QException &e) {
+		if(_lockFile)
+			_lockFile->unlock();
+		if(_engine)
+			_engine.load()->enterFatalState(QString::fromUtf8(e.what()), QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC, "qtdatasync.setup");
+		else
+			qFatal("%s", e.what());
+	}
+}
+
+void EngineThread::stopSelf()
+{
+	stopEngine();
+	waitAndTerminate(SetupPrivate::currentTimeout());
+}

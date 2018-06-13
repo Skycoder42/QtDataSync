@@ -3,6 +3,7 @@
 
 #include <QtCore/QMutex>
 #include <QtCore/QThread>
+#include <QtCore/QPointer>
 
 #include <QtJsonSerializer/QJsonSerializer>
 
@@ -31,18 +32,10 @@ public:
 	static QJsonObject parseObj(const QByteArray &data);
 
 private:
-	struct SetupInfo {
-		QThread *thread = nullptr;
-		ExchangeEngine *engine = nullptr;
-
-		SetupInfo();
-		SetupInfo(QThread *thread, ExchangeEngine *engine);
-	};
-
 	static const QString DefaultLocalDir;
 
 	static QMutex setupMutex;
-	static QHash<QString, SetupInfo> engines;
+	static QHash<QString, QPointer<EngineThread>> engines;
 	static unsigned long timeout;
 
 	QString localDir;
@@ -57,5 +50,7 @@ private:
 };
 
 }
+
+Q_DECLARE_LOGGING_CATEGORY(qdssetup)
 
 #endif // QTDATASYNC_SETUP_P_H

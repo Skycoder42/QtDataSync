@@ -26,28 +26,13 @@ void Setup::setCleanupTimeout(unsigned long timeout)
 void Setup::removeSetup(const QString &name, bool waitForFinished)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
-	if(SetupPrivate::engines.contains(name)) {
-		auto &info = SetupPrivate::engines[name];
-		if(info.engine) {
-			qCDebug(qdssetup) << "Finalizing engine of setup" << name;
-			QMetaObject::invokeMethod(info.engine, "finalize", Qt::QueuedConnection);
-			info.engine = nullptr;
-		} else
-			qCDebug(qdssetup) << "Engine of setup" << name << "already finalizing";
+	auto mThread = SetupPrivate::engines.value(name);
+	_.unlock(); //unlock first
 
-		if(waitForFinished) {
-			if(!info.thread->wait(SetupPrivate::timeout)) {
-				qCWarning(qdssetup) << "Workerthread of setup" << name << "did not finish before the timout. Terminating...";
-				info.thread->terminate();
-				auto wRes = info.thread->wait(100);
-				qCDebug(qdssetup) << "Terminate result for setup" << name << ":"
-								  << wRes;
-			}
-			info.thread->deleteLater();
-
-			_.unlock(); //unlock first
-			QCoreApplication::processEvents();//required to perform queued events
-		}
+	if(mThread) {
+		mThread->stopEngine();
+		if(waitForFinished)
+			mThread->waitAndTerminate(SetupPrivate::timeout);
 	} else //no there -> remove defaults (either already removed does nothing, or remove passive)
 		DefaultsPrivate::removeDefaults(name);
 }
@@ -443,6 +428,9 @@ Setup &Setup::setAccountTrusted(const QByteArray &importData, const QString &pas
 
 void Setup::create(const QString &name)
 {
+	if(QThread::currentThread() != qApp->thread())
+		qCWarning(qdssetup) << "Setup::create should only be called from the main thread";
+
 	QMutexLocker _(&SetupPrivate::setupMutex);
 	if(SetupPrivate::engines.contains(name))
 		throw SetupExistsException(name);
@@ -463,36 +451,22 @@ void Setup::create(const QString &name)
 		engine->prepareInitialAccount(d->initialImport);
 
 	// create and connect the new thread
-	auto thread = new QThread();
-	engine->moveToThread(thread);
-	QObject::connect(thread, &QThread::started,
-					 engine, &ExchangeEngine::initialize);
-	QObject::connect(thread, &QThread::finished,
-					 engine, &ExchangeEngine::deleteLater);
-	// unlock as soon as the engine has been destroyed
-	QObject::connect(engine, &ExchangeEngine::destroyed, qApp, [lockFile, name](){
-		qCDebug(qdssetup) << "Engine for setup" << name << "destroyed - removing lockfile";
-		lockFile->unlock();
-		delete lockFile;
-	}, Qt::DirectConnection); //direct connection required
+	auto thread = new EngineThread{name, engine, lockFile};
 	// once the thread finished, clear the engine from the cache of known ones
-	QObject::connect(thread, &QThread::finished, thread, [name, thread](){
-		qCDebug(qdssetup) << "Thread for setup" << name << "stopped - setup completly removed";
+	QObject::connect(thread, &QThread::finished, [name](){
 		QMutexLocker _cn(&SetupPrivate::setupMutex);
 		SetupPrivate::engines.remove(name);
+		_cn.unlock();
 		DefaultsPrivate::removeDefaults(name);
-		thread->deleteLater();
-	}, Qt::QueuedConnection); //queued connection, sent from within the thread to thread object on current thread
+	}); //queued connection, sent from within the thread to thread object on current thread
 
 	// start the thread and cache engine data
-	thread->start();
-	SetupPrivate::engines.insert(name, {thread, engine});
+	SetupPrivate::engines.insert(name, thread);
+	thread->startEngine();
 }
 
 bool Setup::createPassive(const QString &name, int timeout)
 {
-	QMutexLocker _(&SetupPrivate::setupMutex);
-
 	// create storage dir and defaults
 	auto storageDir = d->createStorageDir(name);
 	d->createDefaults(name, storageDir, true);
@@ -527,30 +501,27 @@ bool Setup::createPassive(const QString &name, int timeout)
 
 const QString SetupPrivate::DefaultLocalDir = QStringLiteral("./qtdatasync/default");
 QMutex SetupPrivate::setupMutex(QMutex::Recursive);
-QHash<QString, SetupPrivate::SetupInfo> SetupPrivate::engines;
+QHash<QString, QPointer<EngineThread>> SetupPrivate::engines;
 unsigned long SetupPrivate::timeout = ULONG_MAX;
 
 void SetupPrivate::cleanupHandler()
 {
 	QMutexLocker _(&setupMutex);
-	for (auto it = engines.begin(); it != engines.end(); it++) {
-		if(it->engine) {
-			qCDebug(qdssetup) << "Finalizing engine of setup" << it.key() << "because of app quit";
-			QMetaObject::invokeMethod(it->engine, "finalize", Qt::QueuedConnection);
-			it->engine = nullptr;
-		}
-	}
-	for (auto it = engines.constBegin(); it != engines.constEnd(); it++) {
-		if(!it->thread->wait(timeout)) {
-			qCWarning(qdssetup) << "Workerthread of setup" << it.key() << "did not finish before the timout. Terminating...";
-			it->thread->terminate();
-			auto wRes = it->thread->wait(100);
-			qCDebug(qdssetup) << "Terminate result for setup" << it.key() << ":"
-							  << wRes;
-		}
-		it->thread->deleteLater();
-	}
+	auto threads = engines.values();
 	engines.clear();
+	_.unlock();
+
+	for(auto &thread : threads) {
+		if(thread->stopEngine() &&
+		   thread->thread() != QThread::currentThread()) {
+			qCCritical(qdssetup) << "Stopping datasync thread" << thread->name()
+								 << "from the main thread even though it was created on a different thread!"
+								 << "This can lead to synchronization errors. You should always stop all other threads before quitting the application.";
+		}
+	}
+	for(auto &thread : threads)
+		thread->waitAndTerminate(timeout);
+
 	DefaultsPrivate::clearDefaults();
 }
 
@@ -562,7 +533,7 @@ unsigned long SetupPrivate::currentTimeout()
 ExchangeEngine *SetupPrivate::engine(const QString &setupName)
 {
 	QMutexLocker _(&setupMutex);
-	auto engine = engines.value(setupName).engine;
+	auto engine = engines.value(setupName)->engine();
 	if(!engine)
 		throw SetupDoesNotExistException(setupName);
 	else
@@ -625,13 +596,6 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::CryptScheme, Setup::ECIES_ECP_SHA3_512},
 		{Defaults::SymScheme, Setup::AES_EAX}
 	}
-{}
-
-SetupPrivate::SetupInfo::SetupInfo() = default;
-
-SetupPrivate::SetupInfo::SetupInfo(QThread *thread, ExchangeEngine *engine) :
-	thread{thread},
-	engine{engine}
 {}
 
 // ------------- Exceptions -------------

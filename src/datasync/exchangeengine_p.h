@@ -3,6 +3,8 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QAtomicPointer>
+#include <QtCore/QThread>
+#include <QtCore/QLockFile>
 
 #include <QtRemoteObjects/QRemoteObjectHost>
 
@@ -45,6 +47,7 @@ public:
 
 	explicit ExchangeEngine(const QString &setupName,
 							Setup::FatalErrorHandler errorHandler);
+	~ExchangeEngine();
 
 	Q_NORETURN void enterFatalState(const QString &error,
 									const char *file,
@@ -114,6 +117,36 @@ private:
 	bool upstate(SyncManager::SyncState state);
 	void clearError();
 	void resetProgress(Controller *controller = nullptr);
+};
+
+class EngineThread : public QThread
+{
+	Q_OBJECT
+
+public:
+	EngineThread(QString setupName, ExchangeEngine *engine, QLockFile *lockFile);
+	~EngineThread() override;
+
+	QString name() const;
+	ExchangeEngine *engine() const;
+	bool isRunning() const;
+
+	bool startEngine();
+	bool stopEngine();
+
+	void waitAndTerminate(unsigned long timeout);
+
+protected:
+	void run() override;
+
+private Q_SLOTS:
+	void stopSelf();
+
+private:
+	const QString _name;
+	QAtomicPointer<ExchangeEngine> _engine;
+	QLockFile *_lockFile;
+	QAtomicInteger<quint16> _running = false;
 };
 
 }
