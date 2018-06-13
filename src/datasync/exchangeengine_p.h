@@ -129,7 +129,6 @@ public:
 
 	QString name() const;
 	ExchangeEngine *engine() const;
-	bool isRunning() const;
 
 	bool startEngine();
 	bool stopEngine();
@@ -139,14 +138,14 @@ public:
 protected:
 	void run() override;
 
-private Q_SLOTS:
-	void stopSelf();
-
 private:
 	const QString _name;
 	QAtomicPointer<ExchangeEngine> _engine;
 	QLockFile *_lockFile;
 	QAtomicInteger<quint16> _running = false;
+
+	//delete blocker
+	QSharedPointer<EngineThread> _deleteBlocker;
 };
 
 }

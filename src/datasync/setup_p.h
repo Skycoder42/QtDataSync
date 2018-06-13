@@ -3,7 +3,7 @@
 
 #include <QtCore/QMutex>
 #include <QtCore/QThread>
-#include <QtCore/QPointer>
+#include <QtCore/QSharedPointer>
 
 #include <QtJsonSerializer/QJsonSerializer>
 
@@ -18,7 +18,8 @@ namespace QtDataSync {
 //must be exported for tests
 class Q_DATASYNC_EXPORT SetupPrivate
 {
-	friend class Setup;
+	friend class QtDataSync::Setup;
+	friend class QtDataSync::EngineThread;
 
 public:
 	static void cleanupHandler();
@@ -35,7 +36,7 @@ private:
 	static const QString DefaultLocalDir;
 
 	static QMutex setupMutex;
-	static QHash<QString, QPointer<EngineThread>> engines;
+	static QHash<QString, QSharedPointer<EngineThread>> engines;
 	static unsigned long timeout;
 
 	QString localDir;
@@ -47,6 +48,8 @@ private:
 	ExchangeEngine::ImportData initialImport;
 
 	SetupPrivate();
+
+	static void deleteThread(EngineThread *thread);
 };
 
 }

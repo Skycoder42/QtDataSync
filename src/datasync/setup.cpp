@@ -26,6 +26,8 @@ void Setup::setCleanupTimeout(unsigned long timeout)
 void Setup::removeSetup(const QString &name, bool waitForFinished)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
+	if(!SetupPrivate::engines.contains(name))
+		return;
 	auto mThread = SetupPrivate::engines.value(name);
 	_.unlock(); //unlock first
 
@@ -33,8 +35,13 @@ void Setup::removeSetup(const QString &name, bool waitForFinished)
 		mThread->stopEngine();
 		if(waitForFinished)
 			mThread->waitAndTerminate(SetupPrivate::timeout);
-	} else //no there -> remove defaults (either already removed does nothing, or remove passive)
+	} else {
+		//was set but null -> must be passive -> remove passive defaults
 		DefaultsPrivate::removeDefaults(name);
+		// and remove from setup
+		_.relock();
+		SetupPrivate::engines.remove(name);
+	}
 }
 
 QStringList Setup::keystoreProviders()
@@ -428,9 +435,6 @@ Setup &Setup::setAccountTrusted(const QByteArray &importData, const QString &pas
 
 void Setup::create(const QString &name)
 {
-	if(QThread::currentThread() != qApp->thread())
-		qCWarning(qdssetup) << "Setup::create should only be called from the main thread";
-
 	QMutexLocker _(&SetupPrivate::setupMutex);
 	if(SetupPrivate::engines.contains(name))
 		throw SetupExistsException(name);
@@ -450,26 +454,28 @@ void Setup::create(const QString &name)
 	if(d->initialImport.isSet())
 		engine->prepareInitialAccount(d->initialImport);
 
-	// create and connect the new thread
-	auto thread = new EngineThread{name, engine, lockFile};
-	// once the thread finished, clear the engine from the cache of known ones
-	QObject::connect(thread, &QThread::finished, [name](){
-		QMutexLocker _cn(&SetupPrivate::setupMutex);
-		SetupPrivate::engines.remove(name);
-		_cn.unlock();
-		DefaultsPrivate::removeDefaults(name);
-	}); //queued connection, sent from within the thread to thread object on current thread
-
-	// start the thread and cache engine data
+	// create and start the engine in its thread
+	QSharedPointer<EngineThread> thread {
+		new EngineThread{name, engine, lockFile},
+		&SetupPrivate::deleteThread
+	};
 	SetupPrivate::engines.insert(name, thread);
 	thread->startEngine();
 }
 
 bool Setup::createPassive(const QString &name, int timeout)
 {
+	QMutexLocker _(&SetupPrivate::setupMutex);
+	if(SetupPrivate::engines.contains(name))
+		throw SetupExistsException(name);
+
 	// create storage dir and defaults
 	auto storageDir = d->createStorageDir(name);
 	d->createDefaults(name, storageDir, true);
+
+	// theoretically "ready" -> save (with null engine) and unlock
+	SetupPrivate::engines.insert(name, {});
+	_.unlock();
 
 	//wait for the setup to complete initialization
 	auto defaults = DefaultsPrivate::obtainDefaults(name);
@@ -501,28 +507,30 @@ bool Setup::createPassive(const QString &name, int timeout)
 
 const QString SetupPrivate::DefaultLocalDir = QStringLiteral("./qtdatasync/default");
 QMutex SetupPrivate::setupMutex(QMutex::Recursive);
-QHash<QString, QPointer<EngineThread>> SetupPrivate::engines;
+QHash<QString, QSharedPointer<EngineThread>> SetupPrivate::engines;
 unsigned long SetupPrivate::timeout = ULONG_MAX;
 
 void SetupPrivate::cleanupHandler()
 {
 	QMutexLocker _(&setupMutex);
-	auto threads = engines.values();
+	auto threads = engines;
 	engines.clear();
 	_.unlock();
 
-	for(auto &thread : threads) {
-		if(thread->stopEngine() &&
-		   thread->thread() != QThread::currentThread()) {
-			qCCritical(qdssetup) << "Stopping datasync thread" << thread->name()
-								 << "from the main thread even though it was created on a different thread!"
-								 << "This can lead to synchronization errors. You should always stop all other threads before quitting the application.";
-		}
+	// stop/remove all running setups
+	for(auto it = threads.constBegin(); it != threads.constEnd(); it++) {
+		const auto &thread = it.value();
+		if(thread) //active setup -> send stip
+			thread->stopEngine();
+		else //passive setup -> simply remove defaults
+			DefaultsPrivate::removeDefaults(it.key());
 	}
-	for(auto &thread : threads)
-		thread->waitAndTerminate(timeout);
 
-	DefaultsPrivate::clearDefaults();
+	// wait for active setups to finish
+	for(auto &thread : threads) {
+		if(thread)
+			thread->waitAndTerminate(timeout);
+	}
 }
 
 unsigned long SetupPrivate::currentTimeout()
@@ -595,8 +603,13 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::SignScheme, Setup::ECDSA_ECP_SHA3_512},
 		{Defaults::CryptScheme, Setup::ECIES_ECP_SHA3_512},
 		{Defaults::SymScheme, Setup::AES_EAX}
-	}
+		}
 {}
+
+void SetupPrivate::deleteThread(EngineThread *thread)
+{
+	thread->deleteLater();
+}
 
 // ------------- Exceptions -------------
 

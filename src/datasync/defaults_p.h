@@ -54,7 +54,6 @@ public:
 							   QJsonSerializer *serializer,
 							   ConflictResolver *resolver);
 	static void removeDefaults(const QString &setupName);
-	static void clearDefaults();
 	static QSharedPointer<DefaultsPrivate> obtainDefaults(const QString &setupName);
 
 	DefaultsPrivate(QString setupName,

@@ -175,7 +175,7 @@ void ExchangeEngine::finalize()
 	//remoteconnector is the only one asynchronous (for now)
 	connect(_remoteConnector, &RemoteConnector::finalized,
 			thread(), &QThread::quit,
-			Qt::DirectConnection); //TODO unsafe?
+			Qt::DirectConnection);
 
 	_syncController->finalize();
 	_changeController->finalize();
@@ -350,16 +350,15 @@ EngineThread::EngineThread(QString setupName, ExchangeEngine *engine, QLockFile 
 	setTerminationEnabled(true);
 	_engine.load()->moveToThread(this);
 
-	connect(thread(), &QThread::finished,
-			this, &EngineThread::stopSelf);
-	//TODO dangerous? find better way
-//	connect(this, &QThread::finished,
-//			this, &QThread::deleteLater);
+	connect(this, &QThread::finished,
+			this, [this](){
+		_deleteBlocker.clear();
+	}, Qt::QueuedConnection);
 }
 
 EngineThread::~EngineThread()
 {
-	Q_ASSERT_X(!isRunning(), Q_FUNC_INFO, "Engine thread destroyed while engine is still running");
+	Q_ASSERT_X(isFinished(), Q_FUNC_INFO, "Engine thread destroyed while engine is still running");
 }
 
 QString EngineThread::name() const
@@ -370,11 +369,6 @@ QString EngineThread::name() const
 ExchangeEngine *EngineThread::engine() const
 {
 	return _engine.load();
-}
-
-bool EngineThread::isRunning() const
-{
-	return _running;
 }
 
 bool EngineThread::startEngine()
@@ -396,7 +390,7 @@ bool EngineThread::stopEngine()
 
 void EngineThread::waitAndTerminate(unsigned long timeout)
 {
-	if(!isRunning())
+	if(isFinished())
 		return;
 	if(!wait(timeout)) {
 		qCWarning(qdssetup) << "Workerthread of setup" << _name << "did not finish before the timout. Terminating...";
@@ -410,13 +404,21 @@ void EngineThread::waitAndTerminate(unsigned long timeout)
 void EngineThread::run()
 {
 	try {
+		// run
 		qCDebug(qdssetup) << "Engine thread for setup" << _name << "has started";
 		_engine.load()->initialize();
 		exec();
+
+		// cleanup
 		_running = false;
 		delete _engine;
 		_lockFile->unlock();
 		delete _lockFile;
+		DefaultsPrivate::removeDefaults(_name);
+
+		// remove from engine list
+		QMutexLocker _cn(&SetupPrivate::setupMutex);
+		_deleteBlocker = SetupPrivate::engines.take(_name);
 		qCDebug(qdssetup) << "Engine thread for setup" << _name << "has stopped";
 	} catch(QException &e) {
 		if(_lockFile)
@@ -426,10 +428,4 @@ void EngineThread::run()
 		else
 			qFatal("%s", e.what());
 	}
-}
-
-void EngineThread::stopSelf()
-{
-	stopEngine();
-	waitAndTerminate(SetupPrivate::currentTimeout());
 }

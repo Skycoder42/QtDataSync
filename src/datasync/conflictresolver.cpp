@@ -1,5 +1,6 @@
 #include "conflictresolver.h"
 #include "conflictresolver_p.h"
+#include "defaults_p.h"
 using namespace QtDataSync;
 
 ConflictResolver::ConflictResolver(QObject *parent) :
@@ -11,9 +12,9 @@ ConflictResolver::~ConflictResolver() = default;
 
 void ConflictResolver::setDefaults(const Defaults &defaults)
 {
-	d->defaults = defaults;
-	d->logger = d->defaults.createLogger(name(), this);
-	d->settings = d->defaults.createSettings(this, QString::fromUtf8(name()));
+	d->defaultsName = defaults.setupName();
+	d->logger = defaults.createLogger(name(), this);
+	d->settings = defaults.createSettings(this, QString::fromUtf8(name()));
 }
 
 QByteArray ConflictResolver::name() const
@@ -23,7 +24,7 @@ QByteArray ConflictResolver::name() const
 
 Defaults ConflictResolver::defaults() const
 {
-	return d->defaults;
+	return DefaultsPrivate::obtainDefaults(d->defaultsName);
 }
 
 Logger *ConflictResolver::logger() const
