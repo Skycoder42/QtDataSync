@@ -89,7 +89,7 @@ private:
 
 	static QMutex setupDefaultsMutex;
 	static QHash<QString, QSharedPointer<DefaultsPrivate>> setupDefaults;
-	static thread_local DatabaseHolder dbRefHash;
+	static QThreadStorage<DatabaseHolder> dbRefHash;
 
 	QString setupName;
 	QDir storageDir;

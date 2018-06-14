@@ -192,7 +192,7 @@ QSqlDatabase *DatabaseRef::operator->() const
 const QString DefaultsPrivate::DatabaseName(QStringLiteral("__QtDataSync_database_%1_0x%2"));
 QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
-thread_local DefaultsPrivate::DatabaseHolder DefaultsPrivate::dbRefHash;
+QThreadStorage<DefaultsPrivate::DatabaseHolder> DefaultsPrivate::dbRefHash;
 
 void DefaultsPrivate::createDefaults(const QString &setupName, bool isPassive, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver)
 {
@@ -287,7 +287,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 {
 	auto name = DefaultsPrivate::DatabaseName
 				.arg(setupName, QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16));
-	if((dbRefHash[setupName])++ == 0) {
+	if((dbRefHash.localData()[setupName])++ == 0) {
 		logDebug() << "Acquiring database for thread" << QThread::currentThread();
 		auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), name);
 		database.setDatabaseName(storageDir.absoluteFilePath(QStringLiteral("store.db")));
@@ -331,7 +331,7 @@ QSqlDatabase DefaultsPrivate::acquireDatabase()
 
 void DefaultsPrivate::releaseDatabase()
 {
-	if(--(dbRefHash[setupName]) == 0) {
+	if(--(dbRefHash.localData()[setupName]) == 0) {
 		logDebug() << "Releasing database for thread" << QThread::currentThread();
 		releaseDatabaseImpl(setupName);
 	}
