@@ -11,7 +11,7 @@ QMAKE_EXTRA_TARGETS += doxygen
 lrelease.target = lrelease
 lrelease.CONFIG = recursive
 lrelease.recurse_target = lrelease
-lrelease.recurse += sub_src
+lrelease.recurse += sub_src sub_tools
 QMAKE_EXTRA_TARGETS += lrelease
 
 # TODO make tools depend on src
