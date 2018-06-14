@@ -608,7 +608,7 @@ SetupPrivate::SetupPrivate() :
 
 void SetupPrivate::deleteThread(EngineThread *thread)
 {
-	thread->deleteLater();
+	delete thread;
 }
 
 // ------------- Exceptions -------------

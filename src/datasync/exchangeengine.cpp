@@ -342,6 +342,8 @@ ExchangeEngine::ImportData::ImportData(QJsonObject data, QString password, bool 
 
 // ------------- Engine Thread -------------
 
+thread_local QSharedPointer<EngineThread> EngineThread::_deleteBlocker;
+
 EngineThread::EngineThread(QString setupName, ExchangeEngine *engine, QLockFile *lockFile) :
 	_name{std::move(setupName)},
 	_engine{engine},
@@ -349,11 +351,6 @@ EngineThread::EngineThread(QString setupName, ExchangeEngine *engine, QLockFile 
 {
 	setTerminationEnabled(true);
 	_engine.load()->moveToThread(this);
-
-	connect(this, &QThread::finished,
-			this, [this](){
-		_deleteBlocker.clear();
-	}, Qt::QueuedConnection);
 }
 
 EngineThread::~EngineThread()

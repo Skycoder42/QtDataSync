@@ -80,9 +80,16 @@ private Q_SLOTS:
 	void makePassive();
 
 private:
+	static void releaseDatabaseImpl(const QString &name);
+
+	struct DatabaseHolder : public QHash<QString, quint64>
+	{
+		~DatabaseHolder();
+	};
+
 	static QMutex setupDefaultsMutex;
 	static QHash<QString, QSharedPointer<DefaultsPrivate>> setupDefaults;
-	static QThreadStorage<QHash<QString, quint64>> dbRefHash;
+	static thread_local DatabaseHolder dbRefHash;
 
 	QString setupName;
 	QDir storageDir;

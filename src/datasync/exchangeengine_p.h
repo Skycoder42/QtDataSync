@@ -145,7 +145,7 @@ private:
 	QAtomicInteger<quint16> _running = false;
 
 	//delete blocker
-	QSharedPointer<EngineThread> _deleteBlocker;
+	static thread_local QSharedPointer<EngineThread> _deleteBlocker;
 };
 
 }
