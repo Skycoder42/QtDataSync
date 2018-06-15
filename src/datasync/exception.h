@@ -28,12 +28,12 @@ public:
 	//! Like what, but returns a QString instead of a character array
 	virtual QString qWhat() const;
 	//! @inherit{QException::what}
-	const char *what() const noexcept final; //mark virtual again for doxygen
+	virtual const char *what() const noexcept final; //mark virtual again for doxygen
 
 	//! @inherit{QException::raise}
-	void raise() const override; //mark virtual again for doxygen
+	virtual void raise() const override; //mark virtual again for doxygen
 	//! @inherit{QException::clone}
-	QException *clone() const override; //mark virtual again for doxygen
+	virtual QException *clone() const override; //mark virtual again for doxygen
 
 protected:
 	//! @private

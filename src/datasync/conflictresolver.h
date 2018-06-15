@@ -70,6 +70,7 @@ public:
 	}
 
 protected:
+	//! @private
 	using NoConflictResultException = typename GenericConflictResolver<Args...>::NoConflictResultException;
 
 	/*!
@@ -79,12 +80,16 @@ protected:
 	 * @param data2 The second dataset
 	 * @param parent A temporary qobject to use as parent for created QObjects
 	 * @returns The independent merge result of the two datasets
-	 * 	@throws QException In case data corruption was detected an exception can be thrown to abort the
+	 * @throws NoConflictResultException Thrown if resolving was not possible and the default JSON-based
+	 * resolving should be used instead
+	 * @throws QException In case data corruption was detected an exception can be thrown to abort the
 	 * synchronization. This will put the engine in an (unrecoverable) error state.
 	 *
 	 * Must be implemented as the main method of the resolver. The method *must* always return something.
-	 * Unlike the json variant, you cannot return a "default" result. No matter what is returned, it is
-	 * always used as it. Thus, you cannot return nullptr.
+	 * If you find that you cannot decide how to merge, simply throw the `NoConflictResultException`.
+	 * In that case, the library will ignore the result and proceed to merge as if no conflict resolver
+	 * was present. It's basically this methods equivalent of returning an empty JSON object on the
+	 * non generic variant of this method.
 	 *
 	 * @warning This method **must** be deterministic and independent of the parameter order. This means
 	 * if you assume you have 2 objects, no matter at what point in time and in which order they are
@@ -122,6 +127,7 @@ public:
 	}
 
 protected:
+	//! An exception to be thrown from resolveConflict() if resolving was not possible and the default JSON-based resolving should be used instead
 	class NoConflictResultException {};
 
 	/*!
@@ -131,12 +137,16 @@ protected:
 	 * @param data2 The second dataset
 	 * @param parent A temporary qobject to use as parent for created QObjects
 	 * @returns The independent merge result of the two datasets
-	 * 	@throws QException In case data corruption was detected an exception can be thrown to abort the
+	 * @throws NoConflictResultException Thrown if resolving was not possible and the default JSON-based
+	 * resolving should be used instead
+	 * @throws QException In case data corruption was detected an exception can be thrown to abort the
 	 * synchronization. This will put the engine in an (unrecoverable) error state.
 	 *
 	 * Must be implemented as the main method of the resolver. The method *must* always return something.
-	 * Unlike the json variant, you cannot return a "default" result. No matter what is returned, it is
-	 * always used as it. Thus, you cannot return nullptr.
+	 * If you find that you cannot decide how to merge, simply throw the `NoConflictResultException`.
+	 * In that case, the library will ignore the result and proceed to merge as if no conflict resolver
+	 * was present. It's basically this methods equivalent of returning an empty JSON object on the
+	 * non generic variant of this method.
 	 *
 	 * @warning This method **must** be deterministic and independent of the parameter order. This means
 	 * if you assume you have 2 objects, no matter at what point in time and in which order they are

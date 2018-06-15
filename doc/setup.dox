@@ -462,6 +462,32 @@ This may take a moment to complete, depending on the keystore beeing used.
 */
 
 /*!
+@fn QtDataSync::Setup::loadKeystore(QObject *, const QString &)
+
+@param parent The parent object to set as the keystores parent
+@param setupName The name of the setup to create the keystore for
+@returns A newly created KeyStore instance or nullptr if the keystore does not exist
+@throws SetupDoesNotExistException If the setup specified by setupName does not exist (yet)
+@throws QException If something went wrong while loading the plugin
+
+This method simply creates a keystore instance. This can be useful if you want to use a
+keystore outside of datasync to store your own secrets there.
+
+@note The keystore still requires a valid and running datasync instance, as it is needed
+for logging etc. This is only due to how the keystore is designed, as external access was
+originally not planned, and may change in the future.
+
+@sa KeyStore, Setup::keystoreProviders, Setup::defaultKeystoreProvider
+*/
+
+/*!
+@fn QtDataSync::Setup::loadKeystore(const QString &, QObject *, const QString &)
+
+@param provider The keystore provider to create a keystore for
+@copydetails Setup::loadKeystore(QObject *, const QString &)
+*/
+
+/*!
 @fn QtDataSync::Setup::defaultKeystoreProvider
 
 @returns The default provider to be used, limited to the ones actually available
@@ -478,6 +504,35 @@ the plain provider is returned, even if it is not available. The list is sorted 
 6. Plain
 
 @sa Setup::keystoreProviders, Setup::availableKeystores
+*/
+
+/*!
+@fn QtDataSync::Setup::setAccount(const QJsonObject &, bool, bool)
+
+@param importData The account data to be imported
+@param keepData Specify whether the stored data should be preserved
+@param allowFailure Specify how a failure to import the account should be treated
+
+This method is basically a shortcut to import an account on creation - which is faster and
+much more efficient than first creating a new account and then delete it again to import an
+existing one. Internally, the same things will happen as with AccountManager::importAccount
+(or AccountManager::importAccountTrusted).
+
+Whats special is that since there is no account manager to handle a failure, there are two
+way to handle that. If `allowFailure` is false (the default), failing to import the data
+will trigger a fatal error. If it is set to true, the error is only printed and a new account
+is created instead, so that the engine can continue running.
+
+@sa Setup::setAccount, Setup::setAccountTrusted, AccountManager::importAccount,
+AccountManager::importAccountTrusted,
+*/
+
+/*!
+@fn QtDataSync::Setup::setAccountTrusted(const QJsonObject &, const QString &, bool, bool)
+
+@param password The password used to decrypt the imported data with. Must be the same as used
+for the export
+@copydetails Setup::setAccount(const QJsonObject &, bool, bool)
 */
 
 /*!

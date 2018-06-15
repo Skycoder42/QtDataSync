@@ -240,6 +240,12 @@ void DataStoreModel::addRole(int column, int role, const char *propertyName)
 		emit dataChanged(this->index(0, column), this->index(rowCount() - 1, column), {role});
 }
 
+void DataStoreModel::clearColumns()
+{
+	d->columns.clear();
+	d->roleMapping.clear();
+}
+
 void DataStoreModel::setTypeId(int typeId)
 {
 	setTypeId(typeId, true);
@@ -256,10 +262,8 @@ void DataStoreModel::setTypeId(int typeId, bool resetColumns)
 		beginResetModel();
 		d->isObject = flags.testFlag(QMetaType::PointerToQObject);
 		d->keyList.clear();
-		if(resetColumns) {
-			d->columns.clear();
-			d->roleMapping.clear();
-		}
+		if(resetColumns)
+			clearColumns();
 		d->clearHashObjects();
 		d->createRoleNames();
 

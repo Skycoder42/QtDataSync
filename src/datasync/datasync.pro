@@ -1,7 +1,6 @@
 TARGET = QtDataSync
 
 QT = core jsonserializer sql websockets scxml remoteobjects remoteobjects-private
-#android: QT += androidextras #needed to deploy the android keystore plugin
 
 HEADERS += \
 	qtdatasync_global.h \

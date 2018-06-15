@@ -84,8 +84,11 @@ public:
 	Defaults(const QSharedPointer<DefaultsPrivate> &d);
 	//! Copy constructor
 	Defaults(const Defaults &other);
+	//! Move constructor
 	Defaults(Defaults &&other);
+	//! Copy assignment operator
 	Defaults &operator=(const Defaults &other);
+	//! Move assignment operator
 	Defaults &operator=(Defaults &&other);
 	~Defaults();
 

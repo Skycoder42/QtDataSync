@@ -43,7 +43,7 @@
 <context>
     <name>QtDataSync::ChangeController</name>
     <message>
-        <location filename="../changecontroller.cpp" line="+81"/>
+        <location filename="../changecontroller.cpp" line="+75"/>
         <location line="+25"/>
         <location line="+105"/>
         <source>Failed to upload changes to server.</source>
@@ -66,12 +66,12 @@
 <context>
     <name>QtDataSync::ExchangeEngine</name>
     <message>
-        <location filename="../setup.cpp" line="+424"/>
+        <location filename="../setup.cpp" line="+416"/>
         <source>Password for trusted import must not be empty</source>
         <translation>Das Passwort für den Import von vertrauten Daten darf nicht leer sein</translation>
     </message>
     <message>
-        <location line="+188"/>
+        <location line="+175"/>
         <source>Import data must be a JSON object</source>
         <translation>Import-Daten müssen im JSON-Format sein</translation>
     </message>
@@ -79,7 +79,7 @@
 <context>
     <name>QtDataSync::RemoteConnector</name>
     <message>
-        <location filename="../remoteconnector.cpp" line="+796"/>
+        <location filename="../remoteconnector.cpp" line="+784"/>
         <source>Failed to load user identity! Make shure your keystore is available.</source>
         <translation>User-Identität konnte nicht geladen werden. Stellen Sie sicher, dass der Schlüsselspeicher verfügbar ist.</translation>
     </message>
@@ -127,7 +127,7 @@
 <context>
     <name>QtDataSync::SyncController</name>
     <message>
-        <location filename="../synccontroller.cpp" line="+166"/>
+        <location filename="../synccontroller.cpp" line="+164"/>
         <source>Data downloaded from server is invalid.</source>
         <translation>Die vom Server heruntergeladenen Daten sind ungültig.</translation>
     </message>

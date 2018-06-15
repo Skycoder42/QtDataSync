@@ -40,16 +40,18 @@ public:
 	//! @readAcFn{DataStoreModel::editable}
 	bool isEditable() const;
 
-	//! @inherit{QAbstractListModel::headerData}
+	//! @inherit{QAbstractTableModel::headerData}
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-	//! @inherit{QAbstractListModel::rowCount}
+	//! @inherit{QAbstractTableModel::rowCount}
 	int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+	//! @inherit{QAbstractTableModel::columnCount}
 	int columnCount(const QModelIndex &parent) const override;
-	//! @inherit{QAbstractListModel::canFetchMore}
+	//! @inherit{QAbstractTableModel::canFetchMore}
 	bool canFetchMore(const QModelIndex &parent) const override;
-	//! @inherit{QAbstractListModel::fetchMore}
+	//! @inherit{QAbstractTableModel::fetchMore}
 	void fetchMore(const QModelIndex &parent) override;
 
+	//! @inherit{QAbstractTableModel::index}
 	QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
 	//! Returns the index of the item with the given id
 	Q_INVOKABLE QModelIndex idIndex(const QString &id) const;
@@ -63,9 +65,9 @@ public:
 	template <typename T>
 	inline T key(const QModelIndex &index) const;
 
-	//! @inherit{QAbstractListModel::data}
+	//! @inherit{QAbstractTableModel::data}
 	QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-	//! @inherit{QAbstractListModel::setData}
+	//! @inherit{QAbstractTableModel::setData}
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
 	//! Returns the object at the given index
@@ -85,18 +87,24 @@ public:
 	template <typename T>
 	T loadObject(const QModelIndex &index) const;
 
-	//! @inherit{QAbstractListModel::flags}
+	//! @inherit{QAbstractTableModel::flags}
 	Qt::ItemFlags flags(const QModelIndex &index) const override;
-	//! @inherit{QAbstractListModel::roleNames}
+	//! @inherit{QAbstractTableModel::roleNames}
 	QHash<int, QByteArray> roleNames() const override;
 
+	//! Add a new column with the given title
 	int addColumn(const QString &text);
+	//! Add a new column and set the given property as its Qt::DisplayRole
 	int addColumn(const QString &text, const char *propertyName);
+	//! Adds the given property as a new role to the given column
 	void addRole(int column, int role, const char *propertyName);
+	//! Removes all customly added columns and roles
+	void clearColumns();
 
 public Q_SLOTS:
 	//! @writeAcFn{DataStoreModel::typeId}
 	void setTypeId(int typeId); //MAJOR merge methods
+	//! @writeAcFn{DataStoreModel::typeId}
 	void setTypeId(int typeId, bool resetColumns);
 	//! @writeAcFn{DataStoreModel::editable}
 	void setEditable(bool editable);
@@ -107,6 +115,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	//! Emitted when the underlying DataStore throws an exception
 	void storeError(const QException &exception, QPrivateSignal);
+	//! @notifyAcFn{DataStoreModel::typeId}
 	void typeIdChanged(int typeId, QPrivateSignal);
 	//! @notifyAcFn{DataStoreModel::editable}
 	void editableChanged(bool editable, QPrivateSignal);

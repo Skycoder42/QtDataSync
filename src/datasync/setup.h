@@ -177,7 +177,9 @@ public:
 	static bool keystoreAvailable(const QString &provider);
 	//! Returns the default provider to be used based on the current platform and the available providers
 	static QString defaultKeystoreProvider();
+	//! Create and load akeystore instance from the default provider
 	static KeyStore *loadKeystore(QObject *parent = nullptr, const QString &setupName = DefaultSetup);
+	//! Create and load akeystore instance from the given provider
 	static KeyStore *loadKeystore(const QString &provider, QObject *parent = nullptr, const QString &setupName = DefaultSetup);
 
 	Setup();
@@ -288,9 +290,13 @@ public:
 	//! @resetAcFn{Setup::cipherKeySize}
 	Setup &resetCipherKeySize();
 
+	//! Sets an account to be imported on creation of the instance
 	Setup &setAccount(const QJsonObject &importData, bool keepData = false, bool allowFailure = false);
+	//! @copydoc Setup::setAccount(const QJsonObject &, bool, bool)
 	Setup &setAccount(const QByteArray &importData, bool keepData = false, bool allowFailure = false);
+	//! @copybrief Setup::setAccount(const QJsonObject &, bool, bool)
 	Setup &setAccountTrusted(const QJsonObject &importData, const QString &password, bool keepData = false, bool allowFailure = false);
+	//! @copydoc Setup::setAccountTrusted(const QJsonObject &, const QString &, bool, bool)
 	Setup &setAccountTrusted(const QByteArray &importData, const QString &password, bool keepData = false, bool allowFailure = false);
 
 	//! Creates a datasync instance from this setup with the given name

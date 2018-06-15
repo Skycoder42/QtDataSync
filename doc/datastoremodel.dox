@@ -49,18 +49,25 @@ auto model = new QtDataSync::DataStoreModel(this);
 model->setTypeId<Person>();
 @endcode
 
-To properly use it with widgets, you can use
-[QObjectListModel's](https://github.com/Skycoder42/QObjectListModel) `QObjectProxyModel`. The code
-below creates a model with 2 columns, where column 0 shows the "name" role and column 1 shows the
-"age" role:
+One additional feature of the model is, that it can also serve as model for table/tree views by
+delegating properties to multiple columns. This way you can use the model from QML by using the
+property names, and from widgets by delegating the properties to extra columns. For the above
+sample, the following code will result in a model with 2 columns, presenting the name and age
+properties as the Qt::DisplayRole of each column:
+
 @code{.cpp}
-auto proxy = new QObjectProxyModel({"name", "age"}, this);
-proxy->setSourceModel(model);
-proxy->addMapping(0, Qt::DisplayRole, "name");
-proxy->addMapping(1, Qt::DisplayRole, "age");
+// setup first
+auto model = new QtDataSync::DataStoreModel(this);
+model->setTypeId<Person>();
+
+// add the column config:
+auto col0 = model->addColumn("Name");
+model->addRole(col0, Qt::DisplayRole, "name");
+// or as shortcut for the above:
+model->addColumn("Age", "age");
 @endcode
 
-@sa DataStore, [QObjectListModel](https://github.com/Skycoder42/QObjectListModel)
+@sa DataStore
 */
 
 /*!
@@ -79,9 +86,11 @@ properly.
 @accessors{
 	@readAc{typeId()}
 	@writeAc{setTypeId()}
+	@notifyAc{typeIdChanged()}
 }
 
-@sa DataStoreModel::storeError, DataStoreModel::reload
+@sa DataStoreModel::storeError, DataStoreModel::reload, DataStoreModel::addColumn,
+DataStoreModel::addRole
 */
 
 /*!
@@ -163,5 +172,52 @@ the given index identifies. The returned data is owned by the caller. For more d
 DataStore::load.
 
 @sa DataStoreModel::object, DataStore::load
+*/
+
+/*!
+@fn QVariant QtDataSync::DataStoreModel::addColumn(const QString &)
+
+@param text The display name of the column header
+@returns The index of the newly created column
+
+The method add a column to the model that can be used to present propeties from the underlying
+data as specific roles.
+
+@attention If no custom columns have been added yet, the model with have a single column with
+the typeId class name as title. By calling this method the first time, this default column will
+be **replaced** by whatever column you specify. All subsequent columns are simply added as new
+columns.
+
+@sa DataStoreModel, DataStoreModel::typeId, DataStore::addRole, DataStore::clearColumns
+*/
+
+/*!
+@fn QVariant QtDataSync::DataStoreModel::addColumn(const QString &, const char *)
+
+@param text The display name of the column header
+@param propertyName The name of the property to presented as the display role of that column
+@returns The index of the newly created column
+
+This method is basically a shortcut for:
+
+@code{.cpp}
+auto column = model->addColumn(text);
+model->addRole(column, Qt::DisplayRole, propertyName
+@endcode
+
+@sa DataStoreModel, DataStoreModel::typeId, DataStore::addRole, DataStore::clearColumns
+*/
+
+/*!
+@fn QVariant QtDataSync::DataStoreModel::addRole
+
+@param column The existing column to add the role to
+@param role The role that should be added to the column
+@param propertyName The name of the property to presented as the give role of that column
+
+This method adds a new role to an existing column. The new role will simply the the value of the
+given property of the object in each row. It's basically a delegate to the properties role.
+
+@sa DataStoreModel, DataStoreModel::typeId, DataStore::addColumn, DataStore::clearColumns
 */
 
