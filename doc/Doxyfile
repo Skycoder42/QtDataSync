@@ -931,6 +931,7 @@ EXCLUDE_SYMBOLS        = QtDataSync::__helpertypes::* \
 						 QtDataSync::JsonObject \
 						 \
 						 QAbstractAspect \
+						 QAbstractXmlReceiver \
 						 QBasicAtomicInteger \
 						 QBasicAtomicPointer \
 						 QBasicMutex \
