@@ -92,9 +92,16 @@ DISTFILES += $$TRANSLATIONS
 include(rothreadedbackend/rothreadedbackend.pri)
 include(../messages/messages.pri)
 
+MODULE_CONFIG += c++14
+android: MODULE_CONFIG += qtdatasync_androidkeystore
 MODULE_PLUGIN_TYPES = keystores
 
 load(qt_module)
+
+android: FEATURES += ../../mkspecs/features/qtdatasync_androidkeystore.prf
+features.files = $$FEATURES
+features.path = $$[QT_HOST_DATA]/mkspecs/features/
+INSTALLS += features
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "QtDataSync"
