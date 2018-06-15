@@ -81,7 +81,8 @@ The library as a high level synchronisation backend has a few dependencies. They
 	- QtScxml
 	- QtRemoteObjects (currently a TP module)
 - Custom Qt modules:
-	- [QJsonSerializer](https://github.com/Skycoder42/QJsonSerializer)
+	- [QtJsonSerializer](https://github.com/Skycoder42/QtJsonSerializer)
+	- [QtService](https://github.com/Skycoder42/QtService) (For the qdsapp tool)
 - Additional stuff for building it yourself:
 	- perl
 	- [CryptoPP library](https://www.cryptopp.com/) (Can also be linked dynamically)
