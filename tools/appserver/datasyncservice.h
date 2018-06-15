@@ -46,6 +46,8 @@ private:
 
 	void sigusr1();
 	void command(int cmd);
+	void setLogLevel();
+	void setupThreadPool();
 };
 
 #undef qService

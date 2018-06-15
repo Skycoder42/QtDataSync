@@ -6,17 +6,40 @@
 #include "datasyncservice.h"
 
 ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) :
-	QObject(parent),
-	database(database),
-	server(nullptr),
-	secret(),
-	clients()
+	QObject{parent},
+	database{database}
 {
-	auto name = qService->configuration()->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toString();
-	auto mode = qService->configuration()->value(QStringLiteral("server/wss"), false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+	recreateServer();
+	connect(database, &DatabaseController::notifyChanged,
+			this, &ClientConnector::notifyChanged,
+			Qt::QueuedConnection);
+}
+
+void ClientConnector::recreateServer()
+{
+	//stuff that always needs to be done
+	emit disconnectAll();
 	secret = qService->configuration()->value(QStringLiteral("server/secret")).toString();
 
-	server = new QWebSocketServer(name, mode, this);
+	// stop here if activated
+	if(isActivated) {
+		qWarning() << "An activated service cannot restart the websocket server."
+				   << "Reloading will continue with the running instance (changes to \"server/name\" and \"server/wss\" will be ignored";
+		return;
+	}
+
+	// (re)create the server
+	if(server) {
+		server->close();
+		server->deleteLater();
+		server = nullptr;
+	}
+
+	server = new QWebSocketServer{
+		qService->configuration()->value(QStringLiteral("server/name"), QCoreApplication::applicationName()).toString(),
+		qService->configuration()->value(QStringLiteral("server/wss"), false).toBool() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode,
+		this
+	};
 	connect(server, &QWebSocketServer::newConnection,
 			this, &ClientConnector::newConnection);
 	connect(server, &QWebSocketServer::serverError,
@@ -27,10 +50,6 @@ ClientConnector::ClientConnector(DatabaseController *database, QObject *parent) 
 		connect(server, &QWebSocketServer::originAuthenticationRequired,
 				this, &ClientConnector::verifySecret);
 	}
-
-	connect(database, &DatabaseController::notifyChanged,
-			this, &ClientConnector::notifyChanged,
-			Qt::QueuedConnection);
 }
 
 bool ClientConnector::setupWss()
@@ -61,7 +80,7 @@ bool ClientConnector::setupWss()
 								  &localCert,
 								  &caCerts,
 								  qService->configuration()->value(QStringLiteral("server/wss/pass")).toString().toUtf8())) {
-		auto conf = server->sslConfiguration();
+		auto conf = QSslConfiguration::defaultConfiguration();
 		conf.setLocalCertificate(localCert);
 		conf.setPrivateKey(privateKey);
 		caCerts.append(conf.caCertificates());
@@ -80,6 +99,11 @@ bool ClientConnector::setupWss()
 
 bool ClientConnector::listen()
 {
+	if(isActivated) {
+		qDebug() << "Still listening on port" << server->serverPort();
+		return true;
+	}
+
 	quint16 port = 0;
 	auto dSocket = qService->getSocket();
 	if(dSocket != -1) {
@@ -89,6 +113,8 @@ bool ClientConnector::listen()
 						<< "with error:" << server->errorString();
 			return false;
 		}
+		// mark as activated server
+		isActivated = true;
 	} else {
 		QHostAddress host {
 			qService->configuration()->value(QStringLiteral("server/host"),

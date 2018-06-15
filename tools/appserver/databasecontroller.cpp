@@ -48,6 +48,14 @@ void DatabaseController::initialize()
 					  quota, force);
 }
 
+void DatabaseController::reload()
+{
+	auto quota = qService->configuration()->value(QStringLiteral("quota/limit"), 10485760).toULongLong(); //10MB
+	auto force = qService->configuration()->value(QStringLiteral("quota/force"), false).toBool();
+	QtConcurrent::run(qService->threadPool(), this, &DatabaseController::updateQuotaLimit,
+					  quota, force);
+}
+
 void DatabaseController::cleanupDevices()
 {
 	auto offlineSinceDays = qService->configuration()->value(QStringLiteral("cleanup/interval"),

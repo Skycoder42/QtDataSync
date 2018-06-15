@@ -44,6 +44,7 @@ public:
 	explicit DatabaseController(QObject *parent = nullptr);
 
 	void initialize();
+	void reload();
 
 	void cleanupDevices();
 

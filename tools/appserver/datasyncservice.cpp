@@ -64,45 +64,12 @@ QtService::Service::CommandMode DatasyncService::onStart()
 		return Synchronous;
 	}
 
-	//before anything else: read log level
-	//NOTE move to service lib
-	auto logLevel = _config->value(QStringLiteral("loglevel"),
-#ifndef QT_NO_DEBUG
-								   4
-#else
-								   3
-#endif
-								   ).toInt();
-	QString logStr;
-	switch (logLevel) {
-	case 0: //log nothing
-		logStr.prepend(QStringLiteral("\n*.critical=false"));
-		Q_FALLTHROUGH();
-	case 1: //log critical
-		logStr.prepend(QStringLiteral("\n*.warning=false"));
-		Q_FALLTHROUGH();
-	case 2: //log warn
-		logStr.prepend(QStringLiteral("\n*.info=false"));
-		Q_FALLTHROUGH();
-	case 3: //log info
-		logStr.prepend(QStringLiteral("*.debug=false"));
-		QLoggingCategory::setFilterRules(logStr);
-		break;
-	case 4: //log any
-	default:
-		break;
-	}
-
+	//before anything else: set the log level
+	setLogLevel();
 	qDebug() << "Using configuration:" << _config->fileName();
 
 	_mainPool = new QThreadPool(this);
-	_mainPool->setMaxThreadCount(_config->value(QStringLiteral("threads/count"),
-											  QThread::idealThreadCount()).toInt());
-	auto timeoutMin = _config->value(QStringLiteral("threads/expire"), 10).toInt(); //in minutes
-	_mainPool->setExpiryTimeout(static_cast<int>(duration_cast<milliseconds>(minutes(timeoutMin)).count()));
-	qDebug() << "Running with max" << _mainPool->maxThreadCount()
-			 << "threads and an expiry timeout of" << timeoutMin
-			 << "minutes";
+	setupThreadPool();
 
 	_database = new DatabaseController(this);
 	_connector = new ClientConnector(_database, this);
@@ -124,7 +91,7 @@ QtService::Service::CommandMode DatasyncService::onStart()
 QtService::Service::CommandMode DatasyncService::onStop(int &exitCode)
 {
 	qDebug() << "Stopping server...";
-	_connector->disconnectAll();
+	emit _connector->disconnectAll();
 	_mainPool->clear();
 	_mainPool->waitForDone();
 	exitCode = EXIT_SUCCESS;
@@ -134,8 +101,33 @@ QtService::Service::CommandMode DatasyncService::onStop(int &exitCode)
 
 QtService::Service::CommandMode DatasyncService::onReload()
 {
-	//TODO implement
-	Q_UNIMPLEMENTED();
+	// cast is ok here as I own the settings - they are only const to prevent accidental writes
+	const_cast<QSettings*>(_config)->sync();
+	if(_config->status() != QSettings::NoError) {
+		qCritical() << "Failed reload configuration file"
+					<< _config->fileName()
+					<< "with error:"
+					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
+		qCritical() << "Reload failed. Configuration has not been reloaded!";
+		return Synchronous;
+	}
+
+	// before anything else: set the log level
+	setLogLevel();
+	// adjust threadpool parameters
+	setupThreadPool();
+
+	// update the database
+	_database->reload();
+	// recreate and connect the server
+	_connector->recreateServer();
+	if(!_connector->setupWss() ||
+	   !_connector->listen()) {
+		qApp->exit(EXIT_FAILURE);
+		return Synchronous;
+	}
+
+	qDebug() << QCoreApplication::applicationName() << "completed reloading";
 	return Synchronous;
 }
 
@@ -217,6 +209,49 @@ void DatasyncService::command(int cmd)
 	default:
 		break;
 	}
+}
+
+void DatasyncService::setLogLevel()
+{
+	auto logLevel = _config->value(QStringLiteral("loglevel"),
+#ifndef QT_NO_DEBUG
+								   4
+#else
+								   3
+#endif
+								   ).toInt();
+	QString logStr;
+	switch (logLevel) {
+	case 0: //log nothing
+		logStr.prepend(QStringLiteral("\n*.critical=false"));
+		Q_FALLTHROUGH();
+	case 1: //log critical
+		logStr.prepend(QStringLiteral("\n*.warning=false"));
+		Q_FALLTHROUGH();
+	case 2: //log warn
+		logStr.prepend(QStringLiteral("\n*.info=false"));
+		Q_FALLTHROUGH();
+	case 3: //log info
+		logStr.prepend(QStringLiteral("*.debug=false"));
+		QLoggingCategory::setFilterRules(logStr);
+		break;
+	case 4: //log any
+		QLoggingCategory::setFilterRules({});
+		break;
+	default:
+		break;
+	}
+}
+
+void DatasyncService::setupThreadPool()
+{
+	_mainPool->setMaxThreadCount(_config->value(QStringLiteral("threads/count"),
+											  QThread::idealThreadCount()).toInt());
+	auto timeoutMin = _config->value(QStringLiteral("threads/expire"), 10).toInt(); //in minutes
+	_mainPool->setExpiryTimeout(static_cast<int>(duration_cast<milliseconds>(minutes(timeoutMin)).count()));
+	qDebug() << "Running with max" << _mainPool->maxThreadCount()
+			 << "threads and an expiry timeout of" << timeoutMin
+			 << "minutes";
 }
 
 int main(int argc, char *argv[])

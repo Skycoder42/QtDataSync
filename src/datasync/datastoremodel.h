@@ -10,7 +10,7 @@ namespace QtDataSync {
 
 class DataStoreModelPrivate;
 //! A passive item model for a datasync data store
-class Q_DATASYNC_EXPORT DataStoreModel : public QAbstractTableModel //TODO test if breaks binary compat
+class Q_DATASYNC_EXPORT DataStoreModel : public QAbstractTableModel
 {
 	Q_OBJECT
 	friend class DataStoreModelPrivate;

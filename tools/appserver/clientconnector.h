@@ -13,6 +13,7 @@ class ClientConnector : public QObject
 public:
 	explicit ClientConnector(DatabaseController *database, QObject *parent = nullptr);
 
+	void recreateServer();
 	bool setupWss();
 	bool listen();
 	void close();
@@ -37,8 +38,9 @@ private Q_SLOTS:
 
 private:
 	DatabaseController *database;
-	QWebSocketServer *server;
+	QWebSocketServer *server = nullptr;
 	QString secret;
+	bool isActivated = false;
 
 	QHash<QUuid, Client*> clients;
 };
