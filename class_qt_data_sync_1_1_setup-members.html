@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.0.1</span>
+   &#160;<span id="projectnumber">4.1.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -111,12 +111,14 @@ $(function() {
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#acd5b9c5d0b0fccdefe0bf3efba02736c">EncryptionScheme</a> enum name</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a82f7abfc02e345721da11235c24c7797">fatalErrorHandler</a></td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a11a78e60f20f4709a4814d405052357b">fatalErrorHandler</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a76521945323edba6aeb6a92a1c56de62">FatalErrorHandler</a> typedef</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a28e6964249f79a99c5b61f3b5ffcf14d">FatalErrorHandler</a> typedef</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7eacade9dad0fbd6216243313b1b66116da">IDEA_EAX</a> enum value</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#ada18bb06d86f4889a7715e578dee070a">keystoreAvailable</a>(const QString &amp;provider)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a537a373eb37b34652acaca106514f85a">keyStoreProvider</a></td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a37ebdc41a6d35f41c086e9c9f7a94ab3">keyStoreProvider</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a462f7a9835e5c891e7e3fc4e4d3cf9f4">keystoreProviders</a>()</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
+  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#ae31ddbc80e827cd512603bf9ea05bf05">loadKeystore</a>(QObject *parent=nullptr, const QString &amp;setupName=DefaultSetup)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a06a0b66c839799c2a23a275a1afc58ae">loadKeystore</a>(const QString &amp;provider, QObject *parent=nullptr, const QString &amp;setupName=DefaultSetup)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31">localDir</a></td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab01d287139a85bc753a4857e1a4929a8">localDir</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a92a665f81a9b73676c446c060304ec5f">persistDeletedVersion</a></td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
@@ -166,6 +168,10 @@ $(function() {
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a5be7aefae089f58a32c745d3503eb013">serializer</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7eaa967d7934efe227f8aea62a6643fda04">SERPENT_EAX</a> enum value</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7ead33cc676d12e8e1f10d861aa4d90c803">SERPENT_GCM</a> enum value</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#ae39b6c4c65ebe51a2ff375190bd5b0ee">setAccount</a>(const QJsonObject &amp;importData, bool keepData=false, bool allowFailure=false)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a175c75f42a9cadac17c766d7b21145bf">setAccount</a>(const QByteArray &amp;importData, bool keepData=false, bool allowFailure=false)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab8c35b0973bf5018098e8adb010a6047">setAccountTrusted</a>(const QJsonObject &amp;importData, const QString &amp;password, bool keepData=false, bool allowFailure=false)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a118dd8b51b767600ab834f9a0798b8e5">setAccountTrusted</a>(const QByteArray &amp;importData, const QString &amp;password, bool keepData=false, bool allowFailure=false)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#adf23cb856f527cf605960c8e84cb448c">setCacheSize</a>(int cacheSize)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#af33dd879acc99ac90a464445ea611e44">setCipherKeySize</a>(qint32 cipherKeySize)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html#a07dd3ea4d77c2a8572539dd8af112797">setCipherScheme</a>(CipherScheme cipherScheme)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_setup.html">QtDataSync::Setup</a></td><td class="entry"></td></tr>
@@ -201,7 +207,7 @@ $(function() {
 </table></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 15:02:44 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

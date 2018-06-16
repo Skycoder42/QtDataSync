@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.0.1</span>
+   &#160;<span id="projectnumber">4.1.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -89,10 +89,10 @@ Motivation for such a connection</h1>
 How to use</h1>
 <p>The protocol can be used by anyone that links to the datasync library. The protocol gets selected by specifying a special scheme for the url. One example would be: </p><div class="fragment"><div class="line">threaded:<span class="comment">//some/identifier</span></div></div><!-- fragment --><h1><a class="anchor" id="ro_multiproc"></a>
 Multi-Process setups</h1>
-<p>In case you want to use datasync in a multi process context, you cannot use the threaded mode. Instead, use the <a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950" title="The url to be used to host the remote object sources, and to connect to to acquire the replicas...">QtDataSync::Setup::remoteObjectHost</a> property to specify a custom url on all setups. As long as you stay on the same machine, it is recommended to use the "local" mode: </p><div class="fragment"><div class="line">setup.setRemoteObjectHost(<a class="codeRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.10.1/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a>(<span class="stringliteral">&quot;local:datasync_setup_myapp&quot;</span>));</div></div><!-- fragment --> </div></div><!-- contents -->
+<p>In case you want to use datasync in a multi process context, you cannot use the threaded mode. Instead, use the <a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950" title="The url to be used to host the remote object sources, and to connect to to acquire the replicas...">QtDataSync::Setup::remoteObjectHost</a> property to specify a custom url on all setups. As long as you stay on the same machine, it is recommended to use the "local" mode: </p><div class="fragment"><div class="line">setup.setRemoteObjectHost(<a class="codeRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a>(<span class="stringliteral">&quot;local:datasync_setup_myapp&quot;</span>));</div></div><!-- fragment --> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 15:02:44 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

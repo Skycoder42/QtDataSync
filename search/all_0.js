@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['_5fqjsonserializer_5fhelpertypes',['_qjsonserializer_helpertypes',['https://skycoder42.github.io/QJsonSerializer/namespace__qjsonserializer__helpertypes.html',0,'']]]
+  ['_3e',['&gt;',['https://doc.qt.io/qt-5/qt3dextras-qspritesheet.html#>-prop',0,'Qt3DExtras::QSpriteSheet']]]
 ];

@@ -329,17 +329,17 @@
     <templarg>TKey</templarg>
     <base>QtDataSync::DataTypeStoreBase</base>
     <member kind="typedef">
-      <type>QHash&lt; TKey, TType &gt;::const_iterator</type>
+      <type>typename QHash&lt; TKey, TType &gt;::const_iterator</type>
       <name>const_iterator</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_type_store.html</anchorfile>
-      <anchor>a9db90e1814e4007ffd3599a418035e55</anchor>
+      <anchor>a2982ac75a3bed4084432ad284e78ef5a</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>const_iterator</type>
       <name>iterator</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_type_store.html</anchorfile>
-      <anchor>a0fc9b3dbbadc840862b1abcec4995137</anchor>
+      <anchor>ac46aa2dd5194c8d44d23dee39edd50af</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
@@ -462,17 +462,17 @@
     <templarg></templarg>
     <base>QtDataSync::DataTypeStoreBase</base>
     <member kind="typedef">
-      <type>QHash&lt; TKey, TType * &gt;::const_iterator</type>
+      <type>typename QHash&lt; TKey, TType * &gt;::const_iterator</type>
       <name>const_iterator</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
-      <anchor>a62b6a6626776f75a901046563c55f081</anchor>
+      <anchor>a3b450428574b634072d5d805f104a392</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>const_iterator</type>
       <name>iterator</name>
       <anchorfile>class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html</anchorfile>
-      <anchor>a07b1b2d7d27e19925fceedfa6440292e</anchor>
+      <anchor>a3d26e6f256962c696a71adcb053af35f</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
@@ -767,7 +767,7 @@
       <arglist>(int metaTypeId, const QString &amp;key, bool deleted, QPrivateSignal)</arglist>
     </member>
     <member kind="signal">
-      <type>void</type>
+      <type>Q_DECL_DEPRECATED void</type>
       <name>dataCleared</name>
       <anchorfile>class_qt_data_sync_1_1_data_store.html</anchorfile>
       <anchor>ab15924fb3926a62b4ea8d18df72e33db</anchor>
@@ -978,13 +978,20 @@
   <compound kind="class">
     <name>QtDataSync::DataStoreModel</name>
     <filename>class_qt_data_sync_1_1_data_store_model.html</filename>
-    <base>QAbstractListModel</base>
+    <base>QAbstractTableModel</base>
     <member kind="slot">
       <type>void</type>
       <name>setTypeId</name>
       <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
       <anchor>a0c0578f4cd183222a5578b079efa71fd</anchor>
       <arglist>(int typeId)</arglist>
+    </member>
+    <member kind="slot">
+      <type>void</type>
+      <name>setTypeId</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>a357bd4ed4aeb36e5e6525866438ceaf7</anchor>
+      <arglist>(int typeId, bool resetColumns)</arglist>
     </member>
     <member kind="slot">
       <type>void</type>
@@ -1006,6 +1013,13 @@
       <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
       <anchor>a1a04610f8f7095eea874260973a089ff</anchor>
       <arglist>(const QException &amp;exception, QPrivateSignal)</arglist>
+    </member>
+    <member kind="signal">
+      <type>void</type>
+      <name>typeIdChanged</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>a2508945f705bfb8923e1e3c543e7319e</anchor>
+      <arglist>(int typeId, QPrivateSignal)</arglist>
     </member>
     <member kind="signal">
       <type>void</type>
@@ -1053,8 +1067,8 @@
       <type>void</type>
       <name>setTypeId</name>
       <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
-      <anchor>a83934943db0543e0601ef4bdbe91ae5a</anchor>
-      <arglist>()</arglist>
+      <anchor>a5c3a9edd9e9e7fe85a1c61601c597c81</anchor>
+      <arglist>(bool resetColumns=true)</arglist>
     </member>
     <member kind="function">
       <type>bool</type>
@@ -1078,6 +1092,13 @@
       <arglist>(const QModelIndex &amp;parent=QModelIndex()) const override</arglist>
     </member>
     <member kind="function">
+      <type>int</type>
+      <name>columnCount</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>aa0840a712d59bfb7619a21d88e66757d</anchor>
+      <arglist>(const QModelIndex &amp;parent) const override</arglist>
+    </member>
+    <member kind="function">
       <type>bool</type>
       <name>canFetchMore</name>
       <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
@@ -1090,6 +1111,13 @@
       <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
       <anchor>aa74cda3b433e90dff3f6c23a6c05e860</anchor>
       <arglist>(const QModelIndex &amp;parent) override</arglist>
+    </member>
+    <member kind="function">
+      <type>QModelIndex</type>
+      <name>index</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>a5c9f658de8d94f6224b636f6dcb32215</anchor>
+      <arglist>(int row, int column=0, const QModelIndex &amp;parent=QModelIndex()) const override</arglist>
     </member>
     <member kind="function">
       <type>Q_INVOKABLE QModelIndex</type>
@@ -1174,6 +1202,34 @@
       <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
       <anchor>a5d0a99f651b6d7090b7da867cdcca73e</anchor>
       <arglist>() const override</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>addColumn</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>a62102b87c285bca6d9fdb6cdabb62545</anchor>
+      <arglist>(const QString &amp;text)</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>addColumn</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>a7b22eaca7eea7358a0cb05a8cba3358e</anchor>
+      <arglist>(const QString &amp;text, const char *propertyName)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>addRole</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>ad52891d64074be2c6b0410853b537b3b</anchor>
+      <arglist>(int column, int role, const char *propertyName)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>clearColumns</name>
+      <anchorfile>class_qt_data_sync_1_1_data_store_model.html</anchorfile>
+      <anchor>a8c8e1b34f1e941b931f689ffea1ce926</anchor>
+      <arglist>()</arglist>
     </member>
     <member kind="property">
       <type>int</type>
@@ -1504,6 +1560,27 @@
       <arglist>(const Defaults &amp;other)</arglist>
     </member>
     <member kind="function">
+      <type></type>
+      <name>Defaults</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>aeb41686b1144998b8d0ef258f24f4bb2</anchor>
+      <arglist>(Defaults &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>Defaults &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>af8c66c6f57adb4fd6e4bde7444140084</anchor>
+      <arglist>(const Defaults &amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>Defaults &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
+      <anchor>a256cb295f7bf359b7f7719e9273a7c08</anchor>
+      <arglist>(Defaults &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
       <type>Logger *</type>
       <name>createLogger</name>
       <anchorfile>class_qt_data_sync_1_1_defaults.html</anchorfile>
@@ -1613,11 +1690,25 @@
       <arglist>(const DeviceInfo &amp;other)</arglist>
     </member>
     <member kind="function">
+      <type></type>
+      <name>DeviceInfo</name>
+      <anchorfile>class_qt_data_sync_1_1_device_info.html</anchorfile>
+      <anchor>aedf8770a5acd6d7133bcec6a69b0808a</anchor>
+      <arglist>(DeviceInfo &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
       <type>DeviceInfo &amp;</type>
       <name>operator=</name>
       <anchorfile>class_qt_data_sync_1_1_device_info.html</anchorfile>
       <anchor>aa61ae9653d0edb3ef8dfa895d4159e6b</anchor>
       <arglist>(const DeviceInfo &amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>DeviceInfo &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_device_info.html</anchorfile>
+      <anchor>ad4c1910d3e1e30338c64e497ef1bc45d</anchor>
+      <arglist>(DeviceInfo &amp;&amp;other)</arglist>
     </member>
     <member kind="function">
       <type>QUuid</type>
@@ -1660,6 +1751,20 @@
       <anchorfile>class_qt_data_sync_1_1_device_info.html</anchorfile>
       <anchor>ae2b4ff655371c801a6568ea720896d5f</anchor>
       <arglist>(const QByteArray &amp;fingerprint)</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>operator==</name>
+      <anchorfile>class_qt_data_sync_1_1_device_info.html</anchorfile>
+      <anchor>ad7b379878175b82cd15e2f5a7b749390</anchor>
+      <arglist>(const DeviceInfo &amp;other) const</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>operator!=</name>
+      <anchorfile>class_qt_data_sync_1_1_device_info.html</anchorfile>
+      <anchor>a650ae9104fd20ac36c82aeacd4491f46</anchor>
+      <arglist>(const DeviceInfo &amp;other) const</arglist>
     </member>
     <member kind="property">
       <type>QUuid</type>
@@ -1743,11 +1848,11 @@
       <anchor>a2ae291dd02a5db610b87abe996c49140</anchor>
       <arglist>() const</arglist>
     </member>
-    <member kind="function">
-      <type>const char *</type>
+    <member kind="function" virtualness="virtual">
+      <type>virtual const char *</type>
       <name>what</name>
       <anchorfile>class_qt_data_sync_1_1_exception.html</anchorfile>
-      <anchor>a44da7cfa3b5126d796dea5e575a9004e</anchor>
+      <anchor>a3aed53f8adc0af902260365dab99aedb</anchor>
       <arglist>() const noexcept final</arglist>
     </member>
     <member kind="function" virtualness="virtual">
@@ -1777,19 +1882,19 @@
       <anchor>aa8cb36f2341342b7f75ca57307892a98</anchor>
       <arglist>(QObject *parent=nullptr)</arglist>
     </member>
-    <member kind="function" virtualness="pure">
-      <type>virtual T1</type>
-      <name>resolveConflict</name>
-      <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver.html</anchorfile>
-      <anchor>aaae4305ccf6e605303f0771eefe3b2b7</anchor>
-      <arglist>(T1 data1, T1 data2, QObject *parent) const =0</arglist>
-    </member>
     <member kind="function">
       <type>QJsonObject</type>
       <name>resolveConflict</name>
       <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver.html</anchorfile>
       <anchor>ab22ca886c9c38cad6f0d69e8faab43d9</anchor>
       <arglist>(int typeId, const QJsonObject &amp;data1, const QJsonObject &amp;data2) const override</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="pure">
+      <type>virtual T1</type>
+      <name>resolveConflict</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver.html</anchorfile>
+      <anchor>aaae4305ccf6e605303f0771eefe3b2b7</anchor>
+      <arglist>(T1 data1, T1 data2, QObject *parent) const =0</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -1804,26 +1909,26 @@
       <anchor>a9d021fd1ce827defbabe8002819065ff</anchor>
       <arglist>(QObject *parent=nullptr)</arglist>
     </member>
-    <member kind="function" virtualness="pure">
-      <type>virtual T1</type>
-      <name>resolveConflict</name>
-      <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html</anchorfile>
-      <anchor>a8872a6c26d528331984a8530aea28523</anchor>
-      <arglist>(T1 data1, T1 data2, QObject *parent) const =0</arglist>
-    </member>
-    <member kind="function" virtualness="virtual">
-      <type>virtual QJsonObject</type>
-      <name>resolveUnknownConflict</name>
-      <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html</anchorfile>
-      <anchor>ac749e2fde1bf804e513dd1ba074e33d8</anchor>
-      <arglist>(int typeId, const QJsonObject &amp;data1, const QJsonObject &amp;data2) const</arglist>
-    </member>
     <member kind="function">
       <type>QJsonObject</type>
       <name>resolveConflict</name>
       <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html</anchorfile>
       <anchor>a54996e9a3034c75887c7f303a7d27f31</anchor>
       <arglist>(int typeId, const QJsonObject &amp;data1, const QJsonObject &amp;data2) const override</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="pure">
+      <type>virtual T1</type>
+      <name>resolveConflict</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html</anchorfile>
+      <anchor>a8872a6c26d528331984a8530aea28523</anchor>
+      <arglist>(T1 data1, T1 data2, QObject *parent) const =0</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="virtual">
+      <type>virtual QJsonObject</type>
+      <name>resolveUnknownConflict</name>
+      <anchorfile>class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html</anchorfile>
+      <anchor>ac749e2fde1bf804e513dd1ba074e33d8</anchor>
+      <arglist>(int typeId, const QJsonObject &amp;data1, const QJsonObject &amp;data2) const</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -2083,6 +2188,34 @@
     <name>QtDataSync::LoginRequest</name>
     <filename>class_qt_data_sync_1_1_login_request.html</filename>
     <member kind="function">
+      <type></type>
+      <name>LoginRequest</name>
+      <anchorfile>class_qt_data_sync_1_1_login_request.html</anchorfile>
+      <anchor>a7ed7544c0d83ac772ac086968031166c</anchor>
+      <arglist>(const LoginRequest &amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type></type>
+      <name>LoginRequest</name>
+      <anchorfile>class_qt_data_sync_1_1_login_request.html</anchorfile>
+      <anchor>a1c632524d103a74c5ff518e6188c61a6</anchor>
+      <arglist>(LoginRequest &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>LoginRequest &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_login_request.html</anchorfile>
+      <anchor>a05a1742b277fcf73a40073aad7b89e30</anchor>
+      <arglist>(const LoginRequest &amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>LoginRequest &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_login_request.html</anchorfile>
+      <anchor>a111749d401d10d6ba943b1a7defcaf70</anchor>
+      <arglist>(LoginRequest &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
       <type>DeviceInfo</type>
       <name>device</name>
       <anchorfile>class_qt_data_sync_1_1_login_request.html</anchorfile>
@@ -2271,6 +2404,11 @@
     </member>
   </compound>
   <compound kind="class">
+    <name>QtDataSync::GenericConflictResolver&lt; T1 &gt;::NoConflictResultException</name>
+    <filename>class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html</filename>
+    <anchor>class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4_1_1_no_conflict_result_exception</anchor>
+  </compound>
+  <compound kind="class">
     <name>QtDataSync::NoDataException</name>
     <filename>class_qt_data_sync_1_1_no_data_exception.html</filename>
     <base>QtDataSync::DataStoreException</base>
@@ -2363,7 +2501,7 @@
       <type>QHash&lt; QByteArray, QByteArray &gt;</type>
       <name>HeaderHash</name>
       <anchorfile>class_qt_data_sync_1_1_remote_config.html</anchorfile>
-      <anchor>a0e5a28d7f916ae250968f35074783b92</anchor>
+      <anchor>a79232f21a1a189e1b59850f64eb7b831</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
@@ -2381,11 +2519,25 @@
       <arglist>(const RemoteConfig &amp;other)</arglist>
     </member>
     <member kind="function">
+      <type></type>
+      <name>RemoteConfig</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_config.html</anchorfile>
+      <anchor>a4f66ff8b74625d18e7ae34139c760554</anchor>
+      <arglist>(RemoteConfig &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
       <type>RemoteConfig &amp;</type>
       <name>operator=</name>
       <anchorfile>class_qt_data_sync_1_1_remote_config.html</anchorfile>
       <anchor>a098770b27380df606c6d5ebf530ceacb</anchor>
       <arglist>(const RemoteConfig &amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>RemoteConfig &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_remote_config.html</anchorfile>
+      <anchor>a9a19c26d7cc3314e258f5acf46e2bb48</anchor>
+      <arglist>(RemoteConfig &amp;&amp;other)</arglist>
     </member>
     <member kind="function">
       <type>QUrl</type>
@@ -2612,7 +2764,7 @@
       <type>std::function&lt; void(QString, QString, const QMessageLogContext &amp;)&gt;</type>
       <name>FatalErrorHandler</name>
       <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
-      <anchor>a76521945323edba6aeb6a92a1c56de62</anchor>
+      <anchor>a28e6964249f79a99c5b61f3b5ffcf14d</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
@@ -3057,6 +3209,34 @@
       <arglist>()</arglist>
     </member>
     <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setAccount</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>ae39b6c4c65ebe51a2ff375190bd5b0ee</anchor>
+      <arglist>(const QJsonObject &amp;importData, bool keepData=false, bool allowFailure=false)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setAccount</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a175c75f42a9cadac17c766d7b21145bf</anchor>
+      <arglist>(const QByteArray &amp;importData, bool keepData=false, bool allowFailure=false)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setAccountTrusted</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>ab8c35b0973bf5018098e8adb010a6047</anchor>
+      <arglist>(const QJsonObject &amp;importData, const QString &amp;password, bool keepData=false, bool allowFailure=false)</arglist>
+    </member>
+    <member kind="function">
+      <type>Setup &amp;</type>
+      <name>setAccountTrusted</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a118dd8b51b767600ab834f9a0798b8e5</anchor>
+      <arglist>(const QByteArray &amp;importData, const QString &amp;password, bool keepData=false, bool allowFailure=false)</arglist>
+    </member>
+    <member kind="function">
       <type>void</type>
       <name>create</name>
       <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
@@ -3111,6 +3291,20 @@
       <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
       <anchor>a32949ae3f1e4d13c2ba3d499ad17bcab</anchor>
       <arglist>()</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static KeyStore *</type>
+      <name>loadKeystore</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>ae31ddbc80e827cd512603bf9ea05bf05</anchor>
+      <arglist>(QObject *parent=nullptr, const QString &amp;setupName=DefaultSetup)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static KeyStore *</type>
+      <name>loadKeystore</name>
+      <anchorfile>class_qt_data_sync_1_1_setup.html</anchorfile>
+      <anchor>a06a0b66c839799c2a23a275a1afc58ae</anchor>
+      <arglist>(const QString &amp;provider, QObject *parent=nullptr, const QString &amp;setupName=DefaultSetup)</arglist>
     </member>
     <member kind="property">
       <type>QString</type>
@@ -3758,6 +3952,27 @@
       <arglist>(const UserInfo &amp;other)</arglist>
     </member>
     <member kind="function">
+      <type></type>
+      <name>UserInfo</name>
+      <anchorfile>class_qt_data_sync_1_1_user_info.html</anchorfile>
+      <anchor>ae37e3585464ba318261144a3ed155cb2</anchor>
+      <arglist>(UserInfo &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>UserInfo &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_user_info.html</anchorfile>
+      <anchor>a97d6fe31f2be2bba8a40246fe04f5761</anchor>
+      <arglist>(const UserInfo &amp;other)</arglist>
+    </member>
+    <member kind="function">
+      <type>UserInfo &amp;</type>
+      <name>operator=</name>
+      <anchorfile>class_qt_data_sync_1_1_user_info.html</anchorfile>
+      <anchor>a7186d1eff5a0ea4a7cbe8b5e985f9e0e</anchor>
+      <arglist>(UserInfo &amp;&amp;other)</arglist>
+    </member>
+    <member kind="function">
       <type>QString</type>
       <name>name</name>
       <anchorfile>class_qt_data_sync_1_1_user_info.html</anchorfile>
@@ -3779,17 +3994,17 @@
       <arglist>() const</arglist>
     </member>
     <member kind="function">
-      <type>UserInfo &amp;</type>
-      <name>operator=</name>
-      <anchorfile>class_qt_data_sync_1_1_user_info.html</anchorfile>
-      <anchor>a97d6fe31f2be2bba8a40246fe04f5761</anchor>
-      <arglist>(const UserInfo &amp;other)</arglist>
-    </member>
-    <member kind="function">
       <type>bool</type>
       <name>operator==</name>
       <anchorfile>class_qt_data_sync_1_1_user_info.html</anchorfile>
       <anchor>ada1fa54fc3d85d217216b36dd5363e14</anchor>
+      <arglist>(const UserInfo &amp;other) const</arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>operator!=</name>
+      <anchorfile>class_qt_data_sync_1_1_user_info.html</anchorfile>
+      <anchor>a373485279e0e30e30a9d4505242fda6b</anchor>
       <arglist>(const UserInfo &amp;other) const</arglist>
     </member>
     <member kind="property">
@@ -3912,22 +4127,22 @@
       <type>Q_DECL_CONSTEXPR int</type>
       <name>KB</name>
       <anchorfile>namespace_qt_data_sync.html</anchorfile>
-      <anchor>abbc75c96899a4b0e2333aab8e4094fe1</anchor>
-      <arglist>(const intmax_t &amp;value)</arglist>
+      <anchor>ae6989798414d1baee70f6d5d50e74fed</anchor>
+      <arglist>(intmax_t value)</arglist>
     </member>
     <member kind="function">
       <type>Q_DECL_CONSTEXPR int</type>
       <name>MB</name>
       <anchorfile>namespace_qt_data_sync.html</anchorfile>
-      <anchor>ae1234b2a09207d64c55f64ed690e4d50</anchor>
-      <arglist>(const intmax_t &amp;value)</arglist>
+      <anchor>a828153ed199d48b93333fe56ca9476fc</anchor>
+      <arglist>(intmax_t value)</arglist>
     </member>
     <member kind="function">
       <type>Q_DECL_CONSTEXPR int</type>
       <name>GB</name>
       <anchorfile>namespace_qt_data_sync.html</anchorfile>
-      <anchor>aa5f6bf0e0c3fa7253b90cfa3d0873193</anchor>
-      <arglist>(const intmax_t &amp;value)</arglist>
+      <anchor>a196f0c01df5f877d85a397c500af82b7</anchor>
+      <arglist>(intmax_t value)</arglist>
     </member>
     <member kind="function">
       <type>Q_DATASYNC_EXPORT QDataStream &amp;</type>

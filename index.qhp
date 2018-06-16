@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <QtHelpProject version="1.0">
-  <namespace>de.skycoder42.qtdatasync.401</namespace>
+  <namespace>de.skycoder42.qtdatasync.410</namespace>
   <virtualFolder>doc_qtdatasync</virtualFolder>
-  <customFilter name="DataSync 4.0.1">
+  <customFilter name="DataSync 4.1.0">
     <filterAttribute>qtdatasync</filterAttribute>
-    <filterAttribute>4.0.1</filterAttribute>
+    <filterAttribute>4.1.0</filterAttribute>
   </customFilter>
   <filterSection>
     <filterAttribute>doxygen</filterAttribute>
     <toc>
-      <section title="QtDataSync 4.0.1" ref="index.html">
+      <section title="QtDataSync 4.1.0" ref="index.html">
         <section title="Features" ref="index.html#qtdatasync_readme_label_0" />
         <section title="Download/Installation" ref="index.html#qtdatasync_readme_label_1" />
         <section title="Requirements" ref="index.html#qtdatasync_readme_label_2">
@@ -67,7 +67,7 @@
                 <section title="AccountManager" ref="class_qt_data_sync_1_1_account_manager.html#abfe5bbf91e5c540a3c4b4d3d86250897" />
                 <section title="AccountManager" ref="class_qt_data_sync_1_1_account_manager.html#ad6e93676d273b3916b5759f45d89d7f8" />
                 <section title="AccountManager" ref="class_qt_data_sync_1_1_account_manager.html#ac1fa92994160865aade0ac5ff90474c9" />
-                <section title="~AccountManager" ref="class_qt_data_sync_1_1_account_manager.html#af51099701263fca65e97f9c11330c1e0" />
+                <section title="~AccountManager" ref="class_qt_data_sync_1_1_account_manager.html#a4774e3079b6ebfa44b30ab75c56e3143" />
                 <section title="accountAccessGranted" ref="class_qt_data_sync_1_1_account_manager.html#ab054bfcb2bce4cc0c745ecf356e11a57" />
                 <section title="accountDevices" ref="class_qt_data_sync_1_1_account_manager.html#a72125c722735da194a205c16ed9defcf" />
                 <section title="changeRemote" ref="class_qt_data_sync_1_1_account_manager.html#ac35301a99c9a1ea58c7fab34ff63a07d" />
@@ -100,8 +100,8 @@
                 <section title="lastError" ref="class_qt_data_sync_1_1_account_manager.html#a9d310e9f978f8c09303e9db12f25f62e" />
               </section>
               <section title="CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html">
-                <section title="const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a9db90e1814e4007ffd3599a418035e55" />
-                <section title="iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a0fc9b3dbbadc840862b1abcec4995137" />
+                <section title="const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a2982ac75a3bed4084432ad284e78ef5a" />
+                <section title="iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#ac46aa2dd5194c8d44d23dee39edd50af" />
                 <section title="CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html#ac21cc7ac709576a452c4baa0bd4092fd" />
                 <section title="CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html#ac0f326ec75c19897a6b79c7bc352de20" />
                 <section title="CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a2d3693022a5cfaf41d2b88dfcba992b4" />
@@ -119,8 +119,8 @@
                 <section title="take" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a4d4c71ade8e9887bf748db4351ae4084" />
               </section>
               <section title="CachingDataTypeStore&lt; TType *, TKey &gt;" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html">
-                <section title="const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a62b6a6626776f75a901046563c55f081" />
-                <section title="iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a07b1b2d7d27e19925fceedfa6440292e" />
+                <section title="const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a3b450428574b634072d5d805f104a392" />
+                <section title="iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a3d26e6f256962c696a71adcb053af35f" />
                 <section title="CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#af5e023a522ddb931042e0b0c7ab25caf" />
                 <section title="CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a7b89fff1975458a64721237de954b1b4" />
                 <section title="CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a50b5ade4811b5b70d3194ec6aa68dbc1" />
@@ -139,7 +139,7 @@
               </section>
               <section title="ConflictResolver" ref="class_qt_data_sync_1_1_conflict_resolver.html">
                 <section title="ConflictResolver" ref="class_qt_data_sync_1_1_conflict_resolver.html#a16170d86517a51893bb7cec98d3dcee6" />
-                <section title="~ConflictResolver" ref="class_qt_data_sync_1_1_conflict_resolver.html#aed869b13195cfddbd3e88b92b2a16865" />
+                <section title="~ConflictResolver" ref="class_qt_data_sync_1_1_conflict_resolver.html#a940d8c495b42406de5d45a988d7e8504" />
                 <section title="defaults" ref="class_qt_data_sync_1_1_conflict_resolver.html#ae90962359a0694235bef72c31b0e22fb" />
                 <section title="logger" ref="class_qt_data_sync_1_1_conflict_resolver.html#a853e9220b385ffa74b762238186a91b8" />
                 <section title="name" ref="class_qt_data_sync_1_1_conflict_resolver.html#a628e0f03a8a7c91a683ba58e0f1fc5c3" />
@@ -166,7 +166,7 @@
                 </section>
                 <section title="DataStore" ref="class_qt_data_sync_1_1_data_store.html#a852e4f1f7c25b98a64ecd9f030736779" />
                 <section title="DataStore" ref="class_qt_data_sync_1_1_data_store.html#a9ecdeb4ec4a00506f3e9b6663edd7c29" />
-                <section title="~DataStore" ref="class_qt_data_sync_1_1_data_store.html#ae3464c43a28efa887c0ded1aa65e56eb" />
+                <section title="~DataStore" ref="class_qt_data_sync_1_1_data_store.html#ac912a203964f1e2ab56e1cc91e0bf6f4" />
                 <section title="clear" ref="class_qt_data_sync_1_1_data_store.html#a4dfdf5530f66e07a39ce57ba1ca1b530" />
                 <section title="clear" ref="class_qt_data_sync_1_1_data_store.html#ad78246c0c68342a713f4b40c0854d580" />
                 <section title="count" ref="class_qt_data_sync_1_1_data_store.html#ada072897d1c292bb32fac5a65618d59b" />
@@ -202,8 +202,13 @@
                 <section title="DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#a95e1e3d6fa963ff6d6f78ce9018dbb25" />
                 <section title="DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#ab479f054eedbd17116fd80c60cc1bf23" />
                 <section title="DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#a66146548d3afa9c6bba6664a228835d2" />
-                <section title="~DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#afa8664b3dc1e9cd435097923796501e2" />
+                <section title="~DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#a137e6e6bbca6da612e29472bd56059e3" />
+                <section title="addColumn" ref="class_qt_data_sync_1_1_data_store_model.html#a62102b87c285bca6d9fdb6cdabb62545" />
+                <section title="addColumn" ref="class_qt_data_sync_1_1_data_store_model.html#a7b22eaca7eea7358a0cb05a8cba3358e" />
+                <section title="addRole" ref="class_qt_data_sync_1_1_data_store_model.html#ad52891d64074be2c6b0410853b537b3b" />
                 <section title="canFetchMore" ref="class_qt_data_sync_1_1_data_store_model.html#a3987f35db7d8284e5846bfcfd98d8c4d" />
+                <section title="clearColumns" ref="class_qt_data_sync_1_1_data_store_model.html#a8c8e1b34f1e941b931f689ffea1ce926" />
+                <section title="columnCount" ref="class_qt_data_sync_1_1_data_store_model.html#aa0840a712d59bfb7619a21d88e66757d" />
                 <section title="data" ref="class_qt_data_sync_1_1_data_store_model.html#a5f861d3ba422db1058cc99bb607e6512" />
                 <section title="editableChanged" ref="class_qt_data_sync_1_1_data_store_model.html#a846cb17facb9d2f2531bf112198be312" />
                 <section title="fetchMore" ref="class_qt_data_sync_1_1_data_store_model.html#aa74cda3b433e90dff3f6c23a6c05e860" />
@@ -211,6 +216,7 @@
                 <section title="headerData" ref="class_qt_data_sync_1_1_data_store_model.html#a2a7a6a6809f3a22fcd088f6a461fec59" />
                 <section title="idIndex" ref="class_qt_data_sync_1_1_data_store_model.html#a94173768909a3f79c66f30be295abfb4" />
                 <section title="idIndex" ref="class_qt_data_sync_1_1_data_store_model.html#a3db25b6efe85ddc3106d229f164dcab5" />
+                <section title="index" ref="class_qt_data_sync_1_1_data_store_model.html#a5c9f658de8d94f6224b636f6dcb32215" />
                 <section title="isEditable" ref="class_qt_data_sync_1_1_data_store_model.html#ac895a953f3eb427d167ad55268f4d1f2" />
                 <section title="key" ref="class_qt_data_sync_1_1_data_store_model.html#a06de3500cd8fd0bf2897fff7e82b5157" />
                 <section title="key" ref="class_qt_data_sync_1_1_data_store_model.html#a732411d0232b1638c44b86bce395fe6d" />
@@ -223,11 +229,13 @@
                 <section title="rowCount" ref="class_qt_data_sync_1_1_data_store_model.html#aefd4b35872b35316522b7bbc3327c48e" />
                 <section title="setData" ref="class_qt_data_sync_1_1_data_store_model.html#ac1c778b60c7a74bf35f16b4dc0fa8d2c" />
                 <section title="setEditable" ref="class_qt_data_sync_1_1_data_store_model.html#a1a2a508b7ca483ed34241b0ee7d2c367" />
-                <section title="setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a83934943db0543e0601ef4bdbe91ae5a" />
+                <section title="setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a5c3a9edd9e9e7fe85a1c61601c597c81" />
                 <section title="setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a0c0578f4cd183222a5578b079efa71fd" />
+                <section title="setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a357bd4ed4aeb36e5e6525866438ceaf7" />
                 <section title="store" ref="class_qt_data_sync_1_1_data_store_model.html#a810558dc1ac9c08e16377687dca60a27" />
                 <section title="storeError" ref="class_qt_data_sync_1_1_data_store_model.html#a1a04610f8f7095eea874260973a089ff" />
                 <section title="typeId" ref="class_qt_data_sync_1_1_data_store_model.html#a8f6b58713217f023232717a13e43b994" />
+                <section title="typeIdChanged" ref="class_qt_data_sync_1_1_data_store_model.html#a2508945f705bfb8923e1e3c543e7319e" />
                 <section title="DataStoreModelPrivate" ref="class_qt_data_sync_1_1_data_store_model.html#a667151bb10fc8e450d3291e04ebd4823" />
                 <section title="editable" ref="class_qt_data_sync_1_1_data_store_model.html#ad0c82fb5089bb584b0a725d2153426a1" />
                 <section title="typeId" ref="class_qt_data_sync_1_1_data_store_model.html#a8e2b82f456ec3bd0306814c77f0dd59e" />
@@ -272,11 +280,14 @@
                 </section>
                 <section title="Defaults" ref="class_qt_data_sync_1_1_defaults.html#a01d39404c021fe57355bed445e5d0ace" />
                 <section title="Defaults" ref="class_qt_data_sync_1_1_defaults.html#a7ecf832b15054f22801afe67ac89cc3b" />
+                <section title="Defaults" ref="class_qt_data_sync_1_1_defaults.html#aeb41686b1144998b8d0ef258f24f4bb2" />
                 <section title="~Defaults" ref="class_qt_data_sync_1_1_defaults.html#a0f10fe042ac84cb4e0268be6be02bd8e" />
                 <section title="aquireDatabase" ref="class_qt_data_sync_1_1_defaults.html#a07be849a3dbf3dfae4ca2a430ce067e8" />
                 <section title="conflictResolver" ref="class_qt_data_sync_1_1_defaults.html#a2a9f05109509f8a4925f44579f34eb4b" />
                 <section title="createLogger" ref="class_qt_data_sync_1_1_defaults.html#a0e6dc0803e184c582e6d2010d4414ae3" />
                 <section title="createSettings" ref="class_qt_data_sync_1_1_defaults.html#aa8d4cd8dad2747a71093b675eb899e7c" />
+                <section title="operator=" ref="class_qt_data_sync_1_1_defaults.html#af8c66c6f57adb4fd6e4bde7444140084" />
+                <section title="operator=" ref="class_qt_data_sync_1_1_defaults.html#a256cb295f7bf359b7f7719e9273a7c08" />
                 <section title="property" ref="class_qt_data_sync_1_1_defaults.html#a48da90b4abf395b77d223ed3545f691c" />
                 <section title="remoteAddress" ref="class_qt_data_sync_1_1_defaults.html#a50cc6cfc4a5de93d9693b20c80fe55ca" />
                 <section title="remoteNode" ref="class_qt_data_sync_1_1_defaults.html#a41f9bcdda70e292d993ca88d2578a335" />
@@ -289,11 +300,15 @@
                 <section title="DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#a7b1f7d6ab101740b72e843215a973279" />
                 <section title="DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#a2fbd42c16648488da0e854145644c900" />
                 <section title="DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#acbf600b27d31669be40f132caa094a71" />
+                <section title="DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#aedf8770a5acd6d7133bcec6a69b0808a" />
                 <section title="~DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#ab388cd58e92170800f0b10550254faa4" />
                 <section title="deviceId" ref="class_qt_data_sync_1_1_device_info.html#a62bd7585c48c6132e872ac001ab6fcb4" />
                 <section title="fingerprint" ref="class_qt_data_sync_1_1_device_info.html#aad08de2c465b15a5d517bc65bb3d3813" />
                 <section title="name" ref="class_qt_data_sync_1_1_device_info.html#af923876662113808ede1775c0b17bfa2" />
+                <section title="operator!=" ref="class_qt_data_sync_1_1_device_info.html#a650ae9104fd20ac36c82aeacd4491f46" />
                 <section title="operator=" ref="class_qt_data_sync_1_1_device_info.html#aa61ae9653d0edb3ef8dfa895d4159e6b" />
+                <section title="operator=" ref="class_qt_data_sync_1_1_device_info.html#ad4c1910d3e1e30338c64e497ef1bc45d" />
+                <section title="operator==" ref="class_qt_data_sync_1_1_device_info.html#ad7b379878175b82cd15e2f5a7b749390" />
                 <section title="setDeviceId" ref="class_qt_data_sync_1_1_device_info.html#abcfa1ad1e80cee3392cf9a77be2dd32a" />
                 <section title="setFingerprint" ref="class_qt_data_sync_1_1_device_info.html#ae2b4ff655371c801a6568ea720896d5f" />
                 <section title="setName" ref="class_qt_data_sync_1_1_device_info.html#a343c25657a81ed604f0f7b3b90101173" />
@@ -312,17 +327,18 @@
                 <section title="qWhat" ref="class_qt_data_sync_1_1_exception.html#a2ae291dd02a5db610b87abe996c49140" />
                 <section title="raise" ref="class_qt_data_sync_1_1_exception.html#ae76353a60d2362299a0c1f68e4f53b22" />
                 <section title="setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
-                <section title="what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+                <section title="what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
               </section>
               <section title="GenericConflictResolver" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html">
                 <section title="GenericConflictResolver" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#aa8cb36f2341342b7f75ca57307892a98" />
-                <section title="resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#aaae4305ccf6e605303f0771eefe3b2b7" />
                 <section title="resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#ab22ca886c9c38cad6f0d69e8faab43d9" />
+                <section title="resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#aaae4305ccf6e605303f0771eefe3b2b7" />
               </section>
               <section title="GenericConflictResolver&lt; T1 &gt;" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html">
+                <section title="NoConflictResultException" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4_1_1_no_conflict_result_exception" />
                 <section title="GenericConflictResolver" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a9d021fd1ce827defbabe8002819065ff" />
-                <section title="resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a8872a6c26d528331984a8530aea28523" />
                 <section title="resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a54996e9a3034c75887c7f303a7d27f31" />
+                <section title="resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a8872a6c26d528331984a8530aea28523" />
                 <section title="resolveUnknownConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#ac749e2fde1bf804e513dd1ba074e33d8" />
               </section>
               <section title="InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html">
@@ -334,7 +350,7 @@
               </section>
               <section title="KeyStore" ref="class_qt_data_sync_1_1_key_store.html">
                 <section title="KeyStore" ref="class_qt_data_sync_1_1_key_store.html#a767da616d204b723a4fe0eb85f1cb05f" />
-                <section title="~KeyStore" ref="class_qt_data_sync_1_1_key_store.html#a73b48e44fe38ad66f9c231240c3de020" />
+                <section title="~KeyStore" ref="class_qt_data_sync_1_1_key_store.html#aad6c2449546f45277b5625f116430e8d" />
                 <section title="closeStore" ref="class_qt_data_sync_1_1_key_store.html#ac852e01393c895654fbb886a2a45304b" />
                 <section title="contains" ref="class_qt_data_sync_1_1_key_store.html#a7ac99f127bbffa16aa0c2a0288064242" />
                 <section title="defaults" ref="class_qt_data_sync_1_1_key_store.html#af48fba1d4d0085569e216d1762adeb9c" />
@@ -355,6 +371,7 @@
                 <section title="storeProviderName" ref="class_qt_data_sync_1_1_key_store_exception.html#a378d9e030633454bed40eee622de6611" />
               </section>
               <section title="KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html">
+                <section title="KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html#ac31cb5e13e5c163b8b0b5e030c5f5093" />
                 <section title="~KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html#a8914d10798b7e7e82d0dd1858247340d" />
                 <section title="createInstance" ref="class_qt_data_sync_1_1_key_store_plugin.html#ab6fea64f30a4f3f77b7d3a95a1520a5a" />
                 <section title="keystoreAvailable" ref="class_qt_data_sync_1_1_key_store_plugin.html#a97b2887221d1da505be270eadf7aec67" />
@@ -368,16 +385,20 @@
                 <section title="raise" ref="class_qt_data_sync_1_1_local_store_exception.html#aca2723a05ab893fe3f976fa75923c4d1" />
               </section>
               <section title="Logger" ref="class_qt_data_sync_1_1_logger.html">
-                <section title="~Logger" ref="class_qt_data_sync_1_1_logger.html#a0ba71ad64da4e535ee6d2847ef497ebe" />
+                <section title="~Logger" ref="class_qt_data_sync_1_1_logger.html#aa8d51d74b780ee680e72dbd183b41ea6" />
                 <section title="loggingCategory" ref="class_qt_data_sync_1_1_logger.html#ad77a3fa56f222ccaced9ae8d150739fe" />
                 <section title="reportFatalError" ref="class_qt_data_sync_1_1_logger.html#afbb5e7898ca89de89f0a1b1bdb1d421b" />
                 <section title="reportFatalError" ref="class_qt_data_sync_1_1_logger.html#a65b38bb4f70bb688e72a6639fb9cb6be" />
               </section>
               <section title="LoginRequest" ref="class_qt_data_sync_1_1_login_request.html">
+                <section title="LoginRequest" ref="class_qt_data_sync_1_1_login_request.html#a7ed7544c0d83ac772ac086968031166c" />
+                <section title="LoginRequest" ref="class_qt_data_sync_1_1_login_request.html#a1c632524d103a74c5ff518e6188c61a6" />
                 <section title="~LoginRequest" ref="class_qt_data_sync_1_1_login_request.html#a850416dd91a5a4aea0ff8038239f9637" />
                 <section title="accept" ref="class_qt_data_sync_1_1_login_request.html#ae222d06473814012639016266765d3f3" />
                 <section title="device" ref="class_qt_data_sync_1_1_login_request.html#a4af9aae8e2a26bf0ea6f119fbecaf342" />
                 <section title="handled" ref="class_qt_data_sync_1_1_login_request.html#ad4523dd4c3dc301eae7b1dc1fd3ac13e" />
+                <section title="operator=" ref="class_qt_data_sync_1_1_login_request.html#a05a1742b277fcf73a40073aad7b89e30" />
+                <section title="operator=" ref="class_qt_data_sync_1_1_login_request.html#a111749d401d10d6ba943b1a7defcaf70" />
                 <section title="reject" ref="class_qt_data_sync_1_1_login_request.html#a390a42897e8cc649362b194281174ee4" />
                 <section title="AccountManager" ref="class_qt_data_sync_1_1_login_request.html#ad05046fe3a5656a5f13283c5bcebd22a" />
                 <section title="device" ref="class_qt_data_sync_1_1_login_request.html#afd488ba622921bd1b0454bbbabc230a3" />
@@ -395,7 +416,7 @@
                 </section>
                 <section title="MigrationHelper" ref="class_qt_data_sync_1_1_migration_helper.html#ab3f935db498a0dc4cadaf0eb4ea864ad" />
                 <section title="MigrationHelper" ref="class_qt_data_sync_1_1_migration_helper.html#adc0a75845aeedbf17b7ac703a4b88caf" />
-                <section title="~MigrationHelper" ref="class_qt_data_sync_1_1_migration_helper.html#aa58cd464f13316fe7115f93a80c93062" />
+                <section title="~MigrationHelper" ref="class_qt_data_sync_1_1_migration_helper.html#aef4d3aa4a458023729bf0520fab2ddf0" />
                 <section title="migrationDone" ref="class_qt_data_sync_1_1_migration_helper.html#ae7138bca5de37995e70239749674ac31" />
                 <section title="migrationPrepared" ref="class_qt_data_sync_1_1_migration_helper.html#afd6eb18b8a23d46e6e8c35a82246b8ad" />
                 <section title="migrationProgress" ref="class_qt_data_sync_1_1_migration_helper.html#a025381932d8199da7d95fc7707141ff3" />
@@ -417,14 +438,16 @@
                 <section title="typeName" ref="struct_qt_data_sync_1_1_object_key.html#aa11070fb0b83296dc71124257b404aee" />
               </section>
               <section title="RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html">
-                <section title="HeaderHash" ref="class_qt_data_sync_1_1_remote_config.html#a0e5a28d7f916ae250968f35074783b92" />
+                <section title="HeaderHash" ref="class_qt_data_sync_1_1_remote_config.html#a79232f21a1a189e1b59850f64eb7b831" />
                 <section title="RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html#a18e81bcbf0396846b5c2df47378b05fd" />
                 <section title="RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html#ae8c026bc0f046ded5e0eb7a72a571746" />
+                <section title="RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html#a4f66ff8b74625d18e7ae34139c760554" />
                 <section title="~RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html#a39d53051b238193109643179a119b403" />
                 <section title="accessKey" ref="class_qt_data_sync_1_1_remote_config.html#aeecb60306ad075731102774ee27f901b" />
                 <section title="headers" ref="class_qt_data_sync_1_1_remote_config.html#a5e110e8bb25b2c6c448a48a1a153733a" />
                 <section title="keepaliveTimeout" ref="class_qt_data_sync_1_1_remote_config.html#afbdaa4eb6092bce733aabbc11ed296c0" />
                 <section title="operator=" ref="class_qt_data_sync_1_1_remote_config.html#a098770b27380df606c6d5ebf530ceacb" />
+                <section title="operator=" ref="class_qt_data_sync_1_1_remote_config.html#a9a19c26d7cc3314e258f5acf46e2bb48" />
                 <section title="setAccessKey" ref="class_qt_data_sync_1_1_remote_config.html#a9c45a25cd81f3862f2205ee8ca17ca01" />
                 <section title="setHeaders" ref="class_qt_data_sync_1_1_remote_config.html#ac855a056fbca4a81c6462cb9d0064a06" />
                 <section title="setKeepaliveTimeout" ref="class_qt_data_sync_1_1_remote_config.html#ae1a8e8f972182d76472585ed4ff8c289" />
@@ -438,7 +461,7 @@
                 <section title="url" ref="class_qt_data_sync_1_1_remote_config.html#afc17a78a6dc7f21e33f87b84cb942fea" />
               </section>
               <section title="Setup" ref="class_qt_data_sync_1_1_setup.html">
-                <section title="FatalErrorHandler" ref="class_qt_data_sync_1_1_setup.html#a76521945323edba6aeb6a92a1c56de62" />
+                <section title="FatalErrorHandler" ref="class_qt_data_sync_1_1_setup.html#a28e6964249f79a99c5b61f3b5ffcf14d" />
                 <section title="CipherScheme" ref="class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7e">
                   <section title="AES_EAX" ref="class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7ea945d2b3943d1def7bc6ea801f5b0eaa9" />
                   <section title="AES_GCM" ref="class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7ea1f4594b0256a099e40f5a46e8fd352db" />
@@ -519,6 +542,10 @@
                 <section title="resetSslConfiguration" ref="class_qt_data_sync_1_1_setup.html#af83b229f44cf74bc5f8991814185369a" />
                 <section title="resetSyncPolicy" ref="class_qt_data_sync_1_1_setup.html#a65bbd739c61758605085a2aeea20f6ff" />
                 <section title="serializer" ref="class_qt_data_sync_1_1_setup.html#a5be7aefae089f58a32c745d3503eb013" />
+                <section title="setAccount" ref="class_qt_data_sync_1_1_setup.html#ae39b6c4c65ebe51a2ff375190bd5b0ee" />
+                <section title="setAccount" ref="class_qt_data_sync_1_1_setup.html#a175c75f42a9cadac17c766d7b21145bf" />
+                <section title="setAccountTrusted" ref="class_qt_data_sync_1_1_setup.html#ab8c35b0973bf5018098e8adb010a6047" />
+                <section title="setAccountTrusted" ref="class_qt_data_sync_1_1_setup.html#a118dd8b51b767600ab834f9a0798b8e5" />
                 <section title="setCacheSize" ref="class_qt_data_sync_1_1_setup.html#adf23cb856f527cf605960c8e84cb448c" />
                 <section title="setCipherKeySize" ref="class_qt_data_sync_1_1_setup.html#af33dd879acc99ac90a464445ea611e44" />
                 <section title="setCipherScheme" ref="class_qt_data_sync_1_1_setup.html#a07dd3ea4d77c2a8572539dd8af112797" />
@@ -593,7 +620,7 @@
                 <section title="SyncManager" ref="class_qt_data_sync_1_1_sync_manager.html#a25d003ab49afd2840588076290b52997" />
                 <section title="SyncManager" ref="class_qt_data_sync_1_1_sync_manager.html#ab01010856a2219254bf5ed9577e325d4" />
                 <section title="SyncManager" ref="class_qt_data_sync_1_1_sync_manager.html#a98414abdb7584b92e97c670f5d2792a9" />
-                <section title="~SyncManager" ref="class_qt_data_sync_1_1_sync_manager.html#ad983326d71a447f841c9543d03e2df4b" />
+                <section title="~SyncManager" ref="class_qt_data_sync_1_1_sync_manager.html#a23d00d79602b6bbab10a2ba10bbb0c7a" />
                 <section title="isSyncEnabled" ref="class_qt_data_sync_1_1_sync_manager.html#ab3ed428ffcb7e678824c8105b67eb9f1" />
                 <section title="lastError" ref="class_qt_data_sync_1_1_sync_manager.html#a0aa23d7138aad0ef185d7ee664ac29c7" />
                 <section title="lastErrorChanged" ref="class_qt_data_sync_1_1_sync_manager.html#a445c305f8f803c6a4444af5e224e3d92" />
@@ -617,7 +644,7 @@
                 <section title="UserExchangeManager" ref="class_qt_data_sync_1_1_user_exchange_manager.html#ab9371610bce8a8f4589cf891cb329c47" />
                 <section title="UserExchangeManager" ref="class_qt_data_sync_1_1_user_exchange_manager.html#a85a130a1356633c8b50fa30c463dab89" />
                 <section title="UserExchangeManager" ref="class_qt_data_sync_1_1_user_exchange_manager.html#a16d005ec14c305bcc27a6fa19c8a69ba" />
-                <section title="~UserExchangeManager" ref="class_qt_data_sync_1_1_user_exchange_manager.html#a98d70d24cca04bf38d1f7423708b621d" />
+                <section title="~UserExchangeManager" ref="class_qt_data_sync_1_1_user_exchange_manager.html#a3a524f6548e2d393d1f782e18b7abd32" />
                 <section title="accountManager" ref="class_qt_data_sync_1_1_user_exchange_manager.html#a949c479ec38b8ef5e80e35167416e772" />
                 <section title="activeChanged" ref="class_qt_data_sync_1_1_user_exchange_manager.html#ab79281140eb9caea6b48a7273710fcf8" />
                 <section title="devices" ref="class_qt_data_sync_1_1_user_exchange_manager.html#a6f33cade292c1d5e589910818247a55a" />
@@ -639,10 +666,13 @@
               <section title="UserInfo" ref="class_qt_data_sync_1_1_user_info.html">
                 <section title="UserInfo" ref="class_qt_data_sync_1_1_user_info.html#a8e23df7d05938f29d46dfe7fb3cb1c43" />
                 <section title="UserInfo" ref="class_qt_data_sync_1_1_user_info.html#aaa7fc87e389d36c3261410d3b7660037" />
+                <section title="UserInfo" ref="class_qt_data_sync_1_1_user_info.html#ae37e3585464ba318261144a3ed155cb2" />
                 <section title="~UserInfo" ref="class_qt_data_sync_1_1_user_info.html#a02345dceb0e7054000294a4743c82a72" />
                 <section title="address" ref="class_qt_data_sync_1_1_user_info.html#ad3943f774144e7f57dfac651951eb013" />
                 <section title="name" ref="class_qt_data_sync_1_1_user_info.html#ad4ce564a9a82b0bb330817b45083cc5f" />
+                <section title="operator!=" ref="class_qt_data_sync_1_1_user_info.html#a373485279e0e30e30a9d4505242fda6b" />
                 <section title="operator=" ref="class_qt_data_sync_1_1_user_info.html#a97d6fe31f2be2bba8a40246fe04f5761" />
+                <section title="operator=" ref="class_qt_data_sync_1_1_user_info.html#a7186d1eff5a0ea4a7cbe8b5e985f9e0e" />
                 <section title="operator==" ref="class_qt_data_sync_1_1_user_info.html#ada1fa54fc3d85d217216b36dd5363e14" />
                 <section title="port" ref="class_qt_data_sync_1_1_user_info.html#ae462b3f48cea2093109d475c4e78b1a0" />
                 <section title="UserInfoPrivate" ref="class_qt_data_sync_1_1_user_info.html#a632f14c76f7e9f21c4cfe1991d04080f" />
@@ -660,8 +690,9 @@
             <section title="QtDataSync::GenericConflictResolver&lt; T1, Args &gt;" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html" />
             <section title="QtDataSync::KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html" />
             <section title="QtDataSync::LoginRequest" ref="class_qt_data_sync_1_1_login_request.html" />
+            <section title="QtDataSync::GenericConflictResolver&lt; T1 &gt;::NoConflictResultException" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4_1_1_no_conflict_result_exception" />
             <section title="QtDataSync::ObjectKey" ref="struct_qt_data_sync_1_1_object_key.html" />
-            <section title="QException" ref="qexception.html">
+            <section title="QException" ref="class_q_exception.html">
               <section title="QtDataSync::Exception" ref="class_qt_data_sync_1_1_exception.html">
                 <section title="QtDataSync::DataStoreException" ref="class_qt_data_sync_1_1_data_store_exception.html">
                   <section title="QtDataSync::InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html" />
@@ -678,7 +709,7 @@
             </section>
             <section title="QObject" ref="class_q_object.html">
               <section title="QAbstractItemModel" ref="qabstractitemmodel.html">
-                <section title="QAbstractListModel" ref="qabstractlistmodel.html">
+                <section title="QAbstractTableModel" ref="qabstracttablemodel.html">
                   <section title="QtDataSync::DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html" />
                 </section>
               </section>
@@ -778,7 +809,7 @@
               </section>
               <section title="KeyStore" ref="class_qt_data_sync_1_1_key_store.html">
                 <section title="KeyStore" ref="class_qt_data_sync_1_1_key_store.html#a767da616d204b723a4fe0eb85f1cb05f" />
-                <section title="~KeyStore" ref="class_qt_data_sync_1_1_key_store.html#a73b48e44fe38ad66f9c231240c3de020" />
+                <section title="~KeyStore" ref="class_qt_data_sync_1_1_key_store.html#aad6c2449546f45277b5625f116430e8d" />
                 <section title="closeStore" ref="class_qt_data_sync_1_1_key_store.html#ac852e01393c895654fbb886a2a45304b" />
                 <section title="contains" ref="class_qt_data_sync_1_1_key_store.html#a7ac99f127bbffa16aa0c2a0288064242" />
                 <section title="defaults" ref="class_qt_data_sync_1_1_key_store.html#af48fba1d4d0085569e216d1762adeb9c" />
@@ -791,6 +822,7 @@
                 <section title="QtDataSync::KeyStoreException" ref="class_qt_data_sync_1_1_key_store.html#a00b874bf0c2db8707a14d034dee3e95b" />
               </section>
               <section title="KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html">
+                <section title="KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html#ac31cb5e13e5c163b8b0b5e030c5f5093" />
                 <section title="~KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html#a8914d10798b7e7e82d0dd1858247340d" />
                 <section title="createInstance" ref="class_qt_data_sync_1_1_key_store_plugin.html#ab6fea64f30a4f3f77b7d3a95a1520a5a" />
                 <section title="keystoreAvailable" ref="class_qt_data_sync_1_1_key_store_plugin.html#a97b2887221d1da505be270eadf7aec67" />
@@ -799,7 +831,7 @@
             </section>
             <section title="logger.h" ref="logger_8h.html">
               <section title="Logger" ref="class_qt_data_sync_1_1_logger.html">
-                <section title="~Logger" ref="class_qt_data_sync_1_1_logger.html#a0ba71ad64da4e535ee6d2847ef497ebe" />
+                <section title="~Logger" ref="class_qt_data_sync_1_1_logger.html#aa8d51d74b780ee680e72dbd183b41ea6" />
                 <section title="loggingCategory" ref="class_qt_data_sync_1_1_logger.html#ad77a3fa56f222ccaced9ae8d150739fe" />
                 <section title="reportFatalError" ref="class_qt_data_sync_1_1_logger.html#afbb5e7898ca89de89f0a1b1bdb1d421b" />
                 <section title="reportFatalError" ref="class_qt_data_sync_1_1_logger.html#a65b38bb4f70bb688e72a6639fb9cb6be" />
@@ -848,9 +880,9 @@
       <keyword name="operator&lt;&lt;" id="QtDataSync::operator&lt;&lt;" ref="namespace_qt_data_sync.html#a2863ba7c195b6c172da1c976b75174f7" />
       <keyword name="operator&lt;&lt;" id="QtDataSync::operator&lt;&lt;" ref="namespace_qt_data_sync.html#ab1244b7e665c9779bf363bf308364120" />
       <keyword name="operator&gt;&gt;" id="QtDataSync::operator&gt;&gt;" ref="namespace_qt_data_sync.html#a7cb93b1ec7e9231279897dc4b844c1fe" />
-      <keyword name="KB" id="QtDataSync::KB" ref="namespace_qt_data_sync.html#abbc75c96899a4b0e2333aab8e4094fe1" />
-      <keyword name="MB" id="QtDataSync::MB" ref="namespace_qt_data_sync.html#ae1234b2a09207d64c55f64ed690e4d50" />
-      <keyword name="GB" id="QtDataSync::GB" ref="namespace_qt_data_sync.html#aa5f6bf0e0c3fa7253b90cfa3d0873193" />
+      <keyword name="KB" id="QtDataSync::KB" ref="namespace_qt_data_sync.html#ae6989798414d1baee70f6d5d50e74fed" />
+      <keyword name="MB" id="QtDataSync::MB" ref="namespace_qt_data_sync.html#a828153ed199d48b93333fe56ca9476fc" />
+      <keyword name="GB" id="QtDataSync::GB" ref="namespace_qt_data_sync.html#a196f0c01df5f877d85a397c500af82b7" />
       <keyword name="operator&lt;&lt;" id="QtDataSync::operator&lt;&lt;" ref="namespace_qt_data_sync.html#a0a8b4f681a213e68d12e358a7be3713a" />
       <keyword name="operator&gt;&gt;" id="QtDataSync::operator&gt;&gt;" ref="namespace_qt_data_sync.html#a1a2548e80cdaf8b1623074c802214e98" />
       <keyword name="qHash" id="QtDataSync::qHash" ref="namespace_qt_data_sync.html#a485d9a9f0724bb2a7d56e5f2bd231ad8" />
@@ -887,10 +919,12 @@
       <keyword name="deviceName" id="QtDataSync::AccountManager::deviceName" ref="class_qt_data_sync_1_1_account_manager.html#a5a7e9418e8b87e7394cf13ce11532815" />
       <keyword name="deviceFingerprint" id="QtDataSync::AccountManager::deviceFingerprint" ref="class_qt_data_sync_1_1_account_manager.html#a72e3ffa748a82303247762adcf25a436" />
       <keyword name="lastError" id="QtDataSync::AccountManager::lastError" ref="class_qt_data_sync_1_1_account_manager.html#a6a8f66f940c3a4bc6237abbe8f5cb71e" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -952,8 +986,8 @@
       <keyword name="connectNotify" id="QObject::connectNotify" ref="class_q_object.html#connectNotify" />
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="class_q_object.html#disconnectNotify" />
       <keyword name="QtDataSync::CachingDataTypeStore" id="QtDataSync::CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html" />
-      <keyword name="const_iterator" id="QtDataSync::CachingDataTypeStore::const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a9db90e1814e4007ffd3599a418035e55" />
-      <keyword name="iterator" id="QtDataSync::CachingDataTypeStore::iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a0fc9b3dbbadc840862b1abcec4995137" />
+      <keyword name="const_iterator" id="QtDataSync::CachingDataTypeStore::const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a2982ac75a3bed4084432ad284e78ef5a" />
+      <keyword name="iterator" id="QtDataSync::CachingDataTypeStore::iterator" ref="class_qt_data_sync_1_1_caching_data_type_store.html#ac46aa2dd5194c8d44d23dee39edd50af" />
       <keyword name="CachingDataTypeStore" id="QtDataSync::CachingDataTypeStore::CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html#ac21cc7ac709576a452c4baa0bd4092fd" />
       <keyword name="CachingDataTypeStore" id="QtDataSync::CachingDataTypeStore::CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html#ac0f326ec75c19897a6b79c7bc352de20" />
       <keyword name="CachingDataTypeStore" id="QtDataSync::CachingDataTypeStore::CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a2d3693022a5cfaf41d2b88dfcba992b4" />
@@ -970,10 +1004,12 @@
       <keyword name="begin" id="QtDataSync::CachingDataTypeStore::begin" ref="class_qt_data_sync_1_1_caching_data_type_store.html#a180b918bfbbdeb941b2ae443f0cc1a1c" />
       <keyword name="end" id="QtDataSync::CachingDataTypeStore::end" ref="class_qt_data_sync_1_1_caching_data_type_store.html#ad6998812063198a505cad1a315ea7d14" />
       <keyword name="DataTypeStoreBase" id="QtDataSync::DataTypeStoreBase::DataTypeStoreBase" ref="class_qt_data_sync_1_1_data_type_store_base.html#a1ca590f2e1bfa4180f448c3a3dfc6954" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1033,8 +1069,8 @@
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="class_q_object.html#disconnectNotify" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html" />
-      <keyword name="const_iterator" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a62b6a6626776f75a901046563c55f081" />
-      <keyword name="iterator" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a07b1b2d7d27e19925fceedfa6440292e" />
+      <keyword name="const_iterator" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::const_iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a3b450428574b634072d5d805f104a392" />
+      <keyword name="iterator" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::iterator" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a3d26e6f256962c696a71adcb053af35f" />
       <keyword name="CachingDataTypeStore" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#af5e023a522ddb931042e0b0c7ab25caf" />
       <keyword name="CachingDataTypeStore" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a7b89fff1975458a64721237de954b1b4" />
       <keyword name="CachingDataTypeStore" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::CachingDataTypeStore" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a50b5ade4811b5b70d3194ec6aa68dbc1" />
@@ -1051,10 +1087,12 @@
       <keyword name="begin" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::begin" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a44568187594ea7e2b9b0aa46ece0c0a6" />
       <keyword name="end" id="QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;::end" ref="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#ab68cb026712eac1e39f98df4653af3e8" />
       <keyword name="DataTypeStoreBase" id="QtDataSync::DataTypeStoreBase::DataTypeStoreBase" ref="class_qt_data_sync_1_1_data_type_store_base.html#a1ca590f2e1bfa4180f448c3a3dfc6954" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1117,10 +1155,12 @@
       <keyword name="ConflictResolver" id="QtDataSync::ConflictResolver::ConflictResolver" ref="class_qt_data_sync_1_1_conflict_resolver.html#a16170d86517a51893bb7cec98d3dcee6" />
       <keyword name="name" id="QtDataSync::ConflictResolver::name" ref="class_qt_data_sync_1_1_conflict_resolver.html#a628e0f03a8a7c91a683ba58e0f1fc5c3" />
       <keyword name="resolveConflict" id="QtDataSync::ConflictResolver::resolveConflict" ref="class_qt_data_sync_1_1_conflict_resolver.html#a033f3fb9836aecb701d7e189ac3bc1db" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1218,10 +1258,12 @@
       <keyword name="search" id="QtDataSync::DataStore::search" ref="class_qt_data_sync_1_1_data_store.html#ae9eb2b7192be794274a32752ed934745" />
       <keyword name="iterate" id="QtDataSync::DataStore::iterate" ref="class_qt_data_sync_1_1_data_store.html#ab1ceaa87b7227d74d243d8937133c481" />
       <keyword name="clear" id="QtDataSync::DataStore::clear" ref="class_qt_data_sync_1_1_data_store.html#ad78246c0c68342a713f4b40c0854d580" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1289,26 +1331,30 @@
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
       <keyword name="qWhat" id="QtDataSync::Exception::qWhat" ref="class_qt_data_sync_1_1_exception.html#a2ae291dd02a5db610b87abe996c49140" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="raise" id="QtDataSync::Exception::raise" ref="class_qt_data_sync_1_1_exception.html#ae76353a60d2362299a0c1f68e4f53b22" />
       <keyword name="clone" id="QtDataSync::Exception::clone" ref="class_qt_data_sync_1_1_exception.html#ac45c2397d836b4d6b0826dd3eb63b226" />
       <keyword name="QtDataSync::DataStoreModel" id="QtDataSync::DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html" />
       <keyword name="setTypeId" id="QtDataSync::DataStoreModel::setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a0c0578f4cd183222a5578b079efa71fd" />
+      <keyword name="setTypeId" id="QtDataSync::DataStoreModel::setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a357bd4ed4aeb36e5e6525866438ceaf7" />
       <keyword name="setEditable" id="QtDataSync::DataStoreModel::setEditable" ref="class_qt_data_sync_1_1_data_store_model.html#a1a2a508b7ca483ed34241b0ee7d2c367" />
       <keyword name="reload" id="QtDataSync::DataStoreModel::reload" ref="class_qt_data_sync_1_1_data_store_model.html#a1b4fc793b22240213a178c570ef236ea" />
       <keyword name="storeError" id="QtDataSync::DataStoreModel::storeError" ref="class_qt_data_sync_1_1_data_store_model.html#a1a04610f8f7095eea874260973a089ff" />
+      <keyword name="typeIdChanged" id="QtDataSync::DataStoreModel::typeIdChanged" ref="class_qt_data_sync_1_1_data_store_model.html#a2508945f705bfb8923e1e3c543e7319e" />
       <keyword name="editableChanged" id="QtDataSync::DataStoreModel::editableChanged" ref="class_qt_data_sync_1_1_data_store_model.html#a846cb17facb9d2f2531bf112198be312" />
       <keyword name="DataStoreModel" id="QtDataSync::DataStoreModel::DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#a95e1e3d6fa963ff6d6f78ce9018dbb25" />
       <keyword name="DataStoreModel" id="QtDataSync::DataStoreModel::DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#ab479f054eedbd17116fd80c60cc1bf23" />
       <keyword name="DataStoreModel" id="QtDataSync::DataStoreModel::DataStoreModel" ref="class_qt_data_sync_1_1_data_store_model.html#a66146548d3afa9c6bba6664a228835d2" />
       <keyword name="store" id="QtDataSync::DataStoreModel::store" ref="class_qt_data_sync_1_1_data_store_model.html#a810558dc1ac9c08e16377687dca60a27" />
       <keyword name="typeId" id="QtDataSync::DataStoreModel::typeId" ref="class_qt_data_sync_1_1_data_store_model.html#a8f6b58713217f023232717a13e43b994" />
-      <keyword name="setTypeId" id="QtDataSync::DataStoreModel::setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a83934943db0543e0601ef4bdbe91ae5a" />
+      <keyword name="setTypeId" id="QtDataSync::DataStoreModel::setTypeId" ref="class_qt_data_sync_1_1_data_store_model.html#a5c3a9edd9e9e7fe85a1c61601c597c81" />
       <keyword name="isEditable" id="QtDataSync::DataStoreModel::isEditable" ref="class_qt_data_sync_1_1_data_store_model.html#ac895a953f3eb427d167ad55268f4d1f2" />
       <keyword name="headerData" id="QtDataSync::DataStoreModel::headerData" ref="class_qt_data_sync_1_1_data_store_model.html#a2a7a6a6809f3a22fcd088f6a461fec59" />
       <keyword name="rowCount" id="QtDataSync::DataStoreModel::rowCount" ref="class_qt_data_sync_1_1_data_store_model.html#aefd4b35872b35316522b7bbc3327c48e" />
+      <keyword name="columnCount" id="QtDataSync::DataStoreModel::columnCount" ref="class_qt_data_sync_1_1_data_store_model.html#aa0840a712d59bfb7619a21d88e66757d" />
       <keyword name="canFetchMore" id="QtDataSync::DataStoreModel::canFetchMore" ref="class_qt_data_sync_1_1_data_store_model.html#a3987f35db7d8284e5846bfcfd98d8c4d" />
       <keyword name="fetchMore" id="QtDataSync::DataStoreModel::fetchMore" ref="class_qt_data_sync_1_1_data_store_model.html#aa74cda3b433e90dff3f6c23a6c05e860" />
+      <keyword name="index" id="QtDataSync::DataStoreModel::index" ref="class_qt_data_sync_1_1_data_store_model.html#a5c9f658de8d94f6224b636f6dcb32215" />
       <keyword name="idIndex" id="QtDataSync::DataStoreModel::idIndex" ref="class_qt_data_sync_1_1_data_store_model.html#a94173768909a3f79c66f30be295abfb4" />
       <keyword name="idIndex" id="QtDataSync::DataStoreModel::idIndex" ref="class_qt_data_sync_1_1_data_store_model.html#a3db25b6efe85ddc3106d229f164dcab5" />
       <keyword name="key" id="QtDataSync::DataStoreModel::key" ref="class_qt_data_sync_1_1_data_store_model.html#a06de3500cd8fd0bf2897fff7e82b5157" />
@@ -1321,14 +1367,19 @@
       <keyword name="loadObject" id="QtDataSync::DataStoreModel::loadObject" ref="class_qt_data_sync_1_1_data_store_model.html#a488db03334a744055cb2cf6427d3b806" />
       <keyword name="flags" id="QtDataSync::DataStoreModel::flags" ref="class_qt_data_sync_1_1_data_store_model.html#a924f8902e6393137d7b6a551470f3989" />
       <keyword name="roleNames" id="QtDataSync::DataStoreModel::roleNames" ref="class_qt_data_sync_1_1_data_store_model.html#a5d0a99f651b6d7090b7da867cdcca73e" />
-      <keyword name="QAbstractListModel" id="QAbstractListModel::QAbstractListModel" ref="qabstractlistmodel.html#QAbstractListModel" />
-      <keyword name="index" id="QAbstractListModel::index" ref="qabstractlistmodel.html#index" />
-      <keyword name="sibling" id="QAbstractListModel::sibling" ref="qabstractlistmodel.html#sibling" />
-      <keyword name="dropMimeData" id="QAbstractListModel::dropMimeData" ref="qabstractlistmodel.html#dropMimeData" />
+      <keyword name="addColumn" id="QtDataSync::DataStoreModel::addColumn" ref="class_qt_data_sync_1_1_data_store_model.html#a62102b87c285bca6d9fdb6cdabb62545" />
+      <keyword name="addColumn" id="QtDataSync::DataStoreModel::addColumn" ref="class_qt_data_sync_1_1_data_store_model.html#a7b22eaca7eea7358a0cb05a8cba3358e" />
+      <keyword name="addRole" id="QtDataSync::DataStoreModel::addRole" ref="class_qt_data_sync_1_1_data_store_model.html#ad52891d64074be2c6b0410853b537b3b" />
+      <keyword name="clearColumns" id="QtDataSync::DataStoreModel::clearColumns" ref="class_qt_data_sync_1_1_data_store_model.html#a8c8e1b34f1e941b931f689ffea1ce926" />
+      <keyword name="metaObject" id="QAbstractTableModel::metaObject" ref="qabstracttablemodel.html#metaObject" />
+      <keyword name="qt_metacast" id="QAbstractTableModel::qt_metacast" ref="qabstracttablemodel.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QAbstractTableModel::qt_metacall" ref="qabstracttablemodel.html#qt_metacall" />
+      <keyword name="QAbstractTableModel" id="QAbstractTableModel::QAbstractTableModel" ref="qabstracttablemodel.html#QAbstractTableModel" />
+      <keyword name="sibling" id="QAbstractTableModel::sibling" ref="qabstracttablemodel.html#sibling" />
+      <keyword name="dropMimeData" id="QAbstractTableModel::dropMimeData" ref="qabstracttablemodel.html#dropMimeData" />
       <keyword name="QAbstractItemModel" id="QAbstractItemModel::QAbstractItemModel" ref="qabstractitemmodel.html#QAbstractItemModel" />
       <keyword name="hasIndex" id="QAbstractItemModel::hasIndex" ref="qabstractitemmodel.html#hasIndex" />
       <keyword name="parent" id="QAbstractItemModel::parent" ref="qabstractitemmodel.html#parent" />
-      <keyword name="columnCount" id="QAbstractItemModel::columnCount" ref="qabstractitemmodel.html#columnCount" />
       <keyword name="hasChildren" id="QAbstractItemModel::hasChildren" ref="qabstractitemmodel.html#hasChildren" />
       <keyword name="setHeaderData" id="QAbstractItemModel::setHeaderData" ref="qabstractitemmodel.html#setHeaderData" />
       <keyword name="itemData" id="QAbstractItemModel::itemData" ref="qabstractitemmodel.html#itemData" />
@@ -1355,6 +1406,7 @@
       <keyword name="buddy" id="QAbstractItemModel::buddy" ref="qabstractitemmodel.html#buddy" />
       <keyword name="match" id="QAbstractItemModel::match" ref="qabstractitemmodel.html#match" />
       <keyword name="span" id="QAbstractItemModel::span" ref="qabstractitemmodel.html#span" />
+      <keyword name="checkIndex" id="QAbstractItemModel::checkIndex" ref="qabstractitemmodel.html#checkIndex" />
       <keyword name="dataChanged" id="QAbstractItemModel::dataChanged" ref="qabstractitemmodel.html#dataChanged" />
       <keyword name="headerDataChanged" id="QAbstractItemModel::headerDataChanged" ref="qabstractitemmodel.html#headerDataChanged" />
       <keyword name="layoutChanged" id="QAbstractItemModel::layoutChanged" ref="qabstractitemmodel.html#layoutChanged" />
@@ -1378,7 +1430,6 @@
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1416,6 +1467,10 @@
       <keyword name="typeId" id="QtDataSync::DataStoreModel::typeId" ref="class_qt_data_sync_1_1_data_store_model.html#a8e2b82f456ec3bd0306814c77f0dd59e" />
       <keyword name="editable" id="QtDataSync::DataStoreModel::editable" ref="class_qt_data_sync_1_1_data_store_model.html#ad0c82fb5089bb584b0a725d2153426a1" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
+      <keyword name="tr" id="QAbstractTableModel::tr" ref="qabstracttablemodel.html#tr" />
+      <keyword name="trUtf8" id="QAbstractTableModel::trUtf8" ref="qabstracttablemodel.html#trUtf8" />
+      <keyword name="tr" id="QAbstractItemModel::tr" ref="qabstractitemmodel.html#tr" />
+      <keyword name="trUtf8" id="QAbstractItemModel::trUtf8" ref="qabstractitemmodel.html#trUtf8" />
       <keyword name="tr" id="QObject::tr" ref="class_q_object.html#tr" />
       <keyword name="trUtf8" id="QObject::trUtf8" ref="class_q_object.html#trUtf8" />
       <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect" />
@@ -1427,6 +1482,7 @@
       <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-1" />
       <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-4" />
       <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-5" />
+      <keyword name="CheckIndexOptions" id="QAbstractItemModel::CheckIndexOptions" ref="qabstractitemmodel.html#CheckIndexOption-enum" />
       <keyword name="resetInternalData" id="QAbstractItemModel::resetInternalData" ref="qabstractitemmodel.html#resetInternalData" />
       <keyword name="createIndex" id="QAbstractItemModel::createIndex" ref="qabstractitemmodel.html#createIndex" />
       <keyword name="createIndex" id="QAbstractItemModel::createIndex" ref="qabstractitemmodel.html#createIndex-1" />
@@ -1474,10 +1530,12 @@
       <keyword name="iterate" id="QtDataSync::DataTypeStore::iterate" ref="class_qt_data_sync_1_1_data_type_store.html#a4837b7e764adece2b0e6a17ab260a21f" />
       <keyword name="clear" id="QtDataSync::DataTypeStore::clear" ref="class_qt_data_sync_1_1_data_type_store.html#aed8fe061762e360db5416dd2a0a7fc70" />
       <keyword name="DataTypeStoreBase" id="QtDataSync::DataTypeStoreBase::DataTypeStoreBase" ref="class_qt_data_sync_1_1_data_type_store_base.html#a1ca590f2e1bfa4180f448c3a3dfc6954" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1541,10 +1599,12 @@
       <keyword name="dataResetted" id="QtDataSync::DataTypeStoreBase::dataResetted" ref="class_qt_data_sync_1_1_data_type_store_base.html#a450d1e09cfe3ead13ff1b92fcc145fbf" />
       <keyword name="DataTypeStoreBase" id="QtDataSync::DataTypeStoreBase::DataTypeStoreBase" ref="class_qt_data_sync_1_1_data_type_store_base.html#a1ca590f2e1bfa4180f448c3a3dfc6954" />
       <keyword name="store" id="QtDataSync::DataTypeStoreBase::store" ref="class_qt_data_sync_1_1_data_type_store_base.html#a9aa05f945f31c685a666914d13b9e3ad" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1603,6 +1663,9 @@
       <keyword name="QtDataSync::Defaults" id="QtDataSync::Defaults" ref="class_qt_data_sync_1_1_defaults.html" />
       <keyword name="Defaults" id="QtDataSync::Defaults::Defaults" ref="class_qt_data_sync_1_1_defaults.html#a01d39404c021fe57355bed445e5d0ace" />
       <keyword name="Defaults" id="QtDataSync::Defaults::Defaults" ref="class_qt_data_sync_1_1_defaults.html#a7ecf832b15054f22801afe67ac89cc3b" />
+      <keyword name="Defaults" id="QtDataSync::Defaults::Defaults" ref="class_qt_data_sync_1_1_defaults.html#aeb41686b1144998b8d0ef258f24f4bb2" />
+      <keyword name="operator=" id="QtDataSync::Defaults::operator=" ref="class_qt_data_sync_1_1_defaults.html#af8c66c6f57adb4fd6e4bde7444140084" />
+      <keyword name="operator=" id="QtDataSync::Defaults::operator=" ref="class_qt_data_sync_1_1_defaults.html#a256cb295f7bf359b7f7719e9273a7c08" />
       <keyword name="createLogger" id="QtDataSync::Defaults::createLogger" ref="class_qt_data_sync_1_1_defaults.html#a0e6dc0803e184c582e6d2010d4414ae3" />
       <keyword name="setupName" id="QtDataSync::Defaults::setupName" ref="class_qt_data_sync_1_1_defaults.html#afb9aec428752c3de39c7ff86a5a12321" />
       <keyword name="storageDir" id="QtDataSync::Defaults::storageDir" ref="class_qt_data_sync_1_1_defaults.html#aa6c1c91ce3f0c9467d0310f34913e374" />
@@ -1631,13 +1694,17 @@
       <keyword name="DeviceInfo" id="QtDataSync::DeviceInfo::DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#a7b1f7d6ab101740b72e843215a973279" />
       <keyword name="DeviceInfo" id="QtDataSync::DeviceInfo::DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#a2fbd42c16648488da0e854145644c900" />
       <keyword name="DeviceInfo" id="QtDataSync::DeviceInfo::DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#acbf600b27d31669be40f132caa094a71" />
+      <keyword name="DeviceInfo" id="QtDataSync::DeviceInfo::DeviceInfo" ref="class_qt_data_sync_1_1_device_info.html#aedf8770a5acd6d7133bcec6a69b0808a" />
       <keyword name="operator=" id="QtDataSync::DeviceInfo::operator=" ref="class_qt_data_sync_1_1_device_info.html#aa61ae9653d0edb3ef8dfa895d4159e6b" />
+      <keyword name="operator=" id="QtDataSync::DeviceInfo::operator=" ref="class_qt_data_sync_1_1_device_info.html#ad4c1910d3e1e30338c64e497ef1bc45d" />
       <keyword name="deviceId" id="QtDataSync::DeviceInfo::deviceId" ref="class_qt_data_sync_1_1_device_info.html#a62bd7585c48c6132e872ac001ab6fcb4" />
       <keyword name="name" id="QtDataSync::DeviceInfo::name" ref="class_qt_data_sync_1_1_device_info.html#af923876662113808ede1775c0b17bfa2" />
       <keyword name="fingerprint" id="QtDataSync::DeviceInfo::fingerprint" ref="class_qt_data_sync_1_1_device_info.html#aad08de2c465b15a5d517bc65bb3d3813" />
       <keyword name="setDeviceId" id="QtDataSync::DeviceInfo::setDeviceId" ref="class_qt_data_sync_1_1_device_info.html#abcfa1ad1e80cee3392cf9a77be2dd32a" />
       <keyword name="setName" id="QtDataSync::DeviceInfo::setName" ref="class_qt_data_sync_1_1_device_info.html#a343c25657a81ed604f0f7b3b90101173" />
       <keyword name="setFingerprint" id="QtDataSync::DeviceInfo::setFingerprint" ref="class_qt_data_sync_1_1_device_info.html#ae2b4ff655371c801a6568ea720896d5f" />
+      <keyword name="operator==" id="QtDataSync::DeviceInfo::operator==" ref="class_qt_data_sync_1_1_device_info.html#ad7b379878175b82cd15e2f5a7b749390" />
+      <keyword name="operator!=" id="QtDataSync::DeviceInfo::operator!=" ref="class_qt_data_sync_1_1_device_info.html#a650ae9104fd20ac36c82aeacd4491f46" />
       <keyword name="deviceId" id="QtDataSync::DeviceInfo::deviceId" ref="class_qt_data_sync_1_1_device_info.html#a03ff6282aaa08e241154f643ff2e7a04" />
       <keyword name="name" id="QtDataSync::DeviceInfo::name" ref="class_qt_data_sync_1_1_device_info.html#ae12189584cc69dfe16ef522802b2a91d" />
       <keyword name="fingerprint" id="QtDataSync::DeviceInfo::fingerprint" ref="class_qt_data_sync_1_1_device_info.html#a58101b115f9dc639c2fbead431510921" />
@@ -1650,24 +1717,24 @@
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
       <keyword name="qWhat" id="QtDataSync::Exception::qWhat" ref="class_qt_data_sync_1_1_exception.html#a2ae291dd02a5db610b87abe996c49140" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="raise" id="QtDataSync::Exception::raise" ref="class_qt_data_sync_1_1_exception.html#ae76353a60d2362299a0c1f68e4f53b22" />
       <keyword name="clone" id="QtDataSync::Exception::clone" ref="class_qt_data_sync_1_1_exception.html#ac45c2397d836b4d6b0826dd3eb63b226" />
       <keyword name="QtDataSync::GenericConflictResolver" id="QtDataSync::GenericConflictResolver" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html" />
       <keyword name="GenericConflictResolver" id="QtDataSync::GenericConflictResolver::GenericConflictResolver" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#aa8cb36f2341342b7f75ca57307892a98" />
-      <keyword name="resolveConflict" id="QtDataSync::GenericConflictResolver::resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#aaae4305ccf6e605303f0771eefe3b2b7" />
       <keyword name="resolveConflict" id="QtDataSync::GenericConflictResolver::resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#ab22ca886c9c38cad6f0d69e8faab43d9" />
+      <keyword name="resolveConflict" id="QtDataSync::GenericConflictResolver::resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver.html#aaae4305ccf6e605303f0771eefe3b2b7" />
       <keyword name="QtDataSync::GenericConflictResolver&lt; T1 &gt;" id="QtDataSync::GenericConflictResolver&lt; T1 &gt;" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html" />
       <keyword name="GenericConflictResolver" id="QtDataSync::GenericConflictResolver&lt; T1 &gt;::GenericConflictResolver" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a9d021fd1ce827defbabe8002819065ff" />
-      <keyword name="resolveConflict" id="QtDataSync::GenericConflictResolver&lt; T1 &gt;::resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a8872a6c26d528331984a8530aea28523" />
-      <keyword name="resolveUnknownConflict" id="QtDataSync::GenericConflictResolver&lt; T1 &gt;::resolveUnknownConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#ac749e2fde1bf804e513dd1ba074e33d8" />
       <keyword name="resolveConflict" id="QtDataSync::GenericConflictResolver&lt; T1 &gt;::resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a54996e9a3034c75887c7f303a7d27f31" />
       <keyword name="ConflictResolver" id="QtDataSync::ConflictResolver::ConflictResolver" ref="class_qt_data_sync_1_1_conflict_resolver.html#a16170d86517a51893bb7cec98d3dcee6" />
       <keyword name="name" id="QtDataSync::ConflictResolver::name" ref="class_qt_data_sync_1_1_conflict_resolver.html#a628e0f03a8a7c91a683ba58e0f1fc5c3" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1702,17 +1769,8 @@
       <keyword name="parent" id="QObject::parent" ref="class_q_object.html#parent" />
       <keyword name="inherits" id="QObject::inherits" ref="class_q_object.html#inherits" />
       <keyword name="deleteLater" id="QObject::deleteLater" ref="class_q_object.html#deleteLater" />
-      <keyword name="tr" id="QObject::tr" ref="class_q_object.html#tr" />
-      <keyword name="trUtf8" id="QObject::trUtf8" ref="class_q_object.html#trUtf8" />
-      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect" />
-      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-1" />
-      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-3" />
-      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-4" />
-      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-5" />
-      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect" />
-      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-1" />
-      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-4" />
-      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-5" />
+      <keyword name="resolveConflict" id="QtDataSync::GenericConflictResolver&lt; T1 &gt;::resolveConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#a8872a6c26d528331984a8530aea28523" />
+      <keyword name="resolveUnknownConflict" id="QtDataSync::GenericConflictResolver&lt; T1 &gt;::resolveUnknownConflict" ref="class_qt_data_sync_1_1_generic_conflict_resolver_3_01_t1_01_4.html#ac749e2fde1bf804e513dd1ba074e33d8" />
       <keyword name="defaults" id="QtDataSync::ConflictResolver::defaults" ref="class_qt_data_sync_1_1_conflict_resolver.html#ae90962359a0694235bef72c31b0e22fb" />
       <keyword name="logger" id="QtDataSync::ConflictResolver::logger" ref="class_qt_data_sync_1_1_conflict_resolver.html#a853e9220b385ffa74b762238186a91b8" />
       <keyword name="settings" id="QtDataSync::ConflictResolver::settings" ref="class_qt_data_sync_1_1_conflict_resolver.html#a76c57fc1fb2151d51a2f628bb522fc9f" />
@@ -1725,6 +1783,17 @@
       <keyword name="customEvent" id="QObject::customEvent" ref="class_q_object.html#customEvent" />
       <keyword name="connectNotify" id="QObject::connectNotify" ref="class_q_object.html#connectNotify" />
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="class_q_object.html#disconnectNotify" />
+      <keyword name="tr" id="QObject::tr" ref="class_q_object.html#tr" />
+      <keyword name="trUtf8" id="QObject::trUtf8" ref="class_q_object.html#trUtf8" />
+      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect" />
+      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-1" />
+      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-3" />
+      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-4" />
+      <keyword name="connect" id="QObject::connect" ref="class_q_object.html#connect-5" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-1" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-4" />
+      <keyword name="disconnect" id="QObject::disconnect" ref="class_q_object.html#disconnect-5" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="QtDataSync::InvalidDataException" id="QtDataSync::InvalidDataException" ref="class_qt_data_sync_1_1_invalid_data_exception.html" />
       <keyword name="typeName" id="QtDataSync::InvalidDataException::typeName" ref="class_qt_data_sync_1_1_invalid_data_exception.html#ad3cecea484a08f8f3e4e1569b9b3bd7e" />
@@ -1736,7 +1805,7 @@
       <keyword name="Exception" id="QtDataSync::Exception::Exception" ref="class_qt_data_sync_1_1_exception.html#a3bd3a395aabd32afbd9e8561cb86442c" />
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="QtDataSync::KeyStore" id="QtDataSync::KeyStore" ref="class_qt_data_sync_1_1_key_store.html" />
       <keyword name="KeyStore" id="QtDataSync::KeyStore::KeyStore" ref="class_qt_data_sync_1_1_key_store.html#a767da616d204b723a4fe0eb85f1cb05f" />
       <keyword name="providerName" id="QtDataSync::KeyStore::providerName" ref="class_qt_data_sync_1_1_key_store.html#ad2312198eb9f4719d8bd49c6fb355748" />
@@ -1747,10 +1816,12 @@
       <keyword name="save" id="QtDataSync::KeyStore::save" ref="class_qt_data_sync_1_1_key_store.html#afb8a24487ccf12b7ef5dfdd01e9dbcc9" />
       <keyword name="load" id="QtDataSync::KeyStore::load" ref="class_qt_data_sync_1_1_key_store.html#a2ca76515ee306b21c596f711c5be5990" />
       <keyword name="remove" id="QtDataSync::KeyStore::remove" ref="class_qt_data_sync_1_1_key_store.html#ae6963e39deeee2fee1b3138575fcaf71" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1818,7 +1889,7 @@
       <keyword name="Exception" id="QtDataSync::Exception::Exception" ref="class_qt_data_sync_1_1_exception.html#a3bd3a395aabd32afbd9e8561cb86442c" />
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="QtDataSync::KeyStorePlugin" id="QtDataSync::KeyStorePlugin" ref="class_qt_data_sync_1_1_key_store_plugin.html" />
       <keyword name="keystoreAvailable" id="QtDataSync::KeyStorePlugin::keystoreAvailable" ref="class_qt_data_sync_1_1_key_store_plugin.html#a97b2887221d1da505be270eadf7aec67" />
       <keyword name="createInstance" id="QtDataSync::KeyStorePlugin::createInstance" ref="class_qt_data_sync_1_1_key_store_plugin.html#ab6fea64f30a4f3f77b7d3a95a1520a5a" />
@@ -1833,15 +1904,17 @@
       <keyword name="Exception" id="QtDataSync::Exception::Exception" ref="class_qt_data_sync_1_1_exception.html#a3bd3a395aabd32afbd9e8561cb86442c" />
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="QtDataSync::Logger" id="QtDataSync::Logger" ref="class_qt_data_sync_1_1_logger.html" />
       <keyword name="loggingCategory" id="QtDataSync::Logger::loggingCategory" ref="class_qt_data_sync_1_1_logger.html#ad77a3fa56f222ccaced9ae8d150739fe" />
       <keyword name="reportFatalError" id="QtDataSync::Logger::reportFatalError" ref="class_qt_data_sync_1_1_logger.html#afbb5e7898ca89de89f0a1b1bdb1d421b" />
       <keyword name="reportFatalError" id="QtDataSync::Logger::reportFatalError" ref="class_qt_data_sync_1_1_logger.html#a65b38bb4f70bb688e72a6639fb9cb6be" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1898,6 +1971,10 @@
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="class_q_object.html#disconnectNotify" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="QtDataSync::LoginRequest" id="QtDataSync::LoginRequest" ref="class_qt_data_sync_1_1_login_request.html" />
+      <keyword name="LoginRequest" id="QtDataSync::LoginRequest::LoginRequest" ref="class_qt_data_sync_1_1_login_request.html#a7ed7544c0d83ac772ac086968031166c" />
+      <keyword name="LoginRequest" id="QtDataSync::LoginRequest::LoginRequest" ref="class_qt_data_sync_1_1_login_request.html#a1c632524d103a74c5ff518e6188c61a6" />
+      <keyword name="operator=" id="QtDataSync::LoginRequest::operator=" ref="class_qt_data_sync_1_1_login_request.html#a05a1742b277fcf73a40073aad7b89e30" />
+      <keyword name="operator=" id="QtDataSync::LoginRequest::operator=" ref="class_qt_data_sync_1_1_login_request.html#a111749d401d10d6ba943b1a7defcaf70" />
       <keyword name="device" id="QtDataSync::LoginRequest::device" ref="class_qt_data_sync_1_1_login_request.html#a4af9aae8e2a26bf0ea6f119fbecaf342" />
       <keyword name="handled" id="QtDataSync::LoginRequest::handled" ref="class_qt_data_sync_1_1_login_request.html#ad4523dd4c3dc301eae7b1dc1fd3ac13e" />
       <keyword name="accept" id="QtDataSync::LoginRequest::accept" ref="class_qt_data_sync_1_1_login_request.html#ae222d06473814012639016266765d3f3" />
@@ -1911,10 +1988,12 @@
       <keyword name="migrationDone" id="QtDataSync::MigrationHelper::migrationDone" ref="class_qt_data_sync_1_1_migration_helper.html#ae7138bca5de37995e70239749674ac31" />
       <keyword name="MigrationHelper" id="QtDataSync::MigrationHelper::MigrationHelper" ref="class_qt_data_sync_1_1_migration_helper.html#ab3f935db498a0dc4cadaf0eb4ea864ad" />
       <keyword name="MigrationHelper" id="QtDataSync::MigrationHelper::MigrationHelper" ref="class_qt_data_sync_1_1_migration_helper.html#adc0a75845aeedbf17b7ac703a4b88caf" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -1988,7 +2067,7 @@
       <keyword name="Exception" id="QtDataSync::Exception::Exception" ref="class_qt_data_sync_1_1_exception.html#a3bd3a395aabd32afbd9e8561cb86442c" />
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="QtDataSync::ObjectKey" id="QtDataSync::ObjectKey" ref="struct_qt_data_sync_1_1_object_key.html" />
       <keyword name="ObjectKey" id="QtDataSync::ObjectKey::ObjectKey" ref="struct_qt_data_sync_1_1_object_key.html#a5da7d0178a98275da0d9f212b3d26f2f" />
       <keyword name="hashed" id="QtDataSync::ObjectKey::hashed" ref="struct_qt_data_sync_1_1_object_key.html#a960120b7cc20d1690c56413f534633c9" />
@@ -1997,10 +2076,12 @@
       <keyword name="typeName" id="QtDataSync::ObjectKey::typeName" ref="struct_qt_data_sync_1_1_object_key.html#aa11070fb0b83296dc71124257b404aee" />
       <keyword name="id" id="QtDataSync::ObjectKey::id" ref="struct_qt_data_sync_1_1_object_key.html#a9c3041ffdeb7900f9450d499e37e75f0" />
       <keyword name="QtDataSync::RemoteConfig" id="QtDataSync::RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html" />
-      <keyword name="HeaderHash" id="QtDataSync::RemoteConfig::HeaderHash" ref="class_qt_data_sync_1_1_remote_config.html#a0e5a28d7f916ae250968f35074783b92" />
+      <keyword name="HeaderHash" id="QtDataSync::RemoteConfig::HeaderHash" ref="class_qt_data_sync_1_1_remote_config.html#a79232f21a1a189e1b59850f64eb7b831" />
       <keyword name="RemoteConfig" id="QtDataSync::RemoteConfig::RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html#a18e81bcbf0396846b5c2df47378b05fd" />
       <keyword name="RemoteConfig" id="QtDataSync::RemoteConfig::RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html#ae8c026bc0f046ded5e0eb7a72a571746" />
+      <keyword name="RemoteConfig" id="QtDataSync::RemoteConfig::RemoteConfig" ref="class_qt_data_sync_1_1_remote_config.html#a4f66ff8b74625d18e7ae34139c760554" />
       <keyword name="operator=" id="QtDataSync::RemoteConfig::operator=" ref="class_qt_data_sync_1_1_remote_config.html#a098770b27380df606c6d5ebf530ceacb" />
+      <keyword name="operator=" id="QtDataSync::RemoteConfig::operator=" ref="class_qt_data_sync_1_1_remote_config.html#a9a19c26d7cc3314e258f5acf46e2bb48" />
       <keyword name="url" id="QtDataSync::RemoteConfig::url" ref="class_qt_data_sync_1_1_remote_config.html#adfdd4d1fc752856c6dec43bd9711323b" />
       <keyword name="accessKey" id="QtDataSync::RemoteConfig::accessKey" ref="class_qt_data_sync_1_1_remote_config.html#aeecb60306ad075731102774ee27f901b" />
       <keyword name="headers" id="QtDataSync::RemoteConfig::headers" ref="class_qt_data_sync_1_1_remote_config.html#a5e110e8bb25b2c6c448a48a1a153733a" />
@@ -2016,7 +2097,7 @@
       <keyword name="operator&lt;&lt;" id="QtDataSync::RemoteConfig::operator&lt;&lt;" ref="class_qt_data_sync_1_1_remote_config.html#a61f24a5570b75c95e55b62e0801e6a30" />
       <keyword name="operator&gt;&gt;" id="QtDataSync::RemoteConfig::operator&gt;&gt;" ref="class_qt_data_sync_1_1_remote_config.html#a2511438e92cab533c4462da68f319333" />
       <keyword name="QtDataSync::Setup" id="QtDataSync::Setup" ref="class_qt_data_sync_1_1_setup.html" />
-      <keyword name="FatalErrorHandler" id="QtDataSync::Setup::FatalErrorHandler" ref="class_qt_data_sync_1_1_setup.html#a76521945323edba6aeb6a92a1c56de62" />
+      <keyword name="FatalErrorHandler" id="QtDataSync::Setup::FatalErrorHandler" ref="class_qt_data_sync_1_1_setup.html#a28e6964249f79a99c5b61f3b5ffcf14d" />
       <keyword name="localDir" id="QtDataSync::Setup::localDir" ref="class_qt_data_sync_1_1_setup.html#ab01d287139a85bc753a4857e1a4929a8" />
       <keyword name="remoteObjectHost" id="QtDataSync::Setup::remoteObjectHost" ref="class_qt_data_sync_1_1_setup.html#ab7bac35a519a530689112f37e18e61fc" />
       <keyword name="serializer" id="QtDataSync::Setup::serializer" ref="class_qt_data_sync_1_1_setup.html#a5be7aefae089f58a32c745d3503eb013" />
@@ -2068,6 +2149,10 @@
       <keyword name="resetEncryptionKeyParam" id="QtDataSync::Setup::resetEncryptionKeyParam" ref="class_qt_data_sync_1_1_setup.html#a5d7647ed5974f6c0d16b26ce17e74177" />
       <keyword name="resetCipherScheme" id="QtDataSync::Setup::resetCipherScheme" ref="class_qt_data_sync_1_1_setup.html#a86d8a9ca4dd39d16dbe6b0704a7fcb5a" />
       <keyword name="resetCipherKeySize" id="QtDataSync::Setup::resetCipherKeySize" ref="class_qt_data_sync_1_1_setup.html#a6bfef19f9b06a21d7985ffa059d6fe72" />
+      <keyword name="setAccount" id="QtDataSync::Setup::setAccount" ref="class_qt_data_sync_1_1_setup.html#ae39b6c4c65ebe51a2ff375190bd5b0ee" />
+      <keyword name="setAccount" id="QtDataSync::Setup::setAccount" ref="class_qt_data_sync_1_1_setup.html#a175c75f42a9cadac17c766d7b21145bf" />
+      <keyword name="setAccountTrusted" id="QtDataSync::Setup::setAccountTrusted" ref="class_qt_data_sync_1_1_setup.html#ab8c35b0973bf5018098e8adb010a6047" />
+      <keyword name="setAccountTrusted" id="QtDataSync::Setup::setAccountTrusted" ref="class_qt_data_sync_1_1_setup.html#a118dd8b51b767600ab834f9a0798b8e5" />
       <keyword name="create" id="QtDataSync::Setup::create" ref="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a" />
       <keyword name="createPassive" id="QtDataSync::Setup::createPassive" ref="class_qt_data_sync_1_1_setup.html#a322594e2bb14d707458ff1b1e6cf454a" />
       <keyword name="setCleanupTimeout" id="QtDataSync::Setup::setCleanupTimeout" ref="class_qt_data_sync_1_1_setup.html#a8ca465c823c2b7c4dde56f4c0e6791fd" />
@@ -2076,6 +2161,8 @@
       <keyword name="availableKeystores" id="QtDataSync::Setup::availableKeystores" ref="class_qt_data_sync_1_1_setup.html#a386c924a91ce930909a44f4284ba849e" />
       <keyword name="keystoreAvailable" id="QtDataSync::Setup::keystoreAvailable" ref="class_qt_data_sync_1_1_setup.html#ada18bb06d86f4889a7715e578dee070a" />
       <keyword name="defaultKeystoreProvider" id="QtDataSync::Setup::defaultKeystoreProvider" ref="class_qt_data_sync_1_1_setup.html#a32949ae3f1e4d13c2ba3d499ad17bcab" />
+      <keyword name="loadKeystore" id="QtDataSync::Setup::loadKeystore" ref="class_qt_data_sync_1_1_setup.html#ae31ddbc80e827cd512603bf9ea05bf05" />
+      <keyword name="loadKeystore" id="QtDataSync::Setup::loadKeystore" ref="class_qt_data_sync_1_1_setup.html#a06a0b66c839799c2a23a275a1afc58ae" />
       <keyword name="localDir" id="QtDataSync::Setup::localDir" ref="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31" />
       <keyword name="remoteObjectHost" id="QtDataSync::Setup::remoteObjectHost" ref="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950" />
       <keyword name="serializer" id="QtDataSync::Setup::serializer" ref="class_qt_data_sync_1_1_setup.html#a851d059b12ef06d4291b1fb8b073a2da" />
@@ -2117,7 +2204,7 @@
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
       <keyword name="qWhat" id="QtDataSync::Exception::qWhat" ref="class_qt_data_sync_1_1_exception.html#a2ae291dd02a5db610b87abe996c49140" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="QtDataSync::SetupException" id="QtDataSync::SetupException" ref="class_qt_data_sync_1_1_setup_exception.html" />
       <keyword name="Exception" id="QtDataSync::Exception::Exception" ref="class_qt_data_sync_1_1_exception.html#ab8afb45a46e0cd73fec366cdb2c7487f" />
       <keyword name="Exception" id="QtDataSync::Exception::Exception" ref="class_qt_data_sync_1_1_exception.html#a3bd3a395aabd32afbd9e8561cb86442c" />
@@ -2125,7 +2212,7 @@
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
       <keyword name="qWhat" id="QtDataSync::Exception::qWhat" ref="class_qt_data_sync_1_1_exception.html#a2ae291dd02a5db610b87abe996c49140" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="raise" id="QtDataSync::Exception::raise" ref="class_qt_data_sync_1_1_exception.html#ae76353a60d2362299a0c1f68e4f53b22" />
       <keyword name="clone" id="QtDataSync::Exception::clone" ref="class_qt_data_sync_1_1_exception.html#ac45c2397d836b4d6b0826dd3eb63b226" />
       <keyword name="QtDataSync::SetupExistsException" id="QtDataSync::SetupExistsException" ref="class_qt_data_sync_1_1_setup_exists_exception.html" />
@@ -2138,7 +2225,7 @@
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
       <keyword name="qWhat" id="QtDataSync::Exception::qWhat" ref="class_qt_data_sync_1_1_exception.html#a2ae291dd02a5db610b87abe996c49140" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="QtDataSync::SetupLockedException" id="QtDataSync::SetupLockedException" ref="class_qt_data_sync_1_1_setup_locked_exception.html" />
       <keyword name="SetupLockedException" id="QtDataSync::SetupLockedException::SetupLockedException" ref="class_qt_data_sync_1_1_setup_locked_exception.html#a8a132f1759a59f27ac4ab13ecde993ea" />
       <keyword name="pid" id="QtDataSync::SetupLockedException::pid" ref="class_qt_data_sync_1_1_setup_locked_exception.html#a484d472d30a749f77f9731460c869f3c" />
@@ -2152,7 +2239,7 @@
       <keyword name="Exception" id="QtDataSync::Exception::Exception" ref="class_qt_data_sync_1_1_exception.html#a3bd3a395aabd32afbd9e8561cb86442c" />
       <keyword name="setupName" id="QtDataSync::Exception::setupName" ref="class_qt_data_sync_1_1_exception.html#aba341ac57988ecde9d9eca7f7aa768a6" />
       <keyword name="message" id="QtDataSync::Exception::message" ref="class_qt_data_sync_1_1_exception.html#a0b73d2b948c211e51f96c1f18aa9dbfc" />
-      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a44da7cfa3b5126d796dea5e575a9004e" />
+      <keyword name="what" id="QtDataSync::Exception::what" ref="class_qt_data_sync_1_1_exception.html#a3aed53f8adc0af902260365dab99aedb" />
       <keyword name="QtDataSync::SyncManager" id="QtDataSync::SyncManager" ref="class_qt_data_sync_1_1_sync_manager.html" />
       <keyword name="setSyncEnabled" id="QtDataSync::SyncManager::setSyncEnabled" ref="class_qt_data_sync_1_1_sync_manager.html#af1972aa1643eede7852a2999f1b68b77" />
       <keyword name="synchronize" id="QtDataSync::SyncManager::synchronize" ref="class_qt_data_sync_1_1_sync_manager.html#a8c5c7392fb715ed83272d3319a461b76" />
@@ -2171,10 +2258,12 @@
       <keyword name="lastError" id="QtDataSync::SyncManager::lastError" ref="class_qt_data_sync_1_1_sync_manager.html#a0aa23d7138aad0ef185d7ee664ac29c7" />
       <keyword name="runOnDownloaded" id="QtDataSync::SyncManager::runOnDownloaded" ref="class_qt_data_sync_1_1_sync_manager.html#a2ddeb680e7125566ab02492dfaa5f8fb" />
       <keyword name="runOnSynchronized" id="QtDataSync::SyncManager::runOnSynchronized" ref="class_qt_data_sync_1_1_sync_manager.html#ac5b19bcbca2eda2a389f84b33d3b5e8d" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -2259,10 +2348,12 @@
       <keyword name="exportTrustedTo" id="QtDataSync::UserExchangeManager::exportTrustedTo" ref="class_qt_data_sync_1_1_user_exchange_manager.html#ad683c34b694bd1f7b1f12372dd5ac858" />
       <keyword name="importFrom" id="QtDataSync::UserExchangeManager::importFrom" ref="class_qt_data_sync_1_1_user_exchange_manager.html#aad0bcf4e87d026133e375ec55ce88619" />
       <keyword name="importTrustedFrom" id="QtDataSync::UserExchangeManager::importTrustedFrom" ref="class_qt_data_sync_1_1_user_exchange_manager.html#a56cac0cb74c4d41b2c3a519088825beb" />
+      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
+      <keyword name="qt_metacast" id="QObject::qt_metacast" ref="class_q_object.html#qt_metacast" />
+      <keyword name="qt_metacall" id="QObject::qt_metacall" ref="class_q_object.html#qt_metacall" />
       <keyword name="QObject" id="QObject::QObject" ref="class_q_object.html#QObject" />
       <keyword name="event" id="QObject::event" ref="class_q_object.html#event" />
       <keyword name="eventFilter" id="QObject::eventFilter" ref="class_q_object.html#eventFilter" />
-      <keyword name="metaObject" id="QObject::metaObject" ref="class_q_object.html#metaObject" />
       <keyword name="objectName" id="QObject::objectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="setObjectName" id="QObject::setObjectName" ref="class_q_object.html#objectName-prop" />
       <keyword name="isWidgetType" id="QObject::isWidgetType" ref="class_q_object.html#isWidgetType" />
@@ -2323,11 +2414,14 @@
       <keyword name="disconnectNotify" id="QObject::disconnectNotify" ref="class_q_object.html#disconnectNotify" />
       <keyword name="QtDataSync::UserInfo" id="QtDataSync::UserInfo" ref="class_qt_data_sync_1_1_user_info.html" />
       <keyword name="UserInfo" id="QtDataSync::UserInfo::UserInfo" ref="class_qt_data_sync_1_1_user_info.html#aaa7fc87e389d36c3261410d3b7660037" />
+      <keyword name="UserInfo" id="QtDataSync::UserInfo::UserInfo" ref="class_qt_data_sync_1_1_user_info.html#ae37e3585464ba318261144a3ed155cb2" />
+      <keyword name="operator=" id="QtDataSync::UserInfo::operator=" ref="class_qt_data_sync_1_1_user_info.html#a97d6fe31f2be2bba8a40246fe04f5761" />
+      <keyword name="operator=" id="QtDataSync::UserInfo::operator=" ref="class_qt_data_sync_1_1_user_info.html#a7186d1eff5a0ea4a7cbe8b5e985f9e0e" />
       <keyword name="name" id="QtDataSync::UserInfo::name" ref="class_qt_data_sync_1_1_user_info.html#ad4ce564a9a82b0bb330817b45083cc5f" />
       <keyword name="address" id="QtDataSync::UserInfo::address" ref="class_qt_data_sync_1_1_user_info.html#ad3943f774144e7f57dfac651951eb013" />
       <keyword name="port" id="QtDataSync::UserInfo::port" ref="class_qt_data_sync_1_1_user_info.html#ae462b3f48cea2093109d475c4e78b1a0" />
-      <keyword name="operator=" id="QtDataSync::UserInfo::operator=" ref="class_qt_data_sync_1_1_user_info.html#a97d6fe31f2be2bba8a40246fe04f5761" />
       <keyword name="operator==" id="QtDataSync::UserInfo::operator==" ref="class_qt_data_sync_1_1_user_info.html#ada1fa54fc3d85d217216b36dd5363e14" />
+      <keyword name="operator!=" id="QtDataSync::UserInfo::operator!=" ref="class_qt_data_sync_1_1_user_info.html#a373485279e0e30e30a9d4505242fda6b" />
       <keyword name="name" id="QtDataSync::UserInfo::name" ref="class_qt_data_sync_1_1_user_info.html#af4abf89a34a48f10927c239322615d70" />
       <keyword name="address" id="QtDataSync::UserInfo::address" ref="class_qt_data_sync_1_1_user_info.html#aaeb8643778d4f004c117ecd7e89af183" />
       <keyword name="port" id="QtDataSync::UserInfo::port" ref="class_qt_data_sync_1_1_user_info.html#a11d06a0f73734a3475e7fe3677ddcf76" />

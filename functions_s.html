@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.0.1</span>
+   &#160;<span id="projectnumber">4.1.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -96,6 +96,12 @@ $(function() {
 </li>
 <li>setAccessKey()
 : <a class="el" href="class_qt_data_sync_1_1_remote_config.html#a9c45a25cd81f3862f2205ee8ca17ca01">QtDataSync::RemoteConfig</a>
+</li>
+<li>setAccount()
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#ae39b6c4c65ebe51a2ff375190bd5b0ee">QtDataSync::Setup</a>
+</li>
+<li>setAccountTrusted()
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#ab8c35b0973bf5018098e8adb010a6047">QtDataSync::Setup</a>
 </li>
 <li>setCacheSize()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#adf23cb856f527cf605960c8e84cb448c">QtDataSync::Setup</a>
@@ -182,7 +188,7 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_conflict_resolver.html#a76c57fc1fb2151d51a2f628bb522fc9f">QtDataSync::ConflictResolver</a>
 </li>
 <li>setTypeId()
-: <a class="el" href="class_qt_data_sync_1_1_data_store_model.html#a83934943db0543e0601ef4bdbe91ae5a">QtDataSync::DataStoreModel</a>
+: <a class="el" href="class_qt_data_sync_1_1_data_store_model.html#a5c3a9edd9e9e7fe85a1c61601c597c81">QtDataSync::DataStoreModel</a>
 </li>
 <li>SetupDoesNotExistException()
 : <a class="el" href="class_qt_data_sync_1_1_setup_does_not_exist_exception.html#a61edcdcf127610e90d7f56106fbf578e">QtDataSync::SetupDoesNotExistException</a>
@@ -200,8 +206,8 @@ $(function() {
 <li>setUrl()
 : <a class="el" href="class_qt_data_sync_1_1_remote_config.html#a1949feee12432dfdcdc1578a1f2bd73e">QtDataSync::RemoteConfig</a>
 </li>
-<li>signatureKeyParam
-: <a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d">QtDataSync::Setup</a>
+<li>signatureKeyParam()
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#adbee853057c385d619d74adc23be8edf">QtDataSync::Setup</a>
 </li>
 <li>signatureScheme
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#add14e6a783371ffbfdcce9e442df6628">QtDataSync::Setup</a>
@@ -218,8 +224,8 @@ $(function() {
 <li>SslConfiguration
 : <a class="el" href="class_qt_data_sync_1_1_defaults.html#ab141dc12df2cd9395e3e5b1fc31c1c39a3d0fc2feaddd9bac07f0cf36d9ff2313">QtDataSync::Defaults</a>
 </li>
-<li>sslConfiguration()
-: <a class="el" href="class_qt_data_sync_1_1_setup.html#abe15b74abbae0267943ab9fb80f5d393">QtDataSync::Setup</a>
+<li>sslConfiguration
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#a8ec9ca0a9caaa93db35aacbdd556ed93">QtDataSync::Setup</a>
 </li>
 <li>startExchange()
 : <a class="el" href="class_qt_data_sync_1_1_user_exchange_manager.html#aa26d7b3049ff24cca1ae4bc2e5b7dc2b">QtDataSync::UserExchangeManager</a>
@@ -270,20 +276,17 @@ $(function() {
 <li>SyncManager()
 : <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#a98414abdb7584b92e97c670f5d2792a9">QtDataSync::SyncManager</a>
 </li>
-<li>syncPolicy()
-: <a class="el" href="class_qt_data_sync_1_1_setup.html#a79cae5091ae650b6ade2e43c42f732b1">QtDataSync::Setup</a>
-</li>
 <li>SyncPolicy
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a36c2e46f0b41e00923c5296eed8ef973">QtDataSync::Setup</a>
+</li>
+<li>syncPolicy
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#a83d3e78bebc2d14353fc8e42f00d9dea">QtDataSync::Setup</a>
 </li>
 <li>syncProgress()
 : <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#a683357a8ce57cf59cbda46edf6001dc3">QtDataSync::SyncManager</a>
 </li>
 <li>syncProgressChanged()
 : <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#acb9a4338ff4aa890e63ef77905a635ce">QtDataSync::SyncManager</a>
-</li>
-<li>syncState()
-: <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#a101a36f4a4e3e32eb718c1c6cf6d54d3">QtDataSync::SyncManager</a>
 </li>
 <li>SyncState
 : <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#a88370b2fba5ecb3602d60e08b0a66699">QtDataSync::SyncManager</a>
@@ -298,7 +301,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 15:02:44 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['polymorphing',['Polymorphing',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#aaf1235d174ee19e269d85a9a0d909e72',0,'QJsonSerializer']]],
-  ['priority',['Priority',['https://skycoder42.github.io/QJsonSerializer/class_q_json_type_converter.html#a9ac88a7b6e3e954b825afd56d1558b6d',0,'QJsonTypeConverter']]],
-  ['propertykey',['PropertyKey',['../class_qt_data_sync_1_1_defaults.html#ab141dc12df2cd9395e3e5b1fc31c1c39',1,'QtDataSync::Defaults']]]
+  ['ellipticcurve',['EllipticCurve',['../class_qt_data_sync_1_1_setup.html#a9bc9f0bd5e663c74c1ee3bfecea7343a',1,'QtDataSync::Setup']]],
+  ['encryptionscheme',['EncryptionScheme',['../class_qt_data_sync_1_1_setup.html#acd5b9c5d0b0fccdefe0bf3efba02736c',1,'QtDataSync::Setup']]],
+  ['errortype',['ErrorType',['https://doc.qt.io/qt-5/class_qt_rest_client_1_1_rest_reply.html#a7ac2c77cd405dff6fd116eaf3073fe2a',0,'QtRestClient::RestReply']]]
 ];
