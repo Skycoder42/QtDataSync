@@ -5,12 +5,12 @@ export MAKEFLAGS=-j$(nproc)
 export QPMX_CACHE_DIR=/tmp/qpmx-cache
 
 DS_NAME=qdsappd
-QT_VERSION=5.11.0
+QT_VERSION_TAG=v5.11.2
 CRYPTOPP_VERSION_MAJOR=7
 CRYPTOPP_VERSION_MINOR=0
 CRYPTOPP_VERSION_PATCH=0
 CRYPTOPP_VERSION=${CRYPTOPP_VERSION_MAJOR}_${CRYPTOPP_VERSION_MINOR}_${CRYPTOPP_VERSION_PATCH}
-MAIN_DEP="libressl zlib dbus-libs glib libgcc libstdc++ libpcre2-16 libpq ca-certificates eudev-libs eudev libpcre2-16"
+MAIN_DEP="libressl zlib dbus-libs glib libgcc libstdc++ libpcre2-16 libpq ca-certificates eudev-libs eudev"
 DEV_DEP="libressl-dev zlib-dev dbus-dev glib-dev perl eudev-dev gawk pcre2-dev postgresql-dev linux-headers make gcc g++ curl python3 git"
 
 apk add --no-cache $MAIN_DEP $DEV_DEP
@@ -23,7 +23,7 @@ mkdir /tmp/sysbuild
 cd /tmp/sysbuild
 
 # build qtbase
-git clone --depth 1 https://code.qt.io/qt/qtbase.git ./qtbase --branch $QT_VERSION
+git clone --depth 1 https://code.qt.io/qt/qtbase.git ./qtbase --branch $QT_VERSION_TAG
 cd qtbase
 git apply -v /tmp/src/tools/appserver/dockerbuild/libressl-compat.patch
 for file in src/network/ssl/*; do
@@ -58,7 +58,7 @@ cd ..
 
 # build qt modules
 for repo in qtwebsockets qttools; do
-	git clone --depth 1 https://code.qt.io/qt/$repo.git ./$repo --branch $QT_VERSION
+	git clone --depth 1 https://code.qt.io/qt/$repo.git ./$repo --branch $QT_VERSION_TAG
 	cd $repo
 	qmake
 	make > /dev/null
@@ -77,7 +77,6 @@ for repo in QtJsonSerializer qpmx QtService; do
 	if [ "$repo" == "qpmx" ]; then
 		git submodule init
 		git submodule update
-		git apply -v /tmp/src/tools/appserver/dockerbuild/qpmx.patch
 	fi
 
 	if [ -f src/imports/imports.pro ]; then
