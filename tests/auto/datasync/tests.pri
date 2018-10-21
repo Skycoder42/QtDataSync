@@ -27,8 +27,7 @@ DEPENDPATH += $$PWD/TestLib
 
 INCLUDEPATH += $$PWD/../../../src/messages
 
-mac: QMAKE_LFLAGS += '-Wl,-rpath,\'$$OUT_PWD/../../../../lib\''
-
 DEFINES += KEYSTORE_PATH=\\\"$$OUT_PWD/../../../../plugins/keystores/\\\"
 
-include(../../../src/3rdparty/cryptopp/cryptopp.pri)
+include($$PWD/../../../src/3rdparty/cryptopp/cryptopp.pri)
+include($$PWD/../testrun.pri)

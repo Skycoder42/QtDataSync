@@ -13,6 +13,7 @@ env:
     - QT_VER=5.11.2
     - DOCKER_IMAGE=common
     - EXTRA_MODULES=".qtremoteobjects .skycoder42.jsonserializer .skycoder42.service"
+    - MAKE_RUN_TESTS=true
 
 matrix:
   include:

@@ -19,4 +19,4 @@ DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_/\\\"
 DEFINES += KEYSTORE_PATH=\\\"$$OUT_PWD/../../../../plugins/keystores/\\\"
 DEFINES += QML_PATH=\\\"$$QML_IMPORT_PATH\\\"
 
-mac: QMAKE_LFLAGS += '-Wl,-rpath,\'$$OUT_PWD/../../../../lib\''
+include($$PWD/../../testrun.pri)

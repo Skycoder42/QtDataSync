@@ -14,4 +14,4 @@ imports.CONFIG += no_lrelease_target
 plugins.CONFIG += no_lrelease_target
 
 prepareRecursiveTarget(lrelease)
-QMAKE_EXTRA_TARGETS += lrelease
+QMAKE_EXTRA_TARGETS += lrelease run-tests
