@@ -9,13 +9,13 @@ RemoteConfig::RemoteConfig(const QUrl &url, const QString &accessKey, const Head
 
 RemoteConfig::RemoteConfig(const RemoteConfig &other) = default;
 
-RemoteConfig::RemoteConfig(RemoteConfig &&other) = default;
+RemoteConfig::RemoteConfig(RemoteConfig &&other) noexcept = default;
 
 RemoteConfig::~RemoteConfig() = default;
 
 RemoteConfig &RemoteConfig::operator=(const RemoteConfig &other) = default;
 
-RemoteConfig &RemoteConfig::operator=(RemoteConfig &&other) = default;
+RemoteConfig &RemoteConfig::operator=(RemoteConfig &&other) noexcept = default;
 
 QUrl RemoteConfig::url() const
 {

@@ -10,7 +10,7 @@ AccessMessage::AccessMessage(QString deviceName, QByteArray nonce, const QShared
 						cryptKey,
 						crypto},
 	pNonce{std::move(pNonce)},
-	partnerId{std::move(partnerId)},
+	partnerId{partnerId},
 	macscheme{std::move(macscheme)},
 	cmac{std::move(cmac)},
 	trustmac{std::move(trustmac)}

@@ -106,7 +106,7 @@ void hashNext(QCryptographicHash &hash, const QJsonValue &value)
 		hash.addData(value.toString().toUtf8());
 		break;
 	case QJsonValue::Array:
-		for(auto v : value.toArray())
+		for(auto v : value.toArray()) // clazy:exclude=range-loop
 			hashNext(hash, v);
 		break;
 	case QJsonValue::Object:

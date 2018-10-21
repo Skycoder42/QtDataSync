@@ -3,7 +3,7 @@ using namespace QtDataSync;
 
 DeviceChangeMessage::DeviceChangeMessage(QByteArray dataId, QUuid deviceId) :
 	ChangeMessage{std::move(dataId)},
-	deviceId{std::move(deviceId)}
+	deviceId{deviceId}
 {}
 
 const QMetaObject *DeviceChangeMessage::getMetaObject() const

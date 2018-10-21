@@ -146,7 +146,7 @@ QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode 
 
 void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
 {
-	for(const auto &key : keys(metaTypeId)) {
+	for(const auto &key : keys(metaTypeId)) { // clazy:exclude=range-loop
 		if(!iterator(load(metaTypeId, key)))
 			break;
 	}

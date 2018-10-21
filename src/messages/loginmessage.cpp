@@ -3,7 +3,7 @@ using namespace QtDataSync;
 
 LoginMessage::LoginMessage(QUuid deviceId, QString deviceName, QByteArray nonce) :
 	InitMessage{std::move(nonce)},
-	deviceId{std::move(deviceId)},
+	deviceId{deviceId},
 	deviceName{std::move(deviceName)}
 {}
 

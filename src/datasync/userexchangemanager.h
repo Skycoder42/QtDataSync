@@ -32,7 +32,7 @@ public:
 	//! Copy Constructor
 	UserInfo(const UserInfo &other);
 	//! Move constructor
-	UserInfo(UserInfo &&other);
+	UserInfo(UserInfo &&other) noexcept;
 	//! @private
 	UserInfo(UserInfoPrivate *data);
 	~UserInfo();
@@ -40,7 +40,7 @@ public:
 	//! Copy-Assignment operator
 	UserInfo &operator=(const UserInfo &other);
 	//! Move-Assignment operator
-	UserInfo &operator=(UserInfo &&other);
+	UserInfo &operator=(UserInfo &&other) noexcept;
 
 	//! @readAcFn{UserInfo::name}
 	QString name() const;

@@ -125,7 +125,7 @@ QStringList CryptoController::allKeystoreKeys()
 QStringList CryptoController::availableKeystoreKeys()
 {
 	QStringList keys;
-	for(const auto &key : factory->allKeys()) {
+	for(const auto &key : factory->allKeys()) { // clazy:exclude=range-loop
 		if(factory->isAvailable(key))
 			keys.append(key);
 	}

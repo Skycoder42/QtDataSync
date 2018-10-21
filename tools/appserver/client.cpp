@@ -523,7 +523,7 @@ void Client::onListDevices(const ListDevicesMessage &message)
 	checkIdle(message);
 
 	DevicesMessage devMessage;
-	for(const auto &device : _database->listDevices(_deviceId))
+	for(const auto &device : _database->listDevices(_deviceId)) // clazy:exclude=range-loop
 		devMessage.devices.append(device);
 
 	sendMessage(devMessage);

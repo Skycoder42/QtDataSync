@@ -293,13 +293,13 @@ LoginRequest::LoginRequest(LoginRequestPrivate *d_ptr) :
 
 LoginRequest::LoginRequest(const LoginRequest &other) = default;
 
-LoginRequest::LoginRequest(LoginRequest &&other) = default;
+LoginRequest::LoginRequest(LoginRequest &&other) noexcept = default;
 
 LoginRequest::~LoginRequest() = default;
 
 LoginRequest &LoginRequest::operator=(const LoginRequest &other) = default;
 
-LoginRequest &LoginRequest::operator=(LoginRequest &&other) = default;
+LoginRequest &LoginRequest::operator=(LoginRequest &&other) noexcept = default;
 
 DeviceInfo LoginRequest::device() const
 {
@@ -354,13 +354,13 @@ DeviceInfo::DeviceInfo(const QUuid &deviceId, const QString &name, const QByteAr
 
 DeviceInfo::DeviceInfo(const DeviceInfo &other) = default;
 
-DeviceInfo::DeviceInfo(DeviceInfo &&other) = default;
+DeviceInfo::DeviceInfo(DeviceInfo &&other) noexcept = default;
 
 DeviceInfo::~DeviceInfo() = default;
 
 DeviceInfo &DeviceInfo::operator=(const DeviceInfo &other) = default;
 
-DeviceInfo &DeviceInfo::operator=(DeviceInfo &&other) = default;
+DeviceInfo &DeviceInfo::operator=(DeviceInfo &&other) noexcept = default;
 
 QUuid DeviceInfo::deviceId() const
 {
@@ -412,7 +412,7 @@ bool DeviceInfo::operator!=(const DeviceInfo &other) const
 
 DeviceInfoPrivate::DeviceInfoPrivate(QUuid deviceId, QString name, QByteArray fingerprint) :
 	QSharedData{},
-	deviceId{std::move(deviceId)},
+	deviceId{deviceId},
 	name{std::move(name)},
 	fingerprint{std::move(fingerprint)}
 {}

@@ -222,12 +222,12 @@ ChangeController::CachedObjectKey::CachedObjectKey() = default;
 
 ChangeController::CachedObjectKey::CachedObjectKey(ObjectKey other, QUuid deviceId) :
 	ObjectKey{std::move(other)},
-	optionalDevice{std::move(deviceId)}
+	optionalDevice{deviceId}
 {}
 
 ChangeController::CachedObjectKey::CachedObjectKey(QByteArray hash, QUuid deviceId) :
 	ObjectKey{},
-	optionalDevice{std::move(deviceId)},
+	optionalDevice{deviceId},
 	_hash{std::move(hash)}
 {}
 

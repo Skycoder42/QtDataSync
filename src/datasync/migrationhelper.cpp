@@ -176,7 +176,7 @@ void MigrationRunnable::run()
 		//special: copy headers
 		oldSettings->beginGroup(QStringLiteral("RemoteConnector/headers"));
 		currentSettings->beginGroup(QStringLiteral("connector/") + RemoteConnector::keyRemoteHeaders);
-		for(const auto &key : oldSettings->childKeys()) {
+		for(const auto &key : oldSettings->childKeys()) { // clazy:exclude=range-loop
 			copyConf(oldSettings, key,
 					 currentSettings, key);
 		}

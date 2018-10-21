@@ -2,7 +2,7 @@
 using namespace QtDataSync;
 
 AccountMessage::AccountMessage(QUuid deviceId) :
-	deviceId{std::move(deviceId)}
+	deviceId{deviceId}
 {}
 
 const QMetaObject *AccountMessage::getMetaObject() const

@@ -36,9 +36,9 @@ public:
 	//! @private
 	DatabaseRef(DatabaseRefPrivate *d);
 	//! Move constructor
-	DatabaseRef(DatabaseRef &&other);
+	DatabaseRef(DatabaseRef &&other) noexcept;
 	//! Move assignment operator
-	DatabaseRef &operator=(DatabaseRef &&other);
+	DatabaseRef &operator=(DatabaseRef &&other) noexcept;
 
 	//! Returns true if this reference points to a valid database
 	bool isValid() const;
@@ -85,11 +85,11 @@ public:
 	//! Copy constructor
 	Defaults(const Defaults &other);
 	//! Move constructor
-	Defaults(Defaults &&other);
+	Defaults(Defaults &&other) noexcept;
 	//! Copy assignment operator
 	Defaults &operator=(const Defaults &other);
 	//! Move assignment operator
-	Defaults &operator=(Defaults &&other);
+	Defaults &operator=(Defaults &&other) noexcept;
 	~Defaults();
 
 	//! Create a new logger instance

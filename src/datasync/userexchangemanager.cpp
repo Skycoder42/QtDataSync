@@ -206,7 +206,7 @@ void UserExchangeManager::readDatagram()
 
 		auto isSelf = false;
 		if(datagram.senderPort() == d->socket->localPort()) {
-			for(const auto &addr : QNetworkInterface::allAddresses()) {
+			for(const auto &addr : QNetworkInterface::allAddresses()) { // clazy:exclude=range-loop
 				if(addr.isEqual(datagram.senderAddress())) {
 					isSelf = true;
 					break;
@@ -254,7 +254,7 @@ void UserExchangeManager::readDatagram()
 
 			//try to find the already existing user info for that data
 			bool found = false;
-			for(const auto &key : d->devices.keys()) {
+			for(const auto &key : d->devices.keys()) { // clazy:exclude=range-loop
 				if(info == key) {
 					found = true;
 					if(isInfo) { //isInfo -> reset timeout, update name if neccessary
@@ -300,7 +300,7 @@ UserInfo::UserInfo() :
 
 UserInfo::UserInfo(const UserInfo &other) = default;
 
-UserInfo::UserInfo(UserInfo &&other) = default;
+UserInfo::UserInfo(UserInfo &&other) noexcept = default;
 
 UserInfo::UserInfo(UserInfoPrivate *data) :
 	d(data)
@@ -310,7 +310,7 @@ UserInfo::~UserInfo() = default;
 
 UserInfo &UserInfo::operator=(const UserInfo &other) = default;
 
-UserInfo &UserInfo::operator=(UserInfo &&other) = default;
+UserInfo &UserInfo::operator=(UserInfo &&other) noexcept = default;
 
 QString UserInfo::name() const
 {

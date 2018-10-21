@@ -40,13 +40,13 @@ public:
 	//! Copy constructor
 	DeviceInfo(const DeviceInfo &other);
 	//! Move constructor
-	DeviceInfo(DeviceInfo &&other);
+	DeviceInfo(DeviceInfo &&other) noexcept;
 	~DeviceInfo();
 
 	//! Copy-Assignment operator
 	DeviceInfo &operator=(const DeviceInfo &other);
 	//! Move-Assignment operator
-	DeviceInfo &operator=(DeviceInfo &&other);
+	DeviceInfo &operator=(DeviceInfo &&other) noexcept;
 
 	//! @readAcFn{DeviceInfo::deviceId}
 	QUuid deviceId() const;
@@ -92,13 +92,13 @@ public:
 	//! Copy constructor
 	LoginRequest(const LoginRequest &other);
 	//! Move constructor
-	LoginRequest(LoginRequest &&other);
+	LoginRequest(LoginRequest &&other) noexcept;
 	~LoginRequest();
 
 	//! Copy-Assignment operator
 	LoginRequest &operator=(const LoginRequest &other);
 	//! Move-Assignment operator
-	LoginRequest &operator=(LoginRequest &&other);
+	LoginRequest &operator=(LoginRequest &&other) noexcept;
 
 	//! @readAcFn{LoginRequest::device}
 	DeviceInfo device() const;

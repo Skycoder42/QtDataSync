@@ -2,7 +2,7 @@
 using namespace QtDataSync;
 
 RemoveMessage::RemoveMessage(QUuid deviceId) :
-	deviceId{std::move(deviceId)}
+	deviceId{deviceId}
 {}
 
 const QMetaObject *RemoveMessage::getMetaObject() const
@@ -13,7 +13,7 @@ const QMetaObject *RemoveMessage::getMetaObject() const
 
 
 RemoveAckMessage::RemoveAckMessage(QUuid deviceId) :
-	deviceId{std::move(deviceId)}
+	deviceId{deviceId}
 {}
 
 const QMetaObject *RemoveAckMessage::getMetaObject() const

@@ -5,7 +5,7 @@ ProofMessage::ProofMessage() = default;
 
 ProofMessage::ProofMessage(const AccessMessage &access, QUuid deviceId) :
 	pNonce{access.pNonce},
-	deviceId{std::move(deviceId)},
+	deviceId{deviceId},
 	deviceName{access.deviceName},
 	signAlgorithm{access.signAlgorithm},
 	signKey{access.signKey},
@@ -24,7 +24,7 @@ const QMetaObject *ProofMessage::getMetaObject() const
 
 
 DenyMessage::DenyMessage(QUuid deviceId) :
-	deviceId{std::move(deviceId)}
+	deviceId{deviceId}
 {}
 
 const QMetaObject *DenyMessage::getMetaObject() const
@@ -35,7 +35,7 @@ const QMetaObject *DenyMessage::getMetaObject() const
 
 
 AcceptMessage::AcceptMessage(QUuid deviceId) :
-	deviceId{std::move(deviceId)}
+	deviceId{deviceId}
 {}
 
 const QMetaObject *AcceptMessage::getMetaObject() const
@@ -46,7 +46,7 @@ const QMetaObject *AcceptMessage::getMetaObject() const
 
 
 AcceptAckMessage::AcceptAckMessage(QUuid deviceId) :
-	deviceId{std::move(deviceId)}
+	deviceId{deviceId}
 {}
 
 const QMetaObject *AcceptAckMessage::getMetaObject() const

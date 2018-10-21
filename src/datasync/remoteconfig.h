@@ -37,13 +37,13 @@ public:
 	//! Copy constructor
 	RemoteConfig(const RemoteConfig &other);
 	//! Move constructor
-	RemoteConfig(RemoteConfig &&other);
+	RemoteConfig(RemoteConfig &&other) noexcept;
 	~RemoteConfig();
 
 	//! Copy-Assignment operator
 	RemoteConfig &operator=(const RemoteConfig &other);
 	//! Move-Assignment operator
-	RemoteConfig &operator=(RemoteConfig &&other);
+	RemoteConfig &operator=(RemoteConfig &&other) noexcept;
 
 	//! @readAcFn{RemoteConfig::url}
 	QUrl url() const;

@@ -675,7 +675,7 @@ void RemoteConnector::onEntryIdleState()
 	if(_expectChanges) {
 		_expectChanges = false;
 		logDebug() << "Server has changes. Reloading states";
-		remoteEvent(RemoteReadyWithChanges);
+		emit remoteEvent(RemoteReadyWithChanges);
 	} else
 		emit remoteEvent(RemoteReady);
 }
@@ -823,7 +823,7 @@ QVariant RemoteConnector::sValue(const QString &key) const
 		if(settings()->childGroups().contains(keyRemoteHeaders)) {
 			settings()->beginGroup(keyRemoteHeaders);
 			RemoteConfig::HeaderHash headers;
-			for(const auto &hKey : settings()->childKeys())
+			for(const auto &hKey : settings()->childKeys()) // clazy:exclude=range-loop
 				headers.insert(hKey.toUtf8(), settings()->value(hKey).toByteArray());
 			settings()->endGroup();
 			return QVariant::fromValue(headers);

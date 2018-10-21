@@ -836,7 +836,7 @@ LocalStore::SyncScope::SyncScope(const Defaults &defaults, const ObjectKey &key,
 	}
 }
 
-LocalStore::SyncScope::SyncScope(LocalStore::SyncScope &&other) :
+LocalStore::SyncScope::SyncScope(LocalStore::SyncScope &&other) noexcept :
 	d()
 {
 	d.swap(other.d);

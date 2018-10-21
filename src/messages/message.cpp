@@ -209,7 +209,7 @@ Utf8String::Utf8String() = default;
 
 Utf8String::Utf8String(const Utf8String &other) = default;
 
-Utf8String::Utf8String(Utf8String &&other) = default;
+Utf8String::Utf8String(Utf8String &&other) noexcept = default;
 
 Utf8String::Utf8String(const QByteArray &data) :
 	QString(QString::fromUtf8(data))
@@ -219,13 +219,13 @@ Utf8String::Utf8String(const QString &other) :
 	QString(other)
 {}
 
-Utf8String::Utf8String(QString &&other) :
+Utf8String::Utf8String(QString &&other) noexcept :
 	QString(std::move(other))
 {}
 
 Utf8String &Utf8String::operator=(const Utf8String &other) = default;
 
-Utf8String &Utf8String::operator=(Utf8String &&other) = default;
+Utf8String &Utf8String::operator=(Utf8String &&other) noexcept = default;
 
 Utf8String &Utf8String::operator=(const QByteArray &other)
 {
@@ -239,7 +239,7 @@ Utf8String &Utf8String::operator=(const QString &other)
 	return *this;
 }
 
-Utf8String &Utf8String::operator=(QString &&other)
+Utf8String &Utf8String::operator=(QString &&other) noexcept
 {
 	swap(other);
 	return *this;

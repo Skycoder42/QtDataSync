@@ -29,11 +29,11 @@ Defaults::Defaults(const QSharedPointer<DefaultsPrivate> &d) : //MAJOR pass by m
 
 Defaults &Defaults::operator=(const Defaults &other) = default;
 
-Defaults &Defaults::operator=(Defaults &&other) = default;
+Defaults &Defaults::operator=(Defaults &&other) noexcept = default;
 
 Defaults::Defaults(const Defaults &other) = default;
 
-Defaults::Defaults(Defaults &&other) = default;
+Defaults::Defaults(Defaults &&other) noexcept = default;
 
 Defaults::~Defaults() = default;
 
@@ -151,13 +151,13 @@ DatabaseRef::DatabaseRef(DatabaseRefPrivate *d) :
 	d{d}
 {}
 
-DatabaseRef::DatabaseRef(DatabaseRef &&other) :
+DatabaseRef::DatabaseRef(DatabaseRef &&other) noexcept :
 	d{nullptr}
 {
 	d.swap(other.d);
 }
 
-DatabaseRef &DatabaseRef::operator=(DatabaseRef &&other)
+DatabaseRef &DatabaseRef::operator=(DatabaseRef &&other) noexcept
 {
 	d.reset();
 	d.swap(other.d);
