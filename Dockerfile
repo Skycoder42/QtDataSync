@@ -1,5 +1,5 @@
 #LABEL maintainer="skycoder42.de@gmx.de"
-FROM alpine:latest
+FROM debian:latest
 
 COPY tools /tmp/src/tools
 COPY src/3rdparty/cryptopp/cryptopp.pri /tmp/src/src/3rdparty/cryptopp/cryptopp.pri

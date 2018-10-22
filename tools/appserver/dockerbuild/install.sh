@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 set -ex
 
-export MAKEFLAGS=-j$(nproc)
+#export MAKEFLAGS=-j$(nproc)
+export MAKEFLAGS=-j1
 export QPMX_CACHE_DIR=/tmp/qpmx-cache
 
 DS_NAME=qdsappd
@@ -10,10 +11,11 @@ CRYPTOPP_VERSION_MAJOR=7
 CRYPTOPP_VERSION_MINOR=0
 CRYPTOPP_VERSION_PATCH=0
 CRYPTOPP_VERSION=${CRYPTOPP_VERSION_MAJOR}_${CRYPTOPP_VERSION_MINOR}_${CRYPTOPP_VERSION_PATCH}
-MAIN_DEP="libressl zlib dbus-libs glib libgcc libstdc++ libpcre2-16 libpq ca-certificates eudev-libs eudev"
-DEV_DEP="libressl-dev zlib-dev dbus-dev glib-dev perl eudev-dev gawk pcre2-dev postgresql-dev linux-headers make gcc g++ curl python3 git"
+MAIN_DEP="libssl1.1 zlib1g libdbus-1-3 libc6 libglib2.0-0 libudev1 libpcre2-16-0 libpq5 libdouble-conversion1 libicu57 libinput10 ca-certificates"
+DEV_DEP="openssl libssl-dev zlib1g-dev dbus libdbus-1-dev libc6-dev libglib2.0-dev libudev-dev libdouble-conversion-dev libicu-dev libpcre2-dev libpq-dev libinput-dev make gcc g++ curl python3 git perl gawk"
 
-apk add --no-cache $MAIN_DEP $DEV_DEP
+apt-get -qq update
+apt-get -qq install --no-install-recommends $MAIN_DEP $DEV_DEP
 
 # get QPM
 curl -O https://www.qpm.io/download/v0.11.0/linux_386/qpm
@@ -25,10 +27,6 @@ cd /tmp/sysbuild
 # build qtbase
 git clone --depth 1 https://code.qt.io/qt/qtbase.git ./qtbase --branch $QT_VERSION_TAG
 cd qtbase
-git apply -v /tmp/src/tools/appserver/dockerbuild/libressl-compat.patch
-for file in src/network/ssl/*; do
-	sed -i -e 's/OPENSSL_VERSION_NUMBER >= 0x10002000L/!defined(LIBRESSL_VERSION_NUMBER)/g' "$file"
-done
 _qt5_prefix=/usr/lib/qt5
 _qt5_datadir=/usr/share/qt5
 ./configure -confirm-license -opensource \
@@ -74,12 +72,12 @@ for repo in QtJsonSerializer qpmx QtService; do
 	echo checking out ${latesttag}
 	git checkout ${latesttag}
 
-	if [ "$repo" == "qpmx" ]; then
+	if [[ "$repo" == "qpmx" ]]; then
 		git submodule init
 		git submodule update
 	fi
 
-	if [ -f src/imports/imports.pro ]; then
+	if [[ -f src/imports/imports.pro ]]; then
 		echo "SUBDIRS -= imports" >> src/src.pro
 	fi
 
@@ -97,9 +95,9 @@ make install PREFIX="/usr"
 install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
 cd ..
 CPP_PATCHV=${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}.${CRYPTOPP_VERSION_PATCH}
-ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}
-ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}
-/sbin/ldconfig -n /usr/lib
+#ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}
+#ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}
+#/sbin/ldconfig -n /usr/lib
 
 # build messages
 cd /tmp/src/src/messages
@@ -129,7 +127,7 @@ mv dockerbuild/env_start.sh /usr/bin/
 /usr/bin/$DS_NAME --version
 
 # remove unused stuff
-apk del --no-cache --purge "*-dev" $DEV_DEP
+apt-get -qq autoremove --purge $DEV_DEP
 rm -rf /tmp/*
 rm -rf $HOME/.cache/qpmx
 rm -rf /usr/local/bin/qpm
