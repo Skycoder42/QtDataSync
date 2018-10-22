@@ -367,13 +367,10 @@ void DataStoreModelPrivate::createRoleNames()
 	roleNames.clear();
 
 	auto metaObject = QMetaType::metaObjectForType(type);
-	roleNames.insert(Qt::DisplayRole, metaObject->userProperty().name());//use the key for the display role
-
 	auto roleIndex = Qt::UserRole + 1;
 	for(auto i = 0; i < metaObject->propertyCount(); i++) {
 		auto prop = metaObject->property(i);
-		if(!prop.isUser())
-			roleNames.insert(roleIndex++, prop.name());
+		roleNames.insert(roleIndex++, prop.name());
 	}
 }
 
@@ -398,13 +395,16 @@ bool DataStoreModelPrivate::testRoleValid(const QModelIndex &index, int role) co
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	return role < 0 ||
 			roleNames.contains(role) ||
+			role == Qt::DisplayRole ||
 			(!columns.isEmpty() && roleMapping[index.column()].contains(role));
 #else
 	return index.isValid() &&
 			index.column() < (columns.isEmpty() ? 1 :columns.size()) &&
 			index.row() < keyList.size() &&
-			(role < 0 || roleNames.contains(role) ||
-			  (!columns.isEmpty() && roleMapping[index.column()].contains(role))
+			(role < 0 ||
+				roleNames.contains(role) ||
+				role == Qt::DisplayRole ||
+				(!columns.isEmpty() && roleMapping[index.column()].contains(role))
 			);
 #endif
 }
@@ -418,7 +418,11 @@ QByteArray DataStoreModelPrivate::propertyName(const QModelIndex &index, int rol
 			return roleName;
 	}
 
-	return roleNames.value(role);
+	if(role == Qt::DisplayRole) {
+		auto metaObject = QMetaType::metaObjectForType(type);
+		return metaObject->userProperty().name();
+	} else
+		return roleNames.value(role);
 }
 
 QVariant DataStoreModelPrivate::readProperty(const QString &key, const QByteArray &property)
