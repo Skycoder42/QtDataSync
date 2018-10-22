@@ -43,15 +43,14 @@ QString DatasyncService::absolutePath(const QString &path) const
 	return QDir::cleanPath(dir.absoluteFilePath(path));
 }
 
-QtService::Service::CommandMode DatasyncService::onStart()
+QtService::Service::CommandResult DatasyncService::onStart()
 {
 	QtDataSync::Message::registerTypes();
 
 	auto configPath = findConfig();
 	if(configPath.isEmpty()) {
 		qCritical() << "Unable to find any configuration file. Set it explicitly via the QDSAPP_CONFIG_FILE environment variable";
-		qApp->exit(EXIT_FAILURE);
-		return Synchronous;
+		return OperationFailed;
 	}
 
 	_config = new QSettings(configPath, QSettings::IniFormat, this);
@@ -60,8 +59,7 @@ QtService::Service::CommandMode DatasyncService::onStart()
 					<< configPath
 					<< "with error:"
 					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
-		qApp->exit(EXIT_FAILURE);
-		return Synchronous;
+		return OperationFailed;
 	}
 
 	//before anything else: set the log level
@@ -78,17 +76,15 @@ QtService::Service::CommandMode DatasyncService::onStart()
 			this, &DatasyncService::completeStartup,
 			Qt::QueuedConnection);
 
-	if(!_connector->setupWss()) {
-		qApp->exit(EXIT_FAILURE);
-		return Synchronous;
-	}
+	if(!_connector->setupWss())
+		return OperationFailed;
 	_database->initialize();
 
 	qDebug() << QCoreApplication::applicationName() << "started successfully";
-	return Asynchronous;
+	return OperationPending;
 }
 
-QtService::Service::CommandMode DatasyncService::onStop(int &exitCode)
+QtService::Service::CommandResult DatasyncService::onStop(int &exitCode)
 {
 	qDebug() << "Stopping server...";
 	emit _connector->disconnectAll();
@@ -96,10 +92,10 @@ QtService::Service::CommandMode DatasyncService::onStop(int &exitCode)
 	_mainPool->waitForDone();
 	exitCode = EXIT_SUCCESS;
 	qDebug() << "Server stopped";
-	return Synchronous;
+	return OperationCompleted;
 }
 
-QtService::Service::CommandMode DatasyncService::onReload()
+QtService::Service::CommandResult DatasyncService::onReload()
 {
 	// cast is ok here as I own the settings - they are only const to prevent accidental writes
 	const_cast<QSettings*>(_config)->sync();
@@ -109,7 +105,7 @@ QtService::Service::CommandMode DatasyncService::onReload()
 					<< "with error:"
 					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
 		qCritical() << "Reload failed. Configuration has not been reloaded!";
-		return Synchronous;
+		return OperationFailed;
 	}
 
 	// before anything else: set the log level
@@ -123,34 +119,30 @@ QtService::Service::CommandMode DatasyncService::onReload()
 	_connector->recreateServer();
 	if(!_connector->setupWss() ||
 	   !_connector->listen()) {
-		qApp->exit(EXIT_FAILURE);
-		return Synchronous;
+		return OperationFailed;
 	}
 
 	qDebug() << QCoreApplication::applicationName() << "completed reloading";
-	return Synchronous;
+	return OperationCompleted;
 }
 
-QtService::Service::CommandMode DatasyncService::onPause()
+QtService::Service::CommandResult DatasyncService::onPause()
 {
 	qDebug() << "Pausing server...";
 	_connector->setPaused(true);
-	return Synchronous;
+	return OperationCompleted;
 }
 
-QtService::Service::CommandMode DatasyncService::onResume()
+QtService::Service::CommandResult DatasyncService::onResume()
 {
 	qDebug() << "Resuming server...";
 	_connector->setPaused(false);
-	return Synchronous;
+	return OperationCompleted;
 }
 
 void DatasyncService::completeStartup(bool ok)
 {
-	if(!ok || !_connector->listen())
-		qApp->exit();
-	else
-		emit started();
+	emit started(ok && _connector->listen());
 }
 
 QString DatasyncService::findConfig() const

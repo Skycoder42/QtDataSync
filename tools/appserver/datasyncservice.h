@@ -27,11 +27,11 @@ public:
 	QString absolutePath(const QString &path) const;
 
 protected:
-	CommandMode onStart() override;
-	CommandMode onStop(int &exitCode) override;
-	CommandMode onReload() override;
-	CommandMode onPause() override;
-	CommandMode onResume() override;
+	CommandResult onStart() override;
+	CommandResult onStop(int &exitCode) override;
+	CommandResult onReload() override;
+	CommandResult onPause() override;
+	CommandResult onResume() override;
 
 private Q_SLOTS:
 	void completeStartup(bool ok);
