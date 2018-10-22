@@ -2,6 +2,7 @@
 #define QTDATASYNC_USEREXCHANGEMANAGER_P_H
 
 #include <QtCore/QTimer>
+#include <QtCore/QPointer>
 
 #include <QtNetwork/QUdpSocket>
 #include <QtNetwork/QNetworkDatagram>
@@ -38,12 +39,14 @@ public:
 	UserExchangeManagerPrivate(UserExchangeManager *q_ptr);
 
 	AccountManager *manager = nullptr;
-	QUdpSocket *socket;
+	QPointer<QUdpSocket> socket;
 	QTimer *timer;
 
 	bool allowReuseAddress = false;
 	QHash<UserInfo, quint8> devices;
 	QHash<UserInfo, QByteArray> exchangeData;
+
+	void clearSocket();
 };
 
 }

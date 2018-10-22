@@ -49,13 +49,6 @@ void UserExchangeManager::initManager(AccountManager *manager)
 	d->timer->setTimerType(Qt::VeryCoarseTimer);
 	connect(d->timer, &QTimer::timeout,
 			this, &UserExchangeManager::timeout);
-
-	connect(d->socket, &QUdpSocket::readyRead,
-			this, &UserExchangeManager::readDatagram);
-	connect(d->socket, QOverload<QAbstractSocket::SocketError>::of(&QUdpSocket::error),
-			this, [this]() {
-		emit exchangeError(d->socket->errorString(), {});
-	});
 }
 
 UserExchangeManager::~UserExchangeManager() = default;
@@ -67,12 +60,12 @@ AccountManager *UserExchangeManager::accountManager() const
 
 quint16 UserExchangeManager::port() const
 {
-	return d->socket->localPort();
+	return d->socket ? d->socket->localPort() : 0;
 }
 
 bool UserExchangeManager::isActive() const
 {
-	return d->socket->state() == QAbstractSocket::BoundState;
+	return d->socket ? d->socket->state() == QAbstractSocket::BoundState : false;
 }
 
 QList<UserInfo> UserExchangeManager::devices() const
@@ -87,11 +80,21 @@ bool UserExchangeManager::startExchange(const QHostAddress &listenAddress, quint
 	d->timer->stop();
 	emit devicesChanged(d->devices.keys(), {});
 
-	if(d->socket->isOpen())
-		d->socket->close();
+	d->clearSocket();
 
-	if(!d->socket->bind(listenAddress, port))
+	d->socket = new QUdpSocket{this};
+	connect(d->socket, &QUdpSocket::readyRead,
+			this, &UserExchangeManager::readDatagram);
+	connect(d->socket, QOverload<QAbstractSocket::SocketError>::of(&QUdpSocket::error),
+			this, [this]() {
+		emit exchangeError(d->socket->errorString(), {});
+	});
+
+	if(!d->socket->bind(listenAddress, port)) {
+		d->socket->deleteLater();
+		d->socket.clear();
 		return false;
+	}
 
 	d->timer->start();
 	emit activeChanged(true, {});
@@ -103,8 +106,7 @@ void UserExchangeManager::stopExchange()
 {
 	d->timer->stop();
 
-	if(d->socket->isOpen())
-		d->socket->close();
+	d->clearSocket();
 	emit activeChanged(false, {});
 
 	d->devices.clear();
@@ -114,6 +116,9 @@ void UserExchangeManager::stopExchange()
 
 void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 {
+	if(!d->socket)
+		return;
+
 	QPointer<UserExchangeManager> thisPtr(this);
 	d->manager->exportAccount(includeServer, [thisPtr, this, userInfo](const QByteArray &exportData) {
 		if(!thisPtr)
@@ -125,7 +130,10 @@ void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 		stream << static_cast<qint32>(UserExchangeManagerPrivate::DeviceDataUntrusted)
 			   << exportData;
 
-		d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
+		if(d->socket)
+			d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
+		else
+			emit exchangeError(tr("Cannot export data if UserExchangeManager is not in active state"), {});
 	}, [thisPtr, this](const QString &error) {
 		if(!thisPtr)
 			return;
@@ -136,6 +144,9 @@ void UserExchangeManager::exportTo(const UserInfo &userInfo, bool includeServer)
 
 void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, bool includeServer, const QString &password)
 {
+	if(!d->socket)
+		return;
+
 	QPointer<UserExchangeManager> thisPtr(this);
 	d->manager->exportAccountTrusted(includeServer, password, [thisPtr, this, userInfo](const QByteArray &exportData) {
 		if(!thisPtr)
@@ -147,7 +158,10 @@ void UserExchangeManager::exportTrustedTo(const UserInfo &userInfo, bool include
 		stream << static_cast<qint32>(UserExchangeManagerPrivate::DeviceDataTrusted)
 			   << exportData;
 
-		d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
+		if(d->socket)
+			d->socket->writeDatagram(datagram, userInfo.address(), userInfo.port());
+		else
+			emit exchangeError(tr("Cannot export data if UserExchangeManager is not in active state"), {});
 	}, [thisPtr, this](const QString &error) {
 		if(!thisPtr)
 			return;
@@ -196,12 +210,13 @@ void UserExchangeManager::timeout()
 	stream << static_cast<qint32>(UserExchangeManagerPrivate::DeviceInfo)
 		   << d->manager->deviceName();
 
-	d->socket->writeDatagram(datagram, QHostAddress::Broadcast, d->socket->localPort());
+	if(d->socket)
+		d->socket->writeDatagram(datagram, QHostAddress::Broadcast, d->socket->localPort());
 }
 
 void UserExchangeManager::readDatagram()
 {
-	while(d->socket->hasPendingDatagrams()) {
+	while(d->socket && d->socket->hasPendingDatagrams()) {
 		auto datagram = d->socket->receiveDatagram();
 
 		auto isSelf = false;
@@ -287,9 +302,18 @@ void UserExchangeManager::readDatagram()
 
 
 UserExchangeManagerPrivate::UserExchangeManagerPrivate(UserExchangeManager *q_ptr) :
-	socket{new QUdpSocket(q_ptr)},
 	timer{new QTimer(q_ptr)}
 {}
+
+void UserExchangeManagerPrivate::clearSocket()
+{
+	if(socket) {
+		if(socket->isOpen())
+			socket->close();
+		socket->deleteLater();
+		socket.clear();
+	}
+}
 
 
 // ------------- UserInfo Implementation -------------
