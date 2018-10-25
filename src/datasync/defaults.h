@@ -92,6 +92,8 @@ public:
 	Defaults &operator=(Defaults &&other) noexcept;
 	~Defaults();
 
+	bool isValid() const;
+
 	//! Create a new logger instance
 	Logger *createLogger(const QByteArray &subCategory, QObject *parent = nullptr) const;
 

@@ -2,6 +2,7 @@
 #include "changecontroller_p.h"
 #include "synchelper_p.h"
 #include "emitteradapter_p.h"
+#include "eventcursor_p.h"
 
 #include <QtCore/QUrl>
 #include <QtCore/QJsonDocument>
@@ -47,7 +48,7 @@ LocalStore::LocalStore(Defaults defaults, QObject *parent) :
 		if(!createQuery.exec()) {
 			throw LocalStoreException {
 				_defaults,
-				QByteArrayLiteral("any"),
+				QByteArray{QTDATASYNC_EXCEPTION_NAME(LocalStore)},
 				createQuery.executedQuery().simplified(),
 				createQuery.lastError().text()
 			};
@@ -67,7 +68,7 @@ LocalStore::LocalStore(Defaults defaults, QObject *parent) :
 		if(!createQuery.exec()) {
 			throw LocalStoreException{
 				_defaults,
-				QByteArrayLiteral("any"),
+				QByteArray{QTDATASYNC_EXCEPTION_NAME(LocalStore)},
 				createQuery.executedQuery().simplified(),
 				createQuery.lastError().text()
 			};
@@ -75,69 +76,15 @@ LocalStore::LocalStore(Defaults defaults, QObject *parent) :
 		logDebug() << "Created DeviceUploads table";
 	}
 
-	if(!_database->tables().contains(QStringLiteral("EventLog"))) {
-		QSqlQuery createQuery{_database};
-		createQuery.prepare(QStringLiteral("CREATE TABLE IF NOT EXISTS EventLog ( "
-										   "	SeqId		INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-										   "	Type		TEXT NOT NULL, "
-										   "	Id			TEXT NOT NULL, "
-										   "	Version		INTEGER NOT NULL, "
-										   "	Removed		INTEGER NOT NULL, "
-										   "	Timestamp	INTEGER NOT NULL "
-										   ");"));
-		if(!createQuery.exec()) {
-			throw LocalStoreException{
-				_defaults,
-				QByteArrayLiteral("any"),
-				createQuery.executedQuery().simplified(),
-				createQuery.lastError().text()
-			};
-		}
-		logDebug() << "Created EventLog table";
-	}
-
-	for(const auto &type : {std::make_pair(QStringLiteral("INSERT"), false),
-							std::make_pair(QStringLiteral("UPDATE"), true)}) {
-		QSqlQuery hasTriggersQuery{_database};
-		hasTriggersQuery.prepare(QStringLiteral("SELECT 1 FROM sqlite_master "
-												 "WHERE type = ? AND name = ?"));
-		hasTriggersQuery.addBindValue(QStringLiteral("trigger"));
-		hasTriggersQuery.addBindValue(QStringLiteral("eventlog_%1").arg(type.first));
-		if(!hasTriggersQuery.exec()) {
-			throw LocalStoreException{
-				_defaults,
-				QByteArrayLiteral("any"),
-				hasTriggersQuery.executedQuery().simplified(),
-				hasTriggersQuery.lastError().text()
-			};
-		}
-
-		if(!hasTriggersQuery.first()) {
-			QSqlQuery createTriggerQuery{_database};
-			auto query = QStringLiteral("CREATE TRIGGER IF NOT EXISTS eventlog_%1 "
-										"AFTER %1 "
-										"ON DataIndex "
-										"%2"
-										"BEGIN "
-										"	INSERT INTO EventLog "
-										"	(Type, Id, Version, Removed, Timestamp) "
-										"	VALUES(NEW.Type, NEW.Id, NEW.Version, NEW.File IS NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));"
-										"END;").arg(type.first);
-			if(type.second)
-				query = query.arg(QStringLiteral("WHEN NEW.Version != OLD.Version "));
-			else
-				query = query.arg(QString{});
-			createTriggerQuery.prepare(query);
-			if(!createTriggerQuery.exec()) {
-				throw LocalStoreException{
-					_defaults,
-					QByteArrayLiteral("any"),
-					createTriggerQuery.executedQuery().simplified(),
-					createTriggerQuery.lastError().text()
-				};
-			}
-			logDebug() << "Created eventlog trigger for" << type.first << "operation";
-		}
+	try {
+		EventCursorPrivate::initDatabase(_defaults, _database, _logger);
+	} catch(EventCursorException &e) {
+		throw LocalStoreException {
+			_defaults,
+			e.className(),
+			e.context(),
+			e.message()
+		};
 	}
 }
 
@@ -477,10 +424,17 @@ void LocalStore::reset(bool keepData)
 			resetQuery.prepare(QStringLiteral("DELETE FROM DataIndex"));
 			exec(resetQuery);
 
-			// also clear eventlog
-			QSqlQuery eventQuery(_database);
-			eventQuery.prepare(QStringLiteral("DELETE FROM EventLog"));
-			exec(eventQuery);
+			// clear eventlog
+			try {
+				EventCursorPrivate::clearEventLog(_defaults, _database);
+			} catch(EventCursorException &e) {
+				throw LocalStoreException {
+					_defaults,
+					QByteArray("any"),
+					e.context(),
+					e.message()
+				};
+			}
 
 			//note: resets are local only, so they dont trigger any changecontroller stuff
 
@@ -491,8 +445,14 @@ void LocalStore::reset(bool keepData)
 			}
 		}
 
-		if(!_database->commit())
-			throw LocalStoreException(_defaults, QByteArray("<any>"), _database->databaseName(), _database->lastError().text());
+		if(!_database->commit()) {
+			throw LocalStoreException{
+				_defaults,
+				QByteArray("any"),
+				_database->databaseName(),
+				_database->lastError().text()
+			};
+		}
 
 		//only if data was actually deleted
 		if(!keepData) {

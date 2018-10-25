@@ -41,7 +41,9 @@ HEADERS += \
 	migrationhelper.h \
 	migrationhelper_p.h \
 	remoteconfig.h \
-	remoteconfig_p.h
+	remoteconfig_p.h \
+    eventcursor.h \
+    eventcursor_p.h
 
 SOURCES += \
 	localstore.cpp \
@@ -71,7 +73,8 @@ SOURCES += \
 	emitteradapter.cpp \
 	changeemitter.cpp \
 	migrationhelper.cpp \
-	remoteconfig.cpp
+	remoteconfig.cpp \
+    eventcursor.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml

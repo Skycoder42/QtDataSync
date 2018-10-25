@@ -37,6 +37,11 @@ Defaults::Defaults(Defaults &&other) noexcept = default;
 
 Defaults::~Defaults() = default;
 
+bool Defaults::isValid() const
+{
+	return d;
+}
+
 Logger *Defaults::createLogger(const QByteArray &subCategory, QObject *parent) const
 {
 	return new Logger(subCategory, d->setupName, parent);
