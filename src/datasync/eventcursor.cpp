@@ -1,6 +1,8 @@
 #include "eventcursor.h"
 #include "eventcursor_p.h"
 #include "defaults_p.h"
+#include <QtCore/QDataStream>
+#include <QtSql/QSqlError>
 using namespace QtDataSync;
 
 #define QTDATASYNC_LOG d->logger
@@ -64,7 +66,7 @@ EventCursor *EventCursor::create(quint64 index, const QString &setupName, QObjec
 									  "WHERE SeqId = ? "
 									  "LIMIT 1"));
 	eventQuery.addBindValue(index);
-	cursor->d->exec(eventQuery);
+	cursor->d->exec(eventQuery, index);
 	if(eventQuery.first())
 		cursor->d->readQuery(eventQuery);
 	return cursor;
@@ -77,14 +79,26 @@ EventCursor *EventCursor::load(const QByteArray &data, QObject *parent)
 
 EventCursor *EventCursor::load(const QByteArray &data, const QString &setupName, QObject *parent)
 {
-	Q_UNIMPLEMENTED();
-	return nullptr;
+	// cant use serializer here because cursor is not default constructible
+	quint64 index = 0;
+	bool skipObsolete = false;
+	QDataStream stream{data};
+	stream.setVersion(QDataStream::Qt_5_10);
+	stream >> index >> skipObsolete;
+
+	auto cursor = EventCursor::create(index, setupName, parent);
+	cursor->d->skipObsolete = skipObsolete;
+	return cursor;
 }
 
 QByteArray EventCursor::save() const
 {
-	Q_UNIMPLEMENTED();
-	return {};
+	// cant use serializer here because cursor is not default constructible
+	QByteArray data;
+	QDataStream stream{&data, QIODevice::WriteOnly};
+	stream.setVersion(QDataStream::Qt_5_10);
+	stream << d->index << d->skipObsolete;
+	return data;
 }
 
 bool EventCursor::isValid() const
@@ -117,46 +131,86 @@ bool EventCursor::skipObsolete() const
 	return d->skipObsolete;
 }
 
-void EventCursor::setSkipObsolete(bool skipObsolete)
-{
-	d->skipObsolete = skipObsolete;
-}
-
 bool EventCursor::hasNext() const
 {
-	Q_UNIMPLEMENTED();
-	return false;
+	QSqlQuery eventQuery{d->database};
+	d->prepareNextQuery(eventQuery);
+	d->exec(eventQuery, d->index);
+	return eventQuery.first();
 }
 
 bool EventCursor::next()
 {
-	Q_UNIMPLEMENTED();
-	return false;
+	QSqlQuery eventQuery{d->database};
+	d->prepareNextQuery(eventQuery);
+	if(eventQuery.first()) {
+		d->readQuery(eventQuery);
+		return true;
+	} else
+		return false;
+}
+
+void EventCursor::setSkipObsolete(bool skipObsolete)
+{
+	if(d->skipObsolete == skipObsolete)
+		return;
+
+	d->skipObsolete = skipObsolete;
+	emit skipObsoleteChanged(d->skipObsolete, {});
 }
 
 void EventCursor::clearEventLog(quint64 offset)
 {
-	Q_UNIMPLEMENTED();
+	if(d->index < offset) {
+		throw EventCursorException {
+			d->defaults,
+			d->index,
+			QStringLiteral("Offset: %1").arg(offset),
+			QStringLiteral("offset is bigger than the index - can't clear negative data indexes")
+		};
+	}
+
+	QSqlQuery eventQuery{d->database};
+	eventQuery.prepare(QStringLiteral("DELETE FROM EventLog "
+									  "WHERE SeqId < ?"));
+	eventQuery.addBindValue(d->index - offset);
+	d->exec(eventQuery, d->index - offset);
 }
 
 void EventCursor::setIndex(quint64 index)
 {
+	if(d->index == index)
+		return;
+
 	d->index = index;
+	emit indexChanged(d->index, {});
 }
 
 void EventCursor::setKey(ObjectKey key)
 {
+	if(d->key == key)
+		return;
+
 	d->key = std::move(key);
+	emit keyChanged(d->key, {});
 }
 
 void EventCursor::setWasRemoved(bool wasRemoved)
 {
+	if(d->wasRemoved == wasRemoved)
+		return;
+
 	d->wasRemoved = wasRemoved;
+	emit wasRemovedChanged(d->wasRemoved, {});
 }
 
 void EventCursor::setTimestamp(QDateTime timestamp)
 {
+	if(d->timestamp == timestamp)
+		return;
+
 	d->timestamp = std::move(timestamp);
+	emit timestampChanged(d->timestamp, {});
 }
 
 
@@ -218,7 +272,7 @@ EventCursorPrivate::EventCursorPrivate(const QString &setupName, EventCursor *q_
 	logger{defaults.createLogger("eventlogger", q_ptr)}
 {}
 
-void EventCursorPrivate::initDatabase(Defaults defaults, DatabaseRef &database, Logger *logger)
+void EventCursorPrivate::initDatabase(const Defaults &defaults, DatabaseRef &database, Logger *logger)
 {
 	if(!database->tables().contains(QStringLiteral("EventLog"))) {
 		QSqlQuery createQuery{database};
@@ -286,7 +340,7 @@ void EventCursorPrivate::initDatabase(Defaults defaults, DatabaseRef &database, 
 	}
 }
 
-void EventCursorPrivate::clearEventLog(Defaults defaults, DatabaseRef &database)
+void EventCursorPrivate::clearEventLog(const Defaults &defaults, DatabaseRef &database)
 {
 	QSqlQuery eventQuery(database);
 	eventQuery.prepare(QStringLiteral("DELETE FROM EventLog"));
@@ -300,9 +354,16 @@ void EventCursorPrivate::clearEventLog(Defaults defaults, DatabaseRef &database)
 	}
 }
 
-void EventCursorPrivate::exec(QSqlQuery &query, quint64 index) const
+void EventCursorPrivate::exec(QSqlQuery &query, quint64 qIndex) const
 {
-
+	if(!query.exec()) {
+		throw EventCursorException {
+			defaults,
+			qIndex,
+			query.executedQuery().simplified(),
+			query.lastError().text()
+		};
+	}
 }
 
 void EventCursorPrivate::readQuery(const QSqlQuery &query)
@@ -312,4 +373,20 @@ void EventCursorPrivate::readQuery(const QSqlQuery &query)
 	key.id = query.value(2).toString();
 	wasRemoved = query.value(3).toBool();
 	timestamp = query.value(4).toDateTime().toLocalTime();
+}
+
+void EventCursorPrivate::prepareNextQuery(QSqlQuery &query) const
+{
+	auto statement = QStringLiteral("SELECT EventLog.SeqId, EventLog.Type, EventLog.Key, EventLog.Removed, EventLog.Timestamp "
+									"FROM EventLog ");
+	if(skipObsolete) {
+		statement += QStringLiteral("LEFT JOIN DataIndex "
+									"ON DataIndex.Type = EventLog.Type AND DataIndex.Id = EventLog.Id "
+									"WHERE SeqId > ? AND (EventLog.Version IS NULL OR EventLog.Version = DataIndex.Version) ");
+	} else
+		statement += QStringLiteral("WHERE SeqId > ? ");
+	statement += QStringLiteral("ORDER BY SeqId ASC "
+								"LIMIT 1");
+	query.prepare(statement);
+	query.addBindValue(index);
 }

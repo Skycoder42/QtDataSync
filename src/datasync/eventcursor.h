@@ -15,12 +15,12 @@ class Q_DATASYNC_EXPORT EventCursor : public QObject
 {
 	Q_OBJECT
 
-	Q_PROPERTY(quint64 index READ index WRITE setIndex USER true)
-	Q_PROPERTY(QtDataSync::ObjectKey key READ key WRITE setKey)
-	Q_PROPERTY(bool wasRemoved READ wasRemoved WRITE setWasRemoved)
-	Q_PROPERTY(QDateTime timestamp READ timestamp WRITE setTimestamp)
+	Q_PROPERTY(quint64 index READ index WRITE setIndex NOTIFY indexChanged USER true)
+	Q_PROPERTY(QtDataSync::ObjectKey key READ key WRITE setKey NOTIFY keyChanged STORED false)
+	Q_PROPERTY(bool wasRemoved READ wasRemoved WRITE setWasRemoved NOTIFY wasRemovedChanged STORED false)
+	Q_PROPERTY(QDateTime timestamp READ timestamp WRITE setTimestamp NOTIFY timestampChanged STORED false)
 
-	Q_PROPERTY(bool skipObsolete READ skipObsolete WRITE setSkipObsolete)
+	Q_PROPERTY(bool skipObsolete READ skipObsolete WRITE setSkipObsolete NOTIFY skipObsoleteChanged)
 
 public:
 	~EventCursor() override;
@@ -43,12 +43,20 @@ public:
 	QDateTime timestamp() const;
 
 	bool skipObsolete() const;
-	void setSkipObsolete(bool skipObsolete);
 
 	bool hasNext() const;
 	bool next();
 
+public Q_SLOTS:
+	void setSkipObsolete(bool skipObsolete);
 	void clearEventLog(quint64 offset = 0);
+
+Q_SIGNALS:
+	void indexChanged(quint64 index, QPrivateSignal);
+	void keyChanged(const QtDataSync::ObjectKey &key, QPrivateSignal);
+	void wasRemovedChanged(bool wasRemoved, QPrivateSignal);
+	void timestampChanged(const QDateTime &timestamp, QPrivateSignal);
+	void skipObsoleteChanged(bool skipObsolete, QPrivateSignal);
 
 private:
 	friend class QtDataSync::EventCursorPrivate;

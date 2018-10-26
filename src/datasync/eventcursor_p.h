@@ -16,12 +16,13 @@ class EventCursorPrivate
 public:
 	EventCursorPrivate(const QString &setupName, EventCursor *q_ptr);
 
-	static void initDatabase(Defaults defaults, DatabaseRef &database, Logger *logger);
-	static void clearEventLog(Defaults defaults, DatabaseRef &database);
+	static void initDatabase(const Defaults &defaults, DatabaseRef &database, Logger *logger);
+	static void clearEventLog(const Defaults &defaults, DatabaseRef &database);
 
 private:
-	void exec(QSqlQuery &query, quint64 index = 0) const;
+	void exec(QSqlQuery &query, quint64 qIndex = 0) const;
 	void readQuery(const QSqlQuery &query);
+	void prepareNextQuery(QSqlQuery &query) const;
 
 	Defaults defaults;
 	DatabaseRef database;
