@@ -97,10 +97,6 @@ private:
 
 void TestRemoteConnector::initTestCase()
 {
-#ifdef Q_OS_LINUX
-	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
-		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
-#endif
 	//QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
 
 	qRegisterMetaType<RemoteConnector::RemoteEvent>("RemoteEvent");

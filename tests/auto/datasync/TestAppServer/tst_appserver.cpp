@@ -118,10 +118,6 @@ private:
 
 void TestAppServer::initTestCase()
 {
-#ifdef Q_OS_LINUX
-	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
-		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
-#endif
 	QByteArray confPath { SETUP_FILE };
 	QVERIFY(QFile::exists(QString::fromUtf8(confPath)));
 	qputenv("QDSAPP_CONFIG_FILE", confPath);

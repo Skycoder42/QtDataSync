@@ -53,10 +53,6 @@ private:
 
 void TestMessages::initTestCase()
 {
-#ifdef Q_OS_LINUX
-	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
-		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
-#endif
 	qRegisterMetaType<QtDataSync::Message*>();
 	QMetaType::registerComparators<Utf8String>();
 	QMetaType::registerComparators<DevicesMessage::DeviceInfo>();

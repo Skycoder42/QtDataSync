@@ -8,10 +8,6 @@ static QTemporaryDir tDir;
 
 static void initImportPath()
 {
-#ifdef Q_OS_LINUX
-	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
-		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
-#endif
 	qputenv("PLUGIN_KEYSTORES_PATH", KEYSTORE_PATH);
 	qputenv("QML2_IMPORT_PATH", QML_PATH);
 

@@ -34,10 +34,6 @@ private:
 
 void TestDataStore::initTestCase()
 {
-#ifdef Q_OS_LINUX
-	if(!qgetenv("LD_PRELOAD").contains("Qt5DataSync"))
-		qWarning() << "No LD_PRELOAD set - this may fail on systems with multiple version of the modules";
-#endif
 	try {
 		TestLib::init();
 		Setup setup;
@@ -286,6 +282,7 @@ void TestDataStore::testChangeSignals()
 		QFAIL(e.what());
 	}
 }
+
 QTEST_MAIN(TestDataStore)
 
 #include "tst_datastore.moc"
