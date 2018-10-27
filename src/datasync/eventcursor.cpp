@@ -38,7 +38,7 @@ EventCursor *EventCursor::first(const QString &setupName, QObject *parent)
 {
 	auto cursor = new EventCursor{setupName, parent};
 	QSqlQuery eventQuery{cursor->d->database};
-	eventQuery.prepare(QStringLiteral("SELECT SeqId, Type, Key, Removed, Timestamp "
+	eventQuery.prepare(QStringLiteral("SELECT SeqId, Type, Id, Removed, Timestamp "
 									  "FROM EventLog "
 									  "ORDER BY SeqId ASC "
 									  "LIMIT 1"));
@@ -57,7 +57,7 @@ EventCursor *EventCursor::last(const QString &setupName, QObject *parent)
 {
 	auto cursor = new EventCursor{setupName, parent};
 	QSqlQuery eventQuery{cursor->d->database};
-	eventQuery.prepare(QStringLiteral("SELECT SeqId, Type, Key, Removed, Timestamp "
+	eventQuery.prepare(QStringLiteral("SELECT SeqId, Type, Id, Removed, Timestamp "
 									  "FROM EventLog "
 									  "ORDER BY SeqId DESC "
 									  "LIMIT 1"));
@@ -76,7 +76,7 @@ EventCursor *EventCursor::create(quint64 index, const QString &setupName, QObjec
 {
 	auto cursor = new EventCursor{setupName, parent};
 	QSqlQuery eventQuery{cursor->d->database};
-	eventQuery.prepare(QStringLiteral("SELECT SeqId, Type, Key, Removed, Timestamp "
+	eventQuery.prepare(QStringLiteral("SELECT SeqId, Type, Id, Removed, Timestamp "
 									  "FROM EventLog "
 									  "WHERE SeqId = ? "
 									  "LIMIT 1"));
@@ -158,11 +158,17 @@ bool EventCursor::next()
 {
 	QSqlQuery eventQuery{d->database};
 	d->prepareNextQuery(eventQuery, true);
+	d->exec(eventQuery, d->index);
 	if(eventQuery.first()) {
 		d->readQuery(eventQuery);
 		return true;
 	} else
 		return false;
+}
+
+void EventCursor::autoScanLog()
+{
+	scanLogImpl(this, [](const EventCursor *) { return true; }, false);
 }
 
 void EventCursor::setSkipObsolete(bool skipObsolete)
@@ -233,9 +239,9 @@ void EventCursor::scanLogImpl(QObject *scope, std::function<bool (const EventCur
 	if(scanCurrent && !function(this))
 		return;
 
-	auto handleNext = [this, fn{std::move(function)}]() {
+	auto handleNext = [this, LAMBDA_MV(function)]() {
 		while (next()) {
-			if(!fn(this))
+			if(!function(this))
 				return false;
 		}
 		return true;
@@ -419,6 +425,9 @@ void EventCursorPrivate::initDatabase(const Defaults &defaults, DatabaseRef &dat
 
 void EventCursorPrivate::clearEventLog(const Defaults &defaults, DatabaseRef &database)
 {
+	if(!isLogActive(defaults, database))
+		return;
+
 	QSqlQuery eventQuery(database);
 	eventQuery.prepare(QStringLiteral("DELETE FROM EventLog"));
 	if(!eventQuery.exec()) {
@@ -455,7 +464,7 @@ void EventCursorPrivate::readQuery(const QSqlQuery &query)
 void EventCursorPrivate::prepareNextQuery(QSqlQuery &query, bool withData) const
 {
 	query.prepare((withData ?
-					   QStringLiteral("SELECT EventLog.SeqId, EventLog.Type, EventLog.Key, EventLog.Removed, EventLog.Timestamp ") :
+					   QStringLiteral("SELECT EventLog.SeqId, EventLog.Type, EventLog.Id, EventLog.Removed, EventLog.Timestamp ") :
 					   QStringLiteral("SELECT EventLog.SeqId ")) +
 
 				  QStringLiteral("FROM EventLog ") +

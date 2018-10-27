@@ -15,4 +15,10 @@
 
 #define PSIG_NULL(x) EXTEND_NULL(this, x, QPrivateSignal{})
 
+#if __cplusplus >= 201402L
+#define LAMBDA_MV(x) x = std::move(x)
+#else
+#define LAMBDA_MV(x) x
+#endif
+
 #endif // QTDATASYNC_SIGNAL_PRIVATE_CONNECT_P_H

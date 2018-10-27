@@ -51,6 +51,7 @@ public:
 	bool hasNext() const;
 	bool next();
 
+	void autoScanLog();
 	template <typename TFunc>
 	void autoScanLog(TFunc &&function, bool scanCurrent = true);
 	template <typename TFunc>
