@@ -1,6 +1,7 @@
 #include "eventcursor.h"
 #include "eventcursor_p.h"
 #include "defaults_p.h"
+#include "signal_private_connect_p.h"
 #include <QtCore/QDataStream>
 #include <QtSql/QSqlError>
 using namespace QtDataSync;
@@ -10,7 +11,14 @@ using namespace QtDataSync;
 EventCursor::EventCursor(const QString &setupName, QObject *parent) :
 	QObject{parent},
 	d{new EventCursorPrivate{setupName, this}}
-{}
+{
+	EventCursorPrivate::initDatabase(d->defaults, d->database, d->logger, false);
+
+	connect(d->emitter, &EmitterAdapter::dataChanged,
+			this, PSIG_NULL(&EventCursor::eventLogChanged));
+	connect(d->emitter, &EmitterAdapter::dataResetted,
+			this, PSIG_NULL(&EventCursor::eventLogChanged));
+}
 
 EventCursor::~EventCursor() = default;
 
@@ -83,7 +91,7 @@ EventCursor *EventCursor::load(const QByteArray &data, const QString &setupName,
 	quint64 index = 0;
 	bool skipObsolete = false;
 	QDataStream stream{data};
-	stream.setVersion(QDataStream::Qt_5_10);
+	stream.setVersion(QDataStream::Qt_5_10); //MAJOR update
 	stream >> index >> skipObsolete;
 
 	auto cursor = EventCursor::create(index, setupName, parent);
@@ -134,7 +142,7 @@ bool EventCursor::skipObsolete() const
 bool EventCursor::hasNext() const
 {
 	QSqlQuery eventQuery{d->database};
-	d->prepareNextQuery(eventQuery);
+	d->prepareNextQuery(eventQuery, false);
 	d->exec(eventQuery, d->index);
 	return eventQuery.first();
 }
@@ -142,7 +150,7 @@ bool EventCursor::hasNext() const
 bool EventCursor::next()
 {
 	QSqlQuery eventQuery{d->database};
-	d->prepareNextQuery(eventQuery);
+	d->prepareNextQuery(eventQuery, true);
 	if(eventQuery.first()) {
 		d->readQuery(eventQuery);
 		return true;
@@ -213,6 +221,29 @@ void EventCursor::setTimestamp(QDateTime timestamp)
 	emit timestampChanged(d->timestamp, {});
 }
 
+void EventCursor::scanLogImpl(QObject *scope, std::function<bool (const EventCursor *)> function, bool scanCurrent)
+{
+	if(scanCurrent && !function(this))
+		return;
+
+	auto handleNext = [this, fn{std::move(function)}]() {
+		while (next()) {
+			if(!fn(this))
+				return false;
+		}
+		return true;
+	};
+	if(!handleNext())
+		return;
+
+	auto cnPtr = QSharedPointer<QMetaObject::Connection>::create();
+	*cnPtr = connect(this, &EventCursor::eventLogChanged,
+					 scope, [cnPtr, handleNext](){
+		if(!handleNext() && *cnPtr)
+			QObject::disconnect(*cnPtr);
+	});
+}
+
 
 
 EventCursorException::EventCursorException(const Defaults &defaults, quint64 index, QString context, const QString &message) :
@@ -269,10 +300,11 @@ QException *EventCursorException::clone() const
 EventCursorPrivate::EventCursorPrivate(const QString &setupName, EventCursor *q_ptr) :
 	defaults{DefaultsPrivate::obtainDefaults(setupName)},
 	database{defaults.aquireDatabase(q_ptr)},
+	emitter{defaults.createEmitter(q_ptr)},
 	logger{defaults.createLogger("eventlogger", q_ptr)}
 {}
 
-void EventCursorPrivate::initDatabase(const Defaults &defaults, DatabaseRef &database, Logger *logger)
+void EventCursorPrivate::initDatabase(const Defaults &defaults, DatabaseRef &database, Logger *logger, bool createTriggers)
 {
 	if(!database->tables().contains(QStringLiteral("EventLog"))) {
 		QSqlQuery createQuery{database};
@@ -295,47 +327,49 @@ void EventCursorPrivate::initDatabase(const Defaults &defaults, DatabaseRef &dat
 		logDebug() << "Created EventLog table";
 	}
 
-	for(const auto &type : {std::make_pair(QStringLiteral("INSERT"), false),
-							std::make_pair(QStringLiteral("UPDATE"), true)}) {
-		QSqlQuery hasTriggersQuery{database};
-		hasTriggersQuery.prepare(QStringLiteral("SELECT 1 FROM sqlite_master "
-												 "WHERE type = ? AND name = ?"));
-		hasTriggersQuery.addBindValue(QStringLiteral("trigger"));
-		hasTriggersQuery.addBindValue(QStringLiteral("eventlog_%1").arg(type.first));
-		if(!hasTriggersQuery.exec()) {
-			throw EventCursorException {
-				defaults,
-				0,
-				hasTriggersQuery.executedQuery().simplified(),
-				hasTriggersQuery.lastError().text()
-			};
-		}
-
-		if(!hasTriggersQuery.first()) {
-			QSqlQuery createTriggerQuery{database};
-			auto query = QStringLiteral("CREATE TRIGGER IF NOT EXISTS eventlog_%1 "
-										"AFTER %1 "
-										"ON DataIndex "
-										"%2"
-										"BEGIN "
-										"	INSERT INTO EventLog "
-										"	(Type, Id, Version, Removed, Timestamp) "
-										"	VALUES(NEW.Type, NEW.Id, NEW.Version, NEW.File IS NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));"
-										"END;").arg(type.first);
-			if(type.second)
-				query = query.arg(QStringLiteral("WHEN NEW.Version != OLD.Version "));
-			else
-				query = query.arg(QString{});
-			createTriggerQuery.prepare(query);
-			if(!createTriggerQuery.exec()) {
+	if(createTriggers) {
+		for(const auto &type : {std::make_pair(QStringLiteral("INSERT"), false),
+								std::make_pair(QStringLiteral("UPDATE"), true)}) {
+			QSqlQuery hasTriggersQuery{database};
+			hasTriggersQuery.prepare(QStringLiteral("SELECT 1 FROM sqlite_master "
+													 "WHERE type = ? AND name = ?"));
+			hasTriggersQuery.addBindValue(QStringLiteral("trigger"));
+			hasTriggersQuery.addBindValue(QStringLiteral("eventlog_%1").arg(type.first));
+			if(!hasTriggersQuery.exec()) {
 				throw EventCursorException {
 					defaults,
 					0,
-					createTriggerQuery.executedQuery().simplified(),
-					createTriggerQuery.lastError().text()
+					hasTriggersQuery.executedQuery().simplified(),
+					hasTriggersQuery.lastError().text()
 				};
 			}
-			logDebug() << "Created eventlog trigger for" << type.first << "operation";
+
+			if(!hasTriggersQuery.first()) {
+				QSqlQuery createTriggerQuery{database};
+				auto query = QStringLiteral("CREATE TRIGGER IF NOT EXISTS eventlog_%1 "
+											"AFTER %1 "
+											"ON DataIndex "
+											"%2"
+											"BEGIN "
+											"	INSERT INTO EventLog "
+											"	(Type, Id, Version, Removed, Timestamp) "
+											"	VALUES(NEW.Type, NEW.Id, NEW.Version, NEW.File IS NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));"
+											"END;").arg(type.first);
+				if(type.second)
+					query = query.arg(QStringLiteral("WHEN NEW.Version != OLD.Version "));
+				else
+					query = query.arg(QString{});
+				createTriggerQuery.prepare(query);
+				if(!createTriggerQuery.exec()) {
+					throw EventCursorException {
+						defaults,
+						0,
+						createTriggerQuery.executedQuery().simplified(),
+						createTriggerQuery.lastError().text()
+					};
+				}
+				logDebug() << "Created eventlog trigger for" << type.first << "operation";
+			}
 		}
 	}
 }
@@ -375,18 +409,21 @@ void EventCursorPrivate::readQuery(const QSqlQuery &query)
 	timestamp = query.value(4).toDateTime().toLocalTime();
 }
 
-void EventCursorPrivate::prepareNextQuery(QSqlQuery &query) const
+void EventCursorPrivate::prepareNextQuery(QSqlQuery &query, bool withData) const
 {
-	auto statement = QStringLiteral("SELECT EventLog.SeqId, EventLog.Type, EventLog.Key, EventLog.Removed, EventLog.Timestamp "
-									"FROM EventLog ");
-	if(skipObsolete) {
-		statement += QStringLiteral("LEFT JOIN DataIndex "
-									"ON DataIndex.Type = EventLog.Type AND DataIndex.Id = EventLog.Id "
-									"WHERE SeqId > ? AND (EventLog.Version IS NULL OR EventLog.Version = DataIndex.Version) ");
-	} else
-		statement += QStringLiteral("WHERE SeqId > ? ");
-	statement += QStringLiteral("ORDER BY SeqId ASC "
-								"LIMIT 1");
-	query.prepare(statement);
+	query.prepare((withData ?
+					   QStringLiteral("SELECT EventLog.SeqId, EventLog.Type, EventLog.Key, EventLog.Removed, EventLog.Timestamp ") :
+					   QStringLiteral("SELECT EventLog.SeqId ")) +
+
+				  QStringLiteral("FROM EventLog ") +
+
+				  (skipObsolete ?
+					   QStringLiteral("LEFT JOIN DataIndex "
+									  "ON DataIndex.Type = EventLog.Type AND DataIndex.Id = EventLog.Id "
+									  "WHERE SeqId > ? AND (EventLog.Version IS NULL OR EventLog.Version = DataIndex.Version) ") :
+					   QStringLiteral("WHERE SeqId > ? ")) +
+
+				  QStringLiteral("ORDER BY SeqId ASC "
+								 "LIMIT 1"));
 	query.addBindValue(index);
 }

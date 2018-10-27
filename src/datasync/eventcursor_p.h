@@ -6,6 +6,7 @@
 #include "eventcursor.h"
 
 #include "defaults.h"
+#include "emitteradapter_p.h"
 
 namespace QtDataSync {
 
@@ -16,16 +17,17 @@ class EventCursorPrivate
 public:
 	EventCursorPrivate(const QString &setupName, EventCursor *q_ptr);
 
-	static void initDatabase(const Defaults &defaults, DatabaseRef &database, Logger *logger);
+	static void initDatabase(const Defaults &defaults, DatabaseRef &database, Logger *logger, bool createTriggers);
 	static void clearEventLog(const Defaults &defaults, DatabaseRef &database);
 
 private:
 	void exec(QSqlQuery &query, quint64 qIndex = 0) const;
 	void readQuery(const QSqlQuery &query);
-	void prepareNextQuery(QSqlQuery &query) const;
+	void prepareNextQuery(QSqlQuery &query, bool withData) const;
 
 	Defaults defaults;
 	DatabaseRef database;
+	EmitterAdapter *emitter;
 	Logger *logger;
 
 	quint64 index = 0;

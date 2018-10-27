@@ -7,6 +7,12 @@
 	(a->*(x))(args..., __VA_ARGS__); \
 }
 
+#define EXTEND_NULL(a, x, ...) [a]() { \
+	(a->*(x))(__VA_ARGS__); \
+}
+
 #define PSIG(x) EXTEND(this, x, QPrivateSignal{})
+
+#define PSIG_NULL(x) EXTEND_NULL(this, x, QPrivateSignal{})
 
 #endif // QTDATASYNC_SIGNAL_PRIVATE_CONNECT_P_H

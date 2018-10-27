@@ -1,6 +1,8 @@
 #ifndef QTDATASYNC_EVENTCURSOR_H
 #define QTDATASYNC_EVENTCURSOR_H
 
+#include <functional>
+
 #include <QtCore/qobject.h>
 #include <QtCore/qscopedpointer.h>
 
@@ -47,11 +49,20 @@ public:
 	bool hasNext() const;
 	bool next();
 
+	template <typename TFunc>
+	void autoScanLog(TFunc &&function, bool scanCurrent = true);
+	template <typename TFunc>
+	void autoScanLog(QObject *scope, TFunc &&function, bool scanCurrent = true);
+	template <typename TClass>
+	void autoScanLog(TClass *scope, bool(TClass::* function)(const EventCursor *), bool scanCurrent = true);
+
 public Q_SLOTS:
 	void setSkipObsolete(bool skipObsolete);
 	void clearEventLog(quint64 offset = 0);
 
 Q_SIGNALS:
+	void eventLogChanged(QPrivateSignal);
+
 	void indexChanged(quint64 index, QPrivateSignal);
 	void keyChanged(const QtDataSync::ObjectKey &key, QPrivateSignal);
 	void wasRemovedChanged(bool wasRemoved, QPrivateSignal);
@@ -68,6 +79,8 @@ private:
 	void setKey(QtDataSync::ObjectKey key);
 	void setWasRemoved(bool wasRemoved);
 	void setTimestamp(QDateTime timestamp);
+
+	void scanLogImpl(QObject *scope, std::function<bool(const EventCursor *)> function, bool scanCurrent);
 };
 
 class Q_DATASYNC_EXPORT EventCursorException : public Exception
@@ -95,6 +108,29 @@ protected:
 	//! @private
 	QString _context;
 };
+
+// ------------- GENERIC IMPLEMENTATION -------------
+
+template<typename TFunc>
+void EventCursor::autoScanLog(TFunc &&function, bool scanCurrent)
+{
+	scanLogImpl(this, std::forward<TFunc>(function), scanCurrent);
+}
+
+template<typename TFunc>
+void EventCursor::autoScanLog(QObject *scope, TFunc &&function, bool scanCurrent)
+{
+	scanLogImpl(scope, std::forward<TFunc>(function), scanCurrent);
+}
+
+template<typename TClass>
+void EventCursor::autoScanLog(TClass *scope, bool (TClass::*function)(const EventCursor *), bool scanCurrent)
+{
+	static_assert (std::is_base_of<QObject, TClass>::value, "TClass must extend QObject");
+	scanLogImpl(scope, [scope, function](const EventCursor *cursor) -> bool {
+		return (scope->*function)(cursor);
+	}, scanCurrent);
+}
 
 }
 

@@ -77,7 +77,7 @@ LocalStore::LocalStore(Defaults defaults, QObject *parent) :
 	}
 
 	try {
-		EventCursorPrivate::initDatabase(_defaults, _database, _logger);
+		EventCursorPrivate::initDatabase(_defaults, _database, _logger, true);
 	} catch(EventCursorException &e) {
 		throw LocalStoreException {
 			_defaults,
