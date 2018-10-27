@@ -187,6 +187,11 @@ qint32 Setup::cipherKeySize() const
 	return d->properties.value(Defaults::SymKeyParam).toInt();
 }
 
+Setup::EventMode Setup::eventLoggingMode() const
+{
+	return d->properties.value(Defaults::EventLoggingMode).value<EventMode>();
+}
+
 Setup &Setup::setLocalDir(QString localDir)
 {
 	d->localDir = std::move(localDir);
@@ -290,6 +295,12 @@ Setup &Setup::setCipherKeySize(qint32 cipherKeySize)
 	return *this;
 }
 
+Setup &Setup::setEventLoggingMode(Setup::EventMode eventLoggingMode)
+{
+	d->properties.insert(Defaults::EventLoggingMode, QVariant::fromValue(eventLoggingMode));
+	return *this;
+}
+
 Setup &Setup::resetLocalDir()
 {
 	d->localDir = SetupPrivate::DefaultLocalDir;
@@ -388,6 +399,11 @@ Setup &Setup::resetCipherKeySize()
 {
 	d->properties.remove(Defaults::SymKeyParam);
 	return *this;
+}
+
+Setup &Setup::resetEventLoggingMode()
+{
+	return setEventLoggingMode(EventMode::Unchanged);
 }
 
 Setup &Setup::setAccount(const QJsonObject &importData, bool keepData, bool allowFailure)
@@ -602,8 +618,9 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
 		{Defaults::SignScheme, Setup::ECDSA_ECP_SHA3_512},
 		{Defaults::CryptScheme, Setup::ECIES_ECP_SHA3_512},
-		{Defaults::SymScheme, Setup::AES_EAX}
-		}
+		{Defaults::SymScheme, Setup::AES_EAX},
+		{Defaults::EventLoggingMode, QVariant::fromValue(Setup::EventMode::Unchanged)}
+	}
 {}
 
 void SetupPrivate::deleteThread(EngineThread *thread)

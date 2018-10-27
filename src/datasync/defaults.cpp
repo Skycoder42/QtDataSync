@@ -416,7 +416,8 @@ DatabaseRefPrivate::DatabaseRefPrivate(QSharedPointer<DefaultsPrivate> defaultsP
 	_defaultsPrivate{std::move(defaultsPrivate)},
 	_object{object}
 {
-	object->installEventFilter(this);
+	if(_object)
+		_object->installEventFilter(this);
 }
 
 DatabaseRefPrivate::~DatabaseRefPrivate()

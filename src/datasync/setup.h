@@ -95,6 +95,7 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(CipherScheme cipherScheme READ cipherScheme WRITE setCipherScheme RESET resetCipherScheme)
 	//! The size in bytes for the secret exchange key (which is symmetric)
 	Q_PROPERTY(qint32 cipherKeySize READ cipherKeySize WRITE setCipherKeySize RESET resetCipherKeySize) //MAJOR make uint
+	Q_PROPERTY(EventMode eventLoggingMode READ eventLoggingMode WRITE setEventLoggingMode RESET resetEventLoggingMode)
 
 public:
 	//! Typedef of an error handler function. See Setup::fatalErrorHandler
@@ -164,6 +165,13 @@ public:
 	};
 	Q_ENUM(EllipticCurve)
 
+	enum class EventMode {
+		Unchanged,
+		Enabled,
+		Disabled
+	};
+	Q_ENUM(EventMode)
+
 	//! Sets the maximum timeout for shutting down setups
 	static void setCleanupTimeout(unsigned long timeout);
 	//! Stops the datasync instance and removes it
@@ -219,6 +227,7 @@ public:
 	CipherScheme cipherScheme() const;
 	//! @readAcFn{Setup::cipherKeySize}
 	qint32 cipherKeySize() const;
+	EventMode eventLoggingMode() const;
 
 	//! @writeAcFn{Setup::localDir}
 	Setup &setLocalDir(QString localDir);
@@ -254,6 +263,7 @@ public:
 	Setup &setCipherScheme(CipherScheme cipherScheme);
 	//! @writeAcFn{Setup::cipherKeySize}
 	Setup &setCipherKeySize(qint32 cipherKeySize);
+	Setup &setEventLoggingMode(EventMode eventLoggingMode);
 
 	//! @resetAcFn{Setup::localDir}
 	Setup &resetLocalDir();
@@ -289,6 +299,7 @@ public:
 	Setup &resetCipherScheme();
 	//! @resetAcFn{Setup::cipherKeySize}
 	Setup &resetCipherKeySize();
+	Setup &resetEventLoggingMode();
 
 	//! Sets an account to be imported on creation of the instance
 	Setup &setAccount(const QJsonObject &importData, bool keepData = false, bool allowFailure = false);

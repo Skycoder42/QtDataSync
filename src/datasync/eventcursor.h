@@ -27,6 +27,8 @@ class Q_DATASYNC_EXPORT EventCursor : public QObject
 public:
 	~EventCursor() override;
 
+	static bool isEventLogActive(const QString &setupName = DefaultSetup);
+
 	static EventCursor *first(QObject *parent = nullptr);
 	static EventCursor *first(const QString &setupName, QObject *parent = nullptr);
 	static EventCursor *last(QObject *parent = nullptr);

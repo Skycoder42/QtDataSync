@@ -49,7 +49,8 @@ int main(int argc, char *argv[])
 	setup.setLocalDir(QStringLiteral("./%1").arg(name))
 			.setRemoteConfiguration(QUrl(QStringLiteral("ws://localhost:4242")))
 			.setRemoteObjectHost(QStringLiteral("local:qtdssample_%1").arg(name)) //use local to enable passive setup
-			.setSignatureScheme(QtDataSync::Setup::ECDSA_ECP_SHA3_512);
+			.setSignatureScheme(QtDataSync::Setup::ECDSA_ECP_SHA3_512)
+			.setEventLoggingMode(QtDataSync::Setup::EventMode::Enabled);
 	try {
 		setup.create(name);
 	} catch(QtDataSync::SetupLockedException &e) {

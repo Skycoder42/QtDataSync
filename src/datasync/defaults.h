@@ -74,7 +74,8 @@ public:
 		CryptScheme, //!< @copybrief Setup::encryptionScheme
 		CryptKeyParam, //!< @copybrief Setup::encryptionKeyParam
 		SymScheme, //!< @copybrief Setup::cipherScheme
-		SymKeyParam //!< @copybrief Setup::cipherKeySize
+		SymKeyParam, //!< @copybrief Setup::cipherKeySize,
+		EventLoggingMode
 	};
 	Q_ENUM(PropertyKey)
 

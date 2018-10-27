@@ -17,6 +17,7 @@ class EventCursorPrivate
 public:
 	EventCursorPrivate(const QString &setupName, EventCursor *q_ptr);
 
+	static bool isLogActive(const Defaults &defaults, DatabaseRef &database);
 	static void initDatabase(const Defaults &defaults, DatabaseRef &database, Logger *logger, bool createTriggers);
 	static void clearEventLog(const Defaults &defaults, DatabaseRef &database);
 
