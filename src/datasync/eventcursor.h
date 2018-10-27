@@ -5,6 +5,8 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qscopedpointer.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qbytearray.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/objectkey.h"
