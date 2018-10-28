@@ -1,5 +1,5 @@
 import QtQuick 2.5
-import de.skycoder42.QtDataSync 4.1
+import de.skycoder42.QtDataSync 4.2
 import QtTest 1.1
 
 Item {

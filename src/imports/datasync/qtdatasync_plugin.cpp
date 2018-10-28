@@ -30,7 +30,11 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 	//Version 4.1
 	qmlRegisterModule(uri, 4, 1);
 
+	//Version 4.2
+	qmlRegisterModule(uri, 4, 2);
+	//TODO add qml event cursor
+
 	// Check to make shure no module update is forgotten
-	static_assert(VERSION_MAJOR == 4 && VERSION_MINOR == 1, "QML module version needs to be updated");
+	static_assert(VERSION_MAJOR == 4 && VERSION_MINOR == 2, "QML module version needs to be updated");
 
 }
