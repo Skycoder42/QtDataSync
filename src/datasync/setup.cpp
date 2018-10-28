@@ -18,6 +18,12 @@ Q_LOGGING_CATEGORY(qdssetup, "qtdatasync.setup", QtInfoMsg)
 
 using namespace QtDataSync;
 
+bool Setup::exists(const QString &name)
+{
+	QMutexLocker _(&SetupPrivate::setupMutex);
+	return SetupPrivate::engines.contains(name);
+}
+
 void Setup::setCleanupTimeout(unsigned long timeout)
 {
 	SetupPrivate::timeout = timeout;

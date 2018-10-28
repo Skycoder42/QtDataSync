@@ -172,6 +172,7 @@ public:
 	};
 	Q_ENUM(EventMode)
 
+	static bool exists(const QString &name = DefaultSetup);
 	//! Sets the maximum timeout for shutting down setups
 	static void setCleanupTimeout(unsigned long timeout);
 	//! Stops the datasync instance and removes it
