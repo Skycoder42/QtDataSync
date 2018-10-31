@@ -84,9 +84,10 @@ int AndroidBackgroundService::onStartCommand(const QAndroidIntent &intent, int f
 
 	if(intent.handle().isValid()) {
 		const auto action = intent.handle().callObjectMethod("getAction", "()Ljava/lang/String;").toString();
-		if(action == BackgroundSyncAction)
+		if(action == BackgroundSyncAction) {
 			QMetaObject::invokeMethod(this, "startBackgroundSync", Qt::QueuedConnection,
 									  Q_ARG(int, startId));
+		}
 	}
 
 	return START_REDELIVER_INTENT;
