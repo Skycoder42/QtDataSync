@@ -4,18 +4,17 @@
 #include "androidsynccontrol.h"
 
 #include <QtAndroidExtras/QAndroidJniObject>
+#include <QtAndroidExtras/QAndroidIntent>
 
 namespace QtDataSync {
 
-class AndroidSyncControlData : public QSharedData
+class AndroidSyncControlPrivate
 {
 public:
-	AndroidSyncControlData();
-	AndroidSyncControlData(const AndroidSyncControlData &other);
+	QString serviceId {QStringLiteral("de.skycoder42.qtservice.AndroidService")};
+	std::chrono::minutes delay{60};
 
-	QString serviceId;
-	std::chrono::minutes delay;
-
+	QAndroidIntent createIntent() const;
 	QAndroidJniObject createPendingIntent(bool allowCreate) const;
 };
 

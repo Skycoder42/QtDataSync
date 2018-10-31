@@ -23,6 +23,8 @@ class Q_DATASYNCANDROID_EXPORT AndroidBackgroundService : public QtService::Serv
 
 public:
 	static const QString BackgroundSyncAction;
+	static const QString RegisterSyncAction;
+	static const int ForegroundNotificationId;
 
 	AndroidBackgroundService(int &argc, char **argv, int = QCoreApplication::ApplicationFlags);
 	~AndroidBackgroundService() override;
@@ -46,10 +48,12 @@ protected:
 	void exitAfterSync();
 
 	virtual int onStartCommand(const QAndroidIntent &intent, int flags, int startId);
-	virtual void stopSelf(int startId);
+	virtual QAndroidJniObject createForegroundNotification() = 0;
+	virtual bool stopSelf(int startId);
 
 private Q_SLOTS:
 	void startBackgroundSync(int startId);
+	void registerSync(int startId, qint64 delay);
 	void backendReady();
 
 private:

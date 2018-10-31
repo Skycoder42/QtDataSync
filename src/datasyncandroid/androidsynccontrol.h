@@ -4,51 +4,51 @@
 #include <chrono>
 
 #include <QtCore/qobject.h>
-#include <QtCore/qshareddata.h>
+#include <QtCore/qscopedpointer.h>
 
 #include "QtDataSyncAndroid/qtdatasyncandroid_global.h"
 
 namespace QtDataSync {
 
-class AndroidSyncControlData;
-class Q_DATASYNCANDROID_EXPORT AndroidSyncControl
+class AndroidSyncControlPrivate;
+class Q_DATASYNCANDROID_EXPORT AndroidSyncControl : public QObject
 {
-	Q_GADGET
+	Q_OBJECT
 
-	Q_PROPERTY(QString serviceId READ serviceId WRITE setServiceId)
-	Q_PROPERTY(qint64 delay READ delay WRITE setDelay)
+	Q_PROPERTY(QString serviceId READ serviceId WRITE setServiceId NOTIFY serviceIdChanged)
+	Q_PROPERTY(qint64 delay READ delay WRITE setDelay NOTIFY delayChanged)
 
 	Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled)
 
 public:
-	AndroidSyncControl();
-	AndroidSyncControl(const AndroidSyncControl &other);
-	AndroidSyncControl(AndroidSyncControl &&other) noexcept;
-	AndroidSyncControl& operator=(const AndroidSyncControl &other);
-	AndroidSyncControl& operator=(AndroidSyncControl &&other) noexcept;
-	~AndroidSyncControl();
+	AndroidSyncControl(QObject *parent = nullptr);
+	AndroidSyncControl(QString serviceId, QObject *parent = nullptr);
+	~AndroidSyncControl() override;
 
 	bool isValid() const;
-	explicit operator bool() const;
-	bool operator!() const;
-
-	bool operator==(const AndroidSyncControl &other) const;
-	bool operator!=(const AndroidSyncControl &other) const;
 
 	QString serviceId() const;
 	qint64 delay() const;
 	std::chrono::minutes delayMinutes() const;
 	bool isEnabled() const;
 
-	void setServiceId(QString serviceId);
-	void setDelay(qint64 delay);
-	void setDelay(std::chrono::minutes delay);
 	template <typename TRep, typename TPeriod>
 	void setDelay(const std::chrono::duration<TRep, TPeriod> &delay);
+	void setDelay(std::chrono::minutes delay);
+
+public Q_SLOTS:
+	void setServiceId(QString serviceId);
+	void setDelay(qint64 delay);
 	void setEnabled(bool enabled);
 
+	bool triggerSyncNow();
+
+Q_SIGNALS:
+	void serviceIdChanged(const QString &serviceId, QPrivateSignal);
+	void delayChanged(qint64 delay, QPrivateSignal);
+
 private:
-	QSharedDataPointer<AndroidSyncControlData> d;
+	QScopedPointer<AndroidSyncControlPrivate> d;
 };
 
 template<typename TRep, typename TPeriod>
@@ -58,7 +58,5 @@ void AndroidSyncControl::setDelay(const std::chrono::duration<TRep, TPeriod> &de
 }
 
 }
-
-Q_DECLARE_METATYPE(QtDataSync::AndroidSyncControl)
 
 #endif // QTDATASYNC_ANDROIDSYNCCONTROL_H

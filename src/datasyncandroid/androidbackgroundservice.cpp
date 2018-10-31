@@ -1,5 +1,6 @@
 #include "androidbackgroundservice.h"
 #include "androidbackgroundservice_p.h"
+#include "androidsynccontrol.h"
 
 #include <QtRemoteObjects/QRemoteObjectReplica>
 #include <QtAndroidExtras/QAndroidJniObject>
@@ -10,6 +11,8 @@ using namespace QtDataSync;
 Q_DECLARE_METATYPE(QAndroidIntent)
 
 const QString AndroidBackgroundService::BackgroundSyncAction{QStringLiteral("de.skycoder42.qtdatasync.android.backgroundsync")};
+const QString AndroidBackgroundService::RegisterSyncAction{QStringLiteral("de.skycoder42.qtdatasync.android.registersync")};
+const int AndroidBackgroundService::ForegroundNotificationId = 0x2f933457;
 
 AndroidBackgroundService::AndroidBackgroundService(int &argc, char **argv, int flags) :
 	Service{argc, argv, flags},
@@ -82,9 +85,24 @@ int AndroidBackgroundService::onStartCommand(const QAndroidIntent &intent, int f
 	QAndroidJniExceptionCleaner cleaner;
 	static const auto START_REDELIVER_INTENT = QAndroidJniObject::getStaticField<jint>("android/app/Service", "START_REDELIVER_INTENT");
 
+	auto notification = createForegroundNotification();
+	if(notification.isValid()) {
+		QtAndroid::androidService().callMethod<void>("startForeground", "(ILandroid/app/Notification;)V",
+													 static_cast<jint>(ForegroundNotificationId),
+													 notification.object());
+	} else
+		qCritical() << "Foreground notification could not be created - Service will get an ANR and be killed in a few seconds!";
+
 	if(intent.handle().isValid()) {
 		const auto action = intent.handle().callObjectMethod("getAction", "()Ljava/lang/String;").toString();
-		if(action == BackgroundSyncAction) {
+		if(action == RegisterSyncAction) {
+			const auto delay = intent.handle().callMethod<jlong>("getLongExtra", "(Ljava/lang/String;J)J",
+																 QAndroidJniObject::fromString(QStringLiteral("de.skycoder42.qtdatasync.android.key.delay")).object(),
+																 static_cast<jlong>(60));
+			QMetaObject::invokeMethod(this, "registerSync", Qt::QueuedConnection,
+									  Q_ARG(int, startId),
+									  Q_ARG(qint64, delay));
+		} else if(action == BackgroundSyncAction) {
 			QMetaObject::invokeMethod(this, "startBackgroundSync", Qt::QueuedConnection,
 									  Q_ARG(int, startId));
 		}
@@ -93,11 +111,16 @@ int AndroidBackgroundService::onStartCommand(const QAndroidIntent &intent, int f
 	return START_REDELIVER_INTENT;
 }
 
-void AndroidBackgroundService::stopSelf(int startId)
+bool AndroidBackgroundService::stopSelf(int startId)
 {
 	QAndroidJniExceptionCleaner cleaner;
-	QtAndroid::androidService().callMethod<jboolean>("stopSelfResult", "(I)Z",
-													 static_cast<jint>(startId));
+	auto stopped = QtAndroid::androidService().callMethod<jboolean>("stopSelfResult", "(I)Z",
+																	static_cast<jint>(startId));
+	if(stopped) {
+		QtAndroid::androidService().callMethod<void>("stopForeground", "(Z)V",
+													 static_cast<jboolean>(true));
+	}
+	return stopped;
 }
 
 void AndroidBackgroundService::startBackgroundSync(int startId)
@@ -133,6 +156,23 @@ void AndroidBackgroundService::startBackgroundSync(int startId)
 		d->startId = -1;
 		stopSelf(startId);
 	}
+}
+
+void AndroidBackgroundService::registerSync(int startId, qint64 delay)
+{
+	AndroidSyncControl syncControl;
+	syncControl.setServiceId(QtAndroid::androidService()
+							 .callObjectMethod("getClass", "()Ljava/lang/Class;")
+							 .callObjectMethod("getName", "()Ljava/lang/String;")
+							 .toString());
+	syncControl.setDelay(delay);
+	syncControl.setEnabled(true);
+	if(!syncControl.isEnabled()) {
+		qWarning() << "Failed to register service" << syncControl.serviceId()
+				   << "for background synchronization!";
+	}
+
+	startBackgroundSync(startId);
 }
 
 void AndroidBackgroundService::backendReady()
