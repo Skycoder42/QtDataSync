@@ -6,6 +6,7 @@
 #include <QtAndroidExtras/QtAndroid>
 #include <QtAndroidExtras/QAndroidJniEnvironment>
 using namespace QtDataSync;
+using namespace std::chrono;
 
 AndroidSyncControl::AndroidSyncControl() :
 	d{new AndroidSyncControlData{}}
@@ -57,6 +58,11 @@ QString AndroidSyncControl::serviceId() const
 
 qint64 AndroidSyncControl::delay() const
 {
+	return d->delay.count();
+}
+
+std::chrono::minutes AndroidSyncControl::delayMinutes() const
+{
 	return d->delay;
 }
 
@@ -71,6 +77,11 @@ void AndroidSyncControl::setServiceId(QString serviceId)
 }
 
 void AndroidSyncControl::setDelay(qint64 delay)
+{
+	d->delay = minutes{delay};
+}
+
+void AndroidSyncControl::setDelay(std::chrono::minutes delay)
 {
 	d->delay = delay;
 }
@@ -96,10 +107,11 @@ void AndroidSyncControl::setEnabled(bool enabled)
 																	 ALARM_SERVICE.object());
 	if(alarmManager.isValid()) {
 		if(enabled) {
+			auto delta = duration_cast<milliseconds>(d->delay).count();
 			alarmManager.callMethod<void>("setInexactRepeating", "(IJJLandroid/app/PendingIntent;)V",
 										  RTC_WAKEUP,
-										  static_cast<jlong>(QDateTime::currentDateTime().addSecs(d->delay).toMSecsSinceEpoch()),
-										  static_cast<jlong>(d->delay),
+										  static_cast<jlong>(QDateTime::currentDateTime().addMSecs(delta).toMSecsSinceEpoch()),
+										  static_cast<jlong>(delta),
 										  pendingIntent.object());
 		} else {
 			alarmManager.callMethod<void>("cancel", "(Landroid/app/PendingIntent;)V",

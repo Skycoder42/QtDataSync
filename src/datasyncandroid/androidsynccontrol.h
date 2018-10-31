@@ -1,6 +1,8 @@
 #ifndef QTDATASYNC_ANDROIDSYNCCONTROL_H
 #define QTDATASYNC_ANDROIDSYNCCONTROL_H
 
+#include <chrono>
+
 #include <QtCore/qobject.h>
 #include <QtCore/qshareddata.h>
 
@@ -35,15 +37,25 @@ public:
 
 	QString serviceId() const;
 	qint64 delay() const;
+	std::chrono::minutes delayMinutes() const;
 	bool isEnabled() const;
 
 	void setServiceId(QString serviceId);
 	void setDelay(qint64 delay);
+	void setDelay(std::chrono::minutes delay);
+	template <typename TRep, typename TPeriod>
+	void setDelay(const std::chrono::duration<TRep, TPeriod> &delay);
 	void setEnabled(bool enabled);
 
 private:
 	QSharedDataPointer<AndroidSyncControlData> d;
 };
+
+template<typename TRep, typename TPeriod>
+void AndroidSyncControl::setDelay(const std::chrono::duration<TRep, TPeriod> &delay)
+{
+	setDelay(std::chrono::duration_cast<std::chrono::minutes>(delay));
+}
 
 }
 

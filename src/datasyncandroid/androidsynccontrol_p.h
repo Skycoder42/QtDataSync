@@ -14,7 +14,7 @@ public:
 	AndroidSyncControlData(const AndroidSyncControlData &other);
 
 	QString serviceId;
-	qint64 delay;
+	std::chrono::minutes delay;
 
 	QAndroidJniObject createPendingIntent(bool allowCreate) const;
 };
