@@ -2,6 +2,10 @@
 
 #include <QtQml>
 
+#ifdef Q_OS_ANDROID
+#include <QtDataSyncAndroid/AndroidSyncControl>
+#endif
+
 #include "qqmldatastore.h"
 #include "qqmldatastoremodel.h"
 #include "qqmlsyncmanager.h"
@@ -31,7 +35,11 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 	qmlRegisterModule(uri, 4, 1);
 
 	//Version 4.2
+#ifdef Q_OS_ANDROID
+	qmlRegisterType<QtDataSync::AndroidSyncControl>(uri, 4, 2, "AndroidSyncControl");
+#else
 	qmlRegisterModule(uri, 4, 2);
+#endif
 	//TODO add qml event cursor
 
 	// Check to make shure no module update is forgotten

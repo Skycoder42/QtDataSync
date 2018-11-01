@@ -1,4 +1,5 @@
 QT = core datasync qml
+android: QT += datasyncandroid
 
 CXX_MODULE = datasync
 TARGETPATH = de/skycoder42/QtDataSync

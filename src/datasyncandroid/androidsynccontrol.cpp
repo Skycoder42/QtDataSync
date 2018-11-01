@@ -104,6 +104,7 @@ void AndroidSyncControl::setEnabled(bool enabled)
 		} else {
 			alarmManager.callMethod<void>("cancel", "(Landroid/app/PendingIntent;)V",
 										  pendingIntent.object());
+			pendingIntent.callMethod<void>("cancel");
 			QAndroidJniObject::callStaticMethod<void>("de/skycoder42/qtdatasync/SyncBootReceiver",
 													  "clearRegistration",
 													  "(Landroid/content/Context;)V",
