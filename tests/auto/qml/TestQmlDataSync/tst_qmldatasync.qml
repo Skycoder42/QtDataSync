@@ -38,6 +38,8 @@ Item {
 			manager: accountManager
 		}
 
+		property EventCursor cursor: null
+
 		function test_valid() {
 			verify(store.valid);
 			verify(storeModel1.valid);
@@ -46,6 +48,10 @@ Item {
 			verify(accountManager.valid);
 			verify(exchangeManager1.valid);
 			verify(exchangeManager2.valid);
+
+			cursor = EventLog.first();
+			expectFail("", "No cursor until data was changed");
+			verify(cursor.valid);
 		}
 	}
 

@@ -12,11 +12,6 @@ DEPLOYMENT += importFiles
 DISTFILES += \
 	tst_qmldatasync.qml
 
-QML_IMPORT_PATH = $$OUT_PWD/../../../../qml/
-
 DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_/\\\"
-
-DEFINES += KEYSTORE_PATH=\\\"$$OUT_PWD/../../../../plugins/keystores/\\\"
-DEFINES += QML_PATH=\\\"$$QML_IMPORT_PATH\\\"
 
 include($$PWD/../../testrun.pri)

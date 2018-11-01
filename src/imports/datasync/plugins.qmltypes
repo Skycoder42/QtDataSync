@@ -158,6 +158,53 @@ Module {
         Property { name: "fingerprint"; type: "QByteArray" }
     }
     Component {
+        name: "QtDataSync::EventCursor"
+        prototype: "QObject"
+        exports: ["de.skycoder42.QtDataSync/EventCursor 4.2"]
+        isCreatable: false
+        exportMetaObjectRevisions: [0]
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+        Property { name: "index"; type: "qulonglong" }
+        Property { name: "key"; type: "QtDataSync::ObjectKey" }
+        Property { name: "wasRemoved"; type: "bool" }
+        Property { name: "timestamp"; type: "QDateTime" }
+        Property { name: "skipObsolete"; type: "bool" }
+        Signal { name: "eventLogChanged" }
+        Signal {
+            name: "indexChanged"
+            Parameter { name: "index"; type: "qulonglong" }
+        }
+        Signal {
+            name: "keyChanged"
+            Parameter { name: "key"; type: "QtDataSync::ObjectKey" }
+        }
+        Signal {
+            name: "wasRemovedChanged"
+            Parameter { name: "wasRemoved"; type: "bool" }
+        }
+        Signal {
+            name: "timestampChanged"
+            Parameter { name: "timestamp"; type: "QDateTime" }
+        }
+        Signal {
+            name: "skipObsoleteChanged"
+            Parameter { name: "skipObsolete"; type: "bool" }
+        }
+        Method {
+            name: "setSkipObsolete"
+            Parameter { name: "skipObsolete"; type: "bool" }
+        }
+        Method {
+            name: "clearEventLog"
+            Parameter { name: "offset"; type: "qulonglong" }
+        }
+        Method { name: "clearEventLog" }
+        Method { name: "save"; type: "QByteArray" }
+        Method { name: "hasNext"; type: "bool" }
+        Method { name: "next"; type: "bool" }
+        Method { name: "autoScanLog" }
+    }
+    Component {
         name: "QtDataSync::LoginRequest"
         exports: ["de.skycoder42.QtDataSync/LoginRequest 4.0"]
         isCreatable: false
@@ -359,6 +406,96 @@ Module {
         Method {
             name: "setTypeName"
             Parameter { name: "typeName"; type: "string" }
+        }
+    }
+    Component {
+        name: "QtDataSync::QQmlEventCursor"
+        prototype: "QObject"
+        exports: ["de.skycoder42.QtDataSync/EventLog 4.2"]
+        isCreatable: false
+        isSingleton: true
+        exportMetaObjectRevisions: [0]
+        Method {
+            name: "first"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method { name: "first"; type: "QtDataSync::EventCursor*" }
+        Method {
+            name: "first"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "setupName"; type: "string" }
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method {
+            name: "first"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Method {
+            name: "last"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method { name: "last"; type: "QtDataSync::EventCursor*" }
+        Method {
+            name: "last"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "setupName"; type: "string" }
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method {
+            name: "last"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Method {
+            name: "create"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "index"; type: "qulonglong" }
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method {
+            name: "create"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "index"; type: "qulonglong" }
+        }
+        Method {
+            name: "create"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "index"; type: "qulonglong" }
+            Parameter { name: "setupName"; type: "string" }
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method {
+            name: "create"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "index"; type: "qulonglong" }
+            Parameter { name: "setupName"; type: "string" }
+        }
+        Method {
+            name: "load"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "data"; type: "QByteArray" }
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method {
+            name: "load"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "data"; type: "QByteArray" }
+        }
+        Method {
+            name: "load"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "data"; type: "QByteArray" }
+            Parameter { name: "setupName"; type: "string" }
+            Parameter { name: "parent"; type: "QObject"; isPointer: true }
+        }
+        Method {
+            name: "load"
+            type: "QtDataSync::EventCursor*"
+            Parameter { name: "data"; type: "QByteArray" }
+            Parameter { name: "setupName"; type: "string" }
         }
     }
     Component {

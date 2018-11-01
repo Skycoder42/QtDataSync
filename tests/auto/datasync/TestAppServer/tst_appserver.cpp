@@ -93,7 +93,7 @@ private Q_SLOTS:
 	void testStop();
 
 private:
-	QProcess *server;
+	QProcess *server; //TODO replace with debug ServiceControl
 
 	MockClient *client;
 	QString devName;

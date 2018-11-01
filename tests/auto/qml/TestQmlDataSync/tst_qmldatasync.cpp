@@ -8,9 +8,6 @@ static QTemporaryDir tDir;
 
 static void initImportPath()
 {
-	qputenv("PLUGIN_KEYSTORES_PATH", KEYSTORE_PATH);
-	qputenv("QML2_IMPORT_PATH", QML_PATH);
-
 #ifdef VERBOSE_TESTS
 	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));
 #endif
@@ -23,6 +20,7 @@ static void initImportPath()
 			.setSignatureKeyParam(2048)
 			.setEncryptionScheme(Setup::RSA_OAEP_SHA3_512)
 			.setEncryptionKeyParam(2048)
+			.setEventLoggingMode(Setup::EventMode::Enabled)
 			.create();
 }
 Q_COREAPP_STARTUP_FUNCTION(initImportPath)

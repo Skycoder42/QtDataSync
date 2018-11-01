@@ -19,6 +19,8 @@ class Q_DATASYNC_EXPORT EventCursor : public QObject
 {
 	Q_OBJECT
 
+	Q_PROPERTY(bool valid READ isValid CONSTANT)
+
 	Q_PROPERTY(quint64 index READ index WRITE setIndex NOTIFY indexChanged USER true)
 	Q_PROPERTY(QtDataSync::ObjectKey key READ key WRITE setKey NOTIFY keyChanged STORED false)
 	Q_PROPERTY(bool wasRemoved READ wasRemoved WRITE setWasRemoved NOTIFY wasRemovedChanged STORED false)
@@ -39,7 +41,7 @@ public:
 	static EventCursor *create(quint64 index, const QString &setupName, QObject *parent = nullptr);
 	static EventCursor *load(const QByteArray &data, QObject *parent = nullptr);
 	static EventCursor *load(const QByteArray &data, const QString &setupName, QObject *parent = nullptr);
-	QByteArray save() const;
+	Q_INVOKABLE QByteArray save() const;
 
 	bool isValid() const;
 
@@ -50,10 +52,10 @@ public:
 
 	bool skipObsolete() const;
 
-	bool hasNext() const;
-	bool next();
+	Q_INVOKABLE bool hasNext() const;
+	Q_INVOKABLE bool next();
 
-	void autoScanLog();
+	Q_INVOKABLE void autoScanLog();
 	template <typename TFunc>
 	void autoScanLog(TFunc &&function, bool scanCurrent = true);
 	template <typename TFunc>

@@ -11,6 +11,16 @@
 #include "qqmlsyncmanager.h"
 #include "qqmlaccountmanager.h"
 #include "qqmluserexchangemanager.h"
+#include "qqmleventcursor.h"
+
+namespace {
+
+QObject *createEventLogInstance(QQmlEngine *qmlEngine, QJSEngine *)
+{
+	return new QtDataSync::QQmlEventCursor{qmlEngine};
+}
+
+}
 
 QtDataSyncDeclarativeModule::QtDataSyncDeclarativeModule(QObject *parent) :
 	QQmlExtensionPlugin(parent)
@@ -35,12 +45,11 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 	qmlRegisterModule(uri, 4, 1);
 
 	//Version 4.2
+	qmlRegisterUncreatableType<QtDataSync::EventCursor>(uri, 4, 2, "EventCursor", QStringLiteral("Use the EventLog singleton to create EventCursors"));
+	qmlRegisterSingletonType<QtDataSync::QQmlEventCursor>(uri, 4, 2, "EventLog", createEventLogInstance);
 #ifdef Q_OS_ANDROID
 	qmlRegisterType<QtDataSync::AndroidSyncControl>(uri, 4, 2, "AndroidSyncControl");
-#else
-	qmlRegisterModule(uri, 4, 2);
 #endif
-	//TODO add qml event cursor
 
 	// Check to make shure no module update is forgotten
 	static_assert(VERSION_MAJOR == 4 && VERSION_MINOR == 2, "QML module version needs to be updated");

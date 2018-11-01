@@ -14,7 +14,8 @@ HEADERS +=  \
 	qqmlaccountmanager.h \
 	qqmldatastoremodel.h \
 	qqmluserexchangemanager.h \
-	qtdatasync_plugin.h
+	qtdatasync_plugin.h \
+    qqmleventcursor.h
 
 SOURCES +=  \
 	qqmldatastore.cpp \
@@ -22,7 +23,8 @@ SOURCES +=  \
 	qqmlaccountmanager.cpp \
 	qqmldatastoremodel.cpp \
 	qqmluserexchangemanager.cpp \
-	qtdatasync_plugin.cpp
+	qtdatasync_plugin.cpp \
+    qqmleventcursor.cpp
 
 OTHER_FILES += qmldir
 
