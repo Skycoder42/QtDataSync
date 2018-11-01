@@ -15,6 +15,7 @@ datasyncandroid.depends += datasync java
 
 imports.CONFIG += no_lrelease_target
 plugins.CONFIG += no_lrelease_target
+datasyncandroid.CONFIG += no_lrelease_target
 java.CONFIG += no_lrelease_target
 
 prepareRecursiveTarget(lrelease)

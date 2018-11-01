@@ -10,8 +10,8 @@ using namespace QtDataSync;
 
 Q_DECLARE_METATYPE(QAndroidIntent)
 
-const QString AndroidBackgroundService::BackgroundSyncAction{QStringLiteral("de.skycoder42.qtdatasync.android.backgroundsync")};
-const QString AndroidBackgroundService::RegisterSyncAction{QStringLiteral("de.skycoder42.qtdatasync.android.registersync")};
+const QString AndroidBackgroundService::BackgroundSyncAction{QStringLiteral("de.skycoder42.qtdatasync.backgroundsync")};
+const QString AndroidBackgroundService::RegisterSyncAction{QStringLiteral("de.skycoder42.qtdatasync.registersync")};
 const int AndroidBackgroundService::ForegroundNotificationId = 0x2f933457;
 
 AndroidBackgroundService::AndroidBackgroundService(int &argc, char **argv, int flags) :
@@ -97,7 +97,7 @@ int AndroidBackgroundService::onStartCommand(const QAndroidIntent &intent, int f
 		const auto action = intent.handle().callObjectMethod("getAction", "()Ljava/lang/String;").toString();
 		if(action == RegisterSyncAction) {
 			const auto delay = intent.handle().callMethod<jlong>("getLongExtra", "(Ljava/lang/String;J)J",
-																 QAndroidJniObject::fromString(QStringLiteral("de.skycoder42.qtdatasync.android.key.delay")).object(),
+																 QAndroidJniObject::fromString(QStringLiteral("de.skycoder42.qtdatasync.SyncBootReceiver.key.delay")).object(),
 																 static_cast<jlong>(60));
 			QMetaObject::invokeMethod(this, "registerSync", Qt::QueuedConnection,
 									  Q_ARG(int, startId),

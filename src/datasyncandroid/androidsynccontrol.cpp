@@ -95,7 +95,7 @@ void AndroidSyncControl::setEnabled(bool enabled)
 										  static_cast<jlong>(QDateTime::currentDateTime().addMSecs(delta).toMSecsSinceEpoch()),
 										  static_cast<jlong>(delta),
 										  pendingIntent.object());
-			QAndroidJniObject::callStaticMethod<void>("de/skycoder42/qtdatasync/android/SyncBootReceiver",
+			QAndroidJniObject::callStaticMethod<void>("de/skycoder42/qtdatasync/SyncBootReceiver",
 													  "prepareRegistration",
 													  "(Landroid/content/Context;Ljava/lang/String;J)V",
 													  QtAndroid::androidContext().object(),
@@ -104,7 +104,7 @@ void AndroidSyncControl::setEnabled(bool enabled)
 		} else {
 			alarmManager.callMethod<void>("cancel", "(Landroid/app/PendingIntent;)V",
 										  pendingIntent.object());
-			QAndroidJniObject::callStaticMethod<void>("de/skycoder42/qtdatasync/android/SyncBootReceiver",
+			QAndroidJniObject::callStaticMethod<void>("de/skycoder42/qtdatasync/SyncBootReceiver",
 													  "clearRegistration",
 													  "(Landroid/content/Context;)V",
 													  QtAndroid::androidContext().object());
