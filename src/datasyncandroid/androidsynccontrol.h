@@ -14,6 +14,8 @@ class AndroidSyncControlPrivate;
 class Q_DATASYNCANDROID_EXPORT AndroidSyncControl : public QObject
 {
 	Q_OBJECT
+	
+	Q_PROPERTY(bool valid READ isValid CONSTANT)
 
 	Q_PROPERTY(QString serviceId READ serviceId WRITE setServiceId NOTIFY serviceIdChanged)
 	Q_PROPERTY(qint64 delay READ delay WRITE setDelay NOTIFY delayChanged)
@@ -21,7 +23,7 @@ class Q_DATASYNCANDROID_EXPORT AndroidSyncControl : public QObject
 	Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled)
 
 public:
-	AndroidSyncControl(QObject *parent = nullptr);
+	explicit AndroidSyncControl(QObject *parent = nullptr);
 	AndroidSyncControl(QString serviceId, QObject *parent = nullptr);
 	~AndroidSyncControl() override;
 

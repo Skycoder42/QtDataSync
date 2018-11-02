@@ -5,3 +5,4 @@ SUBDIRS += \
 	Sample
 
 android: SUBDIRS += AndroidSync
+ios: SUBDIRS += IosSync

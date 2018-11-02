@@ -1,12 +1,15 @@
 TEMPLATE = app
 
 QT += quick datasync datasyncandroid
-CONFIG += c++11
+CONFIG += c++14
 
 TARGET = AndroidSync
 
+HEADERS += \
+	syncservice.h
+
 SOURCES += \
-		main.cpp \
+	main.cpp \
 	syncservice.cpp
 
 RESOURCES += qml.qrc
@@ -21,6 +24,3 @@ DISTFILES += \
 	android/build.gradle
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
-
-HEADERS += \
-	syncservice.h

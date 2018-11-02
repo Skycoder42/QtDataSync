@@ -24,5 +24,14 @@ android {
 	java.CONFIG += no_lrelease_target
 }
 
+ios {
+	SUBDIRS += datasyncios
+
+	datasyncios.depends += datasync
+	imports.depends += datasyncios
+
+	datasyncios.CONFIG += no_lrelease_target
+}
+
 prepareRecursiveTarget(lrelease)
 QMAKE_EXTRA_TARGETS += lrelease run-tests
