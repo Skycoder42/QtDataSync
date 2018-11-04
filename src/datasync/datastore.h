@@ -47,6 +47,10 @@ public:
 	QStringList keys(int metaTypeId) const;
 	//! @copybrief DataStore::loadAll() const
 	QVariantList loadAll(int metaTypeId) const;
+	bool contains(int metaTypeId, const QString &key) const;
+	inline bool contains(int metaTypeId, const QVariant &key) const {
+		return contains(metaTypeId, key.toString());
+	}
 	//! @copybrief DataStore::load(const QString &) const
 	QVariant load(int metaTypeId, const QString &key) const;
 	//! @copybrief DataStore::load(int, const QString &) const
@@ -88,6 +92,10 @@ public:
 	template<typename T>
 	QList<T> loadAll() const;
 	//! Loads the dataset with the given key for the given type
+	template<typename T>
+	bool contains(const QString &key) const;
+	template<typename T, typename K>
+	bool contains(const K &key) const;
 	template<typename T>
 	T load(const QString &key) const;
 	//! @copybrief DataStore::load(const QString &) const
@@ -252,6 +260,20 @@ QList<T> DataStore::loadAll() const
 	for(auto v : loadAll(qMetaTypeId<T>()))
 		rList.append(v.template value<T>());
 	return rList;
+}
+
+template<typename T>
+bool DataStore::contains(const QString &key) const
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return contains(qMetaTypeId<T>(), key);
+}
+
+template<typename T, typename K>
+bool DataStore::contains(const K &key) const
+{
+	QTDATASYNC_STORE_ASSERT(T);
+	return contains(qMetaTypeId<T>(), QVariant::fromValue(key));
 }
 
 template<typename T>

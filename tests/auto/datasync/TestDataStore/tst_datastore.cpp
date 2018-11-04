@@ -18,6 +18,7 @@ private Q_SLOTS:
 	void testSave();
 	void testSaveInvalid();
 	void testAll();
+	void testContains();
 	void testFind();
 	void testRemove_data();
 	void testRemove();
@@ -112,6 +113,16 @@ void TestDataStore::testAll()
 		auto k = store->keys<TestData, int>();
 		QCOMPAREUNORDERED(k, keys);
 		QCOMPAREUNORDERED(store->loadAll<TestData>(), objects);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestDataStore::testContains()
+{
+	try {
+		QVERIFY(store->contains<TestData>(TestLib::generateDataKey(430)));
+		QVERIFY(!store->contains<TestData>(TestLib::generateDataKey(440)));
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

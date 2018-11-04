@@ -64,6 +64,7 @@ public:
 	QStringList keys(const QByteArray &typeName) const;
 	QList<QJsonObject> loadAll(const QByteArray &typeName) const;
 
+	bool contains(const ObjectKey &key) const;
 	QJsonObject load(const ObjectKey &key) const;
 	void save(const ObjectKey &key, const QJsonObject &data);
 	bool remove(const ObjectKey &key);

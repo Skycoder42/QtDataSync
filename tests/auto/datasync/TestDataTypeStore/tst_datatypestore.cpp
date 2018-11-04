@@ -64,6 +64,7 @@ void TestDataTypeStore::testSimple()
 			store.save(data);
 			QCOMPARE(dataStore->load<TestData>(i), data);
 			QCOMPARE(store.load(i), data);
+			QVERIFY(store.contains(i));
 
 			QCOMPARE(changeSpy.size(), 1);
 			auto sig = changeSpy.takeFirst();

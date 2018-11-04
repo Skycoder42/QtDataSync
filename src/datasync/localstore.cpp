@@ -168,6 +168,16 @@ QList<QJsonObject> LocalStore::loadAll(const QByteArray &typeName) const
 	}
 }
 
+bool LocalStore::contains(const ObjectKey &key) const
+{
+	QSqlQuery existsQuery(_database);
+	existsQuery.prepare(QStringLiteral("SELECT 1 FROM DataIndex WHERE Type = ? AND Id = ?"));
+	existsQuery.addBindValue(key.typeName);
+	existsQuery.addBindValue(key.id);
+	exec(existsQuery, key);
+	return existsQuery.first();
+}
+
 QJsonObject LocalStore::load(const ObjectKey &key) const
 {
 	//check if cached

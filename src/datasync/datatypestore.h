@@ -51,6 +51,7 @@ public:
 	QList<TKey> keys() const;
 	//! @copybrief DataStore::loadAll() const
 	QList<TType> loadAll() const;
+	bool contains(const TKey &key) const;
 	//! @copybrief DataStore::load(const K &) const
 	TType load(const TKey &key) const;
 	//! @copybrief DataStore::save(const T &)
@@ -235,6 +236,12 @@ template <typename TType, typename TKey>
 QList<TType> DataTypeStore<TType, TKey>::loadAll() const
 {
 	return _store->loadAll<TType>();
+}
+
+template<typename TType, typename TKey>
+bool DataTypeStore<TType, TKey>::contains(const TKey &key) const
+{
+	return _store->contains<TType>(key);
 }
 
 template <typename TType, typename TKey>

@@ -58,6 +58,11 @@ QVariantList DataStore::loadAll(int metaTypeId) const
 	return resList;
 }
 
+bool DataStore::contains(int metaTypeId, const QString &key) const
+{
+	return d->store->contains({d->typeName(metaTypeId), key});
+}
+
 QVariant DataStore::load(int metaTypeId, const QString &key) const
 {
 	auto data = d->store->load({d->typeName(metaTypeId), key});

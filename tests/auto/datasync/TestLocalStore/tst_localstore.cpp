@@ -20,6 +20,7 @@ private Q_SLOTS:
 	void testSave_data();
 	void testSave();
 	void testAll();
+	void testContains();
 	void testFind_data();
 	void testFind();
 	void testRemove_data();
@@ -121,6 +122,16 @@ void TestLocalStore::testAll()
 		QCOMPARE(store->count(TestLib::TypeName), count);
 		QCOMPAREUNORDERED(store->keys(TestLib::TypeName), keys);
 		QCOMPAREUNORDERED(store->loadAll(TestLib::TypeName), objects);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestLocalStore::testContains()
+{
+	try {
+		QVERIFY(store->contains(TestLib::generateKey(430)));
+		QVERIFY(!store->contains(TestLib::generateKey(440)));
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}
