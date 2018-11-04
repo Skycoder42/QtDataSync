@@ -53,7 +53,7 @@ protected:
 
 private Q_SLOTS:
 	void startBackgroundSync(int startId);
-	void registerSync(int startId, qint64 delay);
+	void registerSync(int startId, qint64 interval);
 	void backendReady();
 
 private:

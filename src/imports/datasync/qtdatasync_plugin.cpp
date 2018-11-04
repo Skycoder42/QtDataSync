@@ -7,6 +7,7 @@
 #endif
 #ifdef Q_OS_IOS
 #include <QtDataSyncIos/IosSyncDelegate>
+#include "qqmliossyncsingleton.h"
 #endif
 
 #include "qqmldatastore.h"

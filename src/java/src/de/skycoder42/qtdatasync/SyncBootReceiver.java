@@ -15,7 +15,7 @@ import de.skycoder42.qtservice.AndroidService;
 
 public class SyncBootReceiver extends BroadcastReceiver {
 	public static final String ServiceNameKey = "de.skycoder42.qtdatasync.SyncBootReceiver.key.serviceName";
-	public static final String DelayKey = "de.skycoder42.qtdatasync.SyncBootReceiver.key.delay";
+	public static final String IntervalKey = "de.skycoder42.qtdatasync.SyncBootReceiver.key.interval";
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -25,17 +25,17 @@ public class SyncBootReceiver extends BroadcastReceiver {
 
 		Intent startIntent = new Intent("de.skycoder42.qtdatasync.registersync")
 			.setClassName(context, prefs.getString(ServiceNameKey, AndroidService.class.getName()))
-			.putExtra(DelayKey, prefs.getLong(DelayKey, 60));
+			.putExtra(IntervalKey, prefs.getLong(IntervalKey, 60));
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 			context.startForegroundService(startIntent);
 		else
 			context.startService(startIntent);
 	}
 
-	public static void prepareRegistration(Context context, String serviceName, long delay) {
+	public static void prepareRegistration(Context context, String serviceName, long interval) {
 		PreferenceManager.getDefaultSharedPreferences(context).edit()
 			.putString(ServiceNameKey, serviceName)
-			.putLong(DelayKey, delay)
+			.putLong(IntervalKey, interval)
 			.apply();
 		setComponentState(context, true);
 	}
@@ -43,7 +43,7 @@ public class SyncBootReceiver extends BroadcastReceiver {
 	public static void clearRegistration(Context context) {
 		PreferenceManager.getDefaultSharedPreferences(context).edit()
 			.remove(ServiceNameKey)
-			.remove(DelayKey)
+			.remove(IntervalKey)
 			.apply();
 		setComponentState(context, false);
 	}
