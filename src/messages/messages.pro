@@ -1,12 +1,12 @@
 TEMPLATE = lib
 
-CONFIG += staticlib
-win32|darwin: CONFIG += debug_and_release build_all
+CONFIG += static
 
+load(qt_helper_lib)
+CONFIG += qt warning_clean
 QT = core
 
-DESTDIR = $$shadowed($$dirname(_QMAKE_CONF_))/lib
-TARGET = $$qtLibraryTarget(qtdatasync-messages)
+TARGET = qtdatasync-messages
 
 DEFINES += QT_BUILD_DATASYNC_LIB #is build as part of the lib regarding exports
 
@@ -57,6 +57,10 @@ SOURCES += \
 	newkeymessage.cpp
 
 include(../3rdparty/cryptopp/cryptopp.pri)
+
+cryptopp_lib.files += $$CRYPTOPP_LIBFILE
+cryptopp_lib.path = $${target.path}
+qtConfig(static): INSTALLS += cryptopp_lib
 
 # dummy target, translations are all done in datasync
 QMAKE_EXTRA_TARGETS += lrelease

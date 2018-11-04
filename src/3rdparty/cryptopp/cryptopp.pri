@@ -12,9 +12,10 @@ system_cryptopp:unix {
 	INCLUDEPATH += $$PWD/include
 	DEPENDPATH += $$PWD/include
 
-	win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/lib/cryptlib.lib
-	else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/lib/cryptlibd.lib
-	else: PRE_TARGETDEPS += $$PWD/lib/libcryptopp.a
+	win32:!win32-g++:CONFIG(release, debug|release): CRYPTOPP_LIBFILE = $$PWD/lib/cryptlib.lib
+	else:win32:!win32-g++:CONFIG(debug, debug|release): CRYPTOPP_LIBFILE = $$PWD/lib/cryptlibd.lib
+	else: CRYPTOPP_LIBFILE = $$PWD/lib/libcryptopp.a
+	PRE_TARGETDEPS += $$CRYPTOPP_LIBFILE
 
 	win32: DEFINES += QTDATASYNC_OSRNG_OVERWRITE
 }
