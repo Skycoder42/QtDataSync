@@ -17,7 +17,7 @@ public:
 
 private:
 	static const QString SyncStateGroup;
-	static const QString SyncDelayKey;
+	static const QString SyncIntervalKey;
 	static const QString SyncEnabledKey;
 	static const QString SyncWaitKey;
 
@@ -27,7 +27,7 @@ private:
 
 	IosSyncDelegate *q;
 	bool enabled = true;
-	std::chrono::minutes delay{60};
+	std::chrono::minutes interval{60};
 	bool waitFullSync = false;
 
 	QSettings *settings;

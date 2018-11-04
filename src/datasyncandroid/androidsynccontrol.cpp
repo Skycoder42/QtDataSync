@@ -30,14 +30,14 @@ QString AndroidSyncControl::serviceId() const
 	return d->serviceId;
 }
 
-qint64 AndroidSyncControl::delay() const
+qint64 AndroidSyncControl::interval() const
 {
-	return d->delay.count();
+	return d->interval.count();
 }
 
-std::chrono::minutes AndroidSyncControl::delayMinutes() const
+std::chrono::minutes AndroidSyncControl::intervalMinutes() const
 {
-	return d->delay;
+	return d->interval;
 }
 
 bool AndroidSyncControl::isEnabled() const
@@ -54,18 +54,18 @@ void AndroidSyncControl::setServiceId(QString serviceId)
 	emit serviceIdChanged(d->serviceId, {});
 }
 
-void AndroidSyncControl::setDelay(qint64 delay)
+void AndroidSyncControl::setInterval(qint64 interval)
 {
-	setDelay(minutes{delay});
+	setInterval(minutes{interval});
 }
 
-void AndroidSyncControl::setDelay(std::chrono::minutes delay)
+void AndroidSyncControl::setInterval(std::chrono::minutes interval)
 {
-	if(d->delay == delay)
+	if(d->interval == interval)
 		return;
 
-	d->delay = delay;
-	emit delayChanged(d->delay.count(), {});
+	d->interval = interval;
+	emit intervalChanged(d->interval.count(), {});
 }
 
 void AndroidSyncControl::setEnabled(bool enabled)
@@ -89,7 +89,7 @@ void AndroidSyncControl::setEnabled(bool enabled)
 																	 ALARM_SERVICE.object());
 	if(alarmManager.isValid()) {
 		if(enabled) {
-			auto delta = duration_cast<milliseconds>(d->delay).count();
+			auto delta = duration_cast<milliseconds>(d->interval).count();
 			alarmManager.callMethod<void>("setInexactRepeating", "(IJJLandroid/app/PendingIntent;)V",
 										  RTC_WAKEUP,
 										  static_cast<jlong>(QDateTime::currentDateTime().addMSecs(delta).toMSecsSinceEpoch()),
@@ -100,7 +100,7 @@ void AndroidSyncControl::setEnabled(bool enabled)
 													  "(Landroid/content/Context;Ljava/lang/String;J)V",
 													  QtAndroid::androidContext().object(),
 													  QAndroidJniObject::fromString(d->serviceId).object(),
-													  static_cast<jlong>(d->delay.count()));
+													  static_cast<jlong>(d->interval.count()));
 		} else {
 			alarmManager.callMethod<void>("cancel", "(Landroid/app/PendingIntent;)V",
 										  pendingIntent.object());

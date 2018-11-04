@@ -20,7 +20,7 @@ class Q_DATASYNCIOS_EXPORT IosSyncDelegate : public QObject
 {
 	Q_OBJECT
 
-	Q_PROPERTY(qint64 delay READ delay WRITE setDelay NOTIFY delayChanged)
+	Q_PROPERTY(qint64 interval READ interval WRITE setInterval NOTIFY intervalChanged)
 	Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
 
 	Q_PROPERTY(bool waitFullSync READ waitFullSync WRITE setWaitFullSync NOTIFY waitFullSyncChanged)
@@ -41,23 +41,23 @@ public:
 	explicit IosSyncDelegate(QSettings *settings, QObject *parent = nullptr);
 	~IosSyncDelegate() override;
 
-	qint64 delay() const;
-	std::chrono::minutes delayMinutes() const;
+	qint64 interval() const;
+	std::chrono::minutes intervalMinutes() const;
 	bool isEnabled() const;
 	bool waitFullSync() const;
 	virtual bool persistState() const;
 
 	template <typename TRep, typename TPeriod>
-	void setDelay(const std::chrono::duration<TRep, TPeriod> &delay);
-	void setDelay(std::chrono::minutes delay);
+	void setInterval(const std::chrono::duration<TRep, TPeriod> &interval);
+	void setInterval(std::chrono::minutes interval);
 
 public Q_SLOTS:
-	void setDelay(qint64 delay);
+	void setInterval(qint64 interval);
 	void setEnabled(bool enabled);
 	void setWaitFullSync(bool waitFullSync);
 
 Q_SIGNALS:
-	void delayChanged(qint64 delay, QPrivateSignal);
+	void intervalChanged(qint64 interval, QPrivateSignal);
 	void enabledChanged(bool enabled, QPrivateSignal);
 	void waitFullSyncChanged(bool waitFullSync, QPrivateSignal);
 
@@ -77,9 +77,9 @@ private:
 };
 
 template<typename TRep, typename TPeriod>
-void IosSyncDelegate::setDelay(const std::chrono::duration<TRep, TPeriod> &delay)
+void IosSyncDelegate::setInterval(const std::chrono::duration<TRep, TPeriod> &interval)
 {
-	setDelay(std::chrono::duration_cast<std::chrono::minutes>(delay));
+	setInterval(std::chrono::duration_cast<std::chrono::minutes>(interval));
 }
 
 }

@@ -39,12 +39,12 @@ void QtDatasyncAppDelegateInitialize()
 	Q_ASSERT_X(appDelegate, Q_FUNC_INFO, "Failed to initialize QIOSApplicationDelegate (QtDatasyncAppDelegate)");
 }
 
-void setSyncInterval(double delaySeconds)
+void setSyncInterval(double intervalSeconds)
 {
-	if(delaySeconds == -1.0)
+	if(intervalSeconds == -1.0)
 		[[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalNever];
 	else
-		[[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:delaySeconds];
+		[[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:intervalSeconds];
 }
 
 @end

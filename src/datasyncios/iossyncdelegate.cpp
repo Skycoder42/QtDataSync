@@ -26,8 +26,8 @@ void IosSyncDelegate::init(IosSyncDelegate *delegate)
 		// if persisted, load the state
 		auto settings = delegate->d->settings;
 		settings->beginGroup(IosSyncDelegatePrivate::SyncStateGroup);
-		delegate->setDelay(settings->value(IosSyncDelegatePrivate::SyncDelayKey,
-										   delegate->delay())
+		delegate->setInterval(settings->value(IosSyncDelegatePrivate::SyncIntervalKey,
+										   delegate->interval())
 						   .toLongLong());
 		delegate->setEnabled(settings->value(IosSyncDelegatePrivate::SyncEnabledKey,
 											 delegate->isEnabled())
@@ -63,14 +63,14 @@ IosSyncDelegate::IosSyncDelegate(QSettings *settings, QObject *parent) :
 
 IosSyncDelegate::~IosSyncDelegate() = default;
 
-qint64 IosSyncDelegate::delay() const
+qint64 IosSyncDelegate::interval() const
 {
-	return d->delay.count();
+	return d->interval.count();
 }
 
-std::chrono::minutes IosSyncDelegate::delayMinutes() const
+std::chrono::minutes IosSyncDelegate::intervalMinutes() const
 {
-	return d->delay;
+	return d->interval;
 }
 
 bool IosSyncDelegate::isEnabled() const
@@ -88,19 +88,19 @@ bool IosSyncDelegate::persistState() const
 	return true;
 }
 
-void IosSyncDelegate::setDelay(std::chrono::minutes delay)
+void IosSyncDelegate::setInterval(std::chrono::minutes interval)
 {
-	if(d->delay == delay)
+	if(d->interval == interval)
 		return;
 
-	d->delay = delay;
-	emit delayChanged(d->delay.count(), {});
+	d->interval = interval;
+	emit intervalChanged(d->interval.count(), {});
 	d->updateSyncInterval();
 }
 
-void IosSyncDelegate::setDelay(qint64 delay)
+void IosSyncDelegate::setInterval(qint64 interval)
 {
-	setDelay(minutes{delay});
+	setInterval(minutes{interval});
 }
 
 void IosSyncDelegate::setEnabled(bool enabled)
@@ -195,7 +195,7 @@ void IosSyncDelegate::backendReady()
 // ------------- PRIVATE IMPLEMENTATION -------------
 
 const QString IosSyncDelegatePrivate::SyncStateGroup = QStringLiteral("qtdatasync::iossyncdelegate");
-const QString IosSyncDelegatePrivate::SyncDelayKey = QStringLiteral("delay");
+const QString IosSyncDelegatePrivate::SyncIntervalKey = QStringLiteral("interval");
 const QString IosSyncDelegatePrivate::SyncEnabledKey = QStringLiteral("enabled");
 const QString IosSyncDelegatePrivate::SyncWaitKey = QStringLiteral("wait");
 QPointer<IosSyncDelegate> IosSyncDelegatePrivate::delegateInstance;
@@ -221,7 +221,7 @@ void IosSyncDelegatePrivate::updateSyncInterval()
 		return;
 
 	if(enabled)
-		::setSyncInterval(duration_cast<milliseconds>(delay).count() / 1000.0);
+		::setSyncInterval(duration_cast<milliseconds>(interval).count() / 1000.0);
 	else
 		::setSyncInterval(-1.0);
 
@@ -232,7 +232,7 @@ void IosSyncDelegatePrivate::storeState()
 {
 	if(q->persistState()) {
 		settings->beginGroup(SyncStateGroup);
-		settings->setValue(SyncDelayKey, QVariant::fromValue<qint64>(delay.count()));
+		settings->setValue(SyncIntervalKey, QVariant::fromValue<qint64>(interval.count()));
 		settings->setValue(SyncEnabledKey, enabled);
 		settings->setValue(SyncWaitKey, waitFullSync);
 		settings->endGroup();

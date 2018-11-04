@@ -12,7 +12,7 @@ class AndroidSyncControlPrivate
 {
 public:
 	QString serviceId {QStringLiteral("de.skycoder42.qtservice.AndroidService")};
-	std::chrono::minutes delay{60};
+	std::chrono::minutes interval{60};
 
 	QAndroidIntent createIntent() const;
 	QAndroidJniObject createPendingIntent(bool allowCreate) const;

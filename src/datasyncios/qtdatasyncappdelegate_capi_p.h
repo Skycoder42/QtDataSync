@@ -8,6 +8,6 @@
 
 // c -> mm
 void QtDatasyncAppDelegateInitialize();
-void setSyncInterval(double delaySeconds);
+void setSyncInterval(double intervalSeconds);
 
 #endif // DATASYNCAPPDELEGATE_CAPI_P_H
