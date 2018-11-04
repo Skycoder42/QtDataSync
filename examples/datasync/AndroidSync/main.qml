@@ -14,7 +14,6 @@ Window {
 		id: syncControl
 	}
 
-
 	ColumnLayout {
 		anchors.centerIn: parent
 

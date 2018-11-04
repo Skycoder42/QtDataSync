@@ -1,5 +1,6 @@
 QT = core datasync qml
 android: QT += datasyncandroid
+ios: QT += datasyncios
 
 CXX_MODULE = datasync
 TARGETPATH = de/skycoder42/QtDataSync
@@ -15,7 +16,7 @@ HEADERS +=  \
 	qqmldatastoremodel.h \
 	qqmluserexchangemanager.h \
 	qtdatasync_plugin.h \
-    qqmleventcursor.h
+	qqmleventcursor.h
 
 SOURCES +=  \
 	qqmldatastore.cpp \
@@ -24,7 +25,12 @@ SOURCES +=  \
 	qqmldatastoremodel.cpp \
 	qqmluserexchangemanager.cpp \
 	qtdatasync_plugin.cpp \
-    qqmleventcursor.cpp
+	qqmleventcursor.cpp
+
+ios {
+	HEADERS += qqmliossyncsingleton.h
+	SOURCES += qqmliossyncsingleton.cpp
+}
 
 OTHER_FILES += qmldir
 

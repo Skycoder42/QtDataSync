@@ -5,6 +5,9 @@
 #ifdef Q_OS_ANDROID
 #include <QtDataSyncAndroid/AndroidSyncControl>
 #endif
+#ifdef Q_OS_IOS
+#include <QtDataSyncIos/IosSyncDelegate>
+#endif
 
 #include "qqmldatastore.h"
 #include "qqmldatastoremodel.h"
@@ -19,6 +22,13 @@ QObject *createEventLogInstance(QQmlEngine *qmlEngine, QJSEngine *)
 {
 	return new QtDataSync::QQmlEventCursor{qmlEngine};
 }
+
+#ifdef Q_OS_IOS
+QObject *createIosSyncSingletonInstance(QQmlEngine *qmlEngine, QJSEngine *)
+{
+	return new QtDataSync::QQmlIosSyncSingleton{qmlEngine};
+}
+#endif
 
 }
 
@@ -49,6 +59,10 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 	qmlRegisterSingletonType<QtDataSync::QQmlEventCursor>(uri, 4, 2, "EventLog", createEventLogInstance);
 #ifdef Q_OS_ANDROID
 	qmlRegisterType<QtDataSync::AndroidSyncControl>(uri, 4, 2, "AndroidSyncControl");
+#endif
+#ifdef Q_OS_IOS
+	qmlRegisterUncreatableType<QtDataSync::IosSyncDelegate>(uri, 4, 2, "IosSyncDelegate", QStringLiteral("Use the IosSyncSingleton singleton to obtain the current IosSyncDelegate"));
+	qmlRegisterSingletonType<QtDataSync::QQmlIosSyncSingleton>(uri, 4, 2, "IosSyncSingleton", createIosSyncSingletonInstance);
 #endif
 
 	// Check to make shure no module update is forgotten
