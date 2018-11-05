@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include <QtCore/qobject.h>
+#include <QtCore/qdebug.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/datastore.h"
@@ -64,7 +65,7 @@ public:
 	//! @copybrief DataStore::search(const QString &, SearchMode) const
 	QList<TType> search(const QString &query, DataStore::SearchMode mode = DataStore::RegexpMode);
 	//! @copybrief DataStore::iterate(const std::function<bool(T)> &) const
-	void iterate(const std::function<bool(TType)> &iterator);
+	void iterate(const std::function<bool(TType)> &iterator, bool skipBroken = false);
 	//! @copybrief DataStore::clear()
 	void clear();
 
@@ -276,9 +277,9 @@ QList<TType> DataTypeStore<TType, TKey>::search(const QString &query, DataStore:
 }
 
 template<typename TType, typename TKey>
-void DataTypeStore<TType, TKey>::iterate(const std::function<bool (TType)> &iterator)
+void DataTypeStore<TType, TKey>::iterate(const std::function<bool (TType)> &iterator, bool skipBroken)
 {
-	_store->iterate(iterator);
+	_store->iterate(iterator, skipBroken);
 }
 
 template<typename TType, typename TKey>
@@ -296,11 +297,15 @@ TKey DataTypeStore<TType, TKey>::toKey(const QString &key)
 template <typename TType, typename TKey>
 void DataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted)
 {
-	if(metaTypeId == qMetaTypeId<TType>()) {
-		if(wasDeleted)
-			emit dataChanged(key, QVariant());
-		else
-			emit dataChanged(key, QVariant::fromValue(_store->load<TType>(key)));
+	try {
+		if(metaTypeId == qMetaTypeId<TType>()) {
+			if(wasDeleted)
+				emit dataChanged(key, QVariant());
+			else
+				emit dataChanged(key, QVariant::fromValue(_store->load<TType>(key)));
+		}
+	} catch(QException &e) {
+		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.DataTypeStore"))}) << "Failed to loaded changed data with error" << e.what(); //TODO arg setup name
 	}
 }
 
@@ -323,14 +328,16 @@ CachingDataTypeStore<TType, TKey>::CachingDataTypeStore(DataStore *store, QObjec
 	DataTypeStoreBase{parent},
 	_store{store}
 {
-	auto userProp = TType::staticMetaObject.userProperty();
-	for(auto data : store->loadAll<TType>())
-		_data.insert(userProp.readOnGadget(&data).template value<TKey>(), data);
-
 	connect(_store, &DataStore::dataChanged,
 			this, &CachingDataTypeStore::evalDataChanged);
 	connect(_store, &DataStore::dataResetted,
 			this, &CachingDataTypeStore::evalDataResetted);
+
+	auto userProp = TType::staticMetaObject.userProperty();
+	store->iterate<TType>([&](const TType &data){
+		_data.insert(userProp.readOnGadget(&data).template value<TKey>(), data);
+		return true;
+	}, true);
 }
 
 template<typename TType, typename TKey>
@@ -418,16 +425,20 @@ TKey CachingDataTypeStore<TType, TKey>::toKey(const QString &key)
 template <typename TType, typename TKey>
 void CachingDataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted)
 {
-	if(metaTypeId == qMetaTypeId<TType>()) {
-		auto rKey = toKey(key);
-		if(wasDeleted) {
-			_data.remove(rKey);
-			emit dataChanged(key, QVariant());
-		} else {
-			auto data = _store->load<TType>(key);
-			_data.insert(rKey, data);
-			emit dataChanged(key, QVariant::fromValue(data));
+	try {
+		if(metaTypeId == qMetaTypeId<TType>()) {
+			auto rKey = toKey(key);
+			if(wasDeleted) {
+				_data.remove(rKey);
+				emit dataChanged(key, QVariant());
+			} else {
+				auto data = _store->load<TType>(key);
+				_data.insert(rKey, data);
+				emit dataChanged(key, QVariant::fromValue(data));
+			}
 		}
+	} catch(QException &e) {
+		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.CachingDataTypeStore"))}) << "Failed to loaded changed data with error" << e.what(); //TODO arg setup name
 	}
 }
 
@@ -458,16 +469,17 @@ CachingDataTypeStore<TType*, TKey>::CachingDataTypeStore(DataStore *store, QObje
 	_store{store}
 
 {
-	auto userProp = TType::staticMetaObject.userProperty();
-	for(auto data : store->loadAll<TType*>()){
-		data->setParent(this);
-		_data.insert(userProp.read(data).template value<TKey>(), data);
-	}
-
 	connect(_store, &DataStore::dataChanged,
 			this, &CachingDataTypeStore::evalDataChanged);
 	connect(_store, &DataStore::dataResetted,
 			this, &CachingDataTypeStore::evalDataResetted);
+
+	auto userProp = TType::staticMetaObject.userProperty();
+	store->iterate<TType*>([&](TType *data){
+		data->setParent(this);
+		_data.insert(userProp.read(data).template value<TKey>(), data);
+		return true;
+	}, true);
 }
 
 template<typename TType, typename TKey>
@@ -561,28 +573,32 @@ TKey CachingDataTypeStore<TType*, TKey>::toKey(const QString &key)
 template <typename TType, typename TKey>
 void CachingDataTypeStore<TType*, TKey>::evalDataChanged(int metaTypeId, const QString &key, bool wasDeleted)
 {
-	if(metaTypeId == qMetaTypeId<TType*>()) {
-		auto rKey = toKey(key);
-		if(wasDeleted) {
-			auto data = _data.take(rKey);
-			if(data) {
-				emit dataChanged(key, QVariant());
-				data->deleteLater();
-			}
-		} else {
-			if(_data.contains(rKey)) {
-				_store->update(_data.value(rKey));
-				emit dataChanged(key, QVariant::fromValue(_data.value(rKey)));
+	try {
+		if(metaTypeId == qMetaTypeId<TType*>()) {
+			auto rKey = toKey(key);
+			if(wasDeleted) {
+				auto data = _data.take(rKey);
+				if(data) {
+					emit dataChanged(key, QVariant());
+					data->deleteLater();
+				}
 			} else {
-				auto data = _store->load<TType*>(key);
-				auto oldData = _data.take(rKey);
-				data->setParent(this);
-				_data.insert(rKey, data);
-				emit dataChanged(key, QVariant::fromValue(data));
-				if(oldData)
-					oldData->deleteLater();
+				if(_data.contains(rKey)) {
+					_store->update(_data.value(rKey));
+					emit dataChanged(key, QVariant::fromValue(_data.value(rKey)));
+				} else {
+					auto data = _store->load<TType*>(key);
+					auto oldData = _data.take(rKey);
+					data->setParent(this);
+					_data.insert(rKey, data);
+					emit dataChanged(key, QVariant::fromValue(data));
+					if(oldData)
+						oldData->deleteLater();
+				}
 			}
 		}
+	} catch(QException &e) {
+		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.CachingDataTypeStore"))}) << "Failed to loaded changed data with error" << e.what(); //TODO arg setup name
 	}
 }
 

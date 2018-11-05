@@ -9,6 +9,8 @@
 using namespace QtDataSync;
 using std::function;
 
+#define QTDATASYNC_LOG d->logger
+
 DataStore::DataStore(QObject *parent) :
 	DataStore{DefaultSetup, parent}
 {}
@@ -151,9 +153,21 @@ QVariantList DataStore::search(int metaTypeId, const QString &query, SearchMode 
 
 void DataStore::iterate(int metaTypeId, const function<bool (QVariant)> &iterator) const
 {
+	iterate(metaTypeId, iterator, false);
+}
+
+void DataStore::iterate(int metaTypeId, const std::function<bool (QVariant)> &iterator, bool skipBroken) const
+{
 	for(const auto &key : keys(metaTypeId)) { // clazy:exclude=range-loop
-		if(!iterator(load(metaTypeId, key)))
-			break;
+		try {
+			if(!iterator(load(metaTypeId, key)))
+				break;
+		} catch (QException &e) {
+			if(skipBroken)
+				logWarning() << "Ignoring error on store iteration:" << e.what();
+			else
+				throw;
+		}
 	}
 }
 

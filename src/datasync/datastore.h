@@ -72,6 +72,9 @@ public:
 	//! @copybrief DataStore::iterate(const std::function<bool(T)> &) const
 	void iterate(int metaTypeId,
 				 const std::function<bool(QVariant)> &iterator) const;
+	void iterate(int metaTypeId,
+				 const std::function<bool(QVariant)> &iterator,
+				 bool skipBroken) const; //MAJOR merge overloads
 	//! @copybrief DataStore::clear()
 	void clear(int metaTypeId);
 
@@ -118,7 +121,7 @@ public:
 	QList<T> search(const QString &query, SearchMode mode = RegexpMode) const;
 	//! Iterates over all existing datasets of the given types
 	template<typename T>
-	void iterate(const std::function<bool(T)> &iterator) const;
+	void iterate(const std::function<bool(T)> &iterator, bool skipBroken = false) const;
 	//! Removes all datasets of the given type from the store
 	template<typename T>
 	void clear();
@@ -329,12 +332,12 @@ QList<T> DataStore::search(const QString &query, SearchMode mode) const
 }
 
 template<typename T>
-void DataStore::iterate(const std::function<bool (T)> &iterator) const
+void DataStore::iterate(const std::function<bool (T)> &iterator, bool skipBroken) const
 {
 	QTDATASYNC_STORE_ASSERT(T);
 	iterate(qMetaTypeId<T>(), [iterator](const QVariant &v) {
 		return iterator(v.template value<T>());
-	});
+	}, skipBroken);
 }
 
 template<typename T>
