@@ -121,6 +121,11 @@ bool EventCursor::isValid() const
 	return d->defaults.isValid() && d->index != 0;
 }
 
+QString EventCursor::setupName() const
+{
+	return d->defaults.setupName();
+}
+
 quint64 EventCursor::index() const
 {
 	return d->index;

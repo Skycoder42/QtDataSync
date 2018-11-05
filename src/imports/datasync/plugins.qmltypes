@@ -12,6 +12,7 @@ Module {
     Component {
         name: "QtDataSync::AccountManager"
         prototype: "QObject"
+        Property { name: "setupName"; revision: 2; type: "string"; isReadonly: true }
         Property { name: "deviceName"; type: "string" }
         Property { name: "deviceFingerprint"; type: "QByteArray"; isReadonly: true }
         Property { name: "lastError"; type: "string"; isReadonly: true }
@@ -27,6 +28,11 @@ Module {
         Signal {
             name: "accountAccessGranted"
             Parameter { name: "deviceId"; type: "QUuid" }
+        }
+        Signal {
+            name: "setupNameChanged"
+            revision: 2
+            Parameter { name: "setupName"; type: "string" }
         }
         Signal {
             name: "deviceNameChanged"
@@ -164,6 +170,7 @@ Module {
         isCreatable: false
         exportMetaObjectRevisions: [0]
         Property { name: "valid"; type: "bool"; isReadonly: true }
+        Property { name: "setupName"; type: "string"; isReadonly: true }
         Property { name: "index"; type: "qulonglong" }
         Property { name: "key"; type: "QtDataSync::ObjectKey" }
         Property { name: "wasRemoved"; type: "bool" }
@@ -613,10 +620,16 @@ Module {
                 "Disconnected": 5
             }
         }
+        Property { name: "setupName"; revision: 2; type: "string"; isReadonly: true }
         Property { name: "syncEnabled"; type: "bool" }
         Property { name: "syncState"; type: "SyncState"; isReadonly: true }
         Property { name: "syncProgress"; type: "double"; isReadonly: true }
         Property { name: "lastError"; type: "string"; isReadonly: true }
+        Signal {
+            name: "setupNameChanged"
+            revision: 2
+            Parameter { name: "setupName"; type: "string" }
+        }
         Signal {
             name: "syncEnabledChanged"
             Parameter { name: "syncEnabled"; type: "bool" }
@@ -644,6 +657,7 @@ Module {
     Component {
         name: "QtDataSync::UserExchangeManager"
         prototype: "QObject"
+        Property { name: "setupName"; revision: 2; type: "string"; isReadonly: true }
         Property { name: "active"; type: "bool"; isReadonly: true }
         Property { name: "devices"; type: "QList<QtDataSync::UserInfo>"; isReadonly: true }
         Signal {
@@ -654,6 +668,11 @@ Module {
         Signal {
             name: "exchangeError"
             Parameter { name: "errorString"; type: "string" }
+        }
+        Signal {
+            name: "setupNameChanged"
+            revision: 2
+            Parameter { name: "setupName"; type: "string" }
         }
         Signal {
             name: "activeChanged"

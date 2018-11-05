@@ -29,6 +29,11 @@ AccountManagerPrivate::AccountManagerPrivate(ExchangeEngine *engineParent) :
 			this, &AccountManagerPrivate::accountAccessGranted);
 }
 
+QString AccountManagerPrivate::setupName() const
+{
+	return _engine->defaults().setupName();
+}
+
 QString AccountManagerPrivate::deviceName() const
 {
 	return _engine->remoteConnector()->deviceName();

@@ -22,6 +22,7 @@ public:
 
 	//! Returns a reference to the internally used DataStore
 	virtual DataStore *store() const = 0;
+	QString setupName() const;
 
 Q_SIGNALS:
 	//! Will be emitted when a dataset in the store has changed

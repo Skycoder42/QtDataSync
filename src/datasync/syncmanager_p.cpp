@@ -15,6 +15,11 @@ SyncManagerPrivate::SyncManagerPrivate(ExchangeEngine *engineParent) :
 			this, &SyncManagerPrivate::syncEnabledChanged);
 }
 
+QString SyncManagerPrivate::setupName() const
+{
+	return _engine->defaults().setupName();
+}
+
 bool SyncManagerPrivate::syncEnabled() const
 {
 	return _engine->remoteConnector()->isSyncEnabled();

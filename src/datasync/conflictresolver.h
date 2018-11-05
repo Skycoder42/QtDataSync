@@ -26,6 +26,7 @@ public:
 	//! @private
 	void setDefaults(const Defaults &defaults);
 
+	QString setupName() const;
 	//! The resolvers name. Used for logging
 	virtual QByteArray name() const;
 	//! The method called to resolve conflicts between two datasets

@@ -22,6 +22,11 @@ DataStore::DataStore(const QString &setupName, QObject *parent) :
 	initStore(setupName);
 }
 
+QString DataStore::setupName() const
+{
+	return d->defaults.setupName();
+}
+
 DataStore::DataStore(QObject *parent, void *) :
 	QObject{parent},
 	d{nullptr}

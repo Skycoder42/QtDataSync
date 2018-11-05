@@ -81,6 +81,8 @@ void AccountManager::initReplica(QRemoteObjectNode *node)
 	d->replica = node->acquire<AccountManagerPrivateReplica>();
 	d->replica->setParent(this);
 
+	connect(d->replica, &AccountManagerPrivateReplica::setupNameChanged,
+			this, PSIG(&AccountManager::setupNameChanged));
 	connect(d->replica, &AccountManagerPrivateReplica::deviceNameChanged,
 			this, PSIG(&AccountManager::deviceNameChanged));
 	connect(d->replica, &AccountManagerPrivateReplica::deviceFingerprintChanged,
@@ -214,6 +216,11 @@ void AccountManager::importAccountTrusted(const QByteArray &importData, const QS
 	} catch(QString &err) {
 		completedFn(false, err);
 	}
+}
+
+QString AccountManager::setupName() const
+{
+	return d->replica->setupName();
 }
 
 QString AccountManager::deviceName() const

@@ -20,6 +20,7 @@ class Q_DATASYNC_EXPORT EventCursor : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(bool valid READ isValid CONSTANT)
+	Q_PROPERTY(QString setupName READ setupName CONSTANT)
 
 	Q_PROPERTY(quint64 index READ index WRITE setIndex NOTIFY indexChanged USER true)
 	Q_PROPERTY(QtDataSync::ObjectKey key READ key WRITE setKey NOTIFY keyChanged STORED false)
@@ -44,6 +45,7 @@ public:
 	Q_INVOKABLE QByteArray save() const;
 
 	bool isValid() const;
+	QString setupName() const;
 
 	quint64 index() const;
 	QtDataSync::ObjectKey key() const;

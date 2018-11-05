@@ -46,6 +46,11 @@ DataStore *DataStoreModel::store() const
 	return d->store;
 }
 
+QString DataStoreModel::setupName() const
+{
+	return d->store->setupName();
+}
+
 int DataStoreModel::typeId() const
 {
 	return d->type;

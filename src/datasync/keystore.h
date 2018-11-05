@@ -44,6 +44,8 @@ public:
 	explicit KeyStore(const Defaults &defaults, QObject *parent = nullptr);
 	~KeyStore() override;
 
+	QString setupName() const;
+
 	//! Returns the provider type the keystore is of
 	virtual QString providerName() const = 0;
 

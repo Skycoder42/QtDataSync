@@ -2,6 +2,7 @@
 #include "syncmanager.h"
 
 class SyncManagerPrivate {
+	PROP(QString setupName READONLY)
 	PROP(bool syncEnabled=true);
 	PROP(QtDataSync::SyncManager::SyncState syncState=QtDataSync::SyncManager::Initializing READONLY);
 	PROP(qreal syncProgress=-1.0 READONLY);

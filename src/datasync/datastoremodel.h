@@ -31,6 +31,7 @@ public:
 
 	//! Returns the data store the model works on
 	DataStore *store() const;
+	QString setupName() const;
 
 	//! @readAcFn{DataStoreModel::typeId}
 	int typeId() const;

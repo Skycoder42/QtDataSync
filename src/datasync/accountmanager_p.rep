@@ -2,6 +2,7 @@
 #include "accountmanager.h"
 
 class AccountManagerPrivate {
+	PROP(QString setupName READONLY)
 	PROP(QString deviceName READWRITE);
 	PROP(QByteArray deviceFingerprint READONLY);
 	PROP(QString lastError READONLY);

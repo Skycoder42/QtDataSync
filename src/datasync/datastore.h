@@ -41,6 +41,8 @@ public:
 	explicit DataStore(const QString &setupName, QObject *parent = nullptr);
 	~DataStore() override;
 
+	QString setupName() const;
+
 	//! @copybrief DataStore::count() const
 	qint64 count(int metaTypeId) const;
 	//! @copybrief DataStore::keys() const

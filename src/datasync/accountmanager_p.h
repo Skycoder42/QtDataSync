@@ -18,6 +18,7 @@ class AccountManagerPrivate : public AccountManagerPrivateSource
 public:
 	explicit AccountManagerPrivate(ExchangeEngine *engineParent);
 
+	QString setupName() const override;
 	QString deviceName() const override;
 	QByteArray deviceFingerprint() const override;
 	QString lastError() const override;

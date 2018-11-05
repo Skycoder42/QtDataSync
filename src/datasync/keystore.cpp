@@ -16,6 +16,11 @@ KeyStore::KeyStore(const Defaults &defaults, QObject *parent) :
 	d{new KeyStorePrivate(defaults)}
 {}
 
+QString KeyStore::setupName() const
+{
+	return d->defaults.setupName();
+}
+
 KeyStore::~KeyStore() = default;
 
 Defaults KeyStore::defaults() const

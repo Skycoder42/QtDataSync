@@ -18,6 +18,7 @@ class SyncManagerPrivate : public SyncManagerPrivateSource
 public:
 	SyncManagerPrivate(ExchangeEngine *engineParent);
 
+	QString setupName() const override;
 	bool syncEnabled() const override;
 	SyncManager::SyncState syncState() const override;
 	qreal syncProgress() const override;

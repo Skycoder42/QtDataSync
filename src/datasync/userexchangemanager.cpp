@@ -45,6 +45,11 @@ UserExchangeManager::UserExchangeManager(QObject *parent, void *) :
 void UserExchangeManager::initManager(AccountManager *manager)
 {
 	d->manager = manager;
+	connect(d->manager, &AccountManager::setupNameChanged,
+			this, [=](const QString &setupName){
+		emit setupNameChanged(setupName, {});
+	});
+
 	d->timer->setInterval(scdtime(seconds(2)));
 	d->timer->setTimerType(Qt::VeryCoarseTimer);
 	connect(d->timer, &QTimer::timeout,
@@ -56,6 +61,11 @@ UserExchangeManager::~UserExchangeManager() = default;
 AccountManager *UserExchangeManager::accountManager() const
 {
 	return d->manager;
+}
+
+QString UserExchangeManager::setupName() const
+{
+	return d->manager->setupName();
 }
 
 quint16 UserExchangeManager::port() const

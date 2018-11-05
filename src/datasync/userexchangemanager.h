@@ -64,6 +64,7 @@ class Q_DATASYNC_EXPORT UserExchangeManager : public QObject
 {
 	Q_OBJECT
 
+	Q_PROPERTY(QString setupName READ setupName NOTIFY setupNameChanged REVISION 2)
 	//! Reports whether the instance is currently exchanging or not
 	Q_PROPERTY(bool active READ isActive NOTIFY activeChanged)
 	//! Holds all currently discovered devices
@@ -84,6 +85,7 @@ public:
 	//! The internally used account manager used to export and import data
 	AccountManager *accountManager() const;
 
+	QString setupName() const;
 	//! Returns the currently used port
 	quint16 port() const;
 	//! @readAcFn{UserInfo::active}
@@ -121,6 +123,7 @@ Q_SIGNALS:
 	//! Is emitted when an error occured trying to export or import
 	void exchangeError(const QString &errorString, QPrivateSignal);
 
+	Q_REVISION(2) void setupNameChanged(const QString &setupName, QPrivateSignal);
 	//! @notifyAcFn{UserInfo::active}
 	void activeChanged(bool active, QPrivateSignal);
 	//! @notifyAcFn{UserInfo::users}

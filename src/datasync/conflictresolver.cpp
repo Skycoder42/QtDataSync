@@ -17,6 +17,11 @@ void ConflictResolver::setDefaults(const Defaults &defaults)
 	d->settings = defaults.createSettings(this, QString::fromUtf8(name()));
 }
 
+QString ConflictResolver::setupName() const
+{
+	return d->defaultsName;
+}
+
 QByteArray ConflictResolver::name() const
 {
 	return "resolver";

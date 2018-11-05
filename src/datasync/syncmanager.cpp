@@ -63,6 +63,8 @@ void SyncManager::initReplica(QRemoteObjectNode *node)
 {
 	d->replica = node->acquire<SyncManagerPrivateReplica>();
 	d->replica->setParent(this);
+	connect(d->replica, &SyncManagerPrivateReplica::setupNameChanged,
+			this, PSIG(&SyncManager::setupNameChanged));
 	connect(d->replica, &SyncManagerPrivateReplica::syncEnabledChanged,
 			this, PSIG(&SyncManager::syncEnabledChanged));
 	connect(d->replica, &SyncManagerPrivateReplica::syncStateChanged,
@@ -82,6 +84,11 @@ SyncManager::~SyncManager() = default;
 QRemoteObjectReplica *SyncManager::replica() const
 {
 	return d->replica;
+}
+
+QString SyncManager::setupName() const
+{
+	return d->replica->setupName();
 }
 
 bool SyncManager::isSyncEnabled() const

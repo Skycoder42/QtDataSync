@@ -73,7 +73,7 @@ void TestEventCursor::testCursorCreation()
 		auto cursor = EventCursor::first(this);
 		QVERIFY(cursor);
 		QVERIFY(cursor->isValid());
-		QCOMPARE(cursor->index(), 1);
+		QCOMPARE(cursor->index(), 1ull);
 		QCOMPARE(cursor->key(), TestLib::generateKey(2));
 		QCOMPARE(cursor->wasRemoved(), false);
 		QVERIFY(cursor->timestamp() >= _firstStamp);
@@ -83,7 +83,7 @@ void TestEventCursor::testCursorCreation()
 		cursor = EventCursor::last(this);
 		QVERIFY(cursor);
 		QVERIFY(cursor->isValid());
-		QCOMPARE(cursor->index(), 5);
+		QCOMPARE(cursor->index(), 5ull);
 		QCOMPARE(cursor->key(), TestLib::generateKey(4));
 		QCOMPARE(cursor->wasRemoved(), true);
 		QVERIFY(cursor->timestamp() >= _firstStamp);
@@ -93,7 +93,7 @@ void TestEventCursor::testCursorCreation()
 		cursor = EventCursor::create(3, this);
 		QVERIFY(cursor);
 		QVERIFY(cursor->isValid());
-		QCOMPARE(cursor->index(), 3);
+		QCOMPARE(cursor->index(), 3ull);
 		QCOMPARE(cursor->key(), TestLib::generateKey(6));
 		QCOMPARE(cursor->wasRemoved(), false);
 		QVERIFY(cursor->timestamp() >= _firstStamp);
@@ -105,7 +105,7 @@ void TestEventCursor::testCursorCreation()
 		cursor = EventCursor::load(data, this);
 		QVERIFY(cursor);
 		QVERIFY(cursor->isValid());
-		QCOMPARE(cursor->index(), 3);
+		QCOMPARE(cursor->index(), 3ull);
 		QCOMPARE(cursor->key(), TestLib::generateKey(6));
 		QCOMPARE(cursor->wasRemoved(), false);
 		QVERIFY(cursor->timestamp() >= _firstStamp);
@@ -270,7 +270,7 @@ void TestEventCursor::testScanLog()
 		QVERIFY(cursor->hasNext());
 		QVERIFY(cursor->next());
 		QVERIFY(!cursor->hasNext());
-		QCOMPARE(cursor->index(), 10);
+		QCOMPARE(cursor->index(), 10ull);
 
 		delete cursor;
 	} catch(QException &e) {
@@ -284,7 +284,7 @@ void TestEventCursor::testClearLog()
 		auto cursor = EventCursor::last(this);
 		QVERIFY(cursor);
 		QVERIFY(cursor->isValid());
-		QCOMPARE(cursor->index(), 10);
+		QCOMPARE(cursor->index(), 10ull);
 		QCOMPARE(cursor->key(), TestLib::generateKey(2));
 		QCOMPARE(cursor->wasRemoved(), false);
 
@@ -295,7 +295,7 @@ void TestEventCursor::testClearLog()
 		auto first = EventCursor::first(this);
 		QVERIFY(first);
 		QVERIFY(first->isValid());
-		QCOMPARE(first->index(), 1);
+		QCOMPARE(first->index(), 1ull);
 		delete first;
 
 		// delete with offset
@@ -303,7 +303,7 @@ void TestEventCursor::testClearLog()
 		first = EventCursor::first(this);
 		QVERIFY(first);
 		QVERIFY(first->isValid());
-		QCOMPARE(first->index(), 5);
+		QCOMPARE(first->index(), 5ull);
 		delete first;
 
 		// delete without offset
@@ -311,7 +311,7 @@ void TestEventCursor::testClearLog()
 		first = EventCursor::first(this);
 		QVERIFY(first);
 		QVERIFY(first->isValid());
-		QCOMPARE(first->index(), 10);
+		QCOMPARE(first->index(), 10ull);
 		delete first;
 
 		delete cursor;
@@ -329,7 +329,7 @@ void TestEventCursor::testReset()
 		auto cursor = EventCursor::first(this);
 		QVERIFY(cursor);
 		QVERIFY(cursor->isValid());
-		QCOMPARE(cursor->index(), 10);
+		QCOMPARE(cursor->index(), 10ull);
 		delete cursor;
 
 		store.reset(false);
