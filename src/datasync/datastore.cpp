@@ -167,6 +167,8 @@ void DataStore::iterate(int metaTypeId, const std::function<bool (QVariant)> &it
 		try {
 			if(!iterator(load(metaTypeId, key)))
 				break;
+		} catch(NoDataException &) {
+			//no data is not considered an error in this scenario
 		} catch (QException &e) {
 			if(skipBroken)
 				logWarning() << "Ignoring error on store iteration:" << e.what();
