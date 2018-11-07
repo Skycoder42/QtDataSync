@@ -8,6 +8,7 @@
 #include "remoteconnector_p.h"
 #include "syncmanager_p.h"
 #include "changeemitter_p.h"
+#include "qtrotransportregistry.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QCoreApplication>
@@ -135,7 +136,8 @@ void ExchangeEngine::initialize()
 		logDebug() << "Controller initialization completed";
 
 		//create remote object stuff
-		_roHost = new QRemoteObjectHost(_defaults.remoteAddress(), this);
+		_roHost = new QRemoteObjectHost(this);
+		QtRoTransportRegistry::connectHostNode(_defaults.remoteAddress(), _roHost);
 		_roHost->enableRemoting(_emitter);
 		_syncManager = new SyncManagerPrivate(this);
 		_roHost->enableRemoting(_syncManager);

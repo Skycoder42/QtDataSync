@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core jsonserializer sql websockets scxml remoteobjects remoteobjects-private
+QT = core jsonserializer sql websockets scxml remoteobjects
 
 HEADERS += \
 	qtdatasync_global.h \
@@ -42,8 +42,9 @@ HEADERS += \
 	migrationhelper_p.h \
 	remoteconfig.h \
 	remoteconfig_p.h \
-    eventcursor.h \
-    eventcursor_p.h
+	eventcursor.h \
+	eventcursor_p.h \
+	qtrotransportregistry.h
 
 SOURCES += \
 	localstore.cpp \
@@ -74,7 +75,8 @@ SOURCES += \
 	changeemitter.cpp \
 	migrationhelper.cpp \
 	remoteconfig.cpp \
-    eventcursor.cpp
+	eventcursor.cpp \
+	qtrotransportregistry.cpp
 
 STATECHARTS += \
 	connectorstatemachine.scxml

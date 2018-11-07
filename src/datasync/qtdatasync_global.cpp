@@ -2,8 +2,7 @@
 #include "objectkey.h"
 #include "changecontroller_p.h"
 
-#include "threadedserver_p.h"
-#include "threadedclient_p.h"
+#include "exchangerotransport_p.h"
 
 #include <QtCore/QCoreApplication>
 #include "message_p.h"
@@ -18,8 +17,9 @@ void setupQtDataSync()
 	qRegisterMetaType<QtDataSync::ChangeController::ChangeInfo>();
 	qRegisterMetaTypeStreamOperators<QtDataSync::ObjectKey>();
 
-	qRegisterRemoteObjectsServer<QtDataSync::ThreadedServer>(QtDataSync::ThreadedServer::UrlScheme());
-	qRegisterRemoteObjectsClient<QtDataSync::ThreadedClientIoDevice>(QtDataSync::ThreadedServer::UrlScheme());
+	QtDataSync::QtRoTransportRegistry::registerTransport(QtDataSync::ExchangeBufferServer::UrlScheme(),
+														 new QtDataSync::ThreadedQtRoServer{},
+														 new QtDataSync::ThreadedQtRoClient{});
 
 	QtDataSync::Message::registerTypes();
 }

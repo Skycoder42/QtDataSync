@@ -13,7 +13,7 @@ SUBDIRS += \
 	TestKeystorePlugins \
 	TestRemoteConnector \
 	TestMigrationHelper \
-    TestEventCursor
+	TestEventCursor
 
 include_server_tests {
 	SUBDIRS += \
