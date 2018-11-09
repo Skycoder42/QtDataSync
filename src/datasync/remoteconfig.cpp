@@ -57,6 +57,21 @@ void RemoteConfig::setKeepaliveTimeout(int keepaliveTimeout)
 	d->keepaliveTimeout = keepaliveTimeout;
 }
 
+QVariantMap RemoteConfig::storedHeaders() const
+{
+	QVariantMap map;
+	for(auto it = d->headers.constBegin(); it != d->headers.constEnd(); ++it)
+		map.insert(QString::fromUtf8(it.key()), QString::fromUtf8(it.value()));
+	return map;
+}
+
+void RemoteConfig::setStoredHeaders(const QVariantMap &map)
+{
+	d->headers.clear();
+	for(auto it = map.constBegin(); it != map.constEnd(); ++it)
+		d->headers.insert(it.key().toUtf8(), it.value().toString().toUtf8());
+}
+
 
 
 QDataStream &QtDataSync::operator<<(QDataStream &stream, const RemoteConfig &deviceInfo)

@@ -68,7 +68,7 @@ class Q_DATASYNC_EXPORT Setup
 	//! The serializer to be used to serialize and deserialize data to and from the store
 	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer RESET resetSerializer)
 	//! An optional conflict resolver to handle merge conflicts
-	Q_PROPERTY(ConflictResolver* conflictResolver READ conflictResolver WRITE setConflictResolver RESET resetConflictResolver)
+	Q_PROPERTY(QtDataSync::ConflictResolver* conflictResolver READ conflictResolver WRITE setConflictResolver RESET resetConflictResolver)
 	//! An alternative handler for fatal errors
 	Q_PROPERTY(FatalErrorHandler fatalErrorHandler READ fatalErrorHandler WRITE setFatalErrorHandler RESET resetFatalErrorHandler)
 	//! The size of the internal database cache, in bytes
@@ -80,7 +80,7 @@ class Q_DATASYNC_EXPORT Setup
 	//! The ssl configuration to be used to connect to the remote
 	Q_PROPERTY(QSslConfiguration sslConfiguration READ sslConfiguration WRITE setSslConfiguration RESET resetSslConfiguration)
 	//! The configuration to be used to connect to the remote
-	Q_PROPERTY(RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration RESET resetRemoteConfiguration)
+	Q_PROPERTY(QtDataSync::RemoteConfig remoteConfiguration READ remoteConfiguration WRITE setRemoteConfiguration RESET resetRemoteConfiguration)
 	//! The name of the preferred keystore provider
 	Q_PROPERTY(QString keyStoreProvider READ keyStoreProvider WRITE setKeyStoreProvider RESET resetKeyStoreProvider)
 	//! The algorithmic scheme to be used for new signature keys
@@ -192,6 +192,8 @@ public:
 	static KeyStore *loadKeystore(const QString &provider, QObject *parent = nullptr, const QString &setupName = DefaultSetup);
 
 	Setup();
+	Setup(Setup &&other) noexcept;
+	Setup &operator=(Setup &&other) noexcept;
 	~Setup();
 
 	//! @readAcFn{Setup::localDir}
@@ -401,4 +403,5 @@ Q_DECL_CONSTEXPR inline int GB(intmax_t value)
 }
 
 }
+
 #endif // QTDATASYNC_SETUP_H

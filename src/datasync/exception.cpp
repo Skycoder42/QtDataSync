@@ -12,7 +12,7 @@ Exception::Exception(const Defaults &defaults, const QString &message) :
 	Exception{defaults.setupName(), message}
 {}
 
-Exception::Exception(const Exception * const other) :
+Exception::Exception(const Exception * const other) :  //MAJOR use normal copy ctr instead
 	QException{},
 	_setupName{other->_setupName},
 	_message{other->_message}

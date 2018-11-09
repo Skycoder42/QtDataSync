@@ -5,6 +5,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qshareddata.h>
+#include <QtCore/qvariant.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 
@@ -21,9 +22,11 @@ class Q_DATASYNC_EXPORT RemoteConfig
 	//! A access secret needed in order to connect to the server
 	Q_PROPERTY(QString accessKey READ accessKey WRITE setAccessKey)
 	//! A collection of additional HTTP headers to be sent with the request
-	Q_PROPERTY(HeaderHash headers READ headers WRITE setHeaders)
+	Q_PROPERTY(QtDataSync::RemoteConfig::HeaderHash headers READ headers WRITE setHeaders STORED false)
 	//! The keep alive timeout to be used to send pings to the server
 	Q_PROPERTY(int keepaliveTimeout READ keepaliveTimeout WRITE setKeepaliveTimeout)
+
+	Q_PROPERTY(QVariantMap storedHeaders READ storedHeaders WRITE setStoredHeaders)
 
 public:
 	//! Typedef for a hash of additional HTTP headers
@@ -65,6 +68,9 @@ public:
 
 private:
 	QSharedDataPointer<RemoteConfigPrivate> d;
+
+	QVariantMap storedHeaders() const;
+	void setStoredHeaders(const QVariantMap &map);
 
 	friend Q_DATASYNC_EXPORT QDataStream &operator<<(QDataStream &stream, const RemoteConfig &deviceInfo);
 	friend Q_DATASYNC_EXPORT QDataStream &operator>>(QDataStream &stream, RemoteConfig &deviceInfo);

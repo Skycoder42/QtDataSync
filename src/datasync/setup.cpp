@@ -29,7 +29,7 @@ void Setup::setCleanupTimeout(unsigned long timeout)
 	SetupPrivate::timeout = timeout;
 }
 
-void Setup::removeSetup(const QString &name, bool waitForFinished)
+void Setup::removeSetup(const QString &name, bool waitForFinished) //TODO add awaitable version
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
 	if(!SetupPrivate::engines.contains(name))
@@ -105,6 +105,17 @@ KeyStore *Setup::loadKeystore(const QString &provider, QObject *parent, const QS
 Setup::Setup() :
 	d{new SetupPrivate()}
 {}
+
+Setup::Setup(Setup &&other) noexcept
+{
+	swap(d, other.d);
+}
+
+Setup &Setup::operator=(Setup &&other) noexcept
+{
+	swap(d, other.d);
+	return *this;
+}
 
 Setup::~Setup() = default;
 

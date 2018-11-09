@@ -1,6 +1,6 @@
 TEMPLATE = subdirs
 
-!android:!ios:!winrt: SUBDIRS += appserver
+!cross_compile: SUBDIRS += appserver
 
 prepareRecursiveTarget(lrelease)
 QMAKE_EXTRA_TARGETS += lrelease run-tests
