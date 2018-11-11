@@ -20,6 +20,7 @@ private Q_SLOTS:
 	void testAll();
 	void testContains();
 	void testFind();
+	void testIterate();
 	void testRemove_data();
 	void testRemove();
 	void testClear();
@@ -137,6 +138,53 @@ void TestDataStore::testFind()
 
 	try {
 		QCOMPARE(store->search<TestData>(QStringLiteral("*2*"), DataStore::WildcardMode), objects);
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TestDataStore::testIterate()
+{
+	try {
+		//normal iterate
+		{
+			QList<TestData> objects = TestLib::generateData(429, 432);
+			store->iterate<TestData>([&](const TestData &data){
+				auto ok = false;
+				[&](){
+					QVERIFY(!objects.isEmpty());
+					QCOMPARE(data, objects.takeFirst());
+					ok = true;
+				}();
+				return ok;
+			});
+			QVERIFY(objects.isEmpty());
+		}
+
+		//iterate with delete
+		{
+			QList<TestData> objects = TestLib::generateData(429, 432);
+			objects.removeAt(2);
+			bool first = true;
+			store->iterate<TestData>([&](const TestData &data){
+				auto ok = false;
+				[&](){
+					if(first) {
+						QVERIFY(data.id != 431);
+						first = false;
+						store->remove<TestData>(431);
+					}
+					QVERIFY(!objects.isEmpty());
+					QCOMPARE(data, objects.takeFirst());
+					ok = true;
+				}();
+				return ok;
+			});
+			QVERIFY(objects.isEmpty());
+
+			//re-add for further tests
+			store->save(TestLib::generateData(431));
+		}
 	} catch(QException &e) {
 		QFAIL(e.what());
 	}

@@ -76,6 +76,12 @@ void TestDataTypeStore::testSimple()
 		QList<int> k = {0, 1, 2, 3};
 		QCOMPAREUNORDERED(store.keys(), k);
 		QCOMPAREUNORDERED(store.loadAll(), TestLib::generateData(0, 3));
+		auto iterCount = 0;
+		store.iterate([&](const TestData &data){
+			iterCount++;
+			return true;
+		});
+		QCOMPARE(iterCount, 4);
 
 		QVERIFY(store.remove(1));
 		QCOMPARE(store.count(), 3);
@@ -186,7 +192,7 @@ void TestDataTypeStore::testCaching(std::function<QList<T>(int,int)> generator, 
 	}
 }
 
-static void dataTypeStoreCompiletest_DO_NOT_CALL()
+Q_DECL_UNUSED static void dataTypeStoreCompiletest_DO_NOT_CALL()
 {
 	DataTypeStore<TestData, int> t1;
 	t1.count();
@@ -196,7 +202,7 @@ static void dataTypeStoreCompiletest_DO_NOT_CALL()
 	t1.save(TestData());
 	t1.remove(5);
 	t1.search(QStringLiteral("47"));
-	t1.iterate([](TestData) {
+	t1.iterate([](const TestData &) {
 		return false;
 	});
 	t1.clear();
