@@ -29,6 +29,6 @@ include(../../../../src/3rdparty/cryptopp/cryptopp.pri)
 
 runtarget.target = run-tests
 win32: runtarget.depends += $(DESTDIR_TARGET)
-else:linux: runtarget.depends += $(DESTDIR)/$(TARGET)
+else:linux: runtarget.depends += $(DESTDIR)$(TARGET)
 else: runtarget.depends += $(TARGET)
 QMAKE_EXTRA_TARGETS += runtarget

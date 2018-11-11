@@ -162,6 +162,19 @@ void TestKeystorePlugins::testKeystoreFunctions()
 
 	delete pluginObj;
 	loader.unload();
+
+	try {
+		// finally: test keystore setup API
+		QVERIFY(Setup::keystoreProviders().contains(provider));
+		QVERIFY(Setup::availableKeystores().contains(provider));
+		QVERIFY(Setup::keystoreAvailable(provider));
+		auto keystore = Setup::loadKeystore(provider, this);
+		QVERIFY(keystore);
+		QCOMPARE(keystore->providerName(), provider);
+		delete keystore;
+	} catch(QException &e) {
+		QFAIL(e.what());
+	}
 }
 
 QTEST_MAIN(TestKeystorePlugins)
