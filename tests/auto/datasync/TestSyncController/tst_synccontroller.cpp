@@ -490,15 +490,23 @@ void TestSyncController::testResolver_data()
 	QTest::addColumn<QJsonObject>("localData");
 	QTest::addColumn<QJsonObject>("remoteData");
 	QTest::addColumn<QJsonObject>("resultData");
+	QTest::addColumn<bool>("testThrow");
 
 	QTest::newRow("conflict:local") << TestLib::generateKey(10)
 									<< TestLib::generateDataJson(10, QStringLiteral("dataA"))
 									<< TestLib::generateDataJson(10, QStringLiteral("dataB"))
-									<< TestLib::generateDataJson(10, QStringLiteral("dataA+conflict"));
+									<< TestLib::generateDataJson(10, QStringLiteral("dataA+conflict"))
+									<< false;
 	QTest::newRow("conflict:remote") << TestLib::generateKey(10)
 									 << TestLib::generateDataJson(10, QStringLiteral("dataB"))
 									 << TestLib::generateDataJson(10, QStringLiteral("dataA"))
-									 << TestLib::generateDataJson(10, QStringLiteral("dataA+conflict"));
+									 << TestLib::generateDataJson(10, QStringLiteral("dataA+conflict"))
+									 << false;
+	QTest::newRow("conflict:throw") << TestLib::generateKey(10)
+									<< TestLib::generateDataJson(10, QStringLiteral("dataA"))
+									<< TestLib::generateDataJson(10, QStringLiteral("dataB"))
+									<< TestLib::generateDataJson(10, QStringLiteral("dataB"))
+									<< true;
 }
 
 void TestSyncController::testResolver()
@@ -507,6 +515,7 @@ void TestSyncController::testResolver()
 	QFETCH(QJsonObject, localData);
 	QFETCH(QJsonObject, remoteData);
 	QFETCH(QJsonObject, resultData);
+	QFETCH(bool, testThrow);
 	QSignalSpy doneSpy(controller, &SyncController::syncDone);
 	QSignalSpy errorSpy(controller, &SyncController::controllerError);
 
@@ -517,7 +526,9 @@ void TestSyncController::testResolver()
 
 		auto dPriv = DefaultsPrivate::obtainDefaults(DefaultSetup);
 		auto oldRes = dPriv->resolver;
-		dPriv->resolver = new TestResolver(controller);
+		auto testRes = new TestResolver(controller);
+		testRes->shouldThrow = testThrow;
+		dPriv->resolver = testRes;
 		dPriv->resolver->setDefaults(dPriv);
 
 		//step 1: setup the local store

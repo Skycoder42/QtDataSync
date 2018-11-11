@@ -14,6 +14,8 @@ public:
 	explicit TestResolver(QObject *parent = nullptr);
 
 	TestData resolveConflict(TestData data1, TestData data2, QObject *parent) const override;
+
+	bool shouldThrow = false;
 };
 
 #endif // TESTRESOLVER_H
