@@ -305,7 +305,6 @@ void Client::timeout()
 void Client::run(const function<void ()> &fn)
 {
 	_queue->enqueue([fn, this]() {
-		//TODO "log" (hashed) ip on error? to allow blocking???
 		try {
 			fn();
 		} catch (DatabaseException &e) {

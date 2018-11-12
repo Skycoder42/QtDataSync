@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	TestLib \
+	TestSetup \
 	TestLocalStore \
 	TestDataStore \
 	TestDataTypeStore \
@@ -13,7 +14,7 @@ SUBDIRS += \
 	TestKeystorePlugins \
 	TestRemoteConnector \
 	TestMigrationHelper \
-    TestEventCursor
+	TestEventCursor
 
 include_server_tests {
 	SUBDIRS += \

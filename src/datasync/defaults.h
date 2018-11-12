@@ -49,6 +49,8 @@ public:
 	//! Arrow operator to access the database
 	QSqlDatabase *operator->() const;
 
+	void drop();
+
 private:
 	QScopedPointer<DatabaseRefPrivate> d;
 };
@@ -94,6 +96,7 @@ public:
 	~Defaults();
 
 	bool isValid() const;
+	void drop();
 
 	//! Create a new logger instance
 	Logger *createLogger(const QByteArray &subCategory, QObject *parent = nullptr) const;

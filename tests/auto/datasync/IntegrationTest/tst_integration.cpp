@@ -1,6 +1,7 @@
 #include <QString>
 #include <QtTest>
 #include <QCoreApplication>
+#include <QtService/ServiceControl>
 #include <testlib.h>
 #include <testdata.h>
 using namespace QtDataSync;
@@ -20,11 +21,13 @@ private Q_SLOTS:
 	void testRemoveAndResetAccount();
 	void testAddAccountTrusted();
 
+	void testAddAccountOnCreate();
+
 Q_SIGNALS:
 	void unlock();
 
 private:
-	QProcess *server;
+	QtService::ServiceControl *server;
 
 	AccountManager *acc1;
 	SyncManager *sync1;
@@ -45,21 +48,24 @@ void IntegrationTest::initTestCase()
 	QVERIFY(QFile::exists(QString::fromUtf8(confPath)));
 	qputenv("QDSAPP_CONFIG_FILE", confPath);
 
+	const QString launchPath { QStringLiteral(BUILD_BIN_DIR "qdsapp") };
 #ifdef Q_OS_UNIX
-	QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappd") };
+	const QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappd") };
 #elif Q_OS_WIN
-	QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappsvc") };
+	const QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappsvc") };
 #else
-	QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsapp") };
+	const auto binPath = launchPath;
 #endif
 	QVERIFY(QFile::exists(binPath));
+	if(!QFile::exists(launchPath))
+		QVERIFY(QFile::link(binPath, launchPath));
+	QVERIFY(QFile::exists(launchPath));
 
-	server = new QProcess(this);
-	server->setProgram(binPath);
-	server->setProcessChannelMode(QProcess::ForwardedErrorChannel);
-	server->start();
-	QVERIFY(server->waitForStarted(5000));
-	QVERIFY(!server->waitForFinished(5000));
+	server = QtService::ServiceControl::create(QStringLiteral("debug"), launchPath, this);
+	QVERIFY(server);
+	QVERIFY(server->serviceExists());
+	server->setBlocking(true);
+	QVERIFY(server->start());
 
 	try {
 		TestLib::init();
@@ -117,16 +123,9 @@ void IntegrationTest::cleanupTestCase()
 	acc2 = nullptr;
 	Setup::removeSetup(QStringLiteral("setup2"), true);
 
-	//send a signal to stop
-#ifdef Q_OS_UNIX
-	server->terminate(); //same as kill(SIGTERM)
-#elif Q_OS_WIN
-	GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, server->processId());
-#endif
-	QVERIFY(server->waitForFinished(5000));
-	QCOMPARE(server->exitStatus(), QProcess::NormalExit);
-	QCOMPARE(server->exitCode(), 0);
-	server->close();
+	QVERIFY(server->stop());
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
+	server->deleteLater();
 }
 
 void IntegrationTest::testPrepareData()
@@ -241,12 +240,12 @@ void IntegrationTest::testAddAccount()
 				emit unlock();
 				QCOMPARE(s, SyncManager::Synchronized);
 			}, true);
-			unlockSpy.wait();
+			QVERIFY(unlockSpy.wait());
 			sync2->runOnSynchronized([this](SyncManager::SyncState s) {
 				emit unlock();
 				QCOMPARE(s, SyncManager::Synchronized);
 			});
-			unlockSpy.wait();
+			QVERIFY(unlockSpy.wait());
 		} while(oldCnt1 != store1->count() || oldCnt2 != store2->count());
 
 		QCOMPARE(store1->count(), 20);
@@ -598,18 +597,101 @@ void IntegrationTest::testAddAccountTrusted()
 			emit unlock();
 			QCOMPARE(s, SyncManager::Synchronized);
 		}, true);
-		unlockSpy.wait();
+		QVERIFY(unlockSpy.wait());
 		sync2->runOnSynchronized([this](SyncManager::SyncState s) {
 			emit unlock();
 			QCOMPARE(s, SyncManager::Synchronized);
 		});
-		unlockSpy.wait();
+		QVERIFY(unlockSpy.wait());
 
 		QCOMPARE(store1->count(), 0);
 		QCOMPARE(store2->count(), 0);
 
 		QVERIFY(error1Spy.isEmpty());
 		QVERIFY(error2Spy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void IntegrationTest::testAddAccountOnCreate()
+{
+	try {
+		QSignalSpy error1Spy(acc1, &AccountManager::lastErrorChanged);
+		QSignalSpy grantSpy(acc1, &AccountManager::accountAccessGranted);
+		QSignalSpy unlockSpy(this, &IntegrationTest::unlock);
+
+		//export from acc1
+		auto password = QStringLiteral("password");
+		QJsonObject exportData;
+		acc1->exportAccountTrusted(false, password, [&](QJsonObject exp) {
+			QVERIFY(AccountManager::isTrustedImport(exp));
+			exportData = exp;
+			emit unlock();
+		}, [](QString e) {
+			QFAIL(qUtf8Printable(e));
+		});
+		QVERIFY(unlockSpy.wait());
+		QVERIFY(!exportData.isEmpty());
+
+		// create acc3 with account from setup
+		AccountManager *acc3;
+		SyncManager *sync3;
+		DataTypeStore<TestData> *store3;
+		QString setupName3 = QStringLiteral("setup3");
+		{
+			Setup setup3;
+			TestLib::setup(setup3);
+			setup3.setLocalDir(setup3.localDir() + QLatin1Char('/') + setupName3)
+					.setRemoteConfiguration(QUrl(QStringLiteral("ws://localhost:14242")))
+					.setAccountTrusted(exportData, password, false, false);
+			setup3.create(setupName3);
+
+			acc3 = new AccountManager(setupName3, this);
+			QVERIFY(acc3->replica()->waitForSource(5000));
+			sync3 = new SyncManager(setupName3, this);
+			QVERIFY(sync3->replica()->waitForSource(5000));
+			store3 = new DataTypeStore<TestData>(setupName3, this);
+		}
+
+		QSignalSpy error3Spy(acc3, &AccountManager::lastErrorChanged);
+		QSignalSpy acceptSpy(acc3, &AccountManager::importAccepted);
+
+		//wait for accept
+		if(acceptSpy.isEmpty())
+			QVERIFY(acceptSpy.wait());
+		QCOMPARE(acceptSpy.size(), 1);
+
+		//wait for grant
+		if(grantSpy.isEmpty())
+			QVERIFY(grantSpy.wait());
+		QCOMPARE(grantSpy.size(), 1);
+
+		//wait for sync
+		sync1->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		}, true);
+		QVERIFY(unlockSpy.wait());
+		sync3->runOnSynchronized([this](SyncManager::SyncState s) {
+			emit unlock();
+			QCOMPARE(s, SyncManager::Synchronized);
+		});
+		QVERIFY(unlockSpy.wait());
+
+		QCOMPARE(store1->count(), 0);
+		QCOMPARE(store3->count(), 0);
+
+		QVERIFY(error1Spy.isEmpty());
+		QVERIFY(error3Spy.isEmpty());
+
+		delete store3;
+		store3 = nullptr;
+		delete sync3;
+		sync3 = nullptr;
+		delete acc3;
+		acc3 = nullptr;
+		Setup::removeSetup(setupName3, true);
 	} catch(std::exception &e) {
 		QFAIL(e.what());
 	}

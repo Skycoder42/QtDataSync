@@ -48,6 +48,9 @@ public:
 	//! Move-Assignment operator
 	RemoteConfig &operator=(RemoteConfig &&other) noexcept;
 
+	bool operator==(const RemoteConfig &other) const;
+	bool operator!=(const RemoteConfig &other) const;
+
 	//! @readAcFn{RemoteConfig::url}
 	QUrl url() const;
 	//! @readAcFn{RemoteConfig::accessKey}

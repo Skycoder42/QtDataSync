@@ -163,7 +163,7 @@ void TestAppServer::cleanupTestCase()
 	clean();
 	clean(partner);
 	if(server->status() == QtService::ServiceControl::ServiceRunning) {
-		server->stop();
+		QVERIFY(server->stop());
 		QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
 	}
 	server->deleteLater();
@@ -171,7 +171,7 @@ void TestAppServer::cleanupTestCase()
 
 void TestAppServer::testStart()
 {
-	server->start();
+	QVERIFY(server->start());
 	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceRunning);
 	QEXPECT_FAIL("", "Server should not stop easily", Continue);
 	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);

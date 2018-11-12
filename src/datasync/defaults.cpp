@@ -42,6 +42,11 @@ bool Defaults::isValid() const
 	return d;
 }
 
+void Defaults::drop()
+{
+	d.clear();
+}
+
 Logger *Defaults::createLogger(const QByteArray &subCategory, QObject *parent) const
 {
 	return new Logger(subCategory, d->setupName, parent);
@@ -187,6 +192,11 @@ DatabaseRef::operator QSqlDatabase() const
 QSqlDatabase *DatabaseRef::operator->() const
 {
 	return &(d->db());
+}
+
+void DatabaseRef::drop()
+{
+	d.reset();
 }
 
 // ------------- PRIVATE IMPLEMENTATION Defaults -------------

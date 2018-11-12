@@ -29,7 +29,7 @@ void Setup::setCleanupTimeout(unsigned long timeout)
 	SetupPrivate::timeout = timeout;
 }
 
-void Setup::removeSetup(const QString &name, bool waitForFinished) //TODO add awaitable version
+void Setup::removeSetup(const QString &name, bool waitForFinished)
 {
 	QMutexLocker _(&SetupPrivate::setupMutex);
 	if(!SetupPrivate::engines.contains(name))

@@ -17,6 +17,25 @@ RemoteConfig &RemoteConfig::operator=(const RemoteConfig &other) = default;
 
 RemoteConfig &RemoteConfig::operator=(RemoteConfig &&other) noexcept = default;
 
+bool RemoteConfig::operator==(const RemoteConfig &other) const
+{
+	return d == other.d || (
+				d->url == other.d->url &&
+				d->accessKey == other.d->accessKey &&
+				d->headers == other.d->headers &&
+				d->keepaliveTimeout == other.d->keepaliveTimeout);
+}
+
+bool RemoteConfig::operator!=(const RemoteConfig &other) const
+{
+	return d != other.d && (
+				d->url != other.d->url ||
+				d->accessKey != other.d->accessKey ||
+				d->headers != other.d->headers ||
+				d->keepaliveTimeout != other.d->keepaliveTimeout);
+}
+
+
 QUrl RemoteConfig::url() const
 {
 	return d->url;

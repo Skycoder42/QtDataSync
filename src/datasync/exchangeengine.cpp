@@ -389,6 +389,7 @@ void EngineThread::waitAndTerminate(unsigned long timeout)
 {
 	if(isFinished())
 		return;
+	qCDebug(qdssetup) << "Waiting for workerthread of setup" << _name << "to exit normally...";
 	if(!wait(timeout)) {
 		qCWarning(qdssetup) << "Workerthread of setup" << _name << "did not finish before the timout. Terminating...";
 		terminate();

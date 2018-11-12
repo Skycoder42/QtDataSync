@@ -35,17 +35,17 @@ namespace literals {
 
 //! literal for kilobytes
 Q_DECL_CONSTEXPR inline int operator "" _kb(unsigned long long x) {
-	return KB(static_cast<int>(x));
+	return KB(static_cast<intmax_t>(x));
 }
 
 //! literal for megabytes
 Q_DECL_CONSTEXPR inline int operator "" _mb(unsigned long long x) {
-	return MB(static_cast<int>(x));
+	return MB(static_cast<intmax_t>(x));
 }
 
 //! literal for gigabytes
 Q_DECL_CONSTEXPR inline int operator "" _gb(unsigned long long x) {
-	return GB(static_cast<int>(x));
+	return GB(static_cast<intmax_t>(x));
 }
 
 }
