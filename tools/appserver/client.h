@@ -94,25 +94,27 @@ private:
 	QWebSocket *_socket; //must only be accessed from the main thread
 
 	// "constant" members, that wont change after the constructor
-	QTimer *_idleTimer;
-	quint32 _uploadLimit;
-	quint32 _downLimit;
-	quint32 _downThreshold;
+	QTimer *_idleTimer = nullptr;
+	quint32 _uploadLimit = 10;
+	quint32 _downLimit = 20;
+	quint32 _downThreshold = 10;
+	bool _logIp = false;
 
 	// thread safe task queue, ensures only 1 task per client is run at the same time
 	SingleTaskQueue *_queue;
 
 	//following members must only be accessed from within a task (to ensure thread safety)
-	State _state;
+	State _state = Authenticating;
 	QUuid _deviceId;
 	QByteArray _loginNonce;
-	quint32 _cachedChanges;
+	quint32 _cachedChanges = 0;
 	QList<quint64> _activeDownloads;
 	//cached:
 	QtDataSync::AccessMessage _cachedAccessRequest;
 	QByteArray _cachedFingerPrint;
 
 	void run(const std::function<void()> &fn);
+	QByteArray catBaseStr() const;
 	const QLoggingCategory &logFn() const;
 
 	template<typename TMessage>

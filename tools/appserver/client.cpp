@@ -77,22 +77,15 @@ QThreadStorage<Client::Rng> Client::rngPool;
 
 Client::Client(DatabaseController *database, QWebSocket *websocket, QObject *parent) :
 	QObject(parent),
-	_catStr(),
-	_logCat(new QLoggingCategory("client.unknown")),
 	_database(database),
 	_socket(websocket),
-	_idleTimer(nullptr),
-	_uploadLimit(10),
-	_downLimit(20),
-	_downThreshold(10),
-	_queue(new SingleTaskQueue(qService->threadPool(), this)),
-	_state(Authenticating),
-	_deviceId(),
-	_loginNonce(),
-	_cachedChanges(0),
-	_activeDownloads()
+	_queue(new SingleTaskQueue(qService->threadPool(), this))
 {
 	_socket->setParent(this);
+
+	_logIp = qService->configuration()->value(QStringLiteral("logIpAddress"), _logIp).toBool();
+	_catStr = catBaseStr() + "unknown";
+	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
 	connect(_socket, &QWebSocket::disconnected,
 			this, &Client::closeClient);
@@ -328,6 +321,13 @@ void Client::run(const function<void ()> &fn)
 	});
 }
 
+QByteArray Client::catBaseStr() const
+{
+	return _logIp ?
+				QByteArray{"client.[" + _socket->peerAddress().toString().toUtf8() + "]."} :
+				QByteArray{"client."};
+}
+
 const QLoggingCategory &Client::logFn() const
 {
 	return *_logCat;
@@ -395,7 +395,7 @@ void Client::onRegister(const RegisterMessage &message, QDataStream &stream)
 		throw ClientErrorException(ErrorMessage::AuthenticationError);
 	}
 
-	_catStr = "client." + _deviceId.toByteArray();
+	_catStr = catBaseStr() + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
 	qDebug() << "Created new device and user accounts";
@@ -424,7 +424,7 @@ void Client::onLogin(const LoginMessage &message, QDataStream &stream)
 	}
 
 	_deviceId = message.deviceId;
-	_catStr = "client." + _deviceId.toByteArray();
+	_catStr = catBaseStr() + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
 	_database->updateLogin(_deviceId, message.deviceName);
@@ -463,7 +463,7 @@ void Client::onAccess(const AccessMessage &message, QDataStream &stream)
 	_deviceId = QUuid::createUuid(); //not stored yet!!!
 	_cachedAccessRequest = message;
 	//_cachedFingerPrint done inside of try/catch block
-	_catStr = "client." + _deviceId.toByteArray();
+	_catStr = catBaseStr() + _deviceId.toByteArray();
 	_logCat.reset(new QLoggingCategory(_catStr.constData()));
 
 	qDebug() << "New Devices requested account access from" << message.partnerId;

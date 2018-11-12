@@ -306,7 +306,8 @@ void DataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QString &
 				emit dataChanged(key, QVariant::fromValue(_store->load<TType>(key)));
 		}
 	} catch(QException &e) {
-		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.DataTypeStore"))}) << "Failed to loaded changed data with error" << e.what(); //TODO arg setup name
+		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.DataTypeStore").arg(setupName()))})
+				<< "Failed to loaded changed data with error" << e.what();
 	}
 }
 
@@ -439,7 +440,8 @@ void CachingDataTypeStore<TType, TKey>::evalDataChanged(int metaTypeId, const QS
 			}
 		}
 	} catch(QException &e) {
-		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.CachingDataTypeStore"))}) << "Failed to loaded changed data with error" << e.what(); //TODO arg setup name
+		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.CachingDataTypeStore").arg(setupName()))})
+				<< "Failed to loaded changed data with error" << e.what();
 	}
 }
 
@@ -599,7 +601,8 @@ void CachingDataTypeStore<TType*, TKey>::evalDataChanged(int metaTypeId, const Q
 			}
 		}
 	} catch(QException &e) {
-		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.CachingDataTypeStore"))}) << "Failed to loaded changed data with error" << e.what(); //TODO arg setup name
+		qWarning(QLoggingCategory{qUtf8Printable(QStringLiteral("qtdatasync.%1.CachingDataTypeStore").arg(setupName()))})
+				<< "Failed to loaded changed data with error" << e.what();
 	}
 }
 

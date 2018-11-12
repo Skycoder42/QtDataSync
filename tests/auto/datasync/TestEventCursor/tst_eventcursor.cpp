@@ -180,7 +180,7 @@ void TestEventCursor::testAdvanceSkip()
 			ObjectKey key;
 			bool wasRemoved;
 			std::tie(index, key, wasRemoved) = dataList.takeFirst();
-			//TODO c++17: auto[index, key, wasRemoved] = dataList.takeFirst();
+			//NOTE c++17: auto[index, key, wasRemoved] = dataList.takeFirst();
 
 			QCOMPARE(cursor->index(), index);
 			QCOMPARE(cursor->key(), key);
@@ -220,7 +220,7 @@ void TestEventCursor::testScanLog()
 				ObjectKey key;
 				bool wasRemoved;
 				std::tie(index, key, wasRemoved) = dataList.takeFirst();
-				//TODO c++17: auto[index, key, wasRemoved] = dataList.takeFirst();
+				//NOTE c++17: auto[index, key, wasRemoved] = dataList.takeFirst();
 
 				QCOMPARE(scanCursor, cursor);
 				QCOMPARE(scanCursor->index(), index);
