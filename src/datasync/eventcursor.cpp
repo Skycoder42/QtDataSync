@@ -173,7 +173,35 @@ bool EventCursor::next()
 
 void EventCursor::autoScanLog()
 {
-	scanLogImpl(this, [](const EventCursor *) { return true; }, false);
+	autoScanLog(this, [](const EventCursor *) { return true; }, false);
+}
+
+void EventCursor::autoScanLog(std::function<bool (const EventCursor *)> function, bool scanCurrent)
+{
+	autoScanLog(this, std::move(function), scanCurrent);
+}
+
+void EventCursor::autoScanLog(QObject *scope, std::function<bool (const EventCursor *)> function, bool scanCurrent)
+{
+	if(scanCurrent && !function(this))
+		return;
+
+	auto handleNext = [this, LAMBDA_MV(function)]() {
+		while (next()) {
+			if(!function(this))
+				return false;
+		}
+		return true;
+	};
+	if(!handleNext())
+		return;
+
+	auto cnPtr = QSharedPointer<QMetaObject::Connection>::create();
+	*cnPtr = connect(this, &EventCursor::eventLogChanged,
+					 scope, [cnPtr, handleNext](){
+		if(!handleNext() && *cnPtr)
+			QObject::disconnect(*cnPtr);
+	});
 }
 
 void EventCursor::setSkipObsolete(bool skipObsolete)
@@ -201,65 +229,6 @@ void EventCursor::clearEventLog(quint64 offset)
 									  "WHERE SeqId < ?"));
 	eventQuery.addBindValue(d->index - offset);
 	d->exec(eventQuery, d->index - offset);
-}
-
-void EventCursor::setIndex(quint64 index)
-{
-	if(d->index == index)
-		return;
-
-	d->index = index;
-	emit indexChanged(d->index, {});
-}
-
-void EventCursor::setKey(ObjectKey key)
-{
-	if(d->key == key)
-		return;
-
-	d->key = std::move(key);
-	emit keyChanged(d->key, {});
-}
-
-void EventCursor::setWasRemoved(bool wasRemoved)
-{
-	if(d->wasRemoved == wasRemoved)
-		return;
-
-	d->wasRemoved = wasRemoved;
-	emit wasRemovedChanged(d->wasRemoved, {});
-}
-
-void EventCursor::setTimestamp(QDateTime timestamp)
-{
-	if(d->timestamp == timestamp)
-		return;
-
-	d->timestamp = std::move(timestamp);
-	emit timestampChanged(d->timestamp, {});
-}
-
-void EventCursor::scanLogImpl(QObject *scope, std::function<bool (const EventCursor *)> function, bool scanCurrent)
-{
-	if(scanCurrent && !function(this))
-		return;
-
-	auto handleNext = [this, LAMBDA_MV(function)]() {
-		while (next()) {
-			if(!function(this))
-				return false;
-		}
-		return true;
-	};
-	if(!handleNext())
-		return;
-
-	auto cnPtr = QSharedPointer<QMetaObject::Connection>::create();
-	*cnPtr = connect(this, &EventCursor::eventLogChanged,
-					 scope, [cnPtr, handleNext](){
-		if(!handleNext() && *cnPtr)
-			QObject::disconnect(*cnPtr);
-	});
 }
 
 

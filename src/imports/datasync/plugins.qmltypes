@@ -171,10 +171,10 @@ Module {
         exportMetaObjectRevisions: [0]
         Property { name: "valid"; type: "bool"; isReadonly: true }
         Property { name: "setupName"; type: "string"; isReadonly: true }
-        Property { name: "index"; type: "qulonglong" }
-        Property { name: "key"; type: "QtDataSync::ObjectKey" }
-        Property { name: "wasRemoved"; type: "bool" }
-        Property { name: "timestamp"; type: "QDateTime" }
+        Property { name: "index"; type: "qulonglong"; isReadonly: true }
+        Property { name: "key"; type: "QtDataSync::ObjectKey"; isReadonly: true }
+        Property { name: "wasRemoved"; type: "bool"; isReadonly: true }
+        Property { name: "timestamp"; type: "QDateTime"; isReadonly: true }
         Property { name: "skipObsolete"; type: "bool" }
         Signal { name: "eventLogChanged" }
         Signal {

@@ -12,7 +12,7 @@ notify you in case a dataset has been changed.
 caller of those methods are responsible for deleting the objects after the operations have been
 completed. This of course only applies to pointer classes, as gadgets are used as value types.
 
-@sa DataTypeStore, CachingDataTypeStore, DataStoreModel
+@sa DataTypeStore, CachingDataTypeStore, DataStoreModel, EventCursor
 */
 
 /*!

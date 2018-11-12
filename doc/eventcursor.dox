@@ -1,0 +1,373 @@
+/*!
+@class QtDataSync::EventCursor
+
+The EventCursor class provides a simple interface to walk through all the changes that have been
+done on the internal data set. Unlike the DataStore, which presents the actual data but does give
+no guarantees on completeness of change events, this class can be used to deterministically
+handle all changes in chronological order.
+
+@note By default, a datasync instance does not create an eventlog. Enable it via the
+Setup::eventLoggingMode property
+
+@attention This class does **not** hold any data itself, only what was changed, when it happend
+and whether it was changed or deleted. This means if the same dataset is changed multiple times
+in a row, you will get as many change events as it was changed, but you can only ever read the
+most recent dataset from the current datastore.
+
+@sa DataStore, Setup::eventLoggingMode, EventCursor::skipObsolete
+*/
+
+/*!
+@property QtDataSync::EventCursor::valid
+
+@default{`false`}
+
+This can be used to check if an eventcursor returned from one of the static functions is actually
+valid.
+
+@note A once valid eventcursor will only ever advance forward to another valid position and thus
+cannot become invalid
+
+@accessors{
+	@readAc{isValid()}
+	@constantAc
+}
+
+@sa EventCursor::first, EventCursor::last, EventCursor::create, EventCursor::load
+*/
+
+/*!
+@property QtDataSync::EventCursor::setupName
+
+@default{`QtDataSync::DefaultSetup`}
+
+The setup name is the name that was passed to the Setup::create method to create the datasync
+instance this cursor is refering to.
+
+@accessors{
+	@readAc{setupName()}
+	@constantAc
+}
+
+@sa QtDataSync::DefaultSetup, Setup::create
+*/
+
+/*!
+@property QtDataSync::EventCursor::index
+
+@default{`0`}
+
+This index is unqiue and can uniquely identify an event. They are automatically generate and
+are strictly ascending, meaning that newer events will always have a higher index compared to an
+older event.
+
+@accessors{
+	@readAc{index()}
+	@notifyAc{indexChanged()}
+}
+
+@sa EventCursor::create, EventCursor::key
+*/
+
+/*!
+@property QtDataSync::EventCursor::key
+
+@default{<i>empty</i>}
+
+This key contains both, the name of the class and the id of the dataset that was changed.
+
+@accessors{
+	@readAc{key()}
+	@notifyAc{keyChanged()}
+}
+
+@sa QtDataSync::ObjectKey, EventCursor::wasRemoved
+*/
+
+/*!
+@property QtDataSync::EventCursor::wasRemoved
+
+@default{`false`}
+
+If a change event created a new dataset or modified an existing one, than this property is set to
+false. If an existing dataset was deleted it is set to true.
+
+@accessors{
+	@readAc{wasRemoved()}
+	@notifyAc{wasRemovedChanged()}
+}
+
+@sa EventCursor::key
+*/
+
+/*!
+@property QtDataSync::EventCursor::timestamp
+
+@default{<i>invalid</i>}
+
+Timestamps are generated internally based on the current local time and then converted to UTC
+the moment a dataset was changed. This property loads the UTC variant and converts it back to the
+current local time, which means this property **always** returns the time converter to the
+current local time. If you need UTC timestamps, convert it back. The timestamp contains the date
+and time with milliseconds precision.
+
+@accessors{
+	@readAc{timestamp()}
+	@notifyAc{timestampChanged()}
+}
+
+@sa EventCursor::key, EventCursor::index
+*/
+
+/*!
+@property QtDataSync::EventCursor::skipObsolete
+
+@default{`true`}
+
+If skipping obsolete entries is enabled, the cursor will automatically skip multiple change
+events on the same dataset and only consider the most recent ones. If set to false, all entries
+are used instead.
+
+A simple example. Consider the following chain of events:
+@code
+ 001 [MyType:Id1] change  <- cursor positioned here
+ 002 [MyType:Id2] change
+ 003 [MyType:Id1] delete
+ 004 [MyType:Id3] delete
+ 005 [MyType:Id1] change
+@endcode
+
+If this property is set to true, calling next() will move it to `002`. Calling next again will
+make it skip `003` and move to `004` instead, because there is a newer change event for the same
+dataset (`005`). Calling next one more time then moves to `005`. If this property had been
+disabled, entry `003` would not have been skipped, event though the change that was done has
+already been succeeded by a newer one.
+
+@note This property *only** affects the next(), hasNext() and autoScanLog() methods. It is
+still possible to create a cursor on an obsolete event via create()
+
+@accessors{
+	@readAc{skipObsolete()}
+	@writeAc{setSkipObsolete()}
+	@notifyAc{skipObsoleteChanged()}
+}
+
+@sa EventCursor::next, EventCursor::hasNext, EventCursor::autoScanLog, EventCursor::create,
+EventCursor::index
+*/
+
+/*!
+@fn QtDataSync::EventCursor::isEventLogActive
+
+@param setupName The name of the setup to check for an active log
+
+Eventlogging must be explicitly enabled when creating a setup. In case you do not know at the
+point of using the cursor whether the log is actually available, you can use this method to
+check
+
+@attention In case the log is not enabled, all creation methods to obtain a cursor will fail and
+instead return invalid cursors
+
+@sa Setup::eventLoggingMode, EventCursor::valid
+*/
+
+/*!
+@fn QtDataSync::EventCursor::first(QObject*)
+
+@param parent The parent object to set as parent of the event cursor
+@returns A valid eventcursor, positioned on the oldest available change, or an invalid cursor
+if no changes exist
+@throws EventCursorException Thrown if access to the underlying database failed
+
+If no setup name is specified, the cursor is created for the default setup name
+
+@sa EventCursor::last, EventCursor::create, EventCursor::load, EventCursor::valid,
+EventCursor::isEventLogActive
+*/
+
+/*!
+@fn QtDataSync::EventCursor::first(const QString &, QObject*)
+@param setupName The name of the setup to create the cursor for
+@copydetails EventCursor::first(QObject*)
+*/
+
+/*!
+@fn QtDataSync::EventCursor::last(QObject*)
+
+@param parent The parent object to set as parent of the event cursor
+@returns A valid eventcursor, positioned on the newest available change, or an invalid cursor
+if no changes exist
+@throws EventCursorException Thrown if access to the underlying database failed
+
+If no setup name is specified, the cursor is created for the default setup name
+
+@sa EventCursor::first, EventCursor::create, EventCursor::load, EventCursor::valid,
+EventCursor::isEventLogActive
+*/
+
+/*!
+@fn QtDataSync::EventCursor::last(const QString &, QObject*)
+@param setupName The name of the setup to create the cursor for
+@copydetails EventCursor::last(QObject*)
+*/
+
+/*!
+@fn QtDataSync::EventCursor::create(quint64, QObject*)
+
+@param index The index of the change event to position the cursor on
+@param parent The parent object to set as parent of the event cursor
+@returns A valid eventcursor, positioned on the given index, or an invalid cursor
+if no changes exist for that index
+@throws EventCursorException Thrown if access to the underlying database failed
+
+If no setup name is specified, the cursor is created for the default setup name
+
+@sa EventCursor::first, EventCursor::last, EventCursor::load, EventCursor::valid,
+EventCursor::isEventLogActive
+*/
+
+/*!
+@fn QtDataSync::EventCursor::create(quint64, const QString &, QObject*)
+@param setupName The name of the setup to create the cursor for
+@copydetails EventCursor::create(quint64, QObject*)
+*/
+
+/*!
+@fn QtDataSync::EventCursor::load(const QByteArray &, QObject*)
+
+@param data The data to create the cursor from
+@param parent The parent object to set as parent of the event cursor
+@returns A valid eventcursor, positioned on the index part of the data, or an invalid cursor
+if no changes exist for that index
+@throws EventCursorException Thrown if access to the underlying database failed
+
+If no setup name is specified, the cursor is created for the default setup name. The following
+properties are restored from the data:
+
+- EventCursor::index
+- EventCursor::skipObsolete
+
+Use save() to save the data of an existing cursor so you can later load it again using this
+method.
+
+@note The index is only set in case the returned cursor is valid. For an invalid cursor, only the
+skipObsolete property will be set.
+
+@sa EventCursor::first, EventCursor::last, EventCursor::create, EventCursor::valid,
+EventCursor::isEventLogActive, EventCursor::save, EventCursor::skipObsolete
+*/
+
+/*!
+@fn QtDataSync::EventCursor::load(const QByteArray &, const QString &, QObject*)
+@param setupName The name of the setup to create the cursor for
+@copydetails EventCursor::load(const QByteArray &, QObject*)
+*/
+
+/*!
+@fn QtDataSync::EventCursor::save
+
+@returns Encoded data of the current cursor that can be used to recreate it.
+
+The following properties are encoded into the data:
+
+- EventCursor::index
+- EventCursor::skipObsolete
+
+@sa EventCursor::load
+*/
+
+/*!
+@fn QtDataSync::EventCursor::hasNext
+
+@returns True if there is at least one newer change event currently available, false if not
+@throws EventCursorException Thrown if access to the underlying database failed
+
+This method does not change the position or general state of the current cursor. This method
+honors the value of skipObsolete
+
+@sa EventCursor::next, EventCursor::valid, EventCursor::skipObsolete
+*/
+
+/*!
+@fn QtDataSync::EventCursor::next
+
+@returns True if the cursor was able to advance to a new change event, false if not
+@throws EventCursorException Thrown if access to the underlying database failed
+
+In case there was a new change event, after calling this method the cursor is now positioned on
+that newer record and in case it was previously valid now still is valid and true is returned. If
+however there was no new change event to advance to, the cursor stayes **unchanged** and false is
+returned. This means the cursor is **not** set to be invalid if this method fails, only the
+return value or the index can be used to check if the next operation actually did anything.
+
+This method honors the value of skipObsolete
+
+@sa EventCursor::hasNext, EventCursor::autoScanLog, EventCursor::skipObsolete
+*/
+
+/*!
+@fn QtDataSync::EventCursor::autoScanLog()
+
+@throws EventCursorException Thrown if access to the underlying database failed
+
+This method basically just calles next() in a loop to walk through all existing change events
+until it reaches the current one. After that happend, the cursor will now react on changes to
+the events in the database and automatically advance forward as soon as a new event was logged
+there.
+
+This method honors the value of skipObsolete
+
+@sa EventCursor::hasNext, EventCursor::next, EventCursor::skipObsolete, EventCursor::indexChanged
+*/
+
+/*!
+@fn QtDataSync::EventCursor::autoScanLog(std::function<bool(const EventCursor *)>, bool)
+
+@param function The callback to be called for each event visited
+@param scanCurrent Specify if the event currently pointed should be passed to the function before
+advancing to the next one
+@throws EventCursorException Thrown if access to the underlying database failed
+
+This method basically just calles next() in a loop to walk through all existing change events
+until it reaches the current one. After that happend, the cursor will now react on changes to
+the events in the database and automatically advance forward as soon as a new event was logged
+there.
+
+For every event visited that way, the function callback is called once with this cursor passed
+to it. The method can return true to continue the loop or false to end it.
+
+This method honors the value of skipObsolete
+
+@sa EventCursor::hasNext, EventCursor::next, EventCursor::skipObsolete, EventCursor::indexChanged
+*/
+
+/*!
+@fn QtDataSync::EventCursor::autoScanLog(QObject *, std::function<bool(const EventCursor *)>, bool)
+@param scope The object scope to limit the callback to. Only call as long as the scope still exists
+@copydetails QtDataSync::EventCursor::autoScanLog(std::function<bool(const EventCursor *)>, bool)
+*/
+
+/*!
+@fn QtDataSync::EventCursor::clearEventLog
+
+@param offset The number of events to keep before the current one
+@throws EventCursorException Thrown if access to the underlying database failed
+
+When called, all events that are older than the one currently pointed to are deleted. You can
+additionally keep entries by specifing an offset. If the offset is for example 5, there will be
+5 entries left that are older than the current one after the cleanup.
+
+@note This method does **not** the value of skipObsolete
+
+@sa EventCursor::index
+*/
+
+/*!
+@fn QtDataSync::EventCursor::eventLogChanged
+
+This signal does **not** mean that the event the current cursor is pointing to has changed. It
+only notifies you that there are new events that have been added to the underlying event log.
+This signal is used by autoScanLog() to automatically advance through new events.
+
+@sa EventCursor::autoScanLog, EventCursor::indexChanged
+*/

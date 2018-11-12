@@ -659,7 +659,7 @@ void IntegrationTest::testAddAccountOnCreate()
 
 		//wait for accept
 		if(acceptSpy.isEmpty())
-			QVERIFY(acceptSpy.wait());
+			QVERIFY(acceptSpy.wait(15000)); //give more time
 		QCOMPARE(acceptSpy.size(), 1);
 
 		//wait for grant
