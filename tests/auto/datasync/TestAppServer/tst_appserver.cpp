@@ -2,6 +2,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <QProcess>
+#include <QtService/ServiceControl>
 #include <testlib.h>
 #include <mockclient.h>
 
@@ -93,7 +94,7 @@ private Q_SLOTS:
 	void testStop();
 
 private:
-	QProcess *server; //TODO replace with debug ServiceControl
+	QtService::ServiceControl *server;
 
 	MockClient *client;
 	QString devName;
@@ -122,18 +123,23 @@ void TestAppServer::initTestCase()
 	QVERIFY(QFile::exists(QString::fromUtf8(confPath)));
 	qputenv("QDSAPP_CONFIG_FILE", confPath);
 
+	const QString launchPath { QStringLiteral(BUILD_BIN_DIR "qdsapp") };
 #ifdef Q_OS_UNIX
-	QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappd") };
+	const QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappd") };
 #elif Q_OS_WIN
-	QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappsvc") };
+	const QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsappsvc") };
 #else
-	QString binPath { QStringLiteral(BUILD_BIN_DIR "qdsapp") };
+	const auto binPath = launchPath;
 #endif
 	QVERIFY(QFile::exists(binPath));
+	if(!QFile::exists(launchPath))
+		QVERIFY(QFile::link(binPath, launchPath));
+	QVERIFY(QFile::exists(launchPath));
 
-	server = new QProcess(this);
-	server->setProgram(binPath);
-	server->setProcessChannelMode(QProcess::ForwardedErrorChannel);
+	server = QtService::ServiceControl::create(QStringLiteral("debug"), launchPath, this);
+	QVERIFY(server);
+	QVERIFY(server->serviceExists());
+	server->setBlocking(true);
 
 	try {
 		client = nullptr;
@@ -156,9 +162,9 @@ void TestAppServer::cleanupTestCase()
 {
 	clean();
 	clean(partner);
-	if(server->isOpen()) {
-		server->kill();
-		QVERIFY(server->waitForFinished(5000));
+	if(server->status() == QtService::ServiceControl::ServiceRunning) {
+		server->stop();
+		QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
 	}
 	server->deleteLater();
 }
@@ -166,8 +172,9 @@ void TestAppServer::cleanupTestCase()
 void TestAppServer::testStart()
 {
 	server->start();
-	QVERIFY(server->waitForStarted(5000));
-	QVERIFY(!server->waitForFinished(5000));
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceRunning);
+	QEXPECT_FAIL("", "Server should not stop easily", Continue);
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
 }
 
 void TestAppServer::testInvalidVersion()
@@ -1816,16 +1823,8 @@ void TestAppServer::testRemoveSelf()
 
 void TestAppServer::testStop()
 {
-	//send a signal to stop
-#ifdef Q_OS_UNIX
-	server->terminate(); //same as kill(SIGTERM)
-#elif Q_OS_WIN
-	GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, server->processId());
-#endif
-	QVERIFY(server->waitForFinished(5000));
-	QCOMPARE(server->exitStatus(), QProcess::NormalExit);
-	QCOMPARE(server->exitCode(), 0);
-	server->close();
+	server->stop();
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
 }
 
 void TestAppServer::clean(bool disconnect)

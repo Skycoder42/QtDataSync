@@ -1,5 +1,7 @@
 include(../tests.pri)
 
+QT += service
+
 TARGET = tst_appserver
 
 SOURCES += \
