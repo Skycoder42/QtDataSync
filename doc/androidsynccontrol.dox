@@ -1,0 +1,106 @@
+/*!
+@class QtDataSync::AndroidSyncControl
+
+This class is part of the `QtDataSyncAndroid` module, which is only available on the android
+platform. It can be used to configure background synchronization so that your application is able
+to update it's internal data periodically in the background, even if your app is not actively
+used.
+
+@warning This class alone is **not** sufficient to make this possible. You will also have to
+create a service based on AndroidBackgroundService and correctly set up the Manifest and other
+things. Have a look at the @ref android_sync_guide to learn how to add background synchronization
+to your project.
+
+@sa AndroidBackgroundService, @ref android_sync_guide, IosSyncDelegate
+*/
+
+/*!
+@property QtDataSync::AndroidSyncControl::valid
+
+@default{`false`}
+
+Validity basically comes down to whether there is a background service that matches the given
+serviceId. Only if the control is valid, it is possible to actually do anything with this class
+
+@accessors{
+	@readAc{isValid()}
+	@notifyAc{validChanged()}
+}
+
+@sa AndroidSyncControl::serviceId
+*/
+
+/*!
+@property QtDataSync::AndroidSyncControl::serviceId
+
+@default{`"de.skycoder42.qtservice.AndroidService"`}
+
+The JAVA class name (*not* JNI name) of the android service that should be run to perform the
+background synchronization. The class must exist and must be declared as service in your
+AndroidManifest.xml
+
+@accessors{
+	@readAc{serviceId()}
+	@writeAc{setServiceId()}
+	@notifyAc{serviceIdChanged()}
+}
+
+@sa AndroidSyncControl::valid, AndroidBackgroundService, AndroidSyncControl::enabled,
+@ref qtservice_backends_android
+*/
+
+/*!
+@property QtDataSync::AndroidSyncControl::interval
+
+@default{`60` (minutes)}
+
+This value is passed to the operating system to schedule the background synchronization. There
+is no guarantee of exact delivery of those background synchronizations. It is only a suggestion
+to the system. However, android typically keeps the windows limited to twice the length of the
+interval.
+
+@accessors{
+	@readAc{interval()}
+	@readAc{intervalMinutes()}
+	@writeAc{setInterval()}
+	@notifyAc{intervalChanged()}
+}
+
+@sa AndroidSyncControl::serviceId
+*/
+
+@sa AndroidSyncControl::valid, AndroidSyncControl::enabled
+*/
+
+/*!
+@property QtDataSync::AndroidSyncControl::enabled
+
+@default{`false`}
+
+These property directly communicates with the OS and schedules (or unschedules) the task to run
+the service. This means you must always set serviceId and interval first before enabling a service
+
+@attention This property is persisted. This means after changing it and restarting it, the new
+value will be the same as the one you set. This does *not* apply to all other properties. For
+example, after creating this class, it could already return enabled, but the interval property
+might not match the interval the service actually uses.
+
+@accessors{
+	@readAc{isEnabled()}
+	@writeAc{setEnabled()}
+}
+
+@sa AndroidSyncControl::serviceId, AndroidSyncControl::interval,
+AndroidSyncControl::triggerSyncNow
+*/
+
+/*!
+@fn QtDataSync::AndroidSyncControl::triggerSyncNow
+
+@returns true, if the operating system accepted the synchronization request, false if not
+
+@note This only tells the OS to start the service specified by serviceId. It does not report back
+whether the service was actually correctly started or wether it finished gracefully.
+
+@sa AndroidSyncControl::enabled
+*/

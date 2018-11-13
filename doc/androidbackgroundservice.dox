@@ -1,0 +1,141 @@
+/*!
+@class QtDataSync::AndroidBackgroundService
+
+This service can be used as Android service to create a background synchronizations service
+without much effort. However, a few additional setup steps are needed. This class only extends
+the QtService implementation of an android service to add the synchronization aspect.
+
+@warning This class alone is **not** sufficient to make synchronization possible. Have a look at
+the @ref android_sync_guide to learn how to add background synchronization to your project.
+
+@sa AndroidSyncControl, QtService::Service, @ref qtservice_backends_android
+*/
+
+/*!
+@property QtDataSync::AndroidBackgroundService::waitFullSync
+
+@default{`true`}
+
+If set to true, the serivce will internally call SyncManager::runOnSynchronized() with the
+onSyncCompleted() as handler. If disable, SyncManager::runOnDownloaded() is used instead. Check
+the documentation of these two methods.
+
+@accessors{
+	@readAc{waitFullSync()}
+	@writeAc{setWaitFullSync()}
+	@notifyAc{waitFullSyncChanged()}
+}
+
+@sa AndroidBackgroundService::onSyncCompleted, SyncManager::runOnSynchronized,
+SyncManager::runOnDownloaded
+*/
+
+/*!
+@fn QtDataSync::AndroidBackgroundService::setupName
+
+@returns The name of the setup
+
+The default implementation returns `QtDataSync::DefaultSetup`. You can override the method if you
+need the service to create the setup under a different name.
+
+@sa QtDataSync::DefaultSetup, AndroidBackgroundService::prepareSetup
+*/
+
+/*!
+@fn QtDataSync::AndroidBackgroundService::prepareSetup
+
+@param setup The setup to be prepared
+
+You should override this method to configure the setup before creation (i.e. set properties on it).
+The default implementation does nothing.
+
+@sa QtDataSync::Setup, AndroidBackgroundService::setupName
+*/
+
+/*!
+@fn QtDataSync::AndroidBackgroundService::onSyncCompleted
+
+@param state The state in which the synchronization finished
+
+This method is called as soon as the datasync instance has finished the data synchronization. You
+can override it to perform additional operations with the data before quitting the service.
+
+The default implementation only calls exitAfterSync() to quit the service gracefully. You must
+do the same in your implementation. You do not have to call it from within the method, but must
+call it eventually. Otherwise it will keep running indefinitely
+
+Possible states can be:
+- Uploading (only if waitFullSync is set to false)
+- Synchronized
+- Error
+- Disconnected
+
+@sa AndroidBackgroundService::waitFullSync, AndroidBackgroundService::exitAfterSync
+*/
+
+/*!
+@fn QtDataSync::AndroidBackgroundService::exitAfterSync
+
+Call this method if you reimplement onSyncCompleted(). It will quit the service gracefully,
+honoring the order of start commands, if multiple have been used. Internally, this method calls
+stopSelf() with the most recently used startId of a BackgroundSyncAction.
+
+@sa AndroidBackgroundService::onSyncCompleted, AndroidBackgroundService::stopSelf,
+AndroidBackgroundService::BackgroundSyncAction
+*/
+
+/*!
+@fn QtDataSync::AndroidBackgroundService::onStartCommand
+
+@param intent The intent that was used to start the service
+@param flags The flags that were used to start the service
+@param startId The id of this start request
+@returns A value allowed by android to indicate the servies state
+
+This method is registered within QtService via QtService::Service::addCallback. Check
+@ref qtservice_backends_android documentation for details on the method itself. Its bascially just
+a forwarding of the Android Service method.
+
+Only implement this if you need to do custom stuff here. You should always call this base
+implementation in your overload, as this method internally handles the synchronization intents.
+
+@attention This method is called synchronously on the android thread. This means you should not
+interact with service class at all. Only use queued invokes to schedule things to be done on
+the actual main thread.
+
+@sa @ref qtservice_backends_android, QtService::Service::addCallback,
+AndroidBackgroundService::stopSelf,
+[android.app.Service.onStartCommand](https://developer.android.com/reference/android/app/Service.html#onStartCommand(android.content.Intent,%20int,%20int))
+*/
+
+/*!
+@fn QtDataSync::AndroidBackgroundService::createForegroundNotification
+
+@returns An Android
+[Notification](https://developer.android.com/reference/android/app/Notification) object, ready to
+be presented as foreground notification
+
+You must implement this method to create a working service, as since Android 8, all services that
+want to run must show a foreground notification while running in order to not be killed by the
+system. A basic sample could be the following.
+
+The code to create the notification was first written in java:
+@snippet SvcHelper.java create_notification
+And that method is then simply called from the implementation:
+@snippet syncservice.cpp jni_create_notification
+
+@sa [android.app.Notification](https://developer.android.com/reference/android/app/Notification)
+*/
+
+/*!
+@fn QtDataSync::AndroidBackgroundService::stopSelf
+
+@param startId The id of the start command that was finished and thus is beeing stopped
+@returns true if the service stop was accepted, false if not
+
+Internally this method simply calls stopSelfResult on the android service. You can reimplement
+it if you want to customize how to quit the service.
+
+@sa AndroidBackgroundService::exitAfterSync, AndroidBackgroundService::onStartCommand,
+android.app.Service.stopSelfResult](https://developer.android.com/reference/android/app/Service.html#stopSelfResult(int))
+*/

@@ -13,7 +13,7 @@ public:
 	SyncManager *manager = nullptr;
 	int startId = -1;
 
-	bool waitFullSync = false;
+	bool waitFullSync = true;
 };
 
 }

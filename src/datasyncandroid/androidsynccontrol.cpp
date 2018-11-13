@@ -4,6 +4,7 @@
 
 #include <QtAndroidExtras/QtAndroid>
 #include <QtAndroidExtras/QAndroidJniEnvironment>
+#include <QtAndroidExtras/QAndroidIntent>
 using namespace QtDataSync;
 using namespace std::chrono;
 
@@ -22,7 +23,17 @@ AndroidSyncControl::~AndroidSyncControl() = default;
 
 bool AndroidSyncControl::isValid() const
 {
-	return !d->serviceId.isEmpty();
+	if(d->serviceId.isEmpty())
+		return false;
+
+	auto intent = d->createIntent();
+	auto pm = QtAndroid::androidContext().callObjectMethod("getPackageManager",
+														   "()Landroid/content/pm/PackageManager;");
+	auto info = pm.callObjectMethod("resolveService",
+									"(Landroid/content/Intent;I)Landroid/content/pm/ResolveInfo;",
+									intent.handle().object(),
+									static_cast<jint>(0));
+	return info.isValid();
 }
 
 QString AndroidSyncControl::serviceId() const
@@ -52,6 +63,7 @@ void AndroidSyncControl::setServiceId(QString serviceId)
 
 	d->serviceId = std::move(serviceId);
 	emit serviceIdChanged(d->serviceId, {});
+	emit validChanged({});
 }
 
 void AndroidSyncControl::setInterval(qint64 interval)

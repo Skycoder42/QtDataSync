@@ -42,7 +42,9 @@ fi
 
 for tagFile in $(find "$qtDocs" -name *.tags); do
 	if [ $(basename "$tagFile") == "qtjsonserializer.tags" ]; then
-		echo "TAGFILES += \"$tagFile=https://skycoder42.github.io/QJsonSerializer\"" >> $doxyRes
+		echo "TAGFILES += \"$tagFile=https://skycoder42.github.io/QtJsonSerializer\"" >> $doxyRes
+	elif [ $(basename "$tagFile") == "qtservice.tags" ]; then
+		echo "TAGFILES += \"$tagFile=https://skycoder42.github.io/QtService\"" >> $doxyRes
 	elif [ $(basename "$tagFile") != "qtdatasync.tags" ]; then
 		echo "TAGFILES += \"$tagFile=https://doc.qt.io/qt-5\"" >> $doxyRes
 	fi
