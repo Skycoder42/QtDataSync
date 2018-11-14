@@ -1,0 +1,158 @@
+/*!
+@page qtdatasync_sync_guide Adding background synchronization
+@brief A Guide for adding background synchronization to mobile applications
+
+This page consists of two guides, one for android and one for iOs, to add background
+synchronization to an application. There are multiple steps required that differ for
+each platform and those are discussed here.
+
+@tableofcontents
+
+@section qtdatasync_sync_guide_android Android Background synchronization
+For Android, you will have to add an additional service to your application that
+is to be run in the background, independently from your main application,
+to perform the sync. This library already supports all the elements needed to do so,
+but you still need to setup the project yourself.
+
+You can find a working example of this tutorial in the repository. Check out the
+[AndroidSync Sample](https://github.com/Skycoder42/QtDataSync/tree/master/examples/datasync/AndroidSync).
+
+@note For the Android variant, you will have to install
+[QtService](https://github.com/Skycoder42/QtService) as well.
+
+@sa QtDataSync::AndroidBackgroundService, QtDataSync::AndroidSyncControl
+
+@subsection qtdatasync_sync_guide_android_base Prepare the project
+@note For this section it is assumed you are using QtCreator and a qmake based project.
+For anything else you will have to figure out yourself how to do steps equivalent
+to these for your build system.
+
+First create any normal project in QtCreator. Select an android kit to build it and
+then go to "Projects > Build > Build Android APK" and under "Android" press
+"Create Templates". This should bring up a dialog to add android files to your project.
+Follow that wizard to add the files. Your pro file should now contain `ANDROID_PACKAGE_SOURCE_DIR`.
+
+Next you have to add the correct Qt modules. These are: `QT += datasyncandroid`.
+Build and run your project. It should still function normally
+
+@subsection qtdatasync_sync_guide_android_service Add the synchronization service to C++
+The next step is to add the actual service to your project that performs the sync. This is done
+in 3 steps:
+
+@subsubsection qtdatasync_sync_guide_android_service_cpp Implement the service interface
+Add a new C++ class to the project and let it inherit from QtDataSync::AndroidBackgroundService.
+Adjust the constructor to match the one of the parent class (beware the reference) and implement
+any methods you need to. The only required method to be implemented is
+QtDataSync::AndroidBackgroundService::createForegroundNotification. An example would be:
+@snippet syncservice.h droid_service_hdr
+
+And the corresponding implementation:
+@snippet syncservice.cpp droid_service_impl
+
+@note The foreground notification is needed as an ongoing notification to be shown while the service
+is running. This is required by Android. For a basic example of how to create the notification see
+the QtDataSync::AndroidBackgroundService::createForegroundNotification documentation.
+
+@subsubsection qtdatasync_sync_guide_android_service_main Prepare the main to run the service
+After creating the sync service class, you need to add code to your main to differentiate between
+whether the application is started normally or as a service.
+
+The general idea is to split your main into 3 functions. One named `activityMain` which does the
+stuff you did before, i.e. create a gui, an `serviceMain` that launces the service and the actual
+`main` that now only decides which of the other two to call based on the start parameters.
+
+The `serviceMain` should simply instanciate and execute the service from the given parameters:
+@snippet AndroidSync/main.cpp service_main
+
+The actual `main` has to scan the passed arguments for the `--backend` argument. If found, the
+`serviceMain` should be run, otherwise the `activityMain`:
+@snippet AndroidSync/main.cpp actual_main
+
+Again, the `activityMain` as basically what was previously the normal `main`, just moved out into
+a different function.
+
+@note It is also possible to create two seperate binaries and reference them. But for the sake of
+simplicity, only the simple method with one binary is shown here.
+
+@subsection qtdatasync_sync_guide_android_manifest Update the AndroidManifest.xml
+After the C++ code is now ready, the final step is to update the AndroidManifest.xml. We need to
+add a few elements to register all components and permissions that are needed to actually run the
+service.
+
+@subsubsection qtdatasync_sync_guide_android_manifest_service Add the service
+Now that the service was created and is startable if the correct command line arguments are
+specified, we have to add it to the manifest to make it known to the
+android system so it can actually be started. The `<service>` should be placed next to the
+`<activity>` element in the manifest, as a child of the root `<application>` element. The following
+shows an example for such a service definition:
+
+@snippet android/AndroidManifest.xml manifest_service
+
+Most of the service was just copied from the `<activity>` element. The attributes and elements that
+are different from the activity and thus must be changed after copying it over are:
+- `android:process=":service_process"` - Makes shure the service runs in a seperate process
+- `android:name="de.skycoder42.qtservice.AndroidService"` - Specify the java class to be used
+- `<meta-data android:name="android.app.arguments" android:value="--backend android"/>` - Pass the arguments to the `main`
+- `<meta-data android:name="android.app.background_running" android:value="true"/>` - Allow background execution
+
+@subsubsection qtdatasync_sync_guide_android_manifest_startup Add the startup receiver
+Now that the service has been added, we need one more component to be added to the manifest. This
+is the boot receiver, which is started by android after a reboot and is needed to reactive your
+service after a boot. The class is ready to use, so you only need to add the following to the
+manifest, right after the `<service>` element (still inside the `<application>` element):
+
+@snippet android/AndroidManifest.xml manifest_receiver
+
+@subsubsection qtdatasync_sync_guide_android_manifest_permissions Add additional permissions
+The last thing to add to the manifest are additional permissions. We need permissions to start
+a foreground service (which is exactly what we are doing) and allow the app to receive a signal
+when the system was rebooted, which is needed to reactive the service after a reboot. Simply
+add the following elements after the `%%INSERT_PERMISSIONS` comment
+
+@snippet android/AndroidManifest.xml manifest_permissions
+
+@subsection qtdatasync_sync_guide_android_controller Use the controller to enable sync
+With all the previous steps the service is fully prepared to be used. All thats left to do is to
+actually use it by enabeling background synchronization. You can do this with the
+QtDataSync::AndroidSyncControl class. In the example, it is used from QML you you can play around
+with the possibilities, but for the sake of this guide, the simplest way is to just statically
+enable it from your `activityMain`:
+
+@code
+int activityMain(int argc, char *argv[])
+{
+	QGuiApplication app(argc, argv);
+
+	QtDataSync::AndroidSyncControl control;
+	// control.setInterval(...);
+	control.setEnabled(true);
+	qDebug() << "control.enabled" << control.isEnabled();
+
+	//...
+}
+@endcode
+
+@attention Do not forget to register the notification channel for the foreground notification
+used by the service from your activity (java code below):
+
+@snippet android/src/de/skycoder42/qtdatasync/sample/androidsync/SvcHelper.java java_create_channel
+
+@subsection qtdatasync_sync_guide_android_test Testing the setup
+With that the preperations are done and ready to test. Compile and run your application and
+check if you can find `control.enabled true` in the log. You can also run
+@code
+adb shell dumpsys alarm | grep -B 1 -A 3 de.skycoder42.qtdatasync.backgroundsync
+@endcode
+to check if the alarm was correctly registered and when synchronization is triggered the next time.
+Wait for the timeout to arrive and see if the service executes correctly (i.e. without crashing).
+You can consult the logs via
+@code
+adb logcat
+@endcode
+to check the output of the service. You should find a message like:
+@code
+[[SYNCSERVICE]] Sync completed in state: <some state>
+@endcode
+
+If thats the case, the service works correctly, and you can extend it as you please.
+*/

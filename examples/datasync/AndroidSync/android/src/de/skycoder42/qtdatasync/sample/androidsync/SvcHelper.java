@@ -15,7 +15,7 @@ import android.support.v4.app.NotificationCompat;
 public class SvcHelper {
 	private static final String ForegroundChannelId = "de.skycoder42.qtdatasync.sample.androidsync.notify";
 
-	//! [create_notification]
+	//! [java_create_notification]
 	public static Notification createFgNotification(Context context) {
 		return new NotificationCompat.Builder(context, ForegroundChannelId)
 			.setContentTitle("AndroidSync Synchronization Service")
@@ -28,8 +28,9 @@ public class SvcHelper {
 			.setCategory(NotificationCompat.CATEGORY_SERVICE)
 			.build();
 	}
-	//! [create_notification]
+	//! [java_create_notification]
 
+	//! [java_create_channel]
 	public static void registerNotificationChannel(Context context) {
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
 			return;
@@ -46,4 +47,5 @@ public class SvcHelper {
 		foreground.setShowBadge(false);
 		manager.createNotificationChannel(foreground);
 	}
+	//! [java_create_channel]
 }

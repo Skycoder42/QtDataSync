@@ -6,7 +6,7 @@ without much effort. However, a few additional setup steps are needed. This clas
 the QtService implementation of an android service to add the synchronization aspect.
 
 @warning This class alone is **not** sufficient to make synchronization possible. Have a look at
-the @ref android_sync_guide to learn how to add background synchronization to your project.
+the @ref qtdatasync_sync_guide_android to learn how to add background synchronization to your project.
 
 @sa AndroidSyncControl, QtService::Service, @ref qtservice_backends_android
 */
@@ -120,7 +120,7 @@ want to run must show a foreground notification while running in order to not be
 system. A basic sample could be the following.
 
 The code to create the notification was first written in java:
-@snippet SvcHelper.java create_notification
+@snippet android/src/de/skycoder42/qtdatasync/sample/androidsync/SvcHelper.java java_create_notification
 And that method is then simply called from the implementation:
 @snippet syncservice.cpp jni_create_notification
 

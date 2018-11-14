@@ -61,7 +61,8 @@
 			<!-- extract android style -->
 		</activity>
 
-		<service android:process=":test_service" android:name="de.skycoder42.qtservice.AndroidService">
+		<!--! [manifest_service] -->
+		<service android:process=":service_process" android:name="de.skycoder42.qtservice.AndroidService">
 			<!-- Application to launch -->
 			<meta-data android:name="android.app.arguments" android:value="--backend android"/>
 			<meta-data android:name="android.app.lib_name" android:value="-- %%INSERT_APP_LIB_NAME%% --"/>
@@ -87,12 +88,15 @@
 			<!-- Background running -->
 			<meta-data android:name="android.app.background_running" android:value="true"/>
 		</service>
+		<!--! [manifest_service] -->
 
+		<!--! [manifest_receiver] -->
 		<receiver android:name="de.skycoder42.qtdatasync.SyncBootReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED"/>
 			</intent-filter>
 		</receiver>
+		<!--! [manifest_receiver] -->
 
 	</application>
 
@@ -102,8 +106,10 @@
 	<!-- The following comment will be replaced upon deployment with default permissions based on the dependencies of the application.
 		 Remove the comment if you do not require these default permissions. -->
 	<!-- %%INSERT_PERMISSIONS -->
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+	<!--! [manifest_permissions] -->
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+	<!--! [manifest_permissions] -->
 
 	<!-- The following comment will be replaced upon deployment with default features based on the dependencies of the application.
 		 Remove the comment if you do not require these default features. -->

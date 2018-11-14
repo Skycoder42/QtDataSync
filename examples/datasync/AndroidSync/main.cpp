@@ -6,6 +6,7 @@
 
 namespace {
 
+//! [activity_main]
 int activityMain(int argc, char *argv[])
 {
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -23,15 +24,19 @@ int activityMain(int argc, char *argv[])
 
 	return app.exec();
 }
+//! [activity_main]
 
+//! [service_main]
 int serviceMain(int argc, char *argv[])
 {
 	SyncService service{argc, argv};
 	return service.exec();
 }
+//! [service_main]
 
 }
 
+//! [actual_main]
 int main(int argc, char *argv[])
 {
 	for(auto i = 0; i < argc; i++) {
@@ -40,4 +45,5 @@ int main(int argc, char *argv[])
 	}
 	return activityMain(argc, argv);
 }
+//! [actual_main]
 

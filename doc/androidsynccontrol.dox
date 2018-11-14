@@ -8,10 +8,10 @@ used.
 
 @warning This class alone is **not** sufficient to make this possible. You will also have to
 create a service based on AndroidBackgroundService and correctly set up the Manifest and other
-things. Have a look at the @ref android_sync_guide to learn how to add background synchronization
+things. Have a look at the @ref qtdatasync_sync_guide_android to learn how to add background synchronization
 to your project.
 
-@sa AndroidBackgroundService, @ref android_sync_guide, IosSyncDelegate
+@sa AndroidBackgroundService, @ref qtdatasync_sync_guide_android, IosSyncDelegate
 */
 
 /*!
