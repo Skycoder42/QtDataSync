@@ -66,9 +66,6 @@ interval.
 	@notifyAc{intervalChanged()}
 }
 
-@sa AndroidSyncControl::serviceId
-*/
-
 @sa AndroidSyncControl::valid, AndroidSyncControl::enabled
 */
 

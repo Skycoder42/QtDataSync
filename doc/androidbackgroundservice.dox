@@ -1,9 +1,10 @@
 /*!
 @class QtDataSync::AndroidBackgroundService
 
-This service can be used as Android service to create a background synchronizations service
-without much effort. However, a few additional setup steps are needed. This class only extends
-the QtService implementation of an android service to add the synchronization aspect.
+This service is part of the `QtDataSyncAndroid` module and can be used as Android service to
+create a background synchronizations service without much effort. However, a few additional setup
+steps are needed. This class only extends the QtService implementation of an android service to
+add the synchronization aspect.
 
 @warning This class alone is **not** sufficient to make synchronization possible. Have a look at
 the @ref qtdatasync_sync_guide_android to learn how to add background synchronization to your project.

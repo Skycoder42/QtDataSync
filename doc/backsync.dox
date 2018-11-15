@@ -137,7 +137,7 @@ used by the service from your activity (java code below):
 
 @snippet android/src/de/skycoder42/qtdatasync/sample/androidsync/SvcHelper.java java_create_channel
 
-@subsection qtdatasync_sync_guide_android_test Testing the setup
+@subsection qtdatasync_sync_guide_android_test Test the setup
 With that the preperations are done and ready to test. Compile and run your application and
 check if you can find `control.enabled true` in the log. You can also run
 @code
@@ -155,4 +155,80 @@ to check the output of the service. You should find a message like:
 @endcode
 
 If thats the case, the service works correctly, and you can extend it as you please.
+
+@section qtdatasync_sync_guide_ios Ios Background synchronization
+For Ios, adding background sync requires the registration of a custom delegate that can start
+the synchronization as part of a background fetch operation. This is done as part of your main
+application and will run on the main thread - however only when the application is suspended in
+the background and no gui is currently shown.
+
+You can find a working example of this tutorial in the repository. Check out the
+[IosSync Sample](https://github.com/Skycoder42/QtDataSync/tree/master/examples/datasync/IosSync).
+
+@attention Background fetch on Ios is badly implemented (by apple). You get no guarantee at all
+that your task will ever be run - if your unlucky, background synchronization will never happen.
+And since the logic behind that is proprietary apple stuff, there is nothing that can be done to
+improve the situation. Do not rely on this working for every user, as I can guarantee you it
+wont.
+
+@subsection qtdatasync_sync_guide_ios_base Prepare the project
+@note For this section it is assumed you are using QtCreator and a qmake based project.
+For anything else you will have to figure out yourself how to do steps equivalent
+to these for your build system.
+
+First create any normal project in QtCreator and make shure you select ios or ios simulator as
+the kit. Next you have to add the correct Qt modules. These are: `QT += datasyncios`.
+Build and run your project. It should still function normally
+
+@subsection qtdatasync_sync_guide_ios_cpp Add the delegate to the project
+All you need to do to use this feature is to add a delegate. A default implemented delegate is
+already part of this library and can be used as is. However, if you want to do something with
+the new data after it was synchronized, you have to extend the delegate and add custom code.
+
+If thats not relevant for your project, you can skip the next section and immediatly go to
+@ref qtdatasync_sync_guide_ios_cpp_main
+
+@subsubsection qtdatasync_sync_guide_ios_cpp_delegate Extend the delegate (optional)
+If you want to perform custom operations and synchronized data, you have to extend the
+QtDataSync::IosSyncDelegate. While there are multiple things you can customize, the only relevant
+method that needs to be reimplemented is QtDataSync::IosSyncDelegate::onSyncCompleted. An example
+for a custom delegate would be:
+
+@snippet syncdelegate.h delegate_hdr
+
+And the corresponding implementation:
+
+@snippet syncdelegate.cpp delegate_src
+
+@subsubsection qtdatasync_sync_guide_ios_cpp_main Initialize and enable the delegate
+Once you have your delegate ready (either by using a custom or the default one), the last step
+in C++ is to register it. This is done via the QtDataSync::IosSyncDelegate::init method from
+withing the main function:
+
+@snippet IosSync/main.cpp delegate_main
+
+With that the delegate is automatically registerd and enabled in the system on every start of
+your application.
+
+@subsection qtdatasync_sync_guide_ios_plist Add the Info.plist
+The last thing that needs to be done is to declare that your application will use background
+fetch for the synchronization in the Info.plist file. If you do not already have such a file,
+simply copy it from your Qt installation. The path where you can find it is currently
+`<path_to_qt_version>/ios/mkspecs/macx-ios-clang/Info.plist.app`.
+
+There is only a single key-value pair that you need to add to the root `<dict>` element at
+the very bottom:
+
+@snippet Info.plist plist_info_fetch
+
+A full example for the final Info.plist would be:
+
+@include Info.plist
+
+@subsection qtdatasync_sync_guide_ios_test Test the setup
+Testing this on ios is rather complicated, which is why I won't document this here. A helpful
+articel I found that explains how to test background fetching is linked below:
+
+https://medium.com/livefront/how-to-debug-background-fetch-events-on-ios-29540b043adf
+
 */

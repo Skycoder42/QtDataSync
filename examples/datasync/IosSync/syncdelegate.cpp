@@ -5,8 +5,10 @@ SyncDelegate::SyncDelegate(QObject *parent) :
 	IosSyncDelegate{parent}
 {}
 
+//! [delegate_src]
 QtDataSync::IosSyncDelegate::SyncResult SyncDelegate::onSyncCompleted(QtDataSync::SyncManager::SyncState state)
 {
 	qInfo() << "Finished synchronization in state:" << state;
-	return SyncResult::NewData;
+	return IosSyncDelegate::onSyncCompleted(state);
 }
+//! [delegate_src]

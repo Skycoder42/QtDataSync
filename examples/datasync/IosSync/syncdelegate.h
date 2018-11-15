@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtDataSyncIos/IosSyncDelegate>
 
+//! [delegate_hdr]
 class SyncDelegate : public QtDataSync::IosSyncDelegate
 {
 	Q_OBJECT
@@ -14,5 +15,6 @@ public:
 protected:
 	SyncResult onSyncCompleted(QtDataSync::SyncManager::SyncState state) override;
 };
+//! [delegate_hdr]
 
 #endif // SYNCDELEGATE_H

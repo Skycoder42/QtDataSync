@@ -1,0 +1,202 @@
+/*!
+@class QtDataSync::IosSyncDelegate
+
+This class is part of the `QtDataSyncIos` module, which is only available on the ios platform.
+It can be used to configure and run background synchronization so that your application is able
+to update it's internal data periodically in the background, even if your app is not actively
+used.
+
+@warning This class alone is **not** sufficient to make this possible. You will also have to
+correctly set up the Info.plist and other things. Have a look at the
+@ref qtdatasync_sync_guide_ios to learn how to add background synchronization to your project.
+
+@sa @ref qtdatasync_sync_guide_ios, AndroidSyncControl, AndroidBackgroundService
+*/
+
+/*!
+@property QtDataSync::IosSyncDelegate::interval
+
+@default{`60` (minutes)}
+
+This value is passed to the operating system to schedule the background synchronization. There
+is no guarantee of exact delivery of those background synchronizations. For ios, this is only
+a minimal wait time, i.e. it is guaranteed that the synchronization will not be started before
+that time has passed.
+
+@note Due to the stupidity of Ios, this means sometimes the system won't even run the sync task
+in days, even though you specify an interval of an hour or less. There is nothing that can be
+done here, as you are fully at the mercy of apples proprietary optimization logic.
+
+@accessors{
+	@readAc{interval()}
+	@readAc{intervalMinutes()}
+	@writeAc{setInterval()}
+	@notifyAc{intervalChanged()}
+}
+
+@note if persistState is enabled, this property is persisted
+
+@sa IosSyncDelegate::enabled, IosSyncDelegate::persistState
+*/
+
+/*!
+@property QtDataSync::IosSyncDelegate::enabled
+
+@default{`false`}
+
+These property directly communicates with the OS and schedules (or unschedules) the task to run
+the sync task. This means you must always set the interval first before enabling a task.
+
+@accessors{
+	@readAc{isEnabled()}
+	@writeAc{setEnabled()}
+	@notifyAc{enabledChanged()}
+}
+
+@note if persistState is enabled, this property is persisted
+
+@sa IosSyncDelegate::interval, IosSyncDelegate::persistState
+*/
+
+/*!
+@property QtDataSync::IosSyncDelegate::waitFullSync
+
+@default{`true`}
+
+If set to true, the delegate will internally call SyncManager::runOnSynchronized() with the
+onSyncCompleted() as handler. If disable, SyncManager::runOnDownloaded() is used instead. Check
+the documentation of these two methods.
+
+@accessors{
+	@readAc{waitFullSync()}
+	@writeAc{setWaitFullSync()}
+	@notifyAc{waitFullSyncChanged()}
+}
+
+@note if persistState is enabled, this property is persisted
+
+@sa IosSyncDelegate::onSyncCompleted, SyncManager::runOnSynchronized,
+SyncManager::runOnDownloaded, IosSyncDelegate::persistState
+*/
+
+/*!
+@property QtDataSync::IosSyncDelegate::persistState
+
+@default{`true`}
+
+If set to true, the delegate will store it's current state whenver the interval or the enabled
+properties are changed. The that will be automatically reloaded when passed to init().
+
+For the default implementation of the delegate, persistance is always enabled. You can override
+this method in a custom class to deactivate it.
+
+Properties that are stored are:
+
+- IosSyncDelegate::enabled
+- IosSyncDelegate::interval
+- IosSyncDelegate::waitFullSync
+
+@accessors{
+	@readAc{persistState()}
+	@constantAc
+}
+
+@sa IosSyncDelegate::init, IosSyncDelegate::enabled, IosSyncDelegate::interval,
+IosSyncDelegate::waitFullSync
+*/
+
+/*!
+@fn QtDataSync::IosSyncDelegate::init
+
+@param delegate The delegate to be set as sync delegate
+
+You must call this method after creating the core app (but before executing it) to register a
+delegate as "active" delegate. This delegate will then control whether sync is enabled and handle
+the sync requests if your application is in the background.
+
+@note If persistState is true (the default), the init method will also restore the previously
+persisted state
+
+@sa IosSyncDelegate::persistState, IosSyncDelegate::currentDelegate
+*/
+
+/*!
+@fn QtDataSync::IosSyncDelegate::currentDelegate
+
+@returns The delegate currently set via init() or `nullptr`, if no delegate was set
+
+@sa IosSyncDelegate::init
+*/
+
+/*!
+@fn QtDataSync::IosSyncDelegate::setupName
+
+@returns The name of the setup
+
+The default implementation returns `QtDataSync::DefaultSetup`. You can override the method if you
+need the delegate to create the setup under a different name.
+
+@sa QtDataSync::DefaultSetup, IosSyncDelegate::prepareSetup
+*/
+
+/*!
+@fn QtDataSync::IosSyncDelegate::prepareSetup
+
+@param setup The setup to be prepared
+
+You should override this method to configure the setup before creation (i.e. set properties on
+it). The default implementation does nothing.
+
+@sa QtDataSync::Setup, IosSyncDelegate::setupName
+*/
+
+/*!
+@fn QtDataSync::IosSyncDelegate::onSyncCompleted
+
+@param state The state in which the synchronization finished
+@returns A sync result to tell the operating system how the synchronization finished
+
+This method is called as soon as the datasync instance has finished the data synchronization. You
+can override it to perform additional operations with the data before quitting the service.
+
+The default implementation only returns a sync result based on the sync state. You must
+do the same in your implementation. If you do not want to return synchronously, you must override
+the performSync() method instead.
+
+Possible states that are typically passed to the method can be:
+- Uploading (only if waitFullSync is set to false)
+- Synchronized
+- Error
+- Disconnected
+
+The default return value mapping is this method does is:
+
+SyncState		| SyncResult
+----------------|------------
+Downloading	| NewData
+Uploading		| NewData
+Synchronized	| NewData
+Disconnected	| NoData
+Error			| Error
+
+@sa IosSyncDelegate::waitFullSync, IosSyncDelegate::performSync
+*/
+
+/*!
+@fn QtDataSync::IosSyncDelegate::performSync
+
+@param callback A callback to be called with the sync result once the sync is done
+
+This method is called by the operating system and contains the actual code to synchronize the
+data. If you want to reimplement this method, you should always call the base implementation
+as well to make shure synchronization works as expected.
+
+In case you want to override this method to allow asynchronous sync result handling, you can use
+the following pattern. Simpyl impelement onSyncCompleted() as usual, but always return NewData
+(ignored). Instead add a signal with the SyncResult as parameter and emit this once the async
+sync operation has finished. Now implement this method and call the base implementation as usual,
+but pass an empty, self constructed callback to it that does nothing. Instead connect the actual
+callback to the previously declared signal (before calling the base impl.)
+
+@sa IosSyncDelegate::onSyncCompleted
+*/
