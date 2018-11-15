@@ -619,13 +619,13 @@ void IntegrationTest::testAddAccountOnCreate()
 	try {
 		QSignalSpy error1Spy(acc1, &AccountManager::lastErrorChanged);
 		QSignalSpy grantSpy(acc1, &AccountManager::accountAccessGranted);
+		QSignalSpy requestSpy(acc1, &AccountManager::loginRequested);
 		QSignalSpy unlockSpy(this, &IntegrationTest::unlock);
 
 		//export from acc1
-		auto password = QStringLiteral("password");
 		QJsonObject exportData;
-		acc1->exportAccountTrusted(false, password, [&](QJsonObject exp) {
-			QVERIFY(AccountManager::isTrustedImport(exp));
+		acc1->exportAccount(false, [&](const QJsonObject &exp) {
+			QVERIFY(!AccountManager::isTrustedImport(exp));
 			exportData = exp;
 			emit unlock();
 		}, [](QString e) {
@@ -644,7 +644,7 @@ void IntegrationTest::testAddAccountOnCreate()
 			TestLib::setup(setup3);
 			setup3.setLocalDir(setup3.localDir() + QLatin1Char('/') + setupName3)
 					.setRemoteConfiguration(QUrl(QStringLiteral("ws://localhost:14242")))
-					.setAccountTrusted(exportData, password, false, false);
+					.setAccount(exportData, false, false);
 			setup3.create(setupName3);
 
 			acc3 = new AccountManager(setupName3, this);
@@ -656,6 +656,17 @@ void IntegrationTest::testAddAccountOnCreate()
 
 		QSignalSpy error3Spy(acc3, &AccountManager::lastErrorChanged);
 		QSignalSpy acceptSpy(acc3, &AccountManager::importAccepted);
+
+		//wait and accept acc1 login request
+		if(requestSpy.isEmpty())
+			QVERIFY(requestSpy.wait());
+		QCOMPARE(requestSpy.size(), 1);
+		auto request = requestSpy.takeFirst()[0].value<LoginRequest>();
+		QVERIFY(!request.handled());
+		QCOMPARE(request.device().name(), acc3->deviceName());
+		QCOMPARE(request.device().fingerprint(), acc3->deviceFingerprint());
+		request.accept();
+		QVERIFY(request.handled());
 
 		//wait for accept
 		if(acceptSpy.isEmpty())
