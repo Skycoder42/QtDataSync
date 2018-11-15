@@ -31,6 +31,7 @@ public:
 
 	//! Returns the data store the model works on
 	DataStore *store() const;
+	//! @copydoc DataStore::setupName
 	QString setupName() const;
 
 	//! @readAcFn{DataStoreModel::typeId}

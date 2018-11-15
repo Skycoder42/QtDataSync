@@ -26,6 +26,7 @@ public:
 	//! @private
 	void setDefaults(const Defaults &defaults);
 
+	//! Returns the name of the setup this class operates on
 	QString setupName() const;
 	//! The resolvers name. Used for logging
 	virtual QByteArray name() const;

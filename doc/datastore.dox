@@ -31,6 +31,12 @@ completed. This of course only applies to pointer classes, as gadgets are used a
 */
 
 /*!
+@fn QtDataSync::DataStore::setupName
+@returns The name of the setup
+@sa QtDataSync::Setup
+*/
+
+/*!
 @fn QtDataSync::DataStore::count(int) const
 
 @param metaTypeId The QMetaType type id of the type
@@ -94,6 +100,41 @@ return and cosume very much memory. For most situations however, this is not the
 return and cosume very much memory. For most situations however, this is not the case
 
 @sa DataStore::iterate, DataStore::search, DataStore::load, DataStore::keys
+*/
+
+/*!
+@fn QtDataSync::DataStore::contains(int, const QString &) const
+
+@param metaTypeId The QMetaType type id of the type
+@param key The key of the dataset to be checked for existance
+@returns true if the dataset exists, false if not
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::keys, DataStore::load
+*/
+
+/*!
+@fn QtDataSync::DataStore::contains(const QString &) const
+
+@tparam T The type of the dataset to check for
+@param key The key of the dataset to be checked for existance
+@returns true if the dataset exists, false if not
+@throws LocalStoreException In case of an internal error
+
+@sa DataStore::keys, DataStore::load
+*/
+
+/*!
+@fn QtDataSync::DataStore::contains(int, const QVariant &) const
+@copydetails DataStore::contains(int, const QString &) const
+@note The given QVariant must be convertible to a QString
+*/
+
+/*!
+@fn QtDataSync::DataStore::contains(const K &) const
+@tparam K The type of the key to be returned as list
+@copydetails DataStore::contains(const QString &) const
+@note The given type K must be convertible to a QString
 */
 
 /*!
@@ -264,10 +305,17 @@ Semantics of the `iterator`:
 */
 
 /*!
-@fn QtDataSync::DataStore::iterate(const std::function<bool(T)> &) const
+@fn QtDataSync::DataStore::iterate(int, const std::function<bool(QVariant)> &, bool) const
+@param skipBroken Skip datasets that fail to load instead of thrown the exception
+@copydetails QtDataSync::DataStore::iterate(int, const std::function<bool(QVariant)> &) const
+*/
+
+/*!
+@fn QtDataSync::DataStore::iterate(const std::function<bool(T)> &, bool) const
 
 @tparam T The type to be iterated over
 @param iterator An iterator function that is called for every dataset of the given type
+@param skipBroken Skip datasets that fail to load instead of thrown the exception
 @throws LocalStoreException In case of an internal error
 
 Semantics of the `iterator`:

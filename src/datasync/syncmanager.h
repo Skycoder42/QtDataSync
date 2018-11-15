@@ -21,6 +21,7 @@ class Q_DATASYNC_EXPORT SyncManager : public QObject
 {
 	Q_OBJECT
 
+	//! Holds the name of the setup this manager operates on
 	Q_PROPERTY(QString setupName READ setupName NOTIFY setupNameChanged REVISION 2)
 	//! Specifies whether synchronization is currently enabled or disabled
 	Q_PROPERTY(bool syncEnabled READ isSyncEnabled WRITE setSyncEnabled NOTIFY syncEnabledChanged)
@@ -54,6 +55,7 @@ public:
 	//! @copybrief AccountManager::replica
 	Q_INVOKABLE QRemoteObjectReplica *replica() const;
 
+	//! @readAcFn{AccountManager::setupName}
 	QString setupName() const;
 	//! @readAcFn{syncEnabled}
 	bool isSyncEnabled() const;
@@ -79,7 +81,8 @@ public Q_SLOTS:
 	void reconnect();
 
 Q_SIGNALS:
-	Q_REVISION(2) void setupNameChanged(const QString &setupName, QPrivateSignal);
+	//! @notifyAcFn{AccountManager::setupName}
+	QT_DATASYNC_REVISION_2 void setupNameChanged(const QString &setupName, QPrivateSignal);
 	//! @notifyAcFn{syncEnabled}
 	void syncEnabledChanged(bool syncEnabled, QPrivateSignal);
 	//! @notifyAcFn{syncState}

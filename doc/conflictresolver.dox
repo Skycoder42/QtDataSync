@@ -10,6 +10,14 @@ are treated, you can reimplement this class and pass it to the setup.
 */
 
 /*!
+@fn QtDataSync::ConflictResolver::setupName
+
+@returns The name of the setup
+
+@sa QtDataSync::Setup
+*/
+
+/*!
 @fn QtDataSync::ConflictResolver::name
 
 @returns The name to be used for logging

@@ -386,6 +386,46 @@ AES applies for both, Setup::AES_EAX and Setup::AES_GCM:
 */
 
 /*!
+@property QtDataSync::Setup::eventLoggingMode
+
+@default{`EventMode::Unchanged`}
+
+@note Event though the default value is EventMode::Unchanged, this implicitly means for newly
+created setups event logging is disabled! If you create a completly new setup and want event
+logging, you have to set this property to EventMode::Enabled at least once.
+
+Event logging is an optional component of datasync that can be used for reliable, deterministic
+and ordered handling of change events from any source. The main class to access these events
+is the EventCursor. This property is used to control the activation of this component.
+
+If disabled, no events are logged at all. This means EventCursor becomes unusable. If enabled,
+all changes to data (create, change and delete) trigger an event that is permanently stored and
+can be accessed vua the EventCursor. The Unchanged mode simply means "keep it in whatever state
+it already is" - this is useful if you don't want to break anything
+
+@attention Setting this to EventMode::Disabled will immediatly drop **all** already stored change
+events! So unless you are certain you don't need these, be careful with that option.
+
+@accessors{
+	@readAc{eventLoggingMode()}
+	@writeAc{setEventLoggingMode()}
+	@resetAc{resetEventLoggingMode()}
+	@revisionAc{2}
+}
+
+@sa Defaults::property, Defaults::EventLoggingMode, QtDataSync::EventCursor, Setup::EventMode
+*/
+
+/*!
+@fn QtDataSync::Setup::exists
+
+@param name The name of the setup to check for
+@returns true if a setup already exists for that name, false if not
+
+@sa Setup::create, SetupExistsException
+*/
+
+/*!
 @fn QtDataSync::Setup::setCleanupTimeout
 
 @param timeout The new timeout to be used.

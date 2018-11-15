@@ -120,6 +120,7 @@ class Q_DATASYNC_EXPORT AccountManager : public QObject
 {
 	Q_OBJECT
 
+	//! Holds the name of the setup this manager operates on
 	Q_PROPERTY(QString setupName READ setupName NOTIFY setupNameChanged REVISION 2)
 	//! The display name of the device
 	Q_PROPERTY(QString deviceName READ deviceName WRITE setDeviceName RESET resetDeviceName NOTIFY deviceNameChanged)
@@ -162,6 +163,7 @@ public:
 	//! @copydoc importAccountTrusted(const QJsonObject &, const QString &, const std::function<void(bool,QString)> &, bool)
 	void importAccountTrusted(const QByteArray &importData, const QString &password, const std::function<void(bool,QString)> &completedFn, bool keepData = false);
 
+	//! @readAcFn{AccountManager::setupName}
 	QString setupName() const;
 	//! @readAcFn{AccountManager::deviceName}
 	QString deviceName() const;
@@ -202,7 +204,8 @@ Q_SIGNALS:
 	//! Is emitted when a device has been granted access to the current account
 	void accountAccessGranted(const QUuid &deviceId, QPrivateSignal);
 
-	Q_REVISION(2) void setupNameChanged(const QString &setupName, QPrivateSignal);
+	//! @notifyAcFn{AccountManager::setupName}
+	QT_DATASYNC_REVISION_2 void setupNameChanged(const QString &setupName, QPrivateSignal);
 	//! @notifyAcFn{AccountManager::deviceName}
 	void deviceNameChanged(const QString &deviceName, QPrivateSignal);
 	//! @notifyAcFn{AccountManager::deviceFingerprint}

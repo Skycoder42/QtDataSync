@@ -1,7 +1,7 @@
 {
 	"title": "QtDataSync",
 	"description": "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices.",
-	"modules": [ "QtDataSync" ],
+	"modules": [ "QtDataSync", "QtDataSyncAndroid", "QtDataSyncIos" ],
 	"dependencies": [
 		".qtremoteobjects",
 		".skycoder42.jsonserializer",

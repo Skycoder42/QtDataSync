@@ -49,6 +49,7 @@ public:
 	//! Arrow operator to access the database
 	QSqlDatabase *operator->() const;
 
+	//! Drops the reference to the database early
 	void drop();
 
 private:
@@ -76,8 +77,8 @@ public:
 		CryptScheme, //!< @copybrief Setup::encryptionScheme
 		CryptKeyParam, //!< @copybrief Setup::encryptionKeyParam
 		SymScheme, //!< @copybrief Setup::cipherScheme
-		SymKeyParam, //!< @copybrief Setup::cipherKeySize,
-		EventLoggingMode
+		SymKeyParam, //!< @copybrief Setup::cipherKeySize
+		EventLoggingMode //!< @copybrief Setup::eventLoggingMode
 	};
 	Q_ENUM(PropertyKey)
 
@@ -95,7 +96,9 @@ public:
 	Defaults &operator=(Defaults &&other) noexcept;
 	~Defaults();
 
+	//! Checks if the current defaults are valid. Default constructed defaults are invalid
 	bool isValid() const;
+	//! Drops the reference to the defaults early
 	void drop();
 
 	//! Create a new logger instance

@@ -529,7 +529,7 @@ void RemoteConnector::error(QAbstractSocket::SocketError error)
 	logRetry().noquote() << "Server connection socket error:"
 						 << _socket->errorString();
 
-	tryClose();
+	QMetaObject::invokeMethod(this, "tryClose", Qt::QueuedConnection);
 }
 
 void RemoteConnector::sslErrors(const QList<QSslError> &errors)
@@ -547,7 +547,7 @@ void RemoteConnector::sslErrors(const QList<QSslError> &errors)
 	}
 
 	if(shouldClose)
-		tryClose();
+		QMetaObject::invokeMethod(this, "tryClose", Qt::QueuedConnection);
 }
 
 void RemoteConnector::ping()
@@ -560,6 +560,13 @@ void RemoteConnector::ping()
 		_awaitingPing = true;
 		_socket->sendBinaryMessage(Message::PingMessage);
 	}
+}
+
+void RemoteConnector::tryClose()
+{
+	// do not set _disconnecting, because this is unexpected
+	if(_socket && _socket->state() == QAbstractSocket::ConnectedState)
+		_socket->close();
 }
 
 void RemoteConnector::doConnect()
@@ -784,13 +791,6 @@ bool RemoteConnector::loadIdentity()
 		emit controllerError(tr("Failed to load user identity! Make shure your keystore is available."));
 		return false;
 	}
-}
-
-void RemoteConnector::tryClose()
-{
-	// do not set _disconnecting, because this is unexpected
-	if(_socket && _socket->state() == QAbstractSocket::ConnectedState)
-		_socket->close();
 }
 
 seconds RemoteConnector::retry()

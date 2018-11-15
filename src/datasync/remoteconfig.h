@@ -26,7 +26,8 @@ class Q_DATASYNC_EXPORT RemoteConfig
 	//! The keep alive timeout to be used to send pings to the server
 	Q_PROPERTY(int keepaliveTimeout READ keepaliveTimeout WRITE setKeepaliveTimeout)
 
-	Q_PROPERTY(QVariantMap storedHeaders READ storedHeaders WRITE setStoredHeaders)
+	//! Internal property that mirrors RemoteConfig::headers, but in a serializable format
+	Q_PROPERTY(QVariantMap storedHeaders READ storedHeaders WRITE setStoredHeaders REVISION 2)
 
 public:
 	//! Typedef for a hash of additional HTTP headers
@@ -48,7 +49,9 @@ public:
 	//! Move-Assignment operator
 	RemoteConfig &operator=(RemoteConfig &&other) noexcept;
 
+	//! Equality operator
 	bool operator==(const RemoteConfig &other) const;
+	//! Inequality operator
 	bool operator!=(const RemoteConfig &other) const;
 
 	//! @readAcFn{RemoteConfig::url}

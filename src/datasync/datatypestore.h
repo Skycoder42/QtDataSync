@@ -22,6 +22,7 @@ public:
 
 	//! Returns a reference to the internally used DataStore
 	virtual DataStore *store() const = 0;
+	//! @copydoc DataStore::setupName
 	QString setupName() const;
 
 Q_SIGNALS:
@@ -53,6 +54,7 @@ public:
 	QList<TKey> keys() const;
 	//! @copybrief DataStore::loadAll() const
 	QList<TType> loadAll() const;
+	//! @copybrief DataStore::contains(const K &) const
 	bool contains(const TKey &key) const;
 	//! @copybrief DataStore::load(const K &) const
 	TType load(const TKey &key) const;
@@ -65,7 +67,7 @@ public:
 	void update(std::enable_if_t<__helpertypes::is_object<TX>::value, TX> object) const;
 	//! @copybrief DataStore::search(const QString &, SearchMode) const
 	QList<TType> search(const QString &query, DataStore::SearchMode mode = DataStore::RegexpMode);
-	//! @copybrief DataStore::iterate(const std::function<bool(T)> &) const
+	//! @copybrief DataStore::iterate(const std::function<bool(T)> &, bool) const
 	void iterate(const std::function<bool(TType)> &iterator, bool skipBroken = false);
 	//! @copybrief DataStore::clear()
 	void clear();
@@ -104,7 +106,7 @@ public:
 	qint64 count() const;
 	//! @copybrief DataTypeStore::keys
 	QList<TKey> keys() const;
-	//! Checks if a dataset for the given key exists
+	//! @copybrief DataTypeStore::contains
 	bool contains(const TKey &key) const;
 	//! @copybrief DataTypeStore::loadAll
 	QList<TType> loadAll() const;

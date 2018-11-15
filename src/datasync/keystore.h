@@ -44,6 +44,7 @@ public:
 	explicit KeyStore(const Defaults &defaults, QObject *parent = nullptr);
 	~KeyStore() override;
 
+	//! Returns the name of the setup this class operates on
 	QString setupName() const;
 
 	//! Returns the provider type the keystore is of

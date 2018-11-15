@@ -41,6 +41,7 @@ public:
 	explicit DataStore(const QString &setupName, QObject *parent = nullptr);
 	~DataStore() override;
 
+	//! Returns the name of the setup this class operates on
 	QString setupName() const;
 
 	//! @copybrief DataStore::count() const
@@ -49,7 +50,9 @@ public:
 	QStringList keys(int metaTypeId) const;
 	//! @copybrief DataStore::loadAll() const
 	QVariantList loadAll(int metaTypeId) const;
+	//! @copybrief DataStore::contains(const QString &) const
 	bool contains(int metaTypeId, const QString &key) const;
+	//! @copybrief DataStore::contains(const QString &) const
 	inline bool contains(int metaTypeId, const QVariant &key) const {
 		return contains(metaTypeId, key.toString());
 	}
@@ -71,9 +74,10 @@ public:
 	void update(int metaTypeId, QObject *object) const;
 	//! @copybrief DataStore::search(const QString &, SearchMode) const
 	QVariantList search(int metaTypeId, const QString &query, SearchMode mode = RegexpMode) const;
-	//! @copybrief DataStore::iterate(const std::function<bool(T)> &) const
+	//! @copybrief DataStore::iterate(const std::function<bool(T)> &, bool) const
 	void iterate(int metaTypeId,
 				 const std::function<bool(QVariant)> &iterator) const;
+	//! @copybrief DataStore::iterate(const std::function<bool(T)> &, bool) const
 	void iterate(int metaTypeId,
 				 const std::function<bool(QVariant)> &iterator,
 				 bool skipBroken) const; //MAJOR merge overloads
@@ -96,11 +100,13 @@ public:
 	//! Loads all existing datasets for the given type
 	template<typename T>
 	QList<T> loadAll() const;
-	//! Loads the dataset with the given key for the given type
+	//! Checks if a dataset exists in the store for the given key
 	template<typename T>
 	bool contains(const QString &key) const;
+	//! @copybrief DataStore::contains(const QString &) const
 	template<typename T, typename K>
 	bool contains(const K &key) const;
+	//! Loads the dataset with the given key for the given type
 	template<typename T>
 	T load(const QString &key) const;
 	//! @copybrief DataStore::load(const QString &) const

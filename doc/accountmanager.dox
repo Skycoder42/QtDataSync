@@ -100,6 +100,23 @@ events to deliver messages within the same process only. See
 */
 
 /*!
+@property QtDataSync::AccountManager::setupName
+
+@default{`QtDataSync::DefaultSetup`}
+
+The setup name is the name that was passed to the Setup::create method to create the datasync
+instance this manager is refering to.
+
+@accessors{
+	@readAc{setupName()}
+	@notifyAc{setupNameChanged()}
+	@revisionAc{2}
+}
+
+@sa QtDataSync::DefaultSetup, Setup::create
+*/
+
+/*!
 @property QtDataSync::AccountManager::deviceName
 
 @default{QSysInfo::machineHostName()}

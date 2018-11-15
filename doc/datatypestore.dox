@@ -115,6 +115,16 @@ return and cosume very much memory. For most situations however, this is not the
 */
 
 /*!
+@fn QtDataSync::DataTypeStore::contains
+
+@param key The key of the dataset to be checked for existance
+@returns true if the dataset exists, false if not
+@throws LocalStoreException In case of an internal error
+
+@sa DataTypeStore::keys, DataTypeStore::load
+*/
+
+/*!
 @fn QtDataSync::DataTypeStore::load
 
 @param key The key of the dataset to be loaded
@@ -179,6 +189,7 @@ change signals for updated properties will be emitted.
 @fn QtDataSync::DataTypeStore::iterate
 
 @param iterator An iterator function that is called for every dataset of the given type
+@param skipBroken Skip datasets that fail to load instead of thrown the exception
 @throws LocalStoreException In case of an internal error
 
 Semantics of the `iterator`:

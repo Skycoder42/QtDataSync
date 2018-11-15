@@ -95,7 +95,8 @@ class Q_DATASYNC_EXPORT Setup
 	Q_PROPERTY(CipherScheme cipherScheme READ cipherScheme WRITE setCipherScheme RESET resetCipherScheme)
 	//! The size in bytes for the secret exchange key (which is symmetric)
 	Q_PROPERTY(qint32 cipherKeySize READ cipherKeySize WRITE setCipherKeySize RESET resetCipherKeySize) //MAJOR make uint
-	Q_PROPERTY(EventMode eventLoggingMode READ eventLoggingMode WRITE setEventLoggingMode RESET resetEventLoggingMode)
+	//! The logging mode for database change events
+	Q_PROPERTY(EventMode eventLoggingMode READ eventLoggingMode WRITE setEventLoggingMode RESET resetEventLoggingMode REVISION 2)
 
 public:
 	//! Typedef of an error handler function. See Setup::fatalErrorHandler
@@ -165,13 +166,15 @@ public:
 	};
 	Q_ENUM(EllipticCurve)
 
+	//! Possible values for the event logging mode change
 	enum class EventMode {
-		Unchanged,
-		Enabled,
-		Disabled
+		Unchanged, //!< Keep as is. If it was previously enabled, it stays enabled. Same goes for the disabled state
+		Enabled, //!< Enable event logging, regardless of the previous state
+		Disabled //!< Disable event logging, regardless of the previous state
 	};
 	Q_ENUM(EventMode)
 
+	//! Checks if a setup for the given name does already exist
 	static bool exists(const QString &name = DefaultSetup);
 	//! Sets the maximum timeout for shutting down setups
 	static void setCleanupTimeout(unsigned long timeout);
@@ -192,7 +195,9 @@ public:
 	static KeyStore *loadKeystore(const QString &provider, QObject *parent = nullptr, const QString &setupName = DefaultSetup);
 
 	Setup();
+	//! Move constructor
 	Setup(Setup &&other) noexcept;
+	//! Move assignment operator
 	Setup &operator=(Setup &&other) noexcept;
 	~Setup();
 
@@ -230,6 +235,7 @@ public:
 	CipherScheme cipherScheme() const;
 	//! @readAcFn{Setup::cipherKeySize}
 	qint32 cipherKeySize() const;
+	//! @readAcFn{Setup::eventLoggingMode}
 	EventMode eventLoggingMode() const;
 
 	//! @writeAcFn{Setup::localDir}
@@ -266,6 +272,7 @@ public:
 	Setup &setCipherScheme(CipherScheme cipherScheme);
 	//! @writeAcFn{Setup::cipherKeySize}
 	Setup &setCipherKeySize(qint32 cipherKeySize);
+	//! @writeAcFn{Setup::eventLoggingMode}
 	Setup &setEventLoggingMode(EventMode eventLoggingMode);
 
 	//! @resetAcFn{Setup::localDir}
@@ -302,6 +309,7 @@ public:
 	Setup &resetCipherScheme();
 	//! @resetAcFn{Setup::cipherKeySize}
 	Setup &resetCipherKeySize();
+	//! @resetAcFn{Setup::resetEventLoggingMode}
 	Setup &resetEventLoggingMode();
 
 	//! Sets an account to be imported on creation of the instance

@@ -141,6 +141,7 @@ private Q_SLOTS:
 	void error(QAbstractSocket::SocketError error);
 	void sslErrors(const QList<QSslError> &errors);
 	void ping();
+	void tryClose();
 
 	//statemachine
 	void doConnect();
@@ -181,7 +182,6 @@ private:
 
 	bool checkCanSync(QUrl &remoteUrl);
 	bool loadIdentity();
-	void tryClose();
 	std::chrono::seconds retry();
 	void clearCaches(bool includeExport);
 
