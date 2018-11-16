@@ -196,7 +196,7 @@ UserExchangeManager::exportTo, AccountManager::exportAccountTrusted
 */
 
 /*!
-@fn QtDataSync::UserExchangeManager::importFrom
+@fn QtDataSync::UserExchangeManager::importFrom(const QtDataSync::UserInfo &, const std::function<void(bool,QString)> &, bool)
 
 @param userInfo The user to that sent the data to import
 @param completedFn A function that is called once the import has been finished
@@ -214,7 +214,7 @@ UserExchangeManager::importTrustedFrom, AccountManager::importAccount
 */
 
 /*!
-@fn QtDataSync::UserExchangeManager::importTrustedFrom
+@fn QtDataSync::UserExchangeManager::importTrustedFrom(const QtDataSync::UserInfo &, const QString &, const std::function<void(bool,QString)> &, bool)
 
 @param userInfo The user to that sent the data to import
 @param password The password used to decrypt the imported data with. Must be the same as used

@@ -45,19 +45,19 @@ public:
 
 	//! Create a cursor positioned on the oldest change event
 	static EventCursor *first(QObject *parent = nullptr);
-	//! @copybrief EventCursor::first(QObject*)
+	//! @copybrief QtDataSync::EventCursor::first(QObject*)
 	static EventCursor *first(const QString &setupName, QObject *parent = nullptr);
 	//! Create a cursor positioned on the newest change event
 	static EventCursor *last(QObject *parent = nullptr);
-	//! @copybrief EventCursor::last(QObject*)
+	//! @copybrief QtDataSync::EventCursor::last(QObject*)
 	static EventCursor *last(const QString &setupName, QObject *parent = nullptr);
 	//! Create a cursor positioned on the given index, if it is a valid index
 	static EventCursor *create(quint64 index, QObject *parent = nullptr);
-	//! @copybrief EventCursor::create(quint64, QObject*)
+	//! @copybrief QtDataSync::EventCursor::create(quint64, QObject*)
 	static EventCursor *create(quint64 index, const QString &setupName, QObject *parent = nullptr);
 	//! Create a cursor positioned on the index provided by the previously stored data, if still valid
 	static EventCursor *load(const QByteArray &data, QObject *parent = nullptr);
-	//! @copybrief EventCursor::load(const QByteArray &, QObject*)
+	//! @copybrief QtDataSync::EventCursor::load(const QByteArray &, QObject*)
 	static EventCursor *load(const QByteArray &data, const QString &setupName, QObject *parent = nullptr);
 	//! Returns encoded position data of the cursor to be loaded again
 	Q_INVOKABLE QByteArray save() const;

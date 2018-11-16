@@ -188,7 +188,7 @@ EventCursor::isEventLogActive
 /*!
 @fn QtDataSync::EventCursor::first(const QString &, QObject*)
 @param setupName The name of the setup to create the cursor for
-@copydetails EventCursor::first(QObject*)
+@copydetails QtDataSync::EventCursor::first(QObject*)
 */
 
 /*!
@@ -208,7 +208,7 @@ EventCursor::isEventLogActive
 /*!
 @fn QtDataSync::EventCursor::last(const QString &, QObject*)
 @param setupName The name of the setup to create the cursor for
-@copydetails EventCursor::last(QObject*)
+@copydetails QtDataSync::EventCursor::last(QObject*)
 */
 
 /*!
@@ -229,7 +229,7 @@ EventCursor::isEventLogActive
 /*!
 @fn QtDataSync::EventCursor::create(quint64, const QString &, QObject*)
 @param setupName The name of the setup to create the cursor for
-@copydetails EventCursor::create(quint64, QObject*)
+@copydetails QtDataSync::EventCursor::create(quint64, QObject*)
 */
 
 /*!
@@ -260,7 +260,7 @@ EventCursor::isEventLogActive, EventCursor::save, EventCursor::skipObsolete
 /*!
 @fn QtDataSync::EventCursor::load(const QByteArray &, const QString &, QObject*)
 @param setupName The name of the setup to create the cursor for
-@copydetails EventCursor::load(const QByteArray &, QObject*)
+@copydetails QtDataSync::EventCursor::load(const QByteArray &, QObject*)
 */
 
 /*!

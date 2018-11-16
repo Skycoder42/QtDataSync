@@ -2,3 +2,5 @@ module de.skycoder42.QtDataSync
 plugin declarative_datasync
 classname QtDataSyncDeclarativeModule
 typeinfo plugins.qmltypes
+depends QtQml 2.2
+depends QtQml.Models 2.2

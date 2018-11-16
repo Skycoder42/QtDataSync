@@ -116,7 +116,7 @@ information about it's state etc.
 */
 
 /*!
-@fn QtDataSync::SyncManager::runOnDownloaded
+@fn QtDataSync::SyncManager::runOnDownloaded(const std::function<void(SyncState)> &, bool)
 
 @param resultFn The function to be called as soon as a target state is reached
 @param triggerSync Trigger a synchronisation in case the engine is currently synchronized
@@ -133,7 +133,7 @@ of waiting for the uploads as well.
 */
 
 /*!
-@fn QtDataSync::SyncManager::runOnSynchronized
+@fn QtDataSync::SyncManager::runOnSynchronized(const std::function<void(SyncState)> &, bool)
 
 @param resultFn The function to be called as soon as a target state is reached
 @param triggerSync Trigger a synchronisation in case the engine is currently synchronized

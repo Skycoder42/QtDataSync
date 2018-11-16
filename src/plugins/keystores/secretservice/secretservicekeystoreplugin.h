@@ -3,7 +3,6 @@
 
 #include <QtDataSync/keystore.h>
 
-//TODO test
 class SecretServiceKeyStorePlugin : public QObject, public QtDataSync::KeyStorePlugin
 {
 	Q_OBJECT

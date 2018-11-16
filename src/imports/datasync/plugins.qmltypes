@@ -7,7 +7,7 @@ import QtQuick.tooling 1.2
 // 'qmlplugindump -nonrelocatable de.skycoder42.QtDataSync 4.2'
 
 Module {
-    dependencies: ["QtQuick 2.8"]
+    dependencies: ["QtQml 2.2", "QtQml.Models 2.2"]
     Component { name: "QAbstractTableModel"; prototype: "QAbstractItemModel" }
     Component {
         name: "QtDataSync::AccountManager"
@@ -336,6 +336,13 @@ Module {
             name: "loadAll"
             type: "QVariantList"
             Parameter { name: "typeName"; type: "string" }
+        }
+        Method {
+            name: "contains"
+            revision: 2
+            type: "bool"
+            Parameter { name: "typeName"; type: "string" }
+            Parameter { name: "key"; type: "string" }
         }
         Method {
             name: "load"

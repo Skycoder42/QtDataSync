@@ -31,7 +31,7 @@ completed. This of course only applies to pointer classes, as gadgets are used a
 */
 
 /*!
-@fn QtDataSync::DataStore::setupName
+@fn QtDataSync::DataStore::setupName() const
 @returns The name of the setup
 @sa QtDataSync::Setup
 */

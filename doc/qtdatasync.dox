@@ -1,0 +1,22 @@
+/*!
+@namespace de::skycoder42::QtDataSync
+@brief The QML import for the QtDataSync QML module
+
+<b>Current Version</b><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.2
+
+<b>Available Types</b>
+- @ref QtDataSync::DeviceInfo "DeviceInfo" (uncreatable)
+- @ref QtDataSync::LoginRequest "LoginRequest" (uncreatable)
+- @ref QtDataSync::UserInfo "UserInfo" (uncreatable)
+- @ref QtDataSync::EventCursor "EventCursor" (uncreatable)
+- DataStore
+- DataStoreModel
+- SyncManager
+- AccountManager
+- UserExchangeManager
+- EventLog (singleton)
+- @ref QtDataSync::AndroidSyncControl "AndroidSyncControl"
+- @ref QtDataSync::IosSyncDelegate "IosSyncDelegate" (uncreatable)
+- IosSyncSingleton (singleton)
+*/

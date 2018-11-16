@@ -250,6 +250,7 @@ ALIASES                = "accessors{1}=<table><tr><th colspan= 2>Accessors</th><
 						 storedAc{1}=<tr><td><b>STORED</b></td><td>\1</td></tr> \
 						 userAc{1}=<tr><td><b>USER</b></td><td>\1</td></tr> \
 						 "constantAc=<tr><td colspan= 2><b>CONSTANT</b></td></tr>" \
+						 "readonlyAc=<tr><td colspan= 2><b>READ ONLY</b></td></tr>" \
 						 "finalAc=<tr><td colspan= 2><b>FINAL</b></td></tr>" \
 						 "default{1}=<b>Default:</b> \1 <br>" \
 						 "readAcFn{1}=READ accessor for \1" \
@@ -894,7 +895,6 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = ../src/3rdparty \
-						 ../src/imports \
 						 ../src/plugins
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
@@ -929,6 +929,7 @@ EXCLUDE_PATTERNS       = moc_* \
 
 EXCLUDE_SYMBOLS        = QtDataSync::__helpertypes::* \
 						 QtDataSync::JsonObject \
+						 QtDataSyncDeclarativeModule \
 						 \
 						 QAbstractAspect \
 						 QAbstractXmlReceiver \

@@ -63,6 +63,16 @@ QVariantList QQmlDataStore::loadAll(const QString &typeName) const
 	}
 }
 
+bool QQmlDataStore::contains(const QString &typeName, const QString &key) const
+{
+	try {
+		return DataStore::contains(QMetaType::type(typeName.toUtf8()), key);
+	} catch(Exception &e) {
+		qmlWarning(this) << e.what();
+		return false;
+	}
+}
+
 QVariant QQmlDataStore::load(const QString &typeName, const QString &key) const
 {
 	try {
