@@ -4,7 +4,7 @@ var searchData=
   ['edges',['Edges',['https://doc.qt.io/qt-5/qt.html#Edge-enum',0,'Qt']]],
   ['editflags',['EditFlags',['https://doc.qt.io/qt-5/qwebenginecontextmenudata.html#EditFlag-enum',0,'QWebEngineContextMenuData']]],
   ['edittriggers',['EditTriggers',['https://doc.qt.io/qt-5/qabstractitemview.html#EditTrigger-enum',0,'QAbstractItemView']]],
-  ['enabled',['Enabled',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#aaf1235d174ee19e269d85a9a0d909e72a176639071fbd8ac569fa3883a4ca3336',0,'QJsonSerializer']]],
+  ['enabled',['Enabled',['https://skycoder42.github.io/QtJsonSerializer/class_q_json_serializer.html#aaf1235d174ee19e269d85a9a0d909e72a176639071fbd8ac569fa3883a4ca3336',0,'QJsonSerializer']]],
   ['encoderfn',['EncoderFn',['https://doc.qt.io/qt-5/qfile-obsolete.html#EncoderFn-typedef',0,'QFile']]],
   ['entries',['entries',['https://doc.qt.io/qt-5/namespace_qt_mvvm_1_1_settings_elements.html#ae370a8651725459ab228f6e3df875e57',0,'QtMvvm::SettingsElements::Group']]],
   ['enum_5ftype',['enum_type',['https://doc.qt.io/qt-5/qflags.html#enum_type-typedef',0,'QFlags']]],

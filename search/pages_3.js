@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['the_20qrestbuilder_20tool',['The QRestBuilder Tool',['https://doc.qt.io/qt-5/generator.html',0,'']]],
-  ['threaded_20remote_20objects',['Threaded remote objects',['../ro_threaded.html',1,'']]],
-  ['the_20xml_20settings_20format',['The XML settings format',['https://doc.qt.io/qt-5/settings_xml.html',0,'']]]
+  ['supported_20service_20backends',['Supported Service Backends',['https://skycoder42.github.io/QtService/qtservice_backends.html',0,'']]]
 ];

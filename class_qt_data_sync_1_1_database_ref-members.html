@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.1.0</span>
+   &#160;<span id="projectnumber">4.2.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -80,16 +80,17 @@ $(function() {
 <table class="directory">
   <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#af2f0c9e104ef6e15c4f4620d02b5abdd">database</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#a907dc7ee517ebece6ef3c60de1befd0c">DatabaseRef</a>()</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#aa8bbfa4dac73d62dcd98481ff42d0976">DatabaseRef</a>(DatabaseRef &amp;&amp;other)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#ae11d086bcc7dfc4a881ac18829f8f5b6">isValid</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#a241e5f68960ce3aacfd5a53e3c375433">operator QSqlDatabase</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#ad7c92f25967544432d973192f4149961">operator-&gt;</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#a507e0bf6e9aca5eb0a8fe727d7c95daa">operator=</a>(DatabaseRef &amp;&amp;other)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>~DatabaseRef</b>() (defined in <a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a>)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#a18e57110e6fe9f265cf2a278e2cda666">DatabaseRef</a>(DatabaseRef &amp;&amp;other) noexcept</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#ad7a6e2aa175cd97b5e09d78cb5aedaf3">drop</a>()</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#ae11d086bcc7dfc4a881ac18829f8f5b6">isValid</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#a241e5f68960ce3aacfd5a53e3c375433">operator QSqlDatabase</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#ad7c92f25967544432d973192f4149961">operator-&gt;</a>() const</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html#a59a0db8a58767ab8126d2433d0fa7f57">operator=</a>(DatabaseRef &amp;&amp;other) noexcept</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>~DatabaseRef</b>() (defined in <a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a>)</td><td class="entry"><a class="el" href="class_qt_data_sync_1_1_database_ref.html">QtDataSync::DatabaseRef</a></td><td class="entry"></td></tr>
 </table></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Nov 17 2018 11:30:54 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['backgroundsyncaction',['BackgroundSyncAction',['../class_qt_data_sync_1_1_android_background_service.html#a81d0cc9a05d34b815b1a2838393fa5db',1,'QtDataSync::AndroidBackgroundService']]],
   ['base64options',['Base64Options',['https://doc.qt.io/qt-5/qbytearray.html#Base64Option-enum',0,'QByteArray']]],
   ['bindmode',['BindMode',['https://doc.qt.io/qt-5/qabstractsocket.html#BindFlag-enum',0,'QAbstractSocket']]],
   ['blurhints',['BlurHints',['https://doc.qt.io/qt-5/qgraphicsblureffect.html#BlurHint-enum',0,'QGraphicsBlurEffect']]],

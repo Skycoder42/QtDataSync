@@ -8,6 +8,6 @@ var searchData=
   ['updateinfo',['UpdateInfo',['https://doc.qt.io/qt-5/struct_qt_auto_updater_1_1_updater_1_1_update_info.html',0,'QtAutoUpdater::Updater']]],
   ['updatepaintnodedata',['UpdatePaintNodeData',['https://doc.qt.io/qt-5/qquickitem-updatepaintnodedata.html',0,'QQuickItem']]],
   ['updater',['Updater',['https://doc.qt.io/qt-5/class_qt_auto_updater_1_1_updater.html',0,'QtAutoUpdater']]],
-  ['userexchangemanager',['UserExchangeManager',['../class_qt_data_sync_1_1_user_exchange_manager.html',1,'QtDataSync']]],
+  ['userexchangemanager',['UserExchangeManager',['../classde_1_1skycoder42_1_1_qt_data_sync_1_1_user_exchange_manager.html',1,'de::skycoder42::QtDataSync::UserExchangeManager'],['../class_qt_data_sync_1_1_user_exchange_manager.html',1,'QtDataSync::UserExchangeManager']]],
   ['userinfo',['UserInfo',['../class_qt_data_sync_1_1_user_info.html',1,'QtDataSync']]]
 ];

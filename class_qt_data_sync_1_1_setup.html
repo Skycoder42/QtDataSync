@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.1.0</span>
+   &#160;<span id="projectnumber">4.2.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -150,23 +150,37 @@ Public Types</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a9bc9f0bd5e663c74c1ee3bfecea7343a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Elliptic curves supported as key parameter for <a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d" title="The generation parameter for the signature key. ">Setup::signatureKeyParam</a> and <a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3" title="The generation parameter for the encryption key. ">Setup::encryptionKeyParam</a> in case an ECC scheme is used. <br /></td></tr>
 <tr class="separator:a9bc9f0bd5e663c74c1ee3bfecea7343a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53094bf7e6d0df749d665b1f37ceaf71"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71">EventMode</a> { <a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71a5ff3c6978f87d96febfdc8ed3899a97e">EventMode::Unchanged</a>, 
+<a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71a00d23a76e43b46dae9ec7aa9dcbebb32">EventMode::Enabled</a>, 
+<a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71ab9f5c797ebbf55adccdd8539a65a0241">EventMode::Disabled</a>
+ }</td></tr>
+<tr class="memdesc:a53094bf7e6d0df749d665b1f37ceaf71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Possible values for the event logging mode change.  <a href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71">More...</a><br /></td></tr>
+<tr class="separator:a53094bf7e6d0df749d665b1f37ceaf71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28e6964249f79a99c5b61f3b5ffcf14d"><td class="memItemLeft" align="right" valign="top"><a id="a28e6964249f79a99c5b61f3b5ffcf14d"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a28e6964249f79a99c5b61f3b5ffcf14d">FatalErrorHandler</a> = std::function&lt; void(<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qmessagelogcontext.html">QMessageLogContext</a> &amp;)&gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a28e6964249f79a99c5b61f3b5ffcf14d">FatalErrorHandler</a> = std::function&lt; void(<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qmessagelogcontext.html">QMessageLogContext</a> &amp;)&gt;</td></tr>
 <tr class="memdesc:a28e6964249f79a99c5b61f3b5ffcf14d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef of an error handler function. See <a class="el" href="class_qt_data_sync_1_1_setup.html#a82f7abfc02e345721da11235c24c7797" title="An alternative handler for fatal errors. ">Setup::fatalErrorHandler</a>. <br /></td></tr>
 <tr class="separator:a28e6964249f79a99c5b61f3b5ffcf14d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a9345ca7d36112b9a573de88cb8acd097"><td class="memItemLeft" align="right" valign="top"><a id="a9345ca7d36112b9a573de88cb8acd097"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a9345ca7d36112b9a573de88cb8acd097">Setup</a> (<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a9345ca7d36112b9a573de88cb8acd097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor. <br /></td></tr>
+<tr class="separator:a9345ca7d36112b9a573de88cb8acd097"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad990ec8d1e44a619e4294c0e58be5f1f"><td class="memItemLeft" align="right" valign="top"><a id="ad990ec8d1e44a619e4294c0e58be5f1f"></a>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ad990ec8d1e44a619e4294c0e58be5f1f">operator=</a> (<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:ad990ec8d1e44a619e4294c0e58be5f1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator. <br /></td></tr>
+<tr class="separator:ad990ec8d1e44a619e4294c0e58be5f1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab01d287139a85bc753a4857e1a4929a8"><td class="memItemLeft" align="right" valign="top"><a id="ab01d287139a85bc753a4857e1a4929a8"></a>
-<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab01d287139a85bc753a4857e1a4929a8">localDir</a> () const</td></tr>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab01d287139a85bc753a4857e1a4929a8">localDir</a> () const</td></tr>
 <tr class="memdesc:ab01d287139a85bc753a4857e1a4929a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31" title="The local storage directoy used by the instance. ">Setup::localDir</a>. <br /></td></tr>
 <tr class="separator:ab01d287139a85bc753a4857e1a4929a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7bac35a519a530689112f37e18e61fc"><td class="memItemLeft" align="right" valign="top"><a id="ab7bac35a519a530689112f37e18e61fc"></a>
-<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab7bac35a519a530689112f37e18e61fc">remoteObjectHost</a> () const</td></tr>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab7bac35a519a530689112f37e18e61fc">remoteObjectHost</a> () const</td></tr>
 <tr class="memdesc:ab7bac35a519a530689112f37e18e61fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950" title="The url to be used to host the remote object sources, and to connect to to acquire the replicas...">Setup::remoteObjectHost</a>. <br /></td></tr>
 <tr class="separator:ab7bac35a519a530689112f37e18e61fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5be7aefae089f58a32c745d3503eb013"><td class="memItemLeft" align="right" valign="top"><a id="a5be7aefae089f58a32c745d3503eb013"></a>
-<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QJsonSerializer/" href="https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a5be7aefae089f58a32c745d3503eb013">serializer</a> () const</td></tr>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QtJsonSerializer/" href="https://skycoder42.github.io/QtJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a5be7aefae089f58a32c745d3503eb013">serializer</a> () const</td></tr>
 <tr class="memdesc:a5be7aefae089f58a32c745d3503eb013"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a851d059b12ef06d4291b1fb8b073a2da" title="The serializer to be used to serialize and deserialize data to and from the store. ">Setup::serializer</a>. <br /></td></tr>
 <tr class="separator:a5be7aefae089f58a32c745d3503eb013"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28a5da681b0c5bf57a32490e0be9ee47"><td class="memItemLeft" align="right" valign="top"><a id="a28a5da681b0c5bf57a32490e0be9ee47"></a>
@@ -190,7 +204,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:a79cae5091ae650b6ade2e43c42f732b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a83d3e78bebc2d14353fc8e42f00d9dea" title="The policiy for how to handle conflicts. ">Setup::syncPolicy</a>. <br /></td></tr>
 <tr class="separator:a79cae5091ae650b6ade2e43c42f732b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe15b74abbae0267943ab9fb80f5d393"><td class="memItemLeft" align="right" valign="top"><a id="abe15b74abbae0267943ab9fb80f5d393"></a>
-<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#abe15b74abbae0267943ab9fb80f5d393">sslConfiguration</a> () const</td></tr>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#abe15b74abbae0267943ab9fb80f5d393">sslConfiguration</a> () const</td></tr>
 <tr class="memdesc:abe15b74abbae0267943ab9fb80f5d393"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a8ec9ca0a9caaa93db35aacbdd556ed93" title="The ssl configuration to be used to connect to the remote. ">Setup::sslConfiguration</a>. <br /></td></tr>
 <tr class="separator:abe15b74abbae0267943ab9fb80f5d393"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9a051a83acbff5f6331d9d7a67255d1"><td class="memItemLeft" align="right" valign="top"><a id="aa9a051a83acbff5f6331d9d7a67255d1"></a>
@@ -198,7 +212,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:aa9a051a83acbff5f6331d9d7a67255d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a148d252f4f6520874a8cbc70705b57e8" title="The configuration to be used to connect to the remote. ">Setup::remoteConfiguration</a>. <br /></td></tr>
 <tr class="separator:aa9a051a83acbff5f6331d9d7a67255d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37ebdc41a6d35f41c086e9c9f7a94ab3"><td class="memItemLeft" align="right" valign="top"><a id="a37ebdc41a6d35f41c086e9c9f7a94ab3"></a>
-<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a37ebdc41a6d35f41c086e9c9f7a94ab3">keyStoreProvider</a> () const</td></tr>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a37ebdc41a6d35f41c086e9c9f7a94ab3">keyStoreProvider</a> () const</td></tr>
 <tr class="memdesc:a37ebdc41a6d35f41c086e9c9f7a94ab3"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a537a373eb37b34652acaca106514f85a" title="The name of the preferred keystore provider. ">Setup::keyStoreProvider</a>. <br /></td></tr>
 <tr class="separator:a37ebdc41a6d35f41c086e9c9f7a94ab3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbd26e6535ecb3f429132b19073fa417"><td class="memItemLeft" align="right" valign="top"><a id="acbd26e6535ecb3f429132b19073fa417"></a>
@@ -206,7 +220,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:acbd26e6535ecb3f429132b19073fa417"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#add14e6a783371ffbfdcce9e442df6628" title="The algorithmic scheme to be used for new signature keys. ">Setup::signatureScheme</a>. <br /></td></tr>
 <tr class="separator:acbd26e6535ecb3f429132b19073fa417"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbee853057c385d619d74adc23be8edf"><td class="memItemLeft" align="right" valign="top"><a id="adbee853057c385d619d74adc23be8edf"></a>
-<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#adbee853057c385d619d74adc23be8edf">signatureKeyParam</a> () const</td></tr>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#adbee853057c385d619d74adc23be8edf">signatureKeyParam</a> () const</td></tr>
 <tr class="memdesc:adbee853057c385d619d74adc23be8edf"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d" title="The generation parameter for the signature key. ">Setup::signatureKeyParam</a>. <br /></td></tr>
 <tr class="separator:adbee853057c385d619d74adc23be8edf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef09fe43138d663eeb0ac1cc31adce99"><td class="memItemLeft" align="right" valign="top"><a id="aef09fe43138d663eeb0ac1cc31adce99"></a>
@@ -214,7 +228,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:aef09fe43138d663eeb0ac1cc31adce99"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#ae49826ed91140b8ca741ff598ef266d9" title="The algorithmic scheme to be used for new encryption keys. ">Setup::encryptionScheme</a>. <br /></td></tr>
 <tr class="separator:aef09fe43138d663eeb0ac1cc31adce99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a398e428dbf6aaa3df8478e473be73c6c"><td class="memItemLeft" align="right" valign="top"><a id="a398e428dbf6aaa3df8478e473be73c6c"></a>
-<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a398e428dbf6aaa3df8478e473be73c6c">encryptionKeyParam</a> () const</td></tr>
+<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a398e428dbf6aaa3df8478e473be73c6c">encryptionKeyParam</a> () const</td></tr>
 <tr class="memdesc:a398e428dbf6aaa3df8478e473be73c6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3" title="The generation parameter for the encryption key. ">Setup::encryptionKeyParam</a>. <br /></td></tr>
 <tr class="separator:a398e428dbf6aaa3df8478e473be73c6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9cf756a8219481390a54628ef4450d0f"><td class="memItemLeft" align="right" valign="top"><a id="a9cf756a8219481390a54628ef4450d0f"></a>
@@ -225,16 +239,20 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#acd55d9e69d861090c7b16dbe68c995c6">cipherKeySize</a> () const</td></tr>
 <tr class="memdesc:acd55d9e69d861090c7b16dbe68c995c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a59244e495e9bc8939b5d0981746f141f" title="The size in bytes for the secret exchange key (which is symmetric) ">Setup::cipherKeySize</a>. <br /></td></tr>
 <tr class="separator:acd55d9e69d861090c7b16dbe68c995c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2516a4ef940c14fe87c53173fcbc566"><td class="memItemLeft" align="right" valign="top"><a id="ad2516a4ef940c14fe87c53173fcbc566"></a>
+<a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71">EventMode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ad2516a4ef940c14fe87c53173fcbc566">eventLoggingMode</a> () const</td></tr>
+<tr class="memdesc:ad2516a4ef940c14fe87c53173fcbc566"><td class="mdescLeft">&#160;</td><td class="mdescRight">READ accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a4ac0be6dcde6e92ba7aef484fd0c03c0" title="The logging mode for database change events. ">Setup::eventLoggingMode</a>. <br /></td></tr>
+<tr class="separator:ad2516a4ef940c14fe87c53173fcbc566"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc6bbcc9bb070dd7de63f51cacae8c9f"><td class="memItemLeft" align="right" valign="top"><a id="acc6bbcc9bb070dd7de63f51cacae8c9f"></a>
-<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#acc6bbcc9bb070dd7de63f51cacae8c9f">setLocalDir</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31">localDir</a>)</td></tr>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#acc6bbcc9bb070dd7de63f51cacae8c9f">setLocalDir</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31">localDir</a>)</td></tr>
 <tr class="memdesc:acc6bbcc9bb070dd7de63f51cacae8c9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31" title="The local storage directoy used by the instance. ">Setup::localDir</a>. <br /></td></tr>
 <tr class="separator:acc6bbcc9bb070dd7de63f51cacae8c9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15ba4e9d2e59aad9dc0de65f2babbfd8"><td class="memItemLeft" align="right" valign="top"><a id="a15ba4e9d2e59aad9dc0de65f2babbfd8"></a>
-<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a15ba4e9d2e59aad9dc0de65f2babbfd8">setRemoteObjectHost</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950">remoteObjectHost</a>)</td></tr>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a15ba4e9d2e59aad9dc0de65f2babbfd8">setRemoteObjectHost</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950">remoteObjectHost</a>)</td></tr>
 <tr class="memdesc:a15ba4e9d2e59aad9dc0de65f2babbfd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950" title="The url to be used to host the remote object sources, and to connect to to acquire the replicas...">Setup::remoteObjectHost</a>. <br /></td></tr>
 <tr class="separator:a15ba4e9d2e59aad9dc0de65f2babbfd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad660492eb42d153910906168d6819091"><td class="memItemLeft" align="right" valign="top"><a id="ad660492eb42d153910906168d6819091"></a>
-<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ad660492eb42d153910906168d6819091">setSerializer</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QJsonSerializer/" href="https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a> *<a class="el" href="class_qt_data_sync_1_1_setup.html#a851d059b12ef06d4291b1fb8b073a2da">serializer</a>)</td></tr>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ad660492eb42d153910906168d6819091">setSerializer</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QtJsonSerializer/" href="https://skycoder42.github.io/QtJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a> *<a class="el" href="class_qt_data_sync_1_1_setup.html#a851d059b12ef06d4291b1fb8b073a2da">serializer</a>)</td></tr>
 <tr class="memdesc:ad660492eb42d153910906168d6819091"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a851d059b12ef06d4291b1fb8b073a2da" title="The serializer to be used to serialize and deserialize data to and from the store. ">Setup::serializer</a>. <br /></td></tr>
 <tr class="separator:ad660492eb42d153910906168d6819091"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f10e1cf8d1e1a6d119d9dc8933a9397"><td class="memItemLeft" align="right" valign="top"><a id="a0f10e1cf8d1e1a6d119d9dc8933a9397"></a>
@@ -258,7 +276,7 @@ qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <tr class="memdesc:ad1342771cef2040a4b3c2abcf6294917"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a83d3e78bebc2d14353fc8e42f00d9dea" title="The policiy for how to handle conflicts. ">Setup::syncPolicy</a>. <br /></td></tr>
 <tr class="separator:ad1342771cef2040a4b3c2abcf6294917"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a9dcb294b40e46d26c713eecaec2a77"><td class="memItemLeft" align="right" valign="top"><a id="a5a9dcb294b40e46d26c713eecaec2a77"></a>
-<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a5a9dcb294b40e46d26c713eecaec2a77">setSslConfiguration</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a8ec9ca0a9caaa93db35aacbdd556ed93">sslConfiguration</a>)</td></tr>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a5a9dcb294b40e46d26c713eecaec2a77">setSslConfiguration</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a8ec9ca0a9caaa93db35aacbdd556ed93">sslConfiguration</a>)</td></tr>
 <tr class="memdesc:a5a9dcb294b40e46d26c713eecaec2a77"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a8ec9ca0a9caaa93db35aacbdd556ed93" title="The ssl configuration to be used to connect to the remote. ">Setup::sslConfiguration</a>. <br /></td></tr>
 <tr class="separator:a5a9dcb294b40e46d26c713eecaec2a77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e298d2dbc0add3f1670d91213a9a985"><td class="memItemLeft" align="right" valign="top"><a id="a3e298d2dbc0add3f1670d91213a9a985"></a>
@@ -266,7 +284,7 @@ qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <tr class="memdesc:a3e298d2dbc0add3f1670d91213a9a985"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a148d252f4f6520874a8cbc70705b57e8" title="The configuration to be used to connect to the remote. ">Setup::remoteConfiguration</a>. <br /></td></tr>
 <tr class="separator:a3e298d2dbc0add3f1670d91213a9a985"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4ba3569fe4abc7504a0f20562e16e71"><td class="memItemLeft" align="right" valign="top"><a id="ad4ba3569fe4abc7504a0f20562e16e71"></a>
-<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ad4ba3569fe4abc7504a0f20562e16e71">setKeyStoreProvider</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a537a373eb37b34652acaca106514f85a">keyStoreProvider</a>)</td></tr>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ad4ba3569fe4abc7504a0f20562e16e71">setKeyStoreProvider</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a537a373eb37b34652acaca106514f85a">keyStoreProvider</a>)</td></tr>
 <tr class="memdesc:ad4ba3569fe4abc7504a0f20562e16e71"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a537a373eb37b34652acaca106514f85a" title="The name of the preferred keystore provider. ">Setup::keyStoreProvider</a>. <br /></td></tr>
 <tr class="separator:ad4ba3569fe4abc7504a0f20562e16e71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ca49fbd21342f056a8d0aea7cc9c77c"><td class="memItemLeft" align="right" valign="top"><a id="a2ca49fbd21342f056a8d0aea7cc9c77c"></a>
@@ -274,7 +292,7 @@ qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <tr class="memdesc:a2ca49fbd21342f056a8d0aea7cc9c77c"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#add14e6a783371ffbfdcce9e442df6628" title="The algorithmic scheme to be used for new signature keys. ">Setup::signatureScheme</a>. <br /></td></tr>
 <tr class="separator:a2ca49fbd21342f056a8d0aea7cc9c77c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2f955f2bef65babdf61a7e5594e66ad"><td class="memItemLeft" align="right" valign="top"><a id="ab2f955f2bef65babdf61a7e5594e66ad"></a>
-<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab2f955f2bef65babdf61a7e5594e66ad">setSignatureKeyParam</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d">signatureKeyParam</a>)</td></tr>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab2f955f2bef65babdf61a7e5594e66ad">setSignatureKeyParam</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d">signatureKeyParam</a>)</td></tr>
 <tr class="memdesc:ab2f955f2bef65babdf61a7e5594e66ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d" title="The generation parameter for the signature key. ">Setup::signatureKeyParam</a>. <br /></td></tr>
 <tr class="separator:ab2f955f2bef65babdf61a7e5594e66ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15f523a0b9b40fbbbf5c5915e66a232d"><td class="memItemLeft" align="right" valign="top"><a id="a15f523a0b9b40fbbbf5c5915e66a232d"></a>
@@ -282,7 +300,7 @@ qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <tr class="memdesc:a15f523a0b9b40fbbbf5c5915e66a232d"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#ae49826ed91140b8ca741ff598ef266d9" title="The algorithmic scheme to be used for new encryption keys. ">Setup::encryptionScheme</a>. <br /></td></tr>
 <tr class="separator:a15f523a0b9b40fbbbf5c5915e66a232d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa13453d2777d2641e3d15815a3494ca3"><td class="memItemLeft" align="right" valign="top"><a id="aa13453d2777d2641e3d15815a3494ca3"></a>
-<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#aa13453d2777d2641e3d15815a3494ca3">setEncryptionKeyParam</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3">encryptionKeyParam</a>)</td></tr>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#aa13453d2777d2641e3d15815a3494ca3">setEncryptionKeyParam</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3">encryptionKeyParam</a>)</td></tr>
 <tr class="memdesc:aa13453d2777d2641e3d15815a3494ca3"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3" title="The generation parameter for the encryption key. ">Setup::encryptionKeyParam</a>. <br /></td></tr>
 <tr class="separator:aa13453d2777d2641e3d15815a3494ca3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07dd3ea4d77c2a8572539dd8af112797"><td class="memItemLeft" align="right" valign="top"><a id="a07dd3ea4d77c2a8572539dd8af112797"></a>
@@ -293,6 +311,10 @@ qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#af33dd879acc99ac90a464445ea611e44">setCipherKeySize</a> (qint32 <a class="el" href="class_qt_data_sync_1_1_setup.html#a59244e495e9bc8939b5d0981746f141f">cipherKeySize</a>)</td></tr>
 <tr class="memdesc:af33dd879acc99ac90a464445ea611e44"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a59244e495e9bc8939b5d0981746f141f" title="The size in bytes for the secret exchange key (which is symmetric) ">Setup::cipherKeySize</a>. <br /></td></tr>
 <tr class="separator:af33dd879acc99ac90a464445ea611e44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11f6c426cd1320f985a947c322177a0a"><td class="memItemLeft" align="right" valign="top"><a id="a11f6c426cd1320f985a947c322177a0a"></a>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a11f6c426cd1320f985a947c322177a0a">setEventLoggingMode</a> (<a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71">EventMode</a> <a class="el" href="class_qt_data_sync_1_1_setup.html#a4ac0be6dcde6e92ba7aef484fd0c03c0">eventLoggingMode</a>)</td></tr>
+<tr class="memdesc:a11f6c426cd1320f985a947c322177a0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">WRITE accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a4ac0be6dcde6e92ba7aef484fd0c03c0" title="The logging mode for database change events. ">Setup::eventLoggingMode</a>. <br /></td></tr>
+<tr class="separator:a11f6c426cd1320f985a947c322177a0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac79f51903ec9e2866366f67a61b083c2"><td class="memItemLeft" align="right" valign="top"><a id="ac79f51903ec9e2866366f67a61b083c2"></a>
 <a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ac79f51903ec9e2866366f67a61b083c2">resetLocalDir</a> ()</td></tr>
 <tr class="memdesc:ac79f51903ec9e2866366f67a61b083c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">RESET accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31" title="The local storage directoy used by the instance. ">Setup::localDir</a>. <br /></td></tr>
@@ -361,64 +383,71 @@ qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a6bfef19f9b06a21d7985ffa059d6fe72">resetCipherKeySize</a> ()</td></tr>
 <tr class="memdesc:a6bfef19f9b06a21d7985ffa059d6fe72"><td class="mdescLeft">&#160;</td><td class="mdescRight">RESET accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#a59244e495e9bc8939b5d0981746f141f" title="The size in bytes for the secret exchange key (which is symmetric) ">Setup::cipherKeySize</a>. <br /></td></tr>
 <tr class="separator:a6bfef19f9b06a21d7985ffa059d6fe72"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae39b6c4c65ebe51a2ff375190bd5b0ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ae39b6c4c65ebe51a2ff375190bd5b0ee">setAccount</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;importData, bool keepData=false, bool allowFailure=false)</td></tr>
+<tr class="memitem:ab3a48273fefc025998ac3e8d0063da64"><td class="memItemLeft" align="right" valign="top"><a id="ab3a48273fefc025998ac3e8d0063da64"></a>
+<a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab3a48273fefc025998ac3e8d0063da64">resetEventLoggingMode</a> ()</td></tr>
+<tr class="memdesc:ab3a48273fefc025998ac3e8d0063da64"><td class="mdescLeft">&#160;</td><td class="mdescRight">RESET accessor for <a class="el" href="class_qt_data_sync_1_1_setup.html#ab3a48273fefc025998ac3e8d0063da64" title="RESET accessor for Setup::resetEventLoggingMode. ">Setup::resetEventLoggingMode</a>. <br /></td></tr>
+<tr class="separator:ab3a48273fefc025998ac3e8d0063da64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae39b6c4c65ebe51a2ff375190bd5b0ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ae39b6c4c65ebe51a2ff375190bd5b0ee">setAccount</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;importData, bool keepData=false, bool allowFailure=false)</td></tr>
 <tr class="memdesc:ae39b6c4c65ebe51a2ff375190bd5b0ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets an account to be imported on creation of the instance.  <a href="#ae39b6c4c65ebe51a2ff375190bd5b0ee">More...</a><br /></td></tr>
 <tr class="separator:ae39b6c4c65ebe51a2ff375190bd5b0ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a175c75f42a9cadac17c766d7b21145bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a175c75f42a9cadac17c766d7b21145bf">setAccount</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;importData, bool keepData=false, bool allowFailure=false)</td></tr>
+<tr class="memitem:a175c75f42a9cadac17c766d7b21145bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a175c75f42a9cadac17c766d7b21145bf">setAccount</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;importData, bool keepData=false, bool allowFailure=false)</td></tr>
 <tr class="memdesc:a175c75f42a9cadac17c766d7b21145bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets an account to be imported on creation of the instance.  <a href="#a175c75f42a9cadac17c766d7b21145bf">More...</a><br /></td></tr>
 <tr class="separator:a175c75f42a9cadac17c766d7b21145bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8c35b0973bf5018098e8adb010a6047"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab8c35b0973bf5018098e8adb010a6047">setAccountTrusted</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;importData, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;password, bool keepData=false, bool allowFailure=false)</td></tr>
+<tr class="memitem:ab8c35b0973bf5018098e8adb010a6047"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ab8c35b0973bf5018098e8adb010a6047">setAccountTrusted</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;importData, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;password, bool keepData=false, bool allowFailure=false)</td></tr>
 <tr class="memdesc:ab8c35b0973bf5018098e8adb010a6047"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets an account to be imported on creation of the instance.  <a href="#ab8c35b0973bf5018098e8adb010a6047">More...</a><br /></td></tr>
 <tr class="separator:ab8c35b0973bf5018098e8adb010a6047"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a118dd8b51b767600ab834f9a0798b8e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a118dd8b51b767600ab834f9a0798b8e5">setAccountTrusted</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;importData, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;password, bool keepData=false, bool allowFailure=false)</td></tr>
+<tr class="memitem:a118dd8b51b767600ab834f9a0798b8e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a118dd8b51b767600ab834f9a0798b8e5">setAccountTrusted</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;importData, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;password, bool keepData=false, bool allowFailure=false)</td></tr>
 <tr class="memdesc:a118dd8b51b767600ab834f9a0798b8e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets an account to be imported on creation of the instance.  <a href="#a118dd8b51b767600ab834f9a0798b8e5">More...</a><br /></td></tr>
 <tr class="separator:a118dd8b51b767600ab834f9a0798b8e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ddf88aec2c428a6df10e039954ab26a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a">create</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;name=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>)</td></tr>
+<tr class="memitem:a5ddf88aec2c428a6df10e039954ab26a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a">create</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;name=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>)</td></tr>
 <tr class="memdesc:a5ddf88aec2c428a6df10e039954ab26a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a datasync instance from this setup with the given name.  <a href="#a5ddf88aec2c428a6df10e039954ab26a">More...</a><br /></td></tr>
 <tr class="separator:a5ddf88aec2c428a6df10e039954ab26a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a322594e2bb14d707458ff1b1e6cf454a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a322594e2bb14d707458ff1b1e6cf454a">createPassive</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;name=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>, int timeout=30000)</td></tr>
+<tr class="memitem:a322594e2bb14d707458ff1b1e6cf454a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a322594e2bb14d707458ff1b1e6cf454a">createPassive</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;name=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>, int timeout=30000)</td></tr>
 <tr class="memdesc:a322594e2bb14d707458ff1b1e6cf454a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a passive setup with the given name that connects to the primary datasync instance.  <a href="#a322594e2bb14d707458ff1b1e6cf454a">More...</a><br /></td></tr>
 <tr class="separator:a322594e2bb14d707458ff1b1e6cf454a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
+<tr class="memitem:af574ed067e141dc470f1926affcda813"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#af574ed067e141dc470f1926affcda813">exists</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;name=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>)</td></tr>
+<tr class="memdesc:af574ed067e141dc470f1926affcda813"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a setup for the given name does already exist.  <a href="#af574ed067e141dc470f1926affcda813">More...</a><br /></td></tr>
+<tr class="separator:af574ed067e141dc470f1926affcda813"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ca465c823c2b7c4dde56f4c0e6791fd"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a8ca465c823c2b7c4dde56f4c0e6791fd">setCleanupTimeout</a> (unsigned long timeout)</td></tr>
 <tr class="memdesc:a8ca465c823c2b7c4dde56f4c0e6791fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the maximum timeout for shutting down setups.  <a href="#a8ca465c823c2b7c4dde56f4c0e6791fd">More...</a><br /></td></tr>
 <tr class="separator:a8ca465c823c2b7c4dde56f4c0e6791fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d7f72084faea17d67e793e3bdcb51d3"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a9d7f72084faea17d67e793e3bdcb51d3">removeSetup</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;name, bool waitForFinished=false)</td></tr>
+<tr class="memitem:a9d7f72084faea17d67e793e3bdcb51d3"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a9d7f72084faea17d67e793e3bdcb51d3">removeSetup</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;name, bool waitForFinished=false)</td></tr>
 <tr class="memdesc:a9d7f72084faea17d67e793e3bdcb51d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops the datasync instance and removes it.  <a href="#a9d7f72084faea17d67e793e3bdcb51d3">More...</a><br /></td></tr>
 <tr class="separator:a9d7f72084faea17d67e793e3bdcb51d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a462f7a9835e5c891e7e3fc4e4d3cf9f4"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstringlist.html">QStringList</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a462f7a9835e5c891e7e3fc4e4d3cf9f4">keystoreProviders</a> ()</td></tr>
+<tr class="memitem:a462f7a9835e5c891e7e3fc4e4d3cf9f4"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstringlist.html">QStringList</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a462f7a9835e5c891e7e3fc4e4d3cf9f4">keystoreProviders</a> ()</td></tr>
 <tr class="memdesc:a462f7a9835e5c891e7e3fc4e4d3cf9f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a list of all keystore providers defined via the plugins.  <a href="#a462f7a9835e5c891e7e3fc4e4d3cf9f4">More...</a><br /></td></tr>
 <tr class="separator:a462f7a9835e5c891e7e3fc4e4d3cf9f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a386c924a91ce930909a44f4284ba849e"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstringlist.html">QStringList</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a386c924a91ce930909a44f4284ba849e">availableKeystores</a> ()</td></tr>
+<tr class="memitem:a386c924a91ce930909a44f4284ba849e"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstringlist.html">QStringList</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a386c924a91ce930909a44f4284ba849e">availableKeystores</a> ()</td></tr>
 <tr class="memdesc:a386c924a91ce930909a44f4284ba849e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a list of all keystore providers that are actually available for use.  <a href="#a386c924a91ce930909a44f4284ba849e">More...</a><br /></td></tr>
 <tr class="separator:a386c924a91ce930909a44f4284ba849e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada18bb06d86f4889a7715e578dee070a"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ada18bb06d86f4889a7715e578dee070a">keystoreAvailable</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;provider)</td></tr>
+<tr class="memitem:ada18bb06d86f4889a7715e578dee070a"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ada18bb06d86f4889a7715e578dee070a">keystoreAvailable</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;provider)</td></tr>
 <tr class="memdesc:ada18bb06d86f4889a7715e578dee070a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the given keystore provider is available.  <a href="#ada18bb06d86f4889a7715e578dee070a">More...</a><br /></td></tr>
 <tr class="separator:ada18bb06d86f4889a7715e578dee070a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32949ae3f1e4d13c2ba3d499ad17bcab"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a32949ae3f1e4d13c2ba3d499ad17bcab">defaultKeystoreProvider</a> ()</td></tr>
+<tr class="memitem:a32949ae3f1e4d13c2ba3d499ad17bcab"><td class="memItemLeft" align="right" valign="top">static <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a32949ae3f1e4d13c2ba3d499ad17bcab">defaultKeystoreProvider</a> ()</td></tr>
 <tr class="memdesc:a32949ae3f1e4d13c2ba3d499ad17bcab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the default provider to be used based on the current platform and the available providers.  <a href="#a32949ae3f1e4d13c2ba3d499ad17bcab">More...</a><br /></td></tr>
 <tr class="separator:a32949ae3f1e4d13c2ba3d499ad17bcab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae31ddbc80e827cd512603bf9ea05bf05"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_qt_data_sync_1_1_key_store.html">KeyStore</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ae31ddbc80e827cd512603bf9ea05bf05">loadKeystore</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *parent=nullptr, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;setupName=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>)</td></tr>
+<tr class="memitem:ae31ddbc80e827cd512603bf9ea05bf05"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_qt_data_sync_1_1_key_store.html">KeyStore</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ae31ddbc80e827cd512603bf9ea05bf05">loadKeystore</a> (<a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *parent=nullptr, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;setupName=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>)</td></tr>
 <tr class="memdesc:ae31ddbc80e827cd512603bf9ea05bf05"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create and load akeystore instance from the default provider.  <a href="#ae31ddbc80e827cd512603bf9ea05bf05">More...</a><br /></td></tr>
 <tr class="separator:ae31ddbc80e827cd512603bf9ea05bf05"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06a0b66c839799c2a23a275a1afc58ae"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_qt_data_sync_1_1_key_store.html">KeyStore</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a06a0b66c839799c2a23a275a1afc58ae">loadKeystore</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;provider, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *parent=nullptr, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;setupName=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>)</td></tr>
+<tr class="memitem:a06a0b66c839799c2a23a275a1afc58ae"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_qt_data_sync_1_1_key_store.html">KeyStore</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a06a0b66c839799c2a23a275a1afc58ae">loadKeystore</a> (const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;provider, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *parent=nullptr, const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;setupName=<a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a>)</td></tr>
 <tr class="memdesc:a06a0b66c839799c2a23a275a1afc58ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create and load akeystore instance from the given provider.  <a href="#a06a0b66c839799c2a23a275a1afc58ae">More...</a><br /></td></tr>
 <tr class="separator:a06a0b66c839799c2a23a275a1afc58ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="properties"></a>
 Properties</h2></td></tr>
-<tr class="memitem:a9227ea4a3fdf68dff4b1bd9f45c01c31"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31">localDir</a></td></tr>
+<tr class="memitem:a9227ea4a3fdf68dff4b1bd9f45c01c31"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a9227ea4a3fdf68dff4b1bd9f45c01c31">localDir</a></td></tr>
 <tr class="memdesc:a9227ea4a3fdf68dff4b1bd9f45c01c31"><td class="mdescLeft">&#160;</td><td class="mdescRight">The local storage directoy used by the instance.  <a href="#a9227ea4a3fdf68dff4b1bd9f45c01c31">More...</a><br /></td></tr>
 <tr class="separator:a9227ea4a3fdf68dff4b1bd9f45c01c31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15db315ed5c58275a50ac16e3be2c950"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950">remoteObjectHost</a></td></tr>
+<tr class="memitem:a15db315ed5c58275a50ac16e3be2c950"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qurl.html">QUrl</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a15db315ed5c58275a50ac16e3be2c950">remoteObjectHost</a></td></tr>
 <tr class="memdesc:a15db315ed5c58275a50ac16e3be2c950"><td class="mdescLeft">&#160;</td><td class="mdescRight">The url to be used to host the remote object sources, and to connect to to acquire the replicas.  <a href="#a15db315ed5c58275a50ac16e3be2c950">More...</a><br /></td></tr>
 <tr class="separator:a15db315ed5c58275a50ac16e3be2c950"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a851d059b12ef06d4291b1fb8b073a2da"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QJsonSerializer/" href="https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a851d059b12ef06d4291b1fb8b073a2da">serializer</a></td></tr>
+<tr class="memitem:a851d059b12ef06d4291b1fb8b073a2da"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QtJsonSerializer/" href="https://skycoder42.github.io/QtJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a851d059b12ef06d4291b1fb8b073a2da">serializer</a></td></tr>
 <tr class="memdesc:a851d059b12ef06d4291b1fb8b073a2da"><td class="mdescLeft">&#160;</td><td class="mdescRight">The serializer to be used to serialize and deserialize data to and from the store.  <a href="#a851d059b12ef06d4291b1fb8b073a2da">More...</a><br /></td></tr>
 <tr class="separator:a851d059b12ef06d4291b1fb8b073a2da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d233c1d7c6d581df710cc0019bbb131"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_conflict_resolver.html">ConflictResolver</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a7d233c1d7c6d581df710cc0019bbb131">conflictResolver</a></td></tr>
+<tr class="memitem:a7d233c1d7c6d581df710cc0019bbb131"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_conflict_resolver.html">QtDataSync::ConflictResolver</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a7d233c1d7c6d581df710cc0019bbb131">conflictResolver</a></td></tr>
 <tr class="memdesc:a7d233c1d7c6d581df710cc0019bbb131"><td class="mdescLeft">&#160;</td><td class="mdescRight">An optional conflict resolver to handle merge conflicts.  <a href="#a7d233c1d7c6d581df710cc0019bbb131">More...</a><br /></td></tr>
 <tr class="separator:a7d233c1d7c6d581df710cc0019bbb131"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82f7abfc02e345721da11235c24c7797"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html#a28e6964249f79a99c5b61f3b5ffcf14d">FatalErrorHandler</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a82f7abfc02e345721da11235c24c7797">fatalErrorHandler</a></td></tr>
@@ -433,25 +462,25 @@ Properties</h2></td></tr>
 <tr class="memitem:a83d3e78bebc2d14353fc8e42f00d9dea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html#a36c2e46f0b41e00923c5296eed8ef973">SyncPolicy</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a83d3e78bebc2d14353fc8e42f00d9dea">syncPolicy</a></td></tr>
 <tr class="memdesc:a83d3e78bebc2d14353fc8e42f00d9dea"><td class="mdescLeft">&#160;</td><td class="mdescRight">The policiy for how to handle conflicts.  <a href="#a83d3e78bebc2d14353fc8e42f00d9dea">More...</a><br /></td></tr>
 <tr class="separator:a83d3e78bebc2d14353fc8e42f00d9dea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ec9ca0a9caaa93db35aacbdd556ed93"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a8ec9ca0a9caaa93db35aacbdd556ed93">sslConfiguration</a></td></tr>
+<tr class="memitem:a8ec9ca0a9caaa93db35aacbdd556ed93"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html">QSslConfiguration</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a8ec9ca0a9caaa93db35aacbdd556ed93">sslConfiguration</a></td></tr>
 <tr class="memdesc:a8ec9ca0a9caaa93db35aacbdd556ed93"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ssl configuration to be used to connect to the remote.  <a href="#a8ec9ca0a9caaa93db35aacbdd556ed93">More...</a><br /></td></tr>
 <tr class="separator:a8ec9ca0a9caaa93db35aacbdd556ed93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a148d252f4f6520874a8cbc70705b57e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_remote_config.html">RemoteConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a148d252f4f6520874a8cbc70705b57e8">remoteConfiguration</a></td></tr>
+<tr class="memitem:a148d252f4f6520874a8cbc70705b57e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_remote_config.html">QtDataSync::RemoteConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a148d252f4f6520874a8cbc70705b57e8">remoteConfiguration</a></td></tr>
 <tr class="memdesc:a148d252f4f6520874a8cbc70705b57e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The configuration to be used to connect to the remote.  <a href="#a148d252f4f6520874a8cbc70705b57e8">More...</a><br /></td></tr>
 <tr class="separator:a148d252f4f6520874a8cbc70705b57e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a537a373eb37b34652acaca106514f85a"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a537a373eb37b34652acaca106514f85a">keyStoreProvider</a></td></tr>
+<tr class="memitem:a537a373eb37b34652acaca106514f85a"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a537a373eb37b34652acaca106514f85a">keyStoreProvider</a></td></tr>
 <tr class="memdesc:a537a373eb37b34652acaca106514f85a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the preferred keystore provider.  <a href="#a537a373eb37b34652acaca106514f85a">More...</a><br /></td></tr>
 <tr class="separator:a537a373eb37b34652acaca106514f85a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add14e6a783371ffbfdcce9e442df6628"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html#a2782b8dd5c9732b91126ff16aa49d460">SignatureScheme</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#add14e6a783371ffbfdcce9e442df6628">signatureScheme</a></td></tr>
 <tr class="memdesc:add14e6a783371ffbfdcce9e442df6628"><td class="mdescLeft">&#160;</td><td class="mdescRight">The algorithmic scheme to be used for new signature keys.  <a href="#add14e6a783371ffbfdcce9e442df6628">More...</a><br /></td></tr>
 <tr class="separator:add14e6a783371ffbfdcce9e442df6628"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59663071f4c06e6909139f2918d9140d"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d">signatureKeyParam</a></td></tr>
+<tr class="memitem:a59663071f4c06e6909139f2918d9140d"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a59663071f4c06e6909139f2918d9140d">signatureKeyParam</a></td></tr>
 <tr class="memdesc:a59663071f4c06e6909139f2918d9140d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The generation parameter for the signature key.  <a href="#a59663071f4c06e6909139f2918d9140d">More...</a><br /></td></tr>
 <tr class="separator:a59663071f4c06e6909139f2918d9140d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae49826ed91140b8ca741ff598ef266d9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html#acd5b9c5d0b0fccdefe0bf3efba02736c">EncryptionScheme</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#ae49826ed91140b8ca741ff598ef266d9">encryptionScheme</a></td></tr>
 <tr class="memdesc:ae49826ed91140b8ca741ff598ef266d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The algorithmic scheme to be used for new encryption keys.  <a href="#ae49826ed91140b8ca741ff598ef266d9">More...</a><br /></td></tr>
 <tr class="separator:ae49826ed91140b8ca741ff598ef266d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a126f99cb7e5302793ad18d3d74116ad3"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3">encryptionKeyParam</a></td></tr>
+<tr class="memitem:a126f99cb7e5302793ad18d3d74116ad3"><td class="memItemLeft" align="right" valign="top"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3">encryptionKeyParam</a></td></tr>
 <tr class="memdesc:a126f99cb7e5302793ad18d3d74116ad3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The generation parameter for the encryption key.  <a href="#a126f99cb7e5302793ad18d3d74116ad3">More...</a><br /></td></tr>
 <tr class="separator:a126f99cb7e5302793ad18d3d74116ad3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37b2a1dd04e4ddb752d6475a98fb9a78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html#addc59762e035504395620d0fde9a3d7e">CipherScheme</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a37b2a1dd04e4ddb752d6475a98fb9a78">cipherScheme</a></td></tr>
@@ -460,6 +489,9 @@ Properties</h2></td></tr>
 <tr class="memitem:a59244e495e9bc8939b5d0981746f141f"><td class="memItemLeft" align="right" valign="top">qint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a59244e495e9bc8939b5d0981746f141f">cipherKeySize</a></td></tr>
 <tr class="memdesc:a59244e495e9bc8939b5d0981746f141f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The size in bytes for the secret exchange key (which is symmetric)  <a href="#a59244e495e9bc8939b5d0981746f141f">More...</a><br /></td></tr>
 <tr class="separator:a59244e495e9bc8939b5d0981746f141f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ac0be6dcde6e92ba7aef484fd0c03c0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71">EventMode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_qt_data_sync_1_1_setup.html#a4ac0be6dcde6e92ba7aef484fd0c03c0">eventLoggingMode</a></td></tr>
+<tr class="memdesc:a4ac0be6dcde6e92ba7aef484fd0c03c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The logging mode for database change events.  <a href="#a4ac0be6dcde6e92ba7aef484fd0c03c0">More...</a><br /></td></tr>
+<tr class="separator:a4ac0be6dcde6e92ba7aef484fd0c03c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The class to setup and create datasync instances. </p>
@@ -498,7 +530,7 @@ Properties</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00126">126</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00128">128</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
 </div>
 </div>
@@ -522,7 +554,41 @@ Properties</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00119">119</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00121">121</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
+
+</div>
+</div>
+<a id="a53094bf7e6d0df749d665b1f37ceaf71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53094bf7e6d0df749d665b1f37ceaf71">&#9670;&nbsp;</a></span>EventMode</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71">QtDataSync::Setup::EventMode</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Possible values for the event logging mode change. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a53094bf7e6d0df749d665b1f37ceaf71a5ff3c6978f87d96febfdc8ed3899a97e"></a>Unchanged&#160;</td><td class="fielddoc"><p>Keep as is. If it was previously enabled, it stays enabled. Same goes for the disabled state. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a53094bf7e6d0df749d665b1f37ceaf71a00d23a76e43b46dae9ec7aa9dcbebb32"></a>Enabled&#160;</td><td class="fielddoc"><p>Enable event logging, regardless of the previous state. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a53094bf7e6d0df749d665b1f37ceaf71ab9f5c797ebbf55adccdd8539a65a0241"></a>Disabled&#160;</td><td class="fielddoc"><p>Disable event logging, regardless of the previous state. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00170">170</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
 </div>
 </div>
@@ -548,7 +614,7 @@ Properties</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00111">111</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00113">113</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
 </div>
 </div>
@@ -572,7 +638,7 @@ Properties</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00104">104</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00106">106</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
 </div>
 </div>
@@ -617,7 +683,7 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::create </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>name</em> = <code><a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a></code></td><td>)</td>
           <td></td>
         </tr>
@@ -654,7 +720,7 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::createPassive </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>name</em> = <code><a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a></code>, </td>
         </tr>
         <tr>
@@ -737,6 +803,42 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="af574ed067e141dc470f1926affcda813"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af574ed067e141dc470f1926affcda813">&#9670;&nbsp;</a></span>exists()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QtDataSync::Setup::exists </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramname"><em>name</em> = <code><a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a></code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if a setup for the given name does already exist. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The name of the setup to check for </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if a setup already exists for that name, false if not</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a" title="Creates a datasync instance from this setup with the given name. ">Setup::create</a>, <a class="el" href="class_qt_data_sync_1_1_setup_exists_exception.html" title="Exception thrown if a setup with the same name already exsits. ">SetupExistsException</a> </dd></dl>
+
+</div>
+</div>
 <a id="ada18bb06d86f4889a7715e578dee070a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ada18bb06d86f4889a7715e578dee070a">&#9670;&nbsp;</a></span>keystoreAvailable()</h2>
 
@@ -749,7 +851,7 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::keystoreAvailable </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>provider</em></td><td>)</td>
           <td></td>
         </tr>
@@ -817,13 +919,13 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::loadKeystore </td>
           <td>(</td>
-          <td class="paramtype"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *&#160;</td>
+          <td class="paramtype"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *&#160;</td>
           <td class="paramname"><em>parent</em> = <code>nullptr</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>setupName</em> = <code><a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a></code>&#160;</td>
         </tr>
         <tr>
@@ -851,7 +953,7 @@ Properties</h2></td></tr>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_qt_data_sync_1_1_setup_does_not_exist_exception.html" title="An Exception thrown in case a class is trying to access a setup that does not exist. ">SetupDoesNotExistException</a></td><td>If the setup specified by setupName does not exist (yet) </td></tr>
-    <tr><td class="paramname"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtmvvm/qtmvvm.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_exception.html">QException</a></td><td>If something went wrong while loading the plugin</td></tr>
+    <tr><td class="paramname"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtmvvm/qtmvvm.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_exception.html">QException</a></td><td>If something went wrong while loading the plugin</td></tr>
   </table>
   </dd>
 </dl>
@@ -873,19 +975,19 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::loadKeystore </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>provider</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *&#160;</td>
+          <td class="paramtype"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtautoupdater/qtautoupdater.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_object.html">QObject</a> *&#160;</td>
           <td class="paramname"><em>parent</em> = <code>nullptr</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>setupName</em> = <code><a class="el" href="namespace_qt_data_sync.html#abb171604c163b92d50237e784d6b7631">DefaultSetup</a></code>&#160;</td>
         </tr>
         <tr>
@@ -914,7 +1016,7 @@ Properties</h2></td></tr>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_qt_data_sync_1_1_setup_does_not_exist_exception.html" title="An Exception thrown in case a class is trying to access a setup that does not exist. ">SetupDoesNotExistException</a></td><td>If the setup specified by setupName does not exist (yet) </td></tr>
-    <tr><td class="paramname"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtmvvm/qtmvvm.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_exception.html">QException</a></td><td>If something went wrong while loading the plugin</td></tr>
+    <tr><td class="paramname"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtmvvm/qtmvvm.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/class_q_exception.html">QException</a></td><td>If something went wrong while loading the plugin</td></tr>
   </table>
   </dd>
 </dl>
@@ -936,7 +1038,7 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::removeSetup </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>name</em>, </td>
         </tr>
         <tr>
@@ -981,7 +1083,7 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::setAccount </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;&#160;</td>
           <td class="paramname"><em>importData</em>, </td>
         </tr>
         <tr>
@@ -1028,7 +1130,7 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a>&amp; QtDataSync::Setup::setAccount </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;&#160;</td>
           <td class="paramname"><em>importData</em>, </td>
         </tr>
         <tr>
@@ -1075,13 +1177,13 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">QtDataSync::Setup::setAccountTrusted </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qjsonobject.html">QJsonObject</a> &amp;&#160;</td>
           <td class="paramname"><em>importData</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>password</em>, </td>
         </tr>
         <tr>
@@ -1129,13 +1231,13 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="class_qt_data_sync_1_1_setup.html">Setup</a>&amp; QtDataSync::Setup::setAccountTrusted </td>
           <td>(</td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qbytearray.html">QByteArray</a> &amp;&#160;</td>
           <td class="paramname"><em>importData</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qstring.html">QString</a> &amp;&#160;</td>
           <td class="paramname"><em>password</em>, </td>
         </tr>
         <tr>
@@ -1408,7 +1510,7 @@ Properties</h2></td></tr>
 <p>The generation parameter for the encryption key. </p>
 <p><b>Default:</b> <em>invalid</em> <br />
 </p>
-<p>The type and interpretation of this parameter depend on the <a class="el" href="class_qt_data_sync_1_1_setup.html#ae49826ed91140b8ca741ff598ef266d9" title="The algorithmic scheme to be used for new encryption keys. ">Setup::encryptionScheme</a>. If this property is an invalid <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#aafee7612838ae979148e61b84d6e3e81" title="Returns the standard key parameter for the given signature scheme. ">Defaults::defaultParam</a> is used to determine the default key parameter for each type. The following table shows what the key param must be per scheme:</p>
+<p>The type and interpretation of this parameter depend on the <a class="el" href="class_qt_data_sync_1_1_setup.html#ae49826ed91140b8ca741ff598ef266d9" title="The algorithmic scheme to be used for new encryption keys. ">Setup::encryptionScheme</a>. If this property is an invalid <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#aafee7612838ae979148e61b84d6e3e81" title="Returns the standard key parameter for the given signature scheme. ">Defaults::defaultParam</a> is used to determine the default key parameter for each type. The following table shows what the key param must be per scheme:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Scheme  </th><th class="markdownTableHeadNone">Type  </th><th class="markdownTableHeadNone">Default value  </th><th class="markdownTableHeadNone">Description   </th></tr>
@@ -1469,6 +1571,52 @@ Properties</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_defaults.html#a48da90b4abf395b77d223ed3545f691c" title="Returns the extra property defined by the given key. ">Defaults::property</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#ab141dc12df2cd9395e3e5b1fc31c1c39a21a38dceb350db4803379aef82806230" title="The algorithmic scheme to be used for new encryption keys. ">Defaults::CryptScheme</a>, <a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3" title="The generation parameter for the encryption key. ">Setup::encryptionKeyParam</a> </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00091">91</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
+
+</div>
+</div>
+<a id="a4ac0be6dcde6e92ba7aef484fd0c03c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ac0be6dcde6e92ba7aef484fd0c03c0">&#9670;&nbsp;</a></span>eventLoggingMode</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QtDataSync::Setup::eventLoggingMode</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span><span class="mlabel">write</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The logging mode for database change events. </p>
+<p><b>Default:</b> <code><a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71a5ff3c6978f87d96febfdc8ed3899a97e" title="Keep as is. If it was previously enabled, it stays enabled. Same goes for the disabled state...">EventMode::Unchanged</a></code> <br />
+</p>
+<dl class="section note"><dt>Note</dt><dd>Event though the default value is <a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71a5ff3c6978f87d96febfdc8ed3899a97e" title="Keep as is. If it was previously enabled, it stays enabled. Same goes for the disabled state...">EventMode::Unchanged</a>, this implicitly means for newly created setups event logging is disabled! If you create a completly new setup and want event logging, you have to set this property to <a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71a00d23a76e43b46dae9ec7aa9dcbebb32" title="Enable event logging, regardless of the previous state. ">EventMode::Enabled</a> at least once.</dd></dl>
+<p>Event logging is an optional component of datasync that can be used for reliable, deterministic and ordered handling of change events from any source. The main class to access these events is the <a class="el" href="class_qt_data_sync_1_1_event_cursor.html" title="A cursor style class to read from the global change event log. ">EventCursor</a>. This property is used to control the activation of this component.</p>
+<p>If disabled, no events are logged at all. This means <a class="el" href="class_qt_data_sync_1_1_event_cursor.html" title="A cursor style class to read from the global change event log. ">EventCursor</a> becomes unusable. If enabled, all changes to data (create, change and delete) trigger an event that is permanently stored and can be accessed vua the <a class="el" href="class_qt_data_sync_1_1_event_cursor.html" title="A cursor style class to read from the global change event log. ">EventCursor</a>. The Unchanged mode simply means "keep it in whatever state
+it already is" - this is useful if you don't want to break anything</p>
+<dl class="section attention"><dt>Attention</dt><dd>Setting this to <a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71ab9f5c797ebbf55adccdd8539a65a0241" title="Disable event logging, regardless of the previous state. ">EventMode::Disabled</a> will immediatly drop <b>all</b> already stored change events! So unless you are certain you don't need these, be careful with that option.</dd></dl>
+<table class="doxtable">
+<tr>
+<th colspan="2">Accessors </th></tr>
+<tr>
+<td><b>READ</b></td><td><a class="el" href="class_qt_data_sync_1_1_setup.html#a4ac0be6dcde6e92ba7aef484fd0c03c0" title="The logging mode for database change events. ">eventLoggingMode()</a> </td></tr>
+<tr>
+<td><b>WRITE</b></td><td><a class="el" href="class_qt_data_sync_1_1_setup.html#a11f6c426cd1320f985a947c322177a0a" title="WRITE accessor for Setup::eventLoggingMode. ">setEventLoggingMode()</a> </td></tr>
+<tr>
+<td><b>RESET</b></td><td><a class="el" href="class_qt_data_sync_1_1_setup.html#ab3a48273fefc025998ac3e8d0063da64" title="RESET accessor for Setup::resetEventLoggingMode. ">resetEventLoggingMode()</a> </td></tr>
+<tr>
+<td><b>REVISION</b></td><td>2 </td></tr>
+</table>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_defaults.html#a48da90b4abf395b77d223ed3545f691c" title="Returns the extra property defined by the given key. ">Defaults::property</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#ab141dc12df2cd9395e3e5b1fc31c1c39a5a4d10968b7ba169d75b78370694c1ed" title="The logging mode for database change events. ">Defaults::EventLoggingMode</a>, <a class="el" href="class_qt_data_sync_1_1_event_cursor.html" title="A cursor style class to read from the global change event log. ">QtDataSync::EventCursor</a>, <a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71" title="Possible values for the event logging mode change. ">Setup::EventMode</a> </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00099">99</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
 </div>
 </div>
@@ -1720,7 +1868,7 @@ Properties</h2></td></tr>
 <p><b>Default:</b> <em>invalid</em> <br />
 </p>
 <dl class="section note"><dt>Note</dt><dd>If the url is invalid when calling <a class="el" href="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a" title="Creates a datasync instance from this setup with the given name. ">create()</a>, the setup generates a default url based of the setups properties. It is: <code>"threaded://qtdatasync/&lt;setupName&gt;/enginenode"</code></dd></dl>
-<p>This url is used to create the host node in the engine that provides internal remote object sources, and to create the <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtremoteobjects/qtremoteobjects.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qremoteobjectnode.html">QRemoteObjectNode</a> instances to connect to this host node and acquire the replicas. This is all happening internally, so you don't not to worry about the how to.</p>
+<p>This url is used to create the host node in the engine that provides internal remote object sources, and to create the <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtremoteobjects/qtremoteobjects.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qremoteobjectnode.html">QRemoteObjectNode</a> instances to connect to this host node and acquire the replicas. This is all happening internally, so you don't not to worry about the how to.</p>
 <p>The default url uses the threaded connection, which is only valid within the same process. For more details, and the alternatives, see <a class="el" href="ro_threaded.html">Threaded remote objects</a></p>
 <table class="doxtable">
 <tr>
@@ -1773,7 +1921,7 @@ Properties</h2></td></tr>
 <tr>
 <td><b>RESET</b></td><td><a class="el" href="class_qt_data_sync_1_1_setup.html#a7ceabc4b3269c0624e184d25ef06ea58" title="RESET accessor for Setup::serializer. ">resetSerializer()</a> </td></tr>
 </table>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_defaults.html#a304a31ab95bedd45a5e8bd21d3768e03" title="Returns the serializer of the current setup. ">Defaults::serializer</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QJsonSerializer/" href="https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_defaults.html#a304a31ab95bedd45a5e8bd21d3768e03" title="Returns the serializer of the current setup. ">Defaults::serializer</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtjsonserializer/qtjsonserializer.tags:https://skycoder42.github.io/QtJsonSerializer/" href="https://skycoder42.github.io/QtJsonSerializer/class_q_json_serializer.html">QJsonSerializer</a> </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00069">69</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
@@ -1802,7 +1950,7 @@ Properties</h2></td></tr>
 <p>The generation parameter for the signature key. </p>
 <p><b>Default:</b> <em>invalid</em> <br />
 </p>
-<p>The type and interpretation of this parameter depend on the <a class="el" href="class_qt_data_sync_1_1_setup.html#add14e6a783371ffbfdcce9e442df6628" title="The algorithmic scheme to be used for new signature keys. ">Setup::signatureScheme</a>. If this property is an invalid <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#aafee7612838ae979148e61b84d6e3e81" title="Returns the standard key parameter for the given signature scheme. ">Defaults::defaultParam</a> is used to determine the default key parameter for each type. The following table shows what the key param must be per scheme:</p>
+<p>The type and interpretation of this parameter depend on the <a class="el" href="class_qt_data_sync_1_1_setup.html#add14e6a783371ffbfdcce9e442df6628" title="The algorithmic scheme to be used for new signature keys. ">Setup::signatureScheme</a>. If this property is an invalid <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qvariant.html">QVariant</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#aafee7612838ae979148e61b84d6e3e81" title="Returns the standard key parameter for the given signature scheme. ">Defaults::defaultParam</a> is used to determine the default key parameter for each type. The following table shows what the key param must be per scheme:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Scheme  </th><th class="markdownTableHeadNone">Type  </th><th class="markdownTableHeadNone">Default value  </th><th class="markdownTableHeadNone">Description   </th></tr>
@@ -1889,7 +2037,7 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The ssl configuration to be used to connect to the remote. </p>
-<p><b>Default:</b> <code><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html#defaultConfiguration">QSslConfiguration::defaultConfiguration()</a></code> <br />
+<p><b>Default:</b> <code><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html#defaultConfiguration">QSslConfiguration::defaultConfiguration()</a></code> <br />
 </p>
 <p>Is used by the internal websocket server. If you need a configuration different from the one for the application, you can set one via this property</p>
 <table class="doxtable">
@@ -1902,7 +2050,7 @@ Properties</h2></td></tr>
 <tr>
 <td><b>RESET</b></td><td><a class="el" href="class_qt_data_sync_1_1_setup.html#af83b229f44cf74bc5f8991814185369a" title="RESET accessor for Setup::sslConfiguration. ">resetSslConfiguration()</a> </td></tr>
 </table>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_defaults.html#a48da90b4abf395b77d223ed3545f691c" title="Returns the extra property defined by the given key. ">Defaults::property</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#ab141dc12df2cd9395e3e5b1fc31c1c39a3d0fc2feaddd9bac07f0cf36d9ff2313" title="The ssl configuration to be used to connect to the remote. ">Defaults::SslConfiguration</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html#defaultConfiguration">QSslConfiguration::defaultConfiguration</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="class_qt_data_sync_1_1_defaults.html#a48da90b4abf395b77d223ed3545f691c" title="Returns the extra property defined by the given key. ">Defaults::property</a>, <a class="el" href="class_qt_data_sync_1_1_defaults.html#ab141dc12df2cd9395e3e5b1fc31c1c39a3d0fc2feaddd9bac07f0cf36d9ff2313" title="The ssl configuration to be used to connect to the remote. ">Defaults::SslConfiguration</a>, <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtnetwork/qtnetwork.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsslconfiguration.html#defaultConfiguration">QSslConfiguration::defaultConfiguration</a> </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="setup_8h_source.html#l00081">81</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
 
@@ -1955,7 +2103,7 @@ Properties</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Nov 17 2018 11:30:54 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

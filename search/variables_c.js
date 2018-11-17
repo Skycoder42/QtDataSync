@@ -8,5 +8,6 @@ var searchData=
   ['mediaflags',['MediaFlags',['https://doc.qt.io/qt-5/qwebenginecontextmenudata.html#MediaFlag-enum',0,'QWebEngineContextMenuData']]],
   ['modifyparametersfunction',['ModifyParametersFunction',['https://doc.qt.io/qt-5/qabstractoauth.html#ModifyParametersFunction-typedef',0,'QAbstractOAuth']]],
   ['mousebuttons',['MouseButtons',['https://doc.qt.io/qt-5/qt.html#MouseButton-enum',0,'Qt']]],
-  ['mouseeventflags',['MouseEventFlags',['https://doc.qt.io/qt-5/qt.html#MouseEventFlag-enum',0,'Qt']]]
+  ['mouseeventflags',['MouseEventFlags',['https://doc.qt.io/qt-5/qt.html#MouseEventFlag-enum',0,'Qt']]],
+  ['multiprocess',['MultiProcess',['https://doc.qt.io/qt-5/class_qt_mvvm_1_1_android_settings_accessor.html#a276ec59e4084327849f9612a3fd95020a6907e9a10b0c422a01319ee4798a3c48',0,'QtMvvm::AndroidSettingsAccessor']]]
 ];

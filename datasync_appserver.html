@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.1.0</span>
+   &#160;<span id="projectnumber">4.2.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -96,7 +96,7 @@ PostgreSQL</h2>
 <p>All appserver needs as additional setup is a connection to a postgresql database. Simply install PostgreSQL on your server machine, and create a database (and a user). If you want to use docker, you can use the <a href="https://hub.docker.com/_/postgres/">docker image</a> of PostgreSQL. There is no additional setup needed. Since table creation etc is done by the server itself.</p>
 <h2><a class="anchor" id="datasync_appserver_install_qdsapp"></a>
 qdsapp server</h2>
-<p>For the server, all you need is a standard deployment, e.g. the <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qt.html">Qt</a> libraries. The application itself can be copied from the bin folder of your installation. If you use the libraries from there as well, it will work fine. Have a look at the deployment pages for details:</p><ul>
+<p>For the server, all you need is a standard deployment, e.g. the <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qt.html">Qt</a> libraries. The application itself can be copied from the bin folder of your installation. If you use the libraries from there as well, it will work fine. Have a look at the deployment pages for details:</p><ul>
 <li><a href="https://doc.qt.io/qt-5/linux-deployment.html">Linux</a></li>
 <li><a href="https://doc.qt.io/qt-5/windows-deployment.html">Windows</a></li>
 <li><a href="https://doc.qt.io/qt-5/osx-deployment.html">MacOs</a></li>
@@ -131,7 +131,7 @@ The `general` section</h3>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Key  </th><th class="markdownTableHeadNone">Type  </th><th class="markdownTableHeadNone">Default value  </th><th class="markdownTableHeadNone">Describtion   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">threads/count  </td><td class="markdownTableBodyNone">integer  </td><td class="markdownTableBodyNone"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qthread.html#idealThreadCount">QThread::idealThreadCount()</a>  </td><td class="markdownTableBodyNone">The maximum of threads the server can use in it's threadpool   </td></tr>
+<td class="markdownTableBodyNone">threads/count  </td><td class="markdownTableBodyNone">integer  </td><td class="markdownTableBodyNone"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qthread.html#idealThreadCount">QThread::idealThreadCount()</a>  </td><td class="markdownTableBodyNone">The maximum of threads the server can use in it's threadpool   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
 <td class="markdownTableBodyNone">threads/expire  </td><td class="markdownTableBodyNone">integer  </td><td class="markdownTableBodyNone">10  </td><td class="markdownTableBodyNone">The timeout (in minutes) after which unused threads expire and get removed (Every thread has it's own database connection)   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
@@ -156,7 +156,7 @@ The `database` section</h3>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">driver  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone">"QPSQL"  </td><td class="markdownTableBodyNone">The database driver to use. Leave out for PostgreSQL   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">name  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qcoreapplication.html#applicationName-prop">QCoreApplication::applicationName()</a>  </td><td class="markdownTableBodyNone">The name of the database to connect to   </td></tr>
+<td class="markdownTableBodyNone">name  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qcoreapplication.html#applicationName-prop">QCoreApplication::applicationName()</a>  </td><td class="markdownTableBodyNone">The name of the database to connect to   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">host  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone">"localhost"  </td><td class="markdownTableBodyNone">The host to connect to   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -166,7 +166,7 @@ The `database` section</h3>
 <tr class="markdownTableBody" class="markdownTableRowEven">
 <td class="markdownTableBodyNone">password  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone">""  </td><td class="markdownTableBodyNone">The password for that username   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">options  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone">""  </td><td class="markdownTableBodyNone">Additional database options. See <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtsql/qtsql.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsqldatabase.html#setConnectOptions">QSqlDatabase::setConnectOptions</a>   </td></tr>
+<td class="markdownTableBodyNone">options  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone">""  </td><td class="markdownTableBodyNone">Additional database options. See <a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtsql/qtsql.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qsqldatabase.html#setConnectOptions">QSqlDatabase::setConnectOptions</a>   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
 <td class="markdownTableBodyNone">keepaliveInterval  </td><td class="markdownTableBodyNone">integer  </td><td class="markdownTableBodyNone">5  </td><td class="markdownTableBodyNone">The interval (in minutes) to send keepalive queries in for the event connection   </td></tr>
 </table>
@@ -177,7 +177,7 @@ The `server` section</h3>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Key  </th><th class="markdownTableHeadNone">Type  </th><th class="markdownTableHeadNone">Default value  </th><th class="markdownTableHeadNone">Describtion   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">name  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.0/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qcoreapplication.html#applicationName-prop">QCoreApplication::applicationName()</a>  </td><td class="markdownTableBodyNone">The servers name, presented in the websocket handshake   </td></tr>
+<td class="markdownTableBodyNone">name  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone"><a class="elRef" target="_blank" doxygen="/home/sky/Qt/Docs/Qt-5.11.2/qtcore/qtcore.tags:https://doc.qt.io/qt-5/" href="https://doc.qt.io/qt-5/qcoreapplication.html#applicationName-prop">QCoreApplication::applicationName()</a>  </td><td class="markdownTableBodyNone">The servers name, presented in the websocket handshake   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
 <td class="markdownTableBodyNone">host  </td><td class="markdownTableBodyNone">string  </td><td class="markdownTableBodyNone">"0.0.0.0" (any)  </td><td class="markdownTableBodyNone">The host address to listen on. Can be used to limit access   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
@@ -209,7 +209,7 @@ The database cleanup</h1>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Nov 17 2018 11:30:53 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

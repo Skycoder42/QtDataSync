@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.1.0</span>
+   &#160;<span id="projectnumber">4.2.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -76,6 +76,22 @@ $(function() {
 <li>ObjectKey()
 : <a class="el" href="struct_qt_data_sync_1_1_object_key.html#a5da7d0178a98275da0d9f212b3d26f2f">QtDataSync::ObjectKey</a>
 </li>
+<li>onReceive()
+: <a class="el" href="classde_1_1skycoder42_1_1qtdatasync_1_1_sync_boot_receiver.html#aa9f6b33071f85060d52b11b5481210ff">de.skycoder42.qtdatasync.SyncBootReceiver</a>
+</li>
+<li>onStart()
+: <a class="el" href="class_qt_data_sync_1_1_android_background_service.html#aacd28975d90f2e1e52bb09247a22b095">QtDataSync::AndroidBackgroundService</a>
+</li>
+<li>onStartCommand()
+: <a class="el" href="class_qt_data_sync_1_1_android_background_service.html#a274d9708e4760e1e79462eae34336083">QtDataSync::AndroidBackgroundService</a>
+</li>
+<li>onStop()
+: <a class="el" href="class_qt_data_sync_1_1_android_background_service.html#a675bd6b60586b49d35604c20fbca9b1c">QtDataSync::AndroidBackgroundService</a>
+</li>
+<li>onSyncCompleted()
+: <a class="el" href="class_qt_data_sync_1_1_android_background_service.html#ad961ac8c0a066e3d76f5ac4bb93ea739">QtDataSync::AndroidBackgroundService</a>
+, <a class="el" href="class_qt_data_sync_1_1_ios_sync_delegate.html#ade14211b3770eccc8fb1ed55ee9bebfc">QtDataSync::IosSyncDelegate</a>
+</li>
 <li>openStore()
 : <a class="el" href="class_qt_data_sync_1_1_key_store.html#ab4078145d6934a2c206777fb581dba9a">QtDataSync::KeyStore</a>
 </li>
@@ -85,6 +101,7 @@ $(function() {
 <li>operator!=()
 : <a class="el" href="class_qt_data_sync_1_1_device_info.html#a650ae9104fd20ac36c82aeacd4491f46">QtDataSync::DeviceInfo</a>
 , <a class="el" href="struct_qt_data_sync_1_1_object_key.html#ac85c0e9547cff1cd1a1639b526a4ff65">QtDataSync::ObjectKey</a>
+, <a class="el" href="class_qt_data_sync_1_1_remote_config.html#a6b110a97da5eedc594622fa8f1374999">QtDataSync::RemoteConfig</a>
 , <a class="el" href="class_qt_data_sync_1_1_user_info.html#a373485279e0e30e30a9d4505242fda6b">QtDataSync::UserInfo</a>
 </li>
 <li>operator-&gt;()
@@ -95,16 +112,18 @@ $(function() {
 , <a class="el" href="class_qt_data_sync_1_1_remote_config.html#a61f24a5570b75c95e55b62e0801e6a30">QtDataSync::RemoteConfig</a>
 </li>
 <li>operator=()
-: <a class="el" href="class_qt_data_sync_1_1_database_ref.html#a507e0bf6e9aca5eb0a8fe727d7c95daa">QtDataSync::DatabaseRef</a>
+: <a class="el" href="class_qt_data_sync_1_1_database_ref.html#a59a0db8a58767ab8126d2433d0fa7f57">QtDataSync::DatabaseRef</a>
 , <a class="el" href="class_qt_data_sync_1_1_defaults.html#af8c66c6f57adb4fd6e4bde7444140084">QtDataSync::Defaults</a>
 , <a class="el" href="class_qt_data_sync_1_1_device_info.html#aa61ae9653d0edb3ef8dfa895d4159e6b">QtDataSync::DeviceInfo</a>
-, <a class="el" href="class_qt_data_sync_1_1_login_request.html#a111749d401d10d6ba943b1a7defcaf70">QtDataSync::LoginRequest</a>
-, <a class="el" href="class_qt_data_sync_1_1_remote_config.html#a098770b27380df606c6d5ebf530ceacb">QtDataSync::RemoteConfig</a>
+, <a class="el" href="class_qt_data_sync_1_1_login_request.html#a05a1742b277fcf73a40073aad7b89e30">QtDataSync::LoginRequest</a>
+, <a class="el" href="class_qt_data_sync_1_1_remote_config.html#abd10b22970e77754b4a3f7894071f792">QtDataSync::RemoteConfig</a>
+, <a class="el" href="class_qt_data_sync_1_1_setup.html#ad990ec8d1e44a619e4294c0e58be5f1f">QtDataSync::Setup</a>
 , <a class="el" href="class_qt_data_sync_1_1_user_info.html#a97d6fe31f2be2bba8a40246fe04f5761">QtDataSync::UserInfo</a>
 </li>
 <li>operator==()
 : <a class="el" href="class_qt_data_sync_1_1_device_info.html#ad7b379878175b82cd15e2f5a7b749390">QtDataSync::DeviceInfo</a>
 , <a class="el" href="struct_qt_data_sync_1_1_object_key.html#aa4c5e12410722b7507df47d1b7300246">QtDataSync::ObjectKey</a>
+, <a class="el" href="class_qt_data_sync_1_1_remote_config.html#ae829d11e5f0a55f4884134948ad90bb5">QtDataSync::RemoteConfig</a>
 , <a class="el" href="class_qt_data_sync_1_1_user_info.html#ada1fa54fc3d85d217216b36dd5363e14">QtDataSync::UserInfo</a>
 </li>
 <li>operator&gt;&gt;
@@ -115,7 +134,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Nov 17 2018 11:30:54 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

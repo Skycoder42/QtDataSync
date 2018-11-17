@@ -14,7 +14,7 @@ var searchData=
   ['globalparameters',['globalParameters',['https://doc.qt.io/qt-5/class_qt_rest_client_1_1_rest_client.html#a31ec102ccfe8d43eb147175b397c7119',0,'QtRestClient::RestClient']]],
   ['globalrestorepolicy',['globalRestorePolicy',['https://doc.qt.io/qt-5/qstatemachine.html#globalRestorePolicy-prop',0,'QStateMachine']]],
   ['globalstrut',['globalStrut',['https://doc.qt.io/qt-5/qapplication.html#globalStrut-prop',0,'QApplication']]],
-  ['globalterminal',['globalTerminal',['https://doc.qt.io/qt-5/class_qt_service_1_1_service.html#aa111dc994bcef733db1edaa143bf439c',0,'QtService::Service']]],
+  ['globalterminal',['globalTerminal',['https://skycoder42.github.io/QtService/class_qt_service_1_1_service.html#aa111dc994bcef733db1edaa143bf439c',0,'QtService::Service']]],
   ['globpatterns',['globPatterns',['https://doc.qt.io/qt-5/qmimetype.html#globPatterns-prop',0,'QMimeType']]],
   ['graphicsapifilter',['graphicsApiFilter',['https://doc.qt.io/qt-5/qt3drender-qtechnique.html#graphicsApiFilter-prop',0,'Qt3DRender::QTechnique']]],
   ['greenmasked',['greenMasked',['https://doc.qt.io/qt-5/qt3drender-qcolormask.html#greenMasked-prop',0,'Qt3DRender::QColorMask']]],

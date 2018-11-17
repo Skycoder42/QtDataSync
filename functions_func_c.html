@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.1.0</span>
+   &#160;<span id="projectnumber">4.2.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -90,7 +90,8 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a9cf756a8219481390a54628ef4450d0f">QtDataSync::Setup</a>
 </li>
 <li>className()
-: <a class="el" href="class_qt_data_sync_1_1_exception.html#aa0c7f9c040d32bbd86202b9400c765f6">QtDataSync::Exception</a>
+: <a class="el" href="class_qt_data_sync_1_1_event_cursor_exception.html#ae8b4ca5cbd7e75e7719b6bae594e9d79">QtDataSync::EventCursorException</a>
+, <a class="el" href="class_qt_data_sync_1_1_exception.html#aa0c7f9c040d32bbd86202b9400c765f6">QtDataSync::Exception</a>
 , <a class="el" href="class_qt_data_sync_1_1_invalid_data_exception.html#a185610cef7fd0463b3215d88028b8f1f">QtDataSync::InvalidDataException</a>
 , <a class="el" href="class_qt_data_sync_1_1_key_store_exception.html#a4ea11a4b8e0eeef4f2498f0875277a2b">QtDataSync::KeyStoreException</a>
 , <a class="el" href="class_qt_data_sync_1_1_local_store_exception.html#ae2e6b1950b00ff71df5ffaadc5b8d435">QtDataSync::LocalStoreException</a>
@@ -100,7 +101,8 @@ $(function() {
 , <a class="el" href="class_qt_data_sync_1_1_setup_locked_exception.html#ad69e9eaaede1ea66f4d12b031b1161ba">QtDataSync::SetupLockedException</a>
 </li>
 <li>clear()
-: <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#aa445d2fc46a22286f52d0326d5661666">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_data_store.html#aac5776a2756c359b63fd1ab857e48a1b">de::skycoder42::QtDataSync::DataStore</a>
+, <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#aa445d2fc46a22286f52d0326d5661666">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a0c63984d5ebd0646e92228a71d2bc4a0">QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_data_store.html#a4dfdf5530f66e07a39ce57ba1ca1b530">QtDataSync::DataStore</a>
 , <a class="el" href="class_qt_data_sync_1_1_data_type_store.html#aed8fe061762e360db5416dd2a0a7fc70">QtDataSync::DataTypeStore&lt; TType, TKey &gt;</a>
@@ -108,8 +110,15 @@ $(function() {
 <li>clearColumns()
 : <a class="el" href="class_qt_data_sync_1_1_data_store_model.html#a8c8e1b34f1e941b931f689ffea1ce926">QtDataSync::DataStoreModel</a>
 </li>
+<li>clearEventLog()
+: <a class="el" href="class_qt_data_sync_1_1_event_cursor.html#a906686ddb4bb9cecfcb0cb8dbc1b3060">QtDataSync::EventCursor</a>
+</li>
+<li>clearRegistration()
+: <a class="el" href="classde_1_1skycoder42_1_1qtdatasync_1_1_sync_boot_receiver.html#a99fe400b4a8bd2c15bd5368250ab31f2">de.skycoder42.qtdatasync.SyncBootReceiver</a>
+</li>
 <li>clone()
-: <a class="el" href="class_qt_data_sync_1_1_exception.html#ac45c2397d836b4d6b0826dd3eb63b226">QtDataSync::Exception</a>
+: <a class="el" href="class_qt_data_sync_1_1_event_cursor_exception.html#a6ed148c83589ec9d443a5a75f571e73f">QtDataSync::EventCursorException</a>
+, <a class="el" href="class_qt_data_sync_1_1_exception.html#ac45c2397d836b4d6b0826dd3eb63b226">QtDataSync::Exception</a>
 , <a class="el" href="class_qt_data_sync_1_1_invalid_data_exception.html#acc53f9091c68631e4a2ffd3262ec359f">QtDataSync::InvalidDataException</a>
 , <a class="el" href="class_qt_data_sync_1_1_key_store_exception.html#aa0b7c7f868ddeb11da3bd9f36f1e4703">QtDataSync::KeyStoreException</a>
 , <a class="el" href="class_qt_data_sync_1_1_local_store_exception.html#a5239337243032de4135f11e029aa8707">QtDataSync::LocalStoreException</a>
@@ -132,21 +141,31 @@ $(function() {
 , <a class="el" href="class_qt_data_sync_1_1_setup.html#a28a5da681b0c5bf57a32490e0be9ee47">QtDataSync::Setup</a>
 </li>
 <li>contains()
-: <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#a2c78599fc1b8b36c06a8f8697dbf1470">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_data_store.html#a8ff836b5630344dc864551903425a39b">de::skycoder42::QtDataSync::DataStore</a>
+, <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#a2c78599fc1b8b36c06a8f8697dbf1470">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a6c3cb8ea9a872ee404d8bcd2d92e2cbc">QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;</a>
+, <a class="el" href="class_qt_data_sync_1_1_data_store.html#a2ea9416cce0610e5ea54abfa14a2c91f">QtDataSync::DataStore</a>
+, <a class="el" href="class_qt_data_sync_1_1_data_type_store.html#a2602f5edb1c2f4db4d5605c33744ca14">QtDataSync::DataTypeStore&lt; TType, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_key_store.html#a7ac99f127bbffa16aa0c2a0288064242">QtDataSync::KeyStore</a>
 </li>
 <li>context()
-: <a class="el" href="class_qt_data_sync_1_1_local_store_exception.html#acf419f4098c6165ee9283cb4bfe3e773">QtDataSync::LocalStoreException</a>
+: <a class="el" href="class_qt_data_sync_1_1_event_cursor_exception.html#ad07c36e0ab964b7b77a4d6a2ba5b5416">QtDataSync::EventCursorException</a>
+, <a class="el" href="class_qt_data_sync_1_1_local_store_exception.html#acf419f4098c6165ee9283cb4bfe3e773">QtDataSync::LocalStoreException</a>
 </li>
 <li>count()
-: <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#aedd4958ba793ea6c7f410eabe6938891">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_data_store.html#aa23429aed1f3e3579a9d7c2684d4bfd6">de::skycoder42::QtDataSync::DataStore</a>
+, <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#aedd4958ba793ea6c7f410eabe6938891">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a9256b550e5fdd9db26c8953bd3c06c5c">QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_data_store.html#ada072897d1c292bb32fac5a65618d59b">QtDataSync::DataStore</a>
 , <a class="el" href="class_qt_data_sync_1_1_data_type_store.html#a8b8bc726ea9444f59a5be2094f1341b6">QtDataSync::DataTypeStore&lt; TType, TKey &gt;</a>
 </li>
 <li>create()
-: <a class="el" href="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a">QtDataSync::Setup</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_event_log.html#afc3d67622c7ed58b856a8966ca84686f">de::skycoder42::QtDataSync::EventLog</a>
+, <a class="el" href="class_qt_data_sync_1_1_event_cursor.html#a8fb7f2049bea3381a93bbb391df397e0">QtDataSync::EventCursor</a>
+, <a class="el" href="class_qt_data_sync_1_1_setup.html#a5ddf88aec2c428a6df10e039954ab26a">QtDataSync::Setup</a>
+</li>
+<li>createForegroundNotification()
+: <a class="el" href="class_qt_data_sync_1_1_android_background_service.html#acf77f16dd3744870112aa898efe08353">QtDataSync::AndroidBackgroundService</a>
 </li>
 <li>createInstance()
 : <a class="el" href="class_qt_data_sync_1_1_key_store_plugin.html#ab6fea64f30a4f3f77b7d3a95a1520a5a">QtDataSync::KeyStorePlugin</a>
@@ -160,11 +179,14 @@ $(function() {
 <li>createSettings()
 : <a class="el" href="class_qt_data_sync_1_1_defaults.html#aa8d4cd8dad2747a71093b675eb899e7c">QtDataSync::Defaults</a>
 </li>
+<li>currentDelegate()
+: <a class="el" href="class_qt_data_sync_1_1_ios_sync_delegate.html#acde12bb31d2fafb0788b521e09d375d8">QtDataSync::IosSyncDelegate</a>
+</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Nov 17 2018 11:30:54 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

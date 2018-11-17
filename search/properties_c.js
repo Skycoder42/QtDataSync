@@ -1,8 +1,8 @@
 var searchData=
 [
   ['keepalivetimeout',['keepaliveTimeout',['../class_qt_data_sync_1_1_remote_config.html#a5092cdf3ffa3c29604c4f0853bbb43cc',1,'QtDataSync::RemoteConfig']]],
-  ['keepobjectname',['keepObjectName',['https://skycoder42.github.io/QJsonSerializer/class_q_json_serializer.html#a6c0d933bd43f30870c9379fb04f65f00',0,'QJsonSerializer']]],
-  ['key',['key',['https://doc.qt.io/qt-5/qkeyeventtransition.html#key-prop',0,'QKeyEventTransition::key()'],['https://doc.qt.io/qt-5/qshortcut.html#key-prop',0,'QShortcut::key()'],['https://doc.qt.io/qt-5/qt3dinput-qkeyevent.html#key-prop',0,'Qt3DInput::QKeyEvent::key()']]],
+  ['keepobjectname',['keepObjectName',['https://skycoder42.github.io/QtJsonSerializer/class_q_json_serializer.html#a6c0d933bd43f30870c9379fb04f65f00',0,'QJsonSerializer']]],
+  ['key',['key',['https://doc.qt.io/qt-5/struct_qt_mvvm_1_1_data_sync_settings_entry.html#aad61db86454bd92167b9c0b3e5272ed0',0,'QtMvvm::DataSyncSettingsEntry::key()'],['https://doc.qt.io/qt-5/qkeyeventtransition.html#key-prop',0,'QKeyEventTransition::key()'],['https://doc.qt.io/qt-5/qshortcut.html#key-prop',0,'QShortcut::key()'],['https://doc.qt.io/qt-5/qt3dinput-qkeyevent.html#key-prop',0,'Qt3DInput::QKeyEvent::key()'],['../class_qt_data_sync_1_1_event_cursor.html#a86efb7445aae48bd19c197c931338b5f',1,'QtDataSync::EventCursor::key()']]],
   ['keyboardautorepeatrate',['keyboardAutoRepeatRate',['https://doc.qt.io/qt-5/qstylehints.html#keyboardAutoRepeatRate-prop',0,'QStyleHints']]],
   ['keyboardinputinterval',['keyboardInputInterval',['https://doc.qt.io/qt-5/qapplication.html#keyboardInputInterval-prop',0,'QApplication::keyboardInputInterval()'],['https://doc.qt.io/qt-5/qstylehints.html#keyboardInputInterval-prop',0,'QStyleHints::keyboardInputInterval()']]],
   ['keyboardpagestep',['keyboardPageStep',['https://doc.qt.io/qt-5/qmdisubwindow.html#keyboardPageStep-prop',0,'QMdiSubWindow']]],

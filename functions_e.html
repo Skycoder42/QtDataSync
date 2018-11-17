@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.1.0</span>
+   &#160;<span id="projectnumber">4.2.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -88,8 +88,15 @@ $(function() {
 <li>EllipticCurve
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a9bc9f0bd5e663c74c1ee3bfecea7343a">QtDataSync::Setup</a>
 </li>
-<li>encryptionKeyParam()
-: <a class="el" href="class_qt_data_sync_1_1_setup.html#a398e428dbf6aaa3df8478e473be73c6c">QtDataSync::Setup</a>
+<li>enabled
+: <a class="el" href="class_qt_data_sync_1_1_android_sync_control.html#a9af8d2d0a8499ddde15db3f2634f005c">QtDataSync::AndroidSyncControl</a>
+, <a class="el" href="class_qt_data_sync_1_1_ios_sync_delegate.html#a1e5d399f3cf67b20277c4c4b4531792a">QtDataSync::IosSyncDelegate</a>
+</li>
+<li>enabledChanged()
+: <a class="el" href="class_qt_data_sync_1_1_ios_sync_delegate.html#ae7f35d7694729074e8f8a8959940b11d">QtDataSync::IosSyncDelegate</a>
+</li>
+<li>encryptionKeyParam
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#a126f99cb7e5302793ad18d3d74116ad3">QtDataSync::Setup</a>
 </li>
 <li>EncryptionScheme
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#acd5b9c5d0b0fccdefe0bf3efba02736c">QtDataSync::Setup</a>
@@ -107,17 +114,37 @@ $(function() {
 <li>Error
 : <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#a88370b2fba5ecb3602d60e08b0a66699a3b7547a37653abf291693d0a65f49279">QtDataSync::SyncManager</a>
 </li>
+<li>eventLogChanged()
+: <a class="el" href="class_qt_data_sync_1_1_event_cursor.html#aff60dc23f8fe38e6754724628d60ded9">QtDataSync::EventCursor</a>
+</li>
+<li>EventLoggingMode
+: <a class="el" href="class_qt_data_sync_1_1_defaults.html#ab141dc12df2cd9395e3e5b1fc31c1c39a5a4d10968b7ba169d75b78370694c1ed">QtDataSync::Defaults</a>
+</li>
+<li>eventLoggingMode
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#a4ac0be6dcde6e92ba7aef484fd0c03c0">QtDataSync::Setup</a>
+</li>
+<li>EventMode
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#a53094bf7e6d0df749d665b1f37ceaf71">QtDataSync::Setup</a>
+</li>
 <li>Exception()
 : <a class="el" href="class_qt_data_sync_1_1_exception.html#ab8afb45a46e0cd73fec366cdb2c7487f">QtDataSync::Exception</a>
 </li>
 <li>exchangeError()
 : <a class="el" href="class_qt_data_sync_1_1_user_exchange_manager.html#a36a17f33caef363e678c8a88c2723605">QtDataSync::UserExchangeManager</a>
 </li>
+<li>exists()
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#af574ed067e141dc470f1926affcda813">QtDataSync::Setup</a>
+</li>
+<li>exitAfterSync()
+: <a class="el" href="class_qt_data_sync_1_1_android_background_service.html#a73bbf97e96985a2b4ca2098d9ac06284">QtDataSync::AndroidBackgroundService</a>
+</li>
 <li>exportAccount()
-: <a class="el" href="class_qt_data_sync_1_1_account_manager.html#a5facccd0349f10d5df07c62aedb6ec3f">QtDataSync::AccountManager</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_account_manager.html#a40617e299bd5adf1fa220b06aaafaf4a">de::skycoder42::QtDataSync::AccountManager</a>
+, <a class="el" href="class_qt_data_sync_1_1_account_manager.html#a9f426388a154b71d7da2cd91c43e79c8">QtDataSync::AccountManager</a>
 </li>
 <li>exportAccountTrusted()
-: <a class="el" href="class_qt_data_sync_1_1_account_manager.html#a9e2492043ec1ac56667a2bae35bda3cf">QtDataSync::AccountManager</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_account_manager.html#aba31460be07078eb26e56a04266c8e27">de::skycoder42::QtDataSync::AccountManager</a>
+, <a class="el" href="class_qt_data_sync_1_1_account_manager.html#a9e2492043ec1ac56667a2bae35bda3cf">QtDataSync::AccountManager</a>
 </li>
 <li>exportTo()
 : <a class="el" href="class_qt_data_sync_1_1_user_exchange_manager.html#a9242b9ab1b31e4d364e358a70df2a388">QtDataSync::UserExchangeManager</a>
@@ -129,7 +156,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Nov 17 2018 11:30:54 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>

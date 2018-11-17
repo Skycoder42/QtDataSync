@@ -1,7 +1,7 @@
 var searchData=
 [
   ['back',['back',['https://doc.qt.io/qt-5/qt3drender-qstenciloperation.html#back-prop',0,'Qt3DRender::QStencilOperation::back()'],['https://doc.qt.io/qt-5/qt3drender-qstenciltest.html#back-prop',0,'Qt3DRender::QStencilTest::back()']]],
-  ['backend',['backend',['https://doc.qt.io/qt-5/class_qt_service_1_1_service.html#a41dd108dbbb7e378b66b4025b805698c',0,'QtService::Service::backend()'],['https://doc.qt.io/qt-5/class_qt_service_1_1_service_control.html#aa28c184afd600cbee21d381a2957f781',0,'QtService::ServiceControl::backend()']]],
+  ['backend',['backend',['https://skycoder42.github.io/QtService/class_qt_service_1_1_service.html#a41dd108dbbb7e378b66b4025b805698c',0,'QtService::Service::backend()'],['https://skycoder42.github.io/QtService/class_qt_service_1_1_service_control.html#aa28c184afd600cbee21d381a2957f781',0,'QtService::ServiceControl::backend()']]],
   ['background',['background',['https://doc.qt.io/qt-5/qmdiarea.html#background-prop',0,'QMdiArea']]],
   ['backgroundbrush',['backgroundBrush',['https://doc.qt.io/qt-5/qgraphicsscene.html#backgroundBrush-prop',0,'QGraphicsScene::backgroundBrush()'],['https://doc.qt.io/qt-5/qgraphicsview.html#backgroundBrush-prop',0,'QGraphicsView::backgroundBrush()']]],
   ['backgroundcolor',['backgroundColor',['https://doc.qt.io/qt-5/qwebenginepage.html#backgroundColor-prop',0,'QWebEnginePage']]],
@@ -22,7 +22,7 @@ var searchData=
   ['blendfunctionarg',['blendFunctionArg',['https://doc.qt.io/qt-5/qt3dextras-qphongalphamaterial.html#blendFunctionArg-prop',0,'Qt3DExtras::QPhongAlphaMaterial']]],
   ['blendtree',['blendTree',['https://doc.qt.io/qt-5/qt3danimation-qblendedclipanimator.html#blendTree-prop',0,'Qt3DAnimation::QBlendedClipAnimator']]],
   ['blockcount',['blockCount',['https://doc.qt.io/qt-5/qplaintextedit.html#blockCount-prop',0,'QPlainTextEdit::blockCount()'],['https://doc.qt.io/qt-5/qtextdocument.html#blockCount-prop',0,'QTextDocument::blockCount()']]],
-  ['blocking',['blocking',['https://doc.qt.io/qt-5/class_qt_service_1_1_service_control.html#a5d113dbe282d8bb1cb938df7bd47e5f4',0,'QtService::ServiceControl']]],
+  ['blocking',['blocking',['https://skycoder42.github.io/QtService/class_qt_service_1_1_service_control.html#a5d113dbe282d8bb1cb938df7bd47e5f4',0,'QtService::ServiceControl']]],
   ['blockupdates',['blockUpdates',['https://doc.qt.io/qt-5/qwebchannel.html#blockUpdates-prop',0,'QWebChannel']]],
   ['bluemasked',['blueMasked',['https://doc.qt.io/qt-5/qt3drender-qcolormask.html#blueMasked-prop',0,'Qt3DRender::QColorMask']]],
   ['blurhints',['blurHints',['https://doc.qt.io/qt-5/qgraphicsblureffect.html#blurHints-prop',0,'QGraphicsBlurEffect']]],

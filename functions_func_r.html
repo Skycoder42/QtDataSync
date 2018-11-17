@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">QtDataSync
-   &#160;<span id="projectnumber">4.1.0</span>
+   &#160;<span id="projectnumber">4.2.0</span>
    </div>
    <div id="projectbrief">A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices</div>
   </td>
@@ -71,7 +71,8 @@ $(function() {
 
 <h3><a id="index_r"></a>- r -</h3><ul>
 <li>raise()
-: <a class="el" href="class_qt_data_sync_1_1_exception.html#ae76353a60d2362299a0c1f68e4f53b22">QtDataSync::Exception</a>
+: <a class="el" href="class_qt_data_sync_1_1_event_cursor_exception.html#a7436430edd70783660e31c70339d77b2">QtDataSync::EventCursorException</a>
+, <a class="el" href="class_qt_data_sync_1_1_exception.html#ae76353a60d2362299a0c1f68e4f53b22">QtDataSync::Exception</a>
 , <a class="el" href="class_qt_data_sync_1_1_invalid_data_exception.html#aa213687af474df9a678cf128069d6397">QtDataSync::InvalidDataException</a>
 , <a class="el" href="class_qt_data_sync_1_1_key_store_exception.html#ad20a87880bb2448acd07ff05c070424f">QtDataSync::KeyStoreException</a>
 , <a class="el" href="class_qt_data_sync_1_1_local_store_exception.html#aca2723a05ab893fe3f976fa75923c4d1">QtDataSync::LocalStoreException</a>
@@ -93,7 +94,7 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_defaults.html#a50cc6cfc4a5de93d9693b20c80fe55ca">QtDataSync::Defaults</a>
 </li>
 <li>RemoteConfig()
-: <a class="el" href="class_qt_data_sync_1_1_remote_config.html#a18e81bcbf0396846b5c2df47378b05fd">QtDataSync::RemoteConfig</a>
+: <a class="el" href="class_qt_data_sync_1_1_remote_config.html#a2b2b3d92c29c2f7569d01f773c40a08b">QtDataSync::RemoteConfig</a>
 </li>
 <li>remoteConfiguration()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#aa9a051a83acbff5f6331d9d7a67255d1">QtDataSync::Setup</a>
@@ -105,7 +106,8 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#ab7bac35a519a530689112f37e18e61fc">QtDataSync::Setup</a>
 </li>
 <li>remove()
-: <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#a82db97dd5769b777b807aa29b8fef5ac">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_data_store.html#a8c82f6418f3d19b8827a03a8ed0c9224">de::skycoder42::QtDataSync::DataStore</a>
+, <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store.html#a82db97dd5769b777b807aa29b8fef5ac">QtDataSync::CachingDataTypeStore&lt; TType, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_caching_data_type_store_3_01_t_type_01_5_00_01_t_key_01_4.html#a44774d611aec00233ba433e4018cc990">QtDataSync::CachingDataTypeStore&lt; TType *, TKey &gt;</a>
 , <a class="el" href="class_qt_data_sync_1_1_data_store.html#a5387d891c10bad10cd0cd4acaa23671e">QtDataSync::DataStore</a>
 , <a class="el" href="class_qt_data_sync_1_1_data_type_store.html#a35762ab28a6691c52677bc9f35c194dc">QtDataSync::DataTypeStore&lt; TType, TKey &gt;</a>
@@ -147,6 +149,9 @@ $(function() {
 </li>
 <li>resetEncryptionScheme()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a64e527bb98f7db2ea9f095b941ba7d18">QtDataSync::Setup</a>
+</li>
+<li>resetEventLoggingMode()
+: <a class="el" href="class_qt_data_sync_1_1_setup.html#ab3a48273fefc025998ac3e8d0063da64">QtDataSync::Setup</a>
 </li>
 <li>resetFatalErrorHandler()
 : <a class="el" href="class_qt_data_sync_1_1_setup.html#a4f3678c9577dba8abc865a798008af93">QtDataSync::Setup</a>
@@ -196,16 +201,18 @@ $(function() {
 : <a class="el" href="class_qt_data_sync_1_1_data_store_model.html#aefd4b35872b35316522b7bbc3327c48e">QtDataSync::DataStoreModel</a>
 </li>
 <li>runOnDownloaded()
-: <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#a2ddeb680e7125566ab02492dfaa5f8fb">QtDataSync::SyncManager</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_sync_manager.html#a9f95e494b02ab17f105ecbe6666770fd">de::skycoder42::QtDataSync::SyncManager</a>
+, <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#a2ddeb680e7125566ab02492dfaa5f8fb">QtDataSync::SyncManager</a>
 </li>
 <li>runOnSynchronized()
-: <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#ac5b19bcbca2eda2a389f84b33d3b5e8d">QtDataSync::SyncManager</a>
+: <a class="el" href="classde_1_1skycoder42_1_1_qt_data_sync_1_1_sync_manager.html#afdadc5d6ac8f5d54e0f95470c6c11fd3">de::skycoder42::QtDataSync::SyncManager</a>
+, <a class="el" href="class_qt_data_sync_1_1_sync_manager.html#ac5b19bcbca2eda2a389f84b33d3b5e8d">QtDataSync::SyncManager</a>
 </li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 16 2018 19:33:31 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Nov 17 2018 11:30:54 for QtDataSync by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.14
 </small></address>
