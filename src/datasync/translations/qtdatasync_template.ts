@@ -4,7 +4,7 @@
 <context>
     <name>QtDataSync::AccountManager</name>
     <message>
-        <location filename="../accountmanager.cpp" line="+157"/>
+        <location filename="../accountmanager.cpp" line="+159"/>
         <source>Password must not be empty.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -18,7 +18,7 @@
 <context>
     <name>QtDataSync::AccountManagerPrivate</name>
     <message>
-        <location filename="../accountmanager_p.cpp" line="+114"/>
+        <location filename="../accountmanager_p.cpp" line="+119"/>
         <location line="+26"/>
         <source>Failed to generate export data. You must be registered to a server to export data.</source>
         <translation type="unfinished"></translation>
@@ -66,7 +66,7 @@
 <context>
     <name>QtDataSync::ExchangeEngine</name>
     <message>
-        <location filename="../setup.cpp" line="+416"/>
+        <location filename="../setup.cpp" line="+449"/>
         <source>Password for trusted import must not be empty</source>
         <translation type="unfinished"></translation>
     </message>
@@ -79,12 +79,12 @@
 <context>
     <name>QtDataSync::RemoteConnector</name>
     <message>
-        <location filename="../remoteconnector.cpp" line="+784"/>
+        <location filename="../remoteconnector.cpp" line="+791"/>
         <source>Failed to load user identity! Make shure your keystore is available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+109"/>
         <source>Server is not compatibel with your application version.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -135,13 +135,19 @@
 <context>
     <name>QtDataSync::UserExchangeManager</name>
     <message>
-        <location filename="../userexchangemanager.cpp" line="+163"/>
+        <location filename="../userexchangemanager.cpp" line="+146"/>
+        <location line="+28"/>
+        <source>Cannot export data if UserExchangeManager is not in active state</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
         <location line="+9"/>
         <source>No import data received from passed user.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+80"/>
+        <location line="+81"/>
         <source>&lt;Unnamed&gt;</source>
         <translation type="unfinished"></translation>
     </message>
