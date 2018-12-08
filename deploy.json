@@ -3,11 +3,10 @@
 	"description": "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices.",
 	"modules": [ "QtDataSync", "QtDataSyncAndroid", "QtDataSyncIos" ],
 	"dependencies": [
-		".qtremoteobjects",
 		".skycoder42.jsonserializer",
 		".skycoder42.service"
 	],
-	"excludes": [ "mingw", "winrt_arm" ],
+	"excludes": [ "winrt_arm" ],
 	"license": {
 		"name": "BSD-3-Clause",
 		"path": "LICENSE"
