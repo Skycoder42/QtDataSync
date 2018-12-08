@@ -67,6 +67,18 @@ void IntegrationTest::initTestCase()
 	server->setBlocking(true);
 	QVERIFY(server->start());
 
+	{
+		auto ok = false;
+		for(auto i = 0; i < 5 && !ok; i++) {
+			QTcpSocket svrTestSocket;
+			svrTestSocket.connectToHost(QHostAddress::LocalHost, 14242);
+			ok = svrTestSocket.waitForConnected(5000);
+			qDebug() << "Trying to connect to server try" << i << "with result" << ok;
+			QThread::sleep(1);
+		}
+		QVERIFY(ok);
+	}
+
 	try {
 		TestLib::init();
 		qRegisterMetaType<LoginRequest>();

@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QtRemoteObjects>
 
+#include <QtDataSync/qtrotransportregistry.h>
 #include <QtDataSync/private/exchangebuffer_p.h>
 
 #include "rep_testclass_source.h"
@@ -87,11 +88,13 @@ void TestRoThreadedBackend::testRemoteObjects()
 {
 	QUrl url(QStringLiteral("threaded:///some/path"));
 
-	QRemoteObjectHost host(url);
+	QRemoteObjectHost host;
+	QtRoTransportRegistry::connectHostNode(url, &host);
+
 	host.enableRemoting(new TestClass(&host));
 
 	QRemoteObjectNode node;
-	QVERIFY(node.connectToNode(url));
+	QVERIFY(QtRoTransportRegistry::connectClientNode(url, &node));
 
 	auto test = node.acquire<TestClassReplica>();
 	QVERIFY(test);

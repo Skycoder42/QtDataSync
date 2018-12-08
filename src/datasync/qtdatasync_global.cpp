@@ -3,6 +3,7 @@
 #include "changecontroller_p.h"
 
 #include "exchangerotransport_p.h"
+#include "exchangebufferserver_p.h"
 
 #include <QtCore/QCoreApplication>
 #include "message_p.h"

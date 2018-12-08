@@ -9,7 +9,11 @@ ExchangeBuffer::ExchangeBuffer(QObject *parent) :
 	_buffers(),
 	_index(0),
 	_size(0)
-{}
+{
+	connect(this, &ExchangeBuffer::partnerDisconnected,
+			this, &ExchangeBuffer::disconnected,
+			Qt::DirectConnection);
+}
 
 ExchangeBuffer::~ExchangeBuffer()
 {

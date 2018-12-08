@@ -13,6 +13,7 @@
 #include <QtCore/QEventLoop>
 
 #include "qtrotransportregistry.h"
+#include "exchangebufferserver_p.h"
 
 Q_LOGGING_CATEGORY(qdssetup, "qtdatasync.setup", QtInfoMsg)
 

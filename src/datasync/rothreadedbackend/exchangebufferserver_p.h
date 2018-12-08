@@ -3,6 +3,8 @@
 
 #include <QtCore/QUrl>
 #include <QtCore/QMutex>
+#include <QtCore/QPointer>
+#include <QtCore/QHash>
 
 #include "qtdatasync_global.h"
 #include "exchangebuffer_p.h"
@@ -16,7 +18,9 @@ class Q_DATASYNC_EXPORT ExchangeBufferServer : public QObject
 
 public:
 	static const QString UrlScheme();
-	static bool connectTo(const QUrl &url, ExchangeBuffer *clientBuffer);
+	static bool connectTo(const QUrl &url,
+						  ExchangeBuffer *clientBuffer,
+						  bool allowCaching = true);
 
 	explicit ExchangeBufferServer(QRemoteObjectHostBase *host);
 
@@ -28,6 +32,7 @@ private Q_SLOTS:
 private:
 	static QMutex _lock;
 	static QHash<QString, ExchangeBufferServer*> _servers;
+	static QMultiHash<QString, QPointer<ExchangeBuffer>> _connectCache;
 
 	QRemoteObjectHostBase *_host;
 	QUrl _listenAddress;

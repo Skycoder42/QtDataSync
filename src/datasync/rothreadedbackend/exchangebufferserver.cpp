@@ -3,6 +3,7 @@ using namespace QtDataSync;
 
 QMutex ExchangeBufferServer::_lock;
 QHash<QString, ExchangeBufferServer*> ExchangeBufferServer::_servers;
+QMultiHash<QString, QPointer<ExchangeBuffer>> ExchangeBufferServer::_connectCache;
 
 const QString ExchangeBufferServer::UrlScheme()
 {
@@ -10,7 +11,7 @@ const QString ExchangeBufferServer::UrlScheme()
 	return urlScheme;
 }
 
-bool ExchangeBufferServer::connectTo(const QUrl &url, ExchangeBuffer *clientBuffer)
+bool ExchangeBufferServer::connectTo(const QUrl &url, ExchangeBuffer *clientBuffer, bool allowCaching)
 {
 	if(url.scheme() != UrlScheme() || !url.isValid()) {
 		qCCritical(rothreadedbackend).noquote() << "Unsupported URL-Scheme:" << url.scheme();
@@ -20,8 +21,15 @@ bool ExchangeBufferServer::connectTo(const QUrl &url, ExchangeBuffer *clientBuff
 	QMutexLocker _{&_lock};
 	auto server = _servers.value(url.path());
 	if(!server) {
-		qCWarning(rothreadedbackend).noquote() << "No threaded server found for:" << url.path();
-		return false;
+		if(allowCaching) {
+			qCInfo(rothreadedbackend) << "No threaded server found for" << url.path()
+									  << "- queuing up connection to be continued as soon as a server registers for that url";
+			_connectCache.insert(url.path(), clientBuffer);
+			return true;
+		} else {
+			qCWarning(rothreadedbackend).noquote() << "No threaded server found for:" << url.path();
+			return false;
+		}
 	} else {
 		return QMetaObject::invokeMethod(server, "addConnection", Qt::QueuedConnection,
 										 Q_ARG(ExchangeBuffer*, clientBuffer));
@@ -51,6 +59,22 @@ bool ExchangeBufferServer::registerInstance(const QUrl &url)
 		} else {
 			_servers.insert(url.path(), this);
 			_listenAddress = url;
+
+			// handle pending connections
+			const auto pending = _connectCache.values(url.path());
+			_connectCache.remove(url.path());
+			for(const auto &client : pending) {
+				if(client) {
+					QMetaObject::invokeMethod(this, "addConnection", Qt::QueuedConnection,
+											  Q_ARG(ExchangeBuffer*, client));
+				}
+			}
+			if(!pending.isEmpty()) {
+				qCDebug(rothreadedbackend).noquote() << "Picked up" << pending.size()
+										   << "cached connections for:"
+										   << url.password();
+			}
+
 			return true;
 		}
 	}

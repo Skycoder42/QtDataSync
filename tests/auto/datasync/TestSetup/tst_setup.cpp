@@ -60,7 +60,7 @@ void TestSetup::testCreate()
 		const auto aName = QStringLiteral("testCreate_active_setup");
 		TestLib::setup(aSetup);
 		aSetup.setLocalDir(aSetup.localDir() + QLatin1Char('/') + aName)
-				.setRemoteObjectHost(QStringLiteral("local:tst_setup")); //NOTE Qt 5.12 should work with threaded variant too!!!
+				.setRemoteObjectHost(QStringLiteral("threaded:tst_setup")); //NOTE Qt 5.12 should work with threaded variant too!!!
 
 		QVERIFY(!Setup::exists(aName));
 		aSetup.create(aName);
@@ -71,7 +71,7 @@ void TestSetup::testCreate()
 		const auto pName = QStringLiteral("testCreate_passive_setup");
 		TestLib::setup(pSetup);
 		pSetup.setLocalDir(pSetup.localDir() + QLatin1Char('/') + pName)
-				.setRemoteObjectHost(QStringLiteral("local:tst_setup"));
+				.setRemoteObjectHost(QStringLiteral("threaded:tst_setup"));
 
 		QVERIFY(!Setup::exists(pName));
 		pSetup.createPassive(pName, -1);

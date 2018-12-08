@@ -107,7 +107,7 @@ bool ClientConnector::listen()
 	quint16 port = 0;
 	auto dSocket = qService->getSocket();
 	if(dSocket != -1) {
-		server->setSocketDescriptor(dSocket);
+		server->setNativeDescriptor(dSocket);
 		if(!server->isListening()) {
 			qCritical() << "Failed to listen on activated socket" << dSocket
 						<< "with error:" << server->errorString();

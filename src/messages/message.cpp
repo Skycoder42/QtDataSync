@@ -85,8 +85,8 @@ QByteArray Message::serializeSigned(const CryptoPP::PKCS8PrivateKey &key, Crypto
 
 void Message::setupStream(QDataStream &stream)
 {
-	static_assert(QDataStream::Qt_DefaultCompiledVersion == QDataStream::Qt_5_6, "update DS version");
-	stream.setVersion(QDataStream::Qt_5_6);
+	//TODO update protocol: static_assert(QDataStream::Qt_DefaultCompiledVersion == QDataStream::Qt_5_11, "update DS version");
+	stream.setVersion(QDataStream::Qt_5_11);
 	stream.resetStatus();
 }
 

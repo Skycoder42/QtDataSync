@@ -27,6 +27,7 @@ public:
 Q_SIGNALS:
 	void partnerConnected(QPrivateSignal);
 	void partnerDisconnected(QPrivateSignal);
+	void disconnected(QPrivateSignal); //alias signal of partnerDisconnected for remote objects (naming convention)
 
 protected:
 	qint64 readData(char *data, qint64 maxlen) override;
