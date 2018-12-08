@@ -12,7 +12,7 @@
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QEventLoop>
 
-#include "threadedserver_p.h"
+#include "qtrotransportregistry.h"
 
 Q_LOGGING_CATEGORY(qdssetup, "qtdatasync.setup", QtInfoMsg)
 
@@ -599,7 +599,7 @@ void SetupPrivate::createDefaults(const QString &setupName, const QDir &storageD
 	//determine the ro address
 	if(!roAddress.isValid()) {
 		roAddress.clear();
-		roAddress.setScheme(ThreadedServer::UrlScheme());
+		roAddress.setScheme(ExchangeBufferServer::UrlScheme());
 		roAddress.setPath(QStringLiteral("/qtdatasync/%2/enginenode").arg(setupName));
 		qCDebug(qdssetup) << "Using default remote object address for setup" << setupName << "as" << roAddress;
 	}

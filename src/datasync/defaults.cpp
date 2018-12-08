@@ -5,6 +5,7 @@
 #include "exchangeengine_p.h"
 #include "changeemitter_p.h"
 #include "emitteradapter_p.h"
+#include "qtrotransportregistry.h"
 
 #include <QtCore/QThread>
 #include <QtCore/QStandardPaths>
@@ -362,7 +363,7 @@ QRemoteObjectNode *DefaultsPrivate::acquireNode()
 	auto node = roNodes.value(cThread);
 	if(!node) {
 		node = new QRemoteObjectNode();
-		if(!node->connectToNode(roAddress))
+		if(!QtRoTransportRegistry::connectClientNode(roAddress, node))
 			throw Exception(setupName, QStringLiteral("Unable to connect to remote object host"));
 		QObject::connect(cThread, &QThread::finished,
 						 this, &DefaultsPrivate::roThreadDone,

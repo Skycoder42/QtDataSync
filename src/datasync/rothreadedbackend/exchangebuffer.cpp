@@ -95,8 +95,11 @@ bool ExchangeBuffer::openInteral(ExchangeBuffer *partner)
 	if(QIODevice::open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Unbuffered)) {
 		emit partnerConnected({});
 		return true;
-	} else
+	} else {
+		QMetaObject::invokeMethod(_partner, "partnerClosed", Qt::QueuedConnection);
+		_partner = nullptr;
 		return false;
+	}
 }
 
 void ExchangeBuffer::receiveData(const QByteArray &data)
