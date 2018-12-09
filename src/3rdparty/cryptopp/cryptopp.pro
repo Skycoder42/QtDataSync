@@ -52,14 +52,11 @@ SOURCES -= \
 	src/validat4.cpp \
 	src/TestScripts/cryptest-coverity.cpp
 
-system(echo $$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include))
+DISTFILES += cryptopp.pri
+
 system($$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include))
-system(echo $$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp))
 system($$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp))
-for(hdr, HEADERS) {
-	system(echo $$QMAKE_COPY_FILE $$shell_path($$PWD/$$hdr) $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp/$$basename(hdr)))
-	system($$QMAKE_COPY_FILE $$shell_path($$PWD/$$hdr) $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp/$$basename(hdr)))
-}
+for(hdr, HEADERS): system($$QMAKE_COPY_FILE $$shell_path($$PWD/$$hdr) $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp/$$basename(hdr)))
 
 target.path = $$[QT_INSTALL_LIBS]
 qtConfig(static): INSTALLS += target #TODO use qt provided install instead
