@@ -12,7 +12,6 @@ datasync.depends += messages 3rdparty
 plugins.depends += datasync
 imports.depends += datasync
 
-3rdparty.CONFIG += no_lrelease_target
 imports.CONFIG += no_lrelease_target
 plugins.CONFIG += no_lrelease_target
 
