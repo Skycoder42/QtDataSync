@@ -33,21 +33,26 @@ HEADERS += $$files(src/*.h)
 
 SOURCES += $$files(src/*.cpp)
 
-SOURCES -= src/bench1.cpp \
-           src/bench2.cpp \
-           src/datatest.cpp \
-           src/dlltest.cpp \
-           src/pch.cpp \
-           src/regtest1.cpp \
-           src/regtest2.cpp \
-           src/regtest3.cpp \
-           src/test.cpp \
-           src/validat0.cpp \
-           src/validat1.cpp \
-           src/validat2.cpp \
-           src/validat3.cpp \
-           src/validat4.cpp \
-           src/TestScripts/cryptest-coverity.cpp
+SOURCES -= \
+	src/bench1.cpp \
+	src/bench2.cpp \
+	src/datatest.cpp \
+	src/dlltest.cpp \
+	src/pch.cpp \
+	src/regtest1.cpp \
+	src/regtest2.cpp \
+	src/regtest3.cpp \
+	src/test.cpp \
+	src/validat0.cpp \
+	src/validat1.cpp \
+	src/validat2.cpp \
+	src/validat3.cpp \
+	src/validat4.cpp \
+	src/TestScripts/cryptest-coverity.cpp
+
+system($$QMAKE_MKDIR $$MODULE_BASE_OUTDIR/include)
+system($$QMAKE_MKDIR $$MODULE_BASE_OUTDIR/include/cryptopp)
+for(hdr, HEADERS): system($$QMAKE_COPY $$shell_path($$PWD/$$hdr) $$MODULE_BASE_OUTDIR/include/cryptopp/)
 
 target.path = $$[QT_INSTALL_LIBS]
 headers.files += $$HEADERS
