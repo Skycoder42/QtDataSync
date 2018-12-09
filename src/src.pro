@@ -4,12 +4,15 @@ SUBDIRS += \
 	datasync \
 	plugins \
 	imports \
-	messages
+	messages \
+	3rdparty
 
-datasync.depends += messages
+messages.depends += 3rdparty
+datasync.depends += messages 3rdparty
 plugins.depends += datasync
 imports.depends += datasync
 
+3rdparty.CONFIG += no_lrelease_target
 imports.CONFIG += no_lrelease_target
 plugins.CONFIG += no_lrelease_target
 

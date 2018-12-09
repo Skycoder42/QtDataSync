@@ -58,9 +58,9 @@ load(qt_helper_lib)
 CONFIG += qt warning_clean
 QT = core
 
-cryptopp_lib.files += $$CRYPTOPP_LIBFILE
-cryptopp_lib.path = $${target.path}
-qtConfig(static): INSTALLS += cryptopp_lib
+#cryptopp_lib.files += $$CRYPTOPP_LIBFILE
+#cryptopp_lib.path = $${target.path}
+#qtConfig(static): INSTALLS += cryptopp_lib
 
 # dummy target, translations are all done in datasync
 QMAKE_EXTRA_TARGETS += lrelease
