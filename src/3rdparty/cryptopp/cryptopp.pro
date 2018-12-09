@@ -4,7 +4,7 @@ CONFIG -= qt
 
 load(qt_helper_lib)
 
-!win32 {
+!win32|win32-g++ {
 	QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
 	!isEmpty(ANDROID_TARGET_ARCH) {
