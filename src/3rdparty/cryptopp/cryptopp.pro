@@ -7,6 +7,7 @@ TARGET = qtcryptopp
 win32:!win32-g++ {
 	QMAKE_CXXFLAGS += /arch:AVX2
 	MODULE_DEFINES += CRYPTOPP_DISABLE_ASM #TODO reenable again later
+	cross_compile: MODULE_DEFINES += NO_OS_DEPENDENCE
 } else {
 	QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
