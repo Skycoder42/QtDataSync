@@ -2,11 +2,11 @@ TEMPLATE = lib
 CONFIG += staticlib
 CONFIG -= qt
 
-load(qt_helper_lib)
+TARGET = qtcryptopp
 
 win32:!win32-g++ {
 	QMAKE_CXXFLAGS += /arch:AVX2
-	DEFINES += CRYPTOPP_DISABLE_ASM #TODO reenable again later
+	MODULE_DEFINES += CRYPTOPP_DISABLE_ASM #TODO reenable again later
 } else {
 	QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
@@ -23,7 +23,7 @@ win32:!win32-g++ {
 		} else:equals(ANDROID_TARGET_ARCH, x86) {
 			QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
 			# Do this for Android builds for now as the NDK is broken
-			DEFINES += CRYPTOPP_DISABLE_ASM
+			MODULE_DEFINES += CRYPTOPP_DISABLE_ASM
 			warning("Disabled x86 crypto ASM")
 		}
 	} else {
@@ -57,17 +57,22 @@ SOURCES -= \
 
 DISTFILES += cryptopp.pri
 
-win32-g++: QMAKE_MKDIR = mkdir
-system(echo $$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include))
-system($$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include))
-system(echo $$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp))
-system($$QMAKE_MKDIR $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp))
-for(hdr, HEADERS) {
-	system(echo $$QMAKE_COPY_FILE $$shell_path($$PWD/$$hdr) $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp/$$basename(hdr)))
-	system($$QMAKE_COPY_FILE $$shell_path($$PWD/$$hdr) $$shell_path($$MODULE_BASE_OUTDIR/include/cryptopp/$$basename(hdr)))
-}
+load(qt_build_paths)
 
-target.path = $$[QT_INSTALL_LIBS]
-qtConfig(static): INSTALLS += target #TODO use qt provided install instead
+message($$MODULE_BASE_OUTDIR)
+HEADER_INSTALL_DIR = "$$MODULE_BASE_OUTDIR/include/cryptopp"
+header_copy_c.name = copy cryptopp header ${QMAKE_FILE_BASE}.h
+header_copy_c.input = HEADERS
+header_copy_c.variable_out = INCLUDE_INSTALL_HEADERS
+header_copy_c.commands = $$QMAKE_CHK_DIR_EXISTS $$shell_path($$HEADER_INSTALL_DIR) || $$QMAKE_MKDIR $$shell_path($$HEADER_INSTALL_DIR) \
+	$$escape_expand(\n\t)$(QINSTALL) ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+header_copy_c.output = $$HEADER_INSTALL_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+header_copy_c.CONFIG += target_predeps explicit_dependencies no_dependencies no_link
+header_copy_c.depends = ${QMAKE_FILE_IN}
+QMAKE_EXTRA_COMPILERS += header_copy_c
+
+MODULE_INCLUDEPATH += "$$MODULE_BASE_OUTDIR/include"
+
+load(qt_helper_lib)
 
 QMAKE_EXTRA_TARGETS += lrelease

@@ -2,7 +2,7 @@ TEMPLATE = lib
 
 CONFIG += static
 
-TARGET = qtdatasync-messages
+TARGET = qtdatasync_messages
 
 DEFINES += QT_BUILD_DATASYNC_LIB #is build as part of the lib regarding exports
 
@@ -52,15 +52,16 @@ SOURCES += \
 	devicekeysmessage.cpp \
 	newkeymessage.cpp
 
+DISTFILES += \
+	messages.pri
+
 include(../3rdparty/cryptopp/cryptopp.pri)
+
+MODULE_INCLUDEPATH += $$PWD
 
 load(qt_helper_lib)
 CONFIG += qt warning_clean
 QT = core
-
-#cryptopp_lib.files += $$CRYPTOPP_LIBFILE
-#cryptopp_lib.path = $${target.path}
-#qtConfig(static): INSTALLS += cryptopp_lib
 
 # dummy target, translations are all done in datasync
 QMAKE_EXTRA_TARGETS += lrelease
