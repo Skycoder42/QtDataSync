@@ -6,4 +6,4 @@
 
 # Force generation of camel case headers for classes inside QtDataSync namespaces
 # Exception must be excluded, because it generates conflicts with the std::exception class (case-insensitive)
-$publicclassregexp = "QtDataSync::(?!__helpertypes|JsonObject|Exception).+";
+$publicclassregexp = "QtDataSync::(?!__helpertypes|JsonObject|Exception|QtRoTransportRegistry|QtRoTransportRegistry::__private).+";

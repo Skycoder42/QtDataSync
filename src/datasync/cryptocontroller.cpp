@@ -6,6 +6,9 @@
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QDataStream>
 #include <QtCore/QJsonDocument>
+#ifndef QTDATASYNC_USE_CRYPTOPP_OSRNG
+#include <QtCore/QRandomGenerator>
+#endif
 
 #include <cryptopp/eax.h>
 #include <cryptopp/gcm.h>
@@ -948,12 +951,24 @@ QByteArray CryptoController::decryptImpl(const CryptoController::CipherInfo &inf
 
 ClientCrypto::ClientCrypto(QObject *parent) :
 	AsymmetricCrypto{parent},
-#ifdef QT_NO_DEBUG
+#ifdef QTDATASYNC_USE_CRYPTOPP_OSRNG
+# ifdef QT_NO_DEBUG
 	_rng{true, 32}
-#else //fast rng seeding for debug builds
+# else //fast rng seeding for debug builds
 	_rng{false}
+# endif
+#else
+	_rng{}
 #endif
-{}
+{
+#ifndef QTDATASYNC_USE_CRYPTOPP_OSRNG
+	if(_rng.CanIncorporateEntropy()) {
+		auto rng = QRandomGenerator::system();
+		const auto seed = rng->generate64();
+		_rng.IncorporateEntropy(reinterpret_cast<const byte*>(&seed), sizeof(seed));
+	}
+#endif
+}
 
 void ClientCrypto::generate(Setup::SignatureScheme signScheme, const QVariant &signKeyParam, Setup::EncryptionScheme cryptScheme, const QVariant &cryptKeyParam)
 {

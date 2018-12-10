@@ -7,12 +7,6 @@
 #include <QtCore/QUuid>
 #include <QtCore/QPointer>
 
-#include <cryptopp/config.h>
-#ifndef OS_RNG_AVAILABLE
-#ifdef QTDATASYNC_OSRNG_OVERWRITE
-#define OS_RNG_AVAILABLE
-#endif
-#endif
 #include <cryptopp/osrng.h>
 #include <cryptopp/oids.h>
 
@@ -23,6 +17,10 @@
 
 #include "message_p.h"
 #include "asymmetriccrypto_p.h"
+
+#if !defined(NO_OS_DEPENDENCE) && defined(OS_RNG_AVAILABLE)
+#define QTDATASYNC_USE_CRYPTOPP_OSRNG
+#endif
 
 namespace QtDataSync {
 
@@ -241,7 +239,11 @@ public:
 	static CryptoPP::OID curveId(Setup::EllipticCurve curve);
 
 private:
+#ifdef QTDATASYNC_USE_CRYPTOPP_OSRNG
 	CryptoPP::AutoSeededRandomPool _rng;
+#else
+	CryptoPP::RandomPool _rng;
+#endif
 	QScopedPointer<KeyScheme> _signKey;
 	QScopedPointer<KeyScheme> _cryptKey;
 
