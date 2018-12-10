@@ -7,6 +7,7 @@
 #include <QtCore/QUuid>
 #include <QtCore/QPointer>
 
+#include <cryptopp/randpool.h>
 #include <cryptopp/osrng.h>
 #include <cryptopp/oids.h>
 
