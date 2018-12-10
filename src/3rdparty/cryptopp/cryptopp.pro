@@ -59,17 +59,11 @@ DISTFILES += cryptopp.pri
 
 load(qt_build_paths)
 
-message($$MODULE_BASE_OUTDIR)
 HEADER_INSTALL_DIR = "$$MODULE_BASE_OUTDIR/include/cryptopp"
-header_copy_c.name = copy cryptopp header ${QMAKE_FILE_BASE}.h
-header_copy_c.input = HEADERS
-header_copy_c.variable_out = INCLUDE_INSTALL_HEADERS
-header_copy_c.commands = $$QMAKE_CHK_DIR_EXISTS $$shell_path($$HEADER_INSTALL_DIR) || $$QMAKE_MKDIR $$shell_path($$HEADER_INSTALL_DIR) \
-	$$escape_expand(\n\t)$(QINSTALL) ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
-header_copy_c.output = $$HEADER_INSTALL_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
-header_copy_c.CONFIG += target_predeps explicit_dependencies no_dependencies no_link
-header_copy_c.depends = ${QMAKE_FILE_IN}
-QMAKE_EXTRA_COMPILERS += header_copy_c
+!ReleaseBuild|!DebugBuild {
+	!mkpath($$HEADER_INSTALL_DIR):error("Failed to create cryptopp header dir: $$HEADER_INSTALL_DIR")
+	for(hdr, HEADERS):!system($$QMAKE_QMAKE -install qinstall "$$PWD/$$hdr" "$$HEADER_INSTALL_DIR/$$basename(hdr)"):error("Failed to install header file: $$hdr")
+}
 
 MODULE_INCLUDEPATH += "$$MODULE_BASE_OUTDIR/include"
 
