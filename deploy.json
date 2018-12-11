@@ -6,7 +6,7 @@
 		".skycoder42.jsonserializer",
 		".skycoder42.service"
 	],
-	"excludes": [ "winrt_arm" ],
+	"excludes": [],
 	"license": {
 		"name": "BSD-3-Clause",
 		"path": "LICENSE"
