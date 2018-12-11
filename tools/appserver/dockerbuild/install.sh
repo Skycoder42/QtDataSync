@@ -1,8 +1,8 @@
 #!/bin/bash
 set -ex
 
-#export MAKEFLAGS=-j$(nproc)
-export MAKEFLAGS=-j1
+export MAKEFLAGS=-j$(nproc)
+#export MAKEFLAGS=-j1
 export QPMX_CACHE_DIR=/tmp/qpmx-cache
 
 DS_NAME=qdsappd
@@ -87,32 +87,12 @@ for repo in QtJsonSerializer qpmx QtService; do
 	cd ..
 done
 
-# build cryptopp
-git clone --depth 1 https://github.com/weidai11/cryptopp.git ./cryptopp --branch CRYPTOPP_$CRYPTOPP_VERSION
-cd cryptopp
-CXXFLAGS="$CXXFLAGS -DNDEBUG -fPIC" make dynamic
-make install PREFIX="/usr"
-install -m644 "/tmp/src/tools/appserver/dockerbuild/libcrypto++.pc" "/usr/lib/pkgconfig/libcrypto++.pc"
-cd ..
-CPP_PATCHV=${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}.${CRYPTOPP_VERSION_PATCH}
-#ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}
-#ln -s /usr/lib/libcryptopp.so.${CPP_PATCHV} /usr/lib/libcryptopp.so.${CRYPTOPP_VERSION_MAJOR}.${CRYPTOPP_VERSION_MINOR}
-#/sbin/ldconfig -n /usr/lib
+# build datasync
+cd /tmp/src
+git submodule init
+git submodule update
+echo "SUBDIRS = 3rdparty messages" >> src/src.pro
 
-# build messages
-cd /tmp/src/src/messages
-ln -s ../../tools/appserver/.qmake.conf
-
-echo "CONFIG+=system_cryptopp" >> .qmake.conf
-qmake
-make qmake_all
-make
-
-# build the server and install it
-cd /tmp/src/tools/appserver
-ln -s ../../src/messages/lib lib
-
-# already done for messages: echo "CONFIG+=system_cryptopp" >> .qmake.conf
 qmake
 make qmake_all
 make
