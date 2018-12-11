@@ -80,9 +80,6 @@ done
 
 # build datasync
 cd /tmp/src
-git init
-git submodule init
-git submodule update
 echo "SUBDIRS = 3rdparty messages" >> src/src.pro
 echo "SUBDIRS = " >> examples/examples.pro
 echo "SUBDIRS = " >> tests/tests.pro
