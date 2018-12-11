@@ -35,7 +35,6 @@ matrix:
 install:
   - git submodule init
   - git submodule update
-  - cd src\3rdparty\cryptopp\src && git apply ../winrt.patch && cd ..\..\..\..
   - git clone https://github.com/Skycoder42/QtModules.git .\qtmodules-travis
   - .\qtmodules-travis\ci\win\setup.bat
 

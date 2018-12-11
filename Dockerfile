@@ -1,10 +1,7 @@
 #LABEL maintainer="skycoder42.de@gmx.de"
 FROM debian:latest
 
-COPY tools /tmp/src/tools
-COPY src/3rdparty/cryptopp/cryptopp.pri /tmp/src/src/3rdparty/cryptopp/cryptopp.pri
-COPY src/messages /tmp/src/src/messages
-COPY .qmake.conf /tmp/src/tools/appserver/.qmake.conf
+COPY . /tmp/src
 RUN /tmp/src/tools/appserver/dockerbuild/install.sh
 
 # create env vars & ready for usage

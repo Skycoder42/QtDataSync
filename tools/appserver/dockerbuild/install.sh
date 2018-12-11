@@ -2,17 +2,17 @@
 set -ex
 
 export MAKEFLAGS=-j$(nproc)
-#export MAKEFLAGS=-j1
 export QPMX_CACHE_DIR=/tmp/qpmx-cache
 
 DS_NAME=qdsappd
 QT_VERSION_TAG=v5.12.0
-CRYPTOPP_VERSION_MAJOR=7
-CRYPTOPP_VERSION_MINOR=0
-CRYPTOPP_VERSION_PATCH=0
-CRYPTOPP_VERSION=${CRYPTOPP_VERSION_MAJOR}_${CRYPTOPP_VERSION_MINOR}_${CRYPTOPP_VERSION_PATCH}
 MAIN_DEP="libssl1.1 zlib1g libdbus-1-3 libc6 libglib2.0-0 libudev1 libpcre2-16-0 libpq5 libdouble-conversion1 libicu57 libinput10 ca-certificates"
 DEV_DEP="openssl libssl-dev zlib1g-dev dbus libdbus-1-dev libc6-dev libglib2.0-dev libudev-dev libdouble-conversion-dev libicu-dev libpcre2-dev libpq-dev libinput-dev make gcc g++ curl python3 git perl gawk"
+
+if [ ! -d "/tmp/src/.git" ]; then
+	echo "Failed to find .git directory - not supported!"
+	exit 1
+fi
 
 apt-get -qq update
 apt-get -qq install --no-install-recommends $MAIN_DEP $DEV_DEP
@@ -24,9 +24,10 @@ install -m 755 ./qpm /usr/local/bin/
 mkdir /tmp/sysbuild
 cd /tmp/sysbuild
 
-# build qtbase
-git clone --depth 1 https://code.qt.io/qt/qtbase.git ./qtbase --branch $QT_VERSION_TAG
-cd qtbase
+# build qt
+git clone --depth 1 https://code.qt.io/qt/qt5.git ./qt5 --branch $QT_VERSION_TAG
+cd qt5
+./init-repository --module-subset="qtbase,qtwebsockets,qttools"
 _qt5_prefix=/usr/lib/qt5
 _qt5_datadir=/usr/share/qt5
 ./configure -confirm-license -opensource \
@@ -53,16 +54,6 @@ _qt5_datadir=/usr/share/qt5
 make > /dev/null
 make install
 cd ..
-
-# build qt modules
-for repo in qtwebsockets qttools; do
-	git clone --depth 1 https://code.qt.io/qt/$repo.git ./$repo --branch $QT_VERSION_TAG
-	cd $repo
-	qmake
-	make > /dev/null
-	make install
-	cd ..
-done
 
 # build json serializer, qpmx, qtservice
 for repo in QtJsonSerializer qpmx QtService; do
@@ -92,6 +83,8 @@ cd /tmp/src
 git submodule init
 git submodule update
 echo "SUBDIRS = 3rdparty messages" >> src/src.pro
+echo "SUBDIRS = " >> examples/examples.pro
+echo "SUBDIRS = " >> tests/tests.pro
 
 qmake
 make qmake_all
@@ -101,7 +94,7 @@ make install
 #create special symlinks, dirs and move the env script
 mkdir -p /etc/$DS_NAME
 ln -s $(qmake -query QT_INSTALL_BINS)/$DS_NAME /usr/bin/$DS_NAME || true #allow to fail if already exists
-mv dockerbuild/env_start.sh /usr/bin/
+mv /tmp/src/tools/appserver/dockerbuild/env_start.sh /usr/bin/
 
 # test if working
 /usr/bin/$DS_NAME --version
