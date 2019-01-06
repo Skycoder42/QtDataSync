@@ -5,6 +5,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/datastore.h"
