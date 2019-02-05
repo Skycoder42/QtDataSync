@@ -1,5 +1,5 @@
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += static
 CONFIG -= qt
 
 TARGET = qtcryptopp
@@ -9,7 +9,7 @@ win32:!win32-g++ {
 	MODULE_DEFINES += CRYPTOPP_DISABLE_ASM #TODO reenable again later
 	cross_compile: MODULE_DEFINES += NO_OS_DEPENDENCE
 } else {
-        # based on https://github.com/KayEss/fost-crypto/blob/master/CMakeLists.txt
+		# based on https://github.com/KayEss/fost-crypto/blob/master/CMakeLists.txt
 	QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
 	!isEmpty(ANDROID_TARGET_ARCH) {
@@ -70,5 +70,3 @@ HEADER_INSTALL_DIR = "$$MODULE_BASE_OUTDIR/include/cryptopp"
 MODULE_INCLUDEPATH += "$$MODULE_BASE_OUTDIR/include"
 
 load(qt_helper_lib)
-
-QMAKE_EXTRA_TARGETS += lrelease

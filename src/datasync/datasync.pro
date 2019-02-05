@@ -1,6 +1,7 @@
 TARGET = QtDataSync
 
 QT = core jsonserializer sql websockets scxml remoteobjects
+android: QT += androidextras
 
 HEADERS += \
 	qtdatasync_global.h \
@@ -92,21 +93,16 @@ TRANSLATIONS += \
 	translations/qtdatasync_de.ts \
 	translations/qtdatasync_template.ts
 
-DISTFILES += $$TRANSLATIONS
-
 include(rothreadedbackend/rothreadedbackend.pri)
 include(../messages/messages.pri)
 
 MODULE_CONFIG += c++14
-android: MODULE_CONFIG += qtdatasync_androidkeystore
 MODULE_PLUGIN_TYPES = keystores
 
 load(qt_module)
 
-android: FEATURES += ../../mkspecs/features/qtdatasync_androidkeystore.prf
-features.files = $$FEATURES
-features.path = $$[QT_HOST_DATA]/mkspecs/features/
-INSTALLS += features
+CONFIG += lrelease
+QM_FILES_INSTALL_PATH = $$[QT_INSTALL_TRANSLATIONS]
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "QtDataSync"
@@ -117,9 +113,8 @@ win32 {
 	CONFIG -= c++1z #TODO remove later
 }
 
-qpmx_ts_target.path = $$[QT_INSTALL_TRANSLATIONS]
-qpmx_ts_target.depends += lrelease
-INSTALLS += qpmx_ts_target
+QDEP_DEPENDS += Skycoder42/QPluginFactory
+QDEP_LINK_DEPENDS += ../messages
 
 # extra cpp files for translations
 never_true_lupdate_only {
@@ -133,9 +128,8 @@ never_true_lupdate_only {
 	for(plugin, PLUGINS): SOURCES += $$plugin/*.cpp
 }
 
-!ReleaseBuild:!DebugBuild:!system(qpmx -d $$shell_quote($$_PRO_FILE_PWD_) --qmake-run init $$QPMX_EXTRA_OPTIONS $$shell_quote($$QMAKE_QMAKE) $$shell_quote($$OUT_PWD)): error(qpmx initialization failed. Check the compilation log for details.)
-else: include($$OUT_PWD/qpmx_generated.pri)
+!load(qdep):error("Failed to load qdep feature! Run 'qdep prfgen --qmake $$QMAKE_QMAKE' to create it.")
 
 #replace template qm by ts
-qpmx_ts_target.files -= $$OUT_PWD/$$QPMX_WORKINGDIR/qtdatasync_template.qm
-qpmx_ts_target.files += translations/qtdatasync_template.ts
+QM_FILES -= $$__qdep_lrelease_real_dir/qtdatasync_template.qm
+QM_FILES += translations/qtdatasync_template.ts

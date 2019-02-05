@@ -60,11 +60,8 @@ A simple offline-first synchronisation framework, to synchronize data of Qt appl
 3. Download the compiled modules from the release page. **Note:** You will have to add the correct ones yourself and may need to adjust some paths to fit your installation! In addition to that, you will have to download the modules this one depends on as well. See Section "Requirements" below.
 4. Build it yourself! **Note:** This requires all build an runtime dependencies to be available (See Section "Requirements" below). If you don't have/need cmake, you can ignore the related warnings. To automatically build and install to your Qt installation, run:
 	- `qmake`
-	- `make qmake_all`
 	- `make` (If you want the tests/examples/etc. run `make all`)
-	- Optional steps:
-		- `make doxygen` to generate the documentation
-		- `make lrelease` to generate the translations
+	- Optional step: `make doxygen` to generate the documentation
 	- `make install`
 
 ## Requirements

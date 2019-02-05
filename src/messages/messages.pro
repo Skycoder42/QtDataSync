@@ -63,8 +63,8 @@ load(qt_helper_lib)
 CONFIG += qt warning_clean
 QT = core
 
-# dummy target, translations are all done in datasync
-QMAKE_EXTRA_TARGETS += lrelease
+QDEP_DEPENDS += Skycoder42/CryptoQQ
+QDEP_EXPORTS += Skycoder42/CryptoQQ
+CONFIG += qdep_no_link
 
-!ReleaseBuild:!DebugBuild:!system(qpmx -d $$shell_quote($$_PRO_FILE_PWD_) --qmake-run init $$QPMX_EXTRA_OPTIONS $$shell_quote($$QMAKE_QMAKE) $$shell_quote($$OUT_PWD)): error(qpmx initialization failed. Check the compilation log for details.)
-else: include($$OUT_PWD/qpmx_generated.pri)
+!load(qdep):error("Failed to load qdep feature! Run 'qdep prfgen --qmake $$QMAKE_QMAKE' to create it.")
