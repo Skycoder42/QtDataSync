@@ -45,16 +45,30 @@ SOURCES -= \
 	src/bench2.cpp \
 	src/datatest.cpp \
 	src/dlltest.cpp \
+	src/fips140.cpp \
+	src/fipsalgt.cpp \
+	src/fipstest.cpp \
 	src/pch.cpp \
+	src/ppc_power7.cpp \
+	src/ppc_power8.cpp \
+	src/ppc_power9.cpp \
+	src/ppc_simd.cpp \
 	src/regtest1.cpp \
 	src/regtest2.cpp \
 	src/regtest3.cpp \
+	src/regtest4.cpp \
 	src/test.cpp \
 	src/validat0.cpp \
 	src/validat1.cpp \
 	src/validat2.cpp \
 	src/validat3.cpp \
 	src/validat4.cpp \
+	src/validat5.cpp \
+	src/validat6.cpp \
+	src/validat7.cpp \
+	src/validat8.cpp \
+	src/validat9.cpp \
+	src/validat10.cpp \
 	src/TestScripts/cryptest-coverity.cpp
 
 DISTFILES += cryptopp.pri
