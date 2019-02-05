@@ -23,7 +23,7 @@ win32:!win32-g++ {
 		} else:equals(ANDROID_TARGET_ARCH, arm64-v8a) {
 			# nothing to be done
 		} else:equals(ANDROID_TARGET_ARCH, x86) {
-			QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
+			QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3 -mavx2
 			# Do this for Android builds for now as the NDK is broken
 			MODULE_DEFINES += CRYPTOPP_DISABLE_ASM
 			warning("Disabled x86 crypto ASM")
@@ -31,7 +31,7 @@ win32:!win32-g++ {
 	} else {
 		# assume "normal" x86 arch
 		message("Building for host x86 arch")
-		QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
+		QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3 -mavx2
 	}
 }
 
