@@ -20,6 +20,15 @@ SSE2_SOURCES += \
 	src/donna_sse.cpp \
 	src/sse_simd.cpp
 
+win32 {
+	MASM_SOURCES += \
+		rdrand.asm	
+
+	MASM_x64_SOURCES += \
+		x64masm.asm \
+		x64dll.asm
+}
+
 SSSE3_SOURCES += \
 	src/aria_simd.cpp \
 	src/cham_simd.cpp \
@@ -115,6 +124,9 @@ SOURCES -= $$SSE2_SOURCES $$SSSE3_SOURCES $$SSE4_1_SOURCES $$SSE4_2_SOURCES $$AV
 		SOURCES +=  \
 			src/sse_simd.cpp
 	}
+} else:ios {
+	QMAKE_CFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
+	QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
 }
 
 SOURCES -= \
