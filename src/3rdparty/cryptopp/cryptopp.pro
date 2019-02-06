@@ -390,9 +390,9 @@ sse4_2 {
 		src/shacal2_simd.cpp
 }
 
-win32 {
+win32:!win32-g++ {
 	CONFIG += masm
-	
+
 	MASM_SOURCES += \
 		src/rdrand.asm
 
@@ -401,6 +401,8 @@ win32 {
 			src/x64masm.asm \
 			src/x64dll.asm
 	}
+
+	cross_compile: MODULE_DEFINES += NO_OS_DEPENDENCE
 } else:!isEmpty(ANDROID_TARGET_ARCH) {
 	INCLUDEPATH += $$(ANDROID_NDK_ROOT)/sources/android/cpufeatures
 	SOURCES += $$(ANDROID_NDK_ROOT)/sources/android/cpufeatures/cpu-features.c
@@ -429,7 +431,7 @@ win32 {
 		SOURCES +=  \
 			src/sse_simd.cpp
 	}
-} else:unix {
+} else:unix|win32-g++ {
 	QMAKE_CFLAGS_SSSE3 += -mpclmul
 	QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
