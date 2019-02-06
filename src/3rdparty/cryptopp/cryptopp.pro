@@ -88,6 +88,7 @@ sse4_2 {
 }
 
 unix: QMAKE_CFLAGS_SSSE3 += -mpclmul
+unix: QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
 EXTRA_MAYBE_SOURCES += src/sm4_simd.cpp \
 	src/rijndael_simd.cpp \
