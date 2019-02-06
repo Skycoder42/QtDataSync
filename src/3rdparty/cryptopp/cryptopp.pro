@@ -5,6 +5,11 @@ CONFIG -= qt
 TARGET = qtcryptopp
 VERSION = 8.0.0
 
+# DEBUG
+load(qt_build_config)
+message(QT_CPU_FEATURES = $$eval(QT_CPU_FEATURES.$$QT_ARCH))
+message($$CONFIG)
+
 # Input
 HEADERS += $$files(src/*.h)
 
@@ -73,7 +78,7 @@ sse4_2 {
 		src/shacal2_simd.cpp
 }
 
-QMAKE_CFLAGS_SSSE3 += -mpclmul
+unix: QMAKE_CFLAGS_SSSE3 += -mpclmul
 
 EXTRA_MAYBE_SOURCES += src/sm4_simd.cpp \
 	src/rijndael_simd.cpp \
