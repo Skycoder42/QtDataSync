@@ -431,6 +431,11 @@ win32 {
 	QMAKE_CFLAGS_SSSE3 += -mpclmul
 	QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
+	linux:cryptopp_omp {
+		QMAKE_CXXFLAGS += -fopenmp
+		LIBS += -lgomp
+	}
+
 	ios {
 		QMAKE_CFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
 		QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
