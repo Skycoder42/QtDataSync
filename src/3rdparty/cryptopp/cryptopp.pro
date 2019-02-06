@@ -438,9 +438,10 @@ win32 {
 		LIBS += -lgomp
 	}
 
+	# TODO DEBUG disable because of integer fail
 	ios {
-		QMAKE_CFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
-		QMAKE_CXXFLAGS += -maes -mpclmul -msha -msse4.1 -msse4.2 -mssse3
+		MODULE_DEFINES += CRYPTOPP_DISABLE_ASM
+		CONFIG -= simd
 	}
 }
 
