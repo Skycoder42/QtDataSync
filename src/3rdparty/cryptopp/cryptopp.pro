@@ -45,7 +45,6 @@ SOURCES -= \
 	src/bench2.cpp \
 	src/datatest.cpp \
 	src/dlltest.cpp \
-	src/fips140.cpp \
 	src/fipsalgt.cpp \
 	src/fipstest.cpp \
 	src/pch.cpp \
