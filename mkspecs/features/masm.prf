@@ -1,13 +1,11 @@
-contains(QT_ARCH, x86_64) {
-	isEmpty(QMAKE_MASM64_COMPILER): QMAKE_MASM64_COMPILER = ml64.exe
-	isEmpty(QMAKE_MASM_COMPILER): QMAKE_MASM_COMPILER = $$QMAKE_MASM64_COMPILER
+isEmpty(QMAKE_MASM_COMPILER) {
+	contains(QT_ARCH, x86_64): QMAKE_MASM_COMPILER = ml64.exe
+	else: QMAKE_MASM_COMPILER = ml.exe
 }
 
-isEmpty(QMAKE_MASM_COMPILER): QMAKE_MASM_COMPILER = ml.exe
-
-isEmpty(QMAKE_MASM_COMMON_FLAGS): QMAKE_MASM_COMMON_FLAGS = /c /nologo /W3 /Cx /Zi
-isEmpty(QMAKE_MASM_FLAGS): QMAKE_MASM_FLAGS = /D_M_X86 /safeseh
-isEmpty(QMAKE_MASM64_FLAGS): QMAKE_MASM64_FLAGS = /D_M_X64
+contains(QT_ARCH, x86_64): QMAKE_MASM_FLAGS = /D_M_X64
+else: QMAKE_MASM_FLAGS = /D_M_X86 /safeseh
+QMAKE_MASM_FLAGS += /c /nologo /W3 /Cx /Zi
 
 isEmpty(MASM_DIR): MASM_DIR = .
 debug_and_release {
@@ -18,20 +16,11 @@ debug_and_release {
 masm_c.name = QMAKE_MASM_COMPILER ${QMAKE_FILE_IN}
 masm_c.input = MASM_SOURCES
 masm_c.variable_out = OBJECTS
-masm_c.commands = $$QMAKE_MASM_COMPILER $$QMAKE_MASM_COMMON_FLAGS $$QMAKE_MASM_FLAGS /Fo${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
+masm_c.commands = $$QMAKE_MASM_COMPILER $$QMAKE_MASM_FLAGS /Fo${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
 masm_c.output = $$MASM_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_OBJ)}
 #masm_c.depends += $$QMAKE_MASM_COMPILER
 masm_c.dependency_type = TYPE_C
 QMAKE_EXTRA_COMPILERS += masm_c
-
-masm64_c.name = QMAKE_MASM64_COMPILER ${QMAKE_FILE_IN}
-masm64_c.input = MASM_x64_SOURCES
-masm64_c.variable_out = OBJECTS
-masm64_c.commands = $$QMAKE_MASM64_COMPILER $$QMAKE_MASM_COMMON_FLAGS $$QMAKE_MASM64_FLAGS /Fo${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
-masm64_c.output = $$MASM_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_OBJ)}
-#masm64_c.depends += $$QMAKE_MASM64_COMPILER
-masm64_c.dependency_type = TYPE_C
-contains(QT_ARCH, x86_64): QMAKE_EXTRA_COMPILERS += masm64_c
 
 QMAKE_DIR_REPLACE += MASM_DIR
 QMAKE_DIR_REPLACE_SANE += MASM_DIR

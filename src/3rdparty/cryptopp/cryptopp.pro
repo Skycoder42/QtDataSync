@@ -392,13 +392,15 @@ sse4_2 {
 
 win32 {
 	CONFIG += masm
-
+	
 	MASM_SOURCES += \
 		src/rdrand.asm
 
-	MASM_x64_SOURCES += \
-		src/x64masm.asm \
-		src/x64dll.asm
+	contains(QT_ARCH, x86_64) {
+		MASM_SOURCES += \
+			src/x64masm.asm \
+			src/x64dll.asm
+	}
 } else:!isEmpty(ANDROID_TARGET_ARCH) {
 	INCLUDEPATH += $$(ANDROID_NDK_ROOT)/sources/android/cpufeatures
 	SOURCES += $$(ANDROID_NDK_ROOT)/sources/android/cpufeatures/cpu-features.c
