@@ -440,7 +440,7 @@ win32:!win32-g++ {
 } else:unix|win32-g++ {
 	clang: QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 	else:gcc: QMAKE_CXXFLAGS += -Wno-class-memaccess -Wno-unknown-pragmas
-	
+
 	contains(QT_CPU_FEATURES.$$QT_ARCH, ssse3): QMAKE_CXXFLAGS += -mpclmul
 	QMAKE_CFLAGS_SSSE3 += -mpclmul
 
@@ -468,7 +468,3 @@ HEADER_INSTALL_DIR = "$$MODULE_BASE_OUTDIR/include/cryptopp"
 MODULE_INCLUDEPATH += "$$MODULE_BASE_OUTDIR/include"
 
 load(qt_helper_lib)
-
-# DEBUG
-message(QT_CPU_FEATURES = $$eval(QT_CPU_FEATURES.$$QT_ARCH))
-message($$CONFIG)

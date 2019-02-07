@@ -4,10 +4,14 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qstring.h>
 
-#if defined(QT_BUILD_DATASYNC_LIB)
-#	define Q_DATASYNC_EXPORT Q_DECL_EXPORT
+#ifndef QT_STATIC
+#  if defined(QT_BUILD_DATASYNC_LIB)
+#    define Q_DATASYNC_EXPORT Q_DECL_EXPORT
+#  else
+#    define Q_DATASYNC_EXPORT Q_DECL_IMPORT
+#  endif
 #else
-#	define Q_DATASYNC_EXPORT Q_DECL_IMPORT
+#  define Q_DATASYNC_EXPORT
 #endif
 
 #ifdef DOXYGEN_RUN
