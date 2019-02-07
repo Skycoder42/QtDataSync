@@ -24,6 +24,7 @@ matrix:
         - BUILD_DOC=true
         - BUILD_EXAMPLES=true
         - EXTRA_PKG="libsecret-1-dev" #in order to build secrectservice keystore
+        - QMAKE_FLAGS="CONFIG+=include_server_tests"
     - os: linux
       env:
         - PLATFORM=android_arm64_v8a
