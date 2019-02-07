@@ -247,8 +247,13 @@ void DataStoreModel::addRole(int column, int role, const char *propertyName)
 
 void DataStoreModel::clearColumns()
 {
+	const auto cColumns = d->columns.size() > 1;
+	if(cColumns)
+		beginRemoveColumns({}, 1, d->columns.size() - 1);
 	d->columns.clear();
 	d->roleMapping.clear();
+	if(cColumns)
+		endRemoveColumns();
 }
 
 void DataStoreModel::setTypeId(int typeId)
