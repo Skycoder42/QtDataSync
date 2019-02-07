@@ -401,6 +401,9 @@ win32:!win32-g++ {
 	} else:contains(QT_ARCH, i386) {
 		MASM_SOURCES += \
 			src/rdrand.asm
+	} else {
+		MODULE_DEFINES += CRYPTOPP_DISABLE_ASM
+		CONFIG -= simd masm
 	}
 
 	cross_compile: MODULE_DEFINES += NO_OS_DEPENDENCE

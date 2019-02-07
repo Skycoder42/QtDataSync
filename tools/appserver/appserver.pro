@@ -47,7 +47,11 @@ DISTFILES += $$SVC_CONFIG_FILES \
 	dockerbuild/*
 
 include(../../src/messages/messages.pri)
-QDEP_LINK_DEPENDS += ../../src/messages
+
+osx:!debug_and_release {
+	CONFIG(release, debug|release): QDEP_LINK_DEPENDS = ../../src/messages/release/messages.pro
+	else:CONFIG(debug, debug|release): QDEP_LINK_DEPENDS = ../../src/messages/debug/messages.pro
+} else: QDEP_LINK_DEPENDS += ../../src/messages
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "Qt Datasync Server"

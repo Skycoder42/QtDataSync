@@ -12,10 +12,3 @@ if [[ $PLATFORM == "gcc_64" ]]; then
 	echo 'SETUP_FILE=$$PWD/../../../ci/qdsapp.conf' > ./tests/auto/datasync/TestAppServer/setup.pri
 	echo 'SETUP_FILE=$$PWD/../../../ci/qdsapp.conf' > ./tests/auto/datasync/IntegrationTest/setup.pri
 fi
-
-# debug test
-if [[ $TRAVIS_OS_NAME == "osx" ]]; then
-	echo "QDEP_PATH = $(which qdep)" > /tmp/qdep.prf
-	cat $scriptdir/qdep.prf >> /tmp/qdep.prf
-	sudo mv -f /tmp/qdep.prf /opt/qt/$QT_VER/$PLATFORM/mkspecs/features/qdep.prf
-fi
