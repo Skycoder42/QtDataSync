@@ -444,10 +444,9 @@ win32:!win32-g++ {
 		LIBS += -lgomp
 	}
 
-	# TODO DEBUG disable because of integer fail
-	ios {
-		MODULE_DEFINES += CRYPTOPP_DISABLE_ASM
-		CONFIG -= simd
+	darwin {
+		warning("Disabeling mixed assembler")
+		MODULE_DEFINES += CRYPTOPP_DISABLE_MIXED_ASM
 	}
 }
 
