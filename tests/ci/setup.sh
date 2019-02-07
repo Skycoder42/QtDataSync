@@ -17,5 +17,5 @@ fi
 if [[ $TRAVIS_OS_NAME == "osx" ]]; then
 	echo "QDEP_PATH = $(which qdep)" > /tmp/qdep.prf
 	cat $scriptdir/qdep.prf >> /tmp/qdep.prf
-	$SUDO mv /tmp/qdep.prf /opt/qt/$QT_VER/$PLATFORM/mkspecs/features/qdep.prf
+	sudo mv -f /tmp/qdep.prf /opt/qt/$QT_VER/$PLATFORM/mkspecs/features/qdep.prf
 fi
