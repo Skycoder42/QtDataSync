@@ -393,13 +393,14 @@ sse4_2 {
 win32:!win32-g++ {
 	CONFIG += masm
 
-	MASM_SOURCES += \
-		src/rdrand.asm
-
 	contains(QT_ARCH, x86_64) {
 		MASM_SOURCES += \
+			src/rdrand.asm \
 			src/x64masm.asm \
 			src/x64dll.asm
+	} else:contains(QT_ARCH, i386) {
+		MASM_SOURCES += \
+			src/rdrand.asm
 	}
 
 	cross_compile: MODULE_DEFINES += NO_OS_DEPENDENCE
