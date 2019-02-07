@@ -1,13 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 set -ex
 
 export MAKEFLAGS=-j$(nproc)
 export QDEP_CACHE_DIR=/tmp/qdep-cache
 
 DS_NAME=qdsappd
-QT_VERSION_TAG=v5.12.1
-MAIN_DEP="libssl1.1 zlib1g libdbus-1-3 libc6 libglib2.0-0 libudev1 libpcre2-16-0 libpq5 libdouble-conversion1 libicu57 libinput10 ca-certificates"
-DEV_DEP="openssl libssl-dev zlib1g-dev dbus libdbus-1-dev libc6-dev libglib2.0-dev libudev-dev libdouble-conversion-dev libicu-dev libpcre2-dev libpq-dev libinput-dev make gcc g++ curl python3 python3-pip git perl gawk"
+MAIN_DEP="qt5-qtbase qt5-qtbase-postgresql qt5-qtwebsockets icu-libs"
+DEV_DEP="qt5-qtbase-dev qt5-qtwebsockets-dev qt5-qttools qt5-qttools-dev icu-dev build-base python3 git perl gawk"
 PIP_DEV_DEPS="qdep appdirs lockfile argcomplete"
 
 if [ ! -d "/tmp/src/.git" ]; then
@@ -15,61 +14,26 @@ if [ ! -d "/tmp/src/.git" ]; then
 	exit 1
 fi
 
-apt-get -qq update
-apt-get -qq install --no-install-recommends $MAIN_DEP $DEV_DEP
+apk add --no-cache $MAIN_DEP $DEV_DEP
 pip3 install $PIP_DEV_DEPS
 
-mkdir /tmp/sysbuild
-cd /tmp/sysbuild
-
-# build qt
-git clone --depth 1 https://code.qt.io/qt/qt5.git ./qt5 --branch $QT_VERSION_TAG
-cd qt5
-./init-repository --module-subset="qtbase,qtwebsockets,qttools"
-_qt5_prefix=/usr/lib/qt5
-_qt5_datadir=/usr/share/qt5
-./configure -confirm-license -opensource \
-	-prefix /usr \
-	-archdatadir "$_qt5_prefix" \
-	-datadir "$_qt5_prefix" \
-	-importdir "$_qt5_prefix"/imports \
-	-libexecdir "$_qt5_prefix"/libexec \
-	-plugindir "$_qt5_prefix"/plugins \
-	-translationdir "$_qt5_datadir"/translations \
-	-sysconfdir /etc/xdg \
-	-release -reduce-exports \
-	-make libs -make tools \
-	-glib \
-	-no-rpath \
-	-no-separate-debug-info \
-	-openssl-linked \
-	-plugin-sql-psql \
-	-dbus-linked \
-	-system-pcre \
-	-system-zlib \
-	-no-reduce-relocations \
-	-no-gui -no-widgets -no-feature-accessibility -no-feature-dom
-make > /dev/null
-make install
-cd ..
-
 # prepare qdep
-qdep prfgen
+qdep prfgen --qmake qmake-qt5
 
 # build json serializer, qtservice
+mkdir /tmp/sysbuild
+cd /tmp/sysbuild
 for repo in QtJsonSerializer QtService; do
 	git clone https://github.com/Skycoder42/$repo.git ./$repo
 	cd $repo
-	latesttag=$(git describe --tags --abbrev=0)
-	echo checking out ${latesttag}
-	git checkout ${latesttag}
+	git checkout $(git describe --tags --abbrev=0)
 
-	if [[ -f src/imports/imports.pro ]]; then
+	if [ -f src/imports/imports.pro ]; then
 		echo "SUBDIRS -= imports" >> src/src.pro
 	fi
 
-	qmake
-	make > /dev/null
+	qmake-qt5
+	make
 	make install
 	cd ..
 done
@@ -80,22 +44,22 @@ echo "SUBDIRS = 3rdparty messages" >> src/src.pro
 echo "SUBDIRS = " >> examples/examples.pro
 echo "SUBDIRS = " >> tests/tests.pro
 
-qmake
+qmake-qt5
 make qmake_all
 make
 make install
 
 #create special symlinks, dirs and move the env script
 mkdir -p /etc/$DS_NAME
-ln -s $(qmake -query QT_INSTALL_BINS)/$DS_NAME /usr/bin/$DS_NAME || true #allow to fail if already exists
+ln -s $(qmake-qt5 -query QT_INSTALL_BINS)/$DS_NAME /usr/bin/$DS_NAME || true #allow to fail if already exists
 mv /tmp/src/tools/appserver/dockerbuild/env_start.sh /usr/bin/
 
 # test if working
 /usr/bin/$DS_NAME --version
 
 # remove unused stuff
-pip3 uninstall $PIP_DEV_DEPS
-apt-get -qq autoremove --purge $DEV_DEP
+pip3 uninstall -y $PIP_DEV_DEPS
+apk del --no-cache --purge "*-dev" $DEV_DEP
 rm -rf /tmp/*
 rm -rf $HOME/.cache/qpmx
 rm -rf /usr/local/bin/qpm
