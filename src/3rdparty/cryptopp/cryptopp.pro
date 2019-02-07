@@ -5,6 +5,8 @@ CONFIG -= qt
 TARGET = qtcryptopp
 VERSION = 8.0.0
 
+load(qt_build_config)
+
 # Input
 HEADERS += \
 	src/3way.h \
@@ -436,8 +438,11 @@ win32:!win32-g++ {
 			src/sse_simd.cpp
 	}
 } else:unix|win32-g++ {
+	clang: QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
+	else:gcc: QMAKE_CXXFLAGS += -Wno-class-memaccess -Wno-unknown-pragmas
+	
+	contains(QT_CPU_FEATURES.$$QT_ARCH, ssse3): QMAKE_CXXFLAGS += -mpclmul
 	QMAKE_CFLAGS_SSSE3 += -mpclmul
-	QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 
 	linux:cryptopp_omp {
 		QMAKE_CXXFLAGS += -fopenmp
@@ -465,6 +470,5 @@ MODULE_INCLUDEPATH += "$$MODULE_BASE_OUTDIR/include"
 load(qt_helper_lib)
 
 # DEBUG
-load(qt_build_config)
 message(QT_CPU_FEATURES = $$eval(QT_CPU_FEATURES.$$QT_ARCH))
 message($$CONFIG)
