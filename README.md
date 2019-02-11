@@ -78,9 +78,10 @@ The library as a high level synchronisation backend has a few dependencies. They
 	- [QtService](https://github.com/Skycoder42/QtService) (For the qdsapp tool)
 - Additional stuff for building it yourself:
 	- perl
-	- [CryptoPP library](https://www.cryptopp.com/) (Can also be linked dynamically)
-	- [qpmx](https://github.com/Skycoder42/qpmx)
-	- [qpm](https://github.com/Cutehacks/qpm)
+	- [CryptoPP library](https://www.cryptopp.com/)
+		- Already included as git submodule, is automatically compiled as static library and linked with QtDataSync
+		- Call qmake with `CONFIG+=system_cryptopp` to use the CryptoPP provided by your system instead (requires pkgconfig)
+	- [qdep](https://github.com/Skycoder42/qdep) (Must be installed and prepared for the qmake you are using)
 	- Some of the plugins also have additional dependencies:
 		- kwallet: [KWallet Framework](https://api.kde.org/frameworks/kwallet/html/)
 		- secretservice: libsecret-1 via pkgconfig
