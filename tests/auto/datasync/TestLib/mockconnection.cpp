@@ -48,7 +48,8 @@ void MockConnection::sendPing()
 
 void MockConnection::close()
 {
-	_socket->close();
+	if(_socket)
+		_socket->close();
 }
 
 bool MockConnection::waitForNothing()

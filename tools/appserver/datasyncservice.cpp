@@ -50,7 +50,7 @@ QtService::Service::CommandResult DatasyncService::onStart()
 	auto configPath = findConfig();
 	if(configPath.isEmpty()) {
 		qCritical() << "Unable to find any configuration file. Set it explicitly via the QDSAPP_CONFIG_FILE environment variable";
-		return OperationFailed;
+		return CommandResult::Failed;
 	}
 
 	_config = new QSettings(configPath, QSettings::IniFormat, this);
@@ -59,7 +59,7 @@ QtService::Service::CommandResult DatasyncService::onStart()
 					<< configPath
 					<< "with error:"
 					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
-		return OperationFailed;
+		return CommandResult::Failed;
 	}
 
 	//before anything else: set the log level
@@ -77,11 +77,11 @@ QtService::Service::CommandResult DatasyncService::onStart()
 			Qt::QueuedConnection);
 
 	if(!_connector->setupWss())
-		return OperationFailed;
+		return CommandResult::Failed;
 	_database->initialize();
 
 	qDebug() << QCoreApplication::applicationName() << "started successfully";
-	return OperationPending;
+	return CommandResult::Pending;
 }
 
 QtService::Service::CommandResult DatasyncService::onStop(int &exitCode)
@@ -92,7 +92,7 @@ QtService::Service::CommandResult DatasyncService::onStop(int &exitCode)
 	_mainPool->waitForDone();
 	exitCode = EXIT_SUCCESS;
 	qDebug() << "Server stopped";
-	return OperationCompleted;
+	return CommandResult::Completed;
 }
 
 QtService::Service::CommandResult DatasyncService::onReload()
@@ -105,7 +105,7 @@ QtService::Service::CommandResult DatasyncService::onReload()
 					<< "with error:"
 					<< (_config->status() == QSettings::AccessError ? "Access denied" : "Invalid format");
 		qCritical() << "Reload failed. Configuration has not been reloaded!";
-		return OperationFailed;
+		return CommandResult::Failed;
 	}
 
 	// before anything else: set the log level
@@ -119,25 +119,25 @@ QtService::Service::CommandResult DatasyncService::onReload()
 	_connector->recreateServer();
 	if(!_connector->setupWss() ||
 	   !_connector->listen()) {
-		return OperationFailed;
+		return CommandResult::Failed;
 	}
 
 	qDebug() << QCoreApplication::applicationName() << "completed reloading";
-	return OperationCompleted;
+	return CommandResult::Completed;
 }
 
 QtService::Service::CommandResult DatasyncService::onPause()
 {
 	qDebug() << "Pausing server...";
 	_connector->setPaused(true);
-	return OperationCompleted;
+	return CommandResult::Completed;
 }
 
 QtService::Service::CommandResult DatasyncService::onResume()
 {
 	qDebug() << "Resuming server...";
 	_connector->setPaused(false);
-	return OperationCompleted;
+	return CommandResult::Completed;
 }
 
 void DatasyncService::completeStartup(bool ok)

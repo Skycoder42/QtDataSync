@@ -96,15 +96,15 @@ private Q_SLOTS:
 private:
 	QtService::ServiceControl *server;
 
-	MockClient *client;
+	MockClient *client = nullptr;
 	QString devName;
 	QUuid devId;
-	ClientCrypto *crypto;
+	ClientCrypto *crypto = nullptr;
 
-	MockClient *partner;
+	MockClient *partner = nullptr;
 	QString partnerName;
 	QUuid partnerDevId;
-	ClientCrypto *partnerCrypto;
+	ClientCrypto *partnerCrypto = nullptr;
 
 	void testAddDevice(MockClient *&partner, QUuid &partnerDevId, bool keepPartner = false);
 
@@ -162,9 +162,9 @@ void TestAppServer::cleanupTestCase()
 {
 	clean();
 	clean(partner);
-	if(server->status() == QtService::ServiceControl::ServiceRunning) {
+	if(server->status() == QtService::ServiceControl::Status::Running) {
 		QVERIFY(server->stop());
-		QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
+		QTRY_COMPARE(server->status(), QtService::ServiceControl::Status::Stopped);
 	}
 	server->deleteLater();
 }
@@ -172,9 +172,9 @@ void TestAppServer::cleanupTestCase()
 void TestAppServer::testStart()
 {
 	QVERIFY(server->start());
-	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceRunning);
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::Status::Running);
 	QEXPECT_FAIL("", "Server should not stop easily", Continue);
-	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::Status::Stopped);
 }
 
 void TestAppServer::testInvalidVersion()
@@ -1824,7 +1824,7 @@ void TestAppServer::testRemoveSelf()
 void TestAppServer::testStop()
 {
 	server->stop();
-	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::Status::Stopped);
 }
 
 void TestAppServer::clean(bool disconnect)

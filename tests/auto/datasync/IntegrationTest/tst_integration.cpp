@@ -27,15 +27,15 @@ Q_SIGNALS:
 	void unlock();
 
 private:
-	QtService::ServiceControl *server;
+	QtService::ServiceControl *server = nullptr;
 
-	AccountManager *acc1;
-	SyncManager *sync1;
-	DataTypeStore<TestData> *store1;
+	AccountManager *acc1 = nullptr;
+	SyncManager *sync1 = nullptr;
+	DataTypeStore<TestData> *store1 = nullptr;
 
-	AccountManager *acc2;
-	SyncManager *sync2;
-	DataTypeStore<TestData> *store2;
+	AccountManager *acc2 = nullptr;
+	SyncManager *sync2 = nullptr;
+	DataTypeStore<TestData> *store2 = nullptr;
 
 	QUuid dev2Id;
 };
@@ -136,7 +136,7 @@ void IntegrationTest::cleanupTestCase()
 	Setup::removeSetup(QStringLiteral("setup2"), true);
 
 	QVERIFY(server->stop());
-	QTRY_COMPARE(server->status(), QtService::ServiceControl::ServiceStopped);
+	QTRY_COMPARE(server->status(), QtService::ServiceControl::Status::Stopped);
 	server->deleteLater();
 }
 

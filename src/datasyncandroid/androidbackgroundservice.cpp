@@ -49,7 +49,7 @@ void AndroidBackgroundService::prepareSetup(Setup &setup)
 
 QtService::Service::CommandResult AndroidBackgroundService::onStart()
 {
-	return OperationCompleted;
+	return CommandResult::Completed;
 }
 
 QtService::Service::CommandResult AndroidBackgroundService::onStop(int &exitCode)
@@ -61,7 +61,7 @@ QtService::Service::CommandResult AndroidBackgroundService::onStop(int &exitCode
 
 	Setup::removeSetup(setupName(), true); //TODO make optional (rmwait, rmnowait, norm)
 	exitCode = EXIT_SUCCESS;
-	return OperationCompleted;
+	return CommandResult::Completed;
 }
 
 void AndroidBackgroundService::onSyncCompleted(SyncManager::SyncState state)
