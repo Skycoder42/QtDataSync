@@ -3,7 +3,7 @@ CONFIG += static simd
 CONFIG -= qt
 
 TARGET = qtcryptopp
-VERSION = 8.0.0
+VERSION = 8.1.0
 
 load(qt_build_config)
 
@@ -33,6 +33,7 @@ HEADERS += \
 	src/cbcmac.h \
 	src/ccm.h \
 	src/chacha.h \
+	src/chachapoly.h \
 	src/cham.h \
 	src/channels.h \
 	src/cmac.h \
@@ -90,7 +91,6 @@ HEADERS += \
 	src/iterhash.h \
 	src/kalyna.h \
 	src/keccak.h \
-	src/keccakc.h \
 	src/lea.h \
 	src/lubyrack.h \
 	src/luc.h \
@@ -149,6 +149,7 @@ HEADERS += \
 	src/sha.h \
 	src/sha3.h \
 	src/shacal2.h \
+	src/shake.h \
 	src/shark.h \
 	src/simeck.h \
 	src/simon.h \
@@ -206,6 +207,7 @@ SOURCES += \
 	src/cbcmac.cpp \
 	src/ccm.cpp \
 	src/chacha.cpp \
+	src/chachapoly.cpp \
 	src/cham.cpp \
 	src/channels.cpp \
 	src/cmac.cpp \
@@ -253,7 +255,7 @@ SOURCES += \
 	src/kalyna.cpp \
 	src/kalynatab.cpp \
 	src/keccak.cpp \
-	src/keccakc.cpp \
+	src/keccak_core.cpp \
 	src/lea.cpp \
 	src/luc.cpp \
 	src/mars.cpp \
@@ -298,6 +300,7 @@ SOURCES += \
 	src/sha.cpp \
 	src/sha3.cpp \
 	src/shacal2.cpp \
+	src/shake.cpp \
 	src/shark.cpp \
 	src/sharkbox.cpp \
 	src/simeck.cpp \
@@ -338,6 +341,8 @@ SSSE3_SOURCES += \
 	src/aria_simd.cpp \
 	src/cham_simd.cpp \
 	src/gcm_simd.cpp \
+	src/gf2n_simd.cpp \
+	src/keccak_simd.cpp \
 	src/lea_simd.cpp \
 	src/simeck_simd.cpp \
 	src/simon128_simd.cpp \
@@ -367,10 +372,14 @@ NEON_SOURCES += \
 	src/simon128_simd.cpp \
 	src/speck64_simd.cpp \
 	src/speck128_simd.cpp
+	
+ARMABI_HEADERS += \
+	src/arm_simd.h
 
 ARMABI_SOURCES +=  \
 	src/crc_simd.cpp \
 	src/gcm_simd.cpp \
+	src/gf2n_simd.cpp \
 	src/rijndael_simd.cpp \
 	src/sha_simd.cpp \
 	src/shacal2_simd.cpp
@@ -414,8 +423,10 @@ win32:!win32-g++ {
 	SOURCES += $$(ANDROID_NDK_ROOT)/sources/android/cpufeatures/cpu-features.c
 
 	equals(ANDROID_TARGET_ARCH, arm64-v8a) {
+		HEADERS += $$ARMABI_HEADERS
 		SOURCES += $$ARMABI_SOURCES
 	} else:equals(ANDROID_TARGET_ARCH, armeabi-v7a) {
+		HEADERS += $$ARMABI_HEADERS
 		SOURCES += $$ARMABI_SOURCES
 
 		NEON_ASM += \
