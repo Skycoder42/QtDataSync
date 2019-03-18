@@ -14,4 +14,5 @@ DISTFILES += \
 
 DEFINES += SRCDIR=\\\"$$_PRO_FILE_PWD_/\\\"
 
+win32:msvc:CONFIG(debug, debug|release): CONFIG += disable_testrun
 include($$PWD/../../testrun.pri)
