@@ -63,8 +63,8 @@ load(qt_helper_lib)
 CONFIG += qt warning_clean
 QT = core
 
-QDEP_DEPENDS += Skycoder42/CryptoQQ
-QDEP_EXPORTS += Skycoder42/CryptoQQ
+QDEP_DEPENDS += Skycoder42/CryptoQQ@1.2.0
+QDEP_EXPORTS += Skycoder42/CryptoQQ@1.2.0
 CONFIG += qdep_no_link
 
 !load(qdep):error("Failed to load qdep feature! Run 'qdep prfgen --qmake $$QMAKE_QMAKE' to create it.")
