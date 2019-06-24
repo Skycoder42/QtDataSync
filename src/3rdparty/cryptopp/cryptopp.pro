@@ -3,7 +3,7 @@ CONFIG += static simd
 CONFIG -= qt
 
 TARGET = qtcryptopp
-VERSION = 8.1.0
+VERSION = 8.2.0
 
 load(qt_build_config)
 
@@ -372,7 +372,7 @@ NEON_SOURCES += \
 	src/simon128_simd.cpp \
 	src/speck64_simd.cpp \
 	src/speck128_simd.cpp
-	
+
 ARMABI_HEADERS += \
 	src/arm_simd.h
 
@@ -438,7 +438,7 @@ win32:!win32-g++ {
 		QMAKE_CXXFLAGS -= -mfpu=vfp
 		QMAKE_CXXFLAGS += -mfpu=neon
 		CONFIG += neon
-	} else:equals(ANDROID_TARGET_ARCH, x86) {
+	} else:contains(ANDROID_TARGET_ARCH, x86(_64)?) {
 		# Do this for Android builds for now as the NDK is broken
 		warning("Disabled x86 crypto ASM")
 
