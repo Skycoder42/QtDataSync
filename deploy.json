@@ -6,7 +6,7 @@
 		".skycoder42.jsonserializer",
 		".skycoder42.service"
 	],
-	"excludes": [ "msvc2015" ],
+	"excludes": [ "wasm", "msvc2015" ],
 	"license": {
 		"name": "BSD-3-Clause",
 		"path": "LICENSE"
