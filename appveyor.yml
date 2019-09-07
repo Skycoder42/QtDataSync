@@ -4,8 +4,8 @@ image:
 version: build-{build}
 
 environment:
-  QT_VER: 5.13.0
-  EXTRA_MODULES: .qtremoteobjects;.skycoder42.jsonserializer;.skycoder42.service
+  QT_VER: 5.13.1
+  EXTRA_MODULES: .skycoder42.jsonserializer;.skycoder42.service
   MAKE_RUN_TESTS: true
   TARGET_NAME: qtdatasync
 
