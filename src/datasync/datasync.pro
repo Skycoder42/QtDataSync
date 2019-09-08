@@ -110,7 +110,6 @@ win32 {
 	QMAKE_TARGET_COPYRIGHT = "Felix Barz"
 } else:mac {
 	QMAKE_TARGET_BUNDLE_PREFIX = "de.skycoder42."
-	CONFIG -= c++1z #TODO remove later
 }
 
 QDEP_DEPENDS += Skycoder42/QPluginFactory
