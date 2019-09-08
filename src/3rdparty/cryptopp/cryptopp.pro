@@ -7,6 +7,8 @@ VERSION = 8.2.0
 
 load(qt_build_config)
 
+message(QT_CPU_FEATURES = $$eval(QT_CPU_FEATURES.$$QT_ARCH))
+
 # Input
 HEADERS += \
 	src/3way.h \
