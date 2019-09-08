@@ -7,8 +7,6 @@ VERSION = 8.2.0
 
 load(qt_build_config)
 
-message(QT_CPU_FEATURES = $$eval(QT_CPU_FEATURES.$$QT_ARCH))
-
 # Input
 HEADERS += \
 	src/3way.h \
@@ -450,6 +448,9 @@ win32:!win32-g++ {
 		SOURCES +=  \
 			src/sse_simd.cpp
 	}
+} else:ios {
+	MODULE_DEFINES += CRYPTOPP_DISABLE_ASM
+	CONFIG -= simd
 } else:unix|win32-g++ {
 	clang: QMAKE_CXXFLAGS += -Wno-keyword-macro -Wno-unused-const-variable -Wno-unused-private-field
 	else:gcc: QMAKE_CXXFLAGS += -Wno-class-memaccess -Wno-unknown-pragmas
