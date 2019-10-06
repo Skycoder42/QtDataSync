@@ -8,8 +8,14 @@
 #include <cryptopp/pssr.h>
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/sha3.h>
+#if CRYPTOPP_VERSION >= 800
+#include <cryptopp/xed25519.h>
+#endif
 
 #include "message_p.h"
+
+template <typename T>
+class SignatureScheme;
 
 namespace QtDataSync {
 
@@ -83,6 +89,10 @@ protected:
 	using RsaesScheme = CryptoPP::RSAES<CryptoPP::OAEP<CryptoPP::SHA3_512>>;
 #if CRYPTOPP_VERSION >= 600
 	using EciesScheme = CryptoPP::ECIES<CryptoPP::ECP, CryptoPP::SHA3_512>;
+#endif
+#if CRYPTOPP_VERSION >= 800
+	using Ed25519Scheme = CryptoPP::ed25519;
+	friend class SignatureScheme<Ed25519Scheme>;
 #endif
 
 	explicit AsymmetricCrypto(QObject *parent = nullptr);

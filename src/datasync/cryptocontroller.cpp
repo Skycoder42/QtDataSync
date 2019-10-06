@@ -24,6 +24,7 @@
 
 using namespace QtDataSync;
 using namespace CryptoPP;
+using namespace CryptoQQ;
 using std::tuple;
 using std::make_tuple;
 using Exception = QtDataSync::Exception;
@@ -1142,6 +1143,8 @@ void ClientCrypto::setSignatureKey(const QByteArray &name)
 		_signKey.reset(new EccKeyScheme<EcdsaScheme>());
 	else if(stdStr == EcnrScheme::StaticAlgorithmName())
 		_signKey.reset(new EccKeyScheme<EcnrScheme>());
+	else if(stdStr == "ed25519")
+		_signKey.reset(new EccKeyScheme<Ed25519Scheme>());
 	else
 		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
 }
@@ -1157,6 +1160,9 @@ void ClientCrypto::setSignatureKey(Setup::SignatureScheme scheme)
 		break;
 	case Setup::ECNR_ECP_SHA3_512:
 		setSignatureKey(QByteArray::fromStdString(EcnrScheme::StaticAlgorithmName()));
+		break;
+	case Setup::ED25519:
+		setSignatureKey(QByteArray::fromStdString("ed25519"));
 		break;
 	default:
 		Q_UNREACHABLE();

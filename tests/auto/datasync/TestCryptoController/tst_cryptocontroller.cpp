@@ -383,7 +383,7 @@ void TestCryptoController::cryptoData()
 										   << QVariant(2048)
 #endif
 										   << true
-										   << false;
+										   << true;
 
 	QTest::newRow("ECNR:secp256r1") << Setup::ECNR_ECP_SHA3_512
 									<< QVariant(Setup::secp256r1)
@@ -391,6 +391,15 @@ void TestCryptoController::cryptoData()
 									<< QVariant(2048)
 									<< true
 									<< false;
+
+#if CRYPTOPP_VERSION > 1000
+	QTest::newRow("ECNR:secp256r1") << Setup::ED25519
+									<< QVariant{}
+									<< Setup::RSA_OAEP_SHA3_512
+									<< QVariant(1024)
+									<< true
+									<< false;
+#endif
 }
 
 void TestCryptoController::symData()

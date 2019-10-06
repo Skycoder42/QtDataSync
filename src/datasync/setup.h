@@ -113,7 +113,8 @@ public:
 	enum SignatureScheme {
 		RSA_PSS_SHA3_512, //!< RSA in PSS mode with Sha3 hash of 512 bits
 		ECDSA_ECP_SHA3_512, //!< ECDSA on prime curves with Sha3 hash of 512 bits
-		ECNR_ECP_SHA3_512 //!< ECNR on prime curves with Sha3 hash of 512 bits
+		ECNR_ECP_SHA3_512, //!< ECNR on prime curves with Sha3 hash of 512 bits
+		ED25519 //!< ed25519 signature scheme based on the ed25519 curve (Requires at least crypto++ 8.0)
 	};
 	Q_ENUM(SignatureScheme)
 

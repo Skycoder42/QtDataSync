@@ -385,7 +385,7 @@ Setup &Setup::resetKeyStoreProvider()
 
 Setup &Setup::resetSignatureScheme()
 {
-	d->properties.insert(Defaults::SignScheme, ECDSA_ECP_SHA3_512);
+	d->properties.insert(Defaults::SignScheme, ED25519);
 	return *this;
 }
 
@@ -634,7 +634,7 @@ SetupPrivate::SetupPrivate() :
 		{Defaults::PersistDeleted, false},
 		{Defaults::ConflictPolicy, Setup::PreferChanged},
 		{Defaults::SslConfiguration, QVariant::fromValue(QSslConfiguration::defaultConfiguration())},
-		{Defaults::SignScheme, Setup::ECDSA_ECP_SHA3_512},
+		{Defaults::SignScheme, Setup::ED25519},
 		{Defaults::CryptScheme, Setup::ECIES_ECP_SHA3_512},
 		{Defaults::SymScheme, Setup::AES_EAX},
 		{Defaults::EventLoggingMode, QVariant::fromValue(Setup::EventMode::Unchanged)}

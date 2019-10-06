@@ -105,6 +105,8 @@ QVariant Defaults::defaultParam(Setup::SignatureScheme scheme)
 	case Setup::ECDSA_ECP_SHA3_512:
 	case Setup::ECNR_ECP_SHA3_512:
 		return Setup::brainpoolP384r1;
+	case Setup::ED25519:
+		return QVariant{};
 	default:
 		Q_UNREACHABLE();
 		break;

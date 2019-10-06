@@ -7,6 +7,7 @@
 
 using namespace QtDataSync;
 using namespace CryptoPP;
+using namespace CryptoQQ;
 
 template <typename TScheme>
 class SignatureScheme : public AsymmetricCrypto::Signature
@@ -27,6 +28,15 @@ public:
 	QSharedPointer<PK_Encryptor> encrypt(const X509PublicKey &pubKey) const override;
 	QSharedPointer<PK_Decryptor> decrypt(const PKCS8PrivateKey &pKey) const override;
 };
+
+template <>
+QByteArray SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::name() const;
+template <>
+QSharedPointer<X509PublicKey> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::createNullKey() const;
+template <>
+QSharedPointer<PK_Signer> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::sign(const PKCS8PrivateKey &pKey) const;
+template <>
+QSharedPointer<PK_Verifier> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::verify(const X509PublicKey &pubKey) const;
 
 // ------------- Main Implementation -------------
 
@@ -143,6 +153,8 @@ void AsymmetricCrypto::setSignatureScheme(const QByteArray &name)
 		_signature.reset(new SignatureScheme<EcdsaScheme>());
 	else if(stdStr == EcnrScheme::StaticAlgorithmName())
 		_signature.reset(new SignatureScheme<EcnrScheme>());
+	else if(stdStr == "ed25519")
+		_signature.reset(new SignatureScheme<Ed25519Scheme>());
 	else
 		throw Exception(Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
 }
@@ -232,6 +244,34 @@ template <typename TScheme>
 QSharedPointer<PK_Verifier> SignatureScheme<TScheme>::verify(const X509PublicKey &pubKey) const
 {
 	return QSharedPointer<typename TScheme::Verifier>::create(pubKey);
+}
+
+template <>
+QByteArray SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::name() const
+{
+	return "ed25519";
+}
+
+template <>
+QSharedPointer<X509PublicKey> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::createNullKey() const
+{
+	return QSharedPointer<ed25519PublicKey>::create();
+}
+
+template <>
+QSharedPointer<PK_Signer> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::sign(const PKCS8PrivateKey &pKey) const
+{
+	auto signer = QSharedPointer<AsymmetricCrypto::Ed25519Scheme::Signer>();
+	signer->AccessPrivateKey().AssignFrom(pKey);
+	return signer;
+}
+
+template <>
+QSharedPointer<PK_Verifier> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::verify(const X509PublicKey &pubKey) const
+{
+	auto verifier = QSharedPointer<AsymmetricCrypto::Ed25519Scheme::Verifier>();
+	verifier->AccessKey().AssignFrom(pubKey);
+	return verifier;
 }
 
 

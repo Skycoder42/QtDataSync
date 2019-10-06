@@ -66,7 +66,10 @@ void QtDataSyncDeclarativeModule::registerTypes(const char *uri)
 	qmlRegisterSingletonType<QtDataSync::QQmlIosSyncSingleton>(uri, 4, 2, "IosSyncSingleton", createIosSyncSingletonInstance);
 #endif
 
+	//Version 4.3
+	qmlRegisterModule(uri, 4, 3);
+
 	// Check to make shure no module update is forgotten
-	static_assert(VERSION_MAJOR == 4 && VERSION_MINOR == 2, "QML module version needs to be updated");
+	static_assert(VERSION_MAJOR == 4 && VERSION_MINOR == 3, "QML module version needs to be updated");
 
 }
