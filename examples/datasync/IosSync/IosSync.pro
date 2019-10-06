@@ -17,4 +17,4 @@ RESOURCES += qml.qrc
 QMAKE_INFO_PLIST = Info.plist
 
 target.path = $$[QT_INSTALL_EXAMPLES]/datasync/$$TARGET
-INSTALLS += target
+!install_ok: INSTALLS += target

@@ -2,7 +2,7 @@
 Description=QtDataSync AppServer Socket
 Documentation=https://github.com/Skycoder42/QtDataSync
 After=network.target
-PartOf=qdsapp.service
+PartOf=$${APPNAME}.service
 
 [Socket]
 ListenStream=4242

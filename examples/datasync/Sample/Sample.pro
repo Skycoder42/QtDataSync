@@ -1,8 +1,7 @@
 TEMPLATE = app
 
 QT += core gui widgets datasync
-sample_test_model: QT += testlib
-sample_test_model: DEFINES += SAMPLE_TEST_MODELS
+QT += testlib
 
 TARGET = Sample
 
@@ -27,7 +26,7 @@ FORMS += \
 DISTFILES += docker-compose.yaml
 
 target.path = $$[QT_INSTALL_EXAMPLES]/datasync/$$TARGET
-INSTALLS += target
+!install_ok: INSTALLS += target
 
 #not found by linker?
 unix:!mac {

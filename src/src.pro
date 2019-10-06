@@ -5,7 +5,8 @@ SUBDIRS += \
 	plugins \
 	imports \
 	messages \
-	3rdparty
+	3rdparty \
+	translations
 
 messages.depends += 3rdparty
 datasync.depends += messages 3rdparty

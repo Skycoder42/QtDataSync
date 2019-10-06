@@ -5,9 +5,7 @@
 #include <QMetaEnum>
 
 #include "accountdialog.h"
-#ifdef SAMPLE_TEST_MODELS
 #include <QAbstractItemModelTester>
-#endif
 
 Widget::Widget(const QString &setup, QWidget *parent) :
 	QWidget(parent),
@@ -47,9 +45,7 @@ Widget::Widget(const QString &setup, QWidget *parent) :
 		qCritical() << e.what();
 	});
 
-#ifdef SAMPLE_TEST_MODELS
 	new QAbstractItemModelTester(_model, QAbstractItemModelTester::FailureReportingMode::Fatal, this);
-#endif
 	_model->setTypeId<SampleData>();
 	_model->addColumn(QStringLiteral("Id"), "id");
 	_model->addColumn(QStringLiteral("Title"), "title");

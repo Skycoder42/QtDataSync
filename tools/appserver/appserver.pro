@@ -35,12 +35,12 @@ SOURCES += \
 	singletaskqueue.cpp \
 	datasyncservice.cpp
 
-SVC_CONFIG_FILES = qdsapp.conf
-win32: SVC_CONFIG_FILES += qdsapp-install.bat
-else:macos: SVC_CONFIG_FILES += de.skycoder42.qtdatasync.qdsapp.plist
-else: SVC_CONFIG_FILES += qdsapp.service qdsapp.socket
+win32: QMAKE_SUBSTITUTES += qdsapp-install.bat.in
+else:macos: QMAKE_SUBSTITUTES += de.skycoder42.qtdatasync.qdsapp.plist.in
+else: QMAKE_SUBSTITUTES += qdsapp.service.in qdsapp.socket.in
 
-DISTFILES += $$SVC_CONFIG_FILES \
+DISTFILES += $$QMAKE_SUBSTITUTES \
+	qdsapp.conf \
 	docker_setup.conf \
 	docker-compose.yaml \
 	../../Dockerfile \
@@ -65,36 +65,31 @@ win32 {
 load(qt_app)
 
 # svc-files install
-for(svcfile, SVC_CONFIG_FILES) {
-	outfile = $$OUT_PWD/svcfiles/$$svcfile
-	!exists($$outfile) {
-		svcdata = $$cat($$svcfile, blob)
-		svcdata = $$replace(svcdata, "%\\{QT_INSTALL_BINS\\}", "$$shell_path($$[QT_INSTALL_BINS])")
-		!write_file($$outfile, svcdata): error(Failed to prepare service config file $$svcfile)
-	}
-	!install_system_service: install_svcconf.files += $$outfile
-}
 install_system_service {
-	install_conf.files += $$OUT_PWD/svcfiles/qdsapp.conf
+	install_conf.files += $$PWD/qdsapp.conf
 	unix: install_conf.path = /etc
 	else: install_conf.path = $$[QT_INSTALL_BINS]
 	INSTALLS += install_conf
 
 	win32 {
-		install_bat.files += $$OUT_PWD/svcfiles/qdsapp-install.bat
+		install_bat.files += $$OUT_PWD/qdsapp-install.bat
 		install_bat.path = $$[QT_INSTALL_BINS]
 		INSTALLS += install_bat
-	} else:macos: {
-		install_plist.files += $$OUT_PWD/svcfiles/de.skycoder42.qtdatasync.qdsapp.plist
+	} else:macos {
+		install_plist.files += $$OUT_PWD/de.skycoder42.qtdatasync.qdsapp.plist
 		install_plist.path = /Library/LaunchDaemons
 		INSTALLS += install_plist
-	} else: {
-		install_svc.files += $$OUT_PWD/svcfiles/qdsapp.service $$OUT_PWD/svcfiles/qdsapp.socket
+	} else {
+		install_svc.files += $$OUT_PWD/qdsapp.service $$OUT_PWD/qdsapp.socket
 		install_svc.path = /usr/lib/systemd/system/
 		INSTALLS += install_svc
 	}
 } else {
 	install_svcconf.path = $$[QT_INSTALL_DATA]/services/$$APPNAME
+	install_svcconf.files += $$PWD/qdsapp.conf
+	win32: install_svcconf.files += $$OUT_PWD/qdsapp-install.bat
+	else:macos: install_svcconf.files += $$OUT_PWD/de.skycoder42.qtdatasync.qdsapp.plist
+	else: install_svcconf.files += $$OUT_PWD/qdsapp.service $$OUT_PWD/qdsapp.socket
 	INSTALLS += install_svcconf
 }
 

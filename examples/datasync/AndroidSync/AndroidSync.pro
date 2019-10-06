@@ -15,7 +15,7 @@ SOURCES += \
 RESOURCES += qml.qrc
 
 target.path = $$[QT_INSTALL_EXAMPLES]/datasync/$$TARGET
-INSTALLS += target
+!install_ok: INSTALLS += target
 
 DISTFILES += \
 	android/AndroidManifest.xml \

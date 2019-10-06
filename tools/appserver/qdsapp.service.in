@@ -1,17 +1,17 @@
 [Unit]
 Description=QtDataSync AppServer Service
 Documentation=https://github.com/Skycoder42/QtDataSync
-After=network-online.target qdsapp.socket
+After=network-online.target $${APPNAME}.socket
 
 [Service]
 Type=notify
 NotifyAccess=exec
-ExecStart=%{QT_INSTALL_BINS}/qdsappd -platform minimal --backend systemd
-ExecReload=%{QT_INSTALL_BINS}/qdsappd -platform minimal --backend systemd reload $MAINPID
-ExecStop=%{QT_INSTALL_BINS}/qdsappd -platform minimal --backend systemd stop $MAINPID
+ExecStart=$$[QT_INSTALL_BINS]/$${TARGET} --backend systemd
+ExecReload=$$[QT_INSTALL_BINS]/$${TARGET} --backend systemd reload $MAINPID
+ExecStop=$$[QT_INSTALL_BINS]/$${TARGET} --backend systemd stop $MAINPID
 WatchdogSec=10
 Restart=on-abnormal
-RuntimeDirectory=qdsapp
+RuntimeDirectory=$${APPNAME}
 
 [Install]
 # Use the following for a system service
