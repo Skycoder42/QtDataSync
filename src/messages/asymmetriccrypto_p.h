@@ -54,6 +54,8 @@ public:
 							  const QByteArray &encryptionScheme,
 							  QObject *parent = nullptr);
 
+	const static QByteArray Ed25519SchemeName;
+
 	QByteArray signatureScheme() const;
 	QByteArray encryptionScheme() const;
 

@@ -40,6 +40,8 @@ QSharedPointer<PK_Verifier> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::ve
 
 // ------------- Main Implementation -------------
 
+const QByteArray AsymmetricCrypto::Ed25519SchemeName = "ed25519";
+
 AsymmetricCrypto::AsymmetricCrypto(const QByteArray &signatureScheme, const QByteArray &encryptionScheme, QObject *parent) :
 	AsymmetricCrypto(parent)
 {
@@ -153,7 +155,7 @@ void AsymmetricCrypto::setSignatureScheme(const QByteArray &name)
 		_signature.reset(new SignatureScheme<EcdsaScheme>());
 	else if(stdStr == EcnrScheme::StaticAlgorithmName())
 		_signature.reset(new SignatureScheme<EcnrScheme>());
-	else if(stdStr == "ed25519")
+	else if(name == Ed25519SchemeName)
 		_signature.reset(new SignatureScheme<Ed25519Scheme>());
 	else
 		throw Exception(Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
@@ -249,7 +251,7 @@ QSharedPointer<PK_Verifier> SignatureScheme<TScheme>::verify(const X509PublicKey
 template <>
 QByteArray SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::name() const
 {
-	return "ed25519";
+	return AsymmetricCrypto::Ed25519SchemeName;
 }
 
 template <>
@@ -261,7 +263,7 @@ QSharedPointer<X509PublicKey> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::
 template <>
 QSharedPointer<PK_Signer> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::sign(const PKCS8PrivateKey &pKey) const
 {
-	auto signer = QSharedPointer<AsymmetricCrypto::Ed25519Scheme::Signer>();
+	auto signer = QSharedPointer<AsymmetricCrypto::Ed25519Scheme::Signer>::create();
 	signer->AccessPrivateKey().AssignFrom(pKey);
 	return signer;
 }
@@ -269,7 +271,7 @@ QSharedPointer<PK_Signer> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::sign
 template <>
 QSharedPointer<PK_Verifier> SignatureScheme<AsymmetricCrypto::Ed25519Scheme>::verify(const X509PublicKey &pubKey) const
 {
-	auto verifier = QSharedPointer<AsymmetricCrypto::Ed25519Scheme::Verifier>();
+	auto verifier = QSharedPointer<AsymmetricCrypto::Ed25519Scheme::Verifier>::create();
 	verifier->AccessKey().AssignFrom(pubKey);
 	return verifier;
 }

@@ -378,27 +378,29 @@ void TestCryptoController::cryptoData()
 #if CRYPTOPP_VERSION > 600
 										   << Setup::ECIES_ECP_SHA3_512
 										   << QVariant(Setup::brainpoolP256r1)
-#else
-										   << Setup::RSA_OAEP_SHA3_512
-										   << QVariant(2048)
-#endif
 										   << true
 										   << true;
+#else
+										   << Setup::RSA_OAEP_SHA3_512
+										   << QVariant{1024}
+										   << true
+										   << false;
+#endif
 
 	QTest::newRow("ECNR:secp256r1") << Setup::ECNR_ECP_SHA3_512
 									<< QVariant(Setup::secp256r1)
 									<< Setup::RSA_OAEP_SHA3_512
-									<< QVariant(2048)
+									<< QVariant{1024}
 									<< true
 									<< false;
 
-#if CRYPTOPP_VERSION > 1000
-	QTest::newRow("ECNR:secp256r1") << Setup::ED25519
-									<< QVariant{}
-									<< Setup::RSA_OAEP_SHA3_512
-									<< QVariant(1024)
-									<< true
-									<< false;
+#if CRYPTOPP_VERSION > 800
+	QTest::newRow("ed25519") << Setup::ED25519
+							 << QVariant{}
+							 << Setup::RSA_OAEP_SHA3_512
+							 << QVariant{1024}
+							 << true
+							 << false;
 #endif
 }
 

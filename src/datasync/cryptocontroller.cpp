@@ -98,6 +98,18 @@ private:
 	typename TScheme::PrivateKey _key;
 };
 
+class Ed25519KeyScheme : public ClientCrypto::KeyScheme
+{
+public:
+	QByteArray name() const override;
+	void createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam) override;
+	PKCS8PrivateKey &privateKeyRef() override;
+	QSharedPointer<X509PublicKey> createPublicKey() const override;
+
+private:
+	ed25519PrivateKey _key;
+};
+
 // ------------- CryptoController Implementation -------------
 
 #define QTDATASYNC_LOG QTDATASYNC_LOG_CONTROLLER
@@ -1143,8 +1155,8 @@ void ClientCrypto::setSignatureKey(const QByteArray &name)
 		_signKey.reset(new EccKeyScheme<EcdsaScheme>());
 	else if(stdStr == EcnrScheme::StaticAlgorithmName())
 		_signKey.reset(new EccKeyScheme<EcnrScheme>());
-	else if(stdStr == "ed25519")
-		_signKey.reset(new EccKeyScheme<Ed25519Scheme>());
+	else if(name == AsymmetricCrypto::Ed25519SchemeName)
+		_signKey.reset(new Ed25519KeyScheme());
 	else
 		throw CryptoPP::Exception(CryptoPP::Exception::NOT_IMPLEMENTED, "Signature Scheme \"" + stdStr + "\" not supported");
 }
@@ -1162,7 +1174,7 @@ void ClientCrypto::setSignatureKey(Setup::SignatureScheme scheme)
 		setSignatureKey(QByteArray::fromStdString(EcnrScheme::StaticAlgorithmName()));
 		break;
 	case Setup::ED25519:
-		setSignatureKey(QByteArray::fromStdString("ed25519"));
+		setSignatureKey(AsymmetricCrypto::Ed25519SchemeName);
 		break;
 	default:
 		Q_UNREACHABLE();
@@ -1325,6 +1337,38 @@ template <typename TScheme>
 QSharedPointer<X509PublicKey> EccKeyScheme<TScheme>::createPublicKey() const
 {
 	auto key = QSharedPointer<typename TScheme::PublicKey>::create();
+	_key.MakePublicKey(*key);
+	return key;
+}
+
+
+
+QByteArray Ed25519KeyScheme::name() const
+{
+	return AsymmetricCrypto::Ed25519SchemeName;
+}
+
+void Ed25519KeyScheme::createPrivateKey(RandomNumberGenerator &rng, const QVariant &keyParam)
+{
+	Q_UNUSED(keyParam)
+	//special hack: save and load again for consistency (needed for fingerprint)
+	ed25519PrivateKey tmpKey;
+	tmpKey.GenerateRandom(rng, g_nullNameValuePairs);
+	QByteArray buffer;
+	QByteArraySink sink(buffer);
+	tmpKey.Save(sink);
+	QByteArraySource source(buffer, true);
+	_key.Load(source);
+}
+
+PKCS8PrivateKey &Ed25519KeyScheme::privateKeyRef()
+{
+	return _key;
+}
+
+QSharedPointer<X509PublicKey> Ed25519KeyScheme::createPublicKey() const
+{
+	auto key = QSharedPointer<ed25519PublicKey>::create();
 	_key.MakePublicKey(*key);
 	return key;
 }
