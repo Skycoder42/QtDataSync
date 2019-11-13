@@ -2,11 +2,12 @@
 #include "datastore_p.h"
 #include "defaults_p.h"
 
-#include <QtJsonSerializer/QJsonSerializer>
+#include <QtJsonSerializer/JsonSerializer>
 
 #include "signal_private_connect_p.h"
 
 using namespace QtDataSync;
+using namespace QtJsonSerializer;
 using std::function;
 
 #define QTDATASYNC_LOG d->logger

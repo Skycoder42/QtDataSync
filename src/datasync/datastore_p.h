@@ -21,7 +21,7 @@ public:
 
 	Defaults defaults;
 	Logger *logger;
-	QPointer<const QJsonSerializer> serializer;
+	QPointer<const QtJsonSerializer::JsonSerializer> serializer;
 
 	LocalStore *store;
 };

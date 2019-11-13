@@ -1,5 +1,6 @@
 #include "testlib.h"
 using namespace QtDataSync;
+using namespace QtJsonSerializer;
 
 const QByteArray TestLib::TypeName("TestData");
 QTemporaryDir TestLib::tDir;
@@ -8,7 +9,7 @@ void TestLib::init(const QByteArray &keystorePath)
 {
 	qputenv("PLUGIN_KEYSTORES_PATH", keystorePath);
 	qRegisterMetaType<TestData>();
-	QJsonSerializer::registerListConverters<TestData>();
+	JsonSerializer::registerListConverters<TestData>();
 	Setup::setCleanupTimeout(10000);
 #ifdef VERBOSE_TESTS
 	QLoggingCategory::setFilterRules(QStringLiteral("qtdatasync.*.debug=true"));

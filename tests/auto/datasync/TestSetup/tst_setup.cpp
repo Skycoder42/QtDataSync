@@ -91,7 +91,7 @@ void TestSetup::testProperties()
 		//test generic property assignments
 		const auto sName = QStringLiteral("testProperties_setup");
 		Setup setup;
-		auto ser = new QJsonSerializer{this};
+		auto ser = new QtJsonSerializer::JsonSerializer{this};
 		auto res = new TestResolver{};
 		auto ssl = QSslConfiguration::defaultConfiguration();
 		ssl.setPeerVerifyMode(QSslSocket::VerifyPeer);

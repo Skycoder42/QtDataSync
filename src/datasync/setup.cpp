@@ -18,6 +18,7 @@
 Q_LOGGING_CATEGORY(qdssetup, "qtdatasync.setup", QtInfoMsg)
 
 using namespace QtDataSync;
+using namespace QtJsonSerializer;
 
 bool Setup::exists(const QString &name)
 {
@@ -130,7 +131,7 @@ QUrl Setup::remoteObjectHost() const
 	return d->roAddress;
 }
 
-QJsonSerializer *Setup::serializer() const
+JsonSerializer *Setup::serializer() const
 {
 	return d->serializer.data();
 }
@@ -222,7 +223,7 @@ Setup &Setup::setRemoteObjectHost(QUrl remoteObjectHost)
 	return *this;
 }
 
-Setup &Setup::setSerializer(QJsonSerializer *serializer)
+Setup &Setup::setSerializer(JsonSerializer *serializer)
 {
 	Q_ASSERT_X(serializer, Q_FUNC_INFO, "Serializer must not be null");
 	d->serializer.reset(serializer);
@@ -333,7 +334,7 @@ Setup &Setup::resetRemoteObjectHost()
 
 Setup &Setup::resetSerializer()
 {
-	return setSerializer(new QJsonSerializer());
+	return setSerializer(new JsonSerializer());
 }
 
 Setup &Setup::resetConflictResolver()
@@ -628,7 +629,7 @@ QJsonObject SetupPrivate::parseObj(const QByteArray &data)
 
 SetupPrivate::SetupPrivate() :
 	localDir{DefaultLocalDir},
-	serializer{new QJsonSerializer()},
+	serializer{new JsonSerializer()},
 	properties{
 		{Defaults::CacheSize, MB(100)},
 		{Defaults::PersistDeleted, false},

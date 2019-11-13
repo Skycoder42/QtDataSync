@@ -4,7 +4,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qscopedpointer.h>
 
-#include <QtJsonSerializer/qjsonserializer.h>
+#include <QtJsonSerializer/jsonserializer.h>
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/defaults.h"
@@ -60,10 +60,10 @@ public:
 		if(typeId == qMetaTypeId<T1>()) {
 			try {
 				QObject scope;
-				const QJsonSerializer *ser = this->defaults().serializer();
-				auto d1 = ser->deserialize<T1>(data1, &scope);
-				auto d2 = ser->deserialize<T1>(data2, &scope);
-				return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
+				const auto ser = this->defaults().serializer();
+				auto d1 = ser->template deserialize<T1>(data1, &scope);
+				auto d2 = ser->template deserialize<T1>(data2, &scope);
+				return ser->template serialize<T1>(resolveConflict(d1, d2, &scope));
 			} catch(NoConflictResultException&) {
 				return QJsonObject();
 			}
@@ -117,10 +117,10 @@ public:
 		if(typeId == qMetaTypeId<T1>()) {
 			try {
 				QObject scope;
-				const QJsonSerializer *ser = this->defaults().serializer();
-				auto d1 = ser->deserialize<T1>(data1, &scope);
-				auto d2 = ser->deserialize<T1>(data2, &scope);
-				return ser->serialize<T1>(resolveConflict(d1, d2, &scope));
+				const auto ser = this->defaults().serializer();
+				auto d1 = ser->template deserialize<T1>(data1, &scope);
+				auto d2 = ser->template deserialize<T1>(data2, &scope);
+				return ser->template serialize<T1>(resolveConflict(d1, d2, &scope));
 			} catch(NoConflictResultException&) {
 				return QJsonObject();
 			}

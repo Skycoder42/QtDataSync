@@ -6,7 +6,7 @@
 
 #include <QtSql/QSqlDatabase>
 
-#include <QtJsonSerializer/QJsonSerializer>
+#include <QtJsonSerializer/JsonSerializer>
 
 #include "qtdatasync_global.h"
 #include "objectkey.h"
@@ -51,7 +51,7 @@ public:
 							   const QDir &storageDir,
 							   const QUrl &roAddress,
 							   const QHash<Defaults::PropertyKey, QVariant> &properties,
-							   QJsonSerializer *serializer,
+							   QtJsonSerializer::JsonSerializer *serializer,
 							   ConflictResolver *resolver);
 	static void removeDefaults(const QString &setupName);
 	static QSharedPointer<DefaultsPrivate> obtainDefaults(const QString &setupName);
@@ -60,7 +60,7 @@ public:
 					QDir storageDir,
 					QUrl roAddress,
 					QHash<Defaults::PropertyKey, QVariant> properties,
-					QJsonSerializer *serializer,
+					QtJsonSerializer::JsonSerializer *serializer,
 					ConflictResolver *resolver);
 	~DefaultsPrivate() override;
 
@@ -95,7 +95,7 @@ private:
 	QDir storageDir;
 	Logger *logger;
 	QUrl roAddress;
-	QJsonSerializer *serializer;
+	QtJsonSerializer::JsonSerializer *serializer;
 	ConflictResolver *resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 

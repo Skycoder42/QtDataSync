@@ -15,7 +15,9 @@
 #include "QtDataSync/setup.h"
 
 class QSqlDatabase;
-class QJsonSerializer;
+namespace QtJsonSerializer {
+class JsonSerializer;
+}
 
 namespace QtDataSync {
 
@@ -115,7 +117,7 @@ public:
 	//! Returns a new instance of QSettings for this setup
 	QSettings *createSettings(QObject *parent = nullptr, const QString &group = {}) const;
 	//! Returns the serializer of the current setup
-	const QJsonSerializer *serializer() const;
+	const QtJsonSerializer::JsonSerializer *serializer() const;
 	//! Returns the conflict resolver of the current setup
 	const ConflictResolver *conflictResolver() const;
 	//! Returns the extra property defined by the given key

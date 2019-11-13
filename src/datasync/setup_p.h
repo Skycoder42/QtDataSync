@@ -5,7 +5,7 @@
 #include <QtCore/QThread>
 #include <QtCore/QSharedPointer>
 
-#include <QtJsonSerializer/QJsonSerializer>
+#include <QtJsonSerializer/JsonSerializer>
 
 #include "qtdatasync_global.h"
 #include "setup.h"
@@ -41,7 +41,7 @@ private:
 
 	QString localDir;
 	QUrl roAddress;
-	QScopedPointer<QJsonSerializer> serializer;
+	QScopedPointer<QtJsonSerializer::JsonSerializer> serializer;
 	QScopedPointer<ConflictResolver> resolver;
 	QHash<Defaults::PropertyKey, QVariant> properties;
 	Setup::FatalErrorHandler fatalErrorHandler;

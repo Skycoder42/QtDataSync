@@ -15,7 +15,9 @@ class QLockFile;
 #include "QtDataSync/exception.h"
 #include "QtDataSync/remoteconfig.h"
 
-class QJsonSerializer;
+namespace QtJsonSerializer {
+class JsonSerializer;
+}
 
 namespace QtDataSync {
 
@@ -66,7 +68,7 @@ class Q_DATASYNC_EXPORT Setup
 	//! The url to be used to host the remote object sources, and to connect to to acquire the replicas
 	Q_PROPERTY(QUrl remoteObjectHost READ remoteObjectHost WRITE setRemoteObjectHost RESET resetRemoteObjectHost)
 	//! The serializer to be used to serialize and deserialize data to and from the store
-	Q_PROPERTY(QJsonSerializer* serializer READ serializer WRITE setSerializer RESET resetSerializer)
+	Q_PROPERTY(QtJsonSerializer::JsonSerializer* serializer READ serializer WRITE setSerializer RESET resetSerializer)
 	//! An optional conflict resolver to handle merge conflicts
 	Q_PROPERTY(QtDataSync::ConflictResolver* conflictResolver READ conflictResolver WRITE setConflictResolver RESET resetConflictResolver)
 	//! An alternative handler for fatal errors
@@ -206,7 +208,7 @@ public:
 	//! @readAcFn{Setup::remoteObjectHost}
 	QUrl remoteObjectHost() const;
 	//! @readAcFn{Setup::serializer}
-	QJsonSerializer *serializer() const;
+	QtJsonSerializer::JsonSerializer *serializer() const;
 	//! @readAcFn{Setup::conflictResolver}
 	ConflictResolver* conflictResolver() const;
 	//! @readAcFn{Setup::fatalErrorHandler}
@@ -243,7 +245,7 @@ public:
 	//! @writeAcFn{Setup::remoteObjectHost}
 	Setup &setRemoteObjectHost(QUrl remoteObjectHost);
 	//! @writeAcFn{Setup::serializer}
-	Setup &setSerializer(QJsonSerializer *serializer);
+	Setup &setSerializer(QtJsonSerializer::JsonSerializer *serializer);
 	//! @writeAcFn{Setup::conflictResolver}
 	Setup &setConflictResolver(ConflictResolver* conflictResolver);
 	//! @writeAcFn{Setup::fatalErrorHandler}

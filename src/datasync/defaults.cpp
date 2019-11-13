@@ -19,6 +19,7 @@
 #include "rep_changeemitter_p_replica.h"
 
 using namespace QtDataSync;
+using namespace QtJsonSerializer;
 
 #define QTDATASYNC_LOG d->logger
 
@@ -82,7 +83,7 @@ QSettings *Defaults::createSettings(QObject *parent, const QString &group) const
 	return settings;
 }
 
-const QJsonSerializer *Defaults::serializer() const
+const JsonSerializer *Defaults::serializer() const
 {
 	return d->serializer;
 }
@@ -210,7 +211,7 @@ QMutex DefaultsPrivate::setupDefaultsMutex;
 QHash<QString, QSharedPointer<DefaultsPrivate>> DefaultsPrivate::setupDefaults;
 QThreadStorage<DefaultsPrivate::DatabaseHolder> DefaultsPrivate::dbRefHash;
 
-void DefaultsPrivate::createDefaults(const QString &setupName, bool isPassive, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, QJsonSerializer *serializer, ConflictResolver *resolver)
+void DefaultsPrivate::createDefaults(const QString &setupName, bool isPassive, const QDir &storageDir, const QUrl &roAddress, const QHash<Defaults::PropertyKey, QVariant> &properties, JsonSerializer *serializer, ConflictResolver *resolver)
 {
 	//create the defaults and do additional setup
 	auto d = QSharedPointer<DefaultsPrivate>::create(setupName, storageDir, roAddress, properties, serializer, resolver);
@@ -260,7 +261,7 @@ QSharedPointer<DefaultsPrivate> DefaultsPrivate::obtainDefaults(const QString &s
 		throw SetupDoesNotExistException(setupName);
 }
 
-DefaultsPrivate::DefaultsPrivate(QString setupName, QDir storageDir, QUrl roAddress, QHash<Defaults::PropertyKey, QVariant> properties, QJsonSerializer *serializer, ConflictResolver *resolver) :
+DefaultsPrivate::DefaultsPrivate(QString setupName, QDir storageDir, QUrl roAddress, QHash<Defaults::PropertyKey, QVariant> properties, JsonSerializer *serializer, ConflictResolver *resolver) :
 	setupName{std::move(setupName)},
 	storageDir{std::move(storageDir)},
 	logger{new Logger("defaults", this->setupName, this)},
