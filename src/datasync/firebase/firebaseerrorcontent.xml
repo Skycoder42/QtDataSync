@@ -5,5 +5,6 @@
 
 	<Property key="code" type="int"/>
 	<Property key="message" type="QString"/>
+	<Property key="status" type="QString"/>
 	<Property key="errors" type="QList&lt;FirebaseErrorElement&gt;"/>
 </RestGadget>

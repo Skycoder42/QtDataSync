@@ -13,12 +13,4 @@
 #  define Q_DATASYNC_EXPORT
 #endif
 
-namespace QtDataSync::__private {
-
-inline Q_DATASYNC_EXPORT QString firebaseKey() {
-	return {};
-}
-
-}
-
 #endif // QDATASYNC_GLOBAL_H

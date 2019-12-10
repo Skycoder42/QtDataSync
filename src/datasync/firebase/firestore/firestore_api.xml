@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestApi name="ApiClient"
+		 namespace="QtDataSync::firebase::firestore"
+		 globalName="firebase-firestore"
+		 base="FirebaseApiBase"
+		 except="QtDataSync::firebase::FirebaseError"
+		 autoCreate="false">
+	<Include local="true">qtdatasync_global.h</Include>
+	<Include local="true">firebaseapibase_p.h</Include>
+	<Include local="true">../firebaseerror.h</Include>
+	<Include local="true">data.h</Include>
+
+	<BaseUrl expr="true">QStringLiteral("https://firestore.googleapis.com/v1/projects/%1/databases/(default)/documents/datasync/%2").arg(FirebaseApiBase::firebaseProjectId(), FirebaseApiBase::firebaseUserId())</BaseUrl>
+
+	<Header key="Authorization" expr="true">"Bearer " + FirebaseApiBase::firebaseUserToken()</Header>
+
+	<Method name="getEntry"
+			verb="GET"
+			returns="Data">
+		<Path>
+			<ParamSegment key="collectionId" type="QString"/>
+		</Path>
+		<Param key="documentId" type="QString"/>
+	</Method>
+</RestApi>

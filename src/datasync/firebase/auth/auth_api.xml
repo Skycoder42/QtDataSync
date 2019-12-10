@@ -2,8 +2,11 @@
 <RestApi name="ApiClient"
 		 namespace="QtDataSync::firebase::auth"
 		 globalName="firebase-auth"
-		 except="QtDataSync::firebase::FirebaseError">
+		 base="FirebaseApiBase"
+		 except="QtDataSync::firebase::FirebaseError"
+		 autoCreate="false">
 	<Include local="true">qtdatasync_global.h</Include>
+	<Include local="true">firebaseapibase_p.h</Include>
 	<Include local="true">../firebaseerror.h</Include>
 	<Include local="true">mailsignuprequest.h</Include>
 	<Include local="true">mailsignupresponse.h</Include>
@@ -11,7 +14,7 @@
 	<Include local="true">refreshresponse.h</Include>
 
 	<BaseUrl apiVersion="1">https://identitytoolkit.googleapis.com</BaseUrl>
-	<Parameter key="key" expr="true">QtDataSync::__private::firebaseKey()</Parameter>
+	<Parameter key="key" expr="true">FirebaseApiBase::firebaseKey()</Parameter>
 
 	<Method name="mailSignUp"
 			verb="POST"
