@@ -1,0 +1,14 @@
+{
+	"title": "QtDataSync",
+	"description": "A simple offline-first synchronisation framework, to synchronize data of Qt applications between devices.",
+	"modules": [ "QtDataSync" ],
+	"dependencies": [
+		".skycoder42.restclient",
+		".qtnetworkauth"
+	],
+	"excludes": [],
+	"license": {
+		"name": "BSD-3-Clause",
+		"path": "LICENSE"
+	}
+}

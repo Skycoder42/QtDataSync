@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="MailSignInResponse"
+			namespace="QtDataSync::firebase::auth"
+			base="MailSignUpResponse">
+	<Include local="true">mailsignupresponse.h</Include>
+
+	<Property key="displayName" type="QString"/>
+	<Property key="registered" type="bool"/>
+</RestGadget>

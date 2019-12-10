@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="FirebaseErrorElement"
+			namespace="QtDataSync::firebase">
+	<Property key="message" type="QString"/>
+	<Property key="domain" type="QString"/>
+	<Property key="reason" type="QString"/>
+</RestGadget>
