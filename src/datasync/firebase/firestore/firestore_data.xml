@@ -15,14 +15,6 @@
 
 	<Header key="Authorization" expr="true">"Bearer " + FirebaseApiBase::firebaseUserToken()</Header>
 
-	<Method name="beginTransaction"
-			verb="POST"
-			returns="Data">
-		<Path>
-			<ParamSegment key="collectionId" type="QString"/>
-			<ParamSegment key="documentId" type="QString"/>
-		</Path>
-	</Method>
 	<Method name="getEntry"
 			verb="GET"
 			returns="Data">

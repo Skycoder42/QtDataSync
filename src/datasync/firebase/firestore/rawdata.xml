@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="RawData"
+			namespace="QtDataSync::firebase::firestore">
+	<Include>QtCore/QJsonObject</Include>
+
+	<Property key="fields" type="QJsonObject"/>
+</RestGadget>

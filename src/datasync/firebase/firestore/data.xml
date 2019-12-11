@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="Data"
-			namespace="QtDataSync::firebase::firestore">
+			namespace="QtDataSync::firebase::firestore"
+			base="RawData">
+	<Include local="true">rawdata.h</Include>
 	<Include>QtCore/QDateTime</Include>
-	<Include>QtCore/QJsonObject</Include>
 
 	<Property key="name" type="QString"/>
 	<Property key="createTime" type="QDateTime"/>
 	<Property key="updateTime" type="QDateTime"/>
-	<Property key="fields" type="QJsonObject"/>
 </RestGadget>

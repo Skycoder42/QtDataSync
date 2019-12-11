@@ -1,12 +1,15 @@
 TARGET = QtDataSync
 
-QT = core restclient
+QT = core restclient core-private
 
 HEADERS += \
+	engine.h \
+	engine_p.h \
 	firebase/firebaseapibase_p.h \
 	qtdatasync_global.h
 
 SOURCES += \
+	engine.cpp \
 	firebase/firebaseapibase.cpp
 
 REST_API_FILES += \
@@ -18,7 +21,9 @@ REST_API_FILES += \
 	firebase/auth/mailsigninresponse.xml \
 	firebase/auth/refreshresponse.xml \
 	firebase/auth/auth_api.xml \
+	firebase/firestore/rawdata.xml \
 	firebase/firestore/data.xml \
+	firebase/firestore/firestore_data.xml
 	firebase/firestore/firestore_api.xml
 
 INCLUDEPATH += firebase
