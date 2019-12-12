@@ -12,7 +12,6 @@ class FirebaseApiBase : public QObject
 public:
 	explicit FirebaseApiBase(QObject *parent = nullptr);
 
-protected:
 	static QString firebaseKey();
 	static QString firebaseProjectId();
 	static QString firebaseUserId();

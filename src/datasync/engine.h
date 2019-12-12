@@ -7,19 +7,25 @@
 
 namespace QtDataSync {
 
+class IAuthenticator;
+
 class EnginePrivate;
 class Q_DATASYNC_EXPORT Engine : public QObject
 {
 	Q_OBJECT
 
+	Q_PROPERTY(IAuthenticator* authenticator READ authenticator CONSTANT)
+
 public:
 	explicit Engine(QObject *parent = nullptr);
 
+	IAuthenticator *authenticator() const;
+
 public Q_SLOTS:
-	void setupFirebase(const QByteArray &projectId,
-					   const QByteArray &webApiKey);
+	void start();
 
 private:
+	friend class Setup;
 	Q_DECLARE_PRIVATE(Engine)
 };
 

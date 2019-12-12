@@ -6,7 +6,14 @@ Engine::Engine(QObject *parent) :
 	QObject{*new EnginePrivate{}, parent}
 {}
 
-void Engine::setupFirebase(const QByteArray &projectId, const QByteArray &webApiKey)
+IAuthenticator *Engine::authenticator() const
 {
+	Q_D(const Engine);
+	return d->authenticator;
+}
 
+void Engine::start()
+{
+	Q_D(Engine);
+	QMetaObject::invokeMethod(d->authenticator, "signIn", Qt::QueuedConnection);
 }
