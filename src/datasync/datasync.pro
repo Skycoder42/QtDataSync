@@ -9,6 +9,7 @@ HEADERS += \
 	engine_p.h \
 	exception.h \
 	firebase/firebaseapibase_p.h \
+	googleoauthflow_p.h \
 	qtdatasync_global.h \
 	setup.h \
 	setup_p.h
@@ -18,6 +19,7 @@ SOURCES += \
 	engine.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
+	googleoauthflow.cpp \
 	setup.cpp
 
 REST_API_FILES += \

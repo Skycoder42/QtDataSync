@@ -11,12 +11,15 @@
 
 int main(int argc, char *argv[])
 {
+	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QtWebView::initialize();
+
+	QGuiApplication app(argc, argv);
+	QCoreApplication::setApplicationName(QStringLiteral("qtdatasync-example"));
+	QCoreApplication::setOrganizationName(QStringLiteral("Skycoder42"));
+	QCoreApplication::setOrganizationDomain(QStringLiteral("de.skycoder42"));
+
 	try {
-		QtWebView::initialize();
-
-		QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-		QGuiApplication app(argc, argv);
-
 		QCommandLineParser parser;
 		parser.addHelpOption();
 		parser.addPositionalArgument(QStringLiteral("firebase-config"),

@@ -4,6 +4,7 @@
 #include "setup.h"
 #include "authenticator.h"
 
+#include <QtCore/QDir>
 #include <QtCore/QLoggingCategory>
 
 namespace QtDataSync {
@@ -22,6 +23,8 @@ public:
 		QString secret;
 	} oAuth;
 
+	std::optional<QDir> localDir;
+	QSettings *settings = nullptr;
 	IAuthenticator *authenticator = nullptr;
 
 	void finializeForEngine(Engine *engine);

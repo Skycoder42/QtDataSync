@@ -51,6 +51,7 @@ protected:
 private:
 	Q_DECLARE_PRIVATE(FirebaseAuthenticator)
 
+	Q_PRIVATE_SLOT(d_func(), void _q_refreshToken())
 	Q_PRIVATE_SLOT(d_func(), void _q_apiError(const QString &, int, QtRestClient::RestReply::Error))
 };
 

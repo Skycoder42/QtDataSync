@@ -3,9 +3,11 @@
 
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/engine.h"
+#include "QtDataSync/exception.h"
 
 #include <QtCore/qobject.h>
 #include <QtCore/qiodevice.h>
+#include <QtCore/qsettings.h>
 
 namespace QtDataSync {
 
@@ -27,6 +29,9 @@ public:
 	static Setup fromConfig(const QString &configPath);
 	static Setup fromConfig(QIODevice *configDevice);
 
+	Setup &setLocalDir(const QString &localDir);
+	Setup &setSettings(QSettings *settings);
+
 	Setup &setFirebaseProjectId(QString projectId);
 	Setup &setFirebaseWebApiKey(QString webApiKey);
 
@@ -40,6 +45,20 @@ public:
 
 private:
 	QScopedPointer<SetupPrivate> d;
+};
+
+class Q_DATASYNC_EXPORT SetupException : public Exception
+{
+public:
+	SetupException(QString error);
+
+	QString qWhat() const override;
+
+	void raise() const override;
+	QException *clone() const override;
+
+protected:
+	QString _error;
 };
 
 inline Q_DATASYNC_EXPORT void swap(Setup& lhs, Setup& rhs) {

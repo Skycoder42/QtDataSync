@@ -3,6 +3,7 @@
 #include "exception.h"
 #include "engine_p.h"
 #include <QtCore/QFile>
+#include <QtCore/QStandardPaths>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
@@ -103,6 +104,22 @@ Setup Setup::fromConfig(QIODevice *configDevice)
 	return setup;
 }
 
+Setup &Setup::setLocalDir(const QString &localDir)
+{
+	d->localDir = localDir;
+	if (!d->localDir->exists() &&
+		!d->localDir->mkpath(QStringLiteral("."))) {
+		qCWarning(logSetup) << "Unable to create local storage directory" << localDir;
+	}
+	return *this;
+}
+
+Setup &Setup::setSettings(QSettings *settings)
+{
+	d->settings = settings;
+	return *this;
+}
+
 Setup &Setup::setFirebaseProjectId(QString projectId)
 {
 	d->firebase.projectId = std::move(projectId);
@@ -151,8 +168,53 @@ Engine *Setup::createEngine(QObject *parent)
 
 void SetupPrivate::finializeForEngine(Engine *engine)
 {
+	if (!localDir){
+		localDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+		if (!localDir->exists() &&
+			!localDir->mkpath(QStringLiteral("."))) {
+			throw SetupException{
+				QStringLiteral("Unable to create local storage directory \"%1\"")
+					.arg(localDir->absolutePath())
+			};
+		}
+	}
+	qCDebug(logSetup).noquote() << "Using local directory:" << localDir->absolutePath();
+
+	if (settings)
+		settings->setParent(engine);
+	else {
+		settings = new QSettings{
+			localDir->absoluteFilePath(QStringLiteral("config.ini")),
+			QSettings::IniFormat,
+			engine
+		};
+	}
+	qCDebug(logSetup).noquote() << "Using settings:" << settings->fileName();
+
 	if (authenticator)
 		authenticator->setParent(engine);
 	else
 		authenticator = new OAuthAuthenticator{engine};
+}
+
+
+
+SetupException::SetupException(QString error) :
+	Exception{},
+	_error{std::move(error)}
+{}
+
+QString SetupException::qWhat() const
+{
+	return _error;
+}
+
+void SetupException::raise() const
+{
+	throw *this;
+}
+
+ExceptionBase *SetupException::clone() const
+{
+	return new SetupException{*this};
 }

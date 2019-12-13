@@ -2,15 +2,11 @@
 #include "authenticator_p.h"
 #include "engine_p.h"
 
-#include <random>
-
-#include <QtCore/QRandomGenerator>
-#include <QtCore/QCryptographicHash>
-
-#include <QtNetworkAuth/QOAuthHttpServerReplyHandler>
 using namespace QtDataSync;
 using namespace QtDataSync::firebase;
 using namespace QtDataSync::firebase::auth;
+using namespace std::chrono;
+using namespace std::chrono_literals;
 
 Q_LOGGING_CATEGORY(QtDataSync::logFbAuth, "qt.datasync.FirebaseAuthenticator")
 Q_LOGGING_CATEGORY(QtDataSync::logOAuth, "qt.datasync.OAuthAuthenticator")
@@ -31,27 +27,11 @@ void FirebaseAuthenticator::signIn()
 	if (!d->idToken.isEmpty() && d->expiresAt > QDateTime::currentDateTimeUtc()) { // token valid and not expired -> done
 		qCDebug(logFbAuth) << "Firebase-token still valid - sign in successfull";
 		Q_EMIT signInSuccessful(d->localId, d->idToken);
-	} else if (!d->refreshToken.isEmpty()) { // has refresh token -> refresh
-		qCDebug(logFbAuth) << "Firebase-token expired - refreshing...";
-		d->api->refreshToken(d->refreshToken)->onSucceeded([this](int, const RefreshResponse &response) {
-			Q_D(FirebaseAuthenticator);
-			if (response.token_type() != QStringLiteral("Bearer")) {
-				qCCritical(logFbAuth) << "Invalid token type" << response.token_type();
-				Q_EMIT signInFailed();
-				return;
-			}
-			d->localId = response.user_id();
-			d->idToken = response.id_token();
-			d->refreshToken = response.refresh_token();
-			d->expiresAt = QDateTime::currentDateTimeUtc().addSecs(response.expires_in());
-			qCDebug(logFbAuth) << "Firebase-token refresh successful";
-			Q_EMIT signInSuccessful(d->localId, d->idToken);
-		})->onAllErrors(this, [this](const QString &, int, QtRestClient::RestReply::Error){
-			qCWarning(logFbAuth) << "Refreshing the firebase-token failed - signing in again...";
-			firebaseSignIn();
-		});
-	} else { // no token and no refresh -> normal sign in
+	} else if (!d->refreshToken.isEmpty()) // has refresh token -> refresh
+		d->_q_refreshToken();
+	else { // no token and no refresh -> normal sign in
 		qCDebug(logFbAuth) << "Firebase-token invalid or expired - signing in...";
+		d->clearFbConfig();
 		firebaseSignIn();
 	}
 }
@@ -66,7 +46,9 @@ void FirebaseAuthenticator::deleteUser()
 	}
 
 	d->api->deleteAccount(d->idToken)->onSucceeded(this, [this](int) {
+		Q_D(FirebaseAuthenticator);
 		qCDebug(logFbAuth) << "Firebase account delete successful";
+		d->clearFbConfig();
 		Q_EMIT accountDeleted(true);
 	})->onAllErrors(this, [this](const QString &, int, QtRestClient::RestReply::Error){
 		qCWarning(logFbAuth) << "Firebase account delete failed";
@@ -82,16 +64,25 @@ FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, E
 	IAuthenticator{dd, engine}
 {
 	Q_D(FirebaseAuthenticator);
-	// setup rest api
+	d->engine = engine;
+
 	auto client = new QtRestClient::RestClient{QtRestClient::RestClient::DataMode::Json, this};
 	client->setModernAttributes();
 	client->setBaseUrl(QUrl{QStringLiteral("https://identitytoolkit.googleapis.com")});
 	client->setApiVersion(QVersionNumber{1});
-	client->addGlobalParameter(QStringLiteral("key"), EnginePrivate::setupFor(engine)->firebase.webApiKey);
+	client->addGlobalParameter(QStringLiteral("key"), EnginePrivate::setupFor(d->engine)->firebase.webApiKey);
 	d->api = new ApiClient{client->rootClass(), this};
 	d->api->setErrorTranslator(&FirebaseAuthenticatorPrivate::translateError);
 	QObjectPrivate::connect(d->api, &ApiClient::apiError,
 							d, &FirebaseAuthenticatorPrivate::_q_apiError);
+
+	d->refreshTimer = new QTimer{this};
+	d->refreshTimer->setSingleShot(true);
+	d->refreshTimer->setTimerType(Qt::VeryCoarseTimer);
+	QObjectPrivate::connect(d->refreshTimer, &QTimer::timeout,
+							d, &FirebaseAuthenticatorPrivate::_q_refreshToken);
+
+	d->loadFbConfig();
 }
 
 void FirebaseAuthenticator::completeSignIn(QString localId, QString idToken, QString refreshToken, const QDateTime &expiresAt, QString email)
@@ -102,10 +93,16 @@ void FirebaseAuthenticator::completeSignIn(QString localId, QString idToken, QSt
 	d->refreshToken = std::move(refreshToken);
 	d->expiresAt = expiresAt.toUTC();
 	d->email = std::move(email);
+	d->storeFbConfig();
+	d->startRefreshTimer();
 	Q_EMIT signInSuccessful(d->localId, d->idToken);
 }
 
 
+
+const QString FirebaseAuthenticatorPrivate::FirebaseGroupKey = QStringLiteral("auth/firebase");
+const QString FirebaseAuthenticatorPrivate::FirebaseRefreshTokenKey = QStringLiteral("auth/firebase/refreshToken");
+const QString FirebaseAuthenticatorPrivate::FirebaseEmailKey = QStringLiteral("auth/firebase/email");
 
 QString FirebaseAuthenticatorPrivate::translateError(const FirebaseError &error, int code)
 {
@@ -118,11 +115,72 @@ QString FirebaseAuthenticatorPrivate::translateError(const FirebaseError &error,
 	return QStringLiteral("Request failed with status code %1").arg(code);
 }
 
+void FirebaseAuthenticatorPrivate::_q_refreshToken()
+{
+	Q_Q(FirebaseAuthenticator);
+	qCDebug(logFbAuth) << "Firebase-token expired - refreshing...";
+	api->refreshToken(refreshToken)->onSucceeded(q, [this](int, const RefreshResponse &response) {
+		Q_Q(FirebaseAuthenticator);
+		if (response.token_type() != QStringLiteral("Bearer")) {
+			qCCritical(logFbAuth) << "Invalid token type" << response.token_type();
+			Q_EMIT q->signInFailed();
+			return;
+		}
+		qCDebug(logFbAuth) << "Firebase-token refresh successful";
+		localId = response.user_id();
+		idToken = response.id_token();
+		refreshToken = response.refresh_token();
+		expiresAt = QDateTime::currentDateTimeUtc().addSecs(response.expires_in());
+		storeFbConfig();
+		startRefreshTimer();
+		Q_EMIT q->signInSuccessful(localId, idToken);
+	})->onAllErrors(q, [this](const QString &, int, QtRestClient::RestReply::Error){
+		Q_Q(FirebaseAuthenticator);
+		qCWarning(logFbAuth) << "Refreshing the firebase-token failed - signing in again...";
+		clearFbConfig();
+		q->firebaseSignIn();
+	});
+}
+
 void FirebaseAuthenticatorPrivate::_q_apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType)
 {
 	qCWarning(logFbAuth) << "API request failed with reason" << errorType
 						 << "and code" << errorCode
 						 << "- error message:" << qUtf8Printable(errorString);
+}
+
+void FirebaseAuthenticatorPrivate::startRefreshTimer()
+{
+	// schedule a refresh, one minute early
+	auto expireDelta = milliseconds{QDateTime::currentDateTimeUtc().msecsTo(expiresAt)} - 1min;
+	if (expireDelta < 0ms)
+		_q_refreshToken();
+	else {
+		refreshTimer->start(expireDelta);
+		qCDebug(logFbAuth) << "Scheduled token refresh in"
+						   << expireDelta.count()
+						   << "ms";
+	}
+}
+
+void FirebaseAuthenticatorPrivate::loadFbConfig()
+{
+	auto settings = EnginePrivate::setupFor(engine)->settings;
+	refreshToken = settings->value(FirebaseRefreshTokenKey).toString();
+	email = settings->value(FirebaseEmailKey).toString();
+}
+
+void FirebaseAuthenticatorPrivate::storeFbConfig()
+{
+	auto settings = EnginePrivate::setupFor(engine)->settings;
+	settings->setValue(FirebaseRefreshTokenKey, refreshToken);
+	settings->setValue(FirebaseEmailKey, email);
+}
+
+void FirebaseAuthenticatorPrivate::clearFbConfig()
+{
+	auto settings = EnginePrivate::setupFor(engine)->settings;
+	settings->remove(FirebaseGroupKey);
 }
 
 
@@ -144,6 +202,8 @@ OAuthAuthenticator::OAuthAuthenticator(Engine *engine) :
 							d, &OAuthAuthenticatorPrivate::_q_oAuthError);
 	connect(d->oAuthFlow, &GoogleOAuthFlow::authorizeWithBrowser,
 			this, &OAuthAuthenticator::signInRequested);
+
+	d->loadOaConfig();
 }
 
 bool OAuthAuthenticator::doesPreferNative() const
@@ -173,16 +233,21 @@ void OAuthAuthenticator::firebaseSignIn()
 		d->oAuthFlow->refreshAccessToken();
 	} else { // no token or refresh token -> run full oauth flow
 		qCDebug(logOAuth) << "OAuth-token invalid or expired - signing in...";
+		d->clearOaConfig();
 		d->oAuthFlow->grant();
 	}
 }
 
 
+const QString OAuthAuthenticatorPrivate::OAuthGroupKey = QStringLiteral("auth/google-oauth");
+const QString OAuthAuthenticatorPrivate::OAuthRefreshTokenKey = QStringLiteral("auth/google-oauth/refreshToken");
 
 void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 {
 	Q_Q(OAuthAuthenticator);
 	qCDebug(logOAuth) << "OAuth-token granted - signing in to firebase...";
+	storeOaConfig();
+
 	SignInRequest request;
 	request.setRequestUri(oAuthFlow->requestUrl());
 	request.setPostBody(QStringLiteral("id_token=%1&providerId=google.com").arg(oAuthFlow->idToken()));
@@ -211,74 +276,26 @@ void OAuthAuthenticatorPrivate::_q_oAuthError(const QString &error, const QStrin
 	Q_Q(OAuthAuthenticator);
 	qCCritical(logOAuth).nospace() << "OAuth flow failed with error " << error
 								   << ": " << qUtf8Printable(errorDescription);
+	clearOaConfig();
 	Q_EMIT q->signInFailed();
 }
 
-
-
-GoogleOAuthFlow::GoogleOAuthFlow(quint16 port, QNetworkAccessManager *nam, QObject *parent) :
-	QOAuth2AuthorizationCodeFlow{nam, parent}
+void OAuthAuthenticatorPrivate::loadOaConfig()
 {
-	_handler = new QOAuthHttpServerReplyHandler{port, this};
-	connect(_handler, &QAbstractOAuthReplyHandler::tokensReceived,
-			this, &GoogleOAuthFlow::handleIdToken);
-	setReplyHandler(_handler);
-
-	setAuthorizationUrl(QStringLiteral("https://accounts.google.com/o/oauth2/v2/auth"));
-	setAccessTokenUrl(QStringLiteral("https://www.googleapis.com/oauth2/v4/token"));
-	setModifyParametersFunction([this](QAbstractOAuth::Stage stage, QVariantMap *parameters) {
-		switch (stage) {
-		case QAbstractOAuth::Stage::RequestingAuthorization:
-			// add parameters
-			parameters->insert(QStringLiteral("prompt"), QStringLiteral("select_account"));
-			parameters->insert(QStringLiteral("access_type"), QStringLiteral("offline"));
-			parameters->insert(QStringLiteral("code_challenge_method"), QStringLiteral("S256"));
-			parameters->insert(QStringLiteral("code_challenge"), createChallenge());
-			break;
-		case QAbstractOAuth::Stage::RequestingAccessToken:
-			parameters->insert(QStringLiteral("code_verifier"), _codeVerifier);
-			urlUnescape(parameters, QStringLiteral("code"));
-			urlUnescape(parameters, QStringLiteral("redirect_uri"));
-			break;
-		default:
-			break;
-		}
-	});
+	auto settings = EnginePrivate::setupFor(engine)->settings;
+	oAuthFlow->setRefreshToken(settings->value(OAuthRefreshTokenKey).toString());
 }
 
-QString GoogleOAuthFlow::idToken() const
+void OAuthAuthenticatorPrivate::storeOaConfig()
 {
-	return _idToken;
+	auto settings = EnginePrivate::setupFor(engine)->settings;
+	settings->setValue(OAuthRefreshTokenKey, oAuthFlow->refreshToken());
 }
 
-QUrl GoogleOAuthFlow::requestUrl() const
+void OAuthAuthenticatorPrivate::clearOaConfig()
 {
-	return _handler->callback();
-}
-
-void GoogleOAuthFlow::handleIdToken(const QVariantMap &values)
-{
-	_idToken = values.value(QStringLiteral("id_token")).toString();
-}
-
-QString GoogleOAuthFlow::createChallenge()
-{
-	if (!_challengeEngine)
-		_challengeEngine = BitEngine{QRandomGenerator::securelySeeded()};
-
-	QByteArray data(96, 0);
-	std::generate(data.begin(), data.end(), *_challengeEngine);
-	const auto verifierData = data.toBase64(QByteArray::Base64UrlEncoding);
-	_codeVerifier = QString::fromUtf8(verifierData);
-
-	return QString::fromUtf8(
-		QCryptographicHash::hash(verifierData, QCryptographicHash::Sha256)
-			.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
-}
-
-void GoogleOAuthFlow::urlUnescape(QVariantMap *parameters, const QString &key) const
-{
-	parameters->insert(key, QUrl::fromPercentEncoding(parameters->value(key).toString().toUtf8()));
+	auto settings = EnginePrivate::setupFor(engine)->settings;
+	settings->remove(OAuthGroupKey);
 }
 
 #include "moc_authenticator.cpp"
