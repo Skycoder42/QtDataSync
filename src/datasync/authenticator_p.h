@@ -17,52 +17,65 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT IdTokenFlow : public QOAuth2AuthorizationCodeFlow
+class Q_DATASYNC_EXPORT GoogleOAuthFlow : public QOAuth2AuthorizationCodeFlow
 {
 public:
-	IdTokenFlow(quint16 port, QObject *parent);
+	GoogleOAuthFlow(quint16 port, QNetworkAccessManager *nam, QObject *parent);
 
 	QString idToken() const;
+	QUrl requestUrl() const;
 
 private Q_SLOTS:
 	void handleIdToken(const QVariantMap &values);
 
 private:
-	QString _idToken;
-};
-
-class Q_DATASYNC_EXPORT OAuthAuthenticatorPrivate : public QObjectPrivate
-{
-	Q_DECLARE_PUBLIC(OAuthAuthenticator)
-
-public:
 	using BitEngine = std::independent_bits_engine<QRandomGenerator, std::numeric_limits<quint8>::digits, quint8>;
 
+	QAbstractOAuthReplyHandler *_handler;
+	QString _idToken;
+
+	std::optional<BitEngine> _challengeEngine;
+	QString _codeVerifier;
+
+	QString createChallenge();
+	void urlUnescape(QVariantMap *parameters, const QString &key) const;
+};
+
+
+
+class Q_DATASYNC_EXPORT FirebaseAuthenticatorPrivate : public QObjectPrivate
+{
+	Q_DECLARE_PUBLIC(FirebaseAuthenticator)
+
+public:
 	firebase::auth::ApiClient *api;
 
 	QString localId;
 	QString idToken;
 	QString refreshToken;
-	QDateTime expireDate;
-
-	bool preferNative = true;
-
-	IdTokenFlow *oAuthFlow = nullptr;
-	std::optional<BitEngine> challengeEngine;
-	QString codeVerifier;
+	QDateTime expiresAt;
+	QString email;
 
 	static QString translateError(const QtDataSync::firebase::FirebaseError &error, int code);
 
-	void initOAuth();
-	void runOAuth();
-
-	QString createChallenge();
-	void urlUnescape(QVariantMap *parameters, const QString &key) const;
-
-	void firebaseAuth();
+	void _q_apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType);
 };
 
-Q_DECLARE_LOGGING_CATEGORY(logAuth)
+class Q_DATASYNC_EXPORT OAuthAuthenticatorPrivate : public FirebaseAuthenticatorPrivate
+{
+	Q_DECLARE_PUBLIC(OAuthAuthenticator)
+
+public:
+	bool preferNative = true;
+
+	GoogleOAuthFlow *oAuthFlow = nullptr;
+
+	void _q_firebaseSignIn();
+	void _q_oAuthError(const QString &error, const QString &errorDescription);
+};
+
+Q_DECLARE_LOGGING_CATEGORY(logFbAuth)
+Q_DECLARE_LOGGING_CATEGORY(logOAuth)
 
 }
 

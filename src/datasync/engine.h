@@ -9,6 +9,8 @@ namespace QtDataSync {
 
 class IAuthenticator;
 
+class SetupPrivate;
+
 class EnginePrivate;
 class Q_DATASYNC_EXPORT Engine : public QObject
 {
@@ -17,8 +19,6 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 	Q_PROPERTY(IAuthenticator* authenticator READ authenticator CONSTANT)
 
 public:
-	explicit Engine(QObject *parent = nullptr);
-
 	IAuthenticator *authenticator() const;
 
 public Q_SLOTS:
@@ -27,6 +27,8 @@ public Q_SLOTS:
 private:
 	friend class Setup;
 	Q_DECLARE_PRIVATE(Engine)
+
+	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
 };
 
 }

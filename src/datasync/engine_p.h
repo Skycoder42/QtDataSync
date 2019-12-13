@@ -4,6 +4,7 @@
 #include "engine.h"
 #include "firebaseapibase_p.h"
 #include "authenticator.h"
+#include "setup_p.h"
 
 #include <QtCore/private/qobject_p.h>
 
@@ -13,18 +14,9 @@ class Q_DATASYNC_EXPORT EnginePrivate : public QObjectPrivate
 {
 	Q_DECLARE_PUBLIC(Engine)
 public:
-	struct FirebaseConfig {
-		QString projectId;
-		QString webApiKey;
-	};
+	QScopedPointer<SetupPrivate> setup;
 
-	struct OAuthConfig : public FirebaseConfig {
-		QString clientId;
-		QString secret;
-		quint16 port = 0;
-	};
-
-	IAuthenticator *authenticator = nullptr;
+	static const SetupPrivate *setupFor(const Engine *engine);
 };
 
 }

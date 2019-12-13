@@ -3,7 +3,6 @@
 
 #include "setup.h"
 #include "authenticator.h"
-#include "engine_p.h"
 
 #include <QtCore/QLoggingCategory>
 
@@ -12,9 +11,20 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT SetupPrivate
 {
 public:
-	EnginePrivate::OAuthConfig config;
+	struct {
+		QString projectId;
+		QString webApiKey;
+	} firebase;
+
+	struct {
+		quint16 port = 0;
+		QString clientId;
+		QString secret;
+	} oAuth;
 
 	IAuthenticator *authenticator = nullptr;
+
+	void finializeForEngine(Engine *engine);
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logSetup)

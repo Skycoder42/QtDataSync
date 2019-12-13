@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core restclientauth core-private
+QT = core restclient networkauth core-private
 
 HEADERS += \
 	authenticator.h \
@@ -24,15 +24,15 @@ REST_API_FILES += \
 	firebase/firebaseerrorelement.xml \
 	firebase/firebaseerrorcontent.xml \
 	firebase/firebaseerror.xml \
-	firebase/auth/mailsignuprequest.xml \
-	firebase/auth/mailsignupresponse.xml \
-	firebase/auth/mailsigninresponse.xml \
-	firebase/auth/refreshresponse.xml \
 	firebase/auth/auth_api.xml \
-	firebase/firestore/rawdata.xml \
+	firebase/auth/deleterequest.xml \
+	firebase/auth/refreshresponse.xml \
+	firebase/auth/signinrequest.xml \
+	firebase/auth/signinresponse.xml \
 	firebase/firestore/data.xml \
+	firebase/firestore/firestore_api.xml \
 	firebase/firestore/firestore_data.xml \
-	firebase/firestore/firestore_api.xml
+	firebase/firestore/rawdata.xml
 
 INCLUDEPATH += firebase
 

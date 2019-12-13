@@ -29,9 +29,10 @@ public:
 
 	Setup &setFirebaseProjectId(QString projectId);
 	Setup &setFirebaseWebApiKey(QString webApiKey);
+
+	Setup &setOAuthClientCallbackPort(quint16 port);
 	Setup &setOAuthClientId(QString clientId);
 	Setup &setOAuthClientSecret(QString secret);
-	Setup &setOAuthClientCallbackPort(quint16 port);
 
 	Setup &setAuthenticator(IAuthenticator *authenticator);
 

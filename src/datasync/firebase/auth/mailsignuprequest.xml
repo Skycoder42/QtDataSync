@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<RestGadget name="MailSignUpRequest"
-			namespace="QtDataSync::firebase::auth">
-	<Property key="email" type="QString"/>
-	<Property key="password" type="QString"/>
-	<Property key="returnSecureToken" type="bool">true</Property>
-</RestGadget>

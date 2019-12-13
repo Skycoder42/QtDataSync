@@ -6,31 +6,31 @@
 	<Include local="true">qtdatasync_global.h</Include>
 	<Include local="true">firebaseapibase_p.h</Include>
 	<Include local="true">firebaseerror.h</Include>
-	<Include local="true">mailsignuprequest.h</Include>
-	<Include local="true">mailsignupresponse.h</Include>
-	<Include local="true">mailsigninresponse.h</Include>
 	<Include local="true">refreshresponse.h</Include>
+	<Include local="true">deleterequest.h</Include>
+	<Include local="true">signinrequest.h</Include>
+	<Include local="true">signinresponse.h</Include>
 
 	<BaseUrl apiVersion="1">https://identitytoolkit.googleapis.com</BaseUrl>
 	<!--Parameter key="key" expr="true">FirebaseApiBase::firebaseKey()</Parameter-->
 
-	<Method name="mailSignUp"
-			verb="POST"
-			body="MailSignUpRequest"
-			returns="MailSignUpResponse">
-		<Path>accounts:signUp</Path>
-	</Method>
-	<Method name="mailSignIn"
-			verb="POST"
-			body="MailSignUpRequest"
-			returns="MailSignInResponse">
-		<Path>accounts:signInWithPassword</Path>
-	</Method>
 	<Method name="refreshToken"
 			verb="POST"
 			returns="RefreshResponse">
 		<Path>token</Path>
 		<Param key="refresh_token" type="QString"/>
 		<Param key="grant_type" type="QString" asStr="true">refresh_token</Param>
+	</Method>
+	<Method name="deleteAccount"
+			body="DeleteRequest"
+			verb="POST">
+		<Path>accounts:delete</Path>
+	</Method>
+
+	<Method name="oAuthSignIn"
+			verb="POST"
+			body="SignInRequest"
+			returns="SignInResponse">
+		<Path>accounts:signInWithIdp</Path>
 	</Method>
 </RestApi>

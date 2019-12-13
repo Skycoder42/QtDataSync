@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="SignInRequest"
+			namespace="QtDataSync::firebase::auth">
+	<Include>QtCore/QUrl</Include>
+
+	<Property key="requestUri" type="QUrl"/>
+	<Property key="postBody" type="QString"/>
+	<Property key="returnSecureToken" type="bool">true</Property>
+	<Property key="returnIdpCredential" type="bool">false</Property>
+</RestGadget>
