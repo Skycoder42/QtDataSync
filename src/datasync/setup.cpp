@@ -161,6 +161,35 @@ Setup &Setup::setAuthenticator(IAuthenticator *authenticator)
 
 Engine *Setup::createEngine(QObject *parent)
 {
+	if (!d->localDir){
+		d->localDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+		if (!d->localDir->exists() &&
+			!d->localDir->mkpath(QStringLiteral("."))) {
+			throw SetupException{
+				QStringLiteral("Unable to create local storage directory \"%1\"")
+					.arg(d->localDir->absolutePath())
+			};
+		}
+	}
+	qCDebug(logSetup).noquote() << "Using local directory:" << d->localDir->absolutePath();
+
+	// lock the setup
+	d->lock.reset(new QLockFile{d->localDir->absoluteFilePath(QStringLiteral(".datasync.lock"))});
+	d->lock->setStaleLockTime(std::numeric_limits<int>::max());
+	if (!d->lock->tryLock()) {
+		switch (d->lock->error()) {
+		case QLockFile::LockFailedError:
+			throw SetupLockedException{d->lock.data()};
+		case QLockFile::PermissionError:
+			throw SetupException{QStringLiteral("No permission to create lockfile in \"%1\"").arg(d->localDir->absolutePath())};
+		case QLockFile::UnknownError:
+			throw SetupException{QStringLiteral("Failed to create lockfile in \"%1\"").arg(d->localDir->absolutePath())};
+		default:
+			Q_UNREACHABLE();
+		}
+	}
+	qCDebug(logSetup).noquote() << "Successfully locked local directory";
+
 	return new Engine{std::move(d), parent};
 }
 
@@ -168,18 +197,6 @@ Engine *Setup::createEngine(QObject *parent)
 
 void SetupPrivate::finializeForEngine(Engine *engine)
 {
-	if (!localDir){
-		localDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-		if (!localDir->exists() &&
-			!localDir->mkpath(QStringLiteral("."))) {
-			throw SetupException{
-				QStringLiteral("Unable to create local storage directory \"%1\"")
-					.arg(localDir->absolutePath())
-			};
-		}
-	}
-	qCDebug(logSetup).noquote() << "Using local directory:" << localDir->absolutePath();
-
 	if (settings)
 		settings->setParent(engine);
 	else {
@@ -217,4 +234,43 @@ void SetupException::raise() const
 ExceptionBase *SetupException::clone() const
 {
 	return new SetupException{*this};
+}
+
+
+
+SetupLockedException::SetupLockedException(QLockFile *lock) :
+	SetupException{{}}
+{
+	if (lock->getLockInfo(&_pid, &_hostname, &_appname)) {
+		_error = QStringLiteral("Storage directory is already beeing used by application \"%1\" with PID %2 (host: %3)")
+					 .arg(_appname)
+					 .arg(_pid)
+					 .arg(_hostname);
+	} else
+		_error = QStringLiteral("Storage directory is already beeing used by another application");
+}
+
+qint64 SetupLockedException::pid() const
+{
+	return _pid;
+}
+
+QString SetupLockedException::hostname() const
+{
+	return _hostname;
+}
+
+QString SetupLockedException::appname() const
+{
+	return _appname;
+}
+
+void SetupLockedException::raise() const
+{
+	throw *this;
+}
+
+ExceptionBase *SetupLockedException::clone() const
+{
+	return new SetupLockedException{*this};
 }

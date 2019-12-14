@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core restclient networkauth core-private
+QT = core restclient networkauth sql core-private
 
 HEADERS += \
 	authenticator.h \
@@ -10,6 +10,7 @@ HEADERS += \
 	exception.h \
 	firebase/firebaseapibase_p.h \
 	googleoauthflow_p.h \
+	localstore_p.h \
 	qtdatasync_global.h \
 	setup.h \
 	setup_p.h
@@ -20,6 +21,7 @@ SOURCES += \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
 	googleoauthflow.cpp \
+	localstore.cpp \
 	setup.cpp
 
 REST_API_FILES += \

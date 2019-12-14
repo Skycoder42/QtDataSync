@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += core gui quick datasync webview
+QT += core gui quick datasync webview datasync-private
 
 TARGET = Sample
 

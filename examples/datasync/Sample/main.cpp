@@ -9,6 +9,8 @@
 #include <QtDataSync/Setup>
 #include <QtDataSync/IAuthenticator>
 
+#include <QtDataSync/private/localstore_p.h>
+
 int main(int argc, char *argv[])
 {
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -31,6 +33,9 @@ int main(int argc, char *argv[])
 
 		auto dsEngine = QtDataSync::Setup::fromConfig(parser.positionalArguments()[0])
 							.createEngine(qApp);
+
+		auto store = new QtDataSync::LocalStore{dsEngine, qApp};
+		qDebug() << store->count("test");
 
 		QQmlApplicationEngine engine;
 		const QUrl url(QStringLiteral("qrc:/main.qml"));
