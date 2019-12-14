@@ -1,6 +1,10 @@
 #include "googleoauthflow_p.h"
 
+#include <QtCore/QRandomGenerator>
 #include <QtCore/QCryptographicHash>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
+
 #include <QtNetwork/QNetworkReply>
 using namespace QtDataSync;
 
@@ -63,11 +67,10 @@ void GoogleOAuthFlow::handleIdToken(const QVariantMap &values)
 
 QString GoogleOAuthFlow::createChallenge()
 {
-	if (!_challengeEngine)
-		_challengeEngine = BitEngine{QRandomGenerator::securelySeeded()};
+	const auto rng = QRandomGenerator64::global();
 
-	QByteArray data(96, 0);
-	std::generate(data.begin(), data.end(), *_challengeEngine);
+	QByteArray data{96, Qt::Uninitialized};
+	rng->fillRange(reinterpret_cast<quint64*>(data.data()), data.size() / sizeof(quint64));
 	const auto verifierData = data.toBase64(QByteArray::Base64UrlEncoding);
 	_codeVerifier = QString::fromUtf8(verifierData);
 

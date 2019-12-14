@@ -11,11 +11,13 @@ const char *Exception::what() const noexcept
 void Exception::raise() const
 {
 	Q_ASSERT_X(false, Q_FUNC_INFO, "unimplemented");
+	std::abort();
 }
 
 QtDataSync::ExceptionBase *Exception::clone() const
 {
 	Q_ASSERT_X(false, Q_FUNC_INFO, "unimplemented");
+	return nullptr;
 }
 
 

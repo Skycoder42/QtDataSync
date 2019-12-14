@@ -45,7 +45,7 @@ jobs:
           - platform: wasm_32
             os: ubuntu-latest
             repository: linux_x64
-            emsdk: sdk-1.38.27-64bit
+            emsdk: sdk-fastcomp-1.38.27-64bit
           - platform: msvc2017_64
             os: windows-2016
             repository: windows_x86

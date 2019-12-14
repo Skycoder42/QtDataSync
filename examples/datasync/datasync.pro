@@ -1,5 +1,4 @@
 TEMPLATE = subdirs
 QT_FOR_CONFIG += core
 
-SUBDIRS += \
-	Sample
+!win32-g++: SUBDIRS += Sample

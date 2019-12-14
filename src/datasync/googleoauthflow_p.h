@@ -3,10 +3,7 @@
 
 #include "qtdatasync_global.h"
 
-#include <random>
 #include <optional>
-
-#include <QtCore/QRandomGenerator>
 
 #include <QtNetworkAuth/QOAuth2AuthorizationCodeFlow>
 #include <QtNetworkAuth/QOAuthHttpServerReplyHandler>
@@ -48,7 +45,6 @@ private:
 	GoogleOAuthHandler *_handler;
 	QString _idToken;
 
-	std::optional<BitEngine> _challengeEngine;
 	QString _codeVerifier;
 
 	QString createChallenge();
