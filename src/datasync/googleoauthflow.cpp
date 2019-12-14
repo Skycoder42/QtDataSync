@@ -11,12 +11,12 @@ using namespace QtDataSync;
 GoogleOAuthFlow::GoogleOAuthFlow(quint16 port, QNetworkAccessManager *nam, QObject *parent) :
 	QOAuth2AuthorizationCodeFlow{nam, parent}
 {
-	_handler = new GoogleOAuthHandler{port, this};
-	connect(_handler, &GoogleOAuthHandler::tokensReceived,
+	auto handler = new GoogleOAuthHandler{port, this};
+	connect(handler, &GoogleOAuthHandler::tokensReceived,
 			this, &GoogleOAuthFlow::handleIdToken);
-	connect(_handler, &GoogleOAuthHandler::apiError,
+	connect(handler, &GoogleOAuthHandler::apiError,
 			this, &GoogleOAuthFlow::error);
-	setReplyHandler(_handler);
+	setReplyHandler(handler);
 
 	setAuthorizationUrl(QStringLiteral("https://accounts.google.com/o/oauth2/v2/auth"));
 	setAccessTokenUrl(QStringLiteral("https://www.googleapis.com/oauth2/v4/token"));
@@ -52,7 +52,7 @@ QString GoogleOAuthFlow::idToken() const
 
 QUrl GoogleOAuthFlow::requestUrl() const
 {
-	return _handler->callback();
+	return replyHandler()->callback();
 }
 
 void GoogleOAuthFlow::setIdToken(QString idToken)

@@ -55,7 +55,7 @@ public:
 	QString qWhat() const override;
 
 	void raise() const override;
-	QException *clone() const override;
+	ExceptionBase *clone() const override;
 
 protected:
 	QString _error;

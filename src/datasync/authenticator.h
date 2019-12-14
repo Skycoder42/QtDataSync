@@ -6,6 +6,10 @@
 
 #include <QtCore/qobject.h>
 
+namespace QtRestClient {
+class RestClient;
+}
+
 namespace QtDataSync {
 
 class Q_DATASYNC_EXPORT IAuthenticator : public QObject
@@ -19,9 +23,11 @@ public Q_SLOTS:
 	virtual void signIn() = 0;
 	virtual void deleteUser() = 0;
 
+	virtual void abortSignIn() = 0;
+
 Q_SIGNALS:
 	void signInSuccessful(const QString &userId, const QString &idToken);
-	void signInFailed();
+	void signInFailed(const QString &errorMessage);
 	void accountDeleted(bool success);
 
 protected:
@@ -42,6 +48,8 @@ protected:
 	FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, Engine *engine);
 
 	virtual void firebaseSignIn() = 0;
+
+	QtRestClient::RestClient *client() const;
 	void completeSignIn(QString localId,
 						QString idToken,
 						QString refreshToken,
@@ -68,6 +76,8 @@ public:
 	bool doesPreferNative() const;
 
 public Q_SLOTS:
+	void abortSignIn() override;
+
 	void setPreferNative(bool preferNative);
 
 Q_SIGNALS:

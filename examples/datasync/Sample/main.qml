@@ -1,8 +1,6 @@
 import QtQuick 2.13
 import QtQuick.Controls 2.13
-import QtQuick.Layouts 1.13
 import QtQuick.Window 2.13
-import QtWebView 1.13
 
 ApplicationWindow {
 	visible: true
@@ -22,72 +20,56 @@ ApplicationWindow {
 		}
 	}
 
+	property bool authDone: false
 	Connections {
 		target: auth
-		onSignInRequested: stackView.push(webViewComponent, {
+		onSignInRequested: stackView.push(authComponent, {
 											  authUrl: authUrl
 										  });
-		onSignInSuccessful: stackView.pop()
-		onSignInFailed: stackView.pop()
+		onSignInSuccessful: {
+			authDone = true;
+			stackView.pop();
+		}
+
+		onSignInFailed:  {
+			authDone = true;
+			stackView.pop();
+			errorDialog.showError(qsTr("Authentication failed"), errorMessage);
+		}
 	}
 
 	Component {
-		id: webViewComponent
+		id: authComponent
 
-		Page {
-			id: webViewPage
-
-			property alias authUrl: webView.url
-
-			header: ToolBar {
-				RowLayout {
-					anchors.fill: parent
-
-					Label {
-						text: webView.title ? webView.title : qsTr("Loading…")
-						leftPadding: 8
-						font.pointSize: webViewPage.font.pointSize * 1.5
-						font.bold: true
-						elide: Label.ElideRight
-
-						verticalAlignment: Qt.AlignVCenter
-						Layout.fillWidth: true
-					}
-
-					ToolButton {
-						display: ToolButton.IconOnly
-						icon.name: webView.loading ? "gtk-cancel" : "view-refresh"
-						icon.source: ""
-						text: qsTr("Close")
-
-						onClicked: {
-							if (webView.loading)
-								webView.stop();
-							else
-								webView.reload();
-						}
-					}
-				}
+		AuthDialog {
+			onAbortSignIn: {
+				if (!authDone)
+					auth.abortSignIn();
 			}
 
-			WebView {
-				id: webView
-				anchors.fill: parent
-				onLoadingChanged: {
-					if (loadRequest.errorString)
-						console.error(loadRequest.errorString);
-				}
-
-				ProgressBar {
-					anchors.left: parent.left
-					anchors.right: parent.right
-					anchors.top: parent.top
-					visible: webView.loading
-					from: 0
-					to: 100
-					value: webView.loadProgress
-				}
+			StackView.onDeactivating: {
+				if (!authDone)
+					auth.abortSignIn();
 			}
+		}
+	}
+
+	Dialog {
+		id: errorDialog
+		title: qsTr("Error")
+		standardButtons: Dialog.Ok
+		modal: true
+		anchors.centerIn: Overlay.overlay
+
+		function showError(title, errorString) {
+			errorDialog.title = title;
+			errorLabel.text = errorString;
+			open();
+		}
+
+		Label {
+			id: errorLabel
+			anchors.fill: parent
 		}
 	}
 }

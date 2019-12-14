@@ -85,6 +85,12 @@ FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, E
 	d->loadFbConfig();
 }
 
+QtRestClient::RestClient *FirebaseAuthenticator::client() const
+{
+	Q_D(const FirebaseAuthenticator);
+	return d->api->restClient();
+}
+
 void FirebaseAuthenticator::completeSignIn(QString localId, QString idToken, QString refreshToken, const QDateTime &expiresAt, QString email)
 {
 	Q_D(FirebaseAuthenticator);
@@ -123,7 +129,7 @@ void FirebaseAuthenticatorPrivate::_q_refreshToken()
 		Q_Q(FirebaseAuthenticator);
 		if (response.token_type() != QStringLiteral("Bearer")) {
 			qCCritical(logFbAuth) << "Invalid token type" << response.token_type();
-			Q_EMIT q->signInFailed();
+			Q_EMIT q->signInFailed(FirebaseAuthenticator::tr("Failed renew firebase connection! Please try to sign in again."));
 			return;
 		}
 		qCDebug(logFbAuth) << "Firebase-token refresh successful";
@@ -212,6 +218,13 @@ bool OAuthAuthenticator::doesPreferNative() const
 	return d->preferNative;
 }
 
+void OAuthAuthenticator::abortSignIn()
+{
+	Q_D(OAuthAuthenticator);
+	d->aborted = true;
+	Q_EMIT signInFailed(tr("Sign-In aborted!"));
+}
+
 void OAuthAuthenticator::setPreferNative(bool preferNative)
 {
 	Q_D(OAuthAuthenticator);
@@ -225,6 +238,7 @@ void OAuthAuthenticator::setPreferNative(bool preferNative)
 void OAuthAuthenticator::firebaseSignIn()
 {
 	Q_D(OAuthAuthenticator);
+	d->aborted = false;
 	if (!d->oAuthFlow->idToken().isEmpty() && d->oAuthFlow->expirationAt().toUTC() > QDateTime::currentDateTimeUtc()) { // valid id token -> done
 		qCDebug(logOAuth) << "OAuth-token still valid - sign in successfull";
 		d->_q_firebaseSignIn();
@@ -245,6 +259,12 @@ const QString OAuthAuthenticatorPrivate::OAuthRefreshTokenKey = QStringLiteral("
 void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 {
 	Q_Q(OAuthAuthenticator);
+	if (aborted) {
+		aborted = false;
+		clearOaConfig();
+		return;
+	}
+
 	qCDebug(logOAuth) << "OAuth-token granted - signing in to firebase...";
 	storeOaConfig();
 
@@ -256,7 +276,8 @@ void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 		if (response.needConfirmation()) {
 			qCCritical(logOAuth) << "Another account with the same credentials already exists!"
 								 << "The user must log in with that account instead or link the two accounts!";
-			Q_EMIT q->signInFailed();
+			Q_EMIT q->signInFailed(OAuthAuthenticator::tr("Another account with the same credentials already exists! "
+														  "You have to log in with that account instead or link the two accounts!"));
 			return;
 		}
 		qCDebug(logOAuth) << "Firebase sign in successful";
@@ -277,7 +298,10 @@ void OAuthAuthenticatorPrivate::_q_oAuthError(const QString &error, const QStrin
 	qCCritical(logOAuth).nospace() << "OAuth flow failed with error " << error
 								   << ": " << qUtf8Printable(errorDescription);
 	clearOaConfig();
-	Q_EMIT q->signInFailed();
+	if (aborted)
+		aborted = false;
+	else
+		Q_EMIT q->signInFailed(OAuthAuthenticator::tr("Failed to sign in with Google-Account!"));
 }
 
 void OAuthAuthenticatorPrivate::loadOaConfig()

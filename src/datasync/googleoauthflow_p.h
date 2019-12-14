@@ -40,9 +40,6 @@ private Q_SLOTS:
 	void handleIdToken(const QVariantMap &values);
 
 private:
-	using BitEngine = std::independent_bits_engine<QRandomGenerator, std::numeric_limits<quint8>::digits, quint8>;
-
-	GoogleOAuthHandler *_handler;
 	QString _idToken;
 
 	QString _codeVerifier;

@@ -54,6 +54,7 @@ public:
 	bool preferNative = true;
 
 	GoogleOAuthFlow *oAuthFlow = nullptr;
+	bool aborted = false;
 
 	void _q_firebaseSignIn();
 	void _q_oAuthError(const QString &error, const QString &errorDescription);
