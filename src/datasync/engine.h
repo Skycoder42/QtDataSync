@@ -5,6 +5,8 @@
 
 #include <QtCore/qobject.h>
 
+#include <QtSql/qsqldatabase.h>
+
 namespace QtDataSync {
 
 class IAuthenticator;
@@ -20,6 +22,15 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 
 public:
 	IAuthenticator *authenticator() const;
+
+	Q_INVOKABLE bool registerForSync(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
+									 const QString &table = {},
+									 const QStringList &fields = {});
+	Q_INVOKABLE bool registerForSync(QSqlDatabase database,
+									 const QString &table = {},
+									 const QStringList &fields = {});
+	Q_INVOKABLE bool removeFromSync(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
+									const QString &table = {});
 
 public Q_SLOTS:
 	void start();

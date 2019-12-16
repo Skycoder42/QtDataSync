@@ -8,13 +8,10 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - 5.13.2
+          - 5.14.0
         platform:
           - gcc_64
-          - android_arm64_v8a
-          - android_x86_64
-          - android_armv7
-          - android_x86
+          - android
           - wasm_32
           - msvc2017_64
           - msvc2017
@@ -30,16 +27,7 @@ jobs:
           - platform: gcc_64
             os: ubuntu-latest
             repository: linux_x64
-          - platform: android_arm64_v8a
-            os: ubuntu-latest
-            repository: linux_x64
-          - platform: android_x86_64
-            os: ubuntu-latest
-            repository: linux_x64
-          - platform: android_armv7
-            os: ubuntu-latest
-            repository: linux_x64
-          - platform: android_x86
+          - platform: android
             os: ubuntu-latest
             repository: linux_x64
           - platform: wasm_32
@@ -165,7 +153,7 @@ jobs:
       - uses: Skycoder42/action-deploy-qt@master
         with:
           token: ${{secrets.GITHUB_TOKEN}}
-          version: 5.13.2
+          version: 5.14.0
           host: ${{secrets.SSHFS_HOST}}
           key: ${{secrets.SSHFS_KEY}}
           port: ${{secrets.SSHFS_PORT}}

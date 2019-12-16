@@ -3,13 +3,15 @@
 #include <QQmlContext>
 #include <QCommandLineParser>
 #include <QDebug>
+#include <QStandardPaths>
+#include <QDir>
 #include <QtWebView/QtWebView>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
 
 #include <QtDataSync/Engine>
 #include <QtDataSync/Setup>
 #include <QtDataSync/IAuthenticator>
-
-#include <QtDataSync/private/localstore_p.h>
 
 int main(int argc, char *argv[])
 {
@@ -34,8 +36,23 @@ int main(int argc, char *argv[])
 		auto dsEngine = QtDataSync::Setup::fromConfig(parser.positionalArguments()[0])
 							.createEngine(qApp);
 
-		auto store = new QtDataSync::LocalStore{dsEngine, qApp};
-		qDebug() << store->count("test");
+		// create database
+		auto db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));
+		db.setDatabaseName(QDir{QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)}
+							   .absoluteFilePath(QStringLiteral("test.db")));
+		if (!db.open())
+			return EXIT_FAILURE;
+		if (!db.tables().contains(QStringLiteral("Test"))) {
+			QSqlQuery tc{db};
+			if (!tc.exec(QStringLiteral("CREATE TABLE Test ("
+								   "	id		INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "
+								   "	name	TEXT NOT NULL, "
+								   "	data	BLOB NOT NULL "
+									   ");")))
+				return EXIT_FAILURE;
+		}
+		if (!dsEngine->registerForSync(db, QStringLiteral("Test")))
+			return EXIT_FAILURE;
 
 		QQmlApplicationEngine engine;
 		const QUrl url(QStringLiteral("qrc:/main.qml"));

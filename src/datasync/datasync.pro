@@ -5,23 +5,23 @@ QT = core restclient networkauth sql core-private
 HEADERS += \
 	authenticator.h \
 	authenticator_p.h \
+	databasewatcher_p.h \
 	engine.h \
 	engine_p.h \
 	exception.h \
 	firebase/firebaseapibase_p.h \
 	googleoauthflow_p.h \
-	localstore_p.h \
 	qtdatasync_global.h \
 	setup.h \
 	setup_p.h
 
 SOURCES += \
 	authenticator.cpp \
+	databasewatcher.cpp \
 	engine.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
 	googleoauthflow.cpp \
-	localstore.cpp \
 	setup.cpp
 
 REST_API_FILES += \
