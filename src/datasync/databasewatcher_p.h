@@ -9,6 +9,7 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlField>
+#include <QtSql/QSqlDriver>
 
 namespace QtDataSync {
 
@@ -52,35 +53,42 @@ public:
 	};
 	Q_ENUM(ChangeState)
 
-	class Q_DATASYNC_EXPORT ITypeConverter
-	{
-		Q_DISABLE_COPY(ITypeConverter)
-	public:
-		ITypeConverter();
-		virtual ~ITypeConverter();
+	static const QString TablePrefix;
 
-		virtual QString sqlTypeName(const QSqlField &field) const = 0;
-	};
+	explicit DatabaseWatcher(QSqlDatabase &&db, QObject *parent = nullptr);
 
-	explicit DatabaseWatcher(QSqlDatabase &&db,
-							 ITypeConverter *typeConverter,
-							 QObject *parent = nullptr);
+	QSqlDatabase database() const;
 
-	void addAllTables(QSql::TableType type);
-	void addTable(const QString &name, QString primaryType = {});
+	// table setup
+	bool hasTables() const;
+
+	bool addAllTables(QSql::TableType type = QSql::Tables);
+	bool addTable(const QString &name, const QStringList &fields = {}, QString primaryType = {});
+
+	void removeAllTables();
+	void removeTable(const QString &name, bool removeRef = true);
+
+	void unsyncAllTables();
+	void unsyncTable(const QString &name, bool removeRef = true);
+
+	// sync
+	quint64 changeCount() const; // get current change count for all registered tables
+	bool processChanges(const QString &tableName,
+						const std::function<void(QVariant, quint64, ChangeState)> &callback,
+						int limit = 100);
 
 Q_SIGNALS:
-	void databaseError(const QString &dbConName, const QString &error, QPrivateSignal);
+	void triggerSync(const QString &tableName, QPrivateSignal);
+
+private Q_SLOTS:
+	void dbNotify(const QString &name);
 
 private:
 	QSqlDatabase _db;
-	QScopedPointer<ITypeConverter> _typeConverter;
-};
 
-class Q_DATASYNC_EXPORT SqliteTypeConverter : public DatabaseWatcher::ITypeConverter
-{
-public:
-	QString sqlTypeName(const QSqlField &field) const override;
+	QHash<QString, QStringList> _tables;
+
+	QString sqlTypeName(const QSqlField &field) const;
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logDbWatcher)

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 									   ");")))
 				return EXIT_FAILURE;
 		}
-		if (!dsEngine->registerForSync(db, QStringLiteral("Test")))
+		if (!dsEngine->syncTable(QStringLiteral("Test"), db))
 			return EXIT_FAILURE;
 
 		QQmlApplicationEngine engine;

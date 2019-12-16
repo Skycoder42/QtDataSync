@@ -24,6 +24,9 @@ public:
 	QHash<QString, DatabaseWatcher*> dbWatchers;
 
 	static const SetupPrivate *setupFor(const Engine *engine);
+
+	DatabaseWatcher *watcher(QSqlDatabase &&database);
+	void removeWatcher(DatabaseWatcher *watcher);
 };
 
 }

@@ -8,32 +8,49 @@ using namespace QtDataSync;
 
 Q_LOGGING_CATEGORY(QtDataSync::logDbWatcher, "qt.datasync.DatabaseWatcher")
 
-DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, ITypeConverter *typeConverter, QObject *parent) :
-	QObject{parent},
-	_db{std::move(db)},
-	_typeConverter{typeConverter}
-{}
+const QString DatabaseWatcher::TablePrefix = QStringLiteral("__qtdatasync_sync_data_");
 
-void DatabaseWatcher::addAllTables(QSql::TableType type = QSql::Tables)
+DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, QObject *parent) :
+	QObject{parent},
+	_db{std::move(db)}
 {
-	for (const auto &table : _db.tables(type)) {
-		if (table.startsWith(QStringLiteral("__qtdatasync")))
-			continue;
-		addTable(table);
-	}
+	auto driver = _db.driver();
+	connect(driver, qOverload<const QString &>(&QSqlDriver::notification),
+			this, &DatabaseWatcher::dbNotify);
 }
 
-void DatabaseWatcher::addTable(const QString &name, QString primaryType)
+QSqlDatabase DatabaseWatcher::database() const
+{
+	return _db;
+}
+
+bool DatabaseWatcher::hasTables() const
+{
+	return !_tables.isEmpty();
+}
+
+bool DatabaseWatcher::addAllTables(QSql::TableType type)
+{
+	for (const auto &table : _db.tables(type)) {
+		if (table.startsWith(TablePrefix))
+			continue;
+		if (!addTable(table))
+			return false;
+	}
+	return true;
+}
+
+bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, QString primaryType)
 {
 	try {
 		// step 1: create the sync attachment table, if not existant yet
-		const QString syncTableName = QStringLiteral("__qtdatasync_sync_data_") + name;
+		const QString syncTableName = TablePrefix + name;
 		if (!_db.tables().contains(syncTableName)) {
-			ExTransaction transAct{_db};
+			ExTransaction transact{_db};
 
 			const auto pKey = _db.primaryIndex(name).fieldName(0);
 			if (primaryType.isEmpty())
-				primaryType = _typeConverter->sqlTypeName(_db.record(name).field(pKey));
+				primaryType = sqlTypeName(_db.record(name).field(pKey));
 
 			ExQuery createTableQuery{_db};
 			createTableQuery.exec(QStringLiteral("CREATE TABLE \"%1\" ( "
@@ -121,21 +138,158 @@ void DatabaseWatcher::addTable(const QString &name, QString primaryType)
 			qCDebug(logDbWatcher) << "Inflated sync table for" << name
 								  << "with current data of that table";
 
-			transAct.commit();
+			transact.commit();
 			qCInfo(logDbWatcher) << "Created synchronization tables for table" << name;
 		} else
 			qCDebug(logDbWatcher) << "Sync tables for table" << name << "already exist";
+
+		// step 2: register notification hook for the sync table
+		_tables.insert(name, fields);
+		if (!_db.driver()->subscribeToNotification(syncTableName))
+			qCWarning(logDbWatcher) << "Unable to register update notification hook for sync table for" << name;  // no hard error, as data is still synced, just not live
+
+		return true;
 	} catch (QSqlError &error) {
-		qCCritical(logDbWatcher).noquote() << error.text();
-		Q_EMIT databaseError(_db.connectionName(), error.text(), {});
+		qCCritical(logDbWatcher) << "Failed to synchronize table" << name
+								 << "with error:" << qUtf8Printable(error.text());
+		return false;
 	}
 }
 
+void DatabaseWatcher::removeAllTables()
+{
+	for (auto it = _tables.keyBegin(); it != _tables.keyEnd(); ++it)
+		removeTable(*it, false);
+	_tables.clear();
+}
 
+void DatabaseWatcher::removeTable(const QString &name, bool removeRef)
+{
+	_db.driver()->unsubscribeFromNotification(TablePrefix + name);
+	if (removeRef)
+		_tables.remove(name);
+}
 
-DatabaseWatcher::ITypeConverter::ITypeConverter() = default;
+void DatabaseWatcher::unsyncAllTables()
+{
+	for (auto it = _tables.keyBegin(); it != _tables.keyEnd(); ++it)
+		unsyncTable(*it, false);
+	_tables.clear();
+}
 
-DatabaseWatcher::ITypeConverter::~ITypeConverter() = default;
+void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
+{
+	try {
+		// step 1: remove table
+		removeTable(name, removeRef);
+
+		// step 2: remove all sync stuff
+		const QString syncTableName = TablePrefix + name;
+		if (_db.tables().contains(syncTableName)) {
+			ExTransaction transact{_db};
+
+			ExQuery dropDeleteTrigger{_db};
+			dropDeleteTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_delete_trigger\"").arg(syncTableName));
+			qCDebug(logDbWatcher) << "Dropped sync table delete trigger index for" << name;
+
+			ExQuery dropRenameTrigger{_db};
+			dropRenameTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_rename_trigger\"").arg(syncTableName));
+			qCDebug(logDbWatcher) << "Dropped sync table rename trigger index for" << name;
+
+			ExQuery dropUpdateTrigger{_db};
+			dropUpdateTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_update_trigger\"").arg(syncTableName));
+			qCDebug(logDbWatcher) << "Dropped sync table update trigger index for" << name;
+
+			ExQuery dropInsertTrigger{_db};
+			dropInsertTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_insert_trigger\"").arg(syncTableName));
+			qCDebug(logDbWatcher) << "Dropped sync table insert trigger index for" << name;
+
+			ExQuery dropIndexQuery{_db};
+			dropIndexQuery.exec(QStringLiteral("DROP INDEX \"%1_idx_changed\"").arg(syncTableName));
+			qCDebug(logDbWatcher) << "Dropped sync table index for" << name;
+
+			ExQuery dropTableQuery{_db};
+			dropTableQuery.exec(QStringLiteral("DROP TABLE \"%1\"").arg(syncTableName));
+			qCDebug(logDbWatcher) << "Dropped sync table for" << name;
+
+			transact.commit();
+			qCInfo(logDbWatcher) << "Dropped synchronization tables for table" << name;
+		} else
+			qCDebug(logDbWatcher) << "Sync tables for table" << name << "do not exist";
+	} catch (QSqlError &error) {
+		qCCritical(logDbWatcher) << "Failed to drop synchronization tables for table" << name
+								 << "with error:" << qUtf8Printable(error.text());
+	}
+}
+
+quint64 DatabaseWatcher::changeCount() const
+{
+	return 0;
+}
+
+bool DatabaseWatcher::processChanges(const QString &tableName, const std::function<void(QVariant, quint64, ChangeState)> &callback, int limit)
+{
+	try {
+		const QString syncTableName = TablePrefix + tableName;
+		ExQuery changeQuery{_db};
+		changeQuery.prepare(QStringLiteral("SELECT pkey, version, changed "
+										   "FROM \"%1\" "
+										   "WHERE changed != 0 "
+										   "LIMIT ?")
+								.arg(syncTableName));
+		changeQuery.addBindValue(limit);
+		changeQuery.exec();
+
+		while (changeQuery.next()) {
+			callback(changeQuery.value(0),
+					 changeQuery.value(1).toULongLong(),
+					 static_cast<ChangeState>(changeQuery.value(2).toInt()));
+		}
+		return changeQuery.size() > 0;
+	} catch (QSqlError &error) {
+		qCCritical(logDbWatcher) << "Failed to fetch change data for table" << tableName
+								 << "with error:" << qUtf8Printable(error.text());
+		return false;
+	}
+}
+
+void DatabaseWatcher::dbNotify(const QString &name)
+{
+	if (name.size() <= TablePrefix.size())
+		return;
+	const auto origName = name.mid(TablePrefix.size());
+	if (_tables.contains(origName))
+		Q_EMIT triggerSync(origName, {});
+}
+
+QString DatabaseWatcher::sqlTypeName(const QSqlField &field) const
+{
+	switch (static_cast<int>(field.type())) {
+	case QMetaType::Nullptr:
+		return QStringLiteral("NULL");
+	case QMetaType::Bool:
+	case QMetaType::Char:
+	case QMetaType::SChar:
+	case QMetaType::UChar:
+	case QMetaType::Short:
+	case QMetaType::UShort:
+	case QMetaType::Int:
+	case QMetaType::UInt:
+	case QMetaType::Long:
+	case QMetaType::ULong:
+	case QMetaType::LongLong:
+	case QMetaType::ULongLong:
+		return QStringLiteral("INTEGER");
+	case QMetaType::Double:
+	case QMetaType::Float:
+		return QStringLiteral("REAL");
+	case QMetaType::QString:
+		return QStringLiteral("TEXT");
+	case QMetaType::QByteArray:
+	default:
+		return QStringLiteral("BLOB");
+	}
+}
 
 
 
@@ -197,35 +351,4 @@ void ExTransaction::rollback()
 {
 	_db->rollback();
 	_db.reset();
-}
-
-
-
-QString SqliteTypeConverter::sqlTypeName(const QSqlField &field) const
-{
-	switch (static_cast<int>(field.type())) {
-	case QMetaType::Nullptr:
-		return QStringLiteral("NULL");
-	case QMetaType::Bool:
-	case QMetaType::Char:
-	case QMetaType::SChar:
-	case QMetaType::UChar:
-	case QMetaType::Short:
-	case QMetaType::UShort:
-	case QMetaType::Int:
-	case QMetaType::UInt:
-	case QMetaType::Long:
-	case QMetaType::ULong:
-	case QMetaType::LongLong:
-	case QMetaType::ULongLong:
-		return QStringLiteral("INTEGER");
-	case QMetaType::Double:
-	case QMetaType::Float:
-		return QStringLiteral("REAL");
-	case QMetaType::QString:
-		return QStringLiteral("TEXT");
-	case QMetaType::QByteArray:
-	default:
-		return QStringLiteral("BLOB");
-	}
 }

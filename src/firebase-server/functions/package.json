@@ -1,0 +1,22 @@
+{
+  "name": "qtdatasync-firestore-server-functions",
+  "description": "Firestore cloud functions required for QtDataSync to work correctly",
+  "dependencies": {
+	"firebase-admin": "^8.8.0",
+	"firebase-functions": "^3.3.0"
+  },
+  "devDependencies": {
+	"@types/node": "^12.12.18",
+	"firebase-tools": "^7.10.0",
+	"typescript": "^3.7.3"
+  },
+  "scripts": {
+	"prune": "npm prune --production",
+	"deploy": "./node_modules/.bin/firebase deploy --only functions",
+	"prune-deploy": "npm run prune && npm run deploy"
+  },
+  "engines": {
+	"node": "10"
+  },
+  "private": true
+}
