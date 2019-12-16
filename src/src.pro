@@ -1,7 +1,8 @@
 TEMPLATE = subdirs
 
-SUBDIRS += datasync \
+SUBDIRS += \
+	datasync \
 	firebase-server \
-#	translations
+	translations
 
 QMAKE_EXTRA_TARGETS += run-tests

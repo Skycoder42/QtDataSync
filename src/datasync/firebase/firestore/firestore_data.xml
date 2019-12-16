@@ -19,13 +19,53 @@
 			<ParamSegment key="documentId" type="QString"/>
 		</Path>
 	</Method>
-	<Method name="createEntry"
+	<Method name="query"
 			verb="POST"
+			returns="Data">
+		<Path>:runQuery</Path>
+		<!--body>
+		{
+		  "structuredQuery": {
+			"from": [
+			  {
+				"collectionId": "TestClass"
+			  }
+			],
+			"where": {
+			  "fieldFilter": {
+				"field": {
+				  "fieldPath": "timestamp"
+				},
+				"op": "GREATER_THAN_OR_EQUAL",
+				"value": {
+				  "timestampValue": "2019-12-16T20:05:17.547Z"
+				}
+			  }
+			},
+			"orderBy": [
+			  {
+				"field": {
+				  "fieldPath": "timestamp"
+				},
+				"direction": "ASCENDING"
+			  }
+			],
+			"offset": 0,
+			"limit": 100
+		  }
+		}
+		</-->
+	</Method>
+	<Method name="update"
+			verb="PATCH"
 			body="RawData"
 			returns="Data">
 		<Path>
 			<ParamSegment key="collectionId" type="QString"/>
+			<ParamSegment key="documentId" type="QString"/>
 		</Path>
-		<Param key="documentId" type="QString"/>
+		<!--Param key="currentDocument.exists" type="bool"/-->
+		<!--Param key="currentDocument.updateTime" type="QDateTime"/-->
+		<!--Param key="updateMask.fieldPaths" type="QString" multi="true"/-->
 	</Method>
 </RestClass>
