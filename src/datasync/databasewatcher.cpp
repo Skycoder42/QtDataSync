@@ -8,6 +8,7 @@ using namespace QtDataSync;
 
 Q_LOGGING_CATEGORY(QtDataSync::logDbWatcher, "qt.datasync.DatabaseWatcher")
 
+const QString DatabaseWatcher::MetaTable = QStringLiteral("__qtdatasync_meta_data");
 const QString DatabaseWatcher::TablePrefix = QStringLiteral("__qtdatasync_sync_data_");
 
 DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, QObject *parent) :
@@ -43,26 +44,51 @@ bool DatabaseWatcher::addAllTables(QSql::TableType type)
 bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, QString primaryType)
 {
 	try {
-		// step 1: create the sync attachment table, if not existant yet
+		// step 0: verify primary key
+		const auto pIndex = _db.primaryIndex(name);
+		if (pIndex.count() != 1) {
+			qCCritical(logDbWatcher) << "Cannot synchronize table" << name
+									 << "with composite primary key!";
+			return false;
+		}
+		const auto pKey = pIndex.fieldName(0);
+
+		// step 1: create the global sync table
+		if (!_db.tables().contains(MetaTable)) {
+			ExQuery createTableQuery{_db};
+			createTableQuery.exec(QStringLiteral("CREATE TABLE \"%1\" ( "
+												 "	tableName	TEXT NOT NULL, "
+												 "	pkey		TEXT NOT NULL, "
+												 "	active		INTEGER NOT NULL DEFAULT 0 CHECK(active == 0 OR active == 1) , "
+												 "	lastSync	TEXT, "
+												 "	PRIMARY KEY(tableName) "
+												 ") WITHOUT ROWID;")
+									  .arg(MetaTable));
+			qCInfo(logDbWatcher) << "Created sync metadata table";
+		} else
+			qCDebug(logDbWatcher) << "Sync metadata table already exist";
+
+		// step 2: update internal tables
+		ExTransaction transact{_db};
+		// step 2.1: create the sync attachment table, if not existant yet
 		const QString syncTableName = TablePrefix + name;
 		if (!_db.tables().contains(syncTableName)) {
-			ExTransaction transact{_db};
 
-			const auto pKey = _db.primaryIndex(name).fieldName(0);
 			if (primaryType.isEmpty())
 				primaryType = sqlTypeName(_db.record(name).field(pKey));
 
 			ExQuery createTableQuery{_db};
 			createTableQuery.exec(QStringLiteral("CREATE TABLE \"%1\" ( "
 												 "	pkey	%2 NOT NULL, "
-												 "	version	INTEGER NOT NULL, "
+												 "	tstamp	TEXT NOT NULL, "
 												 "	changed	INTEGER NOT NULL CHECK(changed >= 0 AND changed <= 2), "  // (unchanged, changed, deleted)
-												 "PRIMARY KEY(pkey));")
+												 "	PRIMARY KEY(pkey)"
+												 ");")
 									  .arg(syncTableName, primaryType));
 			qCDebug(logDbWatcher) << "Created sync table for" << name;
 
 			ExQuery createIndexQuery{_db};
-			createIndexQuery.exec(QStringLiteral("CREATE INDEX \"%1_idx_changed\" ON \"%1\" (changed);")
+			createIndexQuery.exec(QStringLiteral("CREATE INDEX \"%1_idx_changed\" ON \"%1\" (changed ASC);")
 									  .arg(syncTableName));
 			qCDebug(logDbWatcher) << "Created sync table changed index for" << name;
 
@@ -71,14 +97,10 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 													"AFTER INSERT ON \"%2\" "
 													"FOR EACH ROW "
 													"BEGIN "
-														// add a default value - but only if not exists yet
-													"	INSERT OR IGNORE INTO \"%1\" "
-													"	(pkey, version, changed) "
-													"	VALUES(NEW.\"%3\", 0, 0); "  // 0 == unchanged
-														// then set version and changed, works for both, existing and created
-													"	UPDATE \"%1\" "
-													"	SET version = version + 1, changed = 1 "  // 1 == changed
-													"	WHERE pkey = NEW.\"%3\"; "  // 1 == changed
+														// add or replace, in case deleted still exists
+													"	INSERT OR REPLACE INTO \"%1\" "
+													"	(pkey, tstamp, changed) "
+													"	VALUES(NEW.\"%3\", strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1); "  // 1 == changed
 													"END;")
 									 .arg(syncTableName, name, pKey));
 			qCDebug(logDbWatcher) << "Created sync table insert trigger index for" << name;
@@ -91,7 +113,7 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 													"BEGIN "
 														// set version and changed
 													"	UPDATE \"%1\" "
-													"	SET version = version + 1, changed = 1 "  // 1 == changed
+													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
 													"	WHERE pkey = NEW.\"%3\"; "
 													"END;")
 										 .arg(syncTableName, name, pKey));
@@ -105,14 +127,12 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 													"BEGIN "
 														// mark old id as deleted
 													"	UPDATE \"%1\" "
-													"	SET version = version + 1, changed = 2 "  // 2 == deleted
+													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 2 "  // 2 == deleted
 													"	WHERE pkey = OLD.\"%3\"; "
-														// then insert (or replace) new entry with new id but same version as deleted
+														// then insert (or replace) new entry with new id but same timestamp
 													"	INSERT OR REPLACE INTO \"%1\" "
-													"	(pkey, version, changed) "
-													"	VALUES(NEW.\"%3\", ( "
-													"		SELECT version FROM \"%1\" WHERE pKey = OLD.\"%3\" "
-													"	), 1); "  // 1 == changed
+													"	(pkey, tstamp, changed) "
+													"	VALUES(NEW.\"%3\", strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1); "  // 1 == changed
 													"END;")
 										 .arg(syncTableName, name, pKey));
 			qCDebug(logDbWatcher) << "Created sync table rename trigger index for" << name;
@@ -124,7 +144,7 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 													"BEGIN "
 														// set version and changed
 													"	UPDATE \"%1\" "
-													"	SET version = version + 1, changed = 2 "  // 2 == deleted
+													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 2 "  // 2 == deleted
 													"	WHERE pkey = OLD.\"%3\"; "
 													"END;")
 										 .arg(syncTableName, name, pKey));
@@ -132,21 +152,50 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 
 			ExQuery inflateTableTrigger{_db};
 			inflateTableTrigger.exec(QStringLiteral("INSERT INTO \"%1\" "
-													"(pkey, version, changed) "
-													"SELECT \"%3\", 1, 1 FROM \"%2\";")
+													"(pkey, tstamp, changed) "
+													"SELECT \"%3\", strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1 "
+													"FROM \"%2\";")
 										 .arg(syncTableName, name, pKey));
 			qCDebug(logDbWatcher) << "Inflated sync table for" << name
 								  << "with current data of that table";
 
-			transact.commit();
 			qCInfo(logDbWatcher) << "Created synchronization tables for table" << name;
 		} else
 			qCDebug(logDbWatcher) << "Sync tables for table" << name << "already exist";
 
-		// step 2: register notification hook for the sync table
+		// step 2.2: add to metadata table
+		ExQuery addMetaDataQuery{_db};
+		addMetaDataQuery.prepare(QStringLiteral("INSERT OR IGNORE INTO \"%1\" "
+												"(tableName, pkey, active, lastSync) "
+												"VALUES(?, ?, ?, NULL);")
+								 .arg(MetaTable));
+		addMetaDataQuery.addBindValue(name);
+		addMetaDataQuery.addBindValue(pKey);
+		addMetaDataQuery.addBindValue(true);
+		addMetaDataQuery.exec();
+		if (addMetaDataQuery.numRowsAffected() == 0) { // ignored -> update instead
+			ExQuery updateMetaDataQuery{_db};
+			updateMetaDataQuery.prepare(QStringLiteral("UPDATE \"%1\" "
+													   "SET active = ? "
+													   "WHERE tableName == ?;")
+											.arg(MetaTable));
+			updateMetaDataQuery.addBindValue(true);
+			updateMetaDataQuery.addBindValue(name);
+			updateMetaDataQuery.exec();
+			qCInfo(logDbWatcher) << "Enabled synchronization for table" << name;
+		} else
+			qCInfo(logDbWatcher) << "Created metadata and enabled synchronization for table" << name;
+
+		// step 2.3: commit transaction
+		transact.commit();
+
+		// step 3: register notification hook for the sync table
 		_tables.insert(name, fields);
 		if (!_db.driver()->subscribeToNotification(syncTableName))
 			qCWarning(logDbWatcher) << "Unable to register update notification hook for sync table for" << name;  // no hard error, as data is still synced, just not live
+
+		// step 4: emit sync triggered
+		Q_EMIT triggerSync(name, {});
 
 		return true;
 	} catch (QSqlError &error) {
@@ -166,6 +215,21 @@ void DatabaseWatcher::removeAllTables()
 void DatabaseWatcher::removeTable(const QString &name, bool removeRef)
 {
 	_db.driver()->unsubscribeFromNotification(TablePrefix + name);
+
+	try {
+		ExQuery removeMetaData{_db};
+		removeMetaData.prepare(QStringLiteral("UPDATE \"%1\" "
+											  "SET active = ? "
+											  "WHERE tableName == ?;"));
+		removeMetaData.addBindValue(false);
+		removeMetaData.addBindValue(name);
+		removeMetaData.exec();
+		qCInfo(logDbWatcher) << "Disabled synchronization for" << name;
+	} catch (QSqlError &error) {
+		qCCritical(logDbWatcher) << "Failed to remove metadata for table" << name
+								 << "with error:" << qUtf8Printable(error.text());
+	}
+
 	if (removeRef)
 		_tables.remove(name);
 }
@@ -175,6 +239,28 @@ void DatabaseWatcher::unsyncAllTables()
 	for (auto it = _tables.keyBegin(); it != _tables.keyEnd(); ++it)
 		unsyncTable(*it, false);
 	_tables.clear();
+
+	try {
+		ExTransaction transact{_db};
+
+		// step 1: check if metadata table is empty
+		ExQuery checkMetaQuery{_db};
+		checkMetaQuery.exec(QStringLiteral("SELECT COUNT(*) FROM \"%1\";")
+								.arg(MetaTable));
+
+		// step 2: if empty -> drop the table
+		if (checkMetaQuery.first() && checkMetaQuery.value(0) == 0) {
+			ExQuery dropMetaTable{_db};
+			dropMetaTable.exec(QStringLiteral("DROP TABLE \"%1\";").arg(MetaTable));
+			qCInfo(logDbWatcher) << "Dropped all synchronization data";
+		}
+
+		// step 3: commit
+		transact.commit();
+	} catch (QSqlError &error) {
+		qCCritical(logDbWatcher) << "Failed to drop empty metadata table with error:"
+								 << qUtf8Printable(error.text());
+	}
 }
 
 void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
@@ -184,38 +270,48 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 		removeTable(name, removeRef);
 
 		// step 2: remove all sync stuff
+		ExTransaction transact{_db};
+
+		// step 2.1 remove sync metadata
+		ExQuery removeMetaData{_db};
+		removeMetaData.prepare(QStringLiteral("DELETE FROM \"%1\" "
+											  "WHERE tableName == ?;"));
+		removeMetaData.addBindValue(name);
+		removeMetaData.exec();
+		qCDebug(logDbWatcher) << "Removed metadata for" << name;
+
+		// step 2.2 remove specific sync tables
 		const QString syncTableName = TablePrefix + name;
 		if (_db.tables().contains(syncTableName)) {
-			ExTransaction transact{_db};
-
 			ExQuery dropDeleteTrigger{_db};
-			dropDeleteTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_delete_trigger\"").arg(syncTableName));
+			dropDeleteTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_delete_trigger\";").arg(syncTableName));
 			qCDebug(logDbWatcher) << "Dropped sync table delete trigger index for" << name;
 
 			ExQuery dropRenameTrigger{_db};
-			dropRenameTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_rename_trigger\"").arg(syncTableName));
+			dropRenameTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_rename_trigger\";").arg(syncTableName));
 			qCDebug(logDbWatcher) << "Dropped sync table rename trigger index for" << name;
 
 			ExQuery dropUpdateTrigger{_db};
-			dropUpdateTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_update_trigger\"").arg(syncTableName));
+			dropUpdateTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_update_trigger\";").arg(syncTableName));
 			qCDebug(logDbWatcher) << "Dropped sync table update trigger index for" << name;
 
 			ExQuery dropInsertTrigger{_db};
-			dropInsertTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_insert_trigger\"").arg(syncTableName));
+			dropInsertTrigger.exec(QStringLiteral("DROP TRIGGER \"%1_insert_trigger\";").arg(syncTableName));
 			qCDebug(logDbWatcher) << "Dropped sync table insert trigger index for" << name;
 
 			ExQuery dropIndexQuery{_db};
-			dropIndexQuery.exec(QStringLiteral("DROP INDEX \"%1_idx_changed\"").arg(syncTableName));
+			dropIndexQuery.exec(QStringLiteral("DROP INDEX \"%1_idx_changed\";").arg(syncTableName));
 			qCDebug(logDbWatcher) << "Dropped sync table index for" << name;
 
 			ExQuery dropTableQuery{_db};
-			dropTableQuery.exec(QStringLiteral("DROP TABLE \"%1\"").arg(syncTableName));
+			dropTableQuery.exec(QStringLiteral("DROP TABLE \"%1\";").arg(syncTableName));
 			qCDebug(logDbWatcher) << "Dropped sync table for" << name;
-
-			transact.commit();
-			qCInfo(logDbWatcher) << "Dropped synchronization tables for table" << name;
 		} else
 			qCDebug(logDbWatcher) << "Sync tables for table" << name << "do not exist";
+
+		// step 2.3 commit transaction
+		transact.commit();
+		qCInfo(logDbWatcher) << "Dropped synchronization data for table" << name;
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to drop synchronization tables for table" << name
 								 << "with error:" << qUtf8Printable(error.text());
@@ -265,6 +361,7 @@ void DatabaseWatcher::dbNotify(const QString &name)
 QString DatabaseWatcher::sqlTypeName(const QSqlField &field) const
 {
 	switch (static_cast<int>(field.type())) {
+	case QMetaType::UnknownType:
 	case QMetaType::Nullptr:
 		return QStringLiteral("NULL");
 	case QMetaType::Bool:

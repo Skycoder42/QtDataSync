@@ -18,10 +18,13 @@ defineTest(createCpComp) {
 	in = $$3
 	out = $$4
 
+	win32: chk_else = else
+	else: chk_else = "||"
+
 	$${name}.name = $$QMAKE_COPY_FILE ${QMAKE_FILE_IN}
 	$${name}.input = $${in}
 	$${name}.variable_out = $${out}
-	$${name}.commands = $$QMAKE_CHK_DIR_EXISTS ${QMAKE_FILE_OUT_PATH} || $$QMAKE_MKDIR ${QMAKE_FILE_OUT_PATH} \
+	$${name}.commands = $$replace(QMAKE_MKDIR_CMD, "%1", ${QMAKE_FILE_OUT_PATH}) \
 		$$escape_expand(\n\t)$$QMAKE_COPY_FILE ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 	$${name}.output = $${path}/${QMAKE_FILE_IN_BASE}${QMAKE_FILE_EXT}
 	$${name}.CONFIG += target_predeps no_link

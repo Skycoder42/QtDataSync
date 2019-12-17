@@ -31,6 +31,8 @@ public:
 	static Setup fromConfig(const QString &configPath);
 	static Setup fromConfig(QIODevice *configDevice);
 
+	// TODO add "make threaded", that returns an initialized thread watcher
+
 	Setup &setLocalDir(const QString &localDir);
 	Setup &setSettings(QSettings *settings);
 

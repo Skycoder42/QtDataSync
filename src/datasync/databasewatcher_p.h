@@ -41,6 +41,8 @@ private:
 	std::optional<QSqlDatabase> _db;
 };
 
+// TODO add public thread sync watcher, that just watches on different threads
+
 class Q_DATASYNC_EXPORT DatabaseWatcher : public QObject
 {
 	Q_OBJECT
@@ -53,6 +55,7 @@ public:
 	};
 	Q_ENUM(ChangeState)
 
+	static const QString MetaTable;
 	static const QString TablePrefix;
 
 	explicit DatabaseWatcher(QSqlDatabase &&db, QObject *parent = nullptr);
