@@ -10,6 +10,7 @@ HEADERS += \
 	engine_p.h \
 	exception.h \
 	firebase/firebaseapibase_p.h \
+	firebase/firestore/structuredquery_p.h \
 	googleoauthflow_p.h \
 	qtdatasync_global.h \
 	setup.h \
@@ -21,6 +22,7 @@ SOURCES += \
 	engine.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
+	firebase/firestore/structuredquery.cpp \
 	googleoauthflow.cpp \
 	setup.cpp
 
@@ -38,7 +40,10 @@ REST_API_FILES += \
 	firebase/firestore/firestore_data.xml \
 	firebase/firestore/rawdata.xml
 
-INCLUDEPATH += firebase
+INCLUDEPATH += \
+	firebase \
+	firebase/auth \
+	firebase/firestore
 
 !no_ntp {
 	include(../3rdparty/qntp/qntp.pri)

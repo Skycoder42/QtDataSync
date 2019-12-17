@@ -8,53 +8,15 @@
 	<Include local="true">firebaseerror.h</Include>
 	<Include local="true">rawdata.h</Include>
 	<Include local="true">data.h</Include>
+	<Include local="true">structuredquery_p.h</Include>
 
 	<Path expr="true">QStringLiteral("documents/datasync/%2").arg(FirebaseApiBase::firebaseUserId())</Path>
 
-	<Method name="getEntry"
-			verb="GET"
-			returns="Data">
-		<Path>
-			<ParamSegment key="collectionId" type="QString"/>
-			<ParamSegment key="documentId" type="QString"/>
-		</Path>
-	</Method>
 	<Method name="query"
 			verb="POST"
-			returns="Data">
+			body="StructuredQuery"
+			returns="Data"> <!-- TODO wrong return type -->
 		<Path>:runQuery</Path>
-		<!--body>
-		{
-		  "structuredQuery": {
-			"from": [
-			  {
-				"collectionId": "TestClass"
-			  }
-			],
-			"where": {
-			  "fieldFilter": {
-				"field": {
-				  "fieldPath": "timestamp"
-				},
-				"op": "GREATER_THAN_OR_EQUAL",
-				"value": {
-				  "timestampValue": "2019-12-16T20:05:17.547Z"
-				}
-			  }
-			},
-			"orderBy": [
-			  {
-				"field": {
-				  "fieldPath": "timestamp"
-				},
-				"direction": "ASCENDING"
-			  }
-			],
-			"offset": 0,
-			"limit": 100
-		  }
-		}
-		</-->
 	</Method>
 	<Method name="update"
 			verb="PATCH"

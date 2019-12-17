@@ -933,6 +933,7 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = ../src/3rdparty \
+						 ../src/firebase-server/pkg \
 						 ../src/imports \
 						 ../src/plugins
 
