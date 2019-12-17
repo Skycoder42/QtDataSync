@@ -40,6 +40,15 @@ REST_API_FILES += \
 
 INCLUDEPATH += firebase
 
+!no_ntp {
+	include(../3rdparty/qntp/qntp.pri)
+	HEADERS += ntpsync_p.h
+	SOURCES += ntpsync.cpp
+} else {
+	MODULE_DEFINES += QTDATASYNC_NO_NTP
+	DEFINES += $$MODULE_DEFINES
+}
+
 load(qt_module)
 
 win32 {

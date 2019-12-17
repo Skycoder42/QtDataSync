@@ -43,6 +43,10 @@ public:
 
 	Setup &setAuthenticator(IAuthenticator *authenticator);
 
+#ifndef QTDATASYNC_NO_NTP
+	Setup &enableNtpSync(QString hostName = QStringLiteral("pool.ntp.org"), quint16 port = 123);
+#endif
+
 	Engine *createEngine(QObject *parent = nullptr);
 
 private:

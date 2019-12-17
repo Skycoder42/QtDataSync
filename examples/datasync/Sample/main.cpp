@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 			parser.showHelp(EXIT_FAILURE);
 
 		auto dsEngine = QtDataSync::Setup::fromConfig(parser.positionalArguments()[0])
+							.enableNtpSync()
 							.createEngine(qApp);
 
 		// create database

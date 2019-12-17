@@ -2,6 +2,8 @@
 #include "engine_p.h"
 using namespace QtDataSync;
 
+Q_LOGGING_CATEGORY(QtDataSync::logEngine, "qt.datasync.Engine")
+
 IAuthenticator *Engine::authenticator() const
 {
 	Q_D(const Engine);
@@ -47,6 +49,16 @@ bool Engine::syncTable(const QString &table, QSqlDatabase database, const QStrin
 void Engine::start()
 {
 	Q_D(Engine);
+
+#ifndef QTDATASYNC_NO_NTP
+	// start NTP sync if enabled
+	if (!d->setup->ntpAddress.isEmpty()) {
+		d->ntpSync = new NtpSync{this};
+		d->ntpSync->syncWith(d->setup->ntpAddress, d->setup->ntpPort);
+	}
+#endif
+
+	// start synchronization
 	QMetaObject::invokeMethod(d->setup->authenticator, "signIn", Qt::QueuedConnection);
 }
 

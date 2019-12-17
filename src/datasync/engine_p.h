@@ -8,7 +8,12 @@
 #include "databasewatcher_p.h"
 #include "setup_p.h"
 
+#ifndef QTDATASYNC_NO_NTP
+#include "ntpsync_p.h"
+#endif
+
 #include <QtCore/QHash>
+#include <QtCore/QLoggingCategory>
 
 #include <QtCore/private/qobject_p.h>
 
@@ -23,11 +28,17 @@ public:
 
 	QHash<QString, DatabaseWatcher*> dbWatchers;
 
+#ifndef QTDATASYNC_NO_NTP
+	NtpSync *ntpSync = nullptr;
+#endif
+
 	static const SetupPrivate *setupFor(const Engine *engine);
 
 	DatabaseWatcher *watcher(QSqlDatabase &&database);
 	void removeWatcher(DatabaseWatcher *watcher);
 };
+
+Q_DECLARE_LOGGING_CATEGORY(logEngine)
 
 }
 

@@ -159,6 +159,15 @@ Setup &Setup::setAuthenticator(IAuthenticator *authenticator)
 	return *this;
 }
 
+#ifndef QTDATASYNC_NO_NTP
+Setup &Setup::enableNtpSync(QString hostName, quint16 port)
+{
+	d->ntpAddress = std::move(hostName);
+	d->ntpPort = port;
+	return *this;
+}
+#endif
+
 Engine *Setup::createEngine(QObject *parent)
 {
 	if (!d->localDir){

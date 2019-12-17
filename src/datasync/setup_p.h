@@ -27,6 +27,11 @@ public:
 	std::optional<QDir> localDir;
 	QScopedPointer<QLockFile> lock {};
 
+#ifndef QTDATASYNC_NO_NTP
+	QString ntpAddress;
+	quint16 ntpPort = 123;
+#endif
+
 	QSettings *settings = nullptr;
 	IAuthenticator *authenticator = nullptr;
 
