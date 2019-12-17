@@ -18,7 +18,7 @@ defineTest(createCpComp) {
 	in = $$3
 	out = $$4
 
-	win32: chk_else = else
+	win32:!win32-g++: chk_else = else
 	else: chk_else = "||"
 
 	$${name}.name = $$QMAKE_COPY_FILE ${QMAKE_FILE_IN}
@@ -45,13 +45,13 @@ createCpComp(tscpc, pkg/functions/src, TS_FILES, TS_BUILD_FILES)
 
 npminstall.target = pkg/functions/node_modules
 npminstall.depends += pkg/functions/package.json
-npminstall.commands = cd pkg/functions && npm install
+npminstall.commands = cd $$shell_path(pkg/functions) && npm install
 QMAKE_EXTRA_TARGETS += npminstall
 
 tsc.name = tsc ${QMAKE_FILE_IN}
 tsc.input = TS_BUILD_FILES
 tsc.variable_out = JS_FILES
-tsc.commands = cd pkg/functions && node_modules/.bin/tsc
+tsc.commands = cd $$shell_path(pkg/functions) && $$shell_path(./node_modules/.bin/tsc)
 tsc.output = pkg/functions/index.js
 tsc.CONFIG += target_predeps combine
 tsc.depends += pkg/functions/node_modules pkg/functions/tsconfig.json
@@ -59,18 +59,21 @@ QMAKE_EXTRA_COMPILERS += tsc
 
 deploy.target = firestore-deploy
 deploy.depends += pkg/functions/index.js
-deploy.commands = cd pkg/functions && node_modules/.bin/firebase deploy --only functions
+deploy.commands = cd $$shell_path(pkg/functions) && $$shell_path(./node_modules/.bin/firebase) deploy --only functions
 QMAKE_EXTRA_TARGETS += deploy
+
+win32:!win32-g++: TOUCH_CMD = type nul >>
+else: TOUCH_CMD = touch
 
 package.target = firebase-server.zip
 package.depends += pkg/functions/index.js firebase-server
-package.commands += cd pkg/functions && npm prune --production \
+package.commands += cd $$shell_path(pkg/functions) && npm prune --production \
 	$$escape_expand(\n\t)cd pkg && 7z a -r- ../firebase-server.zip \
 		functions/node_modules \
 		functions/*.js \
 		functions/package*.json \
 		*.* \
-	$$escape_expand(\n\t)touch pkg/functions/package.json
+	$$escape_expand(\n\t)$$TOUCH_CMD $$shell_path(pkg/functions/package.json)
 QMAKE_EXTRA_TARGETS += package
 
 firebase_server.files = $$shadowed(firebase-server.zip)
