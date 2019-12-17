@@ -2,7 +2,8 @@ TEMPLATE = aux
 
 FIREBASE_FILES += \
 	firebase.json \
-	firestore.indexes.json
+	firestore.indexes.json \
+	firestore.rules
 
 PKG_FILES += \
 	functions/package.json \
@@ -50,10 +51,27 @@ tsc.variable_out = JS_FILES
 tsc.commands = cd pkg/functions && node_modules/.bin/tsc
 tsc.output = pkg/functions/index.js
 tsc.CONFIG += target_predeps combine
-tsc.depends += pkg/functions/node_modules pkg/functions/node_modules/.bin/tsc pkg/functions/tsconfig.json
+tsc.depends += pkg/functions/node_modules pkg/functions/tsconfig.json
 QMAKE_EXTRA_COMPILERS += tsc
 
 deploy.target = firestore-deploy
 deploy.depends += pkg/functions/index.js
-deploy.commands = cd pkg/functions && npm run deploy
+deploy.commands = cd pkg/functions && node_modules/.bin/firebase deploy --only functions
 QMAKE_EXTRA_TARGETS += deploy
+
+package.target = firebase-server.zip
+package.depends += pkg/functions/index.js firebase-server
+package.commands += cd pkg/functions && npm prune --production \
+	$$escape_expand(\n\t)cd pkg && 7z a -r- ../firebase-server.zip \
+		functions/node_modules \
+		functions/*.js \
+		functions/package*.json \
+		*.* \
+	$$escape_expand(\n\t)touch pkg/functions/package.json
+QMAKE_EXTRA_TARGETS += package
+
+firebase_server.files = $$shadowed(firebase-server.zip)
+firebase_server.depends += firebase-server.zip
+firebase_server.path = $$[QT_INSTALL_DATA]/datasync-server
+firebase_server.CONFIG += no_check_exist
+INSTALLS += firebase_server

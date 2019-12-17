@@ -12,7 +12,7 @@
   },
   "scripts": {
 	"prune": "npm prune --production",
-	"deploy": "./node_modules/.bin/firebase deploy --only functions",
+	"deploy": "firebase deploy --only functions",
 	"prune-deploy": "npm run prune && npm run deploy"
   },
   "engines": {
