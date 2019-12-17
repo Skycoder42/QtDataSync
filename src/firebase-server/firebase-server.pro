@@ -47,10 +47,10 @@ QMAKE_EXTRA_TARGETS += npminstall
 tsc.name = tsc ${QMAKE_FILE_IN}
 tsc.input = TS_BUILD_FILES
 tsc.variable_out = JS_FILES
-tsc.commands = cd pkg/functions && tsc
+tsc.commands = cd pkg/functions && node_modules/.bin/tsc
 tsc.output = pkg/functions/index.js
 tsc.CONFIG += target_predeps combine
-tsc.depends += pkg/functions/node_modules pkg/functions/tsconfig.json
+tsc.depends += pkg/functions/node_modules pkg/functions/node_modules/.bin/tsc pkg/functions/tsconfig.json
 QMAKE_EXTRA_COMPILERS += tsc
 
 deploy.target = firestore-deploy
