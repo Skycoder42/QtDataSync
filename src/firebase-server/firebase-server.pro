@@ -54,6 +54,12 @@ tsc.CONFIG += target_predeps combine
 tsc.depends += pkg/functions/node_modules pkg/functions/tsconfig.json
 QMAKE_EXTRA_COMPILERS += tsc
 
+win32:!win32-g++ {
+	fbsvr.target = firebase-server
+	fbsvr.commands = @echo firebase-server
+	QMAKE_EXTRA_TARGETS += fbsvr
+}
+
 deploy.target = firestore-deploy
 deploy.depends += pkg/functions/index.js
 deploy.commands = cd $$shell_path(pkg/functions) && $$shell_path(./node_modules/.bin/firebase) deploy --only functions
