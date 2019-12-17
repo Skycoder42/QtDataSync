@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="QueryPagingData"
+			namespace="QtDataSync::firebase::firestore">
+	<Include local="true">document.h</Include>
+
+	<Property key="transaction" type="QByteArray"/>
+	<Property key="document" type="Document"/>
+	<Property key="readTime" type="QDateTime"/>
+	<Property key="skippedResults" type="int"/>
+</RestGadget>

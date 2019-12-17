@@ -6,22 +6,30 @@
 	<Include local="true">qtdatasync_global.h</Include>
 	<Include local="true">firebaseapibase_p.h</Include>
 	<Include local="true">firebaseerror.h</Include>
-	<Include local="true">rawdata.h</Include>
-	<Include local="true">data.h</Include>
-	<Include local="true">structuredquery_p.h</Include>
+	<Include local="true">document.h</Include>
+	<Include local="true">startquerydata.h</Include>
+	<Include local="true">continuequerydata.h</Include>
+	<Include local="true">querypagingdata.h</Include>
 
 	<Path expr="true">QStringLiteral("documents/datasync/%2").arg(FirebaseApiBase::firebaseUserId())</Path>
 
 	<Method name="query"
 			verb="POST"
-			body="StructuredQuery"
-			returns="Data"> <!-- TODO wrong return type -->
+			body="StartQueryData"
+			returns="QList&lt;QueryPagingData&gt;">
 		<Path>:runQuery</Path>
 	</Method>
+	<Method name="query"
+			verb="POST"
+			body="ContinueQueryData"
+			returns="QList&lt;QueryPagingData&gt;">
+		<Path>:runQuery</Path>
+	</Method>
+
 	<Method name="update"
 			verb="PATCH"
-			body="RawData"
-			returns="Data">
+			body="RawDocument"
+			returns="Document">
 		<Path>
 			<ParamSegment key="collectionId" type="QString"/>
 			<ParamSegment key="documentId" type="QString"/>

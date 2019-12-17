@@ -6,6 +6,24 @@ using namespace QtDataSync;
 using namespace QtDataSync::firebase;
 using namespace QtDataSync::firebase::firestore;
 
+bool StructuredQuery::operator==(const StructuredQuery &other) const
+{
+	return tables == other.tables &&
+		   timeStamp == other.timeStamp &&
+		   limit == other.limit &&
+		   offset == other.offset;
+}
+
+bool StructuredQuery::operator!=(const StructuredQuery &other) const
+{
+	return tables != other.tables ||
+		   timeStamp != other.timeStamp ||
+		   limit != other.limit ||
+		   offset != other.offset;
+}
+
+
+
 bool StructuredQueryTypeConverter::canConvert(int metaTypeId) const
 {
 	return metaTypeId == qMetaTypeId<StructuredQuery>();

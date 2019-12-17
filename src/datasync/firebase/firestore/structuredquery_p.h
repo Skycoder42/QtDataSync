@@ -1,9 +1,7 @@
-#ifndef QTDATASYNC_FIREBASE_FIRESTORE_QUERY_H
-#define QTDATASYNC_FIREBASE_FIRESTORE_QUERY_H
+#ifndef QTDATASYNC_FIREBASE_FIRESTORE_STRUCTUREDQUERY_H
+#define QTDATASYNC_FIREBASE_FIRESTORE_STRUCTUREDQUERY_H
 
 #include "qtdatasync_global.h"
-
-#include <QtCore/QObject>
 
 #include <QtJsonSerializer/TypeConverter>
 
@@ -15,6 +13,9 @@ struct StructuredQuery
 	QDateTime timeStamp;
 	int limit = 100;
 	int offset = 0;
+
+	bool operator==(const StructuredQuery &other) const;
+	bool operator!=(const StructuredQuery &other) const;
 };
 
 class StructuredQueryTypeConverter : public QtJsonSerializer::TypeConverter
@@ -31,4 +32,4 @@ public:
 
 Q_DECLARE_METATYPE(QtDataSync::firebase::firestore::StructuredQuery)
 
-#endif // QTDATASYNC_FIREBASE_FIRESTORE_QUERY_H
+#endif // QTDATASYNC_FIREBASE_FIRESTORE_STRUCTUREDQUERY_H

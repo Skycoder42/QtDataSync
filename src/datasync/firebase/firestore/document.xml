@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<RestGadget name="Data"
-			namespace="QtDataSync::firebase::firestore"
-			base="RawData">
-	<Include local="true">rawdata.h</Include>
+<RestGadget name="Document"
+			base="RawDocument"
+			namespace="QtDataSync::firebase::firestore">
+	<Include local="true">rawdocument.h</Include>
 	<Include>QtCore/QDateTime</Include>
 
 	<Property key="name" type="QString"/>

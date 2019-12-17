@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="QueryDataBase"
+			namespace="QtDataSync::firebase::firestore">
+	<Include local="true">structuredquery_p.h</Include>
+
+	<Property key="structuredQuery" type="StructuredQuery"/>
+</RestGadget>

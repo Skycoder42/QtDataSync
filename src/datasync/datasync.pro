@@ -11,6 +11,7 @@ HEADERS += \
 	exception.h \
 	firebase/firebaseapibase_p.h \
 	firebase/firestore/structuredquery_p.h \
+	firebase/firestore/transactionoptions_p.h \
 	googleoauthflow_p.h \
 	qtdatasync_global.h \
 	setup.h \
@@ -23,6 +24,7 @@ SOURCES += \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
 	firebase/firestore/structuredquery.cpp \
+	firebase/firestore/transactionoptions.cpp \
 	googleoauthflow.cpp \
 	setup.cpp
 
@@ -35,10 +37,14 @@ REST_API_FILES += \
 	firebase/auth/refreshresponse.xml \
 	firebase/auth/signinrequest.xml \
 	firebase/auth/signinresponse.xml \
-	firebase/firestore/data.xml \
+	firebase/firestore/continuequerydata.xml \
+	firebase/firestore/document.xml \
 	firebase/firestore/firestore_api.xml \
 	firebase/firestore/firestore_data.xml \
-	firebase/firestore/rawdata.xml
+	firebase/firestore/querydatabase.xml \
+	firebase/firestore/querypagingdata.xml \
+	firebase/firestore/rawdocument.xml \
+	firebase/firestore/startquerydata.xml
 
 INCLUDEPATH += \
 	firebase \

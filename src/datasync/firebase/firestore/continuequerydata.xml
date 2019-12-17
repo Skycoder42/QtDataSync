@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="ContinueQueryData"
+			base="QueryDataBase"
+			namespace="QtDataSync::firebase::firestore">
+	<Include local="true">querydatabase.h</Include>
+
+	<Property key="transaction" type="QByteArray"/> <!-- TODO must be base64url, but padded -->
+</RestGadget>

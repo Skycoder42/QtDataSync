@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="StartQueryData"
+			base="QueryDataBase"
+			namespace="QtDataSync::firebase::firestore">
+	<Include local="true">querydatabase.h</Include>
+	<Include local="true">transactionoptions_p.h</Include>
+
+	<Property key="newTransaction" type="TransactionOptions"/>
+</RestGadget>
