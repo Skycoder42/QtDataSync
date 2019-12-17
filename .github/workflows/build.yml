@@ -12,7 +12,7 @@ jobs:
         platform:
           - gcc_64
           - android
-          - wasm_32
+          #- wasm_32  # QtSql is currently not supported, see QTBUG-70505
           - msvc2017_64
           - msvc2017
           - winrt_x64_msvc2017

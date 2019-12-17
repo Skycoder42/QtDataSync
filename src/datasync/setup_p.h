@@ -25,7 +25,7 @@ public:
 	} oAuth;
 
 	std::optional<QDir> localDir;
-	QScopedPointer<QLockFile> lock;
+	QScopedPointer<QLockFile> lock {};
 
 	QSettings *settings = nullptr;
 	IAuthenticator *authenticator = nullptr;
