@@ -17,6 +17,9 @@ public:
 	static QString firebaseUserId();
 	static QString firebaseUserToken();
 	static QString firebaseReadTimeout();
+
+protected:
+	QByteArray getETag() const;
 };
 
 }

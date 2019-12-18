@@ -29,3 +29,8 @@ QString FirebaseApiBase::firebaseReadTimeout()
 {
 
 }
+
+QByteArray FirebaseApiBase::getETag() const
+{
+
+}

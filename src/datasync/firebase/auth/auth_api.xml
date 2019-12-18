@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- See https://firebase.google.com/docs/reference/rest/auth -->
 <RestApi name="ApiClient"
 		 namespace="QtDataSync::firebase::auth"
 		 base="FirebaseApiBase"

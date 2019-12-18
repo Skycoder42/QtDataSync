@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- See https://firebase.google.com/docs/reference/rest/database -->
+<!-- See https://firebase.google.com/docs/database/rest/start -->
 <RestApi name="ApiClient"
 		 namespace="QtDataSync::firebase::realtimedb"
 		 base="FirebaseApiBase"
@@ -15,26 +17,36 @@
 	<Parameter key="timeout" expr="true">FirebaseApiBase::firebaseReadTimeout()</Parameter>
 	<Parameter key="writeSizeLimit">unlimited</Parameter>
 
-	<Method name="getChanged"
+	<Method name="listChangedData"
 			verb="GET"
 			returns="QMap&lt;QString, Data&gt;">
 		<Path>
-			<ParamSegment key="type" type="QString"/>
-			<ParamSegment key="key" type="QString"/>
+			<ParamSegment key="type" type="QString"/><!-- .json -->
 		</Path>
 		<Param key="startAt" type="QDateTime"/>
 		<Param key="limitToFirst" type="int">100</Param>
 		<Param key="orderBy" type="QString" asStr="true">timestamp</Param>
 	</Method>
 
+	<Method name="getData"
+			verb="GET"
+			returns="Data">
+		<Path>
+			<ParamSegment key="type" type="QString"/>
+			<ParamSegment key="key" type="QString"/><!-- .json -->
+		</Path>
+		<Header key="X-Firebase-ETag">true</Header>
+	</Method>
+
 	<Method name="uploadData"
 			verb="PUT"
-			body="Data"
-			returns="Data">
+			body="Data">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
 			<ParamSegment key="key" type="QString"/>
 		</Path>
+		<Param key="print" type="QString" asStr="true">silent</Param>
+		<Header key="if-match" expr="true">getETag()</Header>
 	</Method>
 
 	<Method name="removeData"
@@ -43,5 +55,6 @@
 			<ParamSegment key="type" type="QString"/>
 			<ParamSegment key="key" type="QString"/>
 		</Path>
+		<Header key="if-match" expr="true">getETag()</Header>
 	</Method>
 </RestApi>
