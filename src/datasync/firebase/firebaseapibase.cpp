@@ -20,7 +20,12 @@ QString FirebaseApiBase::firebaseUserId()
 	return {};
 }
 
-QByteArray FirebaseApiBase::firebaseUserToken()
+QString FirebaseApiBase::firebaseUserToken()
 {
 	return {};
+}
+
+QString FirebaseApiBase::firebaseReadTimeout()
+{
+
 }

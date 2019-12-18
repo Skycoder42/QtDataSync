@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestApi name="ApiClient"
+		 namespace="QtDataSync::firebase::realtimedb"
+		 base="FirebaseApiBase"
+		 except="QtDataSync::firebase::FirebaseError">
+	<Include>QtCore/QMap</Include>
+	<Include local="true">qtdatasync_global.h</Include>
+	<Include local="true">firebaseapibase_p.h</Include>
+	<Include local="true">firebaseerror.h</Include>
+	<Include local="true">data.h</Include>
+
+	<BaseUrl expr="true">QStringLiteral("https://%1.firebaseio.com/datasync/%2").arg(FirebaseApiBase::firebaseProjectId(), FirebaseApiBase::firebaseUserId())</BaseUrl>
+
+	<Parameter key="auth" expr="true">FirebaseApiBase::firebaseUserToken()</Parameter>
+	<Parameter key="timeout" expr="true">FirebaseApiBase::firebaseReadTimeout()</Parameter>
+	<Parameter key="writeSizeLimit">unlimited</Parameter>
+
+	<Method name="getChanged"
+			verb="GET"
+			returns="QMap&lt;QString, Data&gt;">
+		<Path>
+			<ParamSegment key="type" type="QString"/>
+			<ParamSegment key="key" type="QString"/>
+		</Path>
+		<Param key="startAt" type="QDateTime"/>
+		<Param key="limitToFirst" type="int">100</Param>
+		<Param key="orderBy" type="QString" asStr="true">timestamp</Param>
+	</Method>
+
+	<Method name="uploadData"
+			verb="PUT"
+			body="Data"
+			returns="Data">
+		<Path>
+			<ParamSegment key="type" type="QString"/>
+			<ParamSegment key="key" type="QString"/>
+		</Path>
+	</Method>
+
+	<Method name="removeData"
+			verb="DELETE">
+		<Path>
+			<ParamSegment key="type" type="QString"/>
+			<ParamSegment key="key" type="QString"/>
+		</Path>
+	</Method>
+</RestApi>

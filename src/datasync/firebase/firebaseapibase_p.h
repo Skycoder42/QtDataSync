@@ -15,7 +15,8 @@ public:
 	static QString firebaseKey();
 	static QString firebaseProjectId();
 	static QString firebaseUserId();
-	static QByteArray firebaseUserToken();
+	static QString firebaseUserToken();
+	static QString firebaseReadTimeout();
 };
 
 }

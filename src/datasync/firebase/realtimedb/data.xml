@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="Data"
+			namespace="QtDataSync::firebase::realtimedb">
+	<Include>QtCore/QDateTime</Include>
+
+	<Property key="timestamp" type="QDateTime"/>
+	<Property key="version" type="int"/>
+	<Property key="data" type="QJsonObject"/>
+</RestGadget>
