@@ -62,8 +62,6 @@ INCLUDEPATH += \
 	DEFINES += $$MODULE_DEFINES
 }
 
-QRESTBUILDER_DIR = .rest
-
 load(qt_module)
 
 win32 {
