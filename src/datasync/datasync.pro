@@ -10,6 +10,7 @@ HEADERS += \
 	engine_p.h \
 	exception.h \
 	firebase/firebaseapibase_p.h \
+	firebase/firestore/documentfields_p.h \
 	firebase/firestore/structuredquery_p.h \
 	firebase/firestore/transactionoptions_p.h \
 	googleoauthflow_p.h \
@@ -23,6 +24,7 @@ SOURCES += \
 	engine.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
+	firebase/firestore/documentfields.cpp \
 	firebase/firestore/structuredquery.cpp \
 	firebase/firestore/transactionoptions.cpp \
 	googleoauthflow.cpp \
@@ -59,6 +61,8 @@ INCLUDEPATH += \
 	MODULE_DEFINES += QTDATASYNC_NO_NTP
 	DEFINES += $$MODULE_DEFINES
 }
+
+QRESTBUILDER_DIR = .rest
 
 load(qt_module)
 

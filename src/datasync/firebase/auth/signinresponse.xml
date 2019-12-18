@@ -2,11 +2,11 @@
 <RestGadget name="SignInResponse"
 			namespace="QtDataSync::firebase::auth">
 	<Property key="localId" type="QString"/>
-	<Property key="emailVerified" type="bool"/>
+	<Property key="emailVerified" type="bool">false</Property>
 	<Property key="email" type="QString"/>
 	<Property key="displayName" type="QString"/>
 	<Property key="idToken" type="QString"/>
 	<Property key="refreshToken" type="QString"/>
-	<Property key="expiresIn" type="int"/>
-	<Property key="needConfirmation" type="bool"/>
+	<Property key="expiresIn" type="int">0</Property>
+	<Property key="needConfirmation" type="bool">false</Property>
 </RestGadget>

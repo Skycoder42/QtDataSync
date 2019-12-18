@@ -6,5 +6,5 @@
 	<Property key="transaction" type="QByteArray"/>
 	<Property key="document" type="Document"/>
 	<Property key="readTime" type="QDateTime"/>
-	<Property key="skippedResults" type="int"/>
+	<Property key="skippedResults" type="int">0</Property>
 </RestGadget>

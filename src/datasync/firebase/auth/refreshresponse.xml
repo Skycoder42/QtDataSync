@@ -5,6 +5,6 @@
 	<Property key="id_token" type="QString"/>
 	<Property key="user_id" type="QString"/>
 	<Property key="refresh_token" type="QString"/>
-	<Property key="expires_in" type="int"/>
+	<Property key="expires_in" type="int">0</Property>
 	<Property key="project_id" type="QString"/>
 </RestGadget>

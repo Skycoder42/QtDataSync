@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="RawDocument"
 			namespace="QtDataSync::firebase::firestore">
-	<Include>QtCore/QJsonObject</Include>
+	<Include local="true">documentfields_p.h</Include>
 
-	<Property key="fields" type="QJsonObject"/>
+	<Property key="fields" type="DocumentFields"/>
 </RestGadget>
