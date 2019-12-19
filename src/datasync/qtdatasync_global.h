@@ -13,4 +13,8 @@
 #  define Q_DATASYNC_EXPORT
 #endif
 
+namespace QtDataSync {
+
+}
+
 #endif // QDATASYNC_GLOBAL_H

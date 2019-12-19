@@ -3,17 +3,17 @@
 <RestApi name="ApiClient"
 		 namespace="QtDataSync::firebase::auth"
 		 base="FirebaseApiBase"
-		 except="QtDataSync::firebase::FirebaseError">
+		 except="Error">
 	<Include local="true">qtdatasync_global.h</Include>
 	<Include local="true">firebaseapibase_p.h</Include>
-	<Include local="true">firebaseerror.h</Include>
+	<Include local="true">auth_error.h</Include>
 	<Include local="true">refreshresponse.h</Include>
 	<Include local="true">deleterequest.h</Include>
 	<Include local="true">signinrequest.h</Include>
 	<Include local="true">signinresponse.h</Include>
 
 	<BaseUrl apiVersion="1">https://identitytoolkit.googleapis.com</BaseUrl>
-	<!--Parameter key="key" expr="true">FirebaseApiBase::firebaseKey()</Parameter-->
+	<Parameter key="key"></Parameter>
 
 	<Method name="refreshToken"
 			verb="POST"

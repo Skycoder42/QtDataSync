@@ -5,6 +5,8 @@
 #include "QtDataSync/engine.h"
 #include "QtDataSync/exception.h"
 
+#include <chrono>
+
 #include <QtCore/qobject.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qsettings.h>

@@ -4,33 +4,34 @@
 <RestApi name="ApiClient"
 		 namespace="QtDataSync::firebase::realtimedb"
 		 base="FirebaseApiBase"
-		 except="QtDataSync::firebase::FirebaseError">
-	<Include>QtCore/QMap</Include>
+		 except="Error">
+	<Include>optional</Include>
+	<Include>QtCore/QHash</Include>
 	<Include local="true">qtdatasync_global.h</Include>
 	<Include local="true">firebaseapibase_p.h</Include>
-	<Include local="true">firebaseerror.h</Include>
+	<Include local="true">realtimedb_error.h</Include>
 	<Include local="true">data.h</Include>
 
-	<BaseUrl expr="true">QStringLiteral("https://%1.firebaseio.com/datasync/%2").arg(FirebaseApiBase::firebaseProjectId(), FirebaseApiBase::firebaseUserId())</BaseUrl>
+	<BaseUrl>https://%1.firebaseio.com/datasync/%2</BaseUrl>
 
-	<Parameter key="auth" expr="true">FirebaseApiBase::firebaseUserToken()</Parameter>
-	<Parameter key="timeout" expr="true">FirebaseApiBase::firebaseReadTimeout()</Parameter>
+	<Parameter key="auth"></Parameter>
+	<Parameter key="timeout">15min</Parameter>
 	<Parameter key="writeSizeLimit">unlimited</Parameter>
 
 	<Method name="listChangedData"
 			verb="GET"
-			returns="QMap&lt;QString, Data&gt;">
+			returns="QHash&lt;QString, Data&gt;">
 		<Path>
 			<ParamSegment key="type" type="QString"/><!-- .json -->
 		</Path>
 		<Param key="startAt" type="QDateTime"/>
 		<Param key="limitToFirst" type="int">100</Param>
-		<Param key="orderBy" type="QString" asStr="true">timestamp</Param>
+		<Param key="orderBy" type="QString" asStr="true">uploaded</Param>
 	</Method>
 
 	<Method name="getData"
 			verb="GET"
-			returns="Data">
+			returns="std::optional&lt;Data&gt;">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
 			<ParamSegment key="key" type="QString"/><!-- .json -->
@@ -43,7 +44,7 @@
 			body="Data">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
-			<ParamSegment key="key" type="QString"/>
+			<ParamSegment key="key" type="QString"/><!-- .json -->
 		</Path>
 		<Param key="print" type="QString" asStr="true">silent</Param>
 		<Header key="if-match" expr="true">getETag()</Header>
@@ -53,7 +54,7 @@
 			verb="DELETE">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
-			<ParamSegment key="key" type="QString"/>
+			<ParamSegment key="key" type="QString"/><!-- .json -->
 		</Path>
 		<Header key="if-match" expr="true">getETag()</Header>
 	</Method>

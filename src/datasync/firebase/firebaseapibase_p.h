@@ -10,16 +10,24 @@ class FirebaseApiBase : public QObject
 	Q_OBJECT
 
 public:
-	explicit FirebaseApiBase(QObject *parent = nullptr);
+	class ETagSetter
+	{
+		Q_DISABLE_COPY_MOVE(ETagSetter)
+	public:
+		ETagSetter(FirebaseApiBase *api, QByteArray eTag);
+		~ETagSetter();
 
-	static QString firebaseKey();
-	static QString firebaseProjectId();
-	static QString firebaseUserId();
-	static QString firebaseUserToken();
-	static QString firebaseReadTimeout();
+	private:
+		FirebaseApiBase *_api;
+	};
+
+	explicit FirebaseApiBase(QObject *parent = nullptr);
 
 protected:
 	QByteArray getETag() const;
+
+private:
+	QByteArray _eTag;
 };
 
 }

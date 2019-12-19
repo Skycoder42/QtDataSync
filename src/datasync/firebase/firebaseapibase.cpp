@@ -1,36 +1,25 @@
 #include "firebaseapibase_p.h"
+#include "servertimestamp_p.h"
 using namespace QtDataSync::firebase;
 
 FirebaseApiBase::FirebaseApiBase(QObject *parent) :
 	QObject{parent}
 {}
 
-QString FirebaseApiBase::firebaseKey()
-{
-	return {};
-}
-
-QString FirebaseApiBase::firebaseProjectId()
-{
-	return {};
-}
-
-QString FirebaseApiBase::firebaseUserId()
-{
-	return {};
-}
-
-QString FirebaseApiBase::firebaseUserToken()
-{
-	return {};
-}
-
-QString FirebaseApiBase::firebaseReadTimeout()
-{
-
-}
-
 QByteArray FirebaseApiBase::getETag() const
 {
+	return _eTag;
+}
 
+
+
+FirebaseApiBase::ETagSetter::ETagSetter(FirebaseApiBase *api, QByteArray eTag) :
+	_api{api}
+{
+	_api->_eTag = std::move(eTag);
+}
+
+FirebaseApiBase::ETagSetter::~ETagSetter()
+{
+	_api->_eTag.clear();
 }

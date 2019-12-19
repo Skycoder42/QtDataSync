@@ -32,7 +32,7 @@ public:
 	QDateTime expiresAt;
 	QString email;
 
-	static QString translateError(const QtDataSync::firebase::FirebaseError &error, int code);
+	static QString translateError(const QtDataSync::firebase::auth::Error &error, int code);
 
 	void _q_refreshToken();
 	void _q_apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType);

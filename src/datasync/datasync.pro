@@ -10,8 +10,13 @@ HEADERS += \
 	engine_p.h \
 	exception.h \
 	firebase/firebaseapibase_p.h \
+	firebase/realtimedb/servertimestamp_p.h \
 	googleoauthflow_p.h \
+	icloudtransformer.h \
+	icloudtransformer_p.h \
+	objectkey.h \
 	qtdatasync_global.h \
+	remoteconnector_p.h \
 	setup.h \
 	setup_p.h
 
@@ -21,25 +26,30 @@ SOURCES += \
 	engine.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
+	firebase/realtimedb/servertimestamp.cpp \
 	googleoauthflow.cpp \
+	icloudtransformer.cpp \
+	objectkey.cpp \
+	remoteconnector.cpp \
 	setup.cpp
 
 REST_API_FILES += \
-	firebase/firebaseerrorelement.xml \
-	firebase/firebaseerrorcontent.xml \
-	firebase/firebaseerror.xml \
 	firebase/auth/auth_api.xml \
+	firebase/auth/auth_error.xml \
 	firebase/auth/deleterequest.xml \
+	firebase/auth/errorelement.xml \
+	firebase/auth/errorcontent.xml \
 	firebase/auth/refreshresponse.xml \
 	firebase/auth/signinrequest.xml \
 	firebase/auth/signinresponse.xml \
 	firebase/realtimedb/data.xml \
-	firebase/realtimedb/realtimedb_api.xml
+	firebase/realtimedb/realtimedb_api.xml \
+	firebase/realtimedb/realtimedb_error.xml
 
 INCLUDEPATH += \
 	firebase \
 	firebase/auth \
-	firebase/firestore
+	firebase/realtimedb
 
 !no_ntp {
 	include(../3rdparty/qntp/qntp.pri)
@@ -59,3 +69,6 @@ win32 {
 } else:mac {
 	QMAKE_TARGET_BUNDLE_PREFIX = "com.skycoder42."
 }
+
+DISTFILES += \
+	syncflow.qmodel

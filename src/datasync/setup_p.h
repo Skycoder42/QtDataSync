@@ -16,6 +16,8 @@ public:
 	struct {
 		QString projectId;
 		QString webApiKey;
+		std::chrono::milliseconds readTimeOut {std::chrono::minutes{15}};
+		int readLimit = 100;
 	} firebase;
 
 	struct {

@@ -4,7 +4,7 @@
 <context>
     <name>QtDataSync::FirebaseAuthenticator</name>
     <message>
-        <location filename="../datasync/authenticator.cpp" line="+132"/>
+        <location filename="../datasync/authenticator.cpp" line="+133"/>
         <source>Failed renew firebase connection! Please try to sign in again.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -22,8 +22,36 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+16"/>
+        <source>Google Authentication was not accepted by firebase</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
         <source>Failed to sign in with Google-Account!</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QtDataSync::RemoteConnector</name>
+    <message>
+        <location filename="../datasync/remoteconnector.cpp" line="+83"/>
+        <source>Failed to download latests changed data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+107"/>
+        <source>Failed to upload data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-86"/>
+        <source>Failed to verify data version before uploading</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+51"/>
+        <source>Live-synchronization disabled because of network error!</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

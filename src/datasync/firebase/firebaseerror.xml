@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<RestGadget name="FirebaseError"
-			namespace="QtDataSync::firebase">
-	<Include local="true">firebaseerrorcontent.h</Include>
-
-	<Property key="error" type="FirebaseErrorContent"/>
-</RestGadget>

@@ -68,6 +68,7 @@ FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, E
 
 	auto client = new QtRestClient::RestClient{QtRestClient::RestClient::DataMode::Json, this};
 	client->setModernAttributes();
+	client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
 	client->setBaseUrl(QUrl{QStringLiteral("https://identitytoolkit.googleapis.com")});
 	client->setApiVersion(QVersionNumber{1});
 	client->addGlobalParameter(QStringLiteral("key"), EnginePrivate::setupFor(d->engine)->firebase.webApiKey);
@@ -110,7 +111,7 @@ const QString FirebaseAuthenticatorPrivate::FirebaseGroupKey = QStringLiteral("a
 const QString FirebaseAuthenticatorPrivate::FirebaseRefreshTokenKey = QStringLiteral("auth/firebase/refreshToken");
 const QString FirebaseAuthenticatorPrivate::FirebaseEmailKey = QStringLiteral("auth/firebase/email");
 
-QString FirebaseAuthenticatorPrivate::translateError(const FirebaseError &error, int code)
+QString FirebaseAuthenticatorPrivate::translateError(const Error &error, int code)
 {
 	if (const auto msg = error.error().message(); !msg.isEmpty())
 		return msg;
@@ -288,8 +289,12 @@ void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 						  response.refreshToken(),
 						  QDateTime::currentDateTimeUtc().addSecs(response.expiresIn()),
 						  response.email());
+	})->onAllErrors(q, [this](const QString &, int, QtRestClient::RestReply::Error) {
+		Q_Q(OAuthAuthenticator);
+		qCCritical(logOAuth) << "Failed to sign in to firebase with google OAuth credentials -"
+							 << "make shure google OAuth authentication has been enabled in the firebase console!";
+		Q_EMIT q->signInFailed(OAuthAuthenticator::tr("Google Authentication was not accepted by firebase"));
 	});
-
 }
 
 void OAuthAuthenticatorPrivate::_q_oAuthError(const QString &error, const QString &errorDescription)
