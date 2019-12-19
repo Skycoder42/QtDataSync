@@ -16,6 +16,7 @@ class QLockFile;
 namespace QtDataSync {
 
 class IAuthenticator;
+class ICloudTransformer;
 
 class SetupPrivate;
 class Q_DATASYNC_EXPORT Setup
@@ -49,6 +50,7 @@ public:
 
 	Setup &setRemoteReadTimeout(std::chrono::milliseconds ms);
 	Setup &setRemotePageLimit(int limit);
+	Setup &setCloudTransformer(ICloudTransformer *transformer);
 
 #ifndef QTDATASYNC_NO_NTP
 	Setup &enableNtpSync(QString hostName = QStringLiteral("pool.ntp.org"), quint16 port = 123);

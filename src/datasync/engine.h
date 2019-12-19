@@ -10,6 +10,7 @@
 namespace QtDataSync {
 
 class IAuthenticator;
+class ICloudTransformer;
 
 class SetupPrivate;
 
@@ -19,9 +20,11 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(IAuthenticator* authenticator READ authenticator CONSTANT)
+	Q_PROPERTY(ICloudTransformer* transformer READ transformer CONSTANT)
 
 public:
 	IAuthenticator *authenticator() const;
+	ICloudTransformer* transformer() const;
 
 	Q_INVOKABLE bool syncDb(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
 							const QStringList &tables = {});

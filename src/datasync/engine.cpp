@@ -10,6 +10,12 @@ IAuthenticator *Engine::authenticator() const
 	return d->setup->authenticator;
 }
 
+ICloudTransformer *Engine::transformer() const
+{
+	Q_D(const Engine);
+	return d->setup->transformer;
+}
+
 bool Engine::syncDb(const QString &databaseConnection, const QStringList &tables)
 {
 	return syncDb(QSqlDatabase::database(databaseConnection, true), tables);

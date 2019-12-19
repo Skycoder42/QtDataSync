@@ -4,9 +4,9 @@
 #include "engine.h"
 #include "authenticator.h"
 
-#include "firebaseapibase_p.h"
-#include "databasewatcher_p.h"
 #include "setup_p.h"
+#include "databasewatcher_p.h"
+#include "remoteconnector_p.h"
 
 #ifndef QTDATASYNC_NO_NTP
 #include "ntpsync_p.h"
@@ -27,6 +27,7 @@ public:
 	QScopedPointer<SetupPrivate> setup;
 
 	QHash<QString, DatabaseWatcher*> dbWatchers;
+	RemoteConnector *connector = nullptr;
 
 #ifndef QTDATASYNC_NO_NTP
 	NtpSync *ntpSync = nullptr;

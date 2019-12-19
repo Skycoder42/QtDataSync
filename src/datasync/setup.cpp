@@ -161,6 +161,14 @@ Setup &Setup::setRemotePageLimit(int limit)
 	return *this;
 }
 
+Setup &Setup::setCloudTransformer(ICloudTransformer *transformer)
+{
+	if (d->transformer)
+		d->transformer->deleteLater();
+	d->transformer = transformer;
+	return *this;
+}
+
 #ifndef QTDATASYNC_NO_NTP
 Setup &Setup::enableNtpSync(QString hostName, quint16 port)
 {
@@ -192,6 +200,11 @@ void SetupPrivate::finializeForEngine(Engine *engine)
 		authenticator->setParent(engine);
 	else
 		authenticator = new OAuthAuthenticator{engine};
+
+	if (transformer)
+		transformer->setParent(engine);
+	else
+		transformer = new PlainCloudTransformer{engine};
 }
 
 

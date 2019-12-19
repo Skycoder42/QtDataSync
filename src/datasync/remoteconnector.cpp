@@ -83,7 +83,7 @@ void RemoteConnector::getChanges(const QByteArray &type, const QDateTime &since)
 		for (auto it = data.begin(), end = data.end(); it != end; ++it) {
 			if (const auto uploaded = std::get<QDateTime>(it->uploaded()); uploaded > lasySync)
 				lasySync = uploaded;
-			Q_EMIT downloadedData({type, it.key(), std::get<QJsonObject>(it->data()), it->modified()});
+			Q_EMIT downloadedData({type, it.key(), std::get<std::optional<QJsonObject>>(it->data()), it->modified()});
 		}
 		// if last synced changed -> update it
 		if (lasySync > since)
@@ -108,7 +108,7 @@ void RemoteConnector::uploadChange(const CloudData &data)
 		} else if (replyData->modified() >= data.modified()) {
 			// data was modified on the server after modified locally -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
-			Q_EMIT downloadedData({data.key(), std::get<QJsonObject>(replyData->data()), replyData->modified()});
+			Q_EMIT downloadedData({data.key(), std::get<std::optional<QJsonObject>>(replyData->data()), replyData->modified()});
 			Q_EMIT triggerSync();
 		} else {
 			// data on server is older -> upload

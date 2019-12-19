@@ -3,6 +3,7 @@
 
 #include "setup.h"
 #include "authenticator.h"
+#include "cloudtransformer.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QLockFile>
@@ -33,6 +34,7 @@ public:
 
 	QSettings *settings = nullptr;
 	IAuthenticator *authenticator = nullptr;
+	ICloudTransformer *transformer = nullptr;
 
 	void finializeForEngine(Engine *engine);
 };

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="Data"
-			namespace="QtDataSync::firebase::realtimedb"
-			aggregateDefaults="true">
+			namespace="QtDataSync::firebase::realtimedb">
 	<Include>variant</Include>
 	<Include>QtCore/QDateTime</Include>
 	<Include local="true">servertimestamp_p.h</Include>
 
-	<Property key="data" type="Content"/>
+	<Property key="data" type="Content">std::nullopt</Property>
 	<Property key="modified" type="QDateTime"/>
 	<Property key="uploaded" type="Timestamp"/>
 </RestGadget>

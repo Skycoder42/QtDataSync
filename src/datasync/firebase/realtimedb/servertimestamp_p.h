@@ -4,6 +4,7 @@
 #include "qtdatasync_global.h"
 
 #include <variant>
+#include <optional>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QJsonObject>
@@ -32,18 +33,23 @@ inline constexpr uint qHash(const ServerTimestamp &, uint seed = 0) {
 }
 
 using Timestamp = std::variant<QDateTime, ServerTimestamp>;
-using Content = std::variant<QJsonObject, bool>;
+using Content = std::variant<std::optional<QJsonObject>, bool>;
 
 }
 
-// WORKAROUND: declare qHash std::variant
+// WORKAROUND: declare qHash std::variant and std::optional
 namespace std {
 
 template <typename... TArgs>
-inline constexpr uint qHash(const std::variant<TArgs...> &variant, uint seed = 0) {
+inline constexpr uint qHash(const variant<TArgs...> &var, uint seed = 0) {
 	return std::visit([seed](const auto &data) {
 		return ::qHash(data, seed);
-	}, variant);
+	}, var);
+}
+
+template <typename T>
+inline constexpr uint qHash(const optional<T> &opt, uint seed = 0) {
+	return opt ? ::qHash(*opt, seed) : ~seed;
 }
 
 }

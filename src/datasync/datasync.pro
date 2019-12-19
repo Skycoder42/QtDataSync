@@ -5,6 +5,8 @@ QT = core restclient networkauth sql core-private
 HEADERS += \
 	authenticator.h \
 	authenticator_p.h \
+	cloudtransformer.h \
+	cloudtransformer_p.h \
 	databasewatcher_p.h \
 	engine.h \
 	engine_p.h \
@@ -12,8 +14,6 @@ HEADERS += \
 	firebase/firebaseapibase_p.h \
 	firebase/realtimedb/servertimestamp_p.h \
 	googleoauthflow_p.h \
-	icloudtransformer.h \
-	icloudtransformer_p.h \
 	objectkey.h \
 	qtdatasync_global.h \
 	remoteconnector_p.h \
@@ -22,13 +22,13 @@ HEADERS += \
 
 SOURCES += \
 	authenticator.cpp \
+	cloudtransformer.cpp \
 	databasewatcher.cpp \
 	engine.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
 	firebase/realtimedb/servertimestamp.cpp \
 	googleoauthflow.cpp \
-	icloudtransformer.cpp \
 	objectkey.cpp \
 	remoteconnector.cpp \
 	setup.cpp

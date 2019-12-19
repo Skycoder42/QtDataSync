@@ -4,7 +4,7 @@
 #include "qtdatasync_global.h"
 #include "engine.h"
 #include "objectkey.h"
-#include "icloudtransformer.h"
+#include "cloudtransformer.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QLoggingCategory>
