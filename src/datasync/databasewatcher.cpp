@@ -30,6 +30,11 @@ bool DatabaseWatcher::hasTables() const
 	return !_tables.isEmpty();
 }
 
+QStringList DatabaseWatcher::tables() const
+{
+	return _tables.keys();
+}
+
 bool DatabaseWatcher::addAllTables(QSql::TableType type)
 {
 	for (const auto &table : _db.tables(type)) {

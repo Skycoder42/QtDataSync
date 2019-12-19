@@ -11,11 +11,10 @@ namespace QtDataSync {
 struct Q_DATASYNC_EXPORT ObjectKey
 {
 	//! The name of the type the dataset is of
-	QByteArray typeName;
+	QString typeName;
 	//! The id of the dataset (it's USER property)
 	QString id;
 
-	QString typeString() const;
 	//! Creates a hash of the object key to anonymize ize
 	QByteArray hashed() const;
 

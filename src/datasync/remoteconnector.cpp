@@ -28,9 +28,6 @@ RemoteConnector::RemoteConnector(const QString &userId, Engine *engine) :
 	client->addGlobalParameter(QStringLiteral("timeout"), timeString(setup->firebase.readTimeOut));
 	client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
 	_api = new ApiClient{client->rootClass(), this};
-	_api->setErrorTranslator(&RemoteConnector::translateError);
-	connect(_api, &ApiClient::apiError,
-			this, &RemoteConnector::apiError);
 }
 
 void RemoteConnector::setIdToken(const QString &idToken)
@@ -75,10 +72,11 @@ void RemoteConnector::stopLiveSync()
 		_eventStream->abort();
 }
 
-void RemoteConnector::getChanges(const QByteArray &type, const QDateTime &since)
+void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 {
-	_api->listChangedData(QString::fromUtf8(type), since, _limit)->onSucceeded(this, [this, type, since](int, const QHash<QString, Data> &data) {
+	_api->listChangedData(type, since.toUTC().toMSecsSinceEpoch(), _limit)->onSucceeded(this, [this, type, since](int, const QHash<QString, Data> &data) {
 		// get all changed data and pass to storage
+		qCDebug(logRmc) << "listChangedData returned" << data.size() << "entries";
 		auto lasySync = since;
 		for (auto it = data.begin(), end = data.end(); it != end; ++it) {
 			if (const auto uploaded = std::get<QDateTime>(it->uploaded()); uploaded > lasySync)
@@ -93,14 +91,15 @@ void RemoteConnector::getChanges(const QByteArray &type, const QDateTime &since)
 			getChanges(type, lasySync);
 		else
 			Q_EMIT syncDone(type);
-	})->onAllErrors(this, [this](const QString &, int, QtRestClient::RestReply::Error){
+	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
+		apiError(error, code, errorType);
 		Q_EMIT networkError(tr("Failed to download latests changed data"));
-	});
+	}, &RemoteConnector::translateError);
 }
 
 void RemoteConnector::uploadChange(const CloudData &data)
 {
-	auto reply = _api->getData(data.key().typeString(), data.key().id);
+	auto reply = _api->getData(data.key().typeName, data.key().id);
 	reply->onSucceeded(this, [this, data, reply](int, const std::optional<Data> &replyData) {
 		if (!replyData) {
 			// no data on the server -> upload with null tag
@@ -109,23 +108,25 @@ void RemoteConnector::uploadChange(const CloudData &data)
 			// data was modified on the server after modified locally -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
 			Q_EMIT downloadedData({data.key(), std::get<std::optional<QJsonObject>>(replyData->data()), replyData->modified()});
-			Q_EMIT triggerSync();
+			Q_EMIT triggerSync(data.key().typeName);
 		} else {
 			// data on server is older -> upload
 			doUpload(data, reply->networkReply()->rawHeader("ETag"));
 		}
-	})->onAllErrors(this, [this, data](const QString &, int, QtRestClient::RestReply::Error) {
+	})->onAllErrors(this, [this, data](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
+		apiError(error, code, errorType);
 		Q_EMIT networkError(tr("Failed to verify data version before uploading"));
-	});
+	}, &RemoteConnector::translateError);
 }
 
-void RemoteConnector::removeTable(const QByteArray &type)
+void RemoteConnector::removeTable(const QString &type)
 {
-	_api->removeTable(QString::fromUtf8(type))->onSucceeded(this, [this, type](int) {
+	_api->removeTable(type)->onSucceeded(this, [this, type](int) {
 		Q_EMIT removedTable(type);
-	})->onAllErrors(this, [this](const QString &, int, QtRestClient::RestReply::Error) {
+	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
+		apiError(error, code, errorType);
 		Q_EMIT networkError(tr("Failed to remove table from server"));
-	});
+	}, &RemoteConnector::translateError);
 }
 
 void RemoteConnector::apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType)
@@ -169,7 +170,7 @@ void RemoteConnector::streamClosed()
 		_eventStream->deleteLater();
 		_eventStream = nullptr;
 		startLiveSync();
-		Q_EMIT triggerSync();  // trigger a sync as getChanges is required to unblock the live sync
+		Q_EMIT triggerSync({});  // trigger a sync as getChanges is required to unblock the live sync
 		break;
 	// stopped by user -> live sync stopped
 	case QNetworkReply::OperationCanceledError:
@@ -205,18 +206,20 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag)
 	// data on server is older -> upload
 	FirebaseApiBase::ETagSetter eTagSetter{_api, std::move(eTag)};
 	_api->uploadData({data.data(), data.modified(), ServerTimestamp{}},
-					 data.key().typeString(),
+					 data.key().typeName,
 					 data.key().id)
 		->onSucceeded(this, [this, key = data.key()](int) {
 			Q_EMIT uploadedData(key);
-		})->onAllErrors(this, [this](const QString &, int code, QtRestClient::RestReply::Error type){
-			if (type == QtRestClient::RestReply::Error::Failure && code == CodeETagMismatch) {
+		})->onAllErrors(this, [this, type = data.key().typeName](const QString &error, int code, QtRestClient::RestReply::Error errorType){
+			if (errorType == QtRestClient::RestReply::Error::Failure && code == CodeETagMismatch) {
 				// data was changed on the server since checked -> trigger sync
 				qCDebug(logRmc) << "Server data was changed since the ETag was requested - triggering sync";
-				Q_EMIT triggerSync();
-			} else
+				Q_EMIT triggerSync(type);
+			} else {
+				apiError(error, code, errorType);
 				Q_EMIT networkError(tr("Failed to upload data"));
-		});
+			}
+		}, &RemoteConnector::translateError);
 }
 
 

@@ -27,7 +27,7 @@ class Q_DATASYNC_EXPORT CloudData
 public:
 	CloudData();
 	CloudData(ObjectKey key, std::optional<QJsonObject> data, QDateTime modified);
-	CloudData(QByteArray type, QString key, std::optional<QJsonObject> data, QDateTime modified);
+	CloudData(QString type, QString key, std::optional<QJsonObject> data, QDateTime modified);
 	CloudData(const CloudData &other);
 	CloudData(CloudData &&other) noexcept;
 	CloudData &operator=(const CloudData &other);

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" name="EngineStateMachine" qt:editorversion="4.11.0">
+    <state id="Inactive">
+        <qt:editorinfo geometry="147.74;154.87;-60;-50;120;100" scenegeometry="147.74;154.87;87.74;104.87;120;100"/>
+        <transition type="external" event="start" target="Active">
+            <qt:editorinfo startTargetFactors="84.49;23.67" movePoint="7.13;8.15" endTargetFactors="4.85;13.64"/>
+        </transition>
+    </state>
+    <state id="Error">
+        <qt:editorinfo geometry="147.74;442.23;-60;-50;120;100" scenegeometry="147.74;442.23;87.74;392.23;120;100"/>
+        <transition type="external" event="stop" target="Inactive">
+            <qt:editorinfo movePoint="41.77;2.04"/>
+        </transition>
+        <transition type="external" event="start" target="Active">
+            <qt:editorinfo endTargetFactors="4.66;37.23"/>
+        </transition>
+    </state>
+    <state id="Active">
+        <qt:editorinfo geometry="269;143.67;137.53;-81.49;602.19;467.99" scenegeometry="269;143.67;406.53;62.18;602.19;467.99"/>
+        <state id="SigningIn">
+            <qt:editorinfo geometry="238.43;67.25;-60;-50;120;100" scenegeometry="507.43;210.92;447.43;160.92;120;100"/>
+            <transition type="external" event="signedIn" target="Synchronizing">
+                <qt:editorinfo movePoint="8.12;2.04" endTargetFactors="13.49;20.87"/>
+            </transition>
+        </state>
+        <state id="Synchronizing">
+            <qt:editorinfo geometry="499.75;72.33;-116.69;-75.43;333.25;364.51" scenegeometry="768.75;216;652.06;140.57;333.25;364.51"/>
+            <state id="Downloading">
+                <qt:editorinfo geometry="67.26;41.77;-147.64;-50;259.22;100" scenegeometry="836.01;257.77;688.37;207.77;259.22;100"/>
+                <transition type="external" event="dlReady" target="Uploading">
+                    <qt:editorinfo startTargetFactors="21.38;86.11" movePoint="-36.68;17.32" endTargetFactors="30.27;17.52"/>
+                </transition>
+                <transition type="internal" event="dlContinue">
+                    <qt:editorinfo endTargetFactors="15.90;59.68"/>
+                </transition>
+            </state>
+            <transition type="external" event="syncReady" target="Synchronized">
+                <qt:editorinfo startTargetFactors="4.93;81.92" movePoint="-11.21;13.25" endTargetFactors="87.44;80.79"/>
+            </transition>
+            <state id="Uploading">
+                <qt:editorinfo geometry="88.65;210.93;-147.64;-50;208.11;100" scenegeometry="857.40;426.93;709.76;376.93;208.11;100"/>
+                <transition type="external" event="triggerSync" target="Downloading">
+                    <qt:editorinfo startTargetFactors="75.02;14.02" movePoint="63.17;21.41" endTargetFactors="84.06;76.31"/>
+                </transition>
+                <transition type="internal" event="ulContinue">
+                    <qt:editorinfo endTargetFactors="19.89;56.15"/>
+                </transition>
+            </state>
+        </state>
+        <state id="Synchronized">
+            <qt:editorinfo geometry="238.43;228.23;-60;-50;120;100" scenegeometry="507.43;371.90;447.43;321.90;120;100"/>
+            <transition type="external" event="triggerSync" target="Synchronizing">
+                <qt:editorinfo movePoint="-36.68;19.36" endTargetFactors="10.66;28.09"/>
+            </transition>
+            <transition type="external" event="triggerUpload" target="Uploading">
+                <qt:editorinfo endTargetFactors="13.77;21.89"/>
+            </transition>
+        </state>
+        <transition type="external" event="error" target="Error">
+            <qt:editorinfo startTargetFactors="2.86;78.92"/>
+        </transition>
+        <transition type="external" event="stop" target="Inactive">
+            <qt:editorinfo startTargetFactors="3.21;22.47" endTargetFactors="72.48;61.42"/>
+        </transition>
+    </state>
+</scxml>

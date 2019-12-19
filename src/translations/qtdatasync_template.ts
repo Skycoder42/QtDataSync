@@ -4,7 +4,7 @@
 <context>
     <name>QtDataSync::FirebaseAuthenticator</name>
     <message>
-        <location filename="../datasync/authenticator.cpp" line="+133"/>
+        <location filename="../datasync/authenticator.cpp" line="+132"/>
         <source>Failed renew firebase connection! Please try to sign in again.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -12,7 +12,7 @@
 <context>
     <name>QtDataSync::OAuthAuthenticator</name>
     <message>
-        <location line="+93"/>
+        <location line="+94"/>
         <source>Sign-In aborted!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -22,7 +22,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+17"/>
         <source>Google Authentication was not accepted by firebase</source>
         <translation type="unfinished"></translation>
     </message>
@@ -35,27 +35,27 @@
 <context>
     <name>QtDataSync::RemoteConnector</name>
     <message>
-        <location filename="../datasync/remoteconnector.cpp" line="+97"/>
-        <source>Failed to download latests changed data</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+30"/>
+        <location filename="../datasync/remoteconnector.cpp" line="+128"/>
         <source>Failed to remove table from server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+91"/>
+        <location line="+92"/>
         <source>Failed to upload data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-100"/>
+        <location line="-102"/>
         <source>Failed to verify data version before uploading</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+65"/>
+        <location line="-22"/>
+        <source>Failed to download latests changed data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+88"/>
         <source>Live-synchronization disabled because of network error!</source>
         <translation type="unfinished"></translation>
     </message>

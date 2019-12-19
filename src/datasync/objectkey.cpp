@@ -3,15 +3,10 @@
 #include <QtCore/QCryptographicHash>
 using namespace QtDataSync;
 
-QString ObjectKey::typeString() const
-{
-	return QString::fromUtf8(typeName);
-}
-
 QByteArray ObjectKey::hashed() const
 {
 	QCryptographicHash hash(QCryptographicHash::Sha3_256);
-	hash.addData(typeName);
+	hash.addData(typeName.toUtf8());
 	hash.addData(id.toUtf8());
 	return hash.result();
 }

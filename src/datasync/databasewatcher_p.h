@@ -64,6 +64,7 @@ public:
 
 	// table setup
 	bool hasTables() const;
+	QStringList tables() const;
 
 	bool addAllTables(QSql::TableType type = QSql::Tables);
 	bool addTable(const QString &name, const QStringList &fields = {}, QString primaryType = {});

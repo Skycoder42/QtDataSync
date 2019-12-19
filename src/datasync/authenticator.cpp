@@ -50,10 +50,12 @@ void FirebaseAuthenticator::deleteUser()
 		qCDebug(logFbAuth) << "Firebase account delete successful";
 		d->clearFbConfig();
 		Q_EMIT accountDeleted(true);
-	})->onAllErrors(this, [this](const QString &, int, QtRestClient::RestReply::Error){
+	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
+		Q_D(FirebaseAuthenticator);
+		d->_q_apiError(error, code, errorType);
 		qCWarning(logFbAuth) << "Firebase account delete failed";
 		Q_EMIT accountDeleted(false);
-	});
+	}, &FirebaseAuthenticatorPrivate::translateError);
 }
 
 FirebaseAuthenticator::FirebaseAuthenticator(Engine *engine) :
@@ -73,9 +75,6 @@ FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, E
 	client->setApiVersion(QVersionNumber{1});
 	client->addGlobalParameter(QStringLiteral("key"), EnginePrivate::setupFor(d->engine)->firebase.webApiKey);
 	d->api = new ApiClient{client->rootClass(), this};
-	d->api->setErrorTranslator(&FirebaseAuthenticatorPrivate::translateError);
-	QObjectPrivate::connect(d->api, &ApiClient::apiError,
-							d, &FirebaseAuthenticatorPrivate::_q_apiError);
 
 	d->refreshTimer = new QTimer{this};
 	d->refreshTimer->setSingleShot(true);
@@ -141,12 +140,13 @@ void FirebaseAuthenticatorPrivate::_q_refreshToken()
 		storeFbConfig();
 		startRefreshTimer();
 		Q_EMIT q->signInSuccessful(localId, idToken);
-	})->onAllErrors(q, [this](const QString &, int, QtRestClient::RestReply::Error){
+	})->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
 		Q_Q(FirebaseAuthenticator);
+		_q_apiError(error, code, errorType);
 		qCWarning(logFbAuth) << "Refreshing the firebase-token failed - signing in again...";
 		clearFbConfig();
 		q->firebaseSignIn();
-	});
+	}, &FirebaseAuthenticatorPrivate::translateError);
 }
 
 void FirebaseAuthenticatorPrivate::_q_apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType)
@@ -289,12 +289,13 @@ void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 						  response.refreshToken(),
 						  QDateTime::currentDateTimeUtc().addSecs(response.expiresIn()),
 						  response.email());
-	})->onAllErrors(q, [this](const QString &, int, QtRestClient::RestReply::Error) {
+	})->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		Q_Q(OAuthAuthenticator);
+		_q_apiError(error, code, errorType);
 		qCCritical(logOAuth) << "Failed to sign in to firebase with google OAuth credentials -"
 							 << "make shure google OAuth authentication has been enabled in the firebase console!";
 		Q_EMIT q->signInFailed(OAuthAuthenticator::tr("Google Authentication was not accepted by firebase"));
-	});
+	}, &FirebaseAuthenticatorPrivate::translateError);
 }
 
 void OAuthAuthenticatorPrivate::_q_oAuthError(const QString &error, const QString &errorDescription)

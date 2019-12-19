@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName(QStringLiteral("qtdatasync-example"));
 	QCoreApplication::setOrganizationName(QStringLiteral("Skycoder42"));
 	QCoreApplication::setOrganizationDomain(QStringLiteral("de.skycoder42"));
+	//QGuiApplication::setQuitOnLastWindowClosed(false);
 
 	try {
 		QCommandLineParser parser;
@@ -36,6 +37,8 @@ int main(int argc, char *argv[])
 		auto dsEngine = QtDataSync::Setup::fromConfig(parser.positionalArguments()[0])
 							.enableNtpSync()
 							.createEngine(qApp);
+
+		// TODO stop logic
 
 		// create database
 		auto db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));

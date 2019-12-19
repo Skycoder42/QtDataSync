@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core restclient networkauth sql core-private
+QT = core restclient networkauth sql scxml core-private
 
 HEADERS += \
 	authenticator.h \
@@ -45,6 +45,9 @@ REST_API_FILES += \
 	firebase/realtimedb/data.xml \
 	firebase/realtimedb/realtimedb_api.xml \
 	firebase/realtimedb/realtimedb_error.xml
+
+STATECHARTS += \
+	enginestatemachine.scxml
 
 INCLUDEPATH += \
 	firebase \

@@ -25,9 +25,9 @@
 		<Path>
 			<ParamSegment key="type" type="QString"/>
 		</Path>
-		<Param key="startAt" type="QDateTime"/>
+		<Param key="startAt" type="qint64"/>
 		<Param key="limitToFirst" type="int">100</Param>
-		<Param key="orderBy" type="QString" asStr="true">uploaded</Param>
+		<Param key="orderBy" type="QString" asStr="true">\"uploaded\"</Param>
 	</Method>
 
 	<Method name="getData"

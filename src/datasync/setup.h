@@ -76,24 +76,6 @@ protected:
 	QString _error;
 };
 
-class Q_DATASYNC_EXPORT SetupLockedException : public SetupException
-{
-public:
-	SetupLockedException(QLockFile *lock);
-
-	qint64 pid() const;
-	QString hostname() const;
-	QString appname() const;
-
-	void raise() const override;
-	ExceptionBase *clone() const override;
-
-protected:
-	qint64 _pid = -1;
-	QString _hostname;
-	QString _appname;
-};
-
 inline Q_DATASYNC_EXPORT void swap(Setup& lhs, Setup& rhs) {
 	lhs.swap(rhs);
 }

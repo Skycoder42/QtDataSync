@@ -31,18 +31,18 @@ public Q_SLOTS:
 	void unblockLiveSync();
 	void stopLiveSync();
 
-	void getChanges(const QByteArray &type, const QDateTime &since);
+	void getChanges(const QString &type, const QDateTime &since);
 	void uploadChange(const CloudData &data);
-	void removeTable(const QByteArray &type);
+	void removeTable(const QString &type);
 
 Q_SIGNALS:
-	void triggerSync(QPrivateSignal = {});
+	void triggerSync(const QString &type, QPrivateSignal = {});
 
 	void downloadedData(const CloudData &data, QPrivateSignal = {});
 	void updateLastSync(const QDateTime &lastSync, QPrivateSignal = {});
-	void syncDone(const QByteArray &type, QPrivateSignal = {});
+	void syncDone(const QString &type, QPrivateSignal = {});
 	void uploadedData(const ObjectKey &key, QPrivateSignal = {});
-	void removedTable(const QByteArray &type, QPrivateSignal = {});
+	void removedTable(const QString &type, QPrivateSignal = {});
 
 	void networkError(const QString &error, QPrivateSignal = {});
 

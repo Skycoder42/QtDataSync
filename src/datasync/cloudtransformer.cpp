@@ -36,7 +36,7 @@ CloudData::CloudData(ObjectKey key, std::optional<QJsonObject> data, QDateTime m
 	d{new CloudDataData{{}, std::move(key), std::move(data), std::move(modified)}}
 {}
 
-CloudData::CloudData(QByteArray type, QString key, std::optional<QJsonObject> data, QDateTime modified) :
+CloudData::CloudData(QString type, QString key, std::optional<QJsonObject> data, QDateTime modified) :
 	CloudData{{std::move(type), std::move(key)}, std::move(data), std::move(modified)}
 {}
 
