@@ -34,8 +34,8 @@ public:
 	static Setup fromConfig(QIODevice *configDevice);
 
 	// TODO add "make threaded", that returns an initialized thread watcher
+	// TODO also add "Process" notifier that works across processes
 
-	Setup &setLocalDir(const QString &localDir);
 	Setup &setSettings(QSettings *settings);
 
 	Setup &setFirebaseProjectId(QString projectId);
@@ -46,6 +46,9 @@ public:
 	Setup &setOAuthClientSecret(QString secret);
 
 	Setup &setAuthenticator(IAuthenticator *authenticator);
+
+	Setup &setRemoteReadTimeout(std::chrono::milliseconds ms);
+	Setup &setRemotePageLimit(int limit);
 
 #ifndef QTDATASYNC_NO_NTP
 	Setup &enableNtpSync(QString hostName = QStringLiteral("pool.ntp.org"), quint16 port = 123);

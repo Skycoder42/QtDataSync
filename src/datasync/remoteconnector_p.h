@@ -24,19 +24,25 @@ public:
 
 	explicit RemoteConnector(const QString &userId, Engine *engine);
 
-	void setIdToken(const QString &token);
+	void setIdToken(const QString &idToken);
 
 public Q_SLOTS:
 	void startLiveSync();
+	void unblockLiveSync();
+	void stopLiveSync();
+
 	void getChanges(const QByteArray &type, const QDateTime &since);
 	void uploadChange(const CloudData &data);
+	void removeTable(const QByteArray &type);
 
 Q_SIGNALS:
 	void triggerSync(QPrivateSignal = {});
 
 	void downloadedData(const CloudData &data, QPrivateSignal = {});
 	void updateLastSync(const QDateTime &lastSync, QPrivateSignal = {});
+	void syncDone(const QByteArray &type, QPrivateSignal = {});
 	void uploadedData(const ObjectKey &key, QPrivateSignal = {});
+	void removedTable(const QByteArray &type, QPrivateSignal = {});
 
 	void networkError(const QString &error, QPrivateSignal = {});
 
@@ -51,6 +57,7 @@ private:
 	int _limit = 100;
 
 	QNetworkReply *_eventStream = nullptr;
+	bool _liveSyncBlocked = true;
 
 	static QString translateError(const QtDataSync::firebase::realtimedb::Error &error, int code);
 

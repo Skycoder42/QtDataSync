@@ -35,22 +35,27 @@
 <context>
     <name>QtDataSync::RemoteConnector</name>
     <message>
-        <location filename="../datasync/remoteconnector.cpp" line="+83"/>
+        <location filename="../datasync/remoteconnector.cpp" line="+97"/>
         <source>Failed to download latests changed data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+30"/>
+        <source>Failed to remove table from server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+91"/>
         <source>Failed to upload data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-86"/>
+        <location line="-100"/>
         <source>Failed to verify data version before uploading</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+51"/>
+        <location line="+65"/>
         <source>Live-synchronization disabled because of network error!</source>
         <translation type="unfinished"></translation>
     </message>

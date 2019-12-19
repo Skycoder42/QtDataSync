@@ -17,12 +17,13 @@
 	<Parameter key="auth"></Parameter>
 	<Parameter key="timeout">15min</Parameter>
 	<Parameter key="writeSizeLimit">unlimited</Parameter>
+	<!-- Extender[url]: <path>.json -->
 
 	<Method name="listChangedData"
 			verb="GET"
 			returns="QHash&lt;QString, Data&gt;">
 		<Path>
-			<ParamSegment key="type" type="QString"/><!-- .json -->
+			<ParamSegment key="type" type="QString"/>
 		</Path>
 		<Param key="startAt" type="QDateTime"/>
 		<Param key="limitToFirst" type="int">100</Param>
@@ -34,7 +35,7 @@
 			returns="std::optional&lt;Data&gt;">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
-			<ParamSegment key="key" type="QString"/><!-- .json -->
+			<ParamSegment key="key" type="QString"/>
 		</Path>
 		<Header key="X-Firebase-ETag">true</Header>
 	</Method>
@@ -44,18 +45,17 @@
 			body="Data">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
-			<ParamSegment key="key" type="QString"/><!-- .json -->
+			<ParamSegment key="key" type="QString"/>
 		</Path>
 		<Param key="print" type="QString" asStr="true">silent</Param>
 		<Header key="if-match" expr="true">getETag()</Header>
 	</Method>
 
-	<Method name="removeData"
+	<Method name="removeTable"
 			verb="DELETE">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
-			<ParamSegment key="key" type="QString"/><!-- .json -->
 		</Path>
-		<Header key="if-match" expr="true">getETag()</Header>
+		<Param key="print" type="QString" asStr="true">silent</Param>
 	</Method>
 </RestApi>

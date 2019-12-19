@@ -26,9 +26,6 @@ public:
 		QString secret;
 	} oAuth;
 
-	std::optional<QDir> localDir;
-	QScopedPointer<QLockFile> lock {};
-
 #ifndef QTDATASYNC_NO_NTP
 	QString ntpAddress;
 	quint16 ntpPort = 123;

@@ -199,7 +199,7 @@ OAuthAuthenticator::OAuthAuthenticator(Engine *engine) :
 	Q_D(OAuthAuthenticator);
 	const auto setup = EnginePrivate::setupFor(engine);
 	d->oAuthFlow = new GoogleOAuthFlow{setup->oAuth.port, d->api->restClient()->manager(), this};
-	d->oAuthFlow->setScope(QStringLiteral("openid email https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/cloud-platform"));
+	d->oAuthFlow->setScope(QStringLiteral("openid email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/firebase.database"));
 	d->oAuthFlow->setClientIdentifier(setup->oAuth.clientId);
 	d->oAuthFlow->setClientIdentifierSharedKey(setup->oAuth.secret);
 

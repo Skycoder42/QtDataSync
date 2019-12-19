@@ -33,11 +33,11 @@ RemoteConnector::RemoteConnector(const QString &userId, Engine *engine) :
 			this, &RemoteConnector::apiError);
 }
 
-void RemoteConnector::setIdToken(const QString &token)
+void RemoteConnector::setIdToken(const QString &idToken)
 {
 	auto client = _api->restClient();
 	client->removeGlobalParameter(QStringLiteral("auth"));
-	client->addGlobalParameter(QStringLiteral("auth"), token);
+	client->addGlobalParameter(QStringLiteral("auth"), idToken);
 }
 
 void RemoteConnector::startLiveSync()
@@ -53,6 +53,7 @@ void RemoteConnector::startLiveSync()
 		}
 	}
 
+	_liveSyncBlocked = true;
 	_eventStream = _api->restClient()->builder()
 					   .setAccept("text/event-stream")
 					   .send();
@@ -61,6 +62,17 @@ void RemoteConnector::startLiveSync()
 	connect(_eventStream, &QNetworkReply::finished,
 			this, &RemoteConnector::streamClosed);
 
+}
+
+void RemoteConnector::unblockLiveSync()
+{
+	_liveSyncBlocked = false;
+}
+
+void RemoteConnector::stopLiveSync()
+{
+	if (_eventStream)
+		_eventStream->abort();
 }
 
 void RemoteConnector::getChanges(const QByteArray &type, const QDateTime &since)
@@ -79,6 +91,8 @@ void RemoteConnector::getChanges(const QByteArray &type, const QDateTime &since)
 		// if as much data as possible by limit, fetch more with new last sync
 		if (data.size() == _limit)
 			getChanges(type, lasySync);
+		else
+			Q_EMIT syncDone(type);
 	})->onAllErrors(this, [this](const QString &, int, QtRestClient::RestReply::Error){
 		Q_EMIT networkError(tr("Failed to download latests changed data"));
 	});
@@ -102,6 +116,15 @@ void RemoteConnector::uploadChange(const CloudData &data)
 		}
 	})->onAllErrors(this, [this, data](const QString &, int, QtRestClient::RestReply::Error) {
 		Q_EMIT networkError(tr("Failed to verify data version before uploading"));
+	});
+}
+
+void RemoteConnector::removeTable(const QByteArray &type)
+{
+	_api->removeTable(QString::fromUtf8(type))->onSucceeded(this, [this, type](int) {
+		Q_EMIT removedTable(type);
+	})->onAllErrors(this, [this](const QString &, int, QtRestClient::RestReply::Error) {
+		Q_EMIT networkError(tr("Failed to remove table from server"));
 	});
 }
 
@@ -132,7 +155,6 @@ void RemoteConnector::streamClosed()
 	case QNetworkReply::NoError:
 	case QNetworkReply::RemoteHostClosedError:
 	case QNetworkReply::TimeoutError:
-	case QNetworkReply::OperationCanceledError:
 	case QNetworkReply::TemporaryNetworkFailureError:
 	case QNetworkReply::NetworkSessionFailedError:
 	case QNetworkReply::ProxyConnectionClosedError:
@@ -147,6 +169,12 @@ void RemoteConnector::streamClosed()
 		_eventStream->deleteLater();
 		_eventStream = nullptr;
 		startLiveSync();
+		Q_EMIT triggerSync();  // trigger a sync as getChanges is required to unblock the live sync
+		break;
+	// stopped by user -> live sync stopped
+	case QNetworkReply::OperationCanceledError:
+		_eventStream->deleteLater();
+		_eventStream = nullptr;
 		break;
 	// inacceptable error codes that indicate a hard failure
 	default:

@@ -104,16 +104,6 @@ Setup Setup::fromConfig(QIODevice *configDevice)
 	return setup;
 }
 
-Setup &Setup::setLocalDir(const QString &localDir)
-{
-	d->localDir = localDir;
-	if (!d->localDir->exists() &&
-		!d->localDir->mkpath(QStringLiteral("."))) {
-		qCWarning(logSetup) << "Unable to create local storage directory" << localDir;
-	}
-	return *this;
-}
-
 Setup &Setup::setSettings(QSettings *settings)
 {
 	d->settings = settings;
@@ -159,6 +149,18 @@ Setup &Setup::setAuthenticator(IAuthenticator *authenticator)
 	return *this;
 }
 
+Setup &Setup::setRemoteReadTimeout(std::chrono::milliseconds ms)
+{
+	d->firebase.readTimeOut = std::move(ms);
+	return *this;
+}
+
+Setup &Setup::setRemotePageLimit(int limit)
+{
+	d->firebase.readLimit = limit;
+	return *this;
+}
+
 #ifndef QTDATASYNC_NO_NTP
 Setup &Setup::enableNtpSync(QString hostName, quint16 port)
 {
@@ -170,35 +172,6 @@ Setup &Setup::enableNtpSync(QString hostName, quint16 port)
 
 Engine *Setup::createEngine(QObject *parent)
 {
-	if (!d->localDir){
-		d->localDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-		if (!d->localDir->exists() &&
-			!d->localDir->mkpath(QStringLiteral("."))) {
-			throw SetupException{
-				QStringLiteral("Unable to create local storage directory \"%1\"")
-					.arg(d->localDir->absolutePath())
-			};
-		}
-	}
-	qCDebug(logSetup).noquote() << "Using local directory:" << d->localDir->absolutePath();
-
-	// lock the setup
-	d->lock.reset(new QLockFile{d->localDir->absoluteFilePath(QStringLiteral(".datasync.lock"))});
-	d->lock->setStaleLockTime(std::numeric_limits<int>::max());
-	if (!d->lock->tryLock()) {
-		switch (d->lock->error()) {
-		case QLockFile::LockFailedError:
-			throw SetupLockedException{d->lock.data()};
-		case QLockFile::PermissionError:
-			throw SetupException{QStringLiteral("No permission to create lockfile in \"%1\"").arg(d->localDir->absolutePath())};
-		case QLockFile::UnknownError:
-			throw SetupException{QStringLiteral("Failed to create lockfile in \"%1\"").arg(d->localDir->absolutePath())};
-		default:
-			Q_UNREACHABLE();
-		}
-	}
-	qCDebug(logSetup).noquote() << "Successfully locked local directory";
-
 	return new Engine{std::move(d), parent};
 }
 
@@ -209,13 +182,11 @@ void SetupPrivate::finializeForEngine(Engine *engine)
 	if (settings)
 		settings->setParent(engine);
 	else {
-		settings = new QSettings{
-			localDir->absoluteFilePath(QStringLiteral("config.ini")),
-			QSettings::IniFormat,
-			engine
-		};
+		settings = new QSettings{engine};
+		settings->beginGroup(QStringLiteral("qtdatasync"));
 	}
-	qCDebug(logSetup).noquote() << "Using settings:" << settings->fileName();
+	qCDebug(logSetup).noquote().nospace() << "Using settings: " << settings->fileName()
+										  << " (" << settings->group() << ")";
 
 	if (authenticator)
 		authenticator->setParent(engine);
