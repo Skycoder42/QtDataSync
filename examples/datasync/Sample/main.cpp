@@ -8,6 +8,7 @@
 #include <QtWebView/QtWebView>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
 
 #include <QtDataSync/Engine>
 #include <QtDataSync/Setup>
@@ -41,19 +42,24 @@ int main(int argc, char *argv[])
 		// TODO stop logic
 
 		// create database
+		const QDir dbDir{QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)};
+		dbDir.mkpath(QStringLiteral("."));
 		auto db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));
-		db.setDatabaseName(QDir{QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)}
-							   .absoluteFilePath(QStringLiteral("test.db")));
-		if (!db.open())
+		db.setDatabaseName(dbDir.absoluteFilePath(QStringLiteral("test.db")));
+		if (!db.open()) {
+			qCritical() << db.lastError();
 			return EXIT_FAILURE;
+		}
 		if (!db.tables().contains(QStringLiteral("Test"))) {
 			QSqlQuery tc{db};
 			if (!tc.exec(QStringLiteral("CREATE TABLE Test ("
 								   "	id		INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "
 								   "	name	TEXT NOT NULL, "
 								   "	data	BLOB NOT NULL "
-									   ");")))
+										");"))) {
+				qCritical() << tc.lastError();
 				return EXIT_FAILURE;
+			}
 		}
 		if (!dsEngine->syncTable(QStringLiteral("Test"), db))
 			return EXIT_FAILURE;

@@ -54,6 +54,7 @@ inline constexpr uint qHash(const optional<T> &opt, uint seed = 0) {
 
 }
 
+Q_DECLARE_METATYPE(std::optional<QJsonObject>)
 Q_DECLARE_METATYPE(QtDataSync::firebase::realtimedb::ServerTimestamp)
 Q_DECLARE_METATYPE(QtDataSync::firebase::realtimedb::Timestamp)
 Q_DECLARE_METATYPE(QtDataSync::firebase::realtimedb::Content)

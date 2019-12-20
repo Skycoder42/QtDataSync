@@ -13,6 +13,23 @@ const QByteArray RemoteConnector::NullETag {"null_etag"};
 RemoteConnector::RemoteConnector(const QString &userId, Engine *engine) :
 	QObject{engine}
 {
+#ifdef Q_ATOMIC_INT8_IS_SUPPORTED
+	static QAtomicInteger<bool> rmcReg = false;
+#else
+	static QAtomicInteger<quint16> rmcReg = false;
+#endif
+	if (rmcReg.testAndSetOrdered(false, true)) {
+		qRegisterMetaType<ServerTimestamp>("ServerTimestamp");
+		qRegisterMetaType<Timestamp>("Timestamp");
+		qRegisterMetaType<Content>("Content");
+
+		QtJsonSerializer::SerializerBase::registerVariantConverters<QDateTime, ServerTimestamp>();
+		QtJsonSerializer::SerializerBase::registerOptionalConverters<QJsonObject>();
+		QtJsonSerializer::SerializerBase::registerVariantConverters<std::optional<QJsonObject>, bool>();
+		QtJsonSerializer::SerializerBase::registerMapConverters<QString, Data>();
+		QtJsonSerializer::SerializerBase::registerOptionalConverters<Data>();
+	}
+
 	const auto setup = EnginePrivate::setupFor(engine);
 	_limit = setup->firebase.readLimit;
 
@@ -238,7 +255,7 @@ QList<QCborValue::Type> AccurateTimestampConverter::allowedCborTypes(int metaTyp
 {
 	Q_UNUSED(metaTypeId)
 	Q_UNUSED(tag)
-	return {QCborValue::Integer};
+	return {QCborValue::Integer, QCborValue::Double};
 }
 
 QCborValue AccurateTimestampConverter::serialize(int propertyType, const QVariant &value) const
