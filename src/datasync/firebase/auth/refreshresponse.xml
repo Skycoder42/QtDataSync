@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="RefreshResponse"
-			namespace="QtDataSync::firebase::auth">
+			namespace="QtDataSync::firebase::auth"
+			registerConverters="false">
 	<Property key="token_type" type="QString"/>
 	<Property key="id_token" type="QString"/>
 	<Property key="user_id" type="QString"/>

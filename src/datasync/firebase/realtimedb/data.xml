@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="Data"
-			namespace="QtDataSync::firebase::realtimedb">
+			namespace="QtDataSync::firebase::realtimedb"
+			registerConverters="false">
 	<Include>variant</Include>
 	<Include>QtCore/QDateTime</Include>
 	<Include local="true">servertimestamp_p.h</Include>

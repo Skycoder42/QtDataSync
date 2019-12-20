@@ -1,5 +1,6 @@
 #include "remoteconnector_p.h"
 #include "engine_p.h"
+#include <QtCore/QAtomicInteger>
 using namespace QtDataSync;
 using namespace QtDataSync::firebase;
 using namespace QtDataSync::firebase::realtimedb;

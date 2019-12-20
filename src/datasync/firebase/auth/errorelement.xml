@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="ErrorElement"
-			namespace="QtDataSync::firebase::auth">
+			namespace="QtDataSync::firebase::auth"
+			registerConverters="false">
 	<Property key="message" type="QString"/>
 	<Property key="domain" type="QString"/>
 	<Property key="reason" type="QString"/>

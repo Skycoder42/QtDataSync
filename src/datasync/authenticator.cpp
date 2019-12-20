@@ -1,6 +1,7 @@
 #include "authenticator.h"
 #include "authenticator_p.h"
 #include "engine_p.h"
+#include <QtCore/QAtomicInteger>
 
 using namespace QtDataSync;
 using namespace QtDataSync::firebase;
@@ -65,6 +66,16 @@ FirebaseAuthenticator::FirebaseAuthenticator(Engine *engine) :
 FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, Engine *engine) :
 	IAuthenticator{dd, engine}
 {
+#ifdef Q_ATOMIC_INT8_IS_SUPPORTED
+	static QAtomicInteger<bool> authReg = false;
+#else
+	static QAtomicInteger<quint16> authReg = false;
+#endif
+	if (authReg.testAndSetOrdered(false, true)) {
+		qRegisterMetaType<ErrorContent>("ErrorContent");
+		QtJsonSerializer::SerializerBase::registerListConverters<ErrorContent>();
+	}
+
 	Q_D(FirebaseAuthenticator);
 	d->engine = engine;
 

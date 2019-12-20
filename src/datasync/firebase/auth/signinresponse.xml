@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="SignInResponse"
-			namespace="QtDataSync::firebase::auth">
+			namespace="QtDataSync::firebase::auth"
+			registerConverters="false">
 	<Property key="localId" type="QString"/>
 	<Property key="emailVerified" type="bool">false</Property>
 	<Property key="email" type="QString"/>

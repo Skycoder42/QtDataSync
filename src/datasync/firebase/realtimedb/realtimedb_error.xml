@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="Error"
-			namespace="QtDataSync::firebase::realtimedb">
+			namespace="QtDataSync::firebase::realtimedb"
+			registerConverters="false">
 	<Property key="error" type="QString"/>
 </RestGadget>

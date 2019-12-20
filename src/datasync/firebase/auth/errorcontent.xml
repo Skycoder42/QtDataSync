@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="ErrorContent"
-			namespace="QtDataSync::firebase::auth">
+			namespace="QtDataSync::firebase::auth"
+			registerConverters="false">
 	<Include local="true">errorelement.h</Include>
 
 	<Property key="code" type="int">0</Property>

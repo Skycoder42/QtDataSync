@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RestGadget name="DeleteRequest"
-			namespace="QtDataSync::firebase::auth">
+			namespace="QtDataSync::firebase::auth"
+			registerConverters="false">
 	<Property key="idToken" type="QString"/>
 </RestGadget>
