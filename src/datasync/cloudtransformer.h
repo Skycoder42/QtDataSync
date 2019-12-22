@@ -50,20 +50,35 @@ class Q_DATASYNC_EXPORT ICloudTransformer : public QObject
 {
 	Q_OBJECT
 
-public:
-	CloudData transform(ObjectKey key, const std::optional<QVariantHash> &data, QDateTime modified) const;
-	std::optional<QVariantHash> transform(const CloudData &data);
+public Q_SLOTS:
+	virtual void transformUpload(ObjectKey key, const std::optional<QVariantHash> &data, QDateTime modified) = 0;
+	virtual void transformDownload(const CloudData &data) = 0;
+
+Q_SIGNALS:
+	void transformUploadDone(const CloudData &data);
+	void transformDownloadDone(ObjectKey key, const std::optional<QVariantHash> &data, QDateTime modified);
 
 protected:
 	explicit ICloudTransformer(QObject *parent = nullptr);
 	ICloudTransformer(QObjectPrivate &dd, QObject *parent = nullptr);
+};
 
-	virtual QJsonObject transformUpload(const QVariantHash &data) const = 0;
-	virtual QVariantHash transformDownload(const QJsonObject &data) const = 0;
+class Q_DATASYNC_EXPORT ISynchronousCloudTransformer : public ICloudTransformer
+{
+public:
+	void transformUpload(ObjectKey key, const std::optional<QVariantHash> &data, QDateTime modified) final;
+	void transformDownload(const CloudData &data) final;
+
+protected:
+	explicit ISynchronousCloudTransformer(QObject *parent = nullptr);
+	ISynchronousCloudTransformer(QObjectPrivate &dd, QObject *parent = nullptr);
+
+	virtual QJsonObject transformUploadSync(const QVariantHash &data) const = 0;
+	virtual QVariantHash transformDownloadSync(const QJsonObject &data) const = 0;
 };
 
 class PlainCloudTransformerPrivate;
-class Q_DATASYNC_EXPORT PlainCloudTransformer final : public ICloudTransformer
+class Q_DATASYNC_EXPORT PlainCloudTransformer final : public ISynchronousCloudTransformer
 {
 	Q_OBJECT
 
@@ -82,8 +97,8 @@ Q_SIGNALS:
 	void serializerChanged(QtJsonSerializer::JsonSerializer *serializer, QPrivateSignal = {});
 
 protected:
-	QJsonObject transformUpload(const QVariantHash &data) const final;
-	QVariantHash transformDownload(const QJsonObject &data) const final;
+	QJsonObject transformUploadSync(const QVariantHash &data) const final;
+	QVariantHash transformDownloadSync(const QJsonObject &data) const final;
 
 private:
 	Q_DECLARE_PRIVATE(PlainCloudTransformer)

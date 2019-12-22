@@ -199,6 +199,8 @@ void EnginePrivate::setupConnector(const QString &userId)
 {
 	Q_Q(Engine);
 	connector = new RemoteConnector{userId, q};
+
+	// rmc -> engine
 	connect(connector, &RemoteConnector::triggerSync,
 			this, &EnginePrivate::_q_triggerSync);
 	connect(connector, &RemoteConnector::syncDone,
@@ -207,6 +209,12 @@ void EnginePrivate::setupConnector(const QString &userId)
 			this, &EnginePrivate::_q_uploadedData);
 	connect(connector, &RemoteConnector::networkError,
 			this, &EnginePrivate::_q_handleError);
+
+	// rmc <-> transformer
+	QObject::connect(connector, &RemoteConnector::downloadedData,
+					 setup->transformer, &ICloudTransformer::transformDownload);
+	QObject::connect(setup->transformer, &ICloudTransformer::transformUploadDone,
+					 connector, &RemoteConnector::uploadChange);
 }
 
 void EnginePrivate::fillDirtyTables()

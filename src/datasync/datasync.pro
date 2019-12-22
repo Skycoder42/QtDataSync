@@ -7,6 +7,7 @@ HEADERS += \
 	authenticator_p.h \
 	cloudtransformer.h \
 	cloudtransformer_p.h \
+	databaseproxy_p.h \
 	databasewatcher_p.h \
 	engine.h \
 	engine_p.h \
@@ -23,6 +24,7 @@ HEADERS += \
 SOURCES += \
 	authenticator.cpp \
 	cloudtransformer.cpp \
+	databaseproxy.cpp \
 	databasewatcher.cpp \
 	engine.cpp \
 	exception.cpp \

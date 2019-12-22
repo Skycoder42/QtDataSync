@@ -2,32 +2,6 @@
 #include "cloudtransformer_p.h"
 using namespace QtDataSync;
 
-ICloudTransformer::ICloudTransformer(QObject *parent) :
-	QObject{parent}
-{}
-
-ICloudTransformer::ICloudTransformer(QObjectPrivate &dd, QObject *parent) :
-	QObject{dd, parent}
-{}
-
-CloudData ICloudTransformer::transform(ObjectKey key, const std::optional<QVariantHash> &data, QDateTime modified) const
-{
-	return CloudData {
-		std::move(key),
-		data ? transformUpload(*data) : std::optional<QJsonObject>{std::nullopt},
-		std::move(modified)
-	};
-}
-
-std::optional<QVariantHash> ICloudTransformer::transform(const CloudData &data)
-{
-	return data.data() ?
-		transformDownload(*data.data()) :
-		std::optional<QVariantHash>{std::nullopt};
-}
-
-
-
 CloudData::CloudData() :
 	d{new CloudDataData{}}
 {}
@@ -82,12 +56,48 @@ void CloudData::setModified(QDateTime modified)
 
 
 
+ICloudTransformer::ICloudTransformer(QObject *parent) :
+	  QObject{parent}
+{}
+
+ICloudTransformer::ICloudTransformer(QObjectPrivate &dd, QObject *parent) :
+	  QObject{dd, parent}
+{}
+
+
+
+void ISynchronousCloudTransformer::transformUpload(ObjectKey key, const std::optional<QVariantHash> &data, QDateTime modified)
+{
+	if (data)
+		Q_EMIT transformUploadDone({std::move(key), transformUploadSync(*data), std::move(modified)});
+	else
+		Q_EMIT transformUploadDone({std::move(key), std::nullopt, std::move(modified)});
+}
+
+void ISynchronousCloudTransformer::transformDownload(const CloudData &data)
+{
+	if (data.data())
+		Q_EMIT transformDownloadDone(data.key(), transformDownloadSync(*data.data()), data.modified());
+	else
+		Q_EMIT transformDownloadDone(data.key(), std::nullopt, data.modified());
+}
+
+ISynchronousCloudTransformer::ISynchronousCloudTransformer(QObject *parent) :
+	  ICloudTransformer{parent}
+{}
+
+ISynchronousCloudTransformer::ISynchronousCloudTransformer(QObjectPrivate &dd, QObject *parent) :
+	  ICloudTransformer{dd, parent}
+{}
+
+
+
 PlainCloudTransformer::PlainCloudTransformer(QObject *parent) :
 	PlainCloudTransformer{new QtJsonSerializer::JsonSerializer{}, parent}
 {}
 
 PlainCloudTransformer::PlainCloudTransformer(QtJsonSerializer::JsonSerializer *serializer, QObject *parent) :
-	ICloudTransformer{*new PlainCloudTransformerPrivate{}, parent}
+	ISynchronousCloudTransformer{*new PlainCloudTransformerPrivate{}, parent}
 {
 	Q_D(PlainCloudTransformer);
 	d->serializer = serializer;
@@ -113,13 +123,13 @@ void PlainCloudTransformer::setSerializer(QtJsonSerializer::JsonSerializer *seri
 	Q_EMIT serializerChanged(d->serializer);
 }
 
-QJsonObject PlainCloudTransformer::transformUpload(const QVariantHash &data) const
+QJsonObject PlainCloudTransformer::transformUploadSync(const QVariantHash &data) const
 {
 	Q_D(const PlainCloudTransformer);
 	return d->serializer->serialize(data);
 }
 
-QVariantHash PlainCloudTransformer::transformDownload(const QJsonObject &data) const
+QVariantHash PlainCloudTransformer::transformDownloadSync(const QJsonObject &data) const
 {
 	Q_D(const PlainCloudTransformer);
 	return d->serializer->deserialize<QVariantHash>(data);
