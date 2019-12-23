@@ -5,7 +5,7 @@
 #include "authenticator.h"
 
 #include "setup_p.h"
-#include "databasewatcher_p.h"
+#include "databaseproxy_p.h"
 #include "remoteconnector_p.h"
 
 #ifndef QTDATASYNC_NO_NTP
@@ -29,11 +29,10 @@ class Q_DATASYNC_EXPORT EnginePrivate : public QObjectPrivate
 public:
 	QScopedPointer<SetupPrivate> setup;
 
-	QHash<QString, DatabaseWatcher*> dbWatchers;
+	EngineStateMachine *statemachine = nullptr;
+	DatabaseProxy *dbProxy = nullptr;
 	RemoteConnector *connector = nullptr;
 
-	EngineStateMachine *statemachine = nullptr;
-	QQueue<QString> dirtyTables;
 	QString lastError;
 
 #ifndef QTDATASYNC_NO_NTP
@@ -43,20 +42,20 @@ public:
 	static const SetupPrivate *setupFor(const Engine *engine);
 
 	void setupStateMachine();
-	void setupConnector(const QString &userId);
-	void fillDirtyTables();
-
-	DatabaseWatcher *watcher(QSqlDatabase &&database);
-	void removeWatcher(DatabaseWatcher *watcher);
+	void setupConnections();
 
 	void onEnterActive();
 	void onEnterDownloading();
 	void onEnterUploading();
 
+	// global
 	void _q_handleError(const QString &errorMessage);
+	// authenticator
 	void _q_signInSuccessful(const QString &userId, const QString &idToken);
 	void _q_accountDeleted(bool success);
-	void _q_triggerSync(const QString &type);
+	// dbwatcher
+	void _q_triggerSync();
+	// connector
 	void _q_syncDone(const QString &type);
 	void _q_uploadedData(const ObjectKey &key);
 };

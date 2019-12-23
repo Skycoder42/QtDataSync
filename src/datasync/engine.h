@@ -26,10 +26,12 @@ public:
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
 
-	Q_INVOKABLE bool syncDb(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
-							const QStringList &tables = {});
-	Q_INVOKABLE bool syncDb(QSqlDatabase database,
-							const QStringList &tables = {});
+	Q_INVOKABLE bool syncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
+								  bool autoActivateSync = true,
+								  bool addAllTables = false);
+	Q_INVOKABLE bool syncDatabase(QSqlDatabase database,
+								  bool autoActivateSync = true,
+								  bool addAllTables = false);
 
 	Q_INVOKABLE bool syncTable(const QString &table,
 							   const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
@@ -44,19 +46,17 @@ public Q_SLOTS:
 	void start();
 	void stop();
 
-	void removeDbSync(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
-					  const QStringList &tables = {});
-	void removeDbSync(QSqlDatabase database,
-					  const QStringList &tables = {});
+	void removeDatabaseSync(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
+							bool deactivateSync = false);
+	void removeDatabaseSync(QSqlDatabase database,
+							bool deactivateSync = false);
 	void removeTableSync(const QString &table,
 						 const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
 	void removeTableSync(const QString &table,
 						 QSqlDatabase database);
 
-	void unsyncDb(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
-				  const QStringList &tables = {});
-	void unsyncDb(QSqlDatabase database,
-				  const QStringList &tables = {});
+	void unsyncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
+	void unsyncDatabase(QSqlDatabase database);
 	void unsyncTable(const QString &table,
 					 const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
 	void unsyncTable(const QString &table,
@@ -67,11 +67,9 @@ private:
 	Q_DECLARE_PRIVATE(Engine)
 
 	Q_PRIVATE_SLOT(d_func(), void _q_handleError(const QString &))
-
 	Q_PRIVATE_SLOT(d_func(), void _q_signInSuccessful(const QString &, const QString &))
 	Q_PRIVATE_SLOT(d_func(), void _q_accountDeleted(bool))
-
-	Q_PRIVATE_SLOT(d_func(), void _q_triggerSync(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_triggerSync())
 	Q_PRIVATE_SLOT(d_func(), void _q_syncDone(const QString &))
 	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &))
 

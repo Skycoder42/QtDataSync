@@ -11,7 +11,7 @@ Q_LOGGING_CATEGORY(QtDataSync::logRmc, "qt.datasync.RemoteConnector")
 
 const QByteArray RemoteConnector::NullETag {"null_etag"};
 
-RemoteConnector::RemoteConnector(const QString &userId, Engine *engine) :
+RemoteConnector::RemoteConnector(Engine *engine) :
 	QObject{engine}
 {
 #ifdef Q_ATOMIC_INT8_IS_SUPPORTED
@@ -34,25 +34,35 @@ RemoteConnector::RemoteConnector(const QString &userId, Engine *engine) :
 	const auto setup = EnginePrivate::setupFor(engine);
 	_limit = setup->firebase.readLimit;
 
-	auto client = new JsonSuffixClient{this};
-	client->serializer()->setAllowDefaultNull(true);
-	client->serializer()->addJsonTypeConverter<ServerTimestampConverter>();
-	client->serializer()->addJsonTypeConverter<AccurateTimestampConverter>();
-	client->manager()->setStrictTransportSecurityEnabled(true);
-	client->setModernAttributes();
-	client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
-	client->setBaseUrl(QUrl{QStringLiteral("https://%1.firebaseio.com/datasync/%2")
-								.arg(setup->firebase.projectId, userId)});
-	client->addGlobalParameter(QStringLiteral("timeout"), timeString(setup->firebase.readTimeOut));
-	client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
-	_api = new ApiClient{client->rootClass(), this};
+	_client = new JsonSuffixClient{this};
+	_client->serializer()->setAllowDefaultNull(true);
+	_client->serializer()->addJsonTypeConverter<ServerTimestampConverter>();
+	_client->serializer()->addJsonTypeConverter<AccurateTimestampConverter>();
+	_client->manager()->setStrictTransportSecurityEnabled(true);
+	_client->setModernAttributes();
+	_client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
+	_client->setBaseUrl(QUrl{QStringLiteral("https://%1.firebaseio.com/datasync")
+								 .arg(setup->firebase.projectId)});
+	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(setup->firebase.readTimeOut));
+	_client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
+}
+
+bool RemoteConnector::isActive() const
+{
+	return _api;
+}
+
+void RemoteConnector::setUser(const QString &userId)
+{
+	if (_api)
+		_api->deleteLater();
+	_api = new ApiClient{_client->createClass(userId, this), this};
 }
 
 void RemoteConnector::setIdToken(const QString &idToken)
 {
-	auto client = _api->restClient();
-	client->removeGlobalParameter(QStringLiteral("auth"));
-	client->addGlobalParameter(QStringLiteral("auth"), idToken);
+	_client->removeGlobalParameter(QStringLiteral("auth"));
+	_client->addGlobalParameter(QStringLiteral("auth"), idToken);
 }
 
 void RemoteConnector::startLiveSync()
@@ -92,6 +102,10 @@ void RemoteConnector::stopLiveSync()
 
 void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 {
+	if (!_api) {
+		Q_EMIT networkError(tr("User is not logged in yet"));
+		return;
+	}
 	_api->listChangedData(type, since.toUTC().toMSecsSinceEpoch(), _limit)->onSucceeded(this, [this, type, since](int, const QHash<QString, Data> &data) {
 		// get all changed data and pass to storage
 		qCDebug(logRmc) << "listChangedData returned" << data.size() << "entries";
@@ -117,6 +131,10 @@ void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 
 void RemoteConnector::uploadChange(const CloudData &data)
 {
+	if (!_api) {
+		Q_EMIT networkError(tr("User is not logged in yet"));
+		return;
+	}
 	auto reply = _api->getData(data.key().typeName, data.key().id);
 	reply->onSucceeded(this, [this, data, reply](int, const std::optional<Data> &replyData) {
 		if (!replyData) {
@@ -139,6 +157,10 @@ void RemoteConnector::uploadChange(const CloudData &data)
 
 void RemoteConnector::removeTable(const QString &type)
 {
+	if (!_api) {
+		Q_EMIT networkError(tr("User is not logged in yet"));
+		return;
+	}
 	_api->removeTable(type)->onSucceeded(this, [this, type](int) {
 		Q_EMIT removedTable(type);
 	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
@@ -221,6 +243,10 @@ QString RemoteConnector::timeString(const milliseconds &time)
 
 void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag)
 {
+	if (!_api) {
+		Q_EMIT networkError(tr("User is not logged in yet"));
+		return;
+	}
 	// data on server is older -> upload
 	FirebaseApiBase::ETagSetter eTagSetter{_api, std::move(eTag)};
 	_api->uploadData({data.data(), data.modified(), ServerTimestamp{}},

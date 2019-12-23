@@ -35,6 +35,11 @@ QStringList DatabaseWatcher::tables() const
 	return _tables.keys();
 }
 
+bool DatabaseWatcher::reactivateTables()
+{
+	Q_UNIMPLEMENTED();
+}
+
 bool DatabaseWatcher::addAllTables(QSql::TableType type)
 {
 	for (const auto &table : _db.tables(type)) {
@@ -199,8 +204,9 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 		if (!_db.driver()->subscribeToNotification(syncTableName))
 			qCWarning(logDbWatcher) << "Unable to register update notification hook for sync table for" << name;  // no hard error, as data is still synced, just not live
 
-		// step 4: emit sync triggered
-		Q_EMIT triggerSync(name, {});
+		// step 4: emit signals
+		Q_EMIT tableAdded(name);
+		Q_EMIT triggerSync(name);
 
 		return true;
 	} catch (QSqlError &error) {
@@ -237,6 +243,8 @@ void DatabaseWatcher::removeTable(const QString &name, bool removeRef)
 
 	if (removeRef)
 		_tables.remove(name);
+
+	Q_EMIT tableRemoved(name);
 }
 
 void DatabaseWatcher::unsyncAllTables()
@@ -360,7 +368,7 @@ void DatabaseWatcher::dbNotify(const QString &name)
 		return;
 	const auto origName = name.mid(TablePrefix.size());
 	if (_tables.contains(origName))
-		Q_EMIT triggerSync(origName, {});
+		Q_EMIT triggerSync(origName);
 }
 
 QString DatabaseWatcher::sqlTypeName(const QSqlField &field) const

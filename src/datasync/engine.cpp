@@ -16,27 +16,23 @@ ICloudTransformer *Engine::transformer() const
 	return d->setup->transformer;
 }
 
-bool Engine::syncDb(const QString &databaseConnection, const QStringList &tables)
+bool Engine::syncDatabase(const QString &databaseConnection, bool autoActivateSync, bool addAllTables)
 {
-	return syncDb(QSqlDatabase::database(databaseConnection, true), tables);
+	return syncDatabase(QSqlDatabase::database(databaseConnection, true), autoActivateSync, addAllTables);
 }
 
-bool Engine::syncDb(QSqlDatabase database, const QStringList &tables)
+bool Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool addAllTables)
 {
 	Q_D(Engine);
 	if (!database.isOpen())
 		return false;
 
-	auto watcher = d->watcher(std::move(database));
-	if (tables.isEmpty())
-		return watcher->addAllTables();
-	else {
-		for (const auto &table : tables) {
-			if (!watcher->addTable(table))
-				return false;
-		}
-		return true;
-	}
+	auto watcher = d->dbProxy->watcher(std::move(database));
+	if (autoActivateSync && !watcher->reactivateTables())
+		return false;
+	if (addAllTables && !watcher->addAllTables())
+		return false;
+	return true;
 }
 
 bool Engine::syncTable(const QString &table, const QString &databaseConnection, const QStringList &fields, const QString &primaryKeyType)
@@ -49,7 +45,7 @@ bool Engine::syncTable(const QString &table, QSqlDatabase database, const QStrin
 	Q_D(Engine);
 	if (!database.isOpen())
 		return false;
-	return d->watcher(std::move(database))->addTable(table, fields, primaryKeyType);
+	return d->dbProxy->watcher(std::move(database))->addTable(table, fields, primaryKeyType);
 }
 
 void Engine::start()
@@ -74,24 +70,18 @@ void Engine::stop()
 	d->statemachine->submitEvent(QStringLiteral("stop"));
 }
 
-void Engine::removeDbSync(const QString &databaseConnection, const QStringList &tables)
+void Engine::removeDatabaseSync(const QString &databaseConnection, bool deactivateSync)
 {
-	removeDbSync(QSqlDatabase::database(databaseConnection, false), tables);
+	removeDatabaseSync(QSqlDatabase::database(databaseConnection, false), deactivateSync);
 }
 
-void Engine::removeDbSync(QSqlDatabase database, const QStringList &tables)
+void Engine::removeDatabaseSync(QSqlDatabase database, bool deactivateSync)
 {
 	Q_D(Engine);
-	auto watcher = d->watcher(std::move(database));
-	if (tables.isEmpty())
-		watcher->removeAllTables();
-	else {
-		for (const auto &table : tables)
-			watcher->removeTable(table);
-	}
-
-	if (!watcher->hasTables())
-		d->removeWatcher(watcher);
+	if (deactivateSync)
+		d->dbProxy->watcher(std::move(database))->removeAllTables();
+	else
+		d->dbProxy->dropWatcher(std::move(database));
 }
 
 void Engine::removeTableSync(const QString &table, const QString &databaseConnection)
@@ -102,30 +92,18 @@ void Engine::removeTableSync(const QString &table, const QString &databaseConnec
 void Engine::removeTableSync(const QString &table, QSqlDatabase database)
 {
 	Q_D(Engine);
-	auto watcher = d->watcher(std::move(database));
-	watcher->removeTable(table);
-	if (!watcher->hasTables())
-		d->removeWatcher(watcher);
+	d->dbProxy->watcher(std::move(database))->removeTable(table);
 }
 
-void Engine::unsyncDb(const QString &databaseConnection, const QStringList &tables)
+void Engine::unsyncDatabase(const QString &databaseConnection)
 {
-	unsyncDb(QSqlDatabase::database(databaseConnection, true), tables);
+	unsyncDatabase(QSqlDatabase::database(databaseConnection, true));
 }
 
-void Engine::unsyncDb(QSqlDatabase database, const QStringList &tables)
+void Engine::unsyncDatabase(QSqlDatabase database)
 {
 	Q_D(Engine);
-	auto watcher = d->watcher(std::move(database));
-	if (tables.isEmpty())
-		watcher->unsyncAllTables();
-	else {
-		for (const auto &table : tables)
-			watcher->unsyncTable(table);
-	}
-
-	if (!watcher->hasTables())
-		d->removeWatcher(watcher);
+	d->dbProxy->watcher(std::move(database))->unsyncAllTables();
 }
 
 void Engine::unsyncTable(const QString &table, const QString &databaseConnection)
@@ -136,10 +114,7 @@ void Engine::unsyncTable(const QString &table, const QString &databaseConnection
 void Engine::unsyncTable(const QString &table, QSqlDatabase database)
 {
 	Q_D(Engine);
-	auto watcher = d->watcher(std::move(database));
-	watcher->unsyncTable(table);
-	if (!watcher->hasTables())
-		d->removeWatcher(watcher);
+	d->dbProxy->watcher(std::move(database))->unsyncTable(table);
 }
 
 Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
@@ -149,7 +124,11 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	d->setup.swap(setup);
 	d->setup->finializeForEngine(this);
 
+	d->statemachine = new EngineStateMachine{this};
+	d->dbProxy = new DatabaseProxy{this};
+	d->connector = new RemoteConnector{this};
 	d->setupStateMachine();
+	d->setupConnections();
 	d->statemachine->start();
 	qCDebug(logEngine) << "Started engine statemachine";
 }
@@ -164,7 +143,6 @@ const SetupPrivate *EnginePrivate::setupFor(const Engine *engine)
 void EnginePrivate::setupStateMachine()
 {
 	Q_Q(Engine);
-	statemachine = new EngineStateMachine{q};
 	if (!statemachine->init())
 		throw SetupException{QStringLiteral("Failed to initialize statemachine!")};
 
@@ -173,12 +151,6 @@ void EnginePrivate::setupStateMachine()
 	statemachine->connectToState(QStringLiteral("Active"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterActive, this)));
 	// ## SigningIn
-	connect(setup->authenticator, &IAuthenticator::signInSuccessful,
-			this, &EnginePrivate::_q_signInSuccessful);
-	connect(setup->authenticator, &IAuthenticator::signInFailed,
-			this, &EnginePrivate::_q_handleError);
-	connect(setup->authenticator, &IAuthenticator::accountDeleted,
-			this, &EnginePrivate::_q_accountDeleted);
 	statemachine->connectToState(QStringLiteral("SigningIn"),
 								 QScxmlStateMachine::onEntry(setup->authenticator, &IAuthenticator::signIn));
 	// ## Synchronizing
@@ -195,14 +167,23 @@ void EnginePrivate::setupStateMachine()
 	});
 }
 
-void EnginePrivate::setupConnector(const QString &userId)
+void EnginePrivate::setupConnections()
 {
-	Q_Q(Engine);
-	connector = new RemoteConnector{userId, q};
+	// authenticator <-> engine
+	connect(setup->authenticator, &IAuthenticator::signInSuccessful,
+			this, &EnginePrivate::_q_signInSuccessful);
+	connect(setup->authenticator, &IAuthenticator::signInFailed,
+			this, &EnginePrivate::_q_handleError);
+	connect(setup->authenticator, &IAuthenticator::accountDeleted,
+			this, &EnginePrivate::_q_accountDeleted);
+
+	// dbProx <-> engine
+	connect(dbProxy, &DatabaseProxy::triggerSync,
+			this, &EnginePrivate::_q_triggerSync);
+	connect(dbProxy, &DatabaseProxy::databaseError,
+			this, &EnginePrivate::_q_handleError);
 
 	// rmc -> engine
-	connect(connector, &RemoteConnector::triggerSync,
-			this, &EnginePrivate::_q_triggerSync);
 	connect(connector, &RemoteConnector::syncDone,
 			this, &EnginePrivate::_q_syncDone);
 	connect(connector, &RemoteConnector::uploadedData,
@@ -210,49 +191,31 @@ void EnginePrivate::setupConnector(const QString &userId)
 	connect(connector, &RemoteConnector::networkError,
 			this, &EnginePrivate::_q_handleError);
 
+	// rmc <-> dbProxy
+	QObject::connect(connector, &RemoteConnector::triggerSync,
+					 dbProxy, &DatabaseProxy::markTableDirty);
+
 	// rmc <-> transformer
 	QObject::connect(connector, &RemoteConnector::downloadedData,
 					 setup->transformer, &ICloudTransformer::transformDownload);
 	QObject::connect(setup->transformer, &ICloudTransformer::transformUploadDone,
 					 connector, &RemoteConnector::uploadChange);
-}
 
-void EnginePrivate::fillDirtyTables()
-{
-	dirtyTables.clear();
-	for (auto watcher : dbWatchers)
-		dirtyTables.append(watcher->tables());
-	if (const auto dupes = dirtyTables.removeDuplicates(); dupes > 0)
-		qCWarning(logEngine) << "Detected" << dupes << "tables with identical names - this can lead to synchronization failures!";
-}
-
-DatabaseWatcher *EnginePrivate::watcher(QSqlDatabase &&database)
-{
-	Q_Q(Engine);
-	auto &watcher = dbWatchers[database.connectionName()];
-	if (!watcher)
-		watcher = new DatabaseWatcher{std::move(database), q};
-	return watcher;
-}
-
-void EnginePrivate::removeWatcher(DatabaseWatcher *watcher)
-{
-	dbWatchers.remove(watcher->database().connectionName());
-	watcher->deleteLater();
+	// transformer <-> dbProxy
 }
 
 void EnginePrivate::onEnterActive()
 {
 	// prepopulate all tables as dirty, so that when sync starts, all are updated
-	fillDirtyTables();
+	dbProxy->fillDirtyTables();
 }
 
 void EnginePrivate::onEnterDownloading()
 {
-	if (dirtyTables.isEmpty())
-		statemachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
+	if (dbProxy->hasDirtyTables())
+		connector->getChanges(dbProxy->nextDirtyTable(), QDateTime::currentDateTimeUtc()); // TODO get lastSync from db
 	else
-		connector->getChanges(dirtyTables.head(), QDateTime::currentDateTimeUtc()); // TODO get lastSync from db
+		statemachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
 }
 
 void EnginePrivate::onEnterUploading()
@@ -270,8 +233,8 @@ void EnginePrivate::_q_handleError(const QString &errorMessage)
 
 void EnginePrivate::_q_signInSuccessful(const QString &userId, const QString &idToken)
 {
-	if (!connector)
-		setupConnector(userId);
+	if (!connector->isActive())
+		connector->setUser(userId);
 	connector->setIdToken(idToken);
 	statemachine->submitEvent(QStringLiteral("signedIn"));  // continue syncing, but has no effect if only token refresh
 }
@@ -281,20 +244,15 @@ void EnginePrivate::_q_accountDeleted(bool success)
 	Q_UNIMPLEMENTED();
 }
 
-void EnginePrivate::_q_triggerSync(const QString &type)
+void EnginePrivate::_q_triggerSync()
 {
-	if (type.isEmpty())  // empty -> all tables
-		fillDirtyTables();
-	else if (!dirtyTables.contains(type))  // only add given table
-		dirtyTables.enqueue(type);
 	statemachine->submitEvent(QStringLiteral("triggerSync"));  // does nothing if already syncing
 }
 
 void EnginePrivate::_q_syncDone(const QString &type)
 {
-	if (!dirtyTables.isEmpty() && dirtyTables.head() == type)
-		dirtyTables.dequeue();
-	if (!dirtyTables.isEmpty())
+	dbProxy->clearDirtyTable(type);
+	if (dbProxy->hasDirtyTables())
 		statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
 	else
 		statemachine->submitEvent(QStringLiteral("dlReady"));  // enters ul state and starts uploading

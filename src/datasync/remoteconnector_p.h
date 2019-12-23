@@ -22,8 +22,10 @@ public:
 	static constexpr int CodeETagMismatch = 412;
 	static const QByteArray NullETag;
 
-	explicit RemoteConnector(const QString &userId, Engine *engine);
+	explicit RemoteConnector(Engine *engine);
 
+	bool isActive() const;
+	void setUser(const QString &userId);
 	void setIdToken(const QString &idToken);
 
 public Q_SLOTS:
@@ -53,6 +55,7 @@ private Q_SLOTS:
 	void streamClosed();
 
 private:
+	QtRestClient::RestClient *_client = nullptr;
 	firebase::realtimedb::ApiClient *_api = nullptr;
 	int _limit = 100;
 

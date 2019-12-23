@@ -66,6 +66,7 @@ public:
 	bool hasTables() const;
 	QStringList tables() const;
 
+	bool reactivateTables();
 	bool addAllTables(QSql::TableType type = QSql::Tables);
 	bool addTable(const QString &name, const QStringList &fields = {}, QString primaryType = {});
 
@@ -82,7 +83,9 @@ public:
 						int limit = 100);
 
 Q_SIGNALS:
-	void triggerSync(const QString &tableName, QPrivateSignal);
+	void tableAdded(const QString &tableName, QPrivateSignal = {});
+	void tableRemoved(const QString &tableName, QPrivateSignal = {});
+	void triggerSync(const QString &tableName, QPrivateSignal = {});
 
 private Q_SLOTS:
 	void dbNotify(const QString &name);
