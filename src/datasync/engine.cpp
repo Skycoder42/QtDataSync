@@ -16,69 +16,35 @@ ICloudTransformer *Engine::transformer() const
 	return d->setup->transformer;
 }
 
-bool Engine::syncDatabase(const QString &databaseConnection, bool autoActivateSync, bool addAllTables)
+void Engine::syncDatabase(const QString &databaseConnection, bool autoActivateSync, bool addAllTables)
 {
 	return syncDatabase(QSqlDatabase::database(databaseConnection, true), autoActivateSync, addAllTables);
 }
 
-bool Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool addAllTables)
+void Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool addAllTables)
 {
 	Q_D(Engine);
 	if (!database.isOpen())
-		return false;
+		throw TableException{{}, QStringLiteral("Database not open"), database.lastError()};
 
 	auto watcher = d->dbProxy->watcher(std::move(database));
-	if (autoActivateSync && !watcher->reactivateTables())
-		return false;
-	if (addAllTables && !watcher->addAllTables())
-		return false;
-	return true;
+	if (autoActivateSync)
+		watcher->reactivateTables();
+	if (addAllTables)
+		watcher->addAllTables();
 }
 
-bool Engine::syncTable(const QString &table, const QString &databaseConnection, const QStringList &fields, const QString &primaryKeyType)
+void Engine::syncTable(const QString &table, const QString &databaseConnection, const QStringList &fields, const QString &primaryKeyType)
 {
 	return syncTable(table, QSqlDatabase::database(databaseConnection, true), fields, primaryKeyType);
 }
 
-bool Engine::syncTable(const QString &table, QSqlDatabase database, const QStringList &fields, const QString &primaryKeyType)
+void Engine::syncTable(const QString &table, QSqlDatabase database, const QStringList &fields, const QString &primaryKeyType)
 {
 	Q_D(Engine);
 	if (!database.isOpen())
-		return false;
-	return d->dbProxy->watcher(std::move(database))->addTable(table, fields, primaryKeyType);
-}
-
-void Engine::start()
-{
-	Q_D(Engine);
-
-#ifndef QTDATASYNC_NO_NTP
-	// start NTP sync if enabled
-	// TODO link to engine
-	if (!d->setup->ntpAddress.isEmpty()) {
-		d->ntpSync = new NtpSync{this};
-		d->ntpSync->syncWith(d->setup->ntpAddress, d->setup->ntpPort);
-	}
-#endif
-
-	d->statemachine->submitEvent(QStringLiteral("start"));
-}
-
-void Engine::stop()
-{
-	Q_D(Engine);
-	d->statemachine->submitEvent(QStringLiteral("stop"));
-}
-
-void Engine::logOut()
-{
-	Q_UNIMPLEMENTED();
-}
-
-void Engine::deleteAccount()
-{
-	Q_D(Engine);
-	d->statemachine->submitEvent(QStringLiteral("deleteAcc"));
+		throw TableException{{}, QStringLiteral("Database not open"), database.lastError()};
+	d->dbProxy->watcher(std::move(database))->addTable(table, fields, primaryKeyType);
 }
 
 void Engine::removeDatabaseSync(const QString &databaseConnection, bool deactivateSync)
@@ -126,6 +92,39 @@ void Engine::unsyncTable(const QString &table, QSqlDatabase database)
 {
 	Q_D(Engine);
 	d->dbProxy->watcher(std::move(database))->unsyncTable(table);
+}
+
+void Engine::start()
+{
+	Q_D(Engine);
+
+#ifndef QTDATASYNC_NO_NTP
+	// start NTP sync if enabled
+	// TODO link to engine
+	if (!d->setup->ntpAddress.isEmpty()) {
+		d->ntpSync = new NtpSync{this};
+		d->ntpSync->syncWith(d->setup->ntpAddress, d->setup->ntpPort);
+	}
+#endif
+
+	d->statemachine->submitEvent(QStringLiteral("start"));
+}
+
+void Engine::stop()
+{
+	Q_D(Engine);
+	d->statemachine->submitEvent(QStringLiteral("stop"));
+}
+
+void Engine::logOut()
+{
+	Q_UNIMPLEMENTED();
+}
+
+void Engine::deleteAccount()
+{
+	Q_D(Engine);
+	d->statemachine->submitEvent(QStringLiteral("deleteAcc"));
 }
 
 Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
@@ -289,6 +288,46 @@ void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modif
 {
 	dbProxy->markUnchanged(key, modified);
 	statemachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
+}
+
+
+
+TableException::TableException(QString table, QString message, QSqlError error) :
+	_table{std::move(table)},
+	_message{std::move(message)},
+	_error{std::move(error)}
+{}
+
+QString TableException::qWhat() const
+{
+	return _table.isEmpty() ?
+		QStringLiteral("Error on database: %1").arg(_message) :
+		QStringLiteral("Error on table %1: %2").arg(_table, _message);
+}
+
+QString TableException::message() const
+{
+	return _message;
+}
+
+QString TableException::table() const
+{
+	return _table;
+}
+
+QSqlError TableException::sqlError() const
+{
+	return _error;
+}
+
+void TableException::raise() const
+{
+	throw *this;
+}
+
+ExceptionBase *TableException::clone() const
+{
+	return new TableException{*this};
 }
 
 #include "moc_engine.cpp"

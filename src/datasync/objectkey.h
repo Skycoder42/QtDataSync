@@ -17,6 +17,7 @@ struct Q_DATASYNC_EXPORT ObjectKey
 
 	//! Creates a hash of the object key to anonymize ize
 	QByteArray hashed() const;
+	QString toString() const;
 
 	//! Equality operator
 	bool operator==(const ObjectKey &other) const;

@@ -2,10 +2,12 @@
 #define QTDATASYNC_ENGINE_H
 
 #include "QtDataSync/qtdatasync_global.h"
+#include "QtDataSync/exception.h"
 
 #include <QtCore/qobject.h>
 
 #include <QtSql/qsqldatabase.h>
+#include <QtSql/qsqlerror.h>
 
 namespace QtDataSync {
 
@@ -26,28 +28,21 @@ public:
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
 
-	Q_INVOKABLE bool syncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
-								  bool autoActivateSync = true,
-								  bool addAllTables = false);
-	Q_INVOKABLE bool syncDatabase(QSqlDatabase database,
-								  bool autoActivateSync = true,
-								  bool addAllTables = false);
+	void syncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
+					  bool autoActivateSync = true,
+					  bool addAllTables = false);
+	void syncDatabase(QSqlDatabase database,
+					  bool autoActivateSync = true,
+					  bool addAllTables = false);
 
-	Q_INVOKABLE bool syncTable(const QString &table,
-							   const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
-							   const QStringList &fields = {},
-							   const QString &primaryKeyType = {});
-	Q_INVOKABLE bool syncTable(const QString &table,
-							   QSqlDatabase database,
-							   const QStringList &fields = {},
-							   const QString &primaryKeyType = {});
-
-public Q_SLOTS:
-	void start();
-	void stop();
-	void logOut();
-	void deleteAccount();
-	// TODO add logout/delete
+	void syncTable(const QString &table,
+				   const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
+				   const QStringList &fields = {},
+				   const QString &primaryKeyType = {});
+	void syncTable(const QString &table,
+				   QSqlDatabase database,
+				   const QStringList &fields = {},
+				   const QString &primaryKeyType = {});
 
 	void removeDatabaseSync(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
 							bool deactivateSync = false);
@@ -65,6 +60,12 @@ public Q_SLOTS:
 	void unsyncTable(const QString &table,
 					 QSqlDatabase database);
 
+public Q_SLOTS:
+	void start();
+	void stop();
+	void logOut();
+	void deleteAccount();
+
 private:
 	friend class Setup;
 	Q_DECLARE_PRIVATE(Engine)
@@ -77,6 +78,25 @@ private:
 	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &, const QDateTime &))
 
 	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
+};
+
+class Q_DATASYNC_EXPORT TableException : public Exception
+{
+public:
+	TableException(QString table, QString message, QSqlError error);
+
+	QString qWhat() const override;
+	QString message() const;
+	QString table() const;
+	QSqlError sqlError() const;
+
+	void raise() const override;
+	ExceptionBase *clone() const override;
+
+protected:
+	QString _table;
+	QString _message;
+	QSqlError _error;
 };
 
 }

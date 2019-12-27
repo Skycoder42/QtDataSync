@@ -50,10 +50,17 @@ class Q_DATASYNC_EXPORT DatabaseWatcher : public QObject
 	Q_OBJECT
 
 public:
-	enum ChangeState {
+	enum class TableState {
+		Inactive = 0,
+		Active = 1,
+		Corrupted = 2
+	};
+	Q_ENUM(TableState)
+
+	enum class ChangeState {
 		Unchanged = 0,
 		Changed = 1,
-		Deleted = 2
+		Corrupted = 2
 	};
 	Q_ENUM(ChangeState)
 
@@ -64,13 +71,13 @@ public:
 
 	QSqlDatabase database() const;
 
-	// table setup
+	// setup functions
 	bool hasTables() const;
 	QStringList tables() const;
 
-	bool reactivateTables();
-	bool addAllTables(QSql::TableType type = QSql::Tables);
-	bool addTable(const QString &name, const QStringList &fields = {}, QString primaryType = {});
+	void reactivateTables();
+	void addAllTables(QSql::TableType type = QSql::Tables);
+	void addTable(const QString &name, const QStringList &fields = {}, QString primaryType = {});
 
 	void removeAllTables();
 	void removeTable(const QString &name, bool removeRef = true);
@@ -78,18 +85,20 @@ public:
 	void unsyncAllTables();
 	void unsyncTable(const QString &name, bool removeRef = true);
 
-	// sync
+	// sync functions
 	QDateTime lastSync(const QString &tableName);
 	void storeData(const LocalData &data);
 	std::optional<LocalData> loadData(const QString &name);
 	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
+	void markCorrupted(const QString &table);
+	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
 
 Q_SIGNALS:
 	void tableAdded(const QString &tableName, QPrivateSignal = {});
 	void tableRemoved(const QString &tableName, QPrivateSignal = {});
 	void triggerSync(const QString &tableName, QPrivateSignal = {});
 
-	void databaseError(const QString &tableName, const QString &errorString, QPrivateSignal = {});
+	void databaseError(const QString &errorString, QPrivateSignal = {});
 
 private Q_SLOTS:
 	void dbNotify(const QString &name);

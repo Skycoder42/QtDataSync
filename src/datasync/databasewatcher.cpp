@@ -1,4 +1,5 @@
 #include "databasewatcher_p.h"
+#include "engine.h"
 
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlRecord>
@@ -35,23 +36,21 @@ QStringList DatabaseWatcher::tables() const
 	return _tables.keys();
 }
 
-bool DatabaseWatcher::reactivateTables()
+void DatabaseWatcher::reactivateTables()
 {
 	Q_UNIMPLEMENTED();
 }
 
-bool DatabaseWatcher::addAllTables(QSql::TableType type)
+void DatabaseWatcher::addAllTables(QSql::TableType type)
 {
 	for (const auto &table : _db.tables(type)) {
 		if (table.startsWith(TablePrefix))
 			continue;
-		if (!addTable(table))
-			return false;
+		addTable(table);
 	}
-	return true;
 }
 
-bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, QString primaryType)
+void DatabaseWatcher::addTable(const QString &name, const QStringList &fields, QString primaryType)
 {
 	const QString syncTableName = TablePrefix + name;
 
@@ -61,7 +60,7 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 		if (pIndex.count() != 1) {
 			qCCritical(logDbWatcher) << "Cannot synchronize table" << name
 									 << "with composite primary key!";
-			return false;
+			throw TableException{name, QStringLiteral("Cannot synchronize table with composite primary key!"), _db.lastError()};
 		}
 		const auto pKey = pIndex.fieldName(0);
 		const auto escPKey = fieldName(pKey);
@@ -72,7 +71,7 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 			createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
 												 "	tableName	TEXT NOT NULL, "
 												 "	pkey		TEXT NOT NULL, "
-												 "	active		INTEGER NOT NULL DEFAULT 0 CHECK(active == 0 OR active == 1) , "
+												 "	state		INTEGER NOT NULL DEFAULT 0 CHECK(state >= 0 AND state <= 2) , "
 												 "	lastSync	TEXT, "
 												 "	PRIMARY KEY(tableName) "
 												 ") WITHOUT ROWID;")
@@ -147,7 +146,7 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 													"BEGIN "
 														// mark old id as deleted
 													"	UPDATE %2 "
-													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 2 "  // 2 == deleted
+													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
 													"	WHERE pkey = OLD.%4; "
 														// then insert (or replace) new entry with new id but same timestamp
 													"	INSERT OR REPLACE INTO %2 "
@@ -167,7 +166,7 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 													"BEGIN "
 														// set version and changed
 													"	UPDATE %2 "
-													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 2 "  // 2 == deleted
+													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
 													"	WHERE pkey = OLD.%4; "
 													"END;")
 										 .arg(tableName(syncTableName + QStringLiteral("_delete_trigger")),
@@ -193,26 +192,18 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 
 		// step 2.2: add to metadata table
 		ExQuery addMetaDataQuery{_db};
-		addMetaDataQuery.prepare(QStringLiteral("INSERT OR IGNORE INTO %1 "
-												"(tableName, pkey, active, lastSync) "
-												"VALUES(?, ?, ?, NULL);")
+		addMetaDataQuery.prepare(QStringLiteral("INSERT INTO %1 "
+												"(tableName, pkey, state, lastSync) "
+												"VALUES(?, ?, ?, NULL) "
+												"ON CONFLICT(tableName) DO UPDATE "
+												"SET state = excluded.state "
+												"WHERE tableName = excluded.tableName;")
 								 .arg(MetaTable));
 		addMetaDataQuery.addBindValue(name);
 		addMetaDataQuery.addBindValue(pKey);
-		addMetaDataQuery.addBindValue(true);
+		addMetaDataQuery.addBindValue(static_cast<int>(TableState::Active));
 		addMetaDataQuery.exec();
-		if (addMetaDataQuery.numRowsAffected() == 0) { // ignored -> update instead
-			ExQuery updateMetaDataQuery{_db};
-			updateMetaDataQuery.prepare(QStringLiteral("UPDATE %1 "
-													   "SET active = ? "
-													   "WHERE tableName == ?;")
-											.arg(MetaTable));
-			updateMetaDataQuery.addBindValue(true);
-			updateMetaDataQuery.addBindValue(name);
-			updateMetaDataQuery.exec();
-			qCInfo(logDbWatcher) << "Enabled synchronization for table" << name;
-		} else
-			qCInfo(logDbWatcher) << "Created metadata and enabled synchronization for table" << name;
+		qCInfo(logDbWatcher) << "Created metadata and enabled synchronization for table" << name;
 
 		// step 2.3: commit transaction
 		transact.commit();
@@ -225,12 +216,10 @@ bool DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 		// step 4: emit signals
 		Q_EMIT tableAdded(name);
 		Q_EMIT triggerSync(name);
-
-		return true;
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to synchronize table" << name
 								 << "with error:" << qUtf8Printable(error.text());
-		return false;
+		throw TableException{name, QStringLiteral("Failed to synchronize table with database error"), error};
 	}
 }
 
@@ -248,16 +237,17 @@ void DatabaseWatcher::removeTable(const QString &name, bool removeRef)
 	try {
 		ExQuery removeMetaData{_db};
 		removeMetaData.prepare(QStringLiteral("UPDATE %1 "
-											  "SET active = ? "
+											  "SET state = ? "
 											  "WHERE tableName == ?;")
 								   .arg(MetaTable));
-		removeMetaData.addBindValue(false);
+		removeMetaData.addBindValue(static_cast<int>(TableState::Inactive));
 		removeMetaData.addBindValue(name);
 		removeMetaData.exec();
 		qCInfo(logDbWatcher) << "Disabled synchronization for" << name;
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to remove metadata for table" << name
 								 << "with error:" << qUtf8Printable(error.text());
+		throw TableException{name, QStringLiteral("Failed to deactivate synchronization for table with database error"), error};
 	}
 
 	if (removeRef)
@@ -292,6 +282,7 @@ void DatabaseWatcher::unsyncAllTables()
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to drop empty metadata table with error:"
 								 << qUtf8Printable(error.text());
+		throw TableException{{}, QStringLiteral("Failed clear metadata with database error"), error};
 	}
 }
 
@@ -348,6 +339,7 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to drop synchronization tables for table" << name
 								 << "with error:" << qUtf8Printable(error.text());
+		throw TableException{name, QStringLiteral("Failed to unsynchronize table with database error"), error};
 	}
 }
 
@@ -369,7 +361,7 @@ QDateTime DatabaseWatcher::lastSync(const QString &tableName)
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to fetch change data for table" << tableName
 								 << "with error:" << qUtf8Printable(error.text());
-		Q_EMIT databaseError(tableName, tr("Failed to get last synced time"));
+		Q_EMIT databaseError(tr("Failed to get last synced time for table %1").arg(tableName));
 		return QDateTime{}.toUTC();
 	}
 }
@@ -409,47 +401,36 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		if (const auto value = data.data(); value) {
 			// try to insert as a new value
 			QStringList insertKeys;
+			QStringList updateKeys;
 			insertKeys.reserve(value->size());
-			for (auto it = value->keyBegin(), end = value->keyEnd(); it != end; ++it)
-				insertKeys.append(fieldName(*it));
+			updateKeys.reserve(value->size());
+			for (auto it = value->keyBegin(), end = value->keyEnd(); it != end; ++it) {
+				const auto fName = fieldName(*it);
+				insertKeys.append(fName);
+				updateKeys.append(QStringLiteral("%1 = excluded.%1").arg(fName));
+			}
 			const auto paramPlcs = QVector<QString>{
 				value->size(),
 				QString{QLatin1Char('?')}
 			}.toList();
 
-			ExQuery insertQuery{_db};
-			insertQuery.prepare(QStringLiteral("INSERT OR IGNORE "
-											   "INTO %1 "
+			// TODO okay so? can fail if other unique statements conflict
+			ExQuery upsertQuery{_db};
+			upsertQuery.prepare(QStringLiteral("INSERT INTO %1 "
 											   "(%2) "
-											   "VALUES(%3);")
+											   "VALUES(%3) "
+											   "ON CONFLICT(%4) DO UPDATE "
+											   "SET %5 "
+											   "WHERE %4 = excluded.%4;")
 									.arg(escTableName,
 										 insertKeys.join(QStringLiteral(", ")),
-										 paramPlcs.join(QStringLiteral(", "))));
+										 paramPlcs.join(QStringLiteral(", ")),
+										 *pKey,
+										 updateKeys.join(QStringLiteral(", "))));
 			for (const auto &val : *value)
-				insertQuery.addBindValue(val);
-			insertQuery.exec();
-
-			// not inserted -> update existing value instead
-			if (insertQuery.numRowsAffected() <= 0) {
-				QStringList updateKeys;
-				updateKeys.reserve(value->size());
-				for (auto it = value->keyBegin(), end = value->keyEnd(); it != end; ++it)
-					updateKeys.append(fieldName(*it) + QStringLiteral(" = ?"));
-
-				ExQuery updateQuery{_db};
-				updateQuery.prepare(QStringLiteral("UPDATE %1 "
-												   "SET %2 "
-												   "WHERE %3 == ?;")
-										.arg(escTableName,
-											 updateKeys.join(QStringLiteral(", ")),
-											 *pKey));
-				for (const auto &val : *value)
-					updateQuery.addBindValue(val);
-				updateQuery.addBindValue(key.id);
-				updateQuery.exec();
-				qCDebug(logDbWatcher) << "Updated local data from cloud data for id" << key;
-			} else
-				qCDebug(logDbWatcher) << "Inserted data from cloud as new local data for id" << key;
+				upsertQuery.addBindValue(val);
+			upsertQuery.exec();
+			qCDebug(logDbWatcher) << "Updated local data from cloud data for id" << key;
 		} else {
 			// delete -> delete it
 			ExQuery deleteQuery{_db};
@@ -462,16 +443,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		}
 
 		// update modified, mark unchanged -> now in sync with remote
-		ExQuery updateSyncQuery{_db};
-		updateSyncQuery.prepare(QStringLiteral("UPDATE %1 "
-											   "SET tstamp = ?, changed = ? "
-											   "WHERE pkey = ?;")
-									.arg(escSyncName));
-		updateSyncQuery.addBindValue(data.modified().toUTC());
-		updateSyncQuery.addBindValue(ChangeState::Unchanged);
-		updateSyncQuery.addBindValue(key.id);
-		updateSyncQuery.exec();
-		qCDebug(logDbWatcher) << "Update metadata for id" << key;
+		markUnchanged(key, data.modified());
 
 		// update last sync
 		ExQuery updateMetaQuery{_db};
@@ -487,7 +459,8 @@ void DatabaseWatcher::storeData(const LocalData &data)
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to store local data for id" << key
 								 << "with error:" << qUtf8Printable(error.text());
-		Q_EMIT databaseError(key.typeName, tr("Failed to store data locally"));
+		markCorrupted(key, data.modified());
+		Q_EMIT databaseError(tr("Failed to store data with id %1 locally in table").arg(key.toString()));
 	}
 }
 
@@ -511,7 +484,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 								  .arg(tableName(name, true),
 									   tableName(name),
 									   *pKey));
-		nextDataQuery.addBindValue(ChangeState::Unchanged);
+		nextDataQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
 		nextDataQuery.exec();
 
 		if (nextDataQuery.first()) {
@@ -531,14 +504,67 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to load next local data for type" << name
 								 << "with error:" << qUtf8Printable(error.text());
-		Q_EMIT databaseError(name, tr("Failed to load local data"));
+		markCorrupted(name);
+		Q_EMIT databaseError(tr("Failed to load local data from table %1").arg(name));
 		return std::nullopt;
 	}
 }
 
 void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modified)
 {
-	// TODO HERE
+	try {
+		ExQuery markUnchangedQuery{_db};
+		markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
+												  "SET changed = ?, tstamp = ? "
+												  "WHERE pkey = ?;")
+									   .arg(tableName(key.typeName, true)));
+		markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
+		markUnchangedQuery.addBindValue(modified.toUTC());
+		markUnchangedQuery.addBindValue(key.id);
+		markUnchangedQuery.exec();
+		qCDebug(logDbWatcher) << "Updated metadata for id" << key;
+	} catch (QSqlError &error) {
+		qCCritical(logDbWatcher) << "Failed to mark entry with id" << key
+								 << "as unchanged with error" << qUtf8Printable(error.text());
+	}
+}
+
+void DatabaseWatcher::markCorrupted(const QString &table)
+{
+	// TODO okay so? not very good designed...
+	try {
+		ExQuery markCorruptedQuery{_db};
+		markCorruptedQuery.prepare(QStringLiteral("UPDATE %1 "
+												  "SET state = ? "
+												  "WHERE tableName = ?;")
+									   .arg(MetaTable));
+		markCorruptedQuery.addBindValue(static_cast<int>(TableState::Corrupted));
+		markCorruptedQuery.addBindValue(table);
+		markCorruptedQuery.exec();
+	} catch (QSqlError &error) {
+		qCCritical(logDbWatcher) << "Failed to mark table" << table
+								 << "as corrupted with error" << qUtf8Printable(error.text());
+	}
+}
+
+void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modified)
+{
+	try {
+		ExQuery insertCorruptedQuery{_db};
+		insertCorruptedQuery.prepare(QStringLiteral("INSERT INTO %1 "
+													"(pkey, tstamp, changed) "
+													"VALUES(?, ?, ?) "
+													"ON CONFLICT(pkey) DO UPDATE "
+													"SET changed = excluded.changed "
+													"WHERE pkey = excluded.pkey;"));
+		insertCorruptedQuery.addBindValue(key.id);
+		insertCorruptedQuery.addBindValue(modified.toUTC());
+		insertCorruptedQuery.addBindValue(static_cast<int>(ChangeState::Corrupted));
+		insertCorruptedQuery.exec();
+	} catch (QSqlError &error) {
+		qCCritical(logDbWatcher) << "Failed to mark entry with id" << key
+								 << "as corrupted with error" << qUtf8Printable(error.text());
+	}
 }
 
 void DatabaseWatcher::dbNotify(const QString &name)

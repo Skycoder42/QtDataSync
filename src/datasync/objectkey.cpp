@@ -11,6 +11,11 @@ QByteArray ObjectKey::hashed() const
 	return hash.result();
 }
 
+QString ObjectKey::toString() const
+{
+	return QStringLiteral("[%1:%2]").arg(typeName, id);
+}
+
 bool ObjectKey::operator==(const QtDataSync::ObjectKey &other) const
 {
 	return typeName == other.typeName &&
