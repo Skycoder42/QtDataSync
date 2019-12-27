@@ -2,8 +2,10 @@
 #define QTDATASYNC_DATABASEWATCHER_H
 
 #include "qtdatasync_global.h"
+#include "cloudtransformer.h"
 
 #include <QtCore/QObject>
+#include <QtCore/QDateTime>
 #include <QtCore/QLoggingCategory>
 
 #include <QtSql/QSqlDatabase>
@@ -77,15 +79,17 @@ public:
 	void unsyncTable(const QString &name, bool removeRef = true);
 
 	// sync
-	quint64 changeCount() const; // get current change count for all registered tables
-	bool processChanges(const QString &tableName,
-						const std::function<void(QVariant, quint64, ChangeState)> &callback,
-						int limit = 100);
+	QDateTime lastSync(const QString &tableName);
+	void storeData(const LocalData &data);
+	std::optional<LocalData> loadData(const QString &name);
+	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
 
 Q_SIGNALS:
 	void tableAdded(const QString &tableName, QPrivateSignal = {});
 	void tableRemoved(const QString &tableName, QPrivateSignal = {});
 	void triggerSync(const QString &tableName, QPrivateSignal = {});
+
+	void databaseError(const QString &tableName, const QString &errorString, QPrivateSignal = {});
 
 private Q_SLOTS:
 	void dbNotify(const QString &name);
@@ -96,6 +100,10 @@ private:
 	QHash<QString, QStringList> _tables;
 
 	QString sqlTypeName(const QSqlField &field) const;
+	QString tableName(const QString &table, bool asSyncTable = false) const;
+	QString fieldName(const QString &field) const;
+
+	std::optional<QString> getPKey(const QString &table);
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logDbWatcher)

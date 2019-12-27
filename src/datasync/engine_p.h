@@ -57,7 +57,7 @@ public:
 	void _q_triggerSync();
 	// connector
 	void _q_syncDone(const QString &type);
-	void _q_uploadedData(const ObjectKey &key);
+	void _q_uploadedData(const ObjectKey &key, const QDateTime &modified);
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logEngine)

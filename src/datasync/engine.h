@@ -74,7 +74,7 @@ private:
 	Q_PRIVATE_SLOT(d_func(), void _q_accountDeleted(bool))
 	Q_PRIVATE_SLOT(d_func(), void _q_triggerSync())
 	Q_PRIVATE_SLOT(d_func(), void _q_syncDone(const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &))
+	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &, const QDateTime &))
 
 	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
 };

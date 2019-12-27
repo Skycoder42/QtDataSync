@@ -38,20 +38,36 @@ void DatabaseProxy::clearDirtyTable(const QString &name, Type type)
 	_tables[name].state.setFlag(toState(type), false);
 }
 
-std::optional<QString> DatabaseProxy::nextDirtyTable(Type type) const
+DatabaseProxy::DirtyTableInfo DatabaseProxy::nextDirtyTable(Type type) const
 {
 	const auto nextIt = std::find_if(_tables.begin(), _tables.end(), [flag = toState(type)](const TableInfo &info){
 		return info.state.testFlag(flag);
 	});
-	if (nextIt != _tables.end())
-		return nextIt.key();
-	else
+	if (nextIt != _tables.end()) {
+		auto name = nextIt.key();
+		return std::make_pair(name, nextIt->watcher->lastSync(name));
+	} else
 		return std::nullopt;
 }
 
-QDateTime DatabaseProxy::lastSync(const QString &name) const
+std::optional<LocalData> DatabaseProxy::loadData(const QString &name)
 {
-	Q_UNIMPLEMENTED();
+	auto tInfo = _tables[name];
+	if (!tInfo.watcher) {
+		qCWarning(logDbProxy) << "Unknown table" << name;
+		return std::nullopt;
+	}
+	return tInfo.watcher->loadData(name);
+}
+
+void DatabaseProxy::markUnchanged(const ObjectKey &key, const QDateTime &modified)
+{
+	auto tInfo = _tables[key.typeName];
+	if (!tInfo.watcher) {
+		qCWarning(logDbProxy) << "Unknown table" << key.typeName;
+		return;
+	}
+	tInfo.watcher->markUnchanged(key, modified);
 }
 
 void DatabaseProxy::fillDirtyTables(Type type)
@@ -76,6 +92,16 @@ void DatabaseProxy::markTableDirty(const QString &name, Type type)
 	}
 }
 
+void DatabaseProxy::storeData(const LocalData &data)
+{
+	auto tInfo = _tables[data.key().typeName];
+	if (!tInfo.watcher) {
+		qCWarning(logDbProxy) << "Unknown table" << data.key().typeName;
+		return;
+	}
+	tInfo.watcher->storeData(data);
+}
+
 void DatabaseProxy::tableAdded(const QString &name)
 {
 	Q_ASSERT(qobject_cast<DatabaseWatcher*>(sender()));
@@ -97,5 +123,8 @@ DatabaseProxy::TableStateFlag DatabaseProxy::toState(DatabaseProxy::Type type)
 		return TableStateFlag::CloudDirty;
 	case Type::Both:
 		return TableStateFlag::AllDirty;
+	default:
+		Q_UNREACHABLE();
+		break;
 	}
 }

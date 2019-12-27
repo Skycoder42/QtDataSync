@@ -43,7 +43,7 @@ Q_SIGNALS:
 
 	void downloadedData(const CloudData &data, QPrivateSignal = {});
 	void syncDone(const QString &type, QPrivateSignal = {});
-	void uploadedData(const ObjectKey &key, QPrivateSignal = {});
+	void uploadedData(const ObjectKey &key, const QDateTime &modified, QPrivateSignal = {});
 	void removedTable(const QString &type, QPrivateSignal = {});
 	void removedUser(QPrivateSignal = {});
 

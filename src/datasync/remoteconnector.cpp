@@ -269,8 +269,8 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag)
 	_api->uploadData({data.data(), data.modified(), ServerTimestamp{}},
 					 data.key().typeName,
 					 data.key().id)
-		->onSucceeded(this, [this, key = data.key()](int) {
-			Q_EMIT uploadedData(key);
+		->onSucceeded(this, [this, key = data.key(), mod = data.modified()](int) {
+			Q_EMIT uploadedData(key, mod);
 		})->onAllErrors(this, [this, type = data.key().typeName](const QString &error, int code, QtRestClient::RestReply::Error errorType){
 			if (errorType == QtRestClient::RestReply::Error::Failure && code == CodeETagMismatch) {
 				// data was changed on the server since checked -> trigger sync

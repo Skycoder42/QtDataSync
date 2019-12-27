@@ -176,8 +176,10 @@ void EnginePrivate::setupConnections()
 			this, &EnginePrivate::_q_handleError);
 
 	// rmc <-> dbProxy
-//	QObject::connect(connector, &RemoteConnector::triggerSync,  // TODO change
-//					 dbProxy, &DatabaseProxy::markTableDirty);
+	QObject::connect(connector, &RemoteConnector::triggerSync,
+					 dbProxy, [this](const QString &tableName) {
+						 dbProxy->markTableDirty(tableName, DatabaseProxy::Type::Cloud);
+					 });
 
 	// rmc <-> transformer
 	QObject::connect(connector, &RemoteConnector::downloadedData,
@@ -187,6 +189,8 @@ void EnginePrivate::setupConnections()
 					 connector, &RemoteConnector::uploadChange);
 
 	// transformer <-> dbProxy
+	QObject::connect(setup->transformer, &ICloudTransformer::transformDownloadDone,
+					 dbProxy, &DatabaseProxy::storeData);
 }
 
 void EnginePrivate::setupStateMachine()
@@ -224,16 +228,26 @@ void EnginePrivate::onEnterActive()
 
 void EnginePrivate::onEnterDownloading()
 {
-	if (const auto name = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); name)
-		connector->getChanges(*name, dbProxy->lastSync(*name));  // has dirty table -> download it
+	if (const auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); dtInfo)
+		connector->getChanges(dtInfo->first, dtInfo->second);  // has dirty table -> download it
 	else
 		statemachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
 }
 
 void EnginePrivate::onEnterUploading()
 {
-	// TODO get next change and upload it
-	statemachine->submitEvent(QStringLiteral("syncReady"));  // no data left -> leave sync state and stay idle
+	forever {
+		if (const auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Local); dtInfo) {
+			if (const auto data = dbProxy->loadData(dtInfo->first); data)
+				setup->transformer->transformUpload(*data);
+			else {
+				dbProxy->clearDirtyTable(dtInfo->first, DatabaseProxy::Type::Local);
+				continue;
+			}
+		} else
+			statemachine->submitEvent(QStringLiteral("syncReady"));  // no data left -> leave sync state and stay idle
+		break;
+	}
 }
 
 void EnginePrivate::_q_handleError(const QString &errorMessage)
@@ -271,9 +285,9 @@ void EnginePrivate::_q_syncDone(const QString &type)
 	statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
 }
 
-void EnginePrivate::_q_uploadedData(const ObjectKey &key)
+void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modified)
 {
-	// TODO mark data uploaded and continue
+	dbProxy->markUnchanged(key, modified);
 	statemachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
 }
 

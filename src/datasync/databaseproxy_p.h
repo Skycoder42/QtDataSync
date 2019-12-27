@@ -4,6 +4,7 @@
 #include "qtdatasync_global.h"
 #include "engine.h"
 #include "databasewatcher_p.h"
+#include "cloudtransformer.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
@@ -25,6 +26,7 @@ public:
 		Both
 	};
 	Q_ENUM(Type)
+
 	enum class TableStateFlag {
 		Clean = 0x00,
 		LocalDirty = 0x01,
@@ -36,6 +38,8 @@ public:
 	Q_DECLARE_FLAGS(TableState, TableStateFlag)
 	Q_ENUM(TableState)
 
+	using DirtyTableInfo = std::optional<std::pair<QString, QDateTime>>;
+
 	explicit DatabaseProxy(Engine *engine = nullptr);
 
 	DatabaseWatcher *watcher(QSqlDatabase &&database);  // gets or creates a watcher for the given database connection
@@ -43,13 +47,16 @@ public:
 
 	// table management
 	void clearDirtyTable(const QString &name, Type type);
-	std::optional<QString> nextDirtyTable(Type type) const;
+	DirtyTableInfo nextDirtyTable(Type type) const;
 
-	QDateTime lastSync(const QString &name) const;
+	std::optional<LocalData> loadData(const QString &name);
+	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
 
 public Q_SLOTS:
 	void fillDirtyTables(Type type);
 	void markTableDirty(const QString &name, Type type);
+
+	void storeData(const LocalData &data);
 
 Q_SIGNALS:
 	void triggerSync(QPrivateSignal = {});
