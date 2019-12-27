@@ -13,7 +13,7 @@
 	<Include local="true">signinresponse.h</Include>
 
 	<BaseUrl apiVersion="1">https://identitytoolkit.googleapis.com</BaseUrl>
-	<Parameter key="key"></Parameter>
+	<Parameter key="key">&lt;firebaseApiKey&gt;</Parameter>
 
 	<Method name="refreshToken"
 			verb="POST"

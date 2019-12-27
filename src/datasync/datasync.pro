@@ -13,6 +13,7 @@ HEADERS += \
 	engine_p.h \
 	exception.h \
 	firebase/firebaseapibase_p.h \
+	firebase/realtimedb/querymap_p.h \
 	firebase/realtimedb/servertimestamp_p.h \
 	googleoauthflow_p.h \
 	objectkey.h \
@@ -29,6 +30,7 @@ SOURCES += \
 	engine.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
+	firebase/realtimedb/querymap.cpp \
 	firebase/realtimedb/servertimestamp.cpp \
 	googleoauthflow.cpp \
 	objectkey.cpp \

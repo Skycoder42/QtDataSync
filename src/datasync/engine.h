@@ -45,6 +45,9 @@ public:
 public Q_SLOTS:
 	void start();
 	void stop();
+	void logOut();
+	void deleteAccount();
+	// TODO add logout/delete
 
 	void removeDatabaseSync(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
 							bool deactivateSync = false);

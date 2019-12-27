@@ -27,7 +27,6 @@ RemoteConnector::RemoteConnector(Engine *engine) :
 		QtJsonSerializer::SerializerBase::registerVariantConverters<QDateTime, ServerTimestamp>();
 		QtJsonSerializer::SerializerBase::registerOptionalConverters<QJsonObject>();
 		QtJsonSerializer::SerializerBase::registerVariantConverters<std::optional<QJsonObject>, bool>();
-		QtJsonSerializer::SerializerBase::registerMapConverters<QString, Data>();
 		QtJsonSerializer::SerializerBase::registerOptionalConverters<Data>();
 	}
 
@@ -35,9 +34,11 @@ RemoteConnector::RemoteConnector(Engine *engine) :
 	_limit = setup->firebase.readLimit;
 
 	_client = new JsonSuffixClient{this};
-	_client->serializer()->setAllowDefaultNull(true);
-	_client->serializer()->addJsonTypeConverter<ServerTimestampConverter>();
-	_client->serializer()->addJsonTypeConverter<AccurateTimestampConverter>();
+	const auto serializer = _client->serializer();
+	serializer->setAllowDefaultNull(true);
+	serializer->addJsonTypeConverter<ServerTimestampConverter>();
+	serializer->addJsonTypeConverter<AccurateTimestampConverter>();
+	serializer->addJsonTypeConverter<QueryMapConverter>();
 	_client->manager()->setStrictTransportSecurityEnabled(true);
 	_client->setModernAttributes();
 	_client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
@@ -106,21 +107,20 @@ void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 		Q_EMIT networkError(tr("User is not logged in yet"));
 		return;
 	}
-	_api->listChangedData(type, since.toUTC().toMSecsSinceEpoch(), _limit)->onSucceeded(this, [this, type, since](int, const QHash<QString, Data> &data) {
+	_api->listChangedData(type, since.toUTC().toMSecsSinceEpoch(), _limit)->onSucceeded(this, [this, type, since](int, const QueryMap &data) {
 		// get all changed data and pass to storage
 		qCDebug(logRmc) << "listChangedData returned" << data.size() << "entries";
-		auto lasySync = since;
 		for (auto it = data.begin(), end = data.end(); it != end; ++it) {
-			if (const auto uploaded = std::get<QDateTime>(it->uploaded()); uploaded > lasySync)
-				lasySync = uploaded;
-			Q_EMIT downloadedData({type, it.key(), std::get<std::optional<QJsonObject>>(it->data()), it->modified()});
+			Q_EMIT downloadedData({
+				type, it->first,
+				std::get<std::optional<QJsonObject>>(it->second.data()),
+				it->second.modified(),
+				std::get<QDateTime>(it->second.uploaded())
+			});
 		}
-		// if last synced changed -> update it
-		if (lasySync > since)
-			Q_EMIT updateLastSync(lasySync);
 		// if as much data as possible by limit, fetch more with new last sync
 		if (data.size() == _limit)
-			getChanges(type, lasySync);
+			getChanges(type, {});  // TODO use last element
 		else
 			Q_EMIT syncDone(type);
 	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
@@ -169,6 +169,22 @@ void RemoteConnector::removeTable(const QString &type)
 	}, &RemoteConnector::translateError);
 }
 
+void RemoteConnector::removeUser()
+{
+	if (!_api) {
+		Q_EMIT networkError(tr("User is not logged in yet"));
+		return;
+	}
+	_api->removeUser()->onSucceeded(this, [this](int) {
+		_api->deleteLater();
+		_api = nullptr;
+		Q_EMIT removedUser();
+	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
+		apiError(error, code, errorType);
+		Q_EMIT networkError(tr("Failed to remove user from server"));
+	}, &RemoteConnector::translateError);
+}
+
 void RemoteConnector::apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType)
 {
 	qCWarning(logRmc) << "Realtime-database request failed with reason" << errorType
@@ -206,6 +222,7 @@ void RemoteConnector::streamClosed()
 	case QNetworkReply::UnknownProxyError:
 	case QNetworkReply::ProtocolFailure:
 	case QNetworkReply::UnknownServerError:
+		// TODO add time delays
 		qCInfo(logRmc) << "Reconnecting event stream to continue live sync";
 		_eventStream->deleteLater();
 		_eventStream = nullptr;

@@ -16,6 +16,7 @@ namespace QtDataSync::firebase::realtimedb {
 struct ServerTimestamp {
 	inline bool operator==(const ServerTimestamp &) const { return true; }
 	inline bool operator!=(const ServerTimestamp &) const { return false; }
+	inline bool operator<(const ServerTimestamp &) const { return false; }
 };
 
 class ServerTimestampConverter : public QtJsonSerializer::TypeConverter

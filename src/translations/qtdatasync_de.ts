@@ -4,7 +4,7 @@
 <context>
     <name>QtDataSync::FirebaseAuthenticator</name>
     <message>
-        <location filename="../datasync/authenticator.cpp" line="+132"/>
+        <location filename="../datasync/authenticator.cpp" line="+143"/>
         <source>Failed renew firebase connection! Please try to sign in again.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -35,27 +35,41 @@
 <context>
     <name>QtDataSync::RemoteConnector</name>
     <message>
-        <location filename="../datasync/remoteconnector.cpp" line="+128"/>
+        <location filename="../datasync/remoteconnector.cpp" line="+167"/>
         <source>Failed to remove table from server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+92"/>
+        <location line="+113"/>
         <source>Failed to upload data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-102"/>
+        <location line="-127"/>
         <source>Failed to verify data version before uploading</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-22"/>
+        <location line="-47"/>
+        <location line="+28"/>
+        <location line="+26"/>
+        <location line="+14"/>
+        <location line="+89"/>
+        <source>User is not logged in yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-136"/>
         <source>Failed to download latests changed data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+88"/>
+        <location line="+56"/>
+        <source>Failed to remove user from server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+57"/>
         <source>Live-synchronization disabled because of network error!</source>
         <translation type="unfinished"></translation>
     </message>

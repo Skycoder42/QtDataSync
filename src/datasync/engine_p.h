@@ -41,8 +41,8 @@ public:
 
 	static const SetupPrivate *setupFor(const Engine *engine);
 
-	void setupStateMachine();
 	void setupConnections();
+	void setupStateMachine();
 
 	void onEnterActive();
 	void onEnterDownloading();

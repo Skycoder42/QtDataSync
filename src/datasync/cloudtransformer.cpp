@@ -2,60 +2,6 @@
 #include "cloudtransformer_p.h"
 using namespace QtDataSync;
 
-CloudData::CloudData() :
-	d{new CloudDataData{}}
-{}
-
-CloudData::CloudData(ObjectKey key, std::optional<QJsonObject> data, QDateTime modified) :
-	d{new CloudDataData{{}, std::move(key), std::move(data), std::move(modified)}}
-{}
-
-CloudData::CloudData(QString type, QString key, std::optional<QJsonObject> data, QDateTime modified) :
-	CloudData{{std::move(type), std::move(key)}, std::move(data), std::move(modified)}
-{}
-
-CloudData::CloudData(const CloudData &other) = default;
-
-CloudData::CloudData(CloudData &&other) noexcept = default;
-
-CloudData &CloudData::operator=(const CloudData &other) = default;
-
-CloudData &CloudData::operator=(CloudData &&other) noexcept = default;
-
-CloudData::~CloudData() = default;
-
-ObjectKey CloudData::key() const
-{
-	return d->key;
-}
-
-std::optional<QJsonObject> CloudData::data() const
-{
-	return d->data;
-}
-
-QDateTime CloudData::modified() const
-{
-	return d->modified;
-}
-
-void CloudData::setKey(ObjectKey key)
-{
-	d->key = std::move(key);
-}
-
-void CloudData::setData(std::optional<QJsonObject> data)
-{
-	d->data = std::move(data);
-}
-
-void CloudData::setModified(QDateTime modified)
-{
-	d->modified = std::move(modified);
-}
-
-
-
 ICloudTransformer::ICloudTransformer(QObject *parent) :
 	  QObject{parent}
 {}
@@ -66,20 +12,20 @@ ICloudTransformer::ICloudTransformer(QObjectPrivate &dd, QObject *parent) :
 
 
 
-void ISynchronousCloudTransformer::transformUpload(ObjectKey key, const std::optional<QVariantHash> &data, QDateTime modified)
+void ISynchronousCloudTransformer::transformUpload(const LocalData &data)
 {
-	if (data)
-		Q_EMIT transformUploadDone({std::move(key), transformUploadSync(*data), std::move(modified)});
+	if (data.data())
+		Q_EMIT transformUploadDone({data, transformUploadSync(*data.data())});
 	else
-		Q_EMIT transformUploadDone({std::move(key), std::nullopt, std::move(modified)});
+		Q_EMIT transformUploadDone({data, std::nullopt});
 }
 
 void ISynchronousCloudTransformer::transformDownload(const CloudData &data)
 {
 	if (data.data())
-		Q_EMIT transformDownloadDone(data.key(), transformDownloadSync(*data.data()), data.modified());
+		Q_EMIT transformDownloadDone({data, transformDownloadSync(*data.data())});
 	else
-		Q_EMIT transformDownloadDone(data.key(), std::nullopt, data.modified());
+		Q_EMIT transformDownloadDone({data, std::nullopt});
 }
 
 ISynchronousCloudTransformer::ISynchronousCloudTransformer(QObject *parent) :

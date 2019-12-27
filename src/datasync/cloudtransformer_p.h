@@ -7,13 +7,6 @@
 
 namespace QtDataSync {
 
-struct CloudDataData : public QSharedData
-{
-	ObjectKey key;
-	std::optional<QJsonObject> data = std::nullopt;
-	QDateTime modified;
-};
-
 class Q_DATASYNC_EXPORT PlainCloudTransformerPrivate : public QObjectPrivate
 {
 	Q_DECLARE_PUBLIC(PlainCloudTransformer)

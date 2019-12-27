@@ -20,8 +20,8 @@ DatabaseWatcher *DatabaseProxy::watcher(QSqlDatabase &&database)
 				this, &DatabaseProxy::tableAdded);
 		connect(watcher, &DatabaseWatcher::tableRemoved,
 				this, &DatabaseProxy::tableRemoved);
-		connect(watcher, &DatabaseWatcher::triggerSync,
-				this, &DatabaseProxy::markTableDirty);
+//		connect(watcher, &DatabaseWatcher::triggerSync,
+//				this, &DatabaseProxy::markTableDirty);  // TODO change
 		return watcher;
 	}
 }
@@ -33,58 +33,69 @@ void DatabaseProxy::dropWatcher(QSqlDatabase &&database)
 		watcher->deleteLater();
 }
 
-bool DatabaseProxy::clearDirtyTable(const QString &name, bool headOnly)
+void DatabaseProxy::clearDirtyTable(const QString &name, Type type)
 {
-	if (headOnly) {
-		if (_dirtyTables.head() == name) {
-			_dirtyTables.dequeue();
-			return true;
-		} else
-			return false;
-	} else
-		return _dirtyTables.removeOne(name);
+	_tables[name].state.setFlag(toState(type), false);
 }
 
-bool DatabaseProxy::hasDirtyTables() const
+std::optional<QString> DatabaseProxy::nextDirtyTable(Type type) const
 {
-	return !_dirtyTables.isEmpty();
+	const auto nextIt = std::find_if(_tables.begin(), _tables.end(), [flag = toState(type)](const TableInfo &info){
+		return info.state.testFlag(flag);
+	});
+	if (nextIt != _tables.end())
+		return nextIt.key();
+	else
+		return std::nullopt;
 }
 
-QString DatabaseProxy::nextDirtyTable() const
+QDateTime DatabaseProxy::lastSync(const QString &name) const
 {
-	return _dirtyTables.isEmpty() ? QString{} : _dirtyTables.head();
+	Q_UNIMPLEMENTED();
 }
 
-void DatabaseProxy::fillDirtyTables()
+void DatabaseProxy::fillDirtyTables(Type type)
 {
-	_dirtyTables.clear();
-	for (auto watcher : qAsConst(_watchers))
-		_dirtyTables.append(watcher->tables());
-	if (const auto dupes = _dirtyTables.removeDuplicates(); dupes > 0) {
-		qCWarning(logDbProxy) << "Detected" << dupes
-							  << "tables with identical names - this can lead to synchronization failures!";
-	}
+	const auto flag = toState(type);
+	for (auto &info : _tables)
+		info.state.setFlag(flag);
 	Q_EMIT triggerSync();
 }
 
-void DatabaseProxy::markTableDirty(const QString &name)
+void DatabaseProxy::markTableDirty(const QString &name, Type type)
 {
 	if (name.isEmpty())
-		fillDirtyTables();
-	else if (!_dirtyTables.contains(name)) {
-		_dirtyTables.enqueue(name);
-		Q_EMIT triggerSync();
+		fillDirtyTables(type);
+	else {
+		auto &info = _tables[name];
+		const auto flag = toState(type);
+		if (!info.state.testFlag(flag)) {
+			_tables[name].state.setFlag(flag);
+			Q_EMIT triggerSync();
+		}
 	}
 }
 
 void DatabaseProxy::tableAdded(const QString &name)
 {
 	Q_ASSERT(qobject_cast<DatabaseWatcher*>(sender()));
-	_tableMap.insert(name, static_cast<DatabaseWatcher*>(sender()));
+	_tables.insert(name, static_cast<DatabaseWatcher*>(sender()));
 }
 
 void DatabaseProxy::tableRemoved(const QString &name)
 {
 	Q_ASSERT(qobject_cast<DatabaseWatcher*>(sender()));
-	_tableMap.remove(name);
+	_tables.remove(name);
+}
+
+DatabaseProxy::TableStateFlag DatabaseProxy::toState(DatabaseProxy::Type type)
+{
+	switch (type) {
+	case Type::Local:
+		return TableStateFlag::LocalDirty;
+	case Type::Cloud:
+		return TableStateFlag::CloudDirty;
+	case Type::Both:
+		return TableStateFlag::AllDirty;
+	}
 }

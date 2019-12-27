@@ -70,6 +70,17 @@ void Engine::stop()
 	d->statemachine->submitEvent(QStringLiteral("stop"));
 }
 
+void Engine::logOut()
+{
+	Q_UNIMPLEMENTED();
+}
+
+void Engine::deleteAccount()
+{
+	Q_D(Engine);
+	d->statemachine->submitEvent(QStringLiteral("deleteAcc"));
+}
+
 void Engine::removeDatabaseSync(const QString &databaseConnection, bool deactivateSync)
 {
 	removeDatabaseSync(QSqlDatabase::database(databaseConnection, false), deactivateSync);
@@ -127,8 +138,8 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	d->statemachine = new EngineStateMachine{this};
 	d->dbProxy = new DatabaseProxy{this};
 	d->connector = new RemoteConnector{this};
-	d->setupStateMachine();
 	d->setupConnections();
+	d->setupStateMachine();
 	d->statemachine->start();
 	qCDebug(logEngine) << "Started engine statemachine";
 }
@@ -138,33 +149,6 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 const SetupPrivate *EnginePrivate::setupFor(const Engine *engine)
 {
 	return engine->d_func()->setup.data();
-}
-
-void EnginePrivate::setupStateMachine()
-{
-	Q_Q(Engine);
-	if (!statemachine->init())
-		throw SetupException{QStringLiteral("Failed to initialize statemachine!")};
-
-	// --- states ---
-	// # Active
-	statemachine->connectToState(QStringLiteral("Active"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterActive, this)));
-	// ## SigningIn
-	statemachine->connectToState(QStringLiteral("SigningIn"),
-								 QScxmlStateMachine::onEntry(setup->authenticator, &IAuthenticator::signIn));
-	// ## Synchronizing
-	// ### Downloading
-	statemachine->connectToState(QStringLiteral("Downloading"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDownloading, this)));
-	// ### Uploading
-	statemachine->connectToState(QStringLiteral("Uploading"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
-
-	// --- debug states ---
-	QObject::connect(statemachine, &QScxmlStateMachine::reachedStableState, q, [this]() {
-		qCDebug(logEngine) << "Statemachine reached stable state:" << statemachine->activeStateNames(true);
-	});
 }
 
 void EnginePrivate::setupConnections()
@@ -192,28 +176,56 @@ void EnginePrivate::setupConnections()
 			this, &EnginePrivate::_q_handleError);
 
 	// rmc <-> dbProxy
-	QObject::connect(connector, &RemoteConnector::triggerSync,
-					 dbProxy, &DatabaseProxy::markTableDirty);
+//	QObject::connect(connector, &RemoteConnector::triggerSync,  // TODO change
+//					 dbProxy, &DatabaseProxy::markTableDirty);
 
 	// rmc <-> transformer
 	QObject::connect(connector, &RemoteConnector::downloadedData,
-					 setup->transformer, &ICloudTransformer::transformDownload);
+					 setup->transformer, &ICloudTransformer::transformDownload,
+					 Qt::QueuedConnection);  // queued, to split processing from downloading
 	QObject::connect(setup->transformer, &ICloudTransformer::transformUploadDone,
 					 connector, &RemoteConnector::uploadChange);
 
 	// transformer <-> dbProxy
 }
 
+void EnginePrivate::setupStateMachine()
+{
+	Q_Q(Engine);
+	if (!statemachine->init())
+		throw SetupException{QStringLiteral("Failed to initialize statemachine!")};
+
+	// --- states ---
+	// # Active
+	statemachine->connectToState(QStringLiteral("Active"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterActive, this)));
+	// ## SigningIn
+	statemachine->connectToState(QStringLiteral("SigningIn"),
+								 QScxmlStateMachine::onEntry(setup->authenticator, &IAuthenticator::signIn));
+	// ## Synchronizing
+	// ### Downloading
+	statemachine->connectToState(QStringLiteral("Downloading"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDownloading, this)));
+	// ### Uploading
+	statemachine->connectToState(QStringLiteral("Uploading"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
+
+	// --- debug states ---
+	QObject::connect(statemachine, &QScxmlStateMachine::reachedStableState, q, [this]() {
+		qCDebug(logEngine) << "Statemachine reached stable state:" << statemachine->activeStateNames(false);
+	});
+}
+
 void EnginePrivate::onEnterActive()
 {
 	// prepopulate all tables as dirty, so that when sync starts, all are updated
-	dbProxy->fillDirtyTables();
+	dbProxy->fillDirtyTables(DatabaseProxy::Type::Both);
 }
 
 void EnginePrivate::onEnterDownloading()
 {
-	if (dbProxy->hasDirtyTables())
-		connector->getChanges(dbProxy->nextDirtyTable(), QDateTime::currentDateTimeUtc()); // TODO get lastSync from db
+	if (const auto name = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); name)
+		connector->getChanges(*name, dbProxy->lastSync(*name));  // has dirty table -> download it
 	else
 		statemachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
 }
@@ -241,7 +253,11 @@ void EnginePrivate::_q_signInSuccessful(const QString &userId, const QString &id
 
 void EnginePrivate::_q_accountDeleted(bool success)
 {
-	Q_UNIMPLEMENTED();
+	// TODO after delete user table
+	if (success)
+		statemachine->submitEvent(QStringLiteral("stop"));
+	else
+		statemachine->submitEvent(QStringLiteral("error"));
 }
 
 void EnginePrivate::_q_triggerSync()
@@ -251,11 +267,8 @@ void EnginePrivate::_q_triggerSync()
 
 void EnginePrivate::_q_syncDone(const QString &type)
 {
-	dbProxy->clearDirtyTable(type);
-	if (dbProxy->hasDirtyTables())
-		statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
-	else
-		statemachine->submitEvent(QStringLiteral("dlReady"));  // enters ul state and starts uploading
+	dbProxy->clearDirtyTable(type, DatabaseProxy::Type::Cloud);
+	statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
 }
 
 void EnginePrivate::_q_uploadedData(const ObjectKey &key)

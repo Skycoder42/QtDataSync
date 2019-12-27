@@ -11,17 +11,18 @@
 	<Include local="true">firebaseapibase_p.h</Include>
 	<Include local="true">realtimedb_error.h</Include>
 	<Include local="true">data.h</Include>
+	<Include local="true">querymap_p.h</Include>
 
-	<BaseUrl>https://%1.firebaseio.com/datasync/%2</BaseUrl>
+	<BaseUrl>https://&lt;projectId&gt;.firebaseio.com/datasync/&lt;userId&gt;</BaseUrl>
 
-	<Parameter key="auth"></Parameter>
+	<Parameter key="auth">&lt;idToken&gt;</Parameter>
 	<Parameter key="timeout">15min</Parameter>
 	<Parameter key="writeSizeLimit">unlimited</Parameter>
 	<!-- Extender[url]: <path>.json -->
 
 	<Method name="listChangedData"
 			verb="GET"
-			returns="QHash&lt;QString, Data&gt;">
+			returns="QueryMap">
 		<Path>
 			<ParamSegment key="type" type="QString"/>
 		</Path>
@@ -56,6 +57,11 @@
 		<Path>
 			<ParamSegment key="type" type="QString"/>
 		</Path>
+		<Param key="print" type="QString" asStr="true">silent</Param>
+	</Method>
+
+	<Method name="removeUser"
+			verb="DELETE">
 		<Param key="print" type="QString" asStr="true">silent</Param>
 	</Method>
 </RestApi>
