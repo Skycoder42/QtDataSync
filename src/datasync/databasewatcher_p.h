@@ -3,6 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include "cloudtransformer.h"
+#include "exception.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QDateTime>
@@ -12,36 +13,9 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlField>
 #include <QtSql/QSqlDriver>
+#include <QtSql/QSqlError>
 
 namespace QtDataSync {
-
-class ExQuery : public QSqlQuery
-{
-public:
-	ExQuery(QSqlDatabase db);
-
-	void prepare(const QString &query);
-	void exec();
-	void exec(const QString &query);
-};
-
-class ExTransaction
-{
-	Q_DISABLE_COPY(ExTransaction)
-
-public:
-	ExTransaction();
-	ExTransaction(QSqlDatabase db);
-	ExTransaction(ExTransaction &&other) noexcept;
-	ExTransaction &operator=(ExTransaction &&other) noexcept;
-	~ExTransaction();
-
-	void commit();
-	void rollback();
-
-private:
-	std::optional<QSqlDatabase> _db;
-};
 
 // TODO add public thread sync watcher, that just watches on different threads
 
@@ -52,8 +26,7 @@ class Q_DATASYNC_EXPORT DatabaseWatcher : public QObject
 public:
 	enum class TableState {
 		Inactive = 0,
-		Active = 1,
-		Corrupted = 2
+		Active = 1
 	};
 	Q_ENUM(TableState)
 
@@ -86,7 +59,7 @@ public:
 	void unsyncTable(const QString &name, bool removeRef = true);
 
 	// sync functions
-	QDateTime lastSync(const QString &tableName);
+	std::optional<QDateTime> lastSync(const QString &tableName);
 	void storeData(const LocalData &data);
 	std::optional<LocalData> loadData(const QString &name);
 	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
@@ -97,7 +70,11 @@ Q_SIGNALS:
 	void tableRemoved(const QString &tableName, QPrivateSignal = {});
 	void triggerSync(const QString &tableName, QPrivateSignal = {});
 
-	void databaseError(const QString &errorString, QPrivateSignal = {});
+	void databaseError(ErrorScope scope,
+					   const QString &message,
+					   const QVariant &key,
+					   const QSqlError &sqlError,
+					   QPrivateSignal = {});
 
 private Q_SLOTS:
 	void dbNotify(const QString &name);
@@ -112,6 +89,63 @@ private:
 	QString fieldName(const QString &field) const;
 
 	std::optional<QString> getPKey(const QString &table);
+};
+
+class SqlException : public Exception
+{
+public:
+	enum class ErrorScope {
+		Entry,
+		Table,
+		Database,
+		System
+	};
+
+	SqlException(ErrorScope scope,
+				 QVariant key,
+				 QSqlError error);
+
+	ErrorScope scope() const;
+	QVariant key() const;
+	QSqlError error() const;
+	QString message() const;
+
+	void raise() const override;
+	ExceptionBase *clone() const override;
+	QString qWhat() const override;
+
+protected:
+	ErrorScope _scope;
+	QVariant _key;
+	QSqlError _error;
+};
+
+class ExQuery : public QSqlQuery
+{
+public:
+	ExQuery(QSqlDatabase db);
+
+	void prepare(const QString &query);
+	void exec();
+	void exec(const QString &query);
+};
+
+class ExTransaction
+{
+	Q_DISABLE_COPY(ExTransaction)
+
+public:
+	ExTransaction();
+	ExTransaction(QSqlDatabase db);
+	ExTransaction(ExTransaction &&other) noexcept;
+	ExTransaction &operator=(ExTransaction &&other) noexcept;
+	~ExTransaction();
+
+	void commit();
+	void rollback();
+
+private:
+	std::optional<QSqlDatabase> _db;
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logDbWatcher)

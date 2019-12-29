@@ -45,9 +45,10 @@ DatabaseProxy::DirtyTableInfo DatabaseProxy::nextDirtyTable(Type type) const
 	});
 	if (nextIt != _tables.end()) {
 		auto name = nextIt.key();
-		return std::make_pair(name, nextIt->watcher->lastSync(name));
-	} else
-		return std::nullopt;
+		if (const auto lastSync = nextIt->watcher->lastSync(name); lastSync)
+			return std::make_pair(name, *lastSync);
+	}
+	return std::nullopt;
 }
 
 void DatabaseProxy::fillDirtyTables(Type type)
