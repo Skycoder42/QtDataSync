@@ -25,6 +25,15 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 	Q_PROPERTY(ICloudTransformer* transformer READ transformer CONSTANT)
 
 public:
+	enum class ErrorType {
+		Network,
+		Entry,
+		Table,
+		Database,
+		System
+	};
+	Q_ENUM(ErrorType)
+
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
 
@@ -65,6 +74,12 @@ public Q_SLOTS:
 	void stop();
 	void logOut();
 	void deleteAccount();
+
+Q_SIGNALS:
+	void errorOccured(ErrorType type,
+					  const QString &errorMessage,
+					  const QVariant &errorData,
+					  QPrivateSignal = {});
 
 private:
 	friend class Setup;

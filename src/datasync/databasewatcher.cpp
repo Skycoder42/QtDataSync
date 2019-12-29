@@ -504,7 +504,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to load next local data for type" << name
 								 << "with error:" << qUtf8Printable(error.text());
-		markCorrupted(name);
+		// TODO markCorrupted(name);
 		Q_EMIT databaseError(tr("Failed to load local data from table %1").arg(name));
 		return std::nullopt;
 	}
@@ -526,24 +526,6 @@ void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modif
 	} catch (QSqlError &error) {
 		qCCritical(logDbWatcher) << "Failed to mark entry with id" << key
 								 << "as unchanged with error" << qUtf8Printable(error.text());
-	}
-}
-
-void DatabaseWatcher::markCorrupted(const QString &table)
-{
-	// TODO okay so? not very good designed...
-	try {
-		ExQuery markCorruptedQuery{_db};
-		markCorruptedQuery.prepare(QStringLiteral("UPDATE %1 "
-												  "SET state = ? "
-												  "WHERE tableName = ?;")
-									   .arg(MetaTable));
-		markCorruptedQuery.addBindValue(static_cast<int>(TableState::Corrupted));
-		markCorruptedQuery.addBindValue(table);
-		markCorruptedQuery.exec();
-	} catch (QSqlError &error) {
-		qCCritical(logDbWatcher) << "Failed to mark table" << table
-								 << "as corrupted with error" << qUtf8Printable(error.text());
 	}
 }
 

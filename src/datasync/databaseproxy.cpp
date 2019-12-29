@@ -50,26 +50,6 @@ DatabaseProxy::DirtyTableInfo DatabaseProxy::nextDirtyTable(Type type) const
 		return std::nullopt;
 }
 
-std::optional<LocalData> DatabaseProxy::loadData(const QString &name)
-{
-	auto tInfo = _tables[name];
-	if (!tInfo.watcher) {
-		qCWarning(logDbProxy) << "Unknown table" << name;
-		return std::nullopt;
-	}
-	return tInfo.watcher->loadData(name);
-}
-
-void DatabaseProxy::markUnchanged(const ObjectKey &key, const QDateTime &modified)
-{
-	auto tInfo = _tables[key.typeName];
-	if (!tInfo.watcher) {
-		qCWarning(logDbProxy) << "Unknown table" << key.typeName;
-		return;
-	}
-	tInfo.watcher->markUnchanged(key, modified);
-}
-
 void DatabaseProxy::fillDirtyTables(Type type)
 {
 	const auto flag = toState(type);
@@ -90,16 +70,6 @@ void DatabaseProxy::markTableDirty(const QString &name, Type type)
 			Q_EMIT triggerSync();
 		}
 	}
-}
-
-void DatabaseProxy::storeData(const LocalData &data)
-{
-	auto tInfo = _tables[data.key().typeName];
-	if (!tInfo.watcher) {
-		qCWarning(logDbProxy) << "Unknown table" << data.key().typeName;
-		return;
-	}
-	tInfo.watcher->storeData(data);
 }
 
 void DatabaseProxy::tableAdded(const QString &name)

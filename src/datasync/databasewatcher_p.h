@@ -90,7 +90,6 @@ public:
 	void storeData(const LocalData &data);
 	std::optional<LocalData> loadData(const QString &name);
 	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
-	void markCorrupted(const QString &table);
 	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
 
 Q_SIGNALS:

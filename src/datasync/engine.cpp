@@ -189,7 +189,7 @@ void EnginePrivate::setupConnections()
 
 	// transformer <-> dbProxy
 	QObject::connect(setup->transformer, &ICloudTransformer::transformDownloadDone,
-					 dbProxy, &DatabaseProxy::storeData);
+					 dbProxy, dbProxy->bind(&DatabaseWatcher::storeData));
 }
 
 void EnginePrivate::setupStateMachine()
@@ -237,7 +237,7 @@ void EnginePrivate::onEnterUploading()
 {
 	forever {
 		if (const auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Local); dtInfo) {
-			if (const auto data = dbProxy->loadData(dtInfo->first); data)
+			if (const auto data = dbProxy->call(&DatabaseWatcher::loadData, dtInfo->first); data)
 				setup->transformer->transformUpload(*data);
 			else {
 				dbProxy->clearDirtyTable(dtInfo->first, DatabaseProxy::Type::Local);
@@ -286,7 +286,7 @@ void EnginePrivate::_q_syncDone(const QString &type)
 
 void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modified)
 {
-	dbProxy->markUnchanged(key, modified);
+	dbProxy->call(&DatabaseWatcher::markUnchanged, key, modified);
 	statemachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
 }
 

@@ -49,14 +49,16 @@ public:
 	void clearDirtyTable(const QString &name, Type type);
 	DirtyTableInfo nextDirtyTable(Type type) const;
 
-	std::optional<LocalData> loadData(const QString &name);
-	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
+	template <typename TRet, typename TFirst, typename... TArgs>
+	std::enable_if_t<!std::is_void_v<TRet>, TRet> call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args);
+	template <typename TRet, typename TFirst, typename... TArgs>
+	std::enable_if_t<std::is_void_v<TRet>, void> call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args);
+	template <typename TRet, typename TFirst, typename... TArgs>
+	std::function<TRet(TFirst, TArgs...)> bind(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...));
 
 public Q_SLOTS:
 	void fillDirtyTables(Type type);
 	void markTableDirty(const QString &name, Type type);
-
-	void storeData(const LocalData &data);
 
 Q_SIGNALS:
 	void triggerSync(QPrivateSignal = {});
@@ -67,6 +69,9 @@ private Q_SLOTS:
 	void tableRemoved(const QString &name);
 
 private:
+	template <typename TKey>
+	struct KeyInfo;
+
 	struct TableInfo {
 		QPointer<DatabaseWatcher> watcher;
 		TableState state = TableStateFlag::Clean;
@@ -85,6 +90,59 @@ private:
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logDbProxy)
+
+template <>
+struct DatabaseProxy::KeyInfo<QString> {
+	static inline QString key(const QString &tableName) {
+		return tableName;
+	}
+};
+
+template <>
+struct DatabaseProxy::KeyInfo<ObjectKey> {
+	static inline QString key(const ObjectKey &key) {
+		return key.typeName;
+	}
+};
+
+template <>
+struct DatabaseProxy::KeyInfo<LocalData> {
+	static inline QString key(const LocalData &data) {
+		return data.key().typeName;
+	}
+};
+
+template<typename TRet, typename TFirst, typename... TArgs>
+std::enable_if_t<!std::is_void_v<TRet>, TRet> DatabaseProxy::call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args)
+{
+	const auto tableName = KeyInfo<std::decay_t<TFirst>>::key(key);
+	auto tInfo = _tables[tableName];
+	if (!tInfo.watcher) {
+		qCWarning(logDbProxy) << "Unknown table" << tableName;
+		return TRet{};
+	}
+	return (tInfo.watcher->*fn)(std::forward<TFirst>(key), std::forward<TArgs>(args)...);
+}
+
+template<typename TRet, typename TFirst, typename... TArgs>
+std::enable_if_t<std::is_void_v<TRet>, void> DatabaseProxy::call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args)
+{
+	const auto tableName = KeyInfo<std::decay_t<TFirst>>::key(key);
+	auto tInfo = _tables[tableName];
+	if (!tInfo.watcher) {
+		qCWarning(logDbProxy) << "Unknown table" << tableName;
+		return;
+	}
+	return (tInfo.watcher->*fn)(std::forward<TFirst>(key), std::forward<TArgs>(args)...);
+}
+
+template<typename TRet, typename TFirst, typename... TArgs>
+std::function<TRet(TFirst, TArgs...)> DatabaseProxy::bind(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...))
+{
+	return [this, fn](TFirst &&key, TArgs&&... args) -> TRet {
+		return call(fn, std::forward<TFirst>(key), std::forward<TArgs>(args)...);
+	};
+}
 
 }
 
