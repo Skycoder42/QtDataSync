@@ -4,6 +4,8 @@
 #include "QtDataSync/qtdatasync_global.h"
 
 #include <QtCore/qmetatype.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qvariant.h>
 
 namespace QtDataSync {
 
@@ -23,6 +25,10 @@ struct Q_DATASYNC_EXPORT ObjectKey
 	bool operator==(const ObjectKey &other) const;
 	//! Inequality operator
 	bool operator!=(const ObjectKey &other) const;
+
+	inline operator QVariant() const {
+		return QVariant::fromValue(*this);
+	}
 };
 
 //! Overload of qHash to use ObjectKey with QHash

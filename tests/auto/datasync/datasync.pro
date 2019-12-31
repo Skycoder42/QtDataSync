@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
-SUBDIRS +=
+SUBDIRS += \
+	StatemachineTest
 
 prepareRecursiveTarget(run-tests)
 QMAKE_EXTRA_TARGETS += run-tests

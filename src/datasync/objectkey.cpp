@@ -25,7 +25,7 @@ bool ObjectKey::operator==(const QtDataSync::ObjectKey &other) const
 bool ObjectKey::operator!=(const QtDataSync::ObjectKey &other) const
 {
 	return typeName != other.typeName ||
-		   id != other.id;
+					   id != other.id;
 }
 
 uint QtDataSync::qHash(const QtDataSync::ObjectKey &key, uint seed)
