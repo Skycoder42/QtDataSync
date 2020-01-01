@@ -21,6 +21,7 @@ public:
 
 public Q_SLOTS:
 	virtual void signIn() = 0;
+	virtual void logOut() = 0;
 	virtual void deleteUser() = 0;
 
 	virtual void abortSignIn() = 0;
@@ -41,6 +42,7 @@ class Q_DATASYNC_EXPORT FirebaseAuthenticator : public IAuthenticator
 
 public Q_SLOTS:
 	void signIn() final;
+	void logOut() override;
 	void deleteUser() final;
 
 protected:
@@ -74,6 +76,8 @@ public:
 	explicit OAuthAuthenticator(Engine *engine = nullptr);
 
 	bool doesPreferNative() const;
+
+	void logOut() override;
 
 public Q_SLOTS:
 	void abortSignIn() override;

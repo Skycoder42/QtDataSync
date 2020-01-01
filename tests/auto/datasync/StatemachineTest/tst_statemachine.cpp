@@ -21,6 +21,7 @@ private Q_SLOTS:
 	void testNormalRun();
 	void testError();
 	void testDeleteTable();
+	void testLogout();
 	void testDeleteAcc();
 
 private:
@@ -285,6 +286,31 @@ void StatemachineTest::testDeleteTable()
 				QStringLiteral("DlRunning"),
 				QStringLiteral("ProcFiber"),
 				QStringLiteral("ProcWaiting"));
+
+	statemachine->submitEvent(QStringLiteral("stop"));
+	TEST_STATES(QStringLiteral("Inactive"));
+}
+
+void StatemachineTest::testLogout()
+{
+	QSignalSpy idleSpy{statemachine, &EngineStateMachine::reachedStableState};
+
+	statemachine->stop();
+	statemachine->start();
+	TEST_STATES(QStringLiteral("Inactive"));
+
+	statemachine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SigningIn"));
+
+	statemachine->submitEvent(QStringLiteral("signedIn"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("loggedOut"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SigningIn"));
 
 	statemachine->submitEvent(QStringLiteral("stop"));
 	TEST_STATES(QStringLiteral("Inactive"));

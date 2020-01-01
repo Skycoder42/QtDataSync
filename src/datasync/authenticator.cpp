@@ -37,6 +37,17 @@ void FirebaseAuthenticator::signIn()
 	}
 }
 
+void FirebaseAuthenticator::logOut()
+{
+	Q_D(FirebaseAuthenticator);
+	d->refreshTimer->stop();
+	d->localId.clear();
+	d->idToken.clear();
+	d->refreshToken.clear();
+	d->email.clear();
+	d->clearFbConfig();
+}
+
 void FirebaseAuthenticator::deleteUser()
 {
 	Q_D(FirebaseAuthenticator);
@@ -47,9 +58,8 @@ void FirebaseAuthenticator::deleteUser()
 	}
 
 	d->api->deleteAccount(d->idToken)->onSucceeded(this, [this](int) {
-		Q_D(FirebaseAuthenticator);
 		qCDebug(logFbAuth) << "Firebase account delete successful";
-		d->clearFbConfig();
+		logOut();
 		Q_EMIT accountDeleted(true);
 	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
 		Q_D(FirebaseAuthenticator);
@@ -228,6 +238,15 @@ bool OAuthAuthenticator::doesPreferNative() const
 {
 	Q_D(const OAuthAuthenticator);
 	return d->preferNative;
+}
+
+void OAuthAuthenticator::logOut()
+{
+	FirebaseAuthenticator::logOut();
+	Q_D(OAuthAuthenticator);
+	d->oAuthFlow->setIdToken({});
+	d->oAuthFlow->setRefreshToken({});
+	d->clearOaConfig();
 }
 
 void OAuthAuthenticator::abortSignIn()

@@ -147,8 +147,9 @@ void Engine::stop()
 
 void Engine::logOut()
 {
-	// TODO implement
-	Q_UNIMPLEMENTED();
+	Q_D(Engine);
+	d->setup->authenticator->logOut();
+	d->statemachine->submitEvent(QStringLiteral("loggedOut")); // prompts the user to sign in again, but only if already running
 }
 
 void Engine::deleteAccount()
