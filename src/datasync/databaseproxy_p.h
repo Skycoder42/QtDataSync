@@ -39,6 +39,7 @@ public:
 	Q_ENUM(TableState)
 
 	using DirtyTableInfo = std::optional<std::pair<QString, QDateTime>>;
+	using ErrorScope = DatabaseWatcher::ErrorScope;
 
 	explicit DatabaseProxy(Engine *engine = nullptr);
 
@@ -62,7 +63,10 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void triggerSync(QPrivateSignal = {});
-	void databaseError(const QString &errorString, QPrivateSignal = {});
+	void databaseError(ErrorScope scope,
+					   const QString &message,
+					   const QVariant &key,
+					   const QSqlError &sqlError);
 
 private Q_SLOTS:
 	void tableAdded(const QString &name);

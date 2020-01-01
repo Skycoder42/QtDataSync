@@ -110,14 +110,11 @@ void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 	_api->listChangedData(type, since.toUTC().toMSecsSinceEpoch(), _limit)->onSucceeded(this, [this, type, since](int, const QueryMap &data) {
 		// get all changed data and pass to storage
 		qCDebug(logRmc) << "listChangedData returned" << data.size() << "entries";
-		for (auto it = data.begin(), end = data.end(); it != end; ++it) {
-			Q_EMIT downloadedData({
-				type, it->first,
-				std::get<std::optional<QJsonObject>>(it->second.data()),
-				it->second.modified(),
-				std::get<QDateTime>(it->second.uploaded())
-			});
-		}
+		QList<CloudData> dlList;
+		dlList.reserve(data.size());
+		for (auto it = data.begin(), end = data.end(); it != end; ++it)
+			dlList.append(dlData({type, it->first}, it->second));
+		Q_EMIT downloadedData(dlList);
 		// if as much data as possible by limit, fetch more with new last sync
 		if (data.size() == _limit)
 			getChanges(type, {});  // TODO use last element
@@ -143,7 +140,7 @@ void RemoteConnector::uploadChange(const CloudData &data)
 		} else if (replyData->modified() >= data.modified()) {
 			// data was modified on the server after modified locally -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
-			Q_EMIT downloadedData({data.key(), std::get<std::optional<QJsonObject>>(replyData->data()), replyData->modified()});
+			Q_EMIT downloadedData({dlData(data.key(), *replyData)});
 			Q_EMIT triggerSync(data.key().typeName);
 		} else {
 			// data on server is older -> upload
@@ -241,6 +238,16 @@ void RemoteConnector::streamClosed()
 		Q_EMIT networkError(tr("Live-synchronization disabled because of network error!"));
 		break;
 	}
+}
+
+CloudData RemoteConnector::dlData(ObjectKey key, const Data &data)
+{
+	return {
+		std::move(key),
+		std::get<std::optional<QJsonObject>>(data.data()),
+		data.modified(),
+		std::get<QDateTime>(data.uploaded())
+	};
 }
 
 QString RemoteConnector::translateError(const Error &error, int)

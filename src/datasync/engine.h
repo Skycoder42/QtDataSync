@@ -85,12 +85,14 @@ private:
 	friend class Setup;
 	Q_DECLARE_PRIVATE(Engine)
 
-	Q_PRIVATE_SLOT(d_func(), void _q_handleError(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_handleError(ErrorType, const QString &, const QVariant &))
 	Q_PRIVATE_SLOT(d_func(), void _q_signInSuccessful(const QString &, const QString &))
 	Q_PRIVATE_SLOT(d_func(), void _q_accountDeleted(bool))
 	Q_PRIVATE_SLOT(d_func(), void _q_triggerSync())
 	Q_PRIVATE_SLOT(d_func(), void _q_syncDone(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_downloadedData(const QList<CloudData> &))
 	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &, const QDateTime &))
+	Q_PRIVATE_SLOT(d_func(), void _q_transformDownloadDone(const LocalData &))
 
 	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
 };

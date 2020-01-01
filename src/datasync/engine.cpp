@@ -166,13 +166,19 @@ void EnginePrivate::setupConnections()
 	connect(dbProxy, &DatabaseProxy::databaseError,
 			this, &EnginePrivate::_q_handleError);
 
-	// rmc -> engine
+	// rmc <-> engine
+	connect(connector, &RemoteConnector::downloadedData,
+			this, &EnginePrivate::_q_downloadedData);
 	connect(connector, &RemoteConnector::syncDone,
 			this, &EnginePrivate::_q_syncDone);
 	connect(connector, &RemoteConnector::uploadedData,
 			this, &EnginePrivate::_q_uploadedData);
 	connect(connector, &RemoteConnector::networkError,
 			this, &EnginePrivate::_q_handleError);
+
+	// transformer <-> engine
+	connect(setup->transformer, &ICloudTransformer::transformDownloadDone,
+			this, &EnginePrivate::_q_transformDownloadDone);
 
 	// rmc <-> dbProxy
 	QObject::connect(connector, &RemoteConnector::triggerSync,
@@ -181,15 +187,8 @@ void EnginePrivate::setupConnections()
 					 });
 
 	// rmc <-> transformer
-	QObject::connect(connector, &RemoteConnector::downloadedData,
-					 setup->transformer, &ICloudTransformer::transformDownload,
-					 Qt::QueuedConnection);  // queued, to split processing from downloading
 	QObject::connect(setup->transformer, &ICloudTransformer::transformUploadDone,
 					 connector, &RemoteConnector::uploadChange);
-
-	// transformer <-> dbProxy
-	QObject::connect(setup->transformer, &ICloudTransformer::transformDownloadDone,
-					 dbProxy, dbProxy->bind(&DatabaseWatcher::storeData));
 }
 
 void EnginePrivate::setupStateMachine()
@@ -199,6 +198,9 @@ void EnginePrivate::setupStateMachine()
 		throw SetupException{QStringLiteral("Failed to initialize statemachine!")};
 
 	// --- states ---
+	// # Error
+	statemachine->connectToState(QStringLiteral("Error"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterError, this)));
 	// # Active
 	statemachine->connectToState(QStringLiteral("Active"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterActive, this)));
@@ -209,6 +211,14 @@ void EnginePrivate::setupStateMachine()
 	// ### Downloading
 	statemachine->connectToState(QStringLiteral("Downloading"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDownloading, this)));
+	// #### DlFiber
+	// ##### DlRunning
+	statemachine->connectToState(QStringLiteral("DlRunning"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDlRunning, this)));
+	// #### ProcFiber
+	// ##### ProcRunning
+	statemachine->connectToState(QStringLiteral("ProcRunning"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterProcRunning, this)));
 	// ### Uploading
 	statemachine->connectToState(QStringLiteral("Uploading"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
@@ -219,6 +229,17 @@ void EnginePrivate::setupStateMachine()
 	});
 }
 
+void EnginePrivate::onEnterError()
+{
+	Q_Q(Engine);
+	if (lastError) {
+		auto mData = *std::move(lastError);
+		lastError.reset();
+		Q_EMIT q->errorOccured(mData.type, mData.message, mData.data);
+	} else
+		statemachine->submitEvent(QStringLiteral("stop"));  // no error -> just enter stopped instead
+}
+
 void EnginePrivate::onEnterActive()
 {
 	// prepopulate all tables as dirty, so that when sync starts, all are updated
@@ -227,10 +248,24 @@ void EnginePrivate::onEnterActive()
 
 void EnginePrivate::onEnterDownloading()
 {
+	dlDataQueue.clear();
+	dlLastSync.clear();
+}
+
+void EnginePrivate::onEnterDlRunning()
+{
 	if (const auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); dtInfo)
-		connector->getChanges(dtInfo->first, dtInfo->second);  // has dirty table -> download it
+		connector->getChanges(dtInfo->first, std::max(dtInfo->second, dlLastSync.value(dtInfo->first)));  // has dirty table -> download it (uses latest stored or cached timestamp)
 	else
 		statemachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
+}
+
+void EnginePrivate::onEnterProcRunning()
+{
+	if (!dlDataQueue.isEmpty())
+		setup->transformer->transformDownload(dlDataQueue.dequeue());
+	else
+		statemachine->submitEvent(QStringLiteral("procReady"));  // done with dowloading
 }
 
 void EnginePrivate::onEnterUploading()
@@ -249,10 +284,11 @@ void EnginePrivate::onEnterUploading()
 	}
 }
 
-void EnginePrivate::_q_handleError(const QString &errorMessage)
+void EnginePrivate::_q_handleError(ErrorType type, const QString &errorMessage, const QVariant &errorData)
 {
-	lastError = errorMessage;
-	qCCritical(logEngine).noquote() << errorMessage;
+	if (!lastError)
+		lastError = {type, errorMessage, errorData};
+	qCCritical(logEngine).noquote() << type << errorMessage << errorData;
 	statemachine->submitEvent(QStringLiteral("error"));
 }
 
@@ -284,10 +320,30 @@ void EnginePrivate::_q_syncDone(const QString &type)
 	statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
 }
 
+void EnginePrivate::_q_downloadedData(const QList<CloudData> &data)
+{
+	if (statemachine->isActive(QStringLiteral("Downloading"))) {
+		if (!data.isEmpty()) {
+			dlDataQueue.append(data);
+			const auto ldata = data.last();
+			dlLastSync.insert(ldata.key().typeName, ldata.uploaded());
+		}
+		statemachine->submitEvent(QStringLiteral("dataReady"));  // starts data processing if not already running
+	}
+}
+
 void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modified)
 {
 	dbProxy->call(&DatabaseWatcher::markUnchanged, key, modified);
 	statemachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
+}
+
+void EnginePrivate::_q_transformDownloadDone(const LocalData &data)
+{
+	if (statemachine->isActive(QStringLiteral("Downloading"))) {
+		dbProxy->call(&DatabaseWatcher::storeData, data);
+		statemachine->submitEvent(QStringLiteral("procContinue"));  // starts processing of the next downloaded data
+	}
 }
 
 

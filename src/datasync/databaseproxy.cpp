@@ -20,8 +20,12 @@ DatabaseWatcher *DatabaseProxy::watcher(QSqlDatabase &&database)
 				this, &DatabaseProxy::tableAdded);
 		connect(watcher, &DatabaseWatcher::tableRemoved,
 				this, &DatabaseProxy::tableRemoved);
-//		connect(watcher, &DatabaseWatcher::triggerSync,
-//				this, &DatabaseProxy::markTableDirty);  // TODO change
+		connect(watcher, &DatabaseWatcher::triggerSync,
+				this, [this](const QString &name) {
+					markTableDirty(name, Type::Local);
+				});
+		connect(watcher, &DatabaseWatcher::databaseError,
+				this, &DatabaseProxy::databaseError);
 		return watcher;
 	}
 }

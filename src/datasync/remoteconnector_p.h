@@ -41,7 +41,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void triggerSync(const QString &type, QPrivateSignal = {});
 
-	void downloadedData(const CloudData &data, QPrivateSignal = {});
+	void downloadedData(const QList<CloudData> &data, QPrivateSignal = {});
 	void syncDone(const QString &type, QPrivateSignal = {});
 	void uploadedData(const ObjectKey &key, const QDateTime &modified, QPrivateSignal = {});
 	void removedTable(const QString &type, QPrivateSignal = {});
@@ -63,6 +63,7 @@ private:
 	QNetworkReply *_eventStream = nullptr;
 	bool _liveSyncBlocked = true;
 
+	static CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data);
 	static QString translateError(const QtDataSync::firebase::realtimedb::Error &error, int code);
 
 	QString timeString(const std::chrono::milliseconds &time);
