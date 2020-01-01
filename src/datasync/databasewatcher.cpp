@@ -355,6 +355,84 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 	}
 }
 
+QStringList DatabaseWatcher::resyncAllTables(Engine::ResyncMode direction)
+{
+	for (auto it = _tables.keyBegin(); it != _tables.keyEnd(); ++it)
+		resyncTable(*it, direction);
+	return _tables.keys();
+}
+
+void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direction)
+{
+	try {
+		ExTransaction transact{_db};
+
+		const auto escName = tableName(name);
+		const auto escSyncName = tableName(name, true);
+		const auto pKey = getPKey(name);
+
+		if (direction.testFlag(Engine::ResyncFlag::ClearLocalData)) {
+			ExQuery clearLocalQuery{_db, ErrorScope::Table, name};
+			clearLocalQuery.exec(QStringLiteral("DELETE FROM %1;").arg(escName));
+
+			ExQuery cleanLocalQuery{_db, ErrorScope::Table, name};
+			cleanLocalQuery.exec(QStringLiteral("DELETE FROM %1;").arg(escSyncName));
+		} else if (direction.testFlag(Engine::ResyncFlag::CleanLocalData)) {
+			ExQuery cleanLocalQuery{_db, ErrorScope::Table, name};
+			cleanLocalQuery.exec(QStringLiteral("DELETE FROM %1;").arg(escSyncName));
+
+			ExQuery inflateTableTrigger{_db, ErrorScope::Table, name};
+			inflateTableTrigger.exec(QStringLiteral("INSERT INTO %1 "
+													"(pkey, tstamp, changed) "
+													"SELECT %3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1 "
+													"FROM %2;")
+										 .arg(escSyncName,
+											  escName,
+											  pKey));
+		} else {
+			if (direction.testFlag(Engine::ResyncFlag::Upload)) {
+				ExQuery markAllChangedQuery{_db, ErrorScope::Table, name};
+				markAllChangedQuery.prepare(QStringLiteral("UPDATE %1 "
+														   "SET changed = ?;")
+												.arg(escSyncName));
+				markAllChangedQuery.addBindValue(static_cast<int>(ChangeState::Changed));
+				markAllChangedQuery.exec();
+			}
+
+			if (direction.testFlag(Engine::ResyncFlag::CheckLocalData)) {
+				ExQuery inflateTableTrigger{_db, ErrorScope::Table, name};
+				inflateTableTrigger.exec(QStringLiteral("INSERT OR IGNORE "
+														"INTO %1 "
+														"(pkey, tstamp, changed) "
+														"SELECT %3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1 "
+														"FROM %2;")
+											 .arg(escSyncName,
+												  escName,
+												  pKey));
+			}
+		}
+
+		if (direction.testFlag(Engine::ResyncFlag::Download)) {
+			ExQuery resetLastSyncQuery{_db, ErrorScope::Database, name};
+			resetLastSyncQuery.prepare(QStringLiteral("UPDATE %1 "
+													  "SET lastSync = NULL "
+													  "WHERE tableName == ?;")
+										   .arg(MetaTable));
+			resetLastSyncQuery.addBindValue(name);
+			resetLastSyncQuery.exec();
+		}
+
+		transact.commit();
+	} catch (SqlException &error) {
+		qCCritical(logDbWatcher) << error.what();
+		throw TableException {
+			name,
+			QStringLiteral("Failed to re-synchronize table with database error"),
+			error.error()
+		};
+	}
+}
+
 std::optional<QDateTime> DatabaseWatcher::lastSync(const QString &tableName)
 {
 	try {
@@ -389,8 +467,6 @@ void DatabaseWatcher::storeData(const LocalData &data)
 
 		// retrieve the primary key
 		const auto pKey = getPKey(key.typeName);
-		if (!pKey)
-			return;
 		const auto escTableName = tableName(key.typeName);
 		const auto escSyncName = tableName(key.typeName, true);
 
@@ -443,7 +519,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 									.arg(escTableName,
 										 insertKeys.join(QStringLiteral(", ")),
 										 paramPlcs.join(QStringLiteral(", ")),
-										 *pKey,
+										 pKey,
 										 updateKeys.join(QStringLiteral(", "))));
 			for (const auto &val : *value)
 				upsertQuery.addBindValue(val);
@@ -454,7 +530,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 			ExQuery deleteQuery{_db, ErrorScope::Entry, key};
 			deleteQuery.prepare(QStringLiteral("DELETE FROM %1 "
 											   "WHERE %2 == ?;")
-									.arg(escTableName, *pKey));
+									.arg(escTableName, pKey));
 			deleteQuery.addBindValue(key.id);
 			deleteQuery.exec();
 			qCDebug(logDbWatcher) << "Removed local data for id" << key;
@@ -487,8 +563,6 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 		ExTransaction transact{_db};
 
 		const auto pKey = getPKey(name);
-		if (!pKey)
-			return std::nullopt;
 
 		ExQuery nextDataQuery{_db, ErrorScope::Table, name};
 		nextDataQuery.prepare(QStringLiteral("SELECT syncTable.pkey, syncTable.tstamp, dataTable.* "
@@ -500,7 +574,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 											 "LIMIT 1")
 								  .arg(tableName(name, true),
 									   tableName(name),
-									   *pKey));
+									   pKey));
 		nextDataQuery.addBindValue(static_cast<int>(ChangeState::Changed));
 		nextDataQuery.exec();
 
@@ -593,36 +667,25 @@ QString DatabaseWatcher::fieldName(const QString &field) const
 	return _db.driver()->escapeIdentifier(field, QSqlDriver::FieldName);
 }
 
-std::optional<QString> DatabaseWatcher::getPKey(const QString &table)
+QString DatabaseWatcher::getPKey(const QString &table)
 {
 	if (const auto it = qAsConst(_pKeyCache).find(table);
 		it != _pKeyCache.constEnd())
 		return *it;
 
-	try {
-		ExQuery getPKeyQuery{_db, ErrorScope::Database, table};
-		getPKeyQuery.prepare(QStringLiteral("SELECT pkey "
-											"FROM %1 "
-											"WHERE tableName = ?;")
-								 .arg(MetaTable));
-		getPKeyQuery.addBindValue(table);  // TODO add cache to reduce queries
-		getPKeyQuery.exec();
-		if (!getPKeyQuery.first()) {
-			Q_EMIT databaseError(ErrorScope::Database,
-								 tr("No primary registered for table %1").arg(table),
-								 MetaTable,
-								 {});
-			return std::nullopt;
-		}
+	ExQuery getPKeyQuery{_db, ErrorScope::Database, table};
+	getPKeyQuery.prepare(QStringLiteral("SELECT pkey "
+										"FROM %1 "
+										"WHERE tableName = ?;")
+							 .arg(MetaTable));
+	getPKeyQuery.addBindValue(table);  // TODO add cache to reduce queries
+	getPKeyQuery.exec();
+	if (!getPKeyQuery.first())
+		throw SqlException{ErrorScope::Database, MetaTable, {}};
 
-		const auto fName = fieldName(getPKeyQuery.value(0).toString());
-		_pKeyCache.insert(table, fName);
-		return fName;
-	} catch (SqlException &error) {
-		qCCritical(logDbWatcher) << error.what();
-		error.emitFor(this);
-		return std::nullopt;
-	}
+	const auto fName = fieldName(getPKeyQuery.value(0).toString());
+	_pKeyCache.insert(table, fName);
+	return fName;
 }
 
 void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modified)

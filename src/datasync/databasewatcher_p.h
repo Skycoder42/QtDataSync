@@ -67,6 +67,9 @@ public:
 	void unsyncAllTables();
 	void unsyncTable(const QString &name, bool removeRef = true);
 
+	QStringList resyncAllTables(Engine::ResyncMode direction);
+	void resyncTable(const QString &name, Engine::ResyncMode direction);
+
 	// sync functions
 	std::optional<QDateTime> lastSync(const QString &tableName);
 	void storeData(const LocalData &data);
@@ -99,7 +102,7 @@ private:
 	QString tableName(const QString &table, bool asSyncTable = false) const;
 	QString fieldName(const QString &field) const;
 
-	std::optional<QString> getPKey(const QString &table);
+	QString getPKey(const QString &table);
 	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
 };
 

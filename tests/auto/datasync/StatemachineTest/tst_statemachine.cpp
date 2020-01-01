@@ -20,6 +20,7 @@ private Q_SLOTS:
 
 	void testNormalRun();
 	void testError();
+	void testDeleteTable();
 	void testDeleteAcc();
 
 private:
@@ -45,6 +46,11 @@ void StatemachineTest::testNormalRun()
 				QStringLiteral("SigningIn"));
 
 	statemachine->submitEvent(QStringLiteral("signedIn"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("delDone"));
 	TEST_STATES(QStringLiteral("Active"),
 				QStringLiteral("SignedIn"),
 				QStringLiteral("Synchronizing"),
@@ -198,6 +204,11 @@ void StatemachineTest::testError()
 	statemachine->submitEvent(QStringLiteral("signedIn"));
 	TEST_STATES(QStringLiteral("Active"),
 				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("delDone"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
 				QStringLiteral("Synchronizing"),
 				QStringLiteral("Downloading"),
 				QStringLiteral("DlFiber"),
@@ -207,6 +218,73 @@ void StatemachineTest::testError()
 
 	statemachine->submitEvent(QStringLiteral("error"));
 	TEST_STATES(QStringLiteral("Error"));
+
+	statemachine->submitEvent(QStringLiteral("stop"));
+	TEST_STATES(QStringLiteral("Inactive"));
+}
+
+void StatemachineTest::testDeleteTable()
+{
+	QSignalSpy idleSpy{statemachine, &EngineStateMachine::reachedStableState};
+
+	statemachine->stop();
+	statemachine->start();
+	TEST_STATES(QStringLiteral("Inactive"));
+
+	statemachine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SigningIn"));
+
+	statemachine->submitEvent(QStringLiteral("signedIn"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("delContinue"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("delDone"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("Synchronizing"),
+				QStringLiteral("Downloading"),
+				QStringLiteral("DlFiber"),
+				QStringLiteral("DlRunning"),
+				QStringLiteral("ProcFiber"),
+				QStringLiteral("ProcWaiting"));
+
+	statemachine->submitEvent(QStringLiteral("dlReady"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("Synchronizing"),
+				QStringLiteral("Uploading"));
+
+	statemachine->submitEvent(QStringLiteral("syncReady"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("Synchronized"));
+
+	statemachine->submitEvent(QStringLiteral("delTable"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("delContinue"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("delDone"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("Synchronizing"),
+				QStringLiteral("Downloading"),
+				QStringLiteral("DlFiber"),
+				QStringLiteral("DlRunning"),
+				QStringLiteral("ProcFiber"),
+				QStringLiteral("ProcWaiting"));
 
 	statemachine->submitEvent(QStringLiteral("stop"));
 	TEST_STATES(QStringLiteral("Inactive"));
@@ -225,6 +303,11 @@ void StatemachineTest::testDeleteAcc()
 				QStringLiteral("SigningIn"));
 
 	statemachine->submitEvent(QStringLiteral("signedIn"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("SignedIn"),
+				QStringLiteral("DelTables"));
+
+	statemachine->submitEvent(QStringLiteral("delDone"));
 	TEST_STATES(QStringLiteral("Active"),
 				QStringLiteral("SignedIn"),
 				QStringLiteral("Synchronizing"),

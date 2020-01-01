@@ -25,6 +25,20 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 	Q_PROPERTY(ICloudTransformer* transformer READ transformer CONSTANT)
 
 public:
+	enum class ResyncFlag {
+		Upload = 0x01,
+		Download = 0x02,
+		CheckLocalData = 0x04,
+
+		CleanLocalData = (0x08 | Upload | CheckLocalData),
+		ClearLocalData = (0x10 | Download),
+		ClearServerData = (0x20 | Upload),
+
+		SyncAll = (Upload | Download),
+		ClearAll = (ClearLocalData | ClearServerData),
+	};
+	Q_DECLARE_FLAGS(ResyncMode, ResyncFlag)
+
 	enum class ErrorType {
 		Network,
 		Entry,
@@ -69,11 +83,24 @@ public:
 	void unsyncTable(const QString &table,
 					 QSqlDatabase database);
 
+	void resyncDatabase(ResyncMode direction = ResyncFlag::SyncAll,
+						const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
+	void resyncDatabase(ResyncMode direction,
+						QSqlDatabase database);
+	void resyncTable(const QString &table,
+					 ResyncMode direction = ResyncFlag::SyncAll,
+					 const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
+	void resyncTable(const QString &table,
+					 ResyncMode direction,
+					 QSqlDatabase database);
+
 public Q_SLOTS:
 	void start();
 	void stop();
 	void logOut();
 	void deleteAccount();
+
+	void triggerSync();
 
 Q_SIGNALS:
 	void errorOccured(ErrorType type,
@@ -94,6 +121,7 @@ private:
 	Q_PRIVATE_SLOT(d_func(), void _q_downloadedData(const QList<CloudData> &))
 	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &, const QDateTime &))
 	Q_PRIVATE_SLOT(d_func(), void _q_transformDownloadDone(const LocalData &))
+	Q_PRIVATE_SLOT(d_func(), void _q_removedUser())
 
 	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
 };
@@ -118,6 +146,8 @@ protected:
 };
 
 }
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QtDataSync::Engine::ResyncMode)
 
 Q_DECLARE_METATYPE(QSqlError)
 

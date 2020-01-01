@@ -42,23 +42,23 @@ public:
 
 	explicit DatabaseProxy(Engine *engine = nullptr);
 
+	// watcher access
 	DatabaseWatcher *watcher(QSqlDatabase &&database);  // gets or creates a watcher for the given database connection
 	void dropWatcher(QSqlDatabase &&database);  // drops a watcher without removing synced tables
 
 	// table management
-	void clearDirtyTable(const QString &name, Type type);
 	DirtyTableInfo nextDirtyTable(Type type) const;
+	void fillDirtyTables(Type type);
+	void clearDirtyTable(const QString &name, Type type);
+	void markTableDirty(const QString &name, Type type);
 
+	// watcher proxy
 	template <typename TRet, typename TFirst, typename... TArgs>
 	std::enable_if_t<!std::is_void_v<TRet>, TRet> call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args);
 	template <typename TRet, typename TFirst, typename... TArgs>
 	std::enable_if_t<std::is_void_v<TRet>, void> call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args);
 	template <typename TRet, typename TFirst, typename... TArgs>
 	std::function<TRet(TFirst, TArgs...)> bind(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...));
-
-public Q_SLOTS:
-	void fillDirtyTables(Type type);
-	void markTableDirty(const QString &name, Type type);
 
 Q_SIGNALS:
 	void triggerSync(QPrivateSignal = {});

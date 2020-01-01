@@ -94,6 +94,35 @@ void Engine::unsyncTable(const QString &table, QSqlDatabase database)
 	d->dbProxy->watcher(std::move(database))->unsyncTable(table);
 }
 
+void Engine::resyncDatabase(ResyncMode direction, const QString &databaseConnection)
+{
+	resyncDatabase(direction, QSqlDatabase::database(databaseConnection, true));
+}
+
+void Engine::resyncDatabase(ResyncMode direction, QSqlDatabase database)
+{
+	Q_D(Engine);
+	if (d->statemachine->isActive(QStringLiteral("Synchronizing")))
+		throw TableException{{}, tr("Cannot resync database while already synchronizing"), {}};
+	const auto tables = d->dbProxy->watcher(std::move(database))->resyncAllTables(direction);
+	for (const auto &table : tables)
+		d->resyncNotify(table, direction);
+}
+
+void Engine::resyncTable(const QString &table, ResyncMode direction, const QString &databaseConnection)
+{
+	resyncTable(table, direction, QSqlDatabase::database(databaseConnection, true));
+}
+
+void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabase database)
+{
+	Q_D(Engine);
+	if (d->statemachine->isActive(QStringLiteral("Synchronizing")))
+		throw TableException{table, tr("Cannot resync table while already synchronizing"), {}};
+	d->dbProxy->watcher(std::move(database))->resyncTable(table, direction);
+	d->resyncNotify(table, direction);
+}
+
 void Engine::start()
 {
 	Q_D(Engine);
@@ -118,6 +147,7 @@ void Engine::stop()
 
 void Engine::logOut()
 {
+	// TODO implement
 	Q_UNIMPLEMENTED();
 }
 
@@ -125,6 +155,12 @@ void Engine::deleteAccount()
 {
 	Q_D(Engine);
 	d->statemachine->submitEvent(QStringLiteral("deleteAcc"));
+}
+
+void Engine::triggerSync()
+{
+	Q_D(Engine);
+	d->statemachine->submitEvent(QStringLiteral("triggerSync"));
 }
 
 Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
@@ -173,6 +209,10 @@ void EnginePrivate::setupConnections()
 			this, &EnginePrivate::_q_syncDone);
 	connect(connector, &RemoteConnector::uploadedData,
 			this, &EnginePrivate::_q_uploadedData);
+	connect(connector, &RemoteConnector::removedTable,
+			this, &EnginePrivate::_q_removedTable);
+	connect(connector, &RemoteConnector::removedUser,
+			this, &EnginePrivate::_q_removedUser);
 	connect(connector, &RemoteConnector::networkError,
 			this, &EnginePrivate::_q_handleNetError);
 
@@ -207,26 +247,50 @@ void EnginePrivate::setupStateMachine()
 	// ## SigningIn
 	statemachine->connectToState(QStringLiteral("SigningIn"),
 								 QScxmlStateMachine::onEntry(setup->authenticator, &IAuthenticator::signIn));
-	// ## Synchronizing
-	// ### Downloading
+	// ## SignedIn
+	statemachine->connectToState(QStringLiteral("SignedIn"), q,
+								 QScxmlStateMachine::onExit(std::bind(&EnginePrivate::onExitSignedIn, this)));
+	// ### DelTables
+	statemachine->connectToState(QStringLiteral("DelTables"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDelTables, this)));
+	// ### Synchronizing
+	// #### Downloading
 	statemachine->connectToState(QStringLiteral("Downloading"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDownloading, this)));
-	// #### DlFiber
-	// ##### DlRunning
+	// ##### DlFiber
+	// ###### DlRunning
 	statemachine->connectToState(QStringLiteral("DlRunning"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDlRunning, this)));
-	// #### ProcFiber
-	// ##### ProcRunning
+	// ##### ProcFiber
+	// ###### ProcRunning
 	statemachine->connectToState(QStringLiteral("ProcRunning"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterProcRunning, this)));
-	// ### Uploading
+	// #### Uploading
 	statemachine->connectToState(QStringLiteral("Uploading"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
+	// ## DeletingAcc
+	statemachine->connectToState(QStringLiteral("DeletingAcc"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDeletingAcc, this)));
 
 	// --- debug states ---
 	QObject::connect(statemachine, &QScxmlStateMachine::reachedStableState, q, [this]() {
 		qCDebug(logEngine) << "Statemachine reached stable state:" << statemachine->activeStateNames(false);
 	});
+}
+
+void EnginePrivate::resyncNotify(const QString &name, EnginePrivate::ResyncMode direction)
+{
+	if (direction.testFlag(ResyncFlag::ClearServerData)) {
+		delTableQueue.enqueue(name);
+		statemachine->submitEvent(QStringLiteral("delTable"));  // only does something if synchronized
+	}
+
+	if (direction.testFlag(ResyncFlag::Download))
+		dbProxy->markTableDirty(name, DatabaseProxy::Type::Cloud);
+
+	if (direction.testFlag(ResyncFlag::Upload) ||
+		direction.testFlag(ResyncFlag::CheckLocalData))
+		dbProxy->markTableDirty(name, DatabaseProxy::Type::Local);
 }
 
 void EnginePrivate::onEnterError()
@@ -244,6 +308,19 @@ void EnginePrivate::onEnterActive()
 {
 	// prepopulate all tables as dirty, so that when sync starts, all are updated
 	dbProxy->fillDirtyTables(DatabaseProxy::Type::Both);
+}
+
+void EnginePrivate::onExitSignedIn()
+{
+	delTableQueue.clear();
+}
+
+void EnginePrivate::onEnterDelTables()
+{
+	if (!delTableQueue.isEmpty())
+		connector->removeTable(delTableQueue.head());
+	else
+		statemachine->submitEvent(QStringLiteral("delDone"));
 }
 
 void EnginePrivate::onEnterDownloading()
@@ -284,6 +361,11 @@ void EnginePrivate::onEnterUploading()
 	}
 }
 
+void EnginePrivate::onEnterDeletingAcc()
+{
+	connector->removeUser();
+}
+
 void EnginePrivate::_q_handleError(ErrorType type, const QString &errorMessage, const QVariant &errorData)
 {
 	if (!lastError)
@@ -307,11 +389,13 @@ void EnginePrivate::_q_signInSuccessful(const QString &userId, const QString &id
 
 void EnginePrivate::_q_accountDeleted(bool success)
 {
-	// TODO after delete user table
-	if (success)
+	if (success) {
+		// TODO reset/resync all tables
 		statemachine->submitEvent(QStringLiteral("stop"));
-	else
+	} else {
+		lastError = {ErrorType::Network, Engine::tr("Failed to delete user from authentication server"), {}};
 		statemachine->submitEvent(QStringLiteral("error"));
+	}
 }
 
 void EnginePrivate::_q_triggerSync()
@@ -341,6 +425,18 @@ void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modif
 {
 	dbProxy->call(&DatabaseWatcher::markUnchanged, key, modified);
 	statemachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
+}
+
+void EnginePrivate::_q_removedTable(const QString &name)
+{
+	if (!delTableQueue.isEmpty() && delTableQueue.head() == name)
+		delTableQueue.dequeue();
+	statemachine->submitEvent(QStringLiteral("delContinue"));
+}
+
+void EnginePrivate::_q_removedUser()
+{
+	setup->authenticator->deleteUser();
 }
 
 void EnginePrivate::_q_transformDownloadDone(const LocalData &data)

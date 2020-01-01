@@ -37,11 +37,6 @@ void DatabaseProxy::dropWatcher(QSqlDatabase &&database)
 		watcher->deleteLater();
 }
 
-void DatabaseProxy::clearDirtyTable(const QString &name, Type type)
-{
-	_tables[name].state.setFlag(toState(type), false);
-}
-
 DatabaseProxy::DirtyTableInfo DatabaseProxy::nextDirtyTable(Type type) const
 {
 	const auto nextIt = std::find_if(_tables.begin(), _tables.end(), [flag = toState(type)](const TableInfo &info){
@@ -61,6 +56,11 @@ void DatabaseProxy::fillDirtyTables(Type type)
 	for (auto &info : _tables)
 		info.state.setFlag(flag);
 	Q_EMIT triggerSync();
+}
+
+void DatabaseProxy::clearDirtyTable(const QString &name, Type type)
+{
+	_tables[name].state.setFlag(toState(type), false);
 }
 
 void DatabaseProxy::markTableDirty(const QString &name, Type type)

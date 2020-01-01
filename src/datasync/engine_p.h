@@ -28,6 +28,9 @@ class Q_DATASYNC_EXPORT EnginePrivate : public QObjectPrivate
 
 public:
 	using ErrorType = Engine::ErrorType;
+	using ResyncFlag = Engine::ResyncFlag;
+	using ResyncMode = Engine::ResyncMode;
+
 	struct ErrorInfo {
 		ErrorType type;
 		QString message;
@@ -44,6 +47,8 @@ public:
 	QHash<QString, QDateTime> dlLastSync;
 	std::optional<ErrorInfo> lastError;
 
+	QQueue<QString> delTableQueue;
+
 #ifndef QTDATASYNC_NO_NTP
 	NtpSync *ntpSync = nullptr;
 #endif
@@ -53,12 +58,17 @@ public:
 	void setupConnections();
 	void setupStateMachine();
 
+	void resyncNotify(const QString &name, ResyncMode direction);
+
 	void onEnterError();
 	void onEnterActive();
+	void onExitSignedIn();
+	void onEnterDelTables();
 	void onEnterDownloading();
 	void onEnterDlRunning();
 	void onEnterProcRunning();
 	void onEnterUploading();
+	void onEnterDeletingAcc();
 
 	// global
 	void _q_handleError(ErrorType type,
@@ -68,12 +78,14 @@ public:
 	// authenticator
 	void _q_signInSuccessful(const QString &userId, const QString &idToken);
 	void _q_accountDeleted(bool success);
-	// dbwatcher
+	// dbProxy
 	void _q_triggerSync();
 	// connector
 	void _q_syncDone(const QString &type);
 	void _q_downloadedData(const QList<CloudData> &data);
 	void _q_uploadedData(const ObjectKey &key, const QDateTime &modified);
+	void _q_removedTable(const QString &name);
+	void _q_removedUser();
 	// transformer
 	void _q_transformDownloadDone(const LocalData &data);
 };

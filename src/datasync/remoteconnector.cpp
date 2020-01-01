@@ -177,7 +177,7 @@ void RemoteConnector::removeUser()
 		Q_EMIT removedUser();
 	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		apiError(error, code, errorType);
-		Q_EMIT networkError(tr("Failed to remove user from server"));
+		Q_EMIT networkError(tr("Failed to delete user from server"));
 	}, &RemoteConnector::translateError);
 }
 
