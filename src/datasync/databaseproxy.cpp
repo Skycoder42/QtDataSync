@@ -25,7 +25,7 @@ DatabaseWatcher *DatabaseProxy::watcher(QSqlDatabase &&database)
 					markTableDirty(name, Type::Local);
 				});
 		connect(watcher, &DatabaseWatcher::databaseError,
-				this, &DatabaseProxy::databaseError);
+				this, &DatabaseProxy::watcherError);
 		return watcher;
 	}
 }
@@ -87,6 +87,14 @@ void DatabaseProxy::tableRemoved(const QString &name)
 {
 	Q_ASSERT(qobject_cast<DatabaseWatcher*>(sender()));
 	_tables.remove(name);
+}
+
+void DatabaseProxy::watcherError(DatabaseWatcher::ErrorScope scope, const QString &message, const QVariant &key, const QSqlError &sqlError)
+{
+	Q_EMIT databaseError(static_cast<Engine::ErrorType>(scope), message, QVariantMap {
+		{QStringLiteral("key"), key},
+		{QStringLiteral("error"), QVariant::fromValue(sqlError)}
+	});
 }
 
 DatabaseProxy::TableStateFlag DatabaseProxy::toState(DatabaseProxy::Type type)

@@ -156,7 +156,7 @@ void EnginePrivate::setupConnections()
 	connect(setup->authenticator, &IAuthenticator::signInSuccessful,
 			this, &EnginePrivate::_q_signInSuccessful);
 	connect(setup->authenticator, &IAuthenticator::signInFailed,
-			this, &EnginePrivate::_q_handleError);
+			this, &EnginePrivate::_q_handleNetError);
 	connect(setup->authenticator, &IAuthenticator::accountDeleted,
 			this, &EnginePrivate::_q_accountDeleted);
 
@@ -174,7 +174,7 @@ void EnginePrivate::setupConnections()
 	connect(connector, &RemoteConnector::uploadedData,
 			this, &EnginePrivate::_q_uploadedData);
 	connect(connector, &RemoteConnector::networkError,
-			this, &EnginePrivate::_q_handleError);
+			this, &EnginePrivate::_q_handleNetError);
 
 	// transformer <-> engine
 	connect(setup->transformer, &ICloudTransformer::transformDownloadDone,
@@ -290,6 +290,11 @@ void EnginePrivate::_q_handleError(ErrorType type, const QString &errorMessage, 
 		lastError = {type, errorMessage, errorData};
 	qCCritical(logEngine).noquote() << type << errorMessage << errorData;
 	statemachine->submitEvent(QStringLiteral("error"));
+}
+
+void EnginePrivate::_q_handleNetError(const QString &errorMessage)
+{
+	_q_handleError(ErrorType::Network, errorMessage, {});
 }
 
 void EnginePrivate::_q_signInSuccessful(const QString &userId, const QString &idToken)

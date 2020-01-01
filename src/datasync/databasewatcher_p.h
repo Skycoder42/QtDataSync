@@ -4,6 +4,7 @@
 #include "qtdatasync_global.h"
 #include "cloudtransformer.h"
 #include "exception.h"
+#include "engine.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QDateTime>
@@ -25,10 +26,10 @@ class Q_DATASYNC_EXPORT DatabaseWatcher : public QObject
 
 public:
 	enum class ErrorScope {
-		Entry,
-		Table,
-		Database,
-		System
+		Entry = static_cast<int>(Engine::ErrorType::Entry),
+		Table = static_cast<int>(Engine::ErrorType::Table),
+		Database = static_cast<int>(Engine::ErrorType::Database),
+		System = static_cast<int>(Engine::ErrorType::System)
 	};
 	Q_ENUM(ErrorScope)
 

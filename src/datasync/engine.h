@@ -86,6 +86,7 @@ private:
 	Q_DECLARE_PRIVATE(Engine)
 
 	Q_PRIVATE_SLOT(d_func(), void _q_handleError(ErrorType, const QString &, const QVariant &))
+	Q_PRIVATE_SLOT(d_func(), void _q_handleNetError(const QString &))
 	Q_PRIVATE_SLOT(d_func(), void _q_signInSuccessful(const QString &, const QString &))
 	Q_PRIVATE_SLOT(d_func(), void _q_accountDeleted(bool))
 	Q_PRIVATE_SLOT(d_func(), void _q_triggerSync())
@@ -117,5 +118,7 @@ protected:
 };
 
 }
+
+Q_DECLARE_METATYPE(QSqlError)
 
 #endif // QTDATASYNC_ENGINE_H

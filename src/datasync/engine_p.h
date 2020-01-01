@@ -64,6 +64,7 @@ public:
 	void _q_handleError(ErrorType type,
 						const QString &errorMessage,
 						const QVariant &errorData);
+	void _q_handleNetError(const QString &errorMessage);
 	// authenticator
 	void _q_signInSuccessful(const QString &userId, const QString &idToken);
 	void _q_accountDeleted(bool success);

@@ -140,7 +140,6 @@ void RemoteConnector::uploadChange(const CloudData &data)
 		} else if (replyData->modified() >= data.modified()) {
 			// data was modified on the server after modified locally -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
-			Q_EMIT downloadedData({dlData(data.key(), *replyData)});
 			Q_EMIT triggerSync(data.key().typeName);
 		} else {
 			// data on server is older -> upload

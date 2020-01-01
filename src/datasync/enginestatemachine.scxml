@@ -20,7 +20,7 @@
         </transition>
     </state>
     <state id="Active">
-        <qt:editorinfo geometry="237.74;63.85;137.53;-386.54;1035.45;905.47" scenegeometry="237.74;63.85;375.27;-322.69;1035.45;905.47"/>
+        <qt:editorinfo geometry="237.74;63.85;137.53;-386.54;1035.45;908.85" scenegeometry="237.74;63.85;375.27;-322.69;1035.45;908.85"/>
         <transition type="external" event="error" target="Error">
             <qt:editorinfo startTargetFactors="2.86;78.92"/>
         </transition>
@@ -34,9 +34,9 @@
             </transition>
         </state>
         <state id="SignedIn">
-            <qt:editorinfo geometry="565.29;38.53;-199.21;-323.96;786.90;784.36" scenegeometry="803.03;102.38;603.82;-221.58;786.90;784.36"/>
+            <qt:editorinfo geometry="565.29;40.22;-199.21;-323.96;786.90;786.05" scenegeometry="803.03;104.07;603.82;-219.89;786.90;786.05"/>
             <state id="Synchronizing">
-                <qt:editorinfo geometry="187.17;105.30;-154.35;-325.49;534.87;660.59" scenegeometry="990.20;207.68;835.85;-117.81;534.87;660.59"/>
+                <qt:editorinfo geometry="187.17;105.30;-154.35;-325.49;534.87;662.28" scenegeometry="990.20;209.37;835.85;-116.12;534.87;662.28"/>
                 <transition type="external" event="syncReady" target="Synchronized">
                     <qt:editorinfo movePoint="-25.47;-21.39" startTargetFactors="7.62;22.47" endTargetFactors="82.37;21.87"/>
                 </transition>
@@ -93,7 +93,7 @@
                     </transition>
                 </parallel>
                 <state id="Uploading">
-                    <qt:editorinfo geometry="21.23;265.10;-147.64;-50;208.11;100" scenegeometry="1011.43;472.78;863.79;422.78;208.11;100"/>
+                    <qt:editorinfo geometry="21.23;266.79;-147.64;-50;208.11;100" scenegeometry="1011.43;476.16;863.79;426.16;208.11;100"/>
                     <transition type="external" event="triggerSync" target="Downloading">
                         <qt:editorinfo movePoint="65.80;10.89" startTargetFactors="43.49;14.10" endTargetFactors="19.78;94.85"/>
                     </transition>

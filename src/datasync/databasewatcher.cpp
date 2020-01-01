@@ -1,5 +1,4 @@
 #include "databasewatcher_p.h"
-#include "engine.h"
 
 #include <QtSql/QSqlRecord>
 #include <QtSql/QSqlIndex>
@@ -496,13 +495,13 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 											 "FROM %1 AS syncTable "
 											 "LEFT JOIN %2 AS dataTable "
 											 "ON syncTable.pkey == dataTable.%3 "
-											 "WHERE syncTable.changed != ? "
+											 "WHERE syncTable.changed == ? "
 											 "ORDER BY syncTable.tstamp ASC "
 											 "LIMIT 1")
 								  .arg(tableName(name, true),
 									   tableName(name),
 									   *pKey));
-		nextDataQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
+		nextDataQuery.addBindValue(static_cast<int>(ChangeState::Changed));
 		nextDataQuery.exec();
 
 		if (nextDataQuery.first()) {
