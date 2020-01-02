@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+	DbWatcherTest \
 	StatemachineTest
 
 prepareRecursiveTarget(run-tests)

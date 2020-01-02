@@ -106,7 +106,7 @@ private:
 	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
 };
 
-class SqlException : public Exception
+class Q_DATASYNC_EXPORT SqlException : public Exception
 {
 public:
 	using ErrorScope = DatabaseWatcher::ErrorScope;
@@ -132,7 +132,7 @@ protected:
 	QSqlError _error;
 };
 
-class ExQuery : public QSqlQuery
+class Q_DATASYNC_EXPORT ExQuery : public QSqlQuery
 {
 public:
 	using ErrorScope = DatabaseWatcher::ErrorScope;
@@ -148,7 +148,7 @@ private:
 	QVariant _key;
 };
 
-class ExTransaction
+class Q_DATASYNC_EXPORT ExTransaction
 {
 	Q_DISABLE_COPY(ExTransaction)
 

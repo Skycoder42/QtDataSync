@@ -332,9 +332,17 @@ void EnginePrivate::onEnterDownloading()
 
 void EnginePrivate::onEnterDlRunning()
 {
-	if (const auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); dtInfo)
-		connector->getChanges(dtInfo->first, std::max(dtInfo->second, dlLastSync.value(dtInfo->first)));  // has dirty table -> download it (uses latest stored or cached timestamp)
-	else
+	if (auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); dtInfo) {
+		QDateTime tStamp;
+		if (auto dlStamp = dlLastSync.value(dtInfo->first); dlStamp.isValid()) {
+			if (dtInfo->second.isValid())
+				tStamp = std::max(dtInfo->second, dlStamp);
+			else
+				tStamp = std::move(dlStamp);
+		} else
+			tStamp = std::move(dtInfo->second);
+		connector->getChanges(dtInfo->first, tStamp);  // has dirty table -> download it (uses latest stored or cached timestamp)
+	} else
 		statemachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
 }
 
