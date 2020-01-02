@@ -7,11 +7,8 @@ CONFIG -= app_bundle
 
 TARGET = tst_statemachine
 
-SMPATH = $$OUT_PWD/../../../../src/datasync/$$QSCXMLC_DIR
-
-INCLUDEPATH += $$SMPATH
-HEADERS += $$SMPATH/enginestatemachine.h
-SOURCES += $$SMPATH/enginestatemachine.cpp
+STATECHARTS += \
+	$$PWD/../../../../src/datasync/enginestatemachine.scxml
 
 SOURCES += \
 	tst_statemachine.cpp
