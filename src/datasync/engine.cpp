@@ -391,7 +391,7 @@ void EnginePrivate::_q_signInSuccessful(const QString &userId, const QString &id
 void EnginePrivate::_q_accountDeleted(bool success)
 {
 	if (success) {
-		// TODO reset/resync all tables
+		dbProxy->resetAll();
 		statemachine->submitEvent(QStringLiteral("stop"));
 	} else {
 		lastError = {ErrorType::Network, Engine::tr("Failed to delete user from authentication server"), {}};

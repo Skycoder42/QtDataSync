@@ -117,7 +117,7 @@ void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 		Q_EMIT downloadedData(dlList);
 		// if as much data as possible by limit, fetch more with new last sync
 		if (data.size() == _limit)
-			getChanges(type, {});  // TODO use last element
+			getChanges(type, std::get<QDateTime>(data.last().second.uploaded()));
 		else
 			Q_EMIT syncDone(type);
 	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){

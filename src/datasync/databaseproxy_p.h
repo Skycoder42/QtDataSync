@@ -51,6 +51,7 @@ public:
 	void fillDirtyTables(Type type);
 	void clearDirtyTable(const QString &name, Type type);
 	void markTableDirty(const QString &name, Type type);
+	void resetAll();
 
 	// watcher proxy
 	template <typename TRet, typename TFirst, typename... TArgs>
@@ -88,7 +89,6 @@ private:
 		{}
 	};
 	// TODO watcher ref count to remove on last table removed
-	// TODO remove watcher on database removed / closed?
 
 	QHash<QString, DatabaseWatcher*> _watchers;  // dbName -> watcher
 	QHash<QString, TableInfo> _tables;  // tableName -> state

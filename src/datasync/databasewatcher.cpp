@@ -678,7 +678,7 @@ QString DatabaseWatcher::getPKey(const QString &table)
 										"FROM %1 "
 										"WHERE tableName = ?;")
 							 .arg(MetaTable));
-	getPKeyQuery.addBindValue(table);  // TODO add cache to reduce queries
+	getPKeyQuery.addBindValue(table);
 	getPKeyQuery.exec();
 	if (!getPKeyQuery.first())
 		throw SqlException{ErrorScope::Database, MetaTable, {}};

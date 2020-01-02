@@ -77,6 +77,12 @@ void DatabaseProxy::markTableDirty(const QString &name, Type type)
 	}
 }
 
+void DatabaseProxy::resetAll()
+{
+	for (auto watcher : _watchers)
+		watcher->resyncAllTables(Engine::ResyncFlag::CleanLocalData);
+}
+
 void DatabaseProxy::tableAdded(const QString &name)
 {
 	Q_ASSERT(qobject_cast<DatabaseWatcher*>(sender()));
