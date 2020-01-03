@@ -9,18 +9,20 @@ using namespace QtDataSync;
 	testChangedQuery.prepare(QStringLiteral("SELECT tstamp, changed " \
 										"FROM %1 " \
 										"WHERE pkey == ?;") \
-							 .arg(DatabaseWatcher::TablePrefix + QStringLiteral("TestData"))); \
+							 .arg(DatabaseWatcher::TablePrefix + TestTable)); \
 	testChangedQuery.addBindValue(key); \
 	testChangedQuery.exec(); \
 	QVERIFY(testChangedQuery.next()); \
 	QVERIFY(testChangedQuery.value(0).toDateTime() >= before); \
 	QVERIFY(testChangedQuery.value(0).toDateTime() <= after); \
-	QCOMPARE(testChangedQuery.value(1).toInt(), static_cast<int>(DatabaseWatcher::ChangeState::state)); \
+	QCOMPARE(testChangedQuery.value(1).toInt(), static_cast<int>(state)); \
 	QVERIFY(!testChangedQuery.next()); \
 } while(false)
 
-#define VERIFY_CHANGED(key, before, after) VERIFY_CHANGED_STATE(key, before, after, Changed)
-#define VERIFY_UNCHANGED(key, when) VERIFY_CHANGED_STATE(key, when, when, Unchanged)
+#define VERIFY_CHANGED(key, before, after) VERIFY_CHANGED_STATE(key, before, after, DatabaseWatcher::ChangeState::Changed)
+#define VERIFY_UNCHANGED(key, when) VERIFY_CHANGED_STATE(key, when, when, DatabaseWatcher::ChangeState::Unchanged)
+
+Q_DECLARE_METATYPE(LocalData)
 
 class DbWatcherTest : public QObject
 {
@@ -33,13 +35,20 @@ private Q_SLOTS:
 	void testAddTable();
 	void testRemoveTable();
 	void testReaddTable();
-	void testUnsyncTable();
 
+	void testStoreData_data();
+	void testStoreData();
+	void testLoadData();
+
+	void testResync();
+
+	void testReactivate();
+	void testUnsyncTable();
 	void testDbActions();
 
-	// TODO test resync
-
 private:
+	static const QString TestTable;
+
 	class Query : public ExQuery {
 	public:
 		inline Query(QSqlDatabase db) :
@@ -51,7 +60,10 @@ private:
 	DatabaseWatcher *_watcher;
 
 	void fillDb();
+	void markChanged(DatabaseWatcher::ChangeState state, const QString &key = {});
 };
+
+const QString DbWatcherTest::TestTable = QStringLiteral("TestData");
 
 void DbWatcherTest::initTestCase()
 {
@@ -75,7 +87,7 @@ void DbWatcherTest::testAddTable()
 {
 	try {
 		QCOMPARE(_watcher->hasTables(), false);
-		QVERIFY(!_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(!_watcher->tables().contains(TestTable));
 
 		QSignalSpy addSpy{_watcher, &DatabaseWatcher::tableAdded};
 		QVERIFY(addSpy.isValid());
@@ -83,21 +95,21 @@ void DbWatcherTest::testAddTable()
 		QVERIFY(syncSpy.isValid());
 
 		auto before = QDateTime::currentDateTimeUtc();
-		_watcher->addTable(QStringLiteral("TestData"));
+		_watcher->addTable(TestTable);
 		auto after = QDateTime::currentDateTimeUtc();
 
 		QCOMPARE(_watcher->hasTables(), true);
-		QVERIFY(_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(_watcher->tables().contains(TestTable));
 
 		QCOMPARE(addSpy.size(), 1);
-		QCOMPARE(addSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(addSpy[0][0].toString(), TestTable);
 
 		QCOMPARE(syncSpy.size(), 1);
-		QCOMPARE(syncSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 
 		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::MetaTable));
-		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::TablePrefix + QStringLiteral("TestData")));
+		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::TablePrefix + TestTable));
 
 		// verify meta state
 		Query metaQuery{_watcher->database()};
@@ -105,7 +117,7 @@ void DbWatcherTest::testAddTable()
 										 "FROM %1 "
 										 "WHERE tableName == ?;")
 							  .arg(DatabaseWatcher::MetaTable));
-		metaQuery.addBindValue(QStringLiteral("TestData"));
+		metaQuery.addBindValue(TestTable);
 		metaQuery.exec();
 		QVERIFY(metaQuery.first());
 		QCOMPARE(metaQuery.value(0).toString(), QStringLiteral("Key"));
@@ -117,7 +129,7 @@ void DbWatcherTest::testAddTable()
 		syncQuery.exec(QStringLiteral("SELECT pkey, tstamp, changed "
 									  "FROM %1 "
 									  "ORDER BY pkey ASC;")
-						   .arg(DatabaseWatcher::TablePrefix + QStringLiteral("TestData")));
+						   .arg(DatabaseWatcher::TablePrefix + TestTable));
 		for (auto i = 0; i < 10; ++i) {
 			QVERIFY(syncQuery.next());
 			QCOMPARE(syncQuery.value(0).toInt(), i);
@@ -140,12 +152,12 @@ void DbWatcherTest::testAddTable()
 		VERIFY_CHANGED(11, before, after);
 
 		QTRY_COMPARE(syncSpy.size(), 1);
-		QCOMPARE(syncSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
 
 		// clear changed flag
-		_watcher->markUnchanged({QStringLiteral("TestData"), QStringLiteral("4")}, after);
+		_watcher->markUnchanged({TestTable, QStringLiteral("4")}, after);
 		VERIFY_UNCHANGED(4, after);
 
 		// verify update trigger
@@ -161,12 +173,12 @@ void DbWatcherTest::testAddTable()
 		VERIFY_CHANGED(4, before, after);
 
 		QTRY_COMPARE(syncSpy.size(), 2);
-		QCOMPARE(syncSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
 
 		// clear changed flag
-		_watcher->markUnchanged({QStringLiteral("TestData"), QStringLiteral("4")}, after);
+		_watcher->markUnchanged({TestTable, QStringLiteral("4")}, after);
 		VERIFY_UNCHANGED(4, after);
 
 		// verify rename trigger
@@ -183,12 +195,12 @@ void DbWatcherTest::testAddTable()
 		VERIFY_CHANGED(12, before, after);
 
 		QTRY_COMPARE(syncSpy.size(), 3);
-		QCOMPARE(syncSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
 
 		// clear changed flag
-		_watcher->markUnchanged({QStringLiteral("TestData"), QStringLiteral("12")}, after);
+		_watcher->markUnchanged({TestTable, QStringLiteral("12")}, after);
 		VERIFY_UNCHANGED(12, after);
 
 		// verify delete trigger
@@ -202,7 +214,7 @@ void DbWatcherTest::testAddTable()
 		VERIFY_CHANGED(12, before, after);
 
 		QTRY_COMPARE(syncSpy.size(), 2);
-		QCOMPARE(syncSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
 	} catch (std::exception &e) {
@@ -214,20 +226,20 @@ void DbWatcherTest::testRemoveTable()
 {
 	try {
 		QCOMPARE(_watcher->hasTables(), true);
-		QVERIFY(_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(_watcher->tables().contains(TestTable));
 
 		QSignalSpy removeSpy{_watcher, &DatabaseWatcher::tableRemoved};
 		QVERIFY(removeSpy.isValid());
 		QSignalSpy syncSpy{_watcher, &DatabaseWatcher::triggerSync};
 		QVERIFY(syncSpy.isValid());
 
-		_watcher->removeTable(QStringLiteral("TestData"));
+		_watcher->removeTable(TestTable);
 
 		QCOMPARE(_watcher->hasTables(), false);
-		QVERIFY(!_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(!_watcher->tables().contains(TestTable));
 
 		QCOMPARE(removeSpy.size(), 1);
-		QCOMPARE(removeSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(removeSpy[0][0].toString(), TestTable);
 
 		// verify meta state
 		Query metaQuery{_watcher->database()};
@@ -235,7 +247,7 @@ void DbWatcherTest::testRemoveTable()
 										 "FROM %1 "
 										 "WHERE tableName == ?;")
 							  .arg(DatabaseWatcher::MetaTable));
-		metaQuery.addBindValue(QStringLiteral("TestData"));
+		metaQuery.addBindValue(TestTable);
 		metaQuery.exec();
 		QVERIFY(metaQuery.first());
 		QCOMPARE(metaQuery.value(0).toString(), QStringLiteral("Key"));
@@ -265,7 +277,7 @@ void DbWatcherTest::testReaddTable()
 {
 	try {
 		QCOMPARE(_watcher->hasTables(), false);
-		QVERIFY(!_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(!_watcher->tables().contains(TestTable));
 
 		QSignalSpy addSpy{_watcher, &DatabaseWatcher::tableAdded};
 		QVERIFY(addSpy.isValid());
@@ -273,17 +285,17 @@ void DbWatcherTest::testReaddTable()
 		QVERIFY(syncSpy.isValid());
 
 		auto before = QDateTime::currentDateTimeUtc();
-		_watcher->addTable(QStringLiteral("TestData"));
+		_watcher->addTable(TestTable);
 		auto after = QDateTime::currentDateTimeUtc();
 
 		QCOMPARE(_watcher->hasTables(), true);
-		QVERIFY(_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(_watcher->tables().contains(TestTable));
 
 		QCOMPARE(addSpy.size(), 1);
-		QCOMPARE(addSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(addSpy[0][0].toString(), TestTable);
 
 		QCOMPARE(syncSpy.size(), 1);
-		QCOMPARE(syncSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 
 		// verify meta state
@@ -292,7 +304,7 @@ void DbWatcherTest::testReaddTable()
 										 "FROM %1 "
 										 "WHERE tableName == ?;")
 							  .arg(DatabaseWatcher::MetaTable));
-		metaQuery.addBindValue(QStringLiteral("TestData"));
+		metaQuery.addBindValue(TestTable);
 		metaQuery.exec();
 		QVERIFY(metaQuery.first());
 		QCOMPARE(metaQuery.value(0).toString(), QStringLiteral("Key"));
@@ -312,9 +324,260 @@ void DbWatcherTest::testReaddTable()
 		VERIFY_CHANGED(12, before, after);
 
 		QTRY_COMPARE(syncSpy.size(), 1);
-		QCOMPARE(syncSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void DbWatcherTest::testStoreData_data()
+{
+	QTest::addColumn<QDateTime>("lastSync");
+	QTest::addColumn<LocalData>("data");
+	QTest::addColumn<QDateTime>("modified");
+	QTest::addColumn<DatabaseWatcher::ChangeState>("changed");
+	QTest::addColumn<bool>("isStored");
+
+	auto lastSync = QDateTime::currentDateTimeUtc().addSecs(-5);
+	QTest::newRow("storeNew") << QDateTime{}
+							  << LocalData {
+									 TestTable, QString::number(20),
+									 QVariantHash{
+										 {QStringLiteral("Key"), 20},
+										 {QStringLiteral("Value"), 20}
+									 },
+									 QDateTime::currentDateTimeUtc().addSecs(-10),
+									 lastSync
+								 }
+							  << QDateTime::currentDateTimeUtc().addSecs(-10)
+							  << DatabaseWatcher::ChangeState::Unchanged
+							  << true;
+
+	lastSync = lastSync.addSecs(1);
+	QTest::newRow("storeUpdated") << lastSync.addSecs(-1)
+								  << LocalData {
+										 TestTable, QString::number(20),
+										 QVariantHash{
+											 {QStringLiteral("Key"), 20},
+											 {QStringLiteral("Value"), 42}
+										 },
+										 QDateTime::currentDateTimeUtc().addSecs(-5),
+										 lastSync
+									 }
+								  << QDateTime::currentDateTimeUtc().addSecs(-5)
+								  << DatabaseWatcher::ChangeState::Unchanged
+								  << true;
+
+	lastSync = lastSync.addSecs(1);
+	QTest::newRow("olderUpdated") << lastSync.addSecs(-1)
+								  << LocalData {
+										 TestTable, QString::number(20),
+										 QVariantHash{
+											 {QStringLiteral("Key"), 20},
+											 {QStringLiteral("Value"), 20}
+										 },
+										 QDateTime::currentDateTimeUtc().addSecs(-10),
+										 lastSync
+									 }
+								  << QDateTime::currentDateTimeUtc().addSecs(-5)
+								  << DatabaseWatcher::ChangeState::Changed
+								  << false;
+
+	lastSync = lastSync.addSecs(1);
+	QTest::newRow("storeDelete") << lastSync.addSecs(-1)
+								 << LocalData {
+										TestTable, QString::number(20),
+										std::nullopt,
+										QDateTime::currentDateTimeUtc().addSecs(-5),
+										lastSync
+									}
+								 << QDateTime::currentDateTimeUtc().addSecs(-5)
+								 << DatabaseWatcher::ChangeState::Unchanged
+								 << true;
+}
+
+void DbWatcherTest::testStoreData()
+{
+	QFETCH(QDateTime, lastSync);
+	QFETCH(LocalData, data);
+	QFETCH(QDateTime, modified);
+	QFETCH(DatabaseWatcher::ChangeState, changed);
+	QFETCH(bool, isStored);
+
+	try {
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
+		auto lSync = _watcher->lastSync(TestTable);
+		QVERIFY(lSync);
+		QCOMPARE(*lSync, lastSync);
+		QVERIFY(errorSpy.isEmpty());
+
+		QVariantList oldData;
+		if (!isStored) {
+			Query getOldData{_watcher->database()};
+			getOldData.prepare(QStringLiteral("SELECT Key, Value "
+											  "FROM TestData "
+											  "WHERE Key == ?;"));
+			getOldData.addBindValue(data.key().id);
+			getOldData.exec();
+			if (getOldData.next()) {
+				oldData.append(getOldData.value(0));
+				oldData.append(getOldData.value(1));
+				QVERIFY(!getOldData.next());
+			}
+		}
+
+		// store new data
+		_watcher->storeData(data);
+		QVERIFY(errorSpy.isEmpty());
+
+		VERIFY_CHANGED_STATE(data.key().id, modified, modified, changed);
+		Query checkDataQuery{_watcher->database()};
+		checkDataQuery.prepare(QStringLiteral("SELECT Key, Value "
+											  "FROM TestData "
+											  "WHERE Key == ?;"));
+		checkDataQuery.addBindValue(data.key().id);
+		checkDataQuery.exec();
+		if (isStored) {
+			if (data.data()) {
+				QVERIFY(checkDataQuery.next());
+				QCOMPARE(checkDataQuery.value(0), data.data()->value(QStringLiteral("Key")));
+				QCOMPARE(checkDataQuery.value(1), data.data()->value(QStringLiteral("Value")));
+				QVERIFY(!checkDataQuery.next());
+			} else
+				QVERIFY(!checkDataQuery.next());
+		} else {
+			if (oldData.isEmpty())
+				QVERIFY(!checkDataQuery.next());
+			else {
+				QVERIFY(checkDataQuery.next());
+				QCOMPARE(checkDataQuery.value(0), oldData.at(0));
+				QCOMPARE(checkDataQuery.value(1), oldData.at(1));
+				QVERIFY(!checkDataQuery.next());
+			}
+		}
+
+		lSync = _watcher->lastSync(TestTable);
+		QVERIFY(lSync);
+		QCOMPARE(*lSync, data.uploaded());
+		QVERIFY(errorSpy.isEmpty());
+
+		// mark changed again
+		markChanged(DatabaseWatcher::ChangeState::Changed, data.key().id);
+		VERIFY_CHANGED(data.key().id, modified, modified);
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void DbWatcherTest::testLoadData()
+{
+	try {
+		// mark all unchanged
+		markChanged(DatabaseWatcher::ChangeState::Unchanged);
+
+		QVERIFY(!_watcher->loadData(TestTable));
+
+		// mark changed
+		const auto baseTime = QDateTime::currentDateTimeUtc();
+		for (auto i = 0; i < 5; ++i) {
+			Query markChangedQuery{_watcher->database()};
+			markChangedQuery.prepare(QStringLiteral("UPDATE %1 "
+													"SET changed = ?, tstamp = ? "
+													"WHERE pkey == ?;")
+										 .arg(DatabaseWatcher::TablePrefix + TestTable));
+			markChangedQuery.addBindValue(static_cast<int>(DatabaseWatcher::ChangeState::Changed));
+			markChangedQuery.addBindValue(baseTime.addSecs(-60 + (10 * i)));
+			markChangedQuery.addBindValue(i);
+			markChangedQuery.exec();
+			QCOMPARE(markChangedQuery.numRowsAffected(), 1);
+		}
+
+		for (auto i = 0; i < 5; ++i) {
+			const auto mTime = baseTime.addSecs(-60 + (10 * i));
+			QVariantHash data;
+			data[QStringLiteral("Key")] = i;
+			data[QStringLiteral("Value")] = QStringLiteral("data_%1").arg(i);
+			auto lChanged = _watcher->loadData(TestTable);
+			QVERIFY(lChanged);
+			QCOMPARE(lChanged->key().typeName, TestTable);
+			QCOMPARE(lChanged->key().id, QString::number(i));
+			QCOMPARE(lChanged->modified(), mTime);
+			QVERIFY(!lChanged->uploaded().isValid());
+			QCOMPARE(lChanged->data(), data);
+
+			VERIFY_CHANGED(i, mTime, mTime);
+			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime);
+			VERIFY_UNCHANGED(i, mTime);
+		}
+
+		QVERIFY(!_watcher->loadData(TestTable));
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void DbWatcherTest::testResync()
+{
+	// test Download
+	auto lSync = _watcher->lastSync(TestTable);
+	QVERIFY(lSync);
+	QVERIFY(lSync->isValid());
+	_watcher->resyncTable(TestTable, Engine::ResyncFlag::Download);
+	lSync = _watcher->lastSync(TestTable);
+	QVERIFY(lSync);
+	QVERIFY(!lSync->isValid());
+
+	// test Upload
+	markChanged(DatabaseWatcher::ChangeState::Unchanged);
+	auto before = QDateTime::currentDateTimeUtc();
+	_watcher->resyncTable(TestTable, Engine::ResyncFlag::Upload);
+	auto after = QDateTime::currentDateTimeUtc();
+	for (auto i = 0; i < 10; ++i)
+		VERIFY_CHANGED(i, QDateTime{}, before);
+
+	// test CheckLocalData
+	markChanged(DatabaseWatcher::ChangeState::Unchanged);
+	Query rmChanged{_watcher->database()};
+	rmChanged.exec(QStringLiteral("DELETE FROM %1 "
+								  "WHERE pkey >= 5;")
+					   .arg(DatabaseWatcher::TablePrefix + TestTable));
+	before = QDateTime::currentDateTimeUtc();
+	_watcher->resyncTable(TestTable, Engine::ResyncFlag::CheckLocalData);
+	after = QDateTime::currentDateTimeUtc();
+	for (auto i = 0; i < 5; ++i)
+		VERIFY_CHANGED_STATE(i, QDateTime{}, before, DatabaseWatcher::ChangeState::Unchanged);
+	for (auto i = 5; i < 10; ++i)
+		VERIFY_CHANGED(i, before, after);
+
+	// test CleanLocalData
+	markChanged(DatabaseWatcher::ChangeState::Corrupted);
+	before = QDateTime::currentDateTimeUtc();
+	_watcher->resyncTable(TestTable, Engine::ResyncFlag::CleanLocalData);
+	after = QDateTime::currentDateTimeUtc();
+	for (auto i = 0; i < 10; ++i)
+		VERIFY_CHANGED(i, before, after);
+
+	// test ClearLocalData
+	_watcher->resyncTable(TestTable, Engine::ResyncFlag::ClearLocalData);
+	Query testEmpty{_watcher->database()};
+	testEmpty.exec(QStringLiteral("SELECT COUNT(*) FROM TestData;"));
+	QVERIFY(testEmpty.next());
+	QCOMPARE(testEmpty.value(0).toInt(), 0);
+}
+
+void DbWatcherTest::testReactivate()
+{
+	try {
+		QCOMPARE(_watcher->tables(), {TestTable});
+		delete _watcher;
+		_watcher = new DatabaseWatcher{QSqlDatabase::database(), this};
+		QCOMPARE(_watcher->hasTables(), false);
+		_watcher->reactivateTables();
+		QCOMPARE(_watcher->tables(), {TestTable});
 	} catch (std::exception &e) {
 		QFAIL(e.what());
 	}
@@ -324,21 +587,21 @@ void DbWatcherTest::testUnsyncTable()
 {
 	try {
 		QCOMPARE(_watcher->hasTables(), true);
-		QVERIFY(_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(_watcher->tables().contains(TestTable));
 
 		QSignalSpy removeSpy{_watcher, &DatabaseWatcher::tableRemoved};
 		QVERIFY(removeSpy.isValid());
 		QSignalSpy syncSpy{_watcher, &DatabaseWatcher::triggerSync};
 		QVERIFY(syncSpy.isValid());
 
-		_watcher->unsyncTable(QStringLiteral("TestData"));
+		_watcher->unsyncTable(TestTable);
 
 		QCOMPARE(_watcher->hasTables(), false);
-		QVERIFY(!_watcher->tables().contains(QStringLiteral("TestData")));
+		QVERIFY(!_watcher->tables().contains(TestTable));
 		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::MetaTable));
 
 		QCOMPARE(removeSpy.size(), 1);
-		QCOMPARE(removeSpy[0][0].toString(), QStringLiteral("TestData"));
+		QCOMPARE(removeSpy[0][0].toString(), TestTable);
 
 		// verify meta state
 		Query metaQuery{_watcher->database()};
@@ -346,11 +609,11 @@ void DbWatcherTest::testUnsyncTable()
 										 "FROM %1 "
 										 "WHERE tableName == ?;")
 							  .arg(DatabaseWatcher::MetaTable));
-		metaQuery.addBindValue(QStringLiteral("TestData"));
+		metaQuery.addBindValue(TestTable);
 		metaQuery.exec();
 		QVERIFY(!metaQuery.first());
 
-		QVERIFY(!_watcher->database().tables().contains(DatabaseWatcher::TablePrefix + QStringLiteral("TestData")));
+		QVERIFY(!_watcher->database().tables().contains(DatabaseWatcher::TablePrefix + TestTable));
 
 		// verify insert trigger
 		Query insertQuery{_watcher->database()};
@@ -372,11 +635,11 @@ void DbWatcherTest::testDbActions()
 {
 	try {
 		_watcher->addAllTables();
-		QCOMPARE(_watcher->tables(), {QStringLiteral("TestData")});
+		QCOMPARE(_watcher->tables(), {TestTable});
 		_watcher->removeAllTables();
 		QCOMPARE(_watcher->hasTables(), false);
 		_watcher->addAllTables();
-		QCOMPARE(_watcher->tables(), {QStringLiteral("TestData")});
+		QCOMPARE(_watcher->tables(), {TestTable});
 		_watcher->unsyncAllTables();
 		QCOMPARE(_watcher->hasTables(), false);
 		QVERIFY(!_watcher->database().tables().contains(DatabaseWatcher::MetaTable));
@@ -405,6 +668,27 @@ void DbWatcherTest::fillDb()
 		}
 	} catch (std::exception &e) {
 		QFAIL(e.what());
+	}
+}
+
+void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const QString &key)
+{
+	if (key.isEmpty()) {
+		Query markChangedQuery{_watcher->database()};
+		markChangedQuery.prepare(QStringLiteral("UPDATE %1 "
+												"SET changed = ?;")
+									 .arg(DatabaseWatcher::TablePrefix + TestTable));
+		markChangedQuery.addBindValue(static_cast<int>(state));
+		markChangedQuery.exec();
+	} else {
+		Query markChangedQuery{_watcher->database()};
+		markChangedQuery.prepare(QStringLiteral("UPDATE %1 "
+												"SET changed = ? "
+												"WHERE pkey == ?;")
+									 .arg(DatabaseWatcher::TablePrefix + TestTable));
+		markChangedQuery.addBindValue(static_cast<int>(state));
+		markChangedQuery.addBindValue(key);
+		markChangedQuery.exec();
 	}
 }
 

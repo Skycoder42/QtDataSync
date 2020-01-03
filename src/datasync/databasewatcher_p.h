@@ -104,6 +104,7 @@ private:
 
 	QString getPKey(const QString &table);
 	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
+	void updateLastSync(const QString &table, const QDateTime &uploaded);
 };
 
 class Q_DATASYNC_EXPORT SqlException : public Exception

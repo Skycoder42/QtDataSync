@@ -505,6 +505,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 									  << "was modified in the cloud, but is newer locally."
 									  << "Local date:" << localMod
 									  << "Cloud date:" << data.modified();
+				updateLastSync(key.typeName, data.uploaded());
 				transact.commit();
 				return;
 			}
@@ -559,15 +560,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		markUnchanged(key, data.modified());
 
 		// update last sync
-		ExQuery updateMetaQuery{_db, ErrorScope::Database, key.typeName};
-		updateMetaQuery.prepare(QStringLiteral("UPDATE %1 "
-											   "SET lastSync = ? "
-											   "WHERE tableName = ?;")
-									.arg(MetaTable));
-		updateMetaQuery.addBindValue(data.uploaded().toUTC());
-		updateMetaQuery.addBindValue(key.typeName);
-		updateMetaQuery.exec();
-
+		updateLastSync(key.typeName, data.uploaded());
 		transact.commit();
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
@@ -726,6 +719,19 @@ void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modif
 		qCCritical(logDbWatcher) << error.what();
 		// do not emit, as it is done by the caller!
 	}
+}
+
+void DatabaseWatcher::updateLastSync(const QString &table, const QDateTime &uploaded)
+{
+	// update last sync
+	ExQuery updateMetaQuery{_db, ErrorScope::Database, table};
+	updateMetaQuery.prepare(QStringLiteral("UPDATE %1 "
+										   "SET lastSync = ? "
+										   "WHERE tableName = ?;")
+								.arg(MetaTable));
+	updateMetaQuery.addBindValue(uploaded.toUTC());
+	updateMetaQuery.addBindValue(table);
+	updateMetaQuery.exec();
 }
 
 
