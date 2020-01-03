@@ -118,7 +118,7 @@ private:
 	Q_PRIVATE_SLOT(d_func(), void _q_accountDeleted(bool))
 	Q_PRIVATE_SLOT(d_func(), void _q_triggerSync())
 	Q_PRIVATE_SLOT(d_func(), void _q_syncDone(const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_downloadedData(const QList<CloudData> &))
+	Q_PRIVATE_SLOT(d_func(), void _q_downloadedData(const QList<CloudData> &, bool))
 	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &, const QDateTime &))
 	Q_PRIVATE_SLOT(d_func(), void _q_transformDownloadDone(const LocalData &))
 	Q_PRIVATE_SLOT(d_func(), void _q_removedUser())

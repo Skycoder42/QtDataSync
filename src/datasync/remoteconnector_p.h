@@ -25,12 +25,11 @@ public:
 	explicit RemoteConnector(Engine *engine);
 
 	bool isActive() const;
-	void setUser(const QString &userId);
+	void setUser(QString userId);
 	void setIdToken(const QString &idToken);
 
 public Q_SLOTS:
 	void startLiveSync();
-	void unblockLiveSync();
 	void stopLiveSync();
 
 	void getChanges(const QString &type, const QDateTime &since);
@@ -41,9 +40,9 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void triggerSync(const QString &type, QPrivateSignal = {});
 
-	void downloadedData(const QList<CloudData> &data, QPrivateSignal = {});
+	void downloadedData(const QList<QtDataSync::CloudData> &data, bool liveSyncData, QPrivateSignal = {});
 	void syncDone(const QString &type, QPrivateSignal = {});
-	void uploadedData(const ObjectKey &key, const QDateTime &modified, QPrivateSignal = {});
+	void uploadedData(const QtDataSync::ObjectKey &key, const QDateTime &modified, QPrivateSignal = {});
 	void removedTable(const QString &type, QPrivateSignal = {});
 	void removedUser(QPrivateSignal = {});
 
@@ -60,14 +59,31 @@ private:
 	firebase::realtimedb::ApiClient *_api = nullptr;
 	int _limit = 100;
 
+	QString _userId;
 	QNetworkReply *_eventStream = nullptr;
-	bool _liveSyncBlocked = true;
+	QByteArray _lastEvent;
+	QList<QJsonValue> _lastData;
 
 	static CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data);
 	static QString translateError(const QtDataSync::firebase::realtimedb::Error &error, int code);
 
 	QString timeString(const std::chrono::milliseconds &time);
 	void doUpload(const CloudData &data, QByteArray eTag);
+
+	QJsonValue parseEventData(const QByteArray &data);
+	void processStreamEvent();
+};
+
+struct StreamData
+{
+	Q_GADGET
+
+	Q_PROPERTY(QString path MEMBER path)
+	Q_PROPERTY(firebase::realtimedb::Data data MEMBER data)
+
+public:
+	QString path;
+	firebase::realtimedb::Data data;
 };
 
 class AccurateTimestampConverter : public QtJsonSerializer::TypeConverter

@@ -22,6 +22,23 @@ IAuthenticator::IAuthenticator(QObjectPrivate &dd, QObject *parent) :
 
 
 
+void FirebaseAuthenticator::init(Engine *engine)
+{
+	Q_D(FirebaseAuthenticator);
+	d->engine = engine;
+
+	auto client = new QtRestClient::RestClient{QtRestClient::RestClient::DataMode::Json, this};
+	client->setModernAttributes();
+	client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
+	client->setBaseUrl(QUrl{QStringLiteral("https://identitytoolkit.googleapis.com")});
+	client->setApiVersion(QVersionNumber{1});
+	client->addGlobalParameter(QStringLiteral("key"), EnginePrivate::setupFor(d->engine)->firebase.webApiKey);
+	d->api = new ApiClient{client->rootClass(), this};
+	d->loadFbConfig();
+
+	init();
+}
+
 void FirebaseAuthenticator::signIn()
 {
 	Q_D(FirebaseAuthenticator);
@@ -69,12 +86,12 @@ void FirebaseAuthenticator::deleteUser()
 	}, &FirebaseAuthenticatorPrivate::translateError);
 }
 
-FirebaseAuthenticator::FirebaseAuthenticator(Engine *engine) :
-	FirebaseAuthenticator{*new FirebaseAuthenticatorPrivate{}, engine}
+FirebaseAuthenticator::FirebaseAuthenticator(QObject *parent) :
+	FirebaseAuthenticator{*new FirebaseAuthenticatorPrivate{}, parent}
 {}
 
-FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, Engine *engine) :
-	IAuthenticator{dd, engine}
+FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, QObject *parent) :
+	IAuthenticator{dd, parent}
 {
 #ifdef Q_ATOMIC_INT8_IS_SUPPORTED
 	static QAtomicInteger<bool> authReg = false;
@@ -87,23 +104,19 @@ FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, E
 	}
 
 	Q_D(FirebaseAuthenticator);
-	d->engine = engine;
-
-	auto client = new QtRestClient::RestClient{QtRestClient::RestClient::DataMode::Json, this};
-	client->setModernAttributes();
-	client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
-	client->setBaseUrl(QUrl{QStringLiteral("https://identitytoolkit.googleapis.com")});
-	client->setApiVersion(QVersionNumber{1});
-	client->addGlobalParameter(QStringLiteral("key"), EnginePrivate::setupFor(d->engine)->firebase.webApiKey);
-	d->api = new ApiClient{client->rootClass(), this};
-
 	d->refreshTimer = new QTimer{this};
 	d->refreshTimer->setSingleShot(true);
 	d->refreshTimer->setTimerType(Qt::VeryCoarseTimer);
 	QObjectPrivate::connect(d->refreshTimer, &QTimer::timeout,
 							d, &FirebaseAuthenticatorPrivate::_q_refreshToken);
+}
 
-	d->loadFbConfig();
+void FirebaseAuthenticator::init() {}
+
+Engine *FirebaseAuthenticator::engine() const
+{
+	Q_D(const FirebaseAuthenticator);
+	return d->engine;
 }
 
 QtRestClient::RestClient *FirebaseAuthenticator::client() const
@@ -214,25 +227,9 @@ void FirebaseAuthenticatorPrivate::clearFbConfig()
 
 
 
-OAuthAuthenticator::OAuthAuthenticator(Engine *engine) :
-	FirebaseAuthenticator{*new OAuthAuthenticatorPrivate{}, engine}
-{
-	Q_D(OAuthAuthenticator);
-	const auto setup = EnginePrivate::setupFor(engine);
-	d->oAuthFlow = new GoogleOAuthFlow{setup->oAuth.port, d->api->restClient()->manager(), this};
-	d->oAuthFlow->setScope(QStringLiteral("openid email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/firebase.database"));
-	d->oAuthFlow->setClientIdentifier(setup->oAuth.clientId);
-	d->oAuthFlow->setClientIdentifierSharedKey(setup->oAuth.secret);
-
-	QObjectPrivate::connect(d->oAuthFlow, &GoogleOAuthFlow::granted,
-							d, &OAuthAuthenticatorPrivate::_q_firebaseSignIn);
-	QObjectPrivate::connect(d->oAuthFlow, &GoogleOAuthFlow::error,
-							d, &OAuthAuthenticatorPrivate::_q_oAuthError);
-	connect(d->oAuthFlow, &GoogleOAuthFlow::authorizeWithBrowser,
-			this, &OAuthAuthenticator::signInRequested);
-
-	d->loadOaConfig();
-}
+OAuthAuthenticator::OAuthAuthenticator(QObject *parent) :
+	FirebaseAuthenticator{*new OAuthAuthenticatorPrivate{}, parent}
+{}
 
 bool OAuthAuthenticator::doesPreferNative() const
 {
@@ -264,6 +261,25 @@ void OAuthAuthenticator::setPreferNative(bool preferNative)
 
 	d->preferNative = preferNative;
 	emit preferNativeChanged(d->preferNative, {});
+}
+
+void OAuthAuthenticator::init()
+{
+	Q_D(OAuthAuthenticator);
+	const auto setup = EnginePrivate::setupFor(engine());
+	d->oAuthFlow = new GoogleOAuthFlow{setup->oAuth.port, d->api->restClient()->manager(), this};
+	d->oAuthFlow->setScope(QStringLiteral("openid email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/firebase.database"));
+	d->oAuthFlow->setClientIdentifier(setup->oAuth.clientId);
+	d->oAuthFlow->setClientIdentifierSharedKey(setup->oAuth.secret);
+
+	QObjectPrivate::connect(d->oAuthFlow, &GoogleOAuthFlow::granted,
+							d, &OAuthAuthenticatorPrivate::_q_firebaseSignIn);
+	QObjectPrivate::connect(d->oAuthFlow, &GoogleOAuthFlow::error,
+							d, &OAuthAuthenticatorPrivate::_q_oAuthError);
+	connect(d->oAuthFlow, &GoogleOAuthFlow::authorizeWithBrowser,
+			this, &OAuthAuthenticator::signInRequested);
+
+	d->loadOaConfig();
 }
 
 void OAuthAuthenticator::firebaseSignIn()

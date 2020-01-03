@@ -53,11 +53,12 @@ bool RemoteConnector::isActive() const
 	return _api;
 }
 
-void RemoteConnector::setUser(const QString &userId)
+void RemoteConnector::setUser(QString userId)
 {
 	if (_api)
 		_api->deleteLater();
-	_api = new ApiClient{_client->createClass(userId, this), this};
+	_userId = std::move(userId);
+	_api = new ApiClient{_client->createClass(_userId, this), this};
 }
 
 void RemoteConnector::setIdToken(const QString &idToken)
@@ -79,20 +80,16 @@ void RemoteConnector::startLiveSync()
 		}
 	}
 
-	_liveSyncBlocked = true;
-	_eventStream = _api->restClient()->builder()
+	_eventStream = _client->builder()
+					   .addPath(_userId)
 					   .setAccept("text/event-stream")
+					   .setVerb(QtRestClient::RestClass::GetVerb)
 					   .send();
 	connect(_eventStream, &QNetworkReply::readyRead,
 			this, &RemoteConnector::streamEvent);
 	connect(_eventStream, &QNetworkReply::finished,
 			this, &RemoteConnector::streamClosed);
 
-}
-
-void RemoteConnector::unblockLiveSync()
-{
-	_liveSyncBlocked = false;
 }
 
 void RemoteConnector::stopLiveSync()
@@ -114,7 +111,7 @@ void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 		dlList.reserve(data.size());
 		for (auto it = data.begin(), end = data.end(); it != end; ++it)
 			dlList.append(dlData({type, it->first}, it->second));
-		Q_EMIT downloadedData(dlList);
+		Q_EMIT downloadedData(dlList, false);
 		// if as much data as possible by limit, fetch more with new last sync
 		if (data.size() == _limit)
 			getChanges(type, std::get<QDateTime>(data.last().second.uploaded()));
@@ -191,9 +188,15 @@ void RemoteConnector::apiError(const QString &errorString, int errorCode, QtRest
 void RemoteConnector::streamEvent()
 {
 	while (_eventStream->canReadLine()) {
-		const auto line = _eventStream->readLine();
-		qCDebug(logRmc) << line;
-		// TODO process
+		const auto line = _eventStream->readLine().trimmed();
+		if (line.startsWith("event: "))
+			_lastEvent = line.mid(7);
+		else if (line.startsWith("data: "))
+			_lastData.append(parseEventData(line.mid(6)));
+		else if (line.isEmpty()) {
+			processStreamEvent();
+		} else
+			qCWarning(logRmc) << "Unexpected event-stream data:" << line;
 	}
 }
 
@@ -286,9 +289,62 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag)
 				apiError(error, code, errorType);
 				Q_EMIT networkError(tr("Failed to upload data"));
 			}
-		}, &RemoteConnector::translateError);
+	}, &RemoteConnector::translateError);
 }
 
+QJsonValue RemoteConnector::parseEventData(const QByteArray &data)
+{
+	QJsonParseError error;
+	auto jDoc = QJsonDocument::fromJson(data, &error);
+	switch (error.error) {
+	case QJsonParseError::NoError:
+		if (jDoc.isObject())
+			return jDoc.object();
+		else if (jDoc.isArray())
+			return jDoc.array();
+		else
+			return QJsonValue::Null;
+	case QJsonParseError::IllegalValue:
+		error = QJsonParseError {};  // clear error
+		jDoc = QJsonDocument::fromJson("[" + data + "]", &error);  // read wrapped as array
+		if (error.error == QJsonParseError::NoError)
+			return jDoc.array().first();
+		else
+			return QJsonValue::Null;
+	default:
+		return QJsonValue::Null;
+	}
+}
+
+void RemoteConnector::processStreamEvent()
+{
+	if (_lastEvent == "put") {
+		qCDebug(logRmc) << "Received event-stream put event";
+		const auto serializer = static_cast<QtJsonSerializer::JsonSerializer*>(_client->serializer());
+		for (const auto &data : qAsConst(_lastData)) {
+			const auto streamData = serializer->deserialize<StreamData>(data.toObject());
+			const auto pElements = streamData.path.split(QLatin1Char('/'), QString::SkipEmptyParts);
+			if (pElements.size() != 2) {
+				qCDebug(logRmc) << "Ignoring unsupported stream-event path" << streamData.path;
+				continue;
+			}
+			Q_EMIT downloadedData({dlData({pElements[0], pElements[1]}, streamData.data)}, true);
+		}
+	} else if (_lastEvent == "keep-alive")
+		qCDebug(logRmc) << "Received event-stream keep-alive event";
+	else if (_lastEvent == "cancel") {
+		for (const auto &data : qAsConst(_lastData))
+			qCWarning(logRmc).noquote() << "Event-stream camceled with reason:" << data.toString();
+		stopLiveSync();  // TODO use member instead?
+	} else if (_lastEvent == "auth_revoked") {
+		qCDebug(logRmc) << "Event-stream authentication expired - reconnecting...";
+		startLiveSync();
+	} else
+		qCWarning(logRmc) << "Unsupported event-stream event:" << _lastEvent;
+
+	_lastEvent.clear();
+	_lastData.clear();
+}
 
 
 AccurateTimestampConverter::AccurateTimestampConverter()

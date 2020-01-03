@@ -48,7 +48,6 @@
 			<ParamSegment key="type" type="QString"/>
 			<ParamSegment key="key" type="QString"/>
 		</Path>
-		<Param key="print" type="QString" asStr="true">silent</Param>
 		<Header key="if-match" expr="true">getETag()</Header>
 	</Method>
 

@@ -62,16 +62,16 @@ Setup Setup::fromConfig(QIODevice *configDevice, ConfigType configType)
 	}
 
 	if (setup.d->firebase.projectId.isEmpty())
-		qCWarning(logSetup) << "Unable to find the firebase project id in the" << configName << "file";
+		qCWarning(logSetup).noquote() << "Unable to find the firebase project id in the" << configName << "file";
 	if (setup.d->firebase.webApiKey.isEmpty())
-		qCWarning(logSetup) << "Unable to find the firebase web api key in the" << configName << "file";
+		qCWarning(logSetup).noquote() << "Unable to find the firebase web api key in the" << configName << "file";
 	if (setup.d->oAuth.clientId.isEmpty())
-		qCWarning(logSetup) << "Unable to find the google OAuth client ID in the" << configName << "file";
+		qCWarning(logSetup).noquote() << "Unable to find the google OAuth client ID in the" << configName << "file";
 	else {
 		if (setup.d->oAuth.secret.isEmpty())
-			qCWarning(logSetup) << "Found google OAuth client id, but no client secret in the" << configName << "file";
+			qCWarning(logSetup).noquote() << "Found google OAuth client id, but no client secret in the" << configName << "file";
 		if (setup.d->oAuth.port == 0)
-			qCWarning(logSetup) << "Found google OAuth client id, but no callback port in the" << configName << "file";
+			qCWarning(logSetup).noquote() << "Found google OAuth client id, but no callback port in the" << configName << "file";
 	}
 
 	return setup;
@@ -173,6 +173,7 @@ void SetupPrivate::finializeForEngine(Engine *engine)
 		authenticator->setParent(engine);
 	else
 		authenticator = new OAuthAuthenticator{engine};
+	authenticator->init(engine);
 
 	if (transformer)
 		transformer->setParent(engine);

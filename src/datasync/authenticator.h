@@ -19,6 +19,8 @@ class Q_DATASYNC_EXPORT IAuthenticator : public QObject
 public:
 	IAuthenticator(QObject *parent = nullptr);
 
+	virtual void init(Engine *engine) = 0;
+
 public Q_SLOTS:
 	virtual void signIn() = 0;
 	virtual void logOut() = 0;
@@ -40,17 +42,22 @@ class Q_DATASYNC_EXPORT FirebaseAuthenticator : public IAuthenticator
 {
 	Q_OBJECT
 
+public:
+	void init(Engine *engine) final;
+
 public Q_SLOTS:
 	void signIn() final;
 	void logOut() override;
 	void deleteUser() final;
 
 protected:
-	FirebaseAuthenticator(Engine *engine = nullptr);
-	FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, Engine *engine);
+	FirebaseAuthenticator(QObject *parent = nullptr);
+	FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, QObject *parent);
 
+	virtual void init();
 	virtual void firebaseSignIn() = 0;
 
+	Engine *engine() const;
 	QtRestClient::RestClient *client() const;
 	void completeSignIn(QString localId,
 						QString idToken,
@@ -73,7 +80,7 @@ class Q_DATASYNC_EXPORT OAuthAuthenticator : public FirebaseAuthenticator
 	Q_PROPERTY(bool preferNative READ doesPreferNative WRITE setPreferNative NOTIFY preferNativeChanged)
 
 public:
-	explicit OAuthAuthenticator(Engine *engine = nullptr);
+	explicit OAuthAuthenticator(QObject *parent = nullptr);
 
 	bool doesPreferNative() const;
 
@@ -90,6 +97,7 @@ Q_SIGNALS:
 	void preferNativeChanged(bool preferNative, QPrivateSignal);
 
 protected:
+	void init() override;
 	void firebaseSignIn() override;
 
 private:

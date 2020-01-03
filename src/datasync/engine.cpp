@@ -418,7 +418,7 @@ void EnginePrivate::_q_syncDone(const QString &type)
 	statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
 }
 
-void EnginePrivate::_q_downloadedData(const QList<CloudData> &data)
+void EnginePrivate::_q_downloadedData(const QList<CloudData> &data, bool liveSyncData)
 {
 	if (statemachine->isActive(QStringLiteral("Downloading"))) {
 		if (!data.isEmpty()) {
@@ -427,7 +427,12 @@ void EnginePrivate::_q_downloadedData(const QList<CloudData> &data)
 			dlLastSync.insert(ldata.key().typeName, ldata.uploaded());
 		}
 		statemachine->submitEvent(QStringLiteral("dataReady"));  // starts data processing if not already running
-	}
+	} else if (liveSyncData) {
+		// TODO ???
+		for (const auto &d : data)
+			qCDebug(logEngine) << "LIVE-SYNC-DATA" << d.key();
+	} else
+		qCDebug(logEngine) << "ignoring downloaded data in invalid state";
 }
 
 void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modified)
