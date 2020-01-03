@@ -37,6 +37,10 @@ public:
 	ICloudTransformer *transformer = nullptr;
 
 	void finializeForEngine(Engine *engine);
+
+	void readWebConfig(QIODevice *device);
+	void readGSJsonConfig(QIODevice *device);
+	void readGSPlistConfig(QIODevice *device);
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logSetup)

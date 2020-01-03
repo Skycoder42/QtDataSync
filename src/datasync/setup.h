@@ -24,6 +24,12 @@ class Q_DATASYNC_EXPORT Setup
 	Q_DISABLE_COPY(Setup)
 
 public:
+	enum class ConfigType {
+		WebConfig,
+		GoogleServicesJson,
+		GoogleServicesPlist
+	};
+
 	Setup();
 	Setup(Setup &&other) noexcept;
 	Setup &operator=(Setup &&other) noexcept;
@@ -31,8 +37,9 @@ public:
 
 	void swap(Setup &other);
 
-	static Setup fromConfig(const QString &configPath);
-	static Setup fromConfig(QIODevice *configDevice);
+	// TODO support web client config
+	static Setup fromConfig(const QString &configPath, ConfigType configType);
+	static Setup fromConfig(QIODevice *configDevice, ConfigType configType);
 
 	// TODO add "make threaded", that returns an initialized thread watcher
 	// TODO also add "Process" notifier that works across processes

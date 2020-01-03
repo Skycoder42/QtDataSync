@@ -101,3 +101,28 @@ QtDataSync::ExceptionBase *JsonException::clone() const
 {
 	return new JsonException{*this};
 }
+
+
+
+PListException::PListException(const QIODevice *device) :
+	FileException{device}
+{}
+
+QString PListException::qWhat() const
+{
+#ifdef Q_OS_DARWIN
+	return QStringLiteral("Only actual files (including resources) can be read as PList");
+#else
+	return QStringLiteral("PList files are only support on darwin platforms (macOs, iOs, ...)");
+#endif
+}
+
+void PListException::raise() const
+{
+	throw *this;
+}
+
+ExceptionBase *PListException::clone() const
+{
+	return new PListException{*this};
+}

@@ -13,6 +13,7 @@
 #include <QtDataSync/Engine>
 #include <QtDataSync/Setup>
 #include <QtDataSync/IAuthenticator>
+using namespace QtDataSync;
 
 int main(int argc, char *argv[])
 {
@@ -35,7 +36,7 @@ int main(int argc, char *argv[])
 		if (parser.positionalArguments().size() < 1)
 			parser.showHelp(EXIT_FAILURE);
 
-		auto dsEngine = QtDataSync::Setup::fromConfig(parser.positionalArguments()[0])
+		auto dsEngine = Setup::fromConfig(parser.positionalArguments()[0], Setup::ConfigType::GoogleServicesJson)
 							.enableNtpSync()
 							.createEngine(qApp);
 

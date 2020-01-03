@@ -74,6 +74,16 @@ protected:
 	QJsonParseError _error;
 };
 
+class Q_DATASYNC_EXPORT PListException : public FileException
+{
+public:
+	PListException(const QIODevice *device);
+
+	QString qWhat() const override;
+	Q_NORETURN void raise() const override;
+	ExceptionBase *clone() const override;
+};
+
 
 }
 

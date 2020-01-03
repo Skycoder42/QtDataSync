@@ -33,72 +33,45 @@ void Setup::swap(Setup &other)
 	d.swap(other.d);
 }
 
-Setup Setup::fromConfig(const QString &configPath)
+Setup Setup::fromConfig(const QString &configPath, ConfigType configType)
 {
 	QFile configFile{configPath};
 	if (!configFile.open(QIODevice::ReadOnly | QIODevice::Text))
 		throw FileException{&configFile};
-	return fromConfig(&configFile);
+	return fromConfig(&configFile, configType);
 }
 
-Setup Setup::fromConfig(QIODevice *configDevice)
+Setup Setup::fromConfig(QIODevice *configDevice, ConfigType configType)
 {
 	Q_ASSERT(configDevice->isReadable());
-	QJsonParseError error;
-	const auto root = QJsonDocument::fromJson(configDevice->readAll(), &error).object();
-	if (error.error != QJsonParseError::NoError) {
-		if (auto fDev = qobject_cast<QFileDevice*>(configDevice); fDev)
-			throw JsonException{error, fDev};
-		else
-			throw JsonException{error, configDevice};
-	}
-
 	Setup setup;
-	const auto &d = setup.d;
-
-	// project id
-	const auto project_info = root[QStringLiteral("project_info")].toObject();
-	d->firebase.projectId = project_info[QStringLiteral("project_id")].toString();
-	if (d->firebase.projectId.isEmpty())
-		qCWarning(logSetup) << "Unable to find the firebase project id in the google services configuration file";
-
-	const auto clients = root[QStringLiteral("client")].toArray();
-	for (const auto &clientV : clients) {
-		const auto client = clientV.toObject();
-
-		// api key
-		const auto api_keys = client[QStringLiteral("api_key")].toArray();
-		for (const auto &api_keyV : api_keys) {
-			const auto api_key = api_keyV.toObject();
-			d->firebase.webApiKey = api_key[QStringLiteral("current_key")].toString();
-			if (!d->firebase.webApiKey.isEmpty())
-				break;
-		}
-
-		// oAuth
-		const auto oauth_clients = client[QStringLiteral("oauth_client")].toArray();
-		for (const auto &oauth_clientV : oauth_clients) {
-			const auto oauth_client = oauth_clientV.toObject();
-			d->oAuth.clientId = oauth_client[QStringLiteral("client_id")].toString();
-			d->oAuth.secret = oauth_client[QStringLiteral("client_secret")].toString();
-			d->oAuth.port = static_cast<quint16>(oauth_client[QStringLiteral("callback_port")].toInt());
-			if (!d->oAuth.clientId.isEmpty())
-				break;
-		}
-
-		if (!d->firebase.webApiKey.isEmpty() &&
-			!d->oAuth.clientId.isEmpty())
-			break;
+	QString configName;
+	switch (configType) {
+	case ConfigType::WebConfig:
+		configName = QStringLiteral("web configuration json");
+		setup.d->readWebConfig(configDevice);
+		break;
+	case ConfigType::GoogleServicesJson:
+		configName = QStringLiteral("google services configuration json");
+		setup.d->readGSJsonConfig(configDevice);
+		break;
+	case ConfigType::GoogleServicesPlist:
+		configName = QStringLiteral("google services configuration plist");
+		setup.d->readGSPlistConfig(configDevice);
+		break;
 	}
-	if (d->firebase.webApiKey.isEmpty())
-		qCWarning(logSetup) << "Unable to find the firebase web api key in the google services configuration file";
-	if (d->oAuth.clientId.isEmpty())
-		qCWarning(logSetup) << "Unable to find the google OAuth 'client_id' in the google services configuration file";
+
+	if (setup.d->firebase.projectId.isEmpty())
+		qCWarning(logSetup) << "Unable to find the firebase project id in the" << configName << "file";
+	if (setup.d->firebase.webApiKey.isEmpty())
+		qCWarning(logSetup) << "Unable to find the firebase web api key in the" << configName << "file";
+	if (setup.d->oAuth.clientId.isEmpty())
+		qCWarning(logSetup) << "Unable to find the google OAuth client ID in the" << configName << "file";
 	else {
-		if (d->oAuth.secret.isEmpty())
-			qCWarning(logSetup) << "Found google OAuth client id, but no 'client_secret' in the google services configuration file";
-		if (d->oAuth.port == 0)
-			qCWarning(logSetup) << "Found google OAuth client id, but no 'callback_port' in the google services configuration file";
+		if (setup.d->oAuth.secret.isEmpty())
+			qCWarning(logSetup) << "Found google OAuth client id, but no client secret in the" << configName << "file";
+		if (setup.d->oAuth.port == 0)
+			qCWarning(logSetup) << "Found google OAuth client id, but no callback port in the" << configName << "file";
 	}
 
 	return setup;
@@ -205,6 +178,87 @@ void SetupPrivate::finializeForEngine(Engine *engine)
 		transformer->setParent(engine);
 	else
 		transformer = new PlainCloudTransformer{engine};
+}
+
+void SetupPrivate::readWebConfig(QIODevice *device)
+{
+	QJsonParseError error;
+	const auto root = QJsonDocument::fromJson(device->readAll(), &error).object();
+	if (error.error != QJsonParseError::NoError) {
+		if (auto fDev = qobject_cast<QFileDevice*>(device); fDev)
+			throw JsonException{error, fDev};
+		else
+			throw JsonException{error, device};
+	}
+
+	firebase.projectId = root[QStringLiteral("projectId")].toString();
+	firebase.webApiKey = root[QStringLiteral("apiKey")].toString();
+	auto jAuth = root[QStringLiteral("oAuth")].toObject();
+	oAuth.clientId = jAuth[QStringLiteral("clientID")].toString();
+	oAuth.secret = jAuth[QStringLiteral("clientSecret")].toString();
+	oAuth.port = static_cast<quint16>(jAuth[QStringLiteral("callbackPort")].toInt());
+}
+
+void SetupPrivate::readGSJsonConfig(QIODevice *device)
+{
+	QJsonParseError error;
+	const auto root = QJsonDocument::fromJson(device->readAll(), &error).object();
+	if (error.error != QJsonParseError::NoError) {
+		if (auto fDev = qobject_cast<QFileDevice*>(device); fDev)
+			throw JsonException{error, fDev};
+		else
+			throw JsonException{error, device};
+	}
+
+	// project id
+	const auto project_info = root[QStringLiteral("project_info")].toObject();
+	firebase.projectId = project_info[QStringLiteral("project_id")].toString();
+
+	const auto clients = root[QStringLiteral("client")].toArray();
+	for (const auto &clientV : clients) {
+		const auto client = clientV.toObject();
+
+		// api key
+		const auto api_keys = client[QStringLiteral("api_key")].toArray();
+		for (const auto &api_keyV : api_keys) {
+			const auto api_key = api_keyV.toObject();
+			firebase.webApiKey = api_key[QStringLiteral("current_key")].toString();
+			if (!firebase.webApiKey.isEmpty())
+				break;
+		}
+
+		// oAuth
+		const auto oauth_clients = client[QStringLiteral("oauth_client")].toArray();
+		for (const auto &oauth_clientV : oauth_clients) {
+			const auto oauth_client = oauth_clientV.toObject();
+			oAuth.clientId = oauth_client[QStringLiteral("client_id")].toString();
+			oAuth.secret = oauth_client[QStringLiteral("client_secret")].toString();
+			oAuth.port = static_cast<quint16>(oauth_client[QStringLiteral("callback_port")].toInt());
+			if (!oAuth.clientId.isEmpty())
+				break;
+		}
+
+		if (!firebase.webApiKey.isEmpty() &&
+			!oAuth.clientId.isEmpty())
+			break;
+	}
+}
+
+void SetupPrivate::readGSPlistConfig(QIODevice *device)
+{
+#ifdef Q_OS_DARWIN
+	if (auto fDevice = qobject_cast<QFileDevice*>(device); fDevice) {
+		QSettings settings{fDevice->fileName(), QSettings::NativeFormat};
+		firebase.projectId = settings.value(QStringLiteral("PROJECT_ID")).toString();
+		firebase.webApiKey = settings.value(QStringLiteral("API_KEY")).toString();
+		oAuth.clientId = settings.value(QStringLiteral("CLIENT_ID")).toString();
+		oAuth.secret = settings.value(QStringLiteral("CLIENT_SECRET")).toString();
+		oAuth.port = static_cast<quint16>(settings.value(QStringLiteral("CALLBACK_PORT")).toInt());
+	} else
+		throw PListException{device};
+#else
+	throw PListException{device};
+#endif
 }
 
 
