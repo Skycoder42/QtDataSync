@@ -98,6 +98,11 @@ jobs:
         run: |
           brew update
           brew install p7zip
+      - name: dump firebase test config
+        shell: bash
+        run: |
+          mkdir -p tests/ci
+          echo ${{secrets.FIREBASE_CONFIG}} > tests/ci/web-config.json
       - name: qmake
         run: |
           qmake CONFIG+=install_ok QT_PLATFORM=${{matrix.platform}}
