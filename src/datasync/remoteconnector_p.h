@@ -47,6 +47,7 @@ Q_SIGNALS:
 	void removedUser(QPrivateSignal = {});
 
 	void networkError(const QString &error, QPrivateSignal = {});
+	void liveSyncError(const QString &error, bool reconnect, QPrivateSignal = {});
 
 private Q_SLOTS:
 	void apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType);
@@ -64,7 +65,7 @@ private:
 	QByteArray _lastEvent;
 	QList<QJsonValue> _lastData;
 
-	static CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data);
+	static CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data, bool skipUploaded = false);
 	static QString translateError(const QtDataSync::firebase::realtimedb::Error &error, int code);
 
 	QString timeString(const std::chrono::milliseconds &time);

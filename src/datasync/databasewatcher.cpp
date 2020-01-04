@@ -723,6 +723,9 @@ void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modif
 
 void DatabaseWatcher::updateLastSync(const QString &table, const QDateTime &uploaded)
 {
+	// do nothing if invalid timestamp
+	if (!uploaded.isValid())
+		return;
 	// update last sync
 	ExQuery updateMetaQuery{_db, ErrorScope::Database, table};
 	updateMetaQuery.prepare(QStringLiteral("UPDATE %1 "

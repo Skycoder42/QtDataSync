@@ -69,16 +69,8 @@ void RemoteConnector::setIdToken(const QString &idToken)
 
 void RemoteConnector::startLiveSync()
 {
-	if (_eventStream) {
-		_eventStream->disconnect(this);
-		if (_eventStream->isFinished())
-			_eventStream->deleteLater();
-		else {
-			connect(_eventStream, &QNetworkReply::finished,
-					_eventStream, &QNetworkReply::deleteLater);
-			_eventStream->abort();
-		}
-	}
+	if (_eventStream)
+		stopLiveSync();
 
 	_eventStream = _client->builder()
 					   .addPath(_userId)
@@ -94,8 +86,16 @@ void RemoteConnector::startLiveSync()
 
 void RemoteConnector::stopLiveSync()
 {
-	if (_eventStream)
-		_eventStream->abort();
+	if (_eventStream) {
+		_eventStream->disconnect(this);
+		if (_eventStream->isFinished())
+			_eventStream->deleteLater();
+		else {
+			connect(_eventStream, &QNetworkReply::finished,
+					_eventStream, &QNetworkReply::deleteLater);
+			_eventStream->abort();
+		}
+	}
 }
 
 void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
@@ -137,6 +137,7 @@ void RemoteConnector::uploadChange(const CloudData &data)
 		} else if (replyData->modified() >= data.modified()) {
 			// data was modified on the server after modified locally -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
+			Q_EMIT downloadedData({dlData(data.key(), *replyData, true)}, false);
 			Q_EMIT triggerSync(data.key().typeName);
 		} else {
 			// data on server is older -> upload
@@ -221,34 +222,29 @@ void RemoteConnector::streamClosed()
 	case QNetworkReply::UnknownProxyError:
 	case QNetworkReply::ProtocolFailure:
 	case QNetworkReply::UnknownServerError:
-		// TODO add time delays
-		qCInfo(logRmc) << "Reconnecting event stream to continue live sync";
-		_eventStream->deleteLater();
-		_eventStream = nullptr;
-		startLiveSync();
-		Q_EMIT triggerSync({});  // trigger a sync as getChanges is required to unblock the live sync
-		break;
-	// stopped by user -> live sync stopped
+	// stopped by user -> abort was called -> soft reconnect
 	case QNetworkReply::OperationCanceledError:
+		// TODO add time delays / fail counter
 		_eventStream->deleteLater();
 		_eventStream = nullptr;
+		Q_EMIT liveSyncError(tr("Live-synchronization connection broken, trying to reconnect…"), true);
 		break;
 	// inacceptable error codes that indicate a hard failure
 	default:
 		_eventStream->deleteLater();
 		_eventStream = nullptr;
-		Q_EMIT networkError(tr("Live-synchronization disabled because of network error!"));
+		Q_EMIT liveSyncError(tr("Live-synchronization disabled because of network error!"), false);
 		break;
 	}
 }
 
-CloudData RemoteConnector::dlData(ObjectKey key, const Data &data)
+CloudData RemoteConnector::dlData(ObjectKey key, const Data &data, bool skipUploaded)
 {
 	return {
 		std::move(key),
 		std::get<std::optional<QJsonObject>>(data.data()),
 		data.modified(),
-		std::get<QDateTime>(data.uploaded())
+		skipUploaded ? QDateTime{} : std::get<QDateTime>(data.uploaded())
 	};
 }
 
@@ -334,11 +330,12 @@ void RemoteConnector::processStreamEvent()
 		qCDebug(logRmc) << "Received event-stream keep-alive event";
 	else if (_lastEvent == "cancel") {
 		for (const auto &data : qAsConst(_lastData))
-			qCWarning(logRmc).noquote() << "Event-stream camceled with reason:" << data.toString();
-		stopLiveSync();  // TODO use member instead?
+			qCWarning(logRmc).noquote() << "Event-stream canceled with reason:" << data.toString();
+		stopLiveSync();
+		Q_EMIT liveSyncError(tr("Live-synchronization was stopped by the remote server"), true);
 	} else if (_lastEvent == "auth_revoked") {
-		qCDebug(logRmc) << "Event-stream authentication expired - reconnecting...";
-		startLiveSync();
+		stopLiveSync();
+		Q_EMIT liveSyncError(tr("Live-synchronization expired, reconnecting…"), true);
 	} else
 		qCWarning(logRmc) << "Unsupported event-stream event:" << _lastEvent;
 

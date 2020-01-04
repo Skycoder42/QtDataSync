@@ -38,16 +38,19 @@ public:
 	};
 
 	QScopedPointer<SetupPrivate> setup;
+	bool liveSyncEnabled = true;
 
 	EngineStateMachine *statemachine = nullptr;
 	DatabaseProxy *dbProxy = nullptr;
 	RemoteConnector *connector = nullptr;
 
 	QQueue<CloudData> dlDataQueue;
+	QQueue<CloudData> lsDataQueue;
 	QHash<QString, QDateTime> dlLastSync;
-	std::optional<ErrorInfo> lastError;
-
 	QQueue<QString> delTableQueue;
+
+	std::optional<ErrorInfo> lastError;
+	quint32 lsErrorCount = 0;
 
 #ifndef QTDATASYNC_NO_NTP
 	NtpSync *ntpSync = nullptr;
@@ -59,15 +62,19 @@ public:
 	void setupStateMachine();
 
 	void resyncNotify(const QString &name, ResyncMode direction);
+	void activateLiveSync();
 
 	void onEnterError();
 	void onEnterActive();
+	void onEnterSignedIn();
 	void onExitSignedIn();
 	void onEnterDelTables();
 	void onEnterDownloading();
 	void onEnterDlRunning();
 	void onEnterProcRunning();
+	void onEnterDlReady();
 	void onEnterUploading();
+	void onEnterLsRunning();
 	void onEnterDeletingAcc();
 
 	// global
@@ -75,15 +82,17 @@ public:
 						const QString &errorMessage,
 						const QVariant &errorData);
 	void _q_handleNetError(const QString &errorMessage);
+	void _q_handleLiveError(const QString &errorMessage, bool reconnect);
 	// authenticator
 	void _q_signInSuccessful(const QString &userId, const QString &idToken);
 	void _q_accountDeleted(bool success);
 	// dbProxy
-	void _q_triggerSync();
+	void _q_triggerSync(bool uploadOnly);
 	// connector
 	void _q_syncDone(const QString &type);
 	void _q_downloadedData(const QList<CloudData> &data, bool liveSyncData);
 	void _q_uploadedData(const ObjectKey &key, const QDateTime &modified);
+	void _q_triggerCloudSync(const QString &table);
 	void _q_removedTable(const QString &name);
 	void _q_removedUser();
 	// transformer

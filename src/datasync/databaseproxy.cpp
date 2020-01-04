@@ -55,12 +55,7 @@ void DatabaseProxy::fillDirtyTables(Type type)
 	const auto flag = toState(type);
 	for (auto &info : _tables)
 		info.state.setFlag(flag);
-	Q_EMIT triggerSync();
-}
-
-void DatabaseProxy::clearDirtyTable(const QString &name, Type type)
-{
-	_tables[name].state.setFlag(toState(type), false);
+	Q_EMIT triggerSync(type == Type::Local);
 }
 
 void DatabaseProxy::markTableDirty(const QString &name, Type type)
@@ -72,9 +67,19 @@ void DatabaseProxy::markTableDirty(const QString &name, Type type)
 		const auto flag = toState(type);
 		if (!info.state.testFlag(flag)) {
 			_tables[name].state.setFlag(flag);
-			Q_EMIT triggerSync();
+			Q_EMIT triggerSync(type == Type::Local);
 		}
 	}
+}
+
+void DatabaseProxy::clearDirtyTable(const QString &name, Type type)
+{
+	const auto flag = toState(type);
+	if (name.isEmpty()) {
+		for (auto &info : _tables)
+			info.state.setFlag(flag, false);
+	} else
+		_tables[name].state.setFlag(flag, false);
 }
 
 void DatabaseProxy::resetAll()

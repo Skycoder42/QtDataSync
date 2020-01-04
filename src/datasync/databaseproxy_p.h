@@ -49,8 +49,8 @@ public:
 	// table management
 	DirtyTableInfo nextDirtyTable(Type type) const;
 	void fillDirtyTables(Type type);
-	void clearDirtyTable(const QString &name, Type type);
 	void markTableDirty(const QString &name, Type type);
+	void clearDirtyTable(const QString &name, Type type);
 	void resetAll();
 
 	// watcher proxy
@@ -62,7 +62,7 @@ public:
 	std::function<TRet(TFirst, TArgs...)> bind(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...));
 
 Q_SIGNALS:
-	void triggerSync(QPrivateSignal = {});
+	void triggerSync(bool uploadOnly, QPrivateSignal = {});
 	void databaseError(Engine::ErrorType type,
 					   const QString &message,
 					   const QVariant &key,

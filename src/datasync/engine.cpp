@@ -4,18 +4,6 @@ using namespace QtDataSync;
 
 Q_LOGGING_CATEGORY(QtDataSync::logEngine, "qt.datasync.Engine")
 
-IAuthenticator *Engine::authenticator() const
-{
-	Q_D(const Engine);
-	return d->setup->authenticator;
-}
-
-ICloudTransformer *Engine::transformer() const
-{
-	Q_D(const Engine);
-	return d->setup->transformer;
-}
-
 void Engine::syncDatabase(const QString &databaseConnection, bool autoActivateSync, bool addAllTables)
 {
 	return syncDatabase(QSqlDatabase::database(databaseConnection, true), autoActivateSync, addAllTables);
@@ -123,6 +111,24 @@ void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabas
 	d->resyncNotify(table, direction);
 }
 
+IAuthenticator *Engine::authenticator() const
+{
+	Q_D(const Engine);
+	return d->setup->authenticator;
+}
+
+ICloudTransformer *Engine::transformer() const
+{
+	Q_D(const Engine);
+	return d->setup->transformer;
+}
+
+bool Engine::isLiveSyncEnabled() const
+{
+	Q_D(const Engine);
+	return d->liveSyncEnabled;
+}
+
 void Engine::start()
 {
 	Q_D(Engine);
@@ -161,7 +167,26 @@ void Engine::deleteAccount()
 void Engine::triggerSync()
 {
 	Q_D(Engine);
+	d->dbProxy->fillDirtyTables(DatabaseProxy::Type::Both);
 	d->statemachine->submitEvent(QStringLiteral("triggerSync"));
+	d->activateLiveSync();  // restart live sync
+}
+
+void Engine::setLiveSyncEnabled(bool liveSyncEnabled)
+{
+	Q_D(Engine);
+	if (d->liveSyncEnabled == liveSyncEnabled)
+		return;
+
+	d->liveSyncEnabled = liveSyncEnabled;
+	Q_EMIT liveSyncEnabledChanged(d->liveSyncEnabled);
+
+	if (d->liveSyncEnabled)
+		d->activateLiveSync();
+	else {
+		d->connector->stopLiveSync();
+		d->statemachine->submitEvent(QStringLiteral("stopLiveSync"));  // move to synced state if in live sync
+	}
 }
 
 Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
@@ -210,22 +235,20 @@ void EnginePrivate::setupConnections()
 			this, &EnginePrivate::_q_syncDone);
 	connect(connector, &RemoteConnector::uploadedData,
 			this, &EnginePrivate::_q_uploadedData);
+	connect(connector, &RemoteConnector::triggerSync,
+			this, &EnginePrivate::_q_triggerCloudSync);
 	connect(connector, &RemoteConnector::removedTable,
 			this, &EnginePrivate::_q_removedTable);
 	connect(connector, &RemoteConnector::removedUser,
 			this, &EnginePrivate::_q_removedUser);
 	connect(connector, &RemoteConnector::networkError,
 			this, &EnginePrivate::_q_handleNetError);
+	connect(connector, &RemoteConnector::liveSyncError,
+			this, &EnginePrivate::_q_handleLiveError);
 
 	// transformer <-> engine
 	connect(setup->transformer, &ICloudTransformer::transformDownloadDone,
 			this, &EnginePrivate::_q_transformDownloadDone);
-
-	// rmc <-> dbProxy
-	QObject::connect(connector, &RemoteConnector::triggerSync,
-					 dbProxy, [this](const QString &tableName) {
-						 dbProxy->markTableDirty(tableName, DatabaseProxy::Type::Cloud);
-					 });
 
 	// rmc <-> transformer
 	QObject::connect(setup->transformer, &ICloudTransformer::transformUploadDone,
@@ -250,6 +273,8 @@ void EnginePrivate::setupStateMachine()
 								 QScxmlStateMachine::onEntry(setup->authenticator, &IAuthenticator::signIn));
 	// ## SignedIn
 	statemachine->connectToState(QStringLiteral("SignedIn"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterSignedIn, this)));
+	statemachine->connectToState(QStringLiteral("SignedIn"), q,
 								 QScxmlStateMachine::onExit(std::bind(&EnginePrivate::onExitSignedIn, this)));
 	// ### DelTables
 	statemachine->connectToState(QStringLiteral("DelTables"), q,
@@ -266,8 +291,20 @@ void EnginePrivate::setupStateMachine()
 	// ###### ProcRunning
 	statemachine->connectToState(QStringLiteral("ProcRunning"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterProcRunning, this)));
+	// #### DlReady
+	statemachine->connectToState(QStringLiteral("DlReady"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDlReady, this)));
 	// #### Uploading
 	statemachine->connectToState(QStringLiteral("Uploading"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
+	// ### LiveSync
+	// #### LsFiber
+	// ##### LsRunning
+	statemachine->connectToState(QStringLiteral("LsRunning"), q,
+								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterLsRunning, this)));
+	// #### UlFiber
+	// ##### UlRunning
+	statemachine->connectToState(QStringLiteral("UlRunning"), q,
 								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
 	// ## DeletingAcc
 	statemachine->connectToState(QStringLiteral("DeletingAcc"), q,
@@ -294,6 +331,15 @@ void EnginePrivate::resyncNotify(const QString &name, EnginePrivate::ResyncMode 
 		dbProxy->markTableDirty(name, DatabaseProxy::Type::Local);
 }
 
+void EnginePrivate::activateLiveSync()
+{
+	if (liveSyncEnabled && statemachine->isActive(QStringLiteral("SignedIn"))) {
+		connector->startLiveSync();
+		dbProxy->fillDirtyTables(DatabaseProxy::Type::Cloud);
+		statemachine->submitEvent(QStringLiteral("forceSync"));
+	}
+}
+
 void EnginePrivate::onEnterError()
 {
 	Q_Q(Engine);
@@ -311,8 +357,17 @@ void EnginePrivate::onEnterActive()
 	dbProxy->fillDirtyTables(DatabaseProxy::Type::Both);
 }
 
+void EnginePrivate::onEnterSignedIn()
+{
+	activateLiveSync();
+}
+
 void EnginePrivate::onExitSignedIn()
 {
+	connector->stopLiveSync();
+	dlDataQueue.clear();
+	lsDataQueue.clear();
+	dlLastSync.clear();
 	delTableQueue.clear();
 }
 
@@ -354,6 +409,14 @@ void EnginePrivate::onEnterProcRunning()
 		statemachine->submitEvent(QStringLiteral("procReady"));  // done with dowloading
 }
 
+void EnginePrivate::onEnterDlReady()
+{
+	if (liveSyncEnabled)
+		statemachine->submitEvent(QStringLiteral("triggerLiveSync"));  // enter active live sync
+	else
+		statemachine->submitEvent(QStringLiteral("triggerUpload"));  // enter "normal" upload
+}
+
 void EnginePrivate::onEnterUploading()
 {
 	forever {
@@ -368,6 +431,14 @@ void EnginePrivate::onEnterUploading()
 			statemachine->submitEvent(QStringLiteral("syncReady"));  // no data left -> leave sync state and stay idle
 		break;
 	}
+}
+
+void EnginePrivate::onEnterLsRunning()
+{
+	if (!lsDataQueue.isEmpty())
+		setup->transformer->transformDownload(lsDataQueue.dequeue());
+	else
+		statemachine->submitEvent(QStringLiteral("procReady"));  // done with dowloading
 }
 
 void EnginePrivate::onEnterDeletingAcc()
@@ -386,6 +457,20 @@ void EnginePrivate::_q_handleError(ErrorType type, const QString &errorMessage, 
 void EnginePrivate::_q_handleNetError(const QString &errorMessage)
 {
 	_q_handleError(ErrorType::Network, errorMessage, {});
+}
+
+void EnginePrivate::_q_handleLiveError(const QString &errorMessage, bool reconnect)
+{
+	Q_Q(Engine);
+	qCCritical(logEngine).noquote() << ErrorType::LiveSync << errorMessage;
+	if (reconnect) {
+		++lsErrorCount;
+		activateLiveSync();
+	} else {
+		// emit error and disable live sync
+		q->setLiveSyncEnabled(false);
+		Q_EMIT q->errorOccured(ErrorType::LiveSync, errorMessage, {});
+	}
 }
 
 void EnginePrivate::_q_signInSuccessful(const QString &userId, const QString &idToken)
@@ -407,9 +492,13 @@ void EnginePrivate::_q_accountDeleted(bool success)
 	}
 }
 
-void EnginePrivate::_q_triggerSync()
+void EnginePrivate::_q_triggerSync(bool uploadOnly)
 {
-	statemachine->submitEvent(QStringLiteral("triggerSync"));  // does nothing if already syncing
+	// TODO send other signal or not in live sync active
+	if (uploadOnly)
+		statemachine->submitEvent(QStringLiteral("triggerUpload"));  // does nothing if already syncing
+	else
+		statemachine->submitEvent(QStringLiteral("triggerSync"));  // does nothing if already syncing
 }
 
 void EnginePrivate::_q_syncDone(const QString &type)
@@ -420,25 +509,38 @@ void EnginePrivate::_q_syncDone(const QString &type)
 
 void EnginePrivate::_q_downloadedData(const QList<CloudData> &data, bool liveSyncData)
 {
-	if (statemachine->isActive(QStringLiteral("Downloading"))) {
-		if (!data.isEmpty()) {
-			dlDataQueue.append(data);
-			const auto ldata = data.last();
-			dlLastSync.insert(ldata.key().typeName, ldata.uploaded());
-		}
-		statemachine->submitEvent(QStringLiteral("dataReady"));  // starts data processing if not already running
-	} else if (liveSyncData) {
-		// TODO ???
-		for (const auto &d : data)
-			qCDebug(logEngine) << "LIVE-SYNC-DATA" << d.key();
-	} else
-		qCDebug(logEngine) << "ignoring downloaded data in invalid state";
+	if (liveSyncData) {
+		if (statemachine->isActive(QStringLiteral("SignedIn"))) {
+			// store any data from livesync, as long as signed in
+			lsDataQueue.append(data);
+			if (statemachine->isActive(QStringLiteral("LiveSync")))  // only process data in LiveSync state
+				statemachine->submitEvent(QStringLiteral("dataReady"));
+		} else
+			qCDebug(logEngine) << "Ignoring livesync data in invalid state";
+	} else {
+		if (statemachine->isActive(QStringLiteral("Downloading"))) {
+			if (!data.isEmpty()) {
+				dlDataQueue.append(data);
+				const auto ldata = data.last();
+				dlLastSync.insert(ldata.key().typeName, ldata.uploaded());
+			}
+			statemachine->submitEvent(QStringLiteral("dataReady"));  // starts data processing if not already running
+		} else
+			qCDebug(logEngine) << "Ignoring downloaded data in invalid state";
+	}
 }
 
 void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modified)
 {
 	dbProxy->call(&DatabaseWatcher::markUnchanged, key, modified);
 	statemachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
+}
+
+void EnginePrivate::_q_triggerCloudSync(const QString &table)
+{
+	// happens only while uploading -> ignore in live sync (as live sync gets changes anyway)
+	if (!statemachine->isActive(QStringLiteral("LiveSync")))
+		dbProxy->markTableDirty(table, DatabaseProxy::Type::Cloud);
 }
 
 void EnginePrivate::_q_removedTable(const QString &name)
@@ -455,7 +557,8 @@ void EnginePrivate::_q_removedUser()
 
 void EnginePrivate::_q_transformDownloadDone(const LocalData &data)
 {
-	if (statemachine->isActive(QStringLiteral("Downloading"))) {
+	if (statemachine->isActive(QStringLiteral("Downloading")) ||
+		statemachine->isActive(QStringLiteral("LiveSync"))) {
 		dbProxy->call(&DatabaseWatcher::storeData, data);
 		statemachine->submitEvent(QStringLiteral("procContinue"));  // starts processing of the next downloaded data
 	}
