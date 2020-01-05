@@ -38,6 +38,18 @@ public:
 	Q_DECLARE_FLAGS(TableState, TableStateFlag)
 	Q_ENUM(TableState)
 
+	template <typename TFn>
+	struct FnInfo{};
+	template <typename TRet, typename... TArgs>
+	struct FnInfo<TRet (DatabaseWatcher::*)(TArgs...)> {
+		using Ret = TRet;
+	};
+
+	template <typename TFn>
+	using FnReturn = std::enable_if_t<!std::is_void_v<typename FnInfo<TFn>::Ret>, typename FnInfo<TFn>::Ret>;
+	template <typename TFn>
+	using VoidReturn = std::enable_if_t<std::is_void_v<typename FnInfo<TFn>::Ret>, void>;
+
 	using DirtyTableInfo = std::optional<std::pair<QString, QDateTime>>;
 
 	explicit DatabaseProxy(Engine *engine = nullptr);
@@ -54,10 +66,10 @@ public:
 	void resetAll();
 
 	// watcher proxy
-	template <typename TRet, typename TFirst, typename... TArgs>
-	std::enable_if_t<!std::is_void_v<TRet>, TRet> call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args);
-	template <typename TRet, typename TFirst, typename... TArgs>
-	std::enable_if_t<std::is_void_v<TRet>, void> call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args);
+	template <typename TFn, typename TFirst, typename... TArgs>
+	FnReturn<TFn> call(TFn fn, TFirst &&key, TArgs&&... args);
+	template <typename TFn, typename TFirst, typename... TArgs>
+	VoidReturn<TFn> call(TFn fn, TFirst &&key, TArgs&&... args);
 	template <typename TRet, typename TFirst, typename... TArgs>
 	std::function<TRet(TFirst, TArgs...)> bind(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...));
 
@@ -119,20 +131,20 @@ struct DatabaseProxy::KeyInfo<LocalData> {
 	}
 };
 
-template<typename TRet, typename TFirst, typename... TArgs>
-std::enable_if_t<!std::is_void_v<TRet>, TRet> DatabaseProxy::call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args)
+template<typename TFn, typename TFirst, typename... TArgs>
+DatabaseProxy::FnReturn<TFn> DatabaseProxy::call(TFn fn, TFirst &&key, TArgs&&... args)
 {
 	const auto tableName = KeyInfo<std::decay_t<TFirst>>::key(key);
 	auto tInfo = _tables[tableName];
 	if (!tInfo.watcher) {
 		qCWarning(logDbProxy) << "Unknown table" << tableName;
-		return TRet{};
+		return {};
 	}
 	return (tInfo.watcher->*fn)(std::forward<TFirst>(key), std::forward<TArgs>(args)...);
 }
 
-template<typename TRet, typename TFirst, typename... TArgs>
-std::enable_if_t<std::is_void_v<TRet>, void> DatabaseProxy::call(TRet (DatabaseWatcher::*fn)(TFirst, TArgs...), TFirst &&key, TArgs&&... args)
+template<typename TFn, typename TFirst, typename... TArgs>
+DatabaseProxy::VoidReturn<TFn> DatabaseProxy::call(TFn fn, TFirst &&key, TArgs&&... args)
 {
 	const auto tableName = KeyInfo<std::decay_t<TFirst>>::key(key);
 	auto tInfo = _tables[tableName];

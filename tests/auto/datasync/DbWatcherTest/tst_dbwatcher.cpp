@@ -22,8 +22,6 @@ using namespace QtDataSync;
 #define VERIFY_CHANGED(key, before, after) VERIFY_CHANGED_STATE(key, before, after, DatabaseWatcher::ChangeState::Changed)
 #define VERIFY_UNCHANGED(key, when) VERIFY_CHANGED_STATE(key, when, when, DatabaseWatcher::ChangeState::Unchanged)
 
-Q_DECLARE_METATYPE(LocalData)
-
 class DbWatcherTest : public QObject
 {
 	Q_OBJECT

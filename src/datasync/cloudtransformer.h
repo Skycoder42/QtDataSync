@@ -34,7 +34,10 @@ public:
 	~SyncData() = default;
 
 	template <typename TOther>
-	SyncData(const SyncData<TOther> &other, std::optional<T> data);
+	SyncData(ObjectKey key, std::optional<T> data, const SyncData<TOther> &other);
+
+	bool operator==(const SyncData &other) const;
+	bool operator!=(const SyncData &other) const;
 
 	ObjectKey key() const;
 	std::optional<T> data() const;
@@ -56,6 +59,12 @@ using CloudData = SyncData<QJsonObject>;
 class Q_DATASYNC_EXPORT ICloudTransformer : public QObject
 {
 	Q_OBJECT
+
+public:
+	virtual QString escapeType(const QString &name);
+	virtual QString unescapeType(const QString &name);
+	virtual ObjectKey escapeKey(const ObjectKey &key);
+	virtual ObjectKey unescapeKey(const ObjectKey &key);
 
 public Q_SLOTS:
 	virtual void transformUpload(const LocalData &data) = 0;
@@ -141,12 +150,31 @@ template <typename T>
 SyncData<T>::SyncData(QString type, QString key, std::optional<T> data, QDateTime modified, QDateTime uploaded) :
 	SyncData{{std::move(type), std::move(key)}, std::move(data), std::move(modified), std::move(uploaded)}
 {}
-
 template <typename T>
 template<typename TOther>
-SyncData<T>::SyncData(const SyncData<TOther> &other, std::optional<T> data) :
-	SyncData{other.key(), std::move(data), other.modified(), other.uploaded()}
+SyncData<T>::SyncData(ObjectKey key, std::optional<T> data, const SyncData<TOther> &other) :
+	SyncData{std::move(key), std::move(data), other.modified(), other.uploaded()}
 {}
+
+template<typename T>
+bool SyncData<T>::operator==(const SyncData &other) const
+{
+	return d == other.d || (
+			   d->key == other.d->key &&
+			   d->data == other.d->data &&
+			   d->modified == other.d->modified &&
+			   d->uploaded == other.d->uploaded);
+}
+
+template<typename T>
+bool SyncData<T>::operator!=(const SyncData &other) const
+{
+	return d != other.d && (
+			   d->key != other.d->key ||
+			   d->data != other.d->data ||
+			   d->modified != other.d->modified ||
+			   d->uploaded != other.d->uploaded);
+}
 
 template <typename T>
 ObjectKey SyncData<T>::key() const
@@ -197,5 +225,8 @@ void SyncData<T>::setUploaded(QDateTime uploaded)
 }
 
 }
+
+Q_DECLARE_METATYPE(QtDataSync::LocalData)
+Q_DECLARE_METATYPE(QtDataSync::CloudData)
 
 #endif // QTDATASYNC_ICLOUDTRANSFORMER_H

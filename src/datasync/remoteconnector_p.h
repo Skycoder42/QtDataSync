@@ -80,9 +80,11 @@ struct StreamData
 	Q_GADGET
 
 	Q_PROPERTY(QString path MEMBER path)
-	Q_PROPERTY(firebase::realtimedb::Data data MEMBER data)
+	Q_PROPERTY(QtDataSync::firebase::realtimedb::Data data MEMBER data)
 
 public:
+	using Data = firebase::realtimedb::Data;
+
 	QString path;
 	firebase::realtimedb::Data data;
 };

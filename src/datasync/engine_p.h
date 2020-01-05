@@ -92,8 +92,8 @@ public:
 	void _q_syncDone(const QString &type);
 	void _q_downloadedData(const QList<CloudData> &data, bool liveSyncData);
 	void _q_uploadedData(const ObjectKey &key, const QDateTime &modified);
-	void _q_triggerCloudSync(const QString &table);
-	void _q_removedTable(const QString &name);
+	void _q_triggerCloudSync(const QString &type);
+	void _q_removedTable(const QString &type);
 	void _q_removedUser();
 	// transformer
 	void _q_transformDownloadDone(const LocalData &data);

@@ -17,8 +17,6 @@ struct Q_DATASYNC_EXPORT ObjectKey
 	//! The id of the dataset (it's USER property)
 	QString id;
 
-	//! Creates a hash of the object key to anonymize ize
-	QByteArray hashed() const;
 	QString toString() const;
 
 	//! Equality operator

@@ -374,7 +374,7 @@ void EnginePrivate::onExitSignedIn()
 void EnginePrivate::onEnterDelTables()
 {
 	if (!delTableQueue.isEmpty())
-		connector->removeTable(delTableQueue.head());
+		connector->removeTable(setup->transformer->escapeType(delTableQueue.head()));
 	else
 		statemachine->submitEvent(QStringLiteral("delDone"));
 }
@@ -388,15 +388,16 @@ void EnginePrivate::onEnterDownloading()
 void EnginePrivate::onEnterDlRunning()
 {
 	if (auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); dtInfo) {
+		const auto escKey = setup->transformer->escapeType(dtInfo->first);
 		QDateTime tStamp;
-		if (auto dlStamp = dlLastSync.value(dtInfo->first); dlStamp.isValid()) {
+		if (auto dlStamp = dlLastSync.value(escKey); dlStamp.isValid()) {
 			if (dtInfo->second.isValid())
 				tStamp = std::max(dtInfo->second, dlStamp);
 			else
 				tStamp = std::move(dlStamp);
 		} else
 			tStamp = std::move(dtInfo->second);
-		connector->getChanges(dtInfo->first, tStamp);  // has dirty table -> download it (uses latest stored or cached timestamp)
+		connector->getChanges(escKey, tStamp);  // has dirty table -> download it (uses latest stored or cached timestamp)
 	} else
 		statemachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
 }
@@ -503,7 +504,7 @@ void EnginePrivate::_q_triggerSync(bool uploadOnly)
 
 void EnginePrivate::_q_syncDone(const QString &type)
 {
-	dbProxy->clearDirtyTable(type, DatabaseProxy::Type::Cloud);
+	dbProxy->clearDirtyTable(setup->transformer->unescapeType(type), DatabaseProxy::Type::Cloud);
 	statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
 }
 
@@ -532,20 +533,20 @@ void EnginePrivate::_q_downloadedData(const QList<CloudData> &data, bool liveSyn
 
 void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modified)
 {
-	dbProxy->call(&DatabaseWatcher::markUnchanged, key, modified);
+	dbProxy->call(&DatabaseWatcher::markUnchanged, setup->transformer->unescapeKey(key), modified);
 	statemachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
 }
 
-void EnginePrivate::_q_triggerCloudSync(const QString &table)
+void EnginePrivate::_q_triggerCloudSync(const QString &type)
 {
 	// happens only while uploading -> ignore in live sync (as live sync gets changes anyway)
 	if (!statemachine->isActive(QStringLiteral("LiveSync")))
-		dbProxy->markTableDirty(table, DatabaseProxy::Type::Cloud);
+		dbProxy->markTableDirty(setup->transformer->unescapeType(type), DatabaseProxy::Type::Cloud);
 }
 
-void EnginePrivate::_q_removedTable(const QString &name)
+void EnginePrivate::_q_removedTable(const QString &type)
 {
-	if (!delTableQueue.isEmpty() && delTableQueue.head() == name)
+	if (!delTableQueue.isEmpty() && delTableQueue.head() == setup->transformer->unescapeType(type))
 		delTableQueue.dequeue();
 	statemachine->submitEvent(QStringLiteral("delContinue"));
 }

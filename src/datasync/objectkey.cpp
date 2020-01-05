@@ -1,15 +1,6 @@
 #include "objectkey.h"
 #include <QtCore/QDebug>
-#include <QtCore/QCryptographicHash>
 using namespace QtDataSync;
-
-QByteArray ObjectKey::hashed() const
-{
-	QCryptographicHash hash(QCryptographicHash::Sha3_256);
-	hash.addData(typeName.toUtf8());
-	hash.addData(id.toUtf8());
-	return hash.result();
-}
 
 QString ObjectKey::toString() const
 {

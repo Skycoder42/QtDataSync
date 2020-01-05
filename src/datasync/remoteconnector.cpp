@@ -107,11 +107,13 @@ void RemoteConnector::getChanges(const QString &type, const QDateTime &since)
 	_api->listChangedData(type, since.toUTC().toMSecsSinceEpoch(), _limit)->onSucceeded(this, [this, type, since](int, const QueryMap &data) {
 		// get all changed data and pass to storage
 		qCDebug(logRmc) << "listChangedData returned" << data.size() << "entries";
-		QList<CloudData> dlList;
-		dlList.reserve(data.size());
-		for (auto it = data.begin(), end = data.end(); it != end; ++it)
-			dlList.append(dlData({type, it->first}, it->second));
-		Q_EMIT downloadedData(dlList, false);
+		if (!data.isEmpty()) {
+			QList<CloudData> dlList;
+			dlList.reserve(data.size());
+			for (auto it = data.begin(), end = data.end(); it != end; ++it)
+				dlList.append(dlData({type, it->first}, it->second));
+			Q_EMIT downloadedData(dlList, false);
+		}
 		// if as much data as possible by limit, fetch more with new last sync
 		if (data.size() == _limit)
 			getChanges(type, std::get<QDateTime>(data.last().second.uploaded()));
