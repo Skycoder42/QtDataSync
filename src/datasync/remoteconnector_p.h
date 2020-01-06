@@ -38,11 +38,11 @@ public Q_SLOTS:
 	void removeUser();
 
 Q_SIGNALS:
-	void triggerSync(const QString &type, QPrivateSignal = {});
 
 	void downloadedData(const QList<QtDataSync::CloudData> &data, bool liveSyncData, QPrivateSignal = {});
 	void syncDone(const QString &type, QPrivateSignal = {});
 	void uploadedData(const QtDataSync::ObjectKey &key, const QDateTime &modified, QPrivateSignal = {});
+	void triggerSync(const QString &type, QPrivateSignal = {});
 	void removedTable(const QString &type, QPrivateSignal = {});
 	void removedUser(QPrivateSignal = {});
 

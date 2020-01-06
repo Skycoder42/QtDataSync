@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" datamodel="cplusplus:QtDataSync::TableDataModel:tabledatamodel_p.h" name="TableStateMachine" qt:editorversion="4.11.0" initial="Active">
+    <qt:editorinfo initialGeometry="556.38;113.08;-20;-20;40;40"/>
+    <state id="Active" initial="Init">
+        <qt:editorinfo scenegeometry="485.68;243.96;444.87;224.38;1483.34;1053.23" geometry="485.68;243.96;-40.81;-19.58;1483.34;1053.23"/>
+        <state id="Init">
+            <qt:editorinfo scenegeometry="1043.92;377.57;983.92;327.57;170.66;100" geometry="558.24;133.61;-60;-50;170.66;100"/>
+            <transition type="external" event="starLiveSync" target="LifeSync">
+                <qt:editorinfo endTargetFactors="75.43;4.87" movePoint="-43.04;-11.23"/>
+            </transition>
+            <transition type="external" event="startPassiveSync" target="PassiveSync">
+                <qt:editorinfo endTargetFactors="22.27;6.41" movePoint="47.28;3.94"/>
+            </transition>
+            <onentry>
+                <script>initSync();</script>
+            </onentry>
+        </state>
+        <state id="PassiveSync" initial="Synchronizing">
+            <qt:editorinfo scenegeometry="1144.28;968.66;1122.77;495.87;785.44;761.74" geometry="658.60;724.70;-21.51;-472.79;785.44;761.74"/>
+            <state id="Synchronizing" initial="Downloading">
+                <qt:editorinfo scenegeometry="1295.48;892.90;1142.77;581.57;745.44;498.32" geometry="151.20;-75.76;-152.71;-311.33;745.44;498.32"/>
+                <transition type="external" event="syncReady" target="Synchronized">
+                    <qt:editorinfo startTargetFactors="28.04;95.16" endTargetFactors="16.66;72.73" movePoint="-39.46;27.15"/>
+                </transition>
+                <state id="Uploading">
+                    <qt:editorinfo scenegeometry="1848.21;880.57;1700.57;830.57;167.64;100" geometry="552.73;-12.33;-147.64;-50;167.64;100"/>
+                    <transition type="external" event="triggerSync" target="Downloading">
+                        <qt:editorinfo startTargetFactors="21.66;83.84" endTargetFactors="96.89;85.27" movePoint="32.06;9.11"/>
+                    </transition>
+                    <transition type="internal" event="ulContinue"/>
+                    <onentry>
+                        <script>uploadData();</script>
+                    </onentry>
+                </state>
+                <parallel id="Downloading">
+                    <qt:editorinfo scenegeometry="1350.76;884.48;1162.77;651.60;491.40;408.29" geometry="55.28;-8.42;-187.99;-232.88;491.40;408.29"/>
+                    <transition type="external" cond="_dlReady &amp;&amp; _procReady" target="Uploading">
+                        <qt:editorinfo startTargetFactors="96.43;27.32" endTargetFactors="20.78;14.74" movePoint="108.28;21.29"/>
+                    </transition>
+                    <state id="DlFiber" initial="DlRunning">
+                        <qt:editorinfo scenegeometry="1336.04;838.42;1182.77;716.23;222.20;323.63" geometry="-14.72;-46.06;-153.27;-122.19;222.20;323.63"/>
+                        <state id="DlDone">
+                            <qt:editorinfo scenegeometry="1347.80;961.59;1209.84;911.59;160.81;100" geometry="11.76;123.17;-137.96;-50;160.81;100"/>
+                            <transition type="external" event="triggerSync" target="DlRunning">
+                                <qt:editorinfo startTargetFactors="32.54;18.50" endTargetFactors="30.90;88.78" movePoint="-18.68;5.34"/>
+                            </transition>
+                        </state>
+                        <state id="DlRunning">
+                            <qt:editorinfo scenegeometry="1352.37;825.65;1211.53;775.65;160.84;100" geometry="16.33;-12.77;-140.84;-50;160.84;100"/>
+                            <onentry>
+                                <assign location="dlReady" expr="false"/>
+                                <script>downloadChanges();</script>
+                            </onentry>
+                            <onexit>
+                                <assign location="dlReady" expr="true"/>
+                            </onexit>
+                            <transition type="external" event="dlReady" target="DlDone">
+                                <qt:editorinfo startTargetFactors="69.64;90.28" endTargetFactors="71.49;15.02" movePoint="28.46;10.79"/>
+                            </transition>
+                        </state>
+                    </state>
+                    <state id="ProcFiber">
+                        <qt:editorinfo scenegeometry="1695.19;830.86;1414.62;716.41;219.55;323.48" geometry="344.43;-53.62;-280.57;-114.45;219.55;323.48"/>
+                        <state id="ProcWaiting">
+                            <qt:editorinfo scenegeometry="1494.62;827.88;1434.62;777.88;174.35;100" geometry="-200.57;-2.98;-60;-50;174.35;100"/>
+                            <transition type="external" event="dataReady" target="ProcRunning">
+                                <qt:editorinfo startTargetFactors="30.06;89.48" endTargetFactors="27.43;38.69" movePoint="-43.13;5.22"/>
+                            </transition>
+                        </state>
+                        <state id="ProcRunning">
+                            <qt:editorinfo scenegeometry="1594.15;969.89;1437.46;919.89;176.69;100" geometry="-101.04;139.03;-156.69;-50;176.69;100"/>
+                            <onentry>
+                                <assign location="procReady" expr="false"/>
+                                <script>processDownload();</script>
+                            </onentry>
+                            <onexit>
+                                <assign location="procReady" expr="true"/>
+                            </onexit>
+                            <transition type="internal" event="procContinue">
+                                <qt:editorinfo endTargetFactors="27.03;56.71"/>
+                            </transition>
+                            <transition type="external" event="procReady" target="ProcWaiting">
+                                <qt:editorinfo startTargetFactors="71.76;14.55" endTargetFactors="79.30;78.01" movePoint="60.18;8"/>
+                            </transition>
+                        </state>
+                    </state>
+                    <onentry>
+                        <script>_cachedLastSync = {};</script>
+                    </onentry>
+                </parallel>
+            </state>
+            <state id="Synchronized">
+                <qt:editorinfo scenegeometry="1609.85;1187.61;1549.85;1137.61;185.67;100" geometry="465.57;218.95;-60;-50;185.67;100"/>
+                <transition type="external" event="triggerSync" target="Synchronizing">
+                    <qt:editorinfo startTargetFactors="52.25;28.90" endTargetFactors="67.64;96.23" movePoint="-16.82;8.66"/>
+                </transition>
+                <transition type="external" event="triggerUpload" target="Uploading">
+                    <qt:editorinfo startTargetFactors="83.40;14.60" endTargetFactors="50.93;81.90" movePoint="65.49;36.40"/>
+                </transition>
+            </state>
+            <transition type="external" event="starLiveSync" target="LifeSync">
+                <qt:editorinfo startTargetFactors="2.08;20.46" endTargetFactors="94.15;17.50" movePoint="12.44;-25.45"/>
+            </transition>
+        </state>
+        <state id="LifeSync" initial="LsStarting">
+            <qt:editorinfo scenegeometry="504.35;570.14;466.84;531.06;532.24;708.56" geometry="18.67;326.18;-37.51;-39.08;532.24;708.56"/>
+            <state id="LsStarting">
+                <qt:editorinfo scenegeometry="578.13;664.65;518.13;614.65;143.82;100" geometry="75.75;94.51;-60;-50;143.82;100"/>
+                <transition type="external" event="dlReady" target="LsProcessInit">
+                    <qt:editorinfo endTargetFactors="19.27;52.23" movePoint="6.51;8.14"/>
+                </transition>
+                <onentry>
+                    <script>initLiveSync();</script>
+                </onentry>
+            </state>
+            <state id="LsProcessInit">
+                <qt:editorinfo scenegeometry="917.59;666.77;760.90;616.77;176.69;100" geometry="415.21;96.63;-156.69;-50;176.69;100"/>
+                <transition type="internal" event="procContinue"/>
+                <transition type="external" event="procReady" target="LsActive">
+                    <qt:editorinfo startTargetFactors="41.58;89.42" endTargetFactors="70.37;6.55" movePoint="33.90;4.84"/>
+                </transition>
+                <onentry>
+                    <script>processDownload();</script>
+                </onentry>
+            </state>
+            <parallel id="LsActive">
+                <qt:editorinfo scenegeometry="601.05;804.58;484.87;768.57;492.24;451.05" geometry="98.67;234.44;-116.18;-36.01;492.24;451.05"/>
+                <state id="UlFiber" initial="UlRunning">
+                    <qt:editorinfo scenegeometry="766.25;900.01;746.32;839.50;210.79;357.74" geometry="165.20;95.43;-19.93;-60.51;210.79;357.74"/>
+                    <state id="UlWaiting">
+                        <qt:editorinfo scenegeometry="849.56;1127.24;789.56;1077.24;120;100" geometry="83.31;227.23;-60;-50;120;100"/>
+                        <transition type="external" event="triggerUpload" target="UlRunning">
+                            <qt:editorinfo startTargetFactors="71.40;19.99" endTargetFactors="76.54;60.79" movePoint="68.19;15.63"/>
+                        </transition>
+                    </state>
+                    <state id="UlRunning">
+                        <qt:editorinfo scenegeometry="917.11;952.54;768.47;902.54;168.64;100" geometry="150.86;52.53;-148.64;-50;168.64;100"/>
+                        <transition type="internal" event="ulContinue">
+                            <qt:editorinfo endTargetFactors="26.56;57.19"/>
+                        </transition>
+                        <transition type="external" event="syncReady" target="UlWaiting">
+                            <qt:editorinfo startTargetFactors="28.84;80" endTargetFactors="30.06;18.51" movePoint="-42.10;9.03"/>
+                        </transition>
+                        <onentry>
+                            <script>uploadData();</script>
+                        </onentry>
+                    </state>
+                </state>
+                <state id="LsFiber">
+                    <qt:editorinfo scenegeometry="588.55;893.86;506.01;836.56;216.69;362.50" geometry="-12.50;89.28;-82.54;-57.30;216.69;362.50"/>
+                    <state id="LsRunning">
+                        <qt:editorinfo scenegeometry="682.70;951.27;526.01;901.27;176.69;100" geometry="94.15;57.41;-156.69;-50;176.69;100"/>
+                        <transition type="external" event="procReady" target="LsWaiting">
+                            <qt:editorinfo startTargetFactors="27.90;82.34" endTargetFactors="30.21;25.49" movePoint="-45.98;4.75"/>
+                        </transition>
+                        <transition type="internal" event="procContinue"/>
+                        <onentry>
+                            <script>processDownload();</script>
+                        </onentry>
+                    </state>
+                    <state id="LsWaiting">
+                        <qt:editorinfo scenegeometry="610.31;1122.15;550.31;1072.15;120;100" geometry="21.76;228.29;-60;-50;120;100"/>
+                        <transition type="external" event="dataReady" target="LsRunning">
+                            <qt:editorinfo startTargetFactors="70.58;21.58" endTargetFactors="66.30;75.66" movePoint="62.12;8.45"/>
+                        </transition>
+                    </state>
+                </state>
+                <transition type="external" event="startPassiveSync" target="Synchronized">
+                    <qt:editorinfo startTargetFactors="96.05;80.47" endTargetFactors="12.09;76.29"/>
+                </transition>
+            </parallel>
+            <transition type="external" event="startPassiveSync" target="PassiveSync">
+                <qt:editorinfo startTargetFactors="94.98;30.89" endTargetFactors="2.13;33.60" movePoint="5.87;8.81"/>
+            </transition>
+            <onexit>
+                <script>_connector-&gt;stopLiveSync();</script>
+            </onexit>
+        </state>
+        <transition type="external" event="error" target="Error">
+            <qt:editorinfo movePoint="1.63;9.77"/>
+        </transition>
+    </state>
+    <state id="Error">
+        <qt:editorinfo scenegeometry="1186.54;113.08;1126.54;63.08;120;100" geometry="1186.54;113.08;-60;-50;120;100"/>
+    </state>
+</scxml>

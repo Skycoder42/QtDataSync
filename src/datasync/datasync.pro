@@ -20,7 +20,8 @@ HEADERS += \
 	qtdatasync_global.h \
 	remoteconnector_p.h \
 	setup.h \
-	setup_p.h
+	setup_p.h \
+	tabledatamodel_p.h
 
 SOURCES += \
 	authenticator.cpp \
@@ -35,7 +36,8 @@ SOURCES += \
 	googleoauthflow.cpp \
 	objectkey.cpp \
 	remoteconnector.cpp \
-	setup.cpp
+	setup.cpp \
+	tabledatamodel.cpp
 
 REST_API_FILES += \
 	firebase/auth/auth_api.xml \
@@ -51,7 +53,8 @@ REST_API_FILES += \
 	firebase/realtimedb/realtimedb_error.xml
 
 STATECHARTS += \
-	enginestatemachine.scxml
+	enginestatemachine.scxml \
+	tablestatemachine.scxml
 
 INCLUDEPATH += \
 	firebase \
