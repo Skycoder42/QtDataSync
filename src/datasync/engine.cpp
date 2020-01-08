@@ -184,7 +184,7 @@ void Engine::setLiveSyncEnabled(bool liveSyncEnabled)
 	if (d->liveSyncEnabled)
 		d->activateLiveSync();
 	else {
-		d->connector->stopLiveSync();
+		// TODO d->connector->stopLiveSync();
 		d->statemachine->submitEvent(QStringLiteral("stopLiveSync"));  // move to synced state if in live sync
 	}
 }
@@ -334,7 +334,7 @@ void EnginePrivate::resyncNotify(const QString &name, EnginePrivate::ResyncMode 
 void EnginePrivate::activateLiveSync()
 {
 	if (liveSyncEnabled && statemachine->isActive(QStringLiteral("SignedIn"))) {
-		connector->startLiveSync();
+		// TODO connector->startLiveSync();
 		dbProxy->fillDirtyTables(DatabaseProxy::Type::Cloud);
 		statemachine->submitEvent(QStringLiteral("forceSync"));
 	}
@@ -364,7 +364,7 @@ void EnginePrivate::onEnterSignedIn()
 
 void EnginePrivate::onExitSignedIn()
 {
-	connector->stopLiveSync();
+	// TODO connector->stopLiveSync();
 	dlDataQueue.clear();
 	lsDataQueue.clear();
 	dlLastSync.clear();
@@ -460,7 +460,7 @@ void EnginePrivate::_q_handleNetError(const QString &errorMessage)
 	_q_handleError(ErrorType::Network, errorMessage, {});
 }
 
-void EnginePrivate::_q_handleLiveError(const QString &errorMessage, bool reconnect)
+void EnginePrivate::_q_handleLiveError(const QString &errorMessage, const QString &type, bool reconnect)
 {
 	Q_Q(Engine);
 	qCCritical(logEngine).noquote() << ErrorType::LiveSync << errorMessage;
@@ -508,9 +508,9 @@ void EnginePrivate::_q_syncDone(const QString &type)
 	statemachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
 }
 
-void EnginePrivate::_q_downloadedData(const QList<CloudData> &data, bool liveSyncData)
+void EnginePrivate::_q_downloadedData(const QString &type, const QList<CloudData> &data)
 {
-	if (liveSyncData) {
+	if (true) {  // TODO
 		if (statemachine->isActive(QStringLiteral("SignedIn"))) {
 			// store any data from livesync, as long as signed in
 			lsDataQueue.append(data);

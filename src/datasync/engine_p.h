@@ -82,7 +82,7 @@ public:
 						const QString &errorMessage,
 						const QVariant &errorData);
 	void _q_handleNetError(const QString &errorMessage);
-	void _q_handleLiveError(const QString &errorMessage, bool reconnect);
+	void _q_handleLiveError(const QString &errorMessage, const QString &type, bool reconnect);
 	// authenticator
 	void _q_signInSuccessful(const QString &userId, const QString &idToken);
 	void _q_accountDeleted(bool success);
@@ -90,7 +90,7 @@ public:
 	void _q_triggerSync(bool uploadOnly);
 	// connector
 	void _q_syncDone(const QString &type);
-	void _q_downloadedData(const QList<CloudData> &data, bool liveSyncData);
+	void _q_downloadedData(const QString &type, const QList<CloudData> &data);
 	void _q_uploadedData(const ObjectKey &key, const QDateTime &modified);
 	void _q_triggerCloudSync(const QString &type);
 	void _q_removedTable(const QString &type);

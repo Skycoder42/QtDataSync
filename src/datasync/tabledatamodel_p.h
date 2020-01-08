@@ -34,22 +34,33 @@ private /*scripts*/:
 	void uploadData();
 
 	void switchMode();
+	std::optional<QDateTime> lastSync() const;
+
+	void cancelLiveSync();
+	void cancelPassiveSync();
+	void cancelUpload();
+	void cancelAll();
 
 private Q_SLOTS:
 	// watcher
 	void triggerUpload(const QString &type);
 	// connector
-	void downloadedData(const QList<CloudData> &data);
+	void downloadedData(const QString &type, const QList<CloudData> &data);
 	void syncDone(const QString &type);
 	void uploadedData(const ObjectKey &key, const QDateTime &modified);
 	void triggerDownload(const QString &type);
 	// transformer
 	void transformDownloadDone(const LocalData &data);
+	void transformUploadDone(const CloudData &data);
 
 private:
 	ICloudTransformer *_transformer = nullptr;
 	DatabaseWatcher *_watcher = nullptr;
 	RemoteConnector *_connector = nullptr;
+
+	RemoteConnector::CancallationToken _liveSyncToken;
+	RemoteConnector::CancallationToken _passiveSyncToken;
+	RemoteConnector::CancallationToken _uploadToken;
 
 	QString _type;
 	QString _escType;

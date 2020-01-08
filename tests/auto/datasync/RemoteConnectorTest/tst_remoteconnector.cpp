@@ -288,7 +288,8 @@ void RemoteConnectorTest::testLiveSync()
 	QSignalSpy errorSpy{_connector, &RemoteConnector::liveSyncError};
 	QVERIFY(errorSpy.isValid());
 
-	_connector->startLiveSync();
+	const auto token = _connector->startLiveSync({}, {});  // TODO
+	QVERIFY(token != RemoteConnector::InvalidToken);
 	QVERIFY(!errorSpy.wait());
 
 	// do an upload -> should trigger a live sync event
@@ -313,7 +314,7 @@ void RemoteConnectorTest::testLiveSync()
 
 	// stop and do again -> nothing
 	data.setModified(QDateTime::currentDateTimeUtc());
-	_connector->stopLiveSync();
+	_connector->cancel(token);
 	_connector->uploadChange(data);
 	VERIFY_SPY(uploadSpy, errorSpy);
 	QVERIFY(!downloadSpy.wait());
