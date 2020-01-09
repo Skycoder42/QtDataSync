@@ -96,7 +96,7 @@ void DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 			qCDebug(logDbWatcher) << "Sync metadata table already exist";
 
 		// step 2: update internal tables
-		ExTransaction transact{_db};
+		ExTransaction transact{_db, name};
 		// step 2.1: create the sync attachment table, if not existant yet
 		const auto escName = tableName(name);
 		const auto escSyncTableName = tableName(syncTableName);
@@ -285,7 +285,7 @@ void DatabaseWatcher::unsyncAllTables()
 	_tables.clear();
 
 	try {
-		ExTransaction transact{_db};
+		ExTransaction transact{_db, {}};
 
 		// step 1: check if metadata table is empty
 		ExQuery checkMetaQuery{_db, ErrorScope::Database, {}};
@@ -321,7 +321,7 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 		removeTable(name, removeRef);
 
 		// step 2: remove all sync stuff
-		ExTransaction transact{_db};
+		ExTransaction transact{_db, name};
 
 		// step 2.1 remove sync metadata
 		ExQuery removeMetaData{_db, ErrorScope::Database, name};
@@ -385,7 +385,7 @@ QStringList DatabaseWatcher::resyncAllTables(Engine::ResyncMode direction)
 void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direction)
 {
 	try {
-		ExTransaction transact{_db};
+		ExTransaction transact{_db, name};
 
 		const auto escName = tableName(name);
 		const auto escSyncName = tableName(name, true);
@@ -468,13 +468,9 @@ std::optional<QDateTime> DatabaseWatcher::lastSync(const QString &tableName)
 			return lastSyncQuery.value(0).toDateTime().toUTC();
 		else
 			return QDateTime{}.toUTC();
-	} catch (QSqlError &error) {
-		qCCritical(logDbWatcher) << "Failed to fetch change data for table" << tableName
-								 << "with error:" << qUtf8Printable(error.text());
-		Q_EMIT databaseError(ErrorScope::Database,
-							 tr("Failed to get last synced time for table %1").arg(tableName),
-							 MetaTable,
-							 error);
+	} catch (SqlException &error) {
+		qCCritical(logDbWatcher) << error.what();
+		error.emitFor(this);
 		return std::nullopt;
 	}
 }
@@ -483,7 +479,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 {
 	const auto key = data.key();
 	try {
-		ExTransaction transact{_db};
+		ExTransaction transact{_db, key};
 
 		// retrieve the primary key
 		const auto pKey = getPKey(key.typeName);
@@ -573,7 +569,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 {
 	try {
-		ExTransaction transact{_db};
+		ExTransaction transact{_db, name};
 
 		const auto pKey = getPKey(name);
 
@@ -694,7 +690,7 @@ QString DatabaseWatcher::getPKey(const QString &table)
 	getPKeyQuery.addBindValue(table);
 	getPKeyQuery.exec();
 	if (!getPKeyQuery.first())
-		throw SqlException{ErrorScope::Database, MetaTable, {}};
+		throw SqlException{ErrorScope::Database, table, {}};
 
 	const auto fName = fieldName(getPKeyQuery.value(0).toString());
 	_pKeyCache.insert(table, fName);
@@ -838,11 +834,12 @@ void ExQuery::exec(const QString &query)
 
 ExTransaction::ExTransaction() = default;
 
-ExTransaction::ExTransaction(QSqlDatabase db) :
-	_db{db}
+ExTransaction::ExTransaction(QSqlDatabase db, QVariant key) :
+	_db{db},
+	_key{std::move(key)}
 {
 	if (!_db->transaction())
-		throw SqlException{ErrorScope::System, {}, _db->lastError()};
+		throw SqlException{ErrorScope::System, _key, _db->lastError()};
 }
 
 ExTransaction::ExTransaction(ExTransaction &&other) noexcept :
@@ -864,7 +861,7 @@ ExTransaction::~ExTransaction()
 void ExTransaction::commit()
 {
 	if (!_db->commit())
-		throw SqlException{ErrorScope::System, {}, _db->lastError()};
+		throw SqlException{ErrorScope::System, _key, _db->lastError()};
 	_db.reset();
 }
 

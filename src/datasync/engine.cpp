@@ -463,14 +463,14 @@ void EnginePrivate::_q_handleNetError(const QString &errorMessage)
 void EnginePrivate::_q_handleLiveError(const QString &errorMessage, const QString &type, bool reconnect)
 {
 	Q_Q(Engine);
-	qCCritical(logEngine).noquote() << ErrorType::LiveSync << errorMessage;
+	qCCritical(logEngine).noquote() << ErrorType::LiveSyncHard << errorMessage;
 	if (reconnect) {
 		++lsErrorCount;
 		activateLiveSync();
 	} else {
 		// emit error and disable live sync
 		q->setLiveSyncEnabled(false);
-		Q_EMIT q->errorOccured(ErrorType::LiveSync, errorMessage, {});
+		Q_EMIT q->errorOccured(ErrorType::LiveSyncHard, errorMessage, {});
 	}
 }
 

@@ -268,11 +268,11 @@ void RemoteConnector::streamClosed(const QString &type, const CancallationToken 
 	case QNetworkReply::UnknownServerError:
 	// stopped by user -> abort was called -> soft reconnect
 	case QNetworkReply::OperationCanceledError:
-		Q_EMIT liveSyncError(tr("Live-synchronization connection broken, trying to reconnect…"), type, true);
+		Q_EMIT liveSyncError(tr("Live-synchronization connection broken with recoverable error!"), type, true);
 		break;
 	// inacceptable error codes that indicate a hard failure
 	default:
-		Q_EMIT liveSyncError(tr("Live-synchronization disabled because of network error!"), type, false);
+		Q_EMIT liveSyncError(tr("Live-synchronization connection broken with unrecoverable error!"), type, false);
 		break;
 	}
 }

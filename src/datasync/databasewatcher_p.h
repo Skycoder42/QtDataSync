@@ -157,7 +157,7 @@ public:
 	using ErrorScope = DatabaseWatcher::ErrorScope;
 
 	ExTransaction();
-	ExTransaction(QSqlDatabase db);
+	ExTransaction(QSqlDatabase db, QVariant key);
 	ExTransaction(ExTransaction &&other) noexcept;
 	ExTransaction &operator=(ExTransaction &&other) noexcept;
 	~ExTransaction();
@@ -167,6 +167,7 @@ public:
 
 private:
 	std::optional<QSqlDatabase> _db;
+	QVariant _key;
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logDbWatcher)

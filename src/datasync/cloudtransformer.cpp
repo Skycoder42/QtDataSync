@@ -42,18 +42,26 @@ ICloudTransformer::ICloudTransformer(QObjectPrivate &dd, QObject *parent) :
 
 void ISynchronousCloudTransformer::transformUpload(const LocalData &data)
 {
-	if (data.data())
-		Q_EMIT transformUploadDone({escapeKey(data.key()), transformUploadSync(*data.data()), data});
-	else
-		Q_EMIT transformUploadDone({escapeKey(data.key()), std::nullopt, data});
+	try {
+		if (data.data())
+			Q_EMIT transformUploadDone({escapeKey(data.key()), transformUploadSync(*data.data()), data});
+		else
+			Q_EMIT transformUploadDone({escapeKey(data.key()), std::nullopt, data});
+	} catch (QString &error) {
+		Q_EMIT transformError(data.key(), error);
+	}
 }
 
 void ISynchronousCloudTransformer::transformDownload(const CloudData &data)
 {
-	if (data.data())
-		Q_EMIT transformDownloadDone({unescapeKey(data.key()), transformDownloadSync(*data.data()), data});
-	else
-		Q_EMIT transformDownloadDone({unescapeKey(data.key()), std::nullopt, data});
+	try {
+		if (data.data())
+			Q_EMIT transformDownloadDone({unescapeKey(data.key()), transformDownloadSync(*data.data()), data});
+		else
+			Q_EMIT transformDownloadDone({unescapeKey(data.key()), std::nullopt, data});
+	} catch (QString &error) {
+		Q_EMIT transformError(unescapeKey(data.key()), error);
+	}
 }
 
 ISynchronousCloudTransformer::ISynchronousCloudTransformer(QObject *parent) :

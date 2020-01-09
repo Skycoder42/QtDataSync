@@ -73,6 +73,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void transformUploadDone(const CloudData &data);
 	void transformDownloadDone(const LocalData &data);
+	void transformError(const ObjectKey &key, const QString &message);
 
 protected:
 	explicit ICloudTransformer(QObject *parent = nullptr);
@@ -89,8 +90,8 @@ protected:
 	explicit ISynchronousCloudTransformer(QObject *parent = nullptr);
 	ISynchronousCloudTransformer(QObjectPrivate &dd, QObject *parent = nullptr);
 
-	virtual QJsonObject transformUploadSync(const QVariantHash &data) const = 0;
-	virtual QVariantHash transformDownloadSync(const QJsonObject &data) const = 0;
+	virtual QJsonObject transformUploadSync(const QVariantHash &data) const = 0;  // throws QString
+	virtual QVariantHash transformDownloadSync(const QJsonObject &data) const = 0;  // throws QString
 };
 
 class PlainCloudTransformerPrivate;

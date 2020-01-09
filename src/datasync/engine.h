@@ -42,12 +42,16 @@ public:
 	Q_DECLARE_FLAGS(ResyncMode, ResyncFlag)
 
 	enum class ErrorType {
-		Network,
-		LiveSync,
+		Network = 0,
+		LiveSyncSoft,
+		LiveSyncHard,
 		Entry,
 		Table,
 		Database,
-		System
+		System,
+		Transform,
+
+		Unknown = -1
 	};
 	Q_ENUM(ErrorType)
 

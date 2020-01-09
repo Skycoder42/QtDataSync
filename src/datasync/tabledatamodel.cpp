@@ -1,18 +1,73 @@
 #include "tabledatamodel_p.h"
+#include <cmath>
 #include <QtScxml/QScxmlStateMachine>
 using namespace QtDataSync;
+using namespace std::chrono;
+using namespace std::chrono_literals;
 
 TableDataModel::TableDataModel(QObject *parent) :
-	QScxmlCppDataModel{parent}
-{}
-
-void TableDataModel::setup(...)
+	QScxmlCppDataModel{parent},
+	_lsRestartTimer{new QTimer{this}}
 {
-	// TODO IMPLEMENT
-	Q_UNIMPLEMENTED();
+	_lsRestartTimer->setSingleShot(true);
+	_lsRestartTimer->setTimerType(Qt::VeryCoarseTimer);
+	connect(_lsRestartTimer, &QTimer::timeout,
+			this, [this]() {
+				stateMachine()->submitEvent(QStringLiteral("continueLiveSync"));
+			});
 }
 
-void TableDataModel::triggerDownload()
+void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteConnector *connector, ICloudTransformer *transformer)
+{
+	Q_ASSERT_X(!stateMachine()->isRunning(), Q_FUNC_INFO, "setupModel must be called before the statemachine is started");
+	_type = std::move(type);
+	_escType = transformer->escapeType(_type);
+
+	_watcher = watcher;
+	connect(_watcher, &DatabaseWatcher::triggerSync,
+			this, &TableDataModel::triggerUpload);
+	connect(_watcher, &DatabaseWatcher::databaseError,
+			this, &TableDataModel::databaseError);
+
+	_connector = connector;
+	connect(_connector, &RemoteConnector::downloadedData,
+			this, &TableDataModel::downloadedData);
+	connect(_connector, &RemoteConnector::syncDone,
+			this, &TableDataModel::syncDone);
+	connect(_connector, &RemoteConnector::uploadedData,
+			this, &TableDataModel::uploadedData);
+	connect(_connector, &RemoteConnector::triggerSync,
+			this, &TableDataModel::triggerDownload);
+	connect(_connector, &RemoteConnector::networkError,
+			this, &TableDataModel::networkError);
+	connect(_connector, &RemoteConnector::liveSyncError,
+			this, &TableDataModel::liveSyncError);
+
+	_transformer = transformer;
+	connect(_transformer, &ICloudTransformer::transformDownloadDone,
+			this, &TableDataModel::transformDownloadDone);
+	connect(_transformer, &ICloudTransformer::transformUploadDone,
+			this, &TableDataModel::transformUploadDone);
+	connect(_transformer, &ICloudTransformer::transformError,
+			this, &TableDataModel::transformError);
+}
+
+bool TableDataModel::isLiveSyncEnabled() const
+{
+	return _liveSync;
+}
+
+void TableDataModel::start()
+{
+	stateMachine()->submitEvent(QStringLiteral("start"));
+}
+
+void TableDataModel::stop()
+{
+	stateMachine()->submitEvent(QStringLiteral("stop"));
+}
+
+void TableDataModel::triggerSync()
 {
 	stateMachine()->submitEvent(QStringLiteral("triggerSync"));
 }
@@ -23,6 +78,8 @@ void TableDataModel::setLiveSyncEnabled(bool liveSyncEnabled)
 		return;
 
 	_liveSync = liveSyncEnabled;
+	Q_EMIT liveSyncEnabledChanged(_liveSync);
+
 	if (!stateMachine()->isActive(QStringLiteral("Init")))
 		switchMode();
 }
@@ -37,7 +94,7 @@ void TableDataModel::initSync()
 
 void TableDataModel::initLiveSync()
 {
-	cancelLiveSync();
+	cancelLiveSync(false);
 	if (const auto tStamp = lastSync(); tStamp)
 		_liveSyncToken = _connector->startLiveSync(_type, *tStamp);
 }
@@ -68,6 +125,18 @@ void TableDataModel::uploadData()
 		stateMachine()->submitEvent(QStringLiteral("syncReady"));  // no more table table -> done
 }
 
+void TableDataModel::emitError()
+{
+	for (const auto &error : qAsConst(_errors))
+		Q_EMIT errorOccured(error.type, error.message, error.data);
+	_errors.clear();
+}
+
+void TableDataModel::scheduleLsRestart()
+{
+	_lsRestartTimer->start(seconds{static_cast<qint64>(std::pow(5, _lsErrorCnt - 1))});
+}
+
 void TableDataModel::switchMode()
 {
 	if (_liveSync)
@@ -91,12 +160,14 @@ std::optional<QDateTime> TableDataModel::lastSync() const
 		return tStamp;
 }
 
-void TableDataModel::cancelLiveSync()
+void TableDataModel::cancelLiveSync(bool resetErrorCount)
 {
 	if (_liveSyncToken != RemoteConnector::InvalidToken) {
 		_connector->cancel(_liveSyncToken);
 		_liveSyncToken = RemoteConnector::InvalidToken;
 	}
+	if (resetErrorCount)
+		_lsErrorCnt = 0;
 }
 
 void TableDataModel::cancelPassiveSync()
@@ -128,6 +199,42 @@ void TableDataModel::triggerUpload(const QString &type)
 		stateMachine()->submitEvent(QStringLiteral("triggerUpload"));
 }
 
+void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QString &message, const QVariant &key, const QSqlError &sqlError)
+{
+	// filter signal, as multiple statemachines may use the same watcher
+	ErrorInfo error;
+	switch (scope) {
+	case DatabaseWatcher::ErrorScope::Entry:
+		if (key.value<ObjectKey>().typeName == _type)
+			error.type = Engine::ErrorType::Entry;
+		break;
+	case DatabaseWatcher::ErrorScope::Table:
+		if (key.toString() == _type)
+			error.type = Engine::ErrorType::Table;
+		break;
+	case DatabaseWatcher::ErrorScope::Database:
+		if (const auto keyStr = key.toString();
+			keyStr.isEmpty() || keyStr == _type)
+			error.type = Engine::ErrorType::Database;
+		break;
+	case DatabaseWatcher::ErrorScope::System:
+		if ((key.userType() == QMetaType::QString && key.toString() == _type) ||
+			(key.userType() == qMetaTypeId<ObjectKey>() && key.value<ObjectKey>().typeName == _type))
+			error.type = Engine::ErrorType::System;
+		break;
+	}
+
+	if (error.type != Engine::ErrorType::Unknown) {
+		error.message = message;
+		error.data = QVariantMap {
+			{QStringLiteral("key"), key},
+			{QStringLiteral("sqlError"), QVariant::fromValue(sqlError)}
+		};
+		_errors.append(error);
+		stateMachine()->submitEvent(QStringLiteral("error"));
+	}
+}
+
 void TableDataModel::downloadedData(const QString &type, const QList<CloudData> &data)
 {
 	if (type == _escType) {
@@ -142,6 +249,7 @@ void TableDataModel::syncDone(const QString &type)
 {
 	if (type == _escType) {
 		_passiveSyncToken = RemoteConnector::InvalidToken;
+		_lsErrorCnt = 0;
 		stateMachine()->submitEvent(QStringLiteral("dlReady"));
 	}
 }
@@ -163,6 +271,36 @@ void TableDataModel::triggerDownload(const QString &type)
 	}
 }
 
+void TableDataModel::networkError(const QString &error, const QString &type)
+{
+	if (type == _escType) {
+		_errors.append({
+			Engine::ErrorType::Network,
+			error,
+			type
+		});
+		stateMachine()->submitEvent(QStringLiteral("error"));
+	}
+}
+
+void TableDataModel::liveSyncError(const QString &error, const QString &type, bool reconnect)
+{
+	if (type == _escType) {
+		_liveSyncToken = RemoteConnector::InvalidToken;
+		if (reconnect && _lsErrorCnt++ < 3) {
+			Q_EMIT errorOccured(Engine::ErrorType::LiveSyncSoft,
+								error + tr(" Reconnecting (attempt %n)…", "", _lsErrorCnt),
+								type);
+			stateMachine()->submitEvent(QStringLiteral("lsError"));
+		} else {
+			setLiveSyncEnabled(false);  // disable livesync for this table
+			Q_EMIT errorOccured(Engine::ErrorType::LiveSyncHard,
+								error + tr(" Live-synchronization has been disabled!"),
+								type);
+		}
+	}
+}
+
 void TableDataModel::transformDownloadDone(const LocalData &data)
 {
 	if (data.key().typeName == _type && stateMachine()->isActive(QStringLiteral("Active"))) {
@@ -175,4 +313,16 @@ void TableDataModel::transformUploadDone(const CloudData &data)
 {
 	if (data.key().typeName == _escType && stateMachine()->isActive(QStringLiteral("Active")))
 		_uploadToken = _connector->uploadChange(data);
+}
+
+void TableDataModel::transformError(const ObjectKey &key, const QString &message)
+{
+	if (key.typeName == _type) {
+		_errors.append({
+			Engine::ErrorType::Transform,
+			message,
+			key
+		});
+		stateMachine()->submitEvent(QStringLiteral("error"));
+	}
 }
