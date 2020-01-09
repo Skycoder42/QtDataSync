@@ -7,10 +7,10 @@ HEADERS += \
 	authenticator_p.h \
 	cloudtransformer.h \
 	cloudtransformer_p.h \
-	databaseproxy_p.h \
 	databasewatcher_p.h \
 	engine.h \
 	engine_p.h \
+	enginedatamodel_p.h \
 	exception.h \
 	firebase/firebaseapibase_p.h \
 	firebase/realtimedb/querymap_p.h \
@@ -26,9 +26,9 @@ HEADERS += \
 SOURCES += \
 	authenticator.cpp \
 	cloudtransformer.cpp \
-	databaseproxy.cpp \
 	databasewatcher.cpp \
 	engine.cpp \
+	enginedatamodel.cpp \
 	exception.cpp \
 	firebase/firebaseapibase.cpp \
 	firebase/realtimedb/querymap.cpp \
@@ -52,9 +52,10 @@ REST_API_FILES += \
 	firebase/realtimedb/realtimedb_api.xml \
 	firebase/realtimedb/realtimedb_error.xml
 
+QSCXMLC_NAMESPACE = QtDataSync
 STATECHARTS += \
-	enginestatemachine.scxml \
-	tablestatemachine.scxml
+	enginestatemachine_p.scxml \
+	tablestatemachine_p.scxml
 
 INCLUDEPATH += \
 	firebase \

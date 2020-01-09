@@ -375,11 +375,10 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 	}
 }
 
-QStringList DatabaseWatcher::resyncAllTables(Engine::ResyncMode direction)
+void DatabaseWatcher::resyncAllTables(Engine::ResyncMode direction)
 {
 	for (auto it = _tables.keyBegin(); it != _tables.keyEnd(); ++it)
 		resyncTable(*it, direction);
-	return _tables.keys();
 }
 
 void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direction)
@@ -443,6 +442,15 @@ void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direct
 		}
 
 		transact.commit();
+
+		// emit signals
+		if (direction.testFlag(Engine::ResyncFlag::ClearServerData))
+			Q_EMIT triggerResync(name, true);
+		else if (direction.testFlag(Engine::ResyncFlag::Download))
+			Q_EMIT triggerResync(name, false);
+		else if (direction.testFlag(Engine::ResyncFlag::Upload) ||
+				 direction.testFlag(Engine::ResyncFlag::CheckLocalData))
+			Q_EMIT triggerSync(name);
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
 		throw TableException {
@@ -772,9 +780,9 @@ QString SqlException::message() const
 			.arg(_key.isNull() ?
 					QString{} :
 					DatabaseWatcher::tr(" (Accessing for %1)").arg(_key.toString()));
-	case ErrorScope::System:
+	case ErrorScope::Transaction:
 		return DatabaseWatcher::tr("An SQL error occured, unable to synchronize data! "
-								   "Try restarting the engine or re-synchronize all tables.");
+								   "Try restarting the engine or re-synchronize all tables.");  // TODO change message
 	default:
 		Q_UNREACHABLE();
 	}
@@ -839,7 +847,7 @@ ExTransaction::ExTransaction(QSqlDatabase db, QVariant key) :
 	_key{std::move(key)}
 {
 	if (!_db->transaction())
-		throw SqlException{ErrorScope::System, _key, _db->lastError()};
+		throw SqlException{ErrorScope::Transaction, _key, _db->lastError()};
 }
 
 ExTransaction::ExTransaction(ExTransaction &&other) noexcept :
@@ -861,7 +869,7 @@ ExTransaction::~ExTransaction()
 void ExTransaction::commit()
 {
 	if (!_db->commit())
-		throw SqlException{ErrorScope::System, _key, _db->lastError()};
+		throw SqlException{ErrorScope::Transaction, _key, _db->lastError()};
 	_db.reset();
 }
 

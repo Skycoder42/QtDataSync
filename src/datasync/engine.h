@@ -24,8 +24,6 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 	Q_PROPERTY(IAuthenticator* authenticator READ authenticator CONSTANT)
 	Q_PROPERTY(ICloudTransformer* transformer READ transformer CONSTANT)
 
-	Q_PROPERTY(bool liveSyncEnabled READ isLiveSyncEnabled WRITE setLiveSyncEnabled NOTIFY liveSyncEnabledChanged)
-
 public:
 	enum class ResyncFlag {
 		Upload = 0x01,
@@ -48,7 +46,7 @@ public:
 		Entry,
 		Table,
 		Database,
-		System,
+		Transaction,
 		Transform,
 
 		Unknown = -1
@@ -100,7 +98,6 @@ public:
 
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
-	bool isLiveSyncEnabled() const;
 
 public Q_SLOTS:
 	void start();
@@ -110,32 +107,22 @@ public Q_SLOTS:
 
 	void triggerSync();
 
-	void setLiveSyncEnabled(bool liveSyncEnabled);
-
 Q_SIGNALS:
 	void errorOccured(ErrorType type,
 					  const QString &errorMessage,
 					  const QVariant &errorData,
 					  QPrivateSignal = {});
 
-	void liveSyncEnabledChanged(bool liveSyncEnabled, QPrivateSignal = {});
-
 private:
 	friend class Setup;
 	Q_DECLARE_PRIVATE(Engine)
 
-	Q_PRIVATE_SLOT(d_func(), void _q_handleError(ErrorType, const QString &, const QVariant &))
-	Q_PRIVATE_SLOT(d_func(), void _q_handleNetError(const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_handleLiveError(const QString &, const QString &, bool))
 	Q_PRIVATE_SLOT(d_func(), void _q_signInSuccessful(const QString &, const QString &))
 	Q_PRIVATE_SLOT(d_func(), void _q_accountDeleted(bool))
-	Q_PRIVATE_SLOT(d_func(), void _q_triggerSync(bool))
-	Q_PRIVATE_SLOT(d_func(), void _q_syncDone(const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_downloadedData(const QString &, const QList<CloudData> &))
-	Q_PRIVATE_SLOT(d_func(), void _q_uploadedData(const ObjectKey &, const QDateTime &))
-	Q_PRIVATE_SLOT(d_func(), void _q_triggerCloudSync(const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_transformDownloadDone(const LocalData &))
 	Q_PRIVATE_SLOT(d_func(), void _q_removedUser())
+	Q_PRIVATE_SLOT(d_func(), void _q_handleNetError(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_tableAdded(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_tableRemoved(const QString &))
 
 	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
 };

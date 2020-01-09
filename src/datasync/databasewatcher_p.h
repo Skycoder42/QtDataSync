@@ -29,7 +29,7 @@ public:
 		Entry = static_cast<int>(Engine::ErrorType::Entry),
 		Table = static_cast<int>(Engine::ErrorType::Table),
 		Database = static_cast<int>(Engine::ErrorType::Database),
-		System = static_cast<int>(Engine::ErrorType::System)
+		Transaction = static_cast<int>(Engine::ErrorType::Transaction)
 	};
 	Q_ENUM(ErrorScope)
 
@@ -67,7 +67,7 @@ public:
 	void unsyncAllTables();
 	void unsyncTable(const QString &name, bool removeRef = true);
 
-	QStringList resyncAllTables(Engine::ResyncMode direction);
+	void resyncAllTables(Engine::ResyncMode direction);
 	void resyncTable(const QString &name, Engine::ResyncMode direction);
 
 	// sync functions
@@ -80,6 +80,7 @@ Q_SIGNALS:
 	void tableAdded(const QString &tableName, QPrivateSignal = {});
 	void tableRemoved(const QString &tableName, QPrivateSignal = {});
 	void triggerSync(const QString &tableName, QPrivateSignal = {});
+	void triggerResync(const QString &tableName, bool deleteTable, QPrivateSignal = {});
 
 	void databaseError(ErrorScope scope,
 					   const QString &message,

@@ -5,6 +5,8 @@ using namespace QtDataSync;
 using namespace std::chrono;
 using namespace std::chrono_literals;
 
+// TODO test if <assign> scxml works, or if script workaround is needed
+
 TableDataModel::TableDataModel(QObject *parent) :
 	QScxmlCppDataModel{parent},
 	_lsRestartTimer{new QTimer{this}}
@@ -26,6 +28,8 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 	_watcher = watcher;
 	connect(_watcher, &DatabaseWatcher::triggerSync,
 			this, &TableDataModel::triggerUpload);
+	connect(_watcher, &DatabaseWatcher::triggerResync,
+			this, &TableDataModel::triggerResync);
 	connect(_watcher, &DatabaseWatcher::databaseError,
 			this, &TableDataModel::databaseError);
 
@@ -137,6 +141,12 @@ void TableDataModel::scheduleLsRestart()
 	_lsRestartTimer->start(seconds{static_cast<qint64>(std::pow(5, _lsErrorCnt - 1))});
 }
 
+void TableDataModel::delTable()
+{
+	Q_ASSERT_X(_passiveSyncToken == RemoteConnector::InvalidToken, Q_FUNC_INFO, "_passiveSyncToken should be invalid");
+	_passiveSyncToken = _connector->removeTable(_escType);
+}
+
 void TableDataModel::switchMode()
 {
 	if (_liveSync)
@@ -191,12 +201,25 @@ void TableDataModel::cancelAll()
 	cancelPassiveSync();
 	cancelLiveSync();
 	cancelUpload();
+	_cachedLastSync = {};
+	_syncQueue.clear();
 }
 
 void TableDataModel::triggerUpload(const QString &type)
 {
 	if (type == _type)
 		stateMachine()->submitEvent(QStringLiteral("triggerUpload"));
+}
+
+void TableDataModel::triggerResync(const QString &type, bool deleteTable)
+{
+	if (type == _type) {
+		if (deleteTable) {
+			_delTable = true;
+			stateMachine()->submitEvent(QStringLiteral("delTable"));
+		} else
+			stateMachine()->submitEvent(QStringLiteral("triggerSync"));
+	}
 }
 
 void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QString &message, const QVariant &key, const QSqlError &sqlError)
@@ -217,10 +240,10 @@ void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QStr
 			keyStr.isEmpty() || keyStr == _type)
 			error.type = Engine::ErrorType::Database;
 		break;
-	case DatabaseWatcher::ErrorScope::System:
+	case DatabaseWatcher::ErrorScope::Transaction:
 		if ((key.userType() == QMetaType::QString && key.toString() == _type) ||
 			(key.userType() == qMetaTypeId<ObjectKey>() && key.value<ObjectKey>().typeName == _type))
-			error.type = Engine::ErrorType::System;
+			error.type = Engine::ErrorType::Transaction;
 		break;
 	}
 
@@ -268,6 +291,14 @@ void TableDataModel::triggerDownload(const QString &type)
 	if (type == _escType) {
 		_uploadToken = RemoteConnector::InvalidToken;
 		stateMachine()->submitEvent(QStringLiteral("triggerSync"));
+	}
+}
+
+void TableDataModel::removedTable(const QString &type)
+{
+	if (type == _escType) {
+		_passiveSyncToken = RemoteConnector::InvalidToken;
+		stateMachine()->submitEvent(QStringLiteral("delTableDone"));
 	}
 }
 

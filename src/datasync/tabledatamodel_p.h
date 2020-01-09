@@ -54,6 +54,7 @@ private /*scripts*/:
 	void uploadData();
 	void emitError();
 	void scheduleLsRestart();
+	void delTable();
 
 	void switchMode();
 	std::optional<QDateTime> lastSync() const;
@@ -66,6 +67,7 @@ private /*scripts*/:
 private Q_SLOTS:
 	// watcher
 	void triggerUpload(const QString &type);
+	void triggerResync(const QString &type, bool deleteTable);
 	void databaseError(DatabaseWatcher::ErrorScope scope,
 					   const QString &message,
 					   const QVariant &key,
@@ -75,6 +77,7 @@ private Q_SLOTS:
 	void syncDone(const QString &type);
 	void uploadedData(const ObjectKey &key, const QDateTime &modified);
 	void triggerDownload(const QString &type);
+	void removedTable(const QString &type);
 	void networkError(const QString &error, const QString &type);
 	void liveSyncError(const QString &error, const QString &type, bool reconnect);
 	// transformer
@@ -89,9 +92,9 @@ private:
 		QVariant data;
 	};
 
-	DatabaseWatcher *_watcher = nullptr;
-	RemoteConnector *_connector = nullptr;
-	ICloudTransformer *_transformer = nullptr;
+	DatabaseWatcher *_watcher = nullptr; // TODO QPointer
+	RemoteConnector *_connector = nullptr; // TODO QPointer
+	ICloudTransformer *_transformer = nullptr; // TODO QPointer
 
 	RemoteConnector::CancallationToken _liveSyncToken = RemoteConnector::InvalidToken;
 	RemoteConnector::CancallationToken _passiveSyncToken = RemoteConnector::InvalidToken;
@@ -109,6 +112,7 @@ private:
 
 	// statemachine variables
 	bool _liveSync = false;
+	bool _delTable = false;
 	bool _dlReady = true;
 	bool _procReady = true;
 };

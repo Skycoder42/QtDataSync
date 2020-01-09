@@ -5,7 +5,7 @@
 #include "authenticator.h"
 
 #include "setup_p.h"
-#include "databaseproxy_p.h"
+#include "databasewatcher_p.h"
 #include "remoteconnector_p.h"
 
 #ifndef QTDATASYNC_NO_NTP
@@ -16,7 +16,9 @@
 #include <QtCore/QQueue>
 #include <QtCore/QLoggingCategory>
 
-#include "enginestatemachine.h"
+#include "enginestatemachine_p.h"
+#include "tablestatemachine_p.h"
+#include "tabledatamodel_p.h"
 
 #include <QtCore/private/qobject_p.h>
 
@@ -31,26 +33,13 @@ public:
 	using ResyncFlag = Engine::ResyncFlag;
 	using ResyncMode = Engine::ResyncMode;
 
-	struct ErrorInfo {
-		ErrorType type;
-		QString message;
-		QVariant data;
-	};
-
 	QScopedPointer<SetupPrivate> setup;
-	bool liveSyncEnabled = true;
 
-	EngineStateMachine *statemachine = nullptr;
-	DatabaseProxy *dbProxy = nullptr;
 	RemoteConnector *connector = nullptr;
+	EngineStateMachine *engineMachine = nullptr;
+	QHash<QString, TableStateMachine*> tableMachines;
 
-	QQueue<CloudData> dlDataQueue;
-	QQueue<CloudData> lsDataQueue;
-	QHash<QString, QDateTime> dlLastSync;
-	QQueue<QString> delTableQueue;
-
-	std::optional<ErrorInfo> lastError;
-	quint32 lsErrorCount = 0;
+	QHash<QString, DatabaseWatcher*> watchers;
 
 #ifndef QTDATASYNC_NO_NTP
 	NtpSync *ntpSync = nullptr;
@@ -58,45 +47,27 @@ public:
 
 	static const SetupPrivate *setupFor(const Engine *engine);
 
+	DatabaseWatcher *getWatcher(QSqlDatabase &&database);
+	void dropWatcher(const QString &dbName);
+
 	void setupConnections();
 	void setupStateMachine();
-
-	void resyncNotify(const QString &name, ResyncMode direction);
-	void activateLiveSync();
 
 	void onEnterError();
 	void onEnterActive();
 	void onEnterSignedIn();
 	void onExitSignedIn();
-	void onEnterDelTables();
-	void onEnterDownloading();
-	void onEnterDlRunning();
-	void onEnterProcRunning();
-	void onEnterDlReady();
-	void onEnterUploading();
-	void onEnterLsRunning();
-	void onEnterDeletingAcc();
 
-	// global
-	void _q_handleError(ErrorType type,
-						const QString &errorMessage,
-						const QVariant &errorData);
+	// common
 	void _q_handleNetError(const QString &errorMessage);
-	void _q_handleLiveError(const QString &errorMessage, const QString &type, bool reconnect);
 	// authenticator
 	void _q_signInSuccessful(const QString &userId, const QString &idToken);
 	void _q_accountDeleted(bool success);
-	// dbProxy
-	void _q_triggerSync(bool uploadOnly);
 	// connector
-	void _q_syncDone(const QString &type);
-	void _q_downloadedData(const QString &type, const QList<CloudData> &data);
-	void _q_uploadedData(const ObjectKey &key, const QDateTime &modified);
-	void _q_triggerCloudSync(const QString &type);
-	void _q_removedTable(const QString &type);
 	void _q_removedUser();
-	// transformer
-	void _q_transformDownloadDone(const LocalData &data);
+	// watchers
+	void _q_tableAdded(const QString &name);
+	void _q_tableRemoved(const QString &name);
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logEngine)
