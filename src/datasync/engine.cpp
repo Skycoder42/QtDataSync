@@ -1,15 +1,18 @@
 #include "engine.h"
 #include "engine_p.h"
+#include "enginedatamodel_p.h"
+#include "tabledatamodel_p.h"
 using namespace QtDataSync;
+namespace sph = std::placeholders;
 
 Q_LOGGING_CATEGORY(QtDataSync::logEngine, "qt.datasync.Engine")
 
-void Engine::syncDatabase(const QString &databaseConnection, bool autoActivateSync, bool addAllTables)
+void Engine::syncDatabase(const QString &databaseConnection, bool autoActivateSync, bool enableLiveSync, bool addAllTables)
 {
-	return syncDatabase(QSqlDatabase::database(databaseConnection, true), autoActivateSync, addAllTables);
+	return syncDatabase(QSqlDatabase::database(databaseConnection, true), autoActivateSync, enableLiveSync, addAllTables);
 }
 
-void Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool addAllTables)
+void Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool enableLiveSync, bool addAllTables)
 {
 	Q_D(Engine);
 	if (!database.isOpen())
@@ -17,22 +20,22 @@ void Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool add
 
 	auto watcher = d->getWatcher(std::move(database));
 	if (autoActivateSync)
-		watcher->reactivateTables();
+		watcher->reactivateTables(enableLiveSync);
 	if (addAllTables)
-		watcher->addAllTables();
+		watcher->addAllTables(enableLiveSync);
 }
 
-void Engine::syncTable(const QString &table, const QString &databaseConnection, const QStringList &fields, const QString &primaryKeyType)
+void Engine::syncTable(const QString &table, bool enableLiveSync, const QString &databaseConnection, const QStringList &fields, const QString &primaryKeyType)
 {
-	return syncTable(table, QSqlDatabase::database(databaseConnection, true), fields, primaryKeyType);
+	return syncTable(table, enableLiveSync, QSqlDatabase::database(databaseConnection, true), fields, primaryKeyType);
 }
 
-void Engine::syncTable(const QString &table, QSqlDatabase database, const QStringList &fields, const QString &primaryKeyType)
+void Engine::syncTable(const QString &table, bool enableLiveSync, QSqlDatabase database, const QStringList &fields, const QString &primaryKeyType)
 {
 	Q_D(Engine);
 	if (!database.isOpen())
 		throw TableException{{}, QStringLiteral("Database not open"), database.lastError()};
-	d->getWatcher(std::move(database))->addTable(table, fields, primaryKeyType);
+	d->getWatcher(std::move(database))->addTable(table, enableLiveSync, fields, primaryKeyType);
 }
 
 void Engine::removeDatabaseSync(const QString &databaseConnection, bool deactivateSync)
@@ -90,8 +93,6 @@ void Engine::resyncDatabase(ResyncMode direction, const QString &databaseConnect
 void Engine::resyncDatabase(ResyncMode direction, QSqlDatabase database)
 {
 	Q_D(Engine);
-	if (d->engineMachine->isActive(QStringLiteral("Synchronizing")))  // TODO change
-		throw TableException{{}, tr("Cannot resync database while already synchronizing"), {}};
 	d->getWatcher(std::move(database))->resyncAllTables(direction);
 }
 
@@ -103,9 +104,16 @@ void Engine::resyncTable(const QString &table, ResyncMode direction, const QStri
 void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabase database)
 {
 	Q_D(Engine);
-	if (d->engineMachine->isActive(QStringLiteral("Synchronizing")))
-		throw TableException{table, tr("Cannot resync table while already synchronizing"), {}};
 	d->getWatcher(std::move(database))->resyncTable(table, direction);
+}
+
+bool Engine::isLiveSyncEnabled(const QString &table) const
+{
+	Q_D(const Engine);
+	if (const auto tm = d->tableMachines.value(table); tm.second)
+		return tm.second->isLiveSyncEnabled();
+	else
+		return false;
 }
 
 IAuthenticator *Engine::authenticator() const
@@ -133,33 +141,47 @@ void Engine::start()
 	}
 #endif
 
-	d->engineMachine->submitEvent(QStringLiteral("start"));
+	d->engineModel->start();
 }
 
 void Engine::stop()
 {
 	Q_D(Engine);
-	d->engineMachine->submitEvent(QStringLiteral("stop"));
+	d->engineModel->stop();
 }
 
 void Engine::logOut()
 {
 	Q_D(Engine);
-	d->setup->authenticator->logOut();
-	d->engineMachine->submitEvent(QStringLiteral("loggedOut")); // prompts the user to sign in again, but only if already running
+	d->engineModel->logOut();
 }
 
 void Engine::deleteAccount()
 {
 	Q_D(Engine);
-	d->engineMachine->submitEvent(QStringLiteral("deleteAcc"));
+	d->engineModel->deleteAccount();
 }
 
-void Engine::triggerSync()
+void Engine::triggerSync(bool reconnectLiveSync)
 {
 	Q_D(Engine);
-	for (const auto &sm : d->tableMachines)
-		static_cast<TableDataModel*>(sm->dataModel())->triggerSync();
+	for (const auto &tm : d->tableMachines)
+		tm.second->triggerSync(reconnectLiveSync);
+}
+
+void Engine::setLiveSyncEnabled(bool liveSyncEnabled)
+{
+	Q_D(Engine);
+	for (auto it = d->tableMachines.keyBegin(), end = d->tableMachines.keyEnd(); it != end; ++it)
+		setLiveSyncEnabled(*it, liveSyncEnabled);
+}
+
+void Engine::setLiveSyncEnabled(const QString &table, bool liveSyncEnabled)
+{
+	Q_D(Engine);
+	auto tm = d->tableMachines.value(table);
+	if (tm.second)
+		tm.second->setLiveSyncEnabled(liveSyncEnabled);
 }
 
 Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
@@ -170,11 +192,7 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	d->setup->finializeForEngine(this);
 
 	d->connector = new RemoteConnector{this};
-	d->engineMachine = new EngineStateMachine{this};
-	d->setupConnections();
 	d->setupStateMachine();
-	d->engineMachine->start();
-	qCDebug(logEngine) << "Started engine statemachine";
 }
 
 
@@ -190,13 +208,25 @@ DatabaseWatcher *EnginePrivate::getWatcher(QSqlDatabase &&database)
 	auto watcherIt = watchers.find(database.connectionName());
 	if (watcherIt == watchers.end()) {
 		auto watcher = new DatabaseWatcher{std::move(database), q};
+		// enforce direct connections, must be handled as part of the add/remove in the watcher
 		connect(watcher, &DatabaseWatcher::tableAdded,
-				this, &EnginePrivate::_q_tableAdded);
+				this, &EnginePrivate::_q_tableAdded,
+				Qt::DirectConnection);
 		connect(watcher, &DatabaseWatcher::tableRemoved,
-				this, &EnginePrivate::_q_tableRemoved);
+				this, &EnginePrivate::_q_tableRemoved,
+				Qt::DirectConnection);
 		watcherIt = watchers.insert(database.connectionName(), watcher);
 	}
 	return *watcherIt;
+}
+
+DatabaseWatcher *EnginePrivate::findWatcher(const QString &name)
+{
+	for (const auto watcher : qAsConst(watchers)) {
+		if (watcher->hasTable(name))
+			return watcher;
+	}
+	return nullptr;
 }
 
 void EnginePrivate::dropWatcher(const QString &dbName)
@@ -209,340 +239,150 @@ void EnginePrivate::dropWatcher(const QString &dbName)
 	}
 }
 
-void EnginePrivate::setupConnections()
-{
-	// authenticator <-> engine
-	connect(setup->authenticator, &IAuthenticator::signInSuccessful,
-			this, &EnginePrivate::_q_signInSuccessful);
-	connect(setup->authenticator, &IAuthenticator::signInFailed,
-			this, &EnginePrivate::_q_handleNetError);
-	connect(setup->authenticator, &IAuthenticator::accountDeleted,
-			this, &EnginePrivate::_q_accountDeleted);
-
-	// rmc <-> engine
-	connect(connector, &RemoteConnector::removedUser,
-			this, &EnginePrivate::_q_removedUser);
-	connect(connector, &RemoteConnector::networkError,
-			this, &EnginePrivate::_q_handleNetError);
-}
-
 void EnginePrivate::setupStateMachine()
 {
 	Q_Q(Engine);
+	engineMachine = new EngineStateMachine{q};
 	if (!engineMachine->init())
 		throw SetupException{QStringLiteral("Failed to initialize statemachine!")};
+	engineModel = static_cast<EngineDataModel*>(engineMachine->dataModel());
+	Q_ASSERT(engineModel);
 
-	// --- states ---
-	// # Error
-	engineMachine->connectToState(QStringLiteral("Error"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterError, this)));
-	// # Active
-	engineMachine->connectToState(QStringLiteral("Active"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterActive, this)));
-	// ## SigningIn
-	engineMachine->connectToState(QStringLiteral("SigningIn"),
-								 QScxmlStateMachine::onEntry(setup->authenticator, &IAuthenticator::signIn));
-	// ## SignedIn
-	engineMachine->connectToState(QStringLiteral("SignedIn"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterSignedIn, this)));
-	engineMachine->connectToState(QStringLiteral("SignedIn"), q,
-								 QScxmlStateMachine::onExit(std::bind(&EnginePrivate::onExitSignedIn, this)));
-	// ### DelTables
-	engineMachine->connectToState(QStringLiteral("DelTables"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDelTables, this)));
-	// ### Synchronizing
-	// #### Downloading
-	engineMachine->connectToState(QStringLiteral("Downloading"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDownloading, this)));
-	// ##### DlFiber
-	// ###### DlRunning
-	engineMachine->connectToState(QStringLiteral("DlRunning"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDlRunning, this)));
-	// ##### ProcFiber
-	// ###### ProcRunning
-	engineMachine->connectToState(QStringLiteral("ProcRunning"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterProcRunning, this)));
-	// #### DlReady
-	engineMachine->connectToState(QStringLiteral("DlReady"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDlReady, this)));
-	// #### Uploading
-	engineMachine->connectToState(QStringLiteral("Uploading"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
-	// ### LiveSync
-	// #### LsFiber
-	// ##### LsRunning
-	engineMachine->connectToState(QStringLiteral("LsRunning"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterLsRunning, this)));
-	// #### UlFiber
-	// ##### UlRunning
-	engineMachine->connectToState(QStringLiteral("UlRunning"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterUploading, this)));
-	// ## DeletingAcc
-	engineMachine->connectToState(QStringLiteral("DeletingAcc"), q,
-								 QScxmlStateMachine::onEntry(std::bind(&EnginePrivate::onEnterDeletingAcc, this)));
+	connect(engineModel, &EngineDataModel::startTableSync,
+			this, &EnginePrivate::_q_startTableSync);
+	connect(engineModel, &EngineDataModel::stopTableSync,
+			this, &EnginePrivate::_q_stopTableSync);
+	connect(engineModel, &EngineDataModel::errorOccured,
+			this, &EnginePrivate::_q_errorOccured);
+	engineModel->setupModel(setup->authenticator, connector);
 
 	// --- debug states ---
-	QObject::connect(engineMachine, &QScxmlStateMachine::reachedStableState, q, [this]() {
-		qCDebug(logEngine) << "Statemachine reached stable state:" << engineMachine->activeStateNames(false);
-	});
-}
-
-void EnginePrivate::resyncNotify(const QString &name, EnginePrivate::ResyncMode direction)
-{
-	if (direction.testFlag(ResyncFlag::ClearServerData)) {
-		delTableQueue.enqueue(name);
-		engineMachine->submitEvent(QStringLiteral("delTable"));  // only does something if synchronized
+	if (logEngine().isDebugEnabled()) {
+		QObject::connect(engineMachine, &QScxmlStateMachine::reachedStableState, q, [this]() {
+			qCDebug(logEngine) << "Statemachine reached stable state:" << engineMachine->activeStateNames(false);
+		});
 	}
 
-	if (direction.testFlag(ResyncFlag::Download))
-		dbProxy->markTableDirty(name, DatabaseProxy::Type::Cloud);
-
-	if (direction.testFlag(ResyncFlag::Upload) ||
-		direction.testFlag(ResyncFlag::CheckLocalData))
-		dbProxy->markTableDirty(name, DatabaseProxy::Type::Local);
+	engineMachine->start();
+	qCDebug(logEngine) << "Started engine statemachine";
 }
 
-void EnginePrivate::activateLiveSync()
+void EnginePrivate::_q_startTableSync()
 {
-	if (liveSyncEnabled && engineMachine->isActive(QStringLiteral("SignedIn"))) {
-		// TODO connector->startLiveSync();
-		dbProxy->fillDirtyTables(DatabaseProxy::Type::Cloud);
-		engineMachine->submitEvent(QStringLiteral("forceSync"));
+	for (const auto &tm : qAsConst(tableMachines))
+		tm.second->start();
+}
+
+void EnginePrivate::_q_stopTableSync()
+{
+	for (auto it = tableMachines.constBegin(), end = tableMachines.constEnd(); it != end; ++it) {
+		if (it->second->isRunning())
+			stopCache.insert(it.key());
+		it->second->stop();
 	}
 }
 
-void EnginePrivate::onEnterError()
+void EnginePrivate::_q_errorOccured(const ErrorInfo &info)
 {
 	Q_Q(Engine);
-	if (lastError) {
-		auto mData = *std::move(lastError);
-		lastError.reset();
-		Q_EMIT q->errorOccured(mData.type, mData.message, mData.data);
-	} else
-		engineMachine->submitEvent(QStringLiteral("stop"));  // no error -> just enter stopped instead
+	Q_EMIT q->errorOccured(info.type, info.message, info.data);
 }
 
-void EnginePrivate::onEnterActive()
-{
-	// prepopulate all tables as dirty, so that when sync starts, all are updated
-	dbProxy->fillDirtyTables(DatabaseProxy::Type::Both);
-}
-
-void EnginePrivate::onEnterSignedIn()
-{
-	activateLiveSync();
-}
-
-void EnginePrivate::onExitSignedIn()
-{
-	// TODO connector->stopLiveSync();
-	dlDataQueue.clear();
-	lsDataQueue.clear();
-	dlLastSync.clear();
-	delTableQueue.clear();
-}
-
-void EnginePrivate::onEnterDelTables()
-{
-	if (!delTableQueue.isEmpty())
-		connector->removeTable(setup->transformer->escapeType(delTableQueue.head()));
-	else
-		engineMachine->submitEvent(QStringLiteral("delDone"));
-}
-
-void EnginePrivate::onEnterDownloading()
-{
-	dlDataQueue.clear();
-	dlLastSync.clear();
-}
-
-void EnginePrivate::onEnterDlRunning()
-{
-	if (auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Cloud); dtInfo) {
-		const auto escKey = setup->transformer->escapeType(dtInfo->first);
-		QDateTime tStamp;
-		if (auto dlStamp = dlLastSync.value(escKey); dlStamp.isValid()) {
-			if (dtInfo->second.isValid())
-				tStamp = std::max(dtInfo->second, dlStamp);
-			else
-				tStamp = std::move(dlStamp);
-		} else
-			tStamp = std::move(dtInfo->second);
-		connector->getChanges(escKey, tStamp);  // has dirty table -> download it (uses latest stored or cached timestamp)
-	} else
-		engineMachine->submitEvent(QStringLiteral("dlReady"));  // done with dowloading
-}
-
-void EnginePrivate::onEnterProcRunning()
-{
-	if (!dlDataQueue.isEmpty())
-		setup->transformer->transformDownload(dlDataQueue.dequeue());
-	else
-		engineMachine->submitEvent(QStringLiteral("procReady"));  // done with dowloading
-}
-
-void EnginePrivate::onEnterDlReady()
-{
-	if (liveSyncEnabled)
-		engineMachine->submitEvent(QStringLiteral("triggerLiveSync"));  // enter active live sync
-	else
-		engineMachine->submitEvent(QStringLiteral("triggerUpload"));  // enter "normal" upload
-}
-
-void EnginePrivate::onEnterUploading()
-{
-	forever {
-		if (const auto dtInfo = dbProxy->nextDirtyTable(DatabaseProxy::Type::Local); dtInfo) {
-			if (const auto data = dbProxy->call(&DatabaseWatcher::loadData, dtInfo->first); data)
-				setup->transformer->transformUpload(*data);
-			else {
-				dbProxy->clearDirtyTable(dtInfo->first, DatabaseProxy::Type::Local);
-				continue;
-			}
-		} else
-			engineMachine->submitEvent(QStringLiteral("syncReady"));  // no data left -> leave sync state and stay idle
-		break;
-	}
-}
-
-void EnginePrivate::onEnterLsRunning()
-{
-	if (!lsDataQueue.isEmpty())
-		setup->transformer->transformDownload(lsDataQueue.dequeue());
-	else
-		engineMachine->submitEvent(QStringLiteral("procReady"));  // done with dowloading
-}
-
-void EnginePrivate::onEnterDeletingAcc()
-{
-	connector->removeUser();
-}
-
-void EnginePrivate::_q_handleNetError(const QString &errorMessage)
-{
-	_q_handleError(ErrorType::Network, errorMessage, {});
-}
-
-void EnginePrivate::_q_handleError(ErrorType type, const QString &errorMessage, const QVariant &errorData)
-{
-	if (!lastError)
-		lastError = {type, errorMessage, errorData};
-	qCCritical(logEngine).noquote() << type << errorMessage << errorData;
-	engineMachine->submitEvent(QStringLiteral("error"));
-}
-
-void EnginePrivate::_q_handleLiveError(const QString &errorMessage, const QString &type, bool reconnect)
+void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 {
 	Q_Q(Engine);
-	qCCritical(logEngine).noquote() << ErrorType::LiveSyncHard << errorMessage;
-	if (reconnect) {
-		++lsErrorCount;
-		activateLiveSync();
-	} else {
-		// emit error and disable live sync
-		q->setLiveSyncEnabled(false);
-		Q_EMIT q->errorOccured(ErrorType::LiveSyncHard, errorMessage, {});
+	const auto watcher = qobject_cast<DatabaseWatcher*>(q->sender());
+	Q_ASSERT(watcher);
+
+	auto machine = new TableStateMachine{q};
+	if (!machine->init()) {
+		_q_tableErrorOccured(name, {
+								 ErrorType::Table,
+								 Engine::tr("Failed to initialize processor"),
+								 {}
+							 });
+		return;
 	}
-}
 
-void EnginePrivate::_q_signInSuccessful(const QString &userId, const QString &idToken)
-{
-	if (!connector->isActive())
-		connector->setUser(userId);
-	connector->setIdToken(idToken);
-	engineMachine->submitEvent(QStringLiteral("signedIn"));  // continue syncing, but has no effect if only token refresh
-}
+	auto model = static_cast<TableDataModel*>(machine->dataModel());
+	Q_ASSERT(model);
+	connect(model, &TableDataModel::errorOccured,
+			this, &EnginePrivate::_q_tableErrorOccured);
+	connect(model, &TableDataModel::stopped,
+			this, &EnginePrivate::_q_tableStopped);
+	QObject::connect(model, &TableDataModel::liveSyncEnabledChanged,
+					 q, std::bind(&Engine::liveSyncEnabledChanged, (Engine*)q, name, sph::_1, Engine::QPrivateSignal{}));
 
-void EnginePrivate::_q_accountDeleted(bool success)
-{
-	if (success) {
-		dbProxy->resetAll();
-		engineMachine->submitEvent(QStringLiteral("stop"));
-	} else {
-		lastError = {ErrorType::Network, Engine::tr("Failed to delete user from authentication server"), {}};
-		engineMachine->submitEvent(QStringLiteral("error"));
-	}
-}
+	model->setupModel(name, watcher, connector, setup->transformer);
+	machine->start();
 
-void EnginePrivate::_q_triggerSync(bool uploadOnly)
-{
-	// TODO send other signal or not in live sync active
-	if (uploadOnly)
-		engineMachine->submitEvent(QStringLiteral("triggerUpload"));  // does nothing if already syncing
-	else
-		engineMachine->submitEvent(QStringLiteral("triggerSync"));  // does nothing if already syncing
-}
-
-void EnginePrivate::_q_syncDone(const QString &type)
-{
-	dbProxy->clearDirtyTable(setup->transformer->unescapeType(type), DatabaseProxy::Type::Cloud);
-	engineMachine->submitEvent(QStringLiteral("dlContinue"));  // enters dl state again and downloads next table
-}
-
-void EnginePrivate::_q_downloadedData(const QString &type, const QList<CloudData> &data)
-{
-	if (true) {  // TODO
-		if (engineMachine->isActive(QStringLiteral("SignedIn"))) {
-			// store any data from livesync, as long as signed in
-			lsDataQueue.append(data);
-			if (engineMachine->isActive(QStringLiteral("LiveSync")))  // only process data in LiveSync state
-				engineMachine->submitEvent(QStringLiteral("dataReady"));
-		} else
-			qCDebug(logEngine) << "Ignoring livesync data in invalid state";
-	} else {
-		if (engineMachine->isActive(QStringLiteral("Downloading"))) {
-			if (!data.isEmpty()) {
-				dlDataQueue.append(data);
-				const auto ldata = data.last();
-				dlLastSync.insert(ldata.key().typeName, ldata.uploaded());
-			}
-			engineMachine->submitEvent(QStringLiteral("dataReady"));  // starts data processing if not already running
-		} else
-			qCDebug(logEngine) << "Ignoring downloaded data in invalid state";
-	}
-}
-
-void EnginePrivate::_q_uploadedData(const ObjectKey &key, const QDateTime &modified)
-{
-	dbProxy->call(&DatabaseWatcher::markUnchanged, setup->transformer->unescapeKey(key), modified);
-	engineMachine->submitEvent(QStringLiteral("ulContinue"));  // always send ulContinue, the onEntry will decide if there is data end exit if not
-}
-
-void EnginePrivate::_q_triggerCloudSync(const QString &type)
-{
-	// happens only while uploading -> ignore in live sync (as live sync gets changes anyway)
-	if (!engineMachine->isActive(QStringLiteral("LiveSync")))
-		dbProxy->markTableDirty(setup->transformer->unescapeType(type), DatabaseProxy::Type::Cloud);
-}
-
-void EnginePrivate::_q_removedTable(const QString &type)
-{
-	if (!delTableQueue.isEmpty() && delTableQueue.head() == setup->transformer->unescapeType(type))
-		delTableQueue.dequeue();
-	engineMachine->submitEvent(QStringLiteral("delContinue"));
-}
-
-void EnginePrivate::_q_removedUser()
-{
-	setup->authenticator->deleteUser();
-}
-
-void EnginePrivate::_q_tableAdded(const QString &name)
-{
-
+	tableMachines.insert(name, std::make_pair(machine, model));
+	model->setLiveSyncEnabled(liveSync);
+	if (engineModel->isSyncActive())
+		model->start();
 }
 
 void EnginePrivate::_q_tableRemoved(const QString &name)
 {
-
+	auto tm = tableMachines.take(name);
+	if (tm.second->isRunning())
+		tm.second->stop();
+	else {
+		tm.first->stop();
+		tm.first->deleteLater();
+	}
 }
 
-void EnginePrivate::_q_transformDownloadDone(const LocalData &data)
+void EnginePrivate::_q_tableStopped(const QString &table)
 {
-	if (engineMachine->isActive(QStringLiteral("Downloading")) ||
-		engineMachine->isActive(QStringLiteral("LiveSync"))) {
-		dbProxy->call(&DatabaseWatcher::storeData, data);
-		engineMachine->submitEvent(QStringLiteral("procContinue"));  // starts processing of the next downloaded data
+	Q_Q(Engine);
+	// stopped after table remove -> delete the machine
+	if (!tableMachines.contains(table)) {
+		auto model = qobject_cast<TableDataModel*>(q->sender());
+		Q_ASSERT(model);
+		auto sm = model->stateMachine();
+		sm->stop();
+		sm->deleteLater();
+	}
+
+	if (stopCache.remove(table) && stopCache.isEmpty())
+		engineModel->allTablesStopped();
+}
+
+void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &info)
+{
+	Q_Q(Engine);
+	// TODO special treatment for network and live hard sync error -> reconnect on net state change?!?
+	switch (info.type) {
+	// global errors that need the engine to be stopped
+	case Engine::ErrorType::Unknown:	// better safe then sorry
+	case Engine::ErrorType::Network:	// network errors prevent syncing, until network is back
+	case Engine::ErrorType::Database:	// affects the whole database -> stop syncing
+		engineModel->cancel(info);
+		break;
+	// local errors that only affect certain datasets, tables or even nothing
+	case Engine::ErrorType::Table:
+		// table errors disable sync for that table, but do NOT stop the engine
+		if (const auto watcher = findWatcher(table); watcher)
+			watcher->dropTable(table);
+		Q_FALLTHROUGH();
+	case Engine::ErrorType::LiveSyncSoft:	// automatically reconnected
+	case Engine::ErrorType::LiveSyncHard:	// will have automatically disabled live sync before this slot already
+	case Engine::ErrorType::Entry:			// has been marked corrupted
+	case Engine::ErrorType::Transform:		// has been marked corrupted
+		Q_EMIT q->errorOccured(info.type, info.message, info.data);
+		break;
+	// special errors
+	case Engine::ErrorType::Transaction:
+		// transaction errors are temporary -> restart table sync (but still report the error)
+		if (const auto tm = tableMachines.value(table); tm.second) {
+			tm.second->stop();
+			tm.second->start();
+		}
+		Q_EMIT q->errorOccured(info.type, info.message, info.data);
+		break;
+	default:
+		Q_UNREACHABLE();
 	}
 }
 

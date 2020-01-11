@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	DbWatcherTest \
 	RemoteConnectorTest \
-	StatemachineTest \
+#	StatemachineTest \
 	TestLib
 
 RemoteConnectorTest.depends += TestLib

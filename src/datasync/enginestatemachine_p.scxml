@@ -2,26 +2,30 @@
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" name="EngineStateMachine" qt:editorversion="4.11.0" datamodel="cplusplus:QtDataSync::EngineDataModel:enginedatamodel_p.h" initial="Inactive">
     <qt:editorinfo initialGeometry="-101.65;-87.42;-20;-20;40;40"/>
     <state id="Inactive">
-        <qt:editorinfo geometry="-101.65;36.66;-60;-50;120;100" scenegeometry="-101.65;36.66;-161.65;-13.34;120;100"/>
+        <qt:editorinfo scenegeometry="-101.65;36.66;-161.65;-13.34;120;100" geometry="-101.65;36.66;-60;-50;120;100"/>
         <transition type="external" event="start" target="Active">
-            <qt:editorinfo startTargetFactors="84.49;23.67" movePoint="7.13;8.15" endTargetFactors="5;10.24"/>
+            <qt:editorinfo endTargetFactors="5;10.24" movePoint="7.13;8.15" startTargetFactors="84.49;23.67"/>
         </transition>
     </state>
     <state id="Error">
-        <qt:editorinfo geometry="-101.65;199.61;-60;-50;120;100" scenegeometry="-101.65;199.61;-161.65;149.61;120;100"/>
+        <qt:editorinfo scenegeometry="-37.83;208.24;-185.47;158.24;167.64;100" geometry="-37.83;208.24;-147.64;-50;167.64;100"/>
         <transition type="external" event="start" target="Active">
-            <qt:editorinfo movePoint="-4.19;9.77" endTargetFactors="2.35;54.50"/>
+            <qt:editorinfo endTargetFactors="2.35;54.50" movePoint="-4.19;9.77"/>
         </transition>
-        <transition type="external" event="stop" target="Inactive">
+        <transition type="external" event="stop" target="Inactive" cond="!hasError()">
             <qt:editorinfo movePoint="42.83;10.08"/>
         </transition>
+        <onentry>
+            <script>emitError();</script>
+        </onentry>
+        <transition type="internal" event="stop" cond="hasError()"/>
     </state>
     <state id="Active">
-        <qt:editorinfo geometry="-183.19;354.98;278.28;-457.87;546.54;433.84" scenegeometry="-183.19;354.98;95.09;-102.89;546.54;433.84"/>
+        <qt:editorinfo scenegeometry="-183.19;354.98;95.09;-102.97;546.54;435.15" geometry="-183.19;354.98;278.28;-457.95;546.54;435.15"/>
         <state id="SigningIn">
-            <qt:editorinfo geometry="429.17;-339.48;-127.33;-50;133.04;100" scenegeometry="245.98;15.50;118.65;-34.50;133.04;100"/>
+            <qt:editorinfo scenegeometry="245.98;15.50;118.65;-34.50;133.04;100" geometry="429.17;-339.48;-127.33;-50;133.04;100"/>
             <transition type="external" event="signedIn" target="SignedIn">
-                <qt:editorinfo startTargetFactors="34.48;83.39" movePoint="-36.28;2.79" endTargetFactors="9.60;6.97"/>
+                <qt:editorinfo endTargetFactors="9.60;6.97" movePoint="-36.28;2.79" startTargetFactors="34.48;83.39"/>
             </transition>
             <transition type="external" event="stop" target="Final_6">
                 <qt:editorinfo movePoint="8.07;8.07"/>
@@ -31,7 +35,7 @@
             </onentry>
         </state>
         <state id="DeletingAcc">
-            <qt:editorinfo geometry="744.82;-341.84;-60;-50;120;100" scenegeometry="561.63;13.14;501.63;-36.86;120;100"/>
+            <qt:editorinfo scenegeometry="561.63;13.14;501.63;-36.86;120;100" geometry="744.82;-341.84;-60;-50;120;100"/>
             <transition type="external" event="stop" target="Final_6">
                 <qt:editorinfo movePoint="5.87;-22.10"/>
             </transition>
@@ -43,39 +47,45 @@
             </onexit>
         </state>
         <transition type="external" event="done.state.Active" target="Inactive" cond="!hasError()">
-            <qt:editorinfo startTargetFactors="3.41;50.09" movePoint="6.97;18.14" endTargetFactors="83.70;67.72"/>
+            <qt:editorinfo endTargetFactors="83.70;67.72" movePoint="6.97;18.14" startTargetFactors="3.41;50.09"/>
         </transition>
         <transition type="external" event="done.state.Active" target="Error" cond="hasError()">
-            <qt:editorinfo startTargetFactors="2.86;94.79" movePoint="-8.37;18.14" endTargetFactors="83.70;77.61"/>
+            <qt:editorinfo endTargetFactors="83.70;77.61" movePoint="-8.37;18.14" startTargetFactors="2.86;94.79"/>
         </transition>
         <final id="Final_6">
-            <qt:editorinfo geometry="568.97;-341.03;-20;-20;40;40" scenegeometry="385.78;13.95;365.78;-6.05;40;40"/>
+            <qt:editorinfo scenegeometry="385.78;13.95;365.78;-6.05;40;40" geometry="568.97;-341.03;-20;-20;40;40"/>
         </final>
         <state id="SignedIn">
-            <qt:editorinfo geometry="349.41;-179.40;-50.70;-56.90;504.79;192.27" scenegeometry="166.22;175.58;115.52;118.68;504.79;192.27"/>
+            <qt:editorinfo scenegeometry="166.66;176.81;115.96;119.91;504.79;192.27" geometry="349.85;-178.17;-50.70;-56.90;504.79;192.27"/>
             <state id="TableSync">
-                <qt:editorinfo geometry="29.30;44.64;-60;-50;191.17;120.73" scenegeometry="195.52;220.22;135.52;170.22;191.17;120.73"/>
+                <qt:editorinfo scenegeometry="195.96;221.45;135.96;171.45;191.17;120.73" geometry="29.30;44.64;-60;-50;191.17;120.73"/>
                 <transition type="external" event="stop" target="Stopping">
                     <qt:editorinfo movePoint="4.19;9.77"/>
                 </transition>
+                <onentry>
+                    <script>Q_EMIT startTableSync();</script>
+                </onentry>
             </state>
             <state id="Stopping">
-                <qt:editorinfo geometry="274.07;57.21;-60;-50;120;100" scenegeometry="440.29;232.79;380.29;182.79;120;100"/>
+                <qt:editorinfo scenegeometry="440.73;234.02;380.73;184.02;120;100" geometry="274.07;57.21;-60;-50;120;100"/>
                 <transition type="external" event="stopped" target="Final_5">
                     <qt:editorinfo movePoint="5.58;9.77"/>
                 </transition>
+                <onentry>
+                    <script>Q_EMIT stopTableSync();</script>
+                </onentry>
             </state>
             <final id="Final_5">
-                <qt:editorinfo geometry="414.09;57.79;-20;-20;40;40" scenegeometry="580.31;233.37;560.31;213.37;40;40"/>
+                <qt:editorinfo scenegeometry="580.75;234.60;560.75;214.60;40;40" geometry="414.09;57.79;-20;-20;40;40"/>
             </final>
             <transition type="external" event="done.state.SignedIn" target="DeletingAcc" cond="_stopEv == StopEvent::DeleteAcc">
-                <qt:editorinfo startTargetFactors="86.41;8.25" movePoint="-42.33;28.92" endTargetFactors="44.06;84.84"/>
+                <qt:editorinfo endTargetFactors="44.06;84.84" movePoint="-42.33;28.92" startTargetFactors="86.41;8.25"/>
             </transition>
             <transition type="external" event="done.state.SignedIn" target="SigningIn" cond="_stopEv == StopEvent::LogOut">
-                <qt:editorinfo startTargetFactors="21.41;10.55" movePoint="88.62;27.97" endTargetFactors="82.43;77.63"/>
+                <qt:editorinfo endTargetFactors="82.43;77.63" movePoint="88.62;27.97" startTargetFactors="21.41;10.55"/>
             </transition>
             <transition type="external" event="done.state.SignedIn" target="Final_6" cond="_stopEv == StopEvent::Stop">
-                <qt:editorinfo startTargetFactors="53.91;10.26" movePoint="-41.86;-22.52"/>
+                <qt:editorinfo movePoint="-41.86;-22.52" startTargetFactors="53.91;10.26"/>
             </transition>
         </state>
     </state>

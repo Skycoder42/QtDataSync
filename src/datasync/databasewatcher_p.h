@@ -56,10 +56,14 @@ public:
 	// setup functions
 	bool hasTables() const;
 	QStringList tables() const;
+	bool hasTable(const QString &name) const;
 
-	void reactivateTables();
-	void addAllTables(QSql::TableType type = QSql::Tables);
-	void addTable(const QString &name, const QStringList &fields = {}, QString primaryType = {});
+	void reactivateTables(bool liveSync);
+	void addAllTables(bool liveSync, QSql::TableType type = QSql::Tables);
+	void addTable(const QString &name, bool liveSync, const QStringList &fields = {}, QString primaryType = {});
+
+	void dropAllTables();
+	void dropTable(const QString &name, bool removeRef = true);
 
 	void removeAllTables();
 	void removeTable(const QString &name, bool removeRef = true);
@@ -75,9 +79,10 @@ public:
 	void storeData(const LocalData &data);
 	std::optional<LocalData> loadData(const QString &name);
 	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
+	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
 
 Q_SIGNALS:
-	void tableAdded(const QString &tableName, QPrivateSignal = {});
+	void tableAdded(const QString &tableName, bool liveSync, QPrivateSignal = {});
 	void tableRemoved(const QString &tableName, QPrivateSignal = {});
 	void triggerSync(const QString &tableName, QPrivateSignal = {});
 	void triggerResync(const QString &tableName, bool deleteTable, QPrivateSignal = {});
@@ -104,7 +109,6 @@ private:
 	QString fieldName(const QString &field) const;
 
 	QString getPKey(const QString &table);
-	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
 	void updateLastSync(const QString &table, const QDateTime &uploaded);
 };
 

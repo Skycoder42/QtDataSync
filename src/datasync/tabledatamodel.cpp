@@ -56,6 +56,11 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::transformError);
 }
 
+bool TableDataModel::isRunning() const
+{
+	return !stateMachine()->isActive(QStringLiteral("Stopped"));
+}
+
 bool TableDataModel::isLiveSyncEnabled() const
 {
 	return _liveSync;
@@ -71,8 +76,10 @@ void TableDataModel::stop()
 	stateMachine()->submitEvent(QStringLiteral("stop"));
 }
 
-void TableDataModel::triggerSync()
+void TableDataModel::triggerSync(bool force)
 {
+	if (force)
+		stateMachine()->submitEvent(QStringLiteral("forceSync"));
 	stateMachine()->submitEvent(QStringLiteral("triggerSync"));
 }
 
@@ -132,7 +139,7 @@ void TableDataModel::uploadData()
 void TableDataModel::emitError()
 {
 	for (const auto &error : qAsConst(_errors))
-		Q_EMIT errorOccured(error.type, error.message, error.data);
+		Q_EMIT errorOccured(_type, error);
 	_errors.clear();
 }
 
@@ -217,15 +224,17 @@ void TableDataModel::triggerResync(const QString &type, bool deleteTable)
 		if (deleteTable) {
 			_delTable = true;
 			stateMachine()->submitEvent(QStringLiteral("delTable"));
-		} else
+		} else {
+			stateMachine()->submitEvent(QStringLiteral("forceSync"));
 			stateMachine()->submitEvent(QStringLiteral("triggerSync"));
+		}
 	}
 }
 
 void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QString &message, const QVariant &key, const QSqlError &sqlError)
 {
 	// filter signal, as multiple statemachines may use the same watcher
-	ErrorInfo error;
+	EnginePrivate::ErrorInfo error;
 	switch (scope) {
 	case DatabaseWatcher::ErrorScope::Entry:
 		if (key.value<ObjectKey>().typeName == _type)
@@ -319,15 +328,19 @@ void TableDataModel::liveSyncError(const QString &error, const QString &type, bo
 	if (type == _escType) {
 		_liveSyncToken = RemoteConnector::InvalidToken;
 		if (reconnect && _lsErrorCnt++ < 3) {
-			Q_EMIT errorOccured(Engine::ErrorType::LiveSyncSoft,
-								error + tr(" Reconnecting (attempt %n)…", "", _lsErrorCnt),
-								type);
+			Q_EMIT errorOccured(_type, {
+									Engine::ErrorType::LiveSyncSoft,
+									error + tr(" Reconnecting (attempt %n)…", "", _lsErrorCnt),
+									type
+								});
 			stateMachine()->submitEvent(QStringLiteral("lsError"));
 		} else {
 			setLiveSyncEnabled(false);  // disable livesync for this table
-			Q_EMIT errorOccured(Engine::ErrorType::LiveSyncHard,
-								error + tr(" Live-synchronization has been disabled!"),
-								type);
+			Q_EMIT errorOccured(_type, {
+									Engine::ErrorType::LiveSyncHard,
+									error + tr(" Live-synchronization has been disabled!"),
+									type
+								});
 		}
 	}
 }
@@ -349,6 +362,7 @@ void TableDataModel::transformUploadDone(const CloudData &data)
 void TableDataModel::transformError(const ObjectKey &key, const QString &message)
 {
 	if (key.typeName == _type) {
+		_watcher->markCorrupted(key, QDateTime::currentDateTimeUtc());
 		_errors.append({
 			Engine::ErrorType::Transform,
 			message,

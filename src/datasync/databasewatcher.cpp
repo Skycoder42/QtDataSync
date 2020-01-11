@@ -34,7 +34,12 @@ QStringList DatabaseWatcher::tables() const
 	return _tables.keys();
 }
 
-void DatabaseWatcher::reactivateTables()
+bool DatabaseWatcher::hasTable(const QString &name) const
+{
+	return _tables.contains(name);
+}
+
+void DatabaseWatcher::reactivateTables(bool liveSync)
 {
 	try {
 		ExQuery getActiveQuery{_db, ErrorScope::Database, {}};
@@ -45,7 +50,7 @@ void DatabaseWatcher::reactivateTables()
 		getActiveQuery.addBindValue(static_cast<int>(TableState::Active));
 		getActiveQuery.exec();
 		while (getActiveQuery.next())
-			addTable(getActiveQuery.value(0).toString());
+			addTable(getActiveQuery.value(0).toString(), liveSync);
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
 		throw TableException {
@@ -56,16 +61,16 @@ void DatabaseWatcher::reactivateTables()
 	}
 }
 
-void DatabaseWatcher::addAllTables(QSql::TableType type)
+void DatabaseWatcher::addAllTables(bool liveSync, QSql::TableType type)
 {
 	for (const auto &table : _db.tables(type)) {
 		if (table.startsWith(QStringLiteral("__qtdatasync_")))
 			continue;
-		addTable(table);
+		addTable(table, liveSync);
 	}
 }
 
-void DatabaseWatcher::addTable(const QString &name, const QStringList &fields, QString primaryType)
+void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QStringList &fields, QString primaryType)
 {
 	const QString syncTableName = TablePrefix + name;
 
@@ -224,13 +229,13 @@ void DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 		// step 2.3: commit transaction
 		transact.commit();
 
-		// step 3: register notification hook for the sync table
+		// step 3: register notification hook for the table
 		_tables.insert(name, fields);
-		if (!_db.driver()->subscribeToNotification(syncTableName))
-			qCWarning(logDbWatcher) << "Unable to register update notification hook for sync table for" << name;  // no hard error, as data is still synced, just not live
+		if (!_db.driver()->subscribeToNotification(name))
+			qCWarning(logDbWatcher) << "Unable to register update notification hook for table" << name;  // no hard error, as data is still synced, just not live
 
 		// step 4: emit signals
-		Q_EMIT tableAdded(name);
+		Q_EMIT tableAdded(name, liveSync);
 		Q_EMIT triggerSync(name);
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
@@ -242,6 +247,21 @@ void DatabaseWatcher::addTable(const QString &name, const QStringList &fields, Q
 	}
 }
 
+void DatabaseWatcher::dropAllTables()
+{
+	for (auto it = _tables.keyBegin(); it != _tables.keyEnd(); ++it)
+		dropTable(*it, false);
+	_tables.clear();
+}
+
+void DatabaseWatcher::dropTable(const QString &name, bool removeRef)
+{
+	_db.driver()->unsubscribeFromNotification(name);
+	if (removeRef)
+		_tables.remove(name);
+	Q_EMIT tableRemoved(name);
+}
+
 void DatabaseWatcher::removeAllTables()
 {
 	for (auto it = _tables.keyBegin(); it != _tables.keyEnd(); ++it)
@@ -251,8 +271,6 @@ void DatabaseWatcher::removeAllTables()
 
 void DatabaseWatcher::removeTable(const QString &name, bool removeRef)
 {
-	_db.driver()->unsubscribeFromNotification(TablePrefix + name);
-
 	try {
 		ExQuery removeMetaData{_db, ErrorScope::Database, name};
 		removeMetaData.prepare(QStringLiteral("UPDATE %1 "
@@ -272,10 +290,7 @@ void DatabaseWatcher::removeTable(const QString &name, bool removeRef)
 		};
 	}
 
-	if (removeRef)
-		_tables.remove(name);
-
-	Q_EMIT tableRemoved(name);
+	dropTable(name, removeRef);
 }
 
 void DatabaseWatcher::unsyncAllTables()
@@ -635,13 +650,30 @@ void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modif
 	}
 }
 
+void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modified)
+{
+	try {
+		ExQuery insertCorruptedQuery{_db, ErrorScope::Table, key.typeName};
+		insertCorruptedQuery.prepare(QStringLiteral("INSERT INTO %1 "
+													"(pkey, tstamp, changed) "
+													"VALUES(?, ?, ?) "
+													"ON CONFLICT(pkey) DO UPDATE "
+													"SET changed = excluded.changed "
+													"WHERE pkey = excluded.pkey;"));
+		insertCorruptedQuery.addBindValue(key.id);
+		insertCorruptedQuery.addBindValue(modified.toUTC());
+		insertCorruptedQuery.addBindValue(static_cast<int>(ChangeState::Corrupted));
+		insertCorruptedQuery.exec();
+	} catch (SqlException &error) {
+		qCCritical(logDbWatcher) << error.what();
+		// do not emit, as it is done by the caller!
+	}
+}
+
 void DatabaseWatcher::dbNotify(const QString &name)
 {
-	if (name.size() <= TablePrefix.size())
-		return;
-	const auto origName = name.mid(TablePrefix.size());
-	if (_tables.contains(origName))
-		Q_EMIT triggerSync(origName);
+	if (_tables.contains(name))
+		Q_EMIT triggerSync(name);
 }
 
 QString DatabaseWatcher::sqlTypeName(const QSqlField &field) const
@@ -703,26 +735,6 @@ QString DatabaseWatcher::getPKey(const QString &table)
 	const auto fName = fieldName(getPKeyQuery.value(0).toString());
 	_pKeyCache.insert(table, fName);
 	return fName;
-}
-
-void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modified)
-{
-	try {
-		ExQuery insertCorruptedQuery{_db, ErrorScope::Table, key.typeName};
-		insertCorruptedQuery.prepare(QStringLiteral("INSERT INTO %1 "
-													"(pkey, tstamp, changed) "
-													"VALUES(?, ?, ?) "
-													"ON CONFLICT(pkey) DO UPDATE "
-													"SET changed = excluded.changed "
-													"WHERE pkey = excluded.pkey;"));
-		insertCorruptedQuery.addBindValue(key.id);
-		insertCorruptedQuery.addBindValue(modified.toUTC());
-		insertCorruptedQuery.addBindValue(static_cast<int>(ChangeState::Corrupted));
-		insertCorruptedQuery.exec();
-	} catch (SqlException &error) {
-		qCCritical(logDbWatcher) << error.what();
-		// do not emit, as it is done by the caller!
-	}
 }
 
 void DatabaseWatcher::updateLastSync(const QString &table, const QDateTime &uploaded)

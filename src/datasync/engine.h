@@ -55,16 +55,20 @@ public:
 
 	void syncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
 					  bool autoActivateSync = true,
+					  bool enableLiveSync = false,
 					  bool addAllTables = false);
 	void syncDatabase(QSqlDatabase database,
 					  bool autoActivateSync = true,
+					  bool enableLiveSync = false,
 					  bool addAllTables = false);
 
 	void syncTable(const QString &table,
+				   bool enableLiveSync = false,
 				   const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
 				   const QStringList &fields = {},
 				   const QString &primaryKeyType = {});
 	void syncTable(const QString &table,
+				   bool enableLiveSync,
 				   QSqlDatabase database,
 				   const QStringList &fields = {},
 				   const QString &primaryKeyType = {});
@@ -96,6 +100,8 @@ public:
 					 ResyncMode direction,
 					 QSqlDatabase database);
 
+	bool isLiveSyncEnabled(const QString &table) const;
+
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
 
@@ -105,9 +111,14 @@ public Q_SLOTS:
 	void logOut();
 	void deleteAccount();
 
-	void triggerSync();
+	void triggerSync(bool reconnectLiveSync = false);
+
+	void setLiveSyncEnabled(bool liveSyncEnabled);
+	void setLiveSyncEnabled(const QString &table,
+							bool liveSyncEnabled);
 
 Q_SIGNALS:
+	void liveSyncEnabledChanged(const QString &table, bool liveSyncEnabled, QPrivateSignal = {});
 	void errorOccured(ErrorType type,
 					  const QString &errorMessage,
 					  const QVariant &errorData,
@@ -117,12 +128,13 @@ private:
 	friend class Setup;
 	Q_DECLARE_PRIVATE(Engine)
 
-	Q_PRIVATE_SLOT(d_func(), void _q_signInSuccessful(const QString &, const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_accountDeleted(bool))
-	Q_PRIVATE_SLOT(d_func(), void _q_removedUser())
-	Q_PRIVATE_SLOT(d_func(), void _q_handleNetError(const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_tableAdded(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_startTableSync())
+	Q_PRIVATE_SLOT(d_func(), void _q_stopTableSync())
+	Q_PRIVATE_SLOT(d_func(), void _q_errorOccured(const EnginePrivate::ErrorInfo &))
+	Q_PRIVATE_SLOT(d_func(), void _q_tableAdded(const QString &, bool))
 	Q_PRIVATE_SLOT(d_func(), void _q_tableRemoved(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_tableStopped(const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_tableErrorOccured(const QString &, const EnginePrivate::ErrorInfo &))
 
 	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
 };

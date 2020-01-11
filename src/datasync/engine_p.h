@@ -18,11 +18,13 @@
 
 #include "enginestatemachine_p.h"
 #include "tablestatemachine_p.h"
-#include "tabledatamodel_p.h"
 
 #include <QtCore/private/qobject_p.h>
 
 namespace QtDataSync {
+
+class EngineDataModel;
+class TableDataModel;
 
 class Q_DATASYNC_EXPORT EnginePrivate : public QObjectPrivate
 {
@@ -33,13 +35,20 @@ public:
 	using ResyncFlag = Engine::ResyncFlag;
 	using ResyncMode = Engine::ResyncMode;
 
+	struct ErrorInfo {
+		ErrorType type = ErrorType::Unknown;
+		QString message;
+		QVariant data;
+	};
+
 	QScopedPointer<SetupPrivate> setup;
-
 	RemoteConnector *connector = nullptr;
-	EngineStateMachine *engineMachine = nullptr;
-	QHash<QString, TableStateMachine*> tableMachines;
-
 	QHash<QString, DatabaseWatcher*> watchers;
+
+	EngineStateMachine *engineMachine = nullptr;
+	QPointer<EngineDataModel> engineModel;
+	QHash<QString, std::pair<TableStateMachine*, QPointer<TableDataModel>>> tableMachines;
+	QSet<QString> stopCache;
 
 #ifndef QTDATASYNC_NO_NTP
 	NtpSync *ntpSync = nullptr;
@@ -48,26 +57,22 @@ public:
 	static const SetupPrivate *setupFor(const Engine *engine);
 
 	DatabaseWatcher *getWatcher(QSqlDatabase &&database);
+	DatabaseWatcher *findWatcher(const QString &name);
 	void dropWatcher(const QString &dbName);
 
-	void setupConnections();
 	void setupStateMachine();
 
-	void onEnterError();
-	void onEnterActive();
-	void onEnterSignedIn();
-	void onExitSignedIn();
-
-	// common
-	void _q_handleNetError(const QString &errorMessage);
-	// authenticator
-	void _q_signInSuccessful(const QString &userId, const QString &idToken);
-	void _q_accountDeleted(bool success);
-	// connector
-	void _q_removedUser();
+	// engine model
+	void _q_startTableSync();
+	void _q_stopTableSync();
+	void _q_errorOccured(const ErrorInfo &info);
 	// watchers
-	void _q_tableAdded(const QString &name);
-	void _q_tableRemoved(const QString &name);
+	void _q_tableAdded(const QString &table, bool liveSync);
+	void _q_tableRemoved(const QString &table);
+	// table model
+	void _q_tableStopped(const QString &table);
+	void _q_tableErrorOccured(const QString &table,
+							  const ErrorInfo &info);
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logEngine)

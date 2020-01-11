@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 		}
-		dsEngine->syncTable(QStringLiteral("Test"), db);
+		dsEngine->syncTable(QStringLiteral("Test"), false, db);
 
 		QQmlApplicationEngine engine;
 		const QUrl url(QStringLiteral("qrc:/main.qml"));

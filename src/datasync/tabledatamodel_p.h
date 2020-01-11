@@ -6,8 +6,10 @@
 #include "cloudtransformer.h"
 #include "databasewatcher_p.h"
 #include "remoteconnector_p.h"
+#include "engine_p.h"
 
 #include <QtCore/QQueue>
+#include <QtCore/QPointer>
 #include <QtCore/QTimer>
 
 #include <QtScxml/QScxmlCppDataModel>
@@ -29,19 +31,20 @@ public:
 					RemoteConnector *connector,
 					ICloudTransformer *transformer);
 
+	bool isRunning() const;
 	bool isLiveSyncEnabled() const;
 
 public Q_SLOTS:
 	void start();
 	void stop();
-	void triggerSync();
+	void triggerSync(bool force);
 
 	void setLiveSyncEnabled(bool liveSyncEnabled);
 
 Q_SIGNALS:
-	void errorOccured(Engine::ErrorType type,
-					  const QString &errorMessage,
-					  const QVariant &errorData,
+	void stopped(const QString &table, QPrivateSignal = {});
+	void errorOccured(const QString &table,
+					  const EnginePrivate::ErrorInfo &info,
 					  QPrivateSignal = {});
 
 	void liveSyncEnabledChanged(bool liveSyncEnabled, QPrivateSignal = {});
@@ -86,15 +89,10 @@ private Q_SLOTS:
 	void transformError(const ObjectKey &key, const QString &message);
 
 private:
-	struct ErrorInfo {
-		Engine::ErrorType type = Engine::ErrorType::Unknown;
-		QString message;
-		QVariant data;
-	};
 
-	DatabaseWatcher *_watcher = nullptr; // TODO QPointer
-	RemoteConnector *_connector = nullptr; // TODO QPointer
-	ICloudTransformer *_transformer = nullptr; // TODO QPointer
+	QPointer<DatabaseWatcher> _watcher;
+	QPointer<RemoteConnector> _connector;
+	QPointer<ICloudTransformer> _transformer;
 
 	RemoteConnector::CancallationToken _liveSyncToken = RemoteConnector::InvalidToken;
 	RemoteConnector::CancallationToken _passiveSyncToken = RemoteConnector::InvalidToken;
@@ -106,7 +104,7 @@ private:
 	QDateTime _cachedLastSync;
 	QQueue<CloudData> _syncQueue;
 
-	QList<ErrorInfo> _errors;
+	QList<EnginePrivate::ErrorInfo> _errors;
 	quint64 _lsErrorCnt = 0;
 	QTimer *_lsRestartTimer;
 

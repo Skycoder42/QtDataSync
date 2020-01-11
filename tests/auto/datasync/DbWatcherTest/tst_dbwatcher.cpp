@@ -93,7 +93,7 @@ void DbWatcherTest::testAddTable()
 		QVERIFY(syncSpy.isValid());
 
 		auto before = QDateTime::currentDateTimeUtc();
-		_watcher->addTable(TestTable);
+		_watcher->addTable(TestTable, false);
 		auto after = QDateTime::currentDateTimeUtc();
 
 		QCOMPARE(_watcher->hasTables(), true);
@@ -283,7 +283,7 @@ void DbWatcherTest::testReaddTable()
 		QVERIFY(syncSpy.isValid());
 
 		auto before = QDateTime::currentDateTimeUtc();
-		_watcher->addTable(TestTable);
+		_watcher->addTable(TestTable, false);
 		auto after = QDateTime::currentDateTimeUtc();
 
 		QCOMPARE(_watcher->hasTables(), true);
@@ -574,7 +574,7 @@ void DbWatcherTest::testReactivate()
 		delete _watcher;
 		_watcher = new DatabaseWatcher{QSqlDatabase::database(), this};
 		QCOMPARE(_watcher->hasTables(), false);
-		_watcher->reactivateTables();
+		_watcher->reactivateTables(false);
 		QCOMPARE(_watcher->tables(), {TestTable});
 	} catch (std::exception &e) {
 		QFAIL(e.what());
@@ -632,11 +632,11 @@ void DbWatcherTest::testUnsyncTable()
 void DbWatcherTest::testDbActions()
 {
 	try {
-		_watcher->addAllTables();
+		_watcher->addAllTables(false);
 		QCOMPARE(_watcher->tables(), {TestTable});
 		_watcher->removeAllTables();
 		QCOMPARE(_watcher->hasTables(), false);
-		_watcher->addAllTables();
+		_watcher->addAllTables(false);
 		QCOMPARE(_watcher->tables(), {TestTable});
 		_watcher->unsyncAllTables();
 		QCOMPARE(_watcher->hasTables(), false);
