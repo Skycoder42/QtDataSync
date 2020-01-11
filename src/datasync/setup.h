@@ -37,12 +37,8 @@ public:
 
 	void swap(Setup &other);
 
-	// TODO support web client config
 	static Setup fromConfig(const QString &configPath, ConfigType configType);
 	static Setup fromConfig(QIODevice *configDevice, ConfigType configType);
-
-	// TODO add "make threaded", that returns an initialized thread watcher
-	// TODO also add "Process" notifier that works across processes
 
 	Setup &setSettings(QSettings *settings);
 

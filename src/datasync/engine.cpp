@@ -306,10 +306,10 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 
 	auto model = static_cast<TableDataModel*>(machine->dataModel());
 	Q_ASSERT(model);
-	connect(model, &TableDataModel::errorOccured,
-			this, &EnginePrivate::_q_tableErrorOccured);
 	connect(model, &TableDataModel::stopped,
 			this, &EnginePrivate::_q_tableStopped);
+	connect(model, &TableDataModel::errorOccured,
+			this, &EnginePrivate::_q_tableErrorOccured);
 	QObject::connect(model, &TableDataModel::liveSyncEnabledChanged,
 					 q, std::bind(&Engine::liveSyncEnabledChanged, (Engine*)q, name, sph::_1, Engine::QPrivateSignal{}));
 

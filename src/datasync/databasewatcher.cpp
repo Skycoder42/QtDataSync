@@ -793,8 +793,8 @@ QString SqlException::message() const
 					QString{} :
 					DatabaseWatcher::tr(" (Accessing for %1)").arg(_key.toString()));
 	case ErrorScope::Transaction:
-		return DatabaseWatcher::tr("An SQL error occured, unable to synchronize data! "
-								   "Try restarting the engine or re-synchronize all tables.");  // TODO change message
+		return DatabaseWatcher::tr("Temporary Database error. "
+								   "You can ignore this error, unless it shows up repeatedly!");
 	default:
 		Q_UNREACHABLE();
 	}

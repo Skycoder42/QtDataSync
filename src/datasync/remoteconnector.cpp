@@ -397,7 +397,8 @@ void RemoteConnector::processStreamEvent(const QString &type, EventData &data, C
 				qCWarning(logRmc) << "Livesync data with type" << type
 								  << "and path" << evPath
 								  << "triggered serialization error:" << e.what();
-				// TODO emit error signal?
+				cancel(cancelToken);
+				Q_EMIT liveSyncError(tr("Live-synchronization received invalid data"), type, true);
 			}
 		}
 	} else if (data.event == "keep-alive")
@@ -408,8 +409,9 @@ void RemoteConnector::processStreamEvent(const QString &type, EventData &data, C
 		cancel(cancelToken);
 		Q_EMIT liveSyncError(tr("Live-synchronization was stopped by the remote server"), type, true);
 	} else if (data.event == "auth_revoked") {
+		qCDebug(logRmc) << "Event-stream closed because the authentication expired - reconnecting…";
 		cancel(cancelToken);
-		Q_EMIT liveSyncError(tr("Live-synchronization expired, reconnecting…"), type, true);
+		Q_EMIT liveSyncExpired(type);
 	} else
 		qCWarning(logRmc) << "Unsupported event-stream event:" << data.event;
 

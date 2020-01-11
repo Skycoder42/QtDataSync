@@ -50,6 +50,7 @@ Q_SIGNALS:
 
 	void networkError(const QString &error, const QString &type, QPrivateSignal = {});
 	void liveSyncError(const QString &error, const QString &type, bool reconnect, QPrivateSignal = {});
+	void liveSyncExpired(const QString &type, QPrivateSignal = {});
 
 private Q_SLOTS:
 	void apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType);

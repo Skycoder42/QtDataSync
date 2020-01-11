@@ -18,8 +18,6 @@
 
 namespace QtDataSync {
 
-// TODO add public thread sync watcher, that just watches on different threads
-
 class Q_DATASYNC_EXPORT DatabaseWatcher : public QObject
 {
 	Q_OBJECT

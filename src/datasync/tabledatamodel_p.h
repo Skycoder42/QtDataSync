@@ -60,7 +60,7 @@ private /*scripts*/:
 	void delTable();
 
 	void switchMode();
-	std::optional<QDateTime> lastSync() const;
+	std::optional<QDateTime> lastSync();
 
 	void cancelLiveSync(bool resetErrorCount = true);
 	void cancelPassiveSync();
@@ -83,6 +83,7 @@ private Q_SLOTS:
 	void removedTable(const QString &type);
 	void networkError(const QString &error, const QString &type);
 	void liveSyncError(const QString &error, const QString &type, bool reconnect);
+	void liveSyncExpired(const QString &type);
 	// transformer
 	void transformDownloadDone(const LocalData &data);
 	void transformUploadDone(const CloudData &data);

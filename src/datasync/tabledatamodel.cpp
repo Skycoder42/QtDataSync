@@ -5,8 +5,6 @@ using namespace QtDataSync;
 using namespace std::chrono;
 using namespace std::chrono_literals;
 
-// TODO test if <assign> scxml works, or if script workaround is needed
-
 TableDataModel::TableDataModel(QObject *parent) :
 	QScxmlCppDataModel{parent},
 	_lsRestartTimer{new QTimer{this}}
@@ -46,6 +44,8 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::networkError);
 	connect(_connector, &RemoteConnector::liveSyncError,
 			this, &TableDataModel::liveSyncError);
+	connect(_connector, &RemoteConnector::liveSyncExpired,
+			this, &TableDataModel::liveSyncExpired);
 
 	_transformer = transformer;
 	connect(_transformer, &ICloudTransformer::transformDownloadDone,
@@ -99,7 +99,7 @@ void TableDataModel::initSync()
 {
 	Q_ASSERT(_transformer);  // TODO make a factory, one instance per statemachine
 	Q_ASSERT(_watcher);
-	Q_ASSERT(_connector);  // TODO one connector per statemachine? bad for network, maybe? (if 1000+ tables -> 1000+ connections)
+	Q_ASSERT(_connector);
 	switchMode();
 }
 
@@ -157,16 +157,16 @@ void TableDataModel::delTable()
 void TableDataModel::switchMode()
 {
 	if (_liveSync)
-		stateMachine()->submitEvent(QStringLiteral("starLiveSync"));
+		stateMachine()->submitEvent(QStringLiteral("startLiveSync"));
 	else
 		stateMachine()->submitEvent(QStringLiteral("startPassiveSync"));
 }
 
-std::optional<QDateTime> TableDataModel::lastSync() const
+std::optional<QDateTime> TableDataModel::lastSync()
 {
 	const auto tStamp = _watcher->lastSync(_type);
-	if (!tStamp)
-		return std::nullopt;  // TODO report error?
+	if (!tStamp)  // error emitted by watcher
+		return std::nullopt;
 
 	if (_cachedLastSync.isValid()) {
 		if (tStamp->isValid())
@@ -342,6 +342,16 @@ void TableDataModel::liveSyncError(const QString &error, const QString &type, bo
 									type
 								});
 		}
+	}
+}
+
+void TableDataModel::liveSyncExpired(const QString &type)
+{
+	// automatically reconnect without user notice
+	if (type == _escType) {
+		_liveSyncToken = RemoteConnector::InvalidToken;
+		_lsErrorCnt = 0;
+		stateMachine()->submitEvent(QStringLiteral("lsError"));
 	}
 }
 
