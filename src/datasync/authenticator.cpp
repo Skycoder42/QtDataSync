@@ -12,33 +12,6 @@ using namespace std::chrono_literals;
 Q_LOGGING_CATEGORY(QtDataSync::logFbAuth, "qt.datasync.FirebaseAuthenticator")
 Q_LOGGING_CATEGORY(QtDataSync::logOAuth, "qt.datasync.OAuthAuthenticator")
 
-IAuthenticator::IAuthenticator(QObject *parent) :
-	QObject{parent}
-{}
-
-IAuthenticator::IAuthenticator(QObjectPrivate &dd, QObject *parent) :
-	QObject{dd, parent}
-{}
-
-
-
-void FirebaseAuthenticator::init(Engine *engine)
-{
-	Q_D(FirebaseAuthenticator);
-	d->engine = engine;
-
-	auto client = new QtRestClient::RestClient{QtRestClient::RestClient::DataMode::Json, this};
-	client->setModernAttributes();
-	client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
-	client->setBaseUrl(QUrl{QStringLiteral("https://identitytoolkit.googleapis.com")});
-	client->setApiVersion(QVersionNumber{1});
-	client->addGlobalParameter(QStringLiteral("key"), EnginePrivate::setupFor(d->engine)->firebase.webApiKey);
-	d->api = new ApiClient{client->rootClass(), this};
-	d->loadFbConfig();
-
-	init();
-}
-
 void FirebaseAuthenticator::signIn()
 {
 	Q_D(FirebaseAuthenticator);
@@ -74,11 +47,14 @@ void FirebaseAuthenticator::deleteUser()
 		return;
 	}
 
-	d->api->deleteAccount(d->idToken)->onSucceeded(this, [this](int) {
+	const auto reply = d->api->deleteAccount(d->idToken);
+	d->lastReply = reply->networkReply();
+	reply->onSucceeded(this, [this](int) {
 		qCDebug(logFbAuth) << "Firebase account delete successful";
 		logOut();
 		Q_EMIT accountDeleted(true);
-	})->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
+	});
+	reply->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
 		Q_D(FirebaseAuthenticator);
 		d->_q_apiError(error, code, errorType);
 		qCWarning(logFbAuth) << "Firebase account delete failed";
@@ -86,12 +62,25 @@ void FirebaseAuthenticator::deleteUser()
 	}, &FirebaseAuthenticatorPrivate::translateError);
 }
 
-FirebaseAuthenticator::FirebaseAuthenticator(QObject *parent) :
+void FirebaseAuthenticator::abortRequest()
+{
+	Q_D(FirebaseAuthenticator);
+	if (d->lastReply)
+		d->lastReply->abort();
+	else
+		abortSignIn();
+}
+
+FirebaseAuthenticator::FirebaseAuthenticator(const QString &apiKey, QSettings *settings, QObject *parent) :
 	FirebaseAuthenticator{*new FirebaseAuthenticatorPrivate{}, parent}
-{}
+{
+	Q_D(FirebaseAuthenticator);
+	d->settings = settings;
+	d->initFbApi(apiKey);
+}
 
 FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, QObject *parent) :
-	IAuthenticator{dd, parent}
+	QObject{dd, parent}
 {
 #ifdef Q_ATOMIC_INT8_IS_SUPPORTED
 	static QAtomicInteger<bool> authReg = false;
@@ -111,12 +100,10 @@ FirebaseAuthenticator::FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, Q
 							d, &FirebaseAuthenticatorPrivate::_q_refreshToken);
 }
 
-void FirebaseAuthenticator::init() {}
-
-Engine *FirebaseAuthenticator::engine() const
+QSettings *FirebaseAuthenticator::settings() const
 {
 	Q_D(const FirebaseAuthenticator);
-	return d->engine;
+	return d->settings;
 }
 
 QtRestClient::RestClient *FirebaseAuthenticator::client() const
@@ -138,6 +125,11 @@ void FirebaseAuthenticator::completeSignIn(QString localId, QString idToken, QSt
 	Q_EMIT signInSuccessful(d->localId, d->idToken);
 }
 
+void FirebaseAuthenticator::failSignIn(const QString &errorMessage)
+{
+	Q_EMIT signInFailed(errorMessage);
+}
+
 
 
 const QString FirebaseAuthenticatorPrivate::FirebaseGroupKey = QStringLiteral("auth/firebase");
@@ -155,11 +147,26 @@ QString FirebaseAuthenticatorPrivate::translateError(const Error &error, int cod
 	return QStringLiteral("Request failed with status code %1").arg(code);
 }
 
+void FirebaseAuthenticatorPrivate::initFbApi(const QString &apiKey)
+{
+	Q_Q(FirebaseAuthenticator);
+	auto client = new QtRestClient::RestClient{QtRestClient::RestClient::DataMode::Json, q};
+	client->setModernAttributes();
+	client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
+	client->setBaseUrl(QUrl{QStringLiteral("https://identitytoolkit.googleapis.com")});
+	client->setApiVersion(QVersionNumber{1});
+	client->addGlobalParameter(QStringLiteral("key"), apiKey);
+	api = new ApiClient{client->rootClass(), q};
+	loadFbConfig();
+}
+
 void FirebaseAuthenticatorPrivate::_q_refreshToken()
 {
 	Q_Q(FirebaseAuthenticator);
 	qCDebug(logFbAuth) << "Firebase-token expired - refreshing...";
-	api->refreshToken(refreshToken)->onSucceeded(q, [this](int, const RefreshResponse &response) {
+	const auto reply = api->refreshToken(refreshToken);
+	lastReply = reply->networkReply();
+	reply->onSucceeded(q, [this](int, const RefreshResponse &response) {
 		Q_Q(FirebaseAuthenticator);
 		if (response.token_type() != QStringLiteral("Bearer")) {
 			qCCritical(logFbAuth) << "Invalid token type" << response.token_type();
@@ -174,7 +181,8 @@ void FirebaseAuthenticatorPrivate::_q_refreshToken()
 		storeFbConfig();
 		startRefreshTimer();
 		Q_EMIT q->signInSuccessful(localId, idToken);
-	})->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
+	});
+	reply->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType){
 		Q_Q(FirebaseAuthenticator);
 		_q_apiError(error, code, errorType);
 		qCWarning(logFbAuth) << "Refreshing the firebase-token failed - signing in again...";
@@ -206,30 +214,32 @@ void FirebaseAuthenticatorPrivate::startRefreshTimer()
 
 void FirebaseAuthenticatorPrivate::loadFbConfig()
 {
-	auto settings = EnginePrivate::setupFor(engine)->settings;
 	refreshToken = settings->value(FirebaseRefreshTokenKey).toString();
 	email = settings->value(FirebaseEmailKey).toString();
 }
 
 void FirebaseAuthenticatorPrivate::storeFbConfig()
 {
-	auto settings = EnginePrivate::setupFor(engine)->settings;
 	settings->setValue(FirebaseRefreshTokenKey, refreshToken);
 	settings->setValue(FirebaseEmailKey, email);
 }
 
 void FirebaseAuthenticatorPrivate::clearFbConfig()
 {
-	auto settings = EnginePrivate::setupFor(engine)->settings;
 	settings->remove(FirebaseGroupKey);
 }
 
 
 
 
-OAuthAuthenticator::OAuthAuthenticator(QObject *parent) :
+OAuthAuthenticator::OAuthAuthenticator(const QString &firebaseApiKey, const QString &googleClientId, const QString &googleClientSecret, quint16 googleCallbackPort, QSettings *settings, QObject *parent) :
 	FirebaseAuthenticator{*new OAuthAuthenticatorPrivate{}, parent}
-{}
+{
+	Q_D(OAuthAuthenticator);
+	d->settings = settings;
+	d->initFbApi(firebaseApiKey);
+	d->initOAuth(googleClientId, googleClientSecret, googleCallbackPort);
+}
 
 bool OAuthAuthenticator::doesPreferNative() const
 {
@@ -246,13 +256,6 @@ void OAuthAuthenticator::logOut()
 	d->clearOaConfig();
 }
 
-void OAuthAuthenticator::abortSignIn()
-{
-	Q_D(OAuthAuthenticator);
-	d->aborted = true;
-	Q_EMIT signInFailed(tr("Sign-In aborted!"));
-}
-
 void OAuthAuthenticator::setPreferNative(bool preferNative)
 {
 	Q_D(OAuthAuthenticator);
@@ -261,25 +264,6 @@ void OAuthAuthenticator::setPreferNative(bool preferNative)
 
 	d->preferNative = preferNative;
 	emit preferNativeChanged(d->preferNative, {});
-}
-
-void OAuthAuthenticator::init()
-{
-	Q_D(OAuthAuthenticator);
-	const auto setup = EnginePrivate::setupFor(engine());
-	d->oAuthFlow = new GoogleOAuthFlow{setup->oAuth.port, d->api->restClient()->manager(), this};
-	d->oAuthFlow->setScope(QStringLiteral("openid email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/firebase.database"));
-	d->oAuthFlow->setClientIdentifier(setup->oAuth.clientId);
-	d->oAuthFlow->setClientIdentifierSharedKey(setup->oAuth.secret);
-
-	QObjectPrivate::connect(d->oAuthFlow, &GoogleOAuthFlow::granted,
-							d, &OAuthAuthenticatorPrivate::_q_firebaseSignIn);
-	QObjectPrivate::connect(d->oAuthFlow, &GoogleOAuthFlow::error,
-							d, &OAuthAuthenticatorPrivate::_q_oAuthError);
-	connect(d->oAuthFlow, &GoogleOAuthFlow::authorizeWithBrowser,
-			this, &OAuthAuthenticator::signInRequested);
-
-	d->loadOaConfig();
 }
 
 void OAuthAuthenticator::firebaseSignIn()
@@ -299,9 +283,35 @@ void OAuthAuthenticator::firebaseSignIn()
 	}
 }
 
+void OAuthAuthenticator::abortSignIn()
+{
+	Q_D(OAuthAuthenticator);
+	d->aborted = true;
+	failSignIn(tr("Sign-In aborted!"));
+}
+
+
 
 const QString OAuthAuthenticatorPrivate::OAuthGroupKey = QStringLiteral("auth/google-oauth");
 const QString OAuthAuthenticatorPrivate::OAuthRefreshTokenKey = QStringLiteral("auth/google-oauth/refreshToken");
+
+void OAuthAuthenticatorPrivate::initOAuth(const QString &clientId, const QString &clientSecret, quint16 callbackPort)
+{
+	Q_Q(OAuthAuthenticator);
+	oAuthFlow = new GoogleOAuthFlow{callbackPort, api->restClient()->manager(), q};
+	oAuthFlow->setScope(QStringLiteral("openid email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/firebase.database"));
+	oAuthFlow->setClientIdentifier(clientId);
+	oAuthFlow->setClientIdentifierSharedKey(clientSecret);
+
+	connect(oAuthFlow, &GoogleOAuthFlow::granted,
+			this, &OAuthAuthenticatorPrivate::_q_firebaseSignIn);
+	connect(oAuthFlow, &GoogleOAuthFlow::error,
+			this, &OAuthAuthenticatorPrivate::_q_oAuthError);
+	QObject::connect(oAuthFlow, &GoogleOAuthFlow::authorizeWithBrowser,
+					 q, &OAuthAuthenticator::signInRequested);
+
+	loadOaConfig();
+}
 
 void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 {
@@ -318,13 +328,15 @@ void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 	SignInRequest request;
 	request.setRequestUri(oAuthFlow->requestUrl());
 	request.setPostBody(QStringLiteral("id_token=%1&providerId=google.com").arg(oAuthFlow->idToken()));
-	api->oAuthSignIn(request)->onSucceeded(q, [this](int, const SignInResponse &response) {
+	const auto reply = api->oAuthSignIn(request);
+	lastReply = reply->networkReply();
+	reply->onSucceeded(q, [this](int, const SignInResponse &response) {
 		Q_Q(OAuthAuthenticator);
 		if (response.needConfirmation()) {
 			qCCritical(logOAuth) << "Another account with the same credentials already exists!"
 								 << "The user must log in with that account instead or link the two accounts!";
-			Q_EMIT q->signInFailed(OAuthAuthenticator::tr("Another account with the same credentials already exists! "
-														  "You have to log in with that account instead or link the two accounts!"));
+			q->failSignIn(OAuthAuthenticator::tr("Another account with the same credentials already exists! "
+												 "You have to log in with that account instead or link the two accounts!"));
 			return;
 		}
 		qCDebug(logOAuth) << "Firebase sign in successful";
@@ -335,12 +347,13 @@ void OAuthAuthenticatorPrivate::_q_firebaseSignIn()
 						  response.refreshToken(),
 						  QDateTime::currentDateTimeUtc().addSecs(response.expiresIn()),
 						  response.email());
-	})->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
+	});
+	reply->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		Q_Q(OAuthAuthenticator);
 		_q_apiError(error, code, errorType);
 		qCCritical(logOAuth) << "Failed to sign in to firebase with google OAuth credentials -"
 							 << "make shure google OAuth authentication has been enabled in the firebase console!";
-		Q_EMIT q->signInFailed(OAuthAuthenticator::tr("Google Authentication was not accepted by firebase"));
+		q->failSignIn(OAuthAuthenticator::tr("Google Authentication was not accepted by firebase"));
 	}, &FirebaseAuthenticatorPrivate::translateError);
 }
 
@@ -353,24 +366,21 @@ void OAuthAuthenticatorPrivate::_q_oAuthError(const QString &error, const QStrin
 	if (aborted)
 		aborted = false;
 	else
-		Q_EMIT q->signInFailed(OAuthAuthenticator::tr("Failed to sign in with Google-Account!"));
+		q->failSignIn(OAuthAuthenticator::tr("Failed to sign in with Google-Account!"));
 }
 
 void OAuthAuthenticatorPrivate::loadOaConfig()
 {
-	auto settings = EnginePrivate::setupFor(engine)->settings;
 	oAuthFlow->setRefreshToken(settings->value(OAuthRefreshTokenKey).toString());
 }
 
 void OAuthAuthenticatorPrivate::storeOaConfig()
 {
-	auto settings = EnginePrivate::setupFor(engine)->settings;
 	settings->setValue(OAuthRefreshTokenKey, oAuthFlow->refreshToken());
 }
 
 void OAuthAuthenticatorPrivate::clearOaConfig()
 {
-	auto settings = EnginePrivate::setupFor(engine)->settings;
 	settings->remove(OAuthGroupKey);
 }
 

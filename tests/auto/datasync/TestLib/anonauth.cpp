@@ -5,11 +5,15 @@
 using namespace QtDataSync;
 using namespace QtRestClient;
 
-AnonAuth::AnonAuth(Engine *engine) :
-	FirebaseAuthenticator{engine}
+AnonAuth::AnonAuth(const QString &apiKey, QObject *parent) :
+	FirebaseAuthenticator{apiKey, parent}
 {}
 
-void AnonAuth::abortSignIn() {}
+void AnonAuth::abortSignIn()
+{
+	if (_authReply)
+		_authReply->abort();
+}
 
 void AnonAuth::firebaseSignIn()
 {
@@ -19,6 +23,7 @@ void AnonAuth::firebaseSignIn()
 												QJsonObject {
 													{QStringLiteral("returnSecureToken"), true}
 												});
+	_authReply = reply->networkReply();
 	reply->onSucceeded(this, [this](const QJsonObject &data) {
 		qDebug() << "Anonymous user created";
 		completeSignIn(data.value(QStringLiteral("localId")).toString(),

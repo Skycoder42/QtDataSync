@@ -30,7 +30,7 @@ public:
 
 	explicit EngineDataModel(QObject *parent = nullptr);
 
-	void setupModel(IAuthenticator *authenticator,
+	void setupModel(FirebaseAuthenticator *authenticator,
 					RemoteConnector *connector);
 
 	bool isSyncActive() const;
@@ -74,7 +74,7 @@ private Q_SLOTS:
 	void networkError(const QString &error, const QString &type);
 
 private:
-	QPointer<IAuthenticator> _authenticator;
+	QPointer<FirebaseAuthenticator> _authenticator;
 	QPointer<RemoteConnector> _connector;
 
 	RemoteConnector::CancallationToken _rmUserToken = RemoteConnector::InvalidToken;

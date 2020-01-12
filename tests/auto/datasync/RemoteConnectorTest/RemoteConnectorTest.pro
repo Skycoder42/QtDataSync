@@ -5,7 +5,7 @@ QT = core testlib datasync datasync-private
 CONFIG += console
 CONFIG -= app_bundle
 
-LOGGING_RULES = "$${LOGGING_RULES};qt.datasync.DatabaseProxy.warning=false"
+LOGGING_RULES = "$${LOGGING_RULES};qt.datasync.DatabaseProxy.warning=false;qt.datasync.Statemachine.Engine.debug=false"
 
 TARGET = tst_remoteconnector
 

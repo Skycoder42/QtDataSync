@@ -4,7 +4,7 @@
 #include "engine.h"
 #include "authenticator.h"
 
-#include "setup_p.h"
+#include "setup_impl.h"
 #include "databasewatcher_p.h"
 #include "remoteconnector_p.h"
 

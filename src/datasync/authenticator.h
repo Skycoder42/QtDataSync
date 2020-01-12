@@ -5,6 +5,7 @@
 #include "QtDataSync/engine.h"
 
 #include <QtCore/qobject.h>
+#include <QtCore/qsettings.h>
 
 namespace QtRestClient {
 class RestClient;
@@ -12,58 +13,39 @@ class RestClient;
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT IAuthenticator : public QObject
+class FirebaseAuthenticatorPrivate;
+class Q_DATASYNC_EXPORT FirebaseAuthenticator : public QObject
 {
 	Q_OBJECT
 
-public:
-	IAuthenticator(QObject *parent = nullptr);
-
-	virtual void init(Engine *engine) = 0;
-
 public Q_SLOTS:
-	virtual void signIn() = 0;
-	virtual void logOut() = 0;
-	virtual void deleteUser() = 0;
+	void signIn();
+	virtual void logOut();
+	virtual void deleteUser();
 
-	virtual void abortSignIn() = 0;
+	void abortRequest();
 
 Q_SIGNALS:
-	void signInSuccessful(const QString &userId, const QString &idToken);
-	void signInFailed(const QString &errorMessage);
-	void accountDeleted(bool success);
+	void signInSuccessful(const QString &userId, const QString &idToken, QPrivateSignal = {});
+	void signInFailed(const QString &errorMessage, QPrivateSignal = {});
+	void accountDeleted(bool success, QPrivateSignal = {});
 
 protected:
-	IAuthenticator(QObjectPrivate &dd, QObject *parent = nullptr);
-};
-
-class FirebaseAuthenticatorPrivate;
-class Q_DATASYNC_EXPORT FirebaseAuthenticator : public IAuthenticator
-{
-	Q_OBJECT
-
-public:
-	void init(Engine *engine) final;
-
-public Q_SLOTS:
-	void signIn() final;
-	void logOut() override;
-	void deleteUser() final;
-
-protected:
-	FirebaseAuthenticator(QObject *parent = nullptr);
+	FirebaseAuthenticator(const QString &apiKey, QSettings *settings, QObject *parent = nullptr);
 	FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, QObject *parent);
 
-	virtual void init();
 	virtual void firebaseSignIn() = 0;
+	virtual void abortSignIn() = 0;
 
-	Engine *engine() const;
+	QSettings *settings() const;
 	QtRestClient::RestClient *client() const;
+
 	void completeSignIn(QString localId,
 						QString idToken,
 						QString refreshToken,
 						const QDateTime &expiresAt,
 						QString email);
+	void failSignIn(const QString &errorMessage);
 
 private:
 	Q_DECLARE_PRIVATE(FirebaseAuthenticator)
@@ -73,22 +55,25 @@ private:
 };
 
 class OAuthAuthenticatorPrivate;
-class Q_DATASYNC_EXPORT OAuthAuthenticator : public FirebaseAuthenticator
+class Q_DATASYNC_EXPORT OAuthAuthenticator final : public FirebaseAuthenticator
 {
 	Q_OBJECT
 
 	Q_PROPERTY(bool preferNative READ doesPreferNative WRITE setPreferNative NOTIFY preferNativeChanged)
 
 public:
-	explicit OAuthAuthenticator(QObject *parent = nullptr);
+	explicit OAuthAuthenticator(const QString &firebaseApiKey,
+								const QString &googleClientId,
+								const QString &googleClientSecret,
+								quint16 googleCallbackPort,
+								QSettings *settings,
+								QObject *parent = nullptr);
 
 	bool doesPreferNative() const;
 
-	void logOut() override;
+	void logOut() final;
 
 public Q_SLOTS:
-	void abortSignIn() override;
-
 	void setPreferNative(bool preferNative);
 
 Q_SIGNALS:
@@ -97,8 +82,8 @@ Q_SIGNALS:
 	void preferNativeChanged(bool preferNative, QPrivateSignal);
 
 protected:
-	void init() override;
-	void firebaseSignIn() override;
+	void firebaseSignIn() final;
+	void abortSignIn() final;
 
 private:
 	Q_DECLARE_PRIVATE(OAuthAuthenticator)

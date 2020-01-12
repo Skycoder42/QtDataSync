@@ -34,7 +34,7 @@ RemoteConnector::RemoteConnector(Engine *engine) :
 	}
 
 	const auto setup = EnginePrivate::setupFor(engine);
-	_limit = setup->firebase.readLimit;
+	_limit = setup->firebase.realtimedb.readLimit;
 
 	_client = new JsonSuffixClient{this};
 	const auto serializer = _client->serializer();
@@ -46,8 +46,8 @@ RemoteConnector::RemoteConnector(Engine *engine) :
 	_client->setModernAttributes();
 	_client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
 	_client->setBaseUrl(QUrl{QStringLiteral("https://%1.firebaseio.com/datasync")
-								 .arg(setup->firebase.projectId)});
-	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(setup->firebase.readTimeOut));
+								 .arg(setup->firebase.realtimedb.projectId)});
+	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(setup->firebase.realtimedb.readTimeOut));
 	_client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
 }
 

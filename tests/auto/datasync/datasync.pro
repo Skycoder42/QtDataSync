@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	DbWatcherTest \
-#	RemoteConnectorTest \
+	RemoteConnectorTest \
 #	StatemachineTest \
 	TestLib
 

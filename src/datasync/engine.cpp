@@ -125,7 +125,7 @@ Engine::TableState Engine::tableState(const QString &table) const
 		return TableState::Invalid;
 }
 
-IAuthenticator *Engine::authenticator() const
+FirebaseAuthenticator *Engine::authenticator() const
 {
 	Q_D(const Engine);
 	return d->setup->authenticator;
@@ -258,10 +258,10 @@ void EnginePrivate::setupStateMachine()
 {
 	Q_Q(Engine);
 	engineMachine = new EngineStateMachine{q};
+	engineModel = new EngineDataModel{engineMachine};
+	engineMachine->setDataModel(engineModel);
 	if (!engineMachine->init())
 		throw SetupException{QStringLiteral("Failed to initialize statemachine!")};
-	engineModel = static_cast<EngineDataModel*>(engineMachine->dataModel());
-	Q_ASSERT(engineModel);
 
 	connect(engineModel, &EngineDataModel::startTableSync,
 			this, &EnginePrivate::_q_startTableSync);
@@ -305,6 +305,8 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 	Q_ASSERT(watcher);
 
 	auto machine = new TableStateMachine{q};
+	auto model = new TableDataModel{machine};
+	machine->setDataModel(model);
 	if (!machine->init()) {
 		_q_tableErrorOccured(name, {
 								 ErrorType::Table,
@@ -314,7 +316,6 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 		return;
 	}
 
-	auto model = static_cast<TableDataModel*>(machine->dataModel());
 	Q_ASSERT(model);
 	connect(model, &TableDataModel::stopped,
 			this, &EnginePrivate::_q_tableStopped);

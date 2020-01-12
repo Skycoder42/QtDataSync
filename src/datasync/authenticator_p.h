@@ -5,6 +5,7 @@
 #include "googleoauthflow_p.h"
 
 #include <QtCore/QTimer>
+#include <QtCore/QPointer>
 #include <QtCore/QLoggingCategory>
 
 #include "auth_api.h"
@@ -22,9 +23,11 @@ public:
 	static const QString FirebaseRefreshTokenKey;
 	static const QString FirebaseEmailKey;
 
-	QPointer<Engine> engine;
+	QPointer<QSettings> settings;
 	firebase::auth::ApiClient *api;
 	QTimer *refreshTimer;
+
+	QPointer<QNetworkReply> lastReply;
 
 	QString localId;
 	QString idToken;
@@ -33,6 +36,8 @@ public:
 	QString email;
 
 	static QString translateError(const QtDataSync::firebase::auth::Error &error, int code);
+
+	void initFbApi(const QString &apiKey);
 
 	void _q_refreshToken();
 	void _q_apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType);
@@ -55,6 +60,10 @@ public:
 
 	GoogleOAuthFlow *oAuthFlow = nullptr;
 	bool aborted = false;
+
+	void initOAuth(const QString &clientId,
+				   const QString &clientSecret,
+				   quint16 callbackPort);
 
 	void _q_firebaseSignIn();
 	void _q_oAuthError(const QString &error, const QString &errorDescription);

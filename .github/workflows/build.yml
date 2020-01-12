@@ -35,19 +35,19 @@ jobs:
             repository: linux_x64
             emsdk: sdk-fastcomp-1.38.27-64bit
           - platform: msvc2017_64
-            os: windows-2016
+            os: windows-latest
             repository: windows_x86
           - platform: msvc2017
-            os: windows-2016
+            os: windows-latest
             repository: windows_x86
           - platform: winrt_x64_msvc2017
-            os: windows-2016
+            os: windows-latest
             repository: windows_x86
           - platform: winrt_x86_msvc2017
-            os: windows-2016
+            os: windows-latest
             repository: windows_x86
           - platform: winrt_armv7_msvc2017
-            os: windows-2016
+            os: windows-latest
             repository: windows_x86
           - platform: mingw73_64
             os: windows-latest

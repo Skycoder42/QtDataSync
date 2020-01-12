@@ -20,7 +20,7 @@ HEADERS += \
 	qtdatasync_global.h \
 	remoteconnector_p.h \
 	setup.h \
-	setup_p.h \
+	setup_impl.h \
 	tabledatamodel_p.h
 
 SOURCES += \

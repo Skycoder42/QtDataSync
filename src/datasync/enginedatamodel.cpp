@@ -8,7 +8,7 @@ EngineDataModel::EngineDataModel(QObject *parent) :
 	QScxmlCppDataModel{parent}
 {}
 
-void EngineDataModel::setupModel(IAuthenticator *authenticator, RemoteConnector *connector)
+void EngineDataModel::setupModel(FirebaseAuthenticator *authenticator, RemoteConnector *connector)
 {
 	Q_ASSERT_X(!stateMachine()->isRunning(), Q_FUNC_INFO, "setupModel must be called before the statemachine is started");
 
@@ -19,11 +19,11 @@ void EngineDataModel::setupModel(IAuthenticator *authenticator, RemoteConnector 
 			this, &EngineDataModel::log);
 
 	_authenticator = authenticator;
-	connect(_authenticator, &IAuthenticator::signInSuccessful,
+	connect(_authenticator, &FirebaseAuthenticator::signInSuccessful,
 			this, &EngineDataModel::signInSuccessful);
-	connect(_authenticator, &IAuthenticator::signInFailed,
+	connect(_authenticator, &FirebaseAuthenticator::signInFailed,
 			this, &EngineDataModel::signInFailed);
-	connect(_authenticator, &IAuthenticator::accountDeleted,
+	connect(_authenticator, &FirebaseAuthenticator::accountDeleted,
 			this, &EngineDataModel::accountDeleted);
 
 	_connector = connector;
