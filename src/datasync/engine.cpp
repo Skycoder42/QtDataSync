@@ -116,6 +116,15 @@ bool Engine::isLiveSyncEnabled(const QString &table) const
 		return false;
 }
 
+Engine::TableState Engine::tableState(const QString &table) const
+{
+	Q_D(const Engine);
+	if (const auto tm = d->tableMachines.value(table); tm.second)
+		return tm.second->state();
+	else
+		return TableState::Invalid;
+}
+
 IAuthenticator *Engine::authenticator() const
 {
 	Q_D(const Engine);
@@ -126,6 +135,12 @@ ICloudTransformer *Engine::transformer() const
 {
 	Q_D(const Engine);
 	return d->setup->transformer;
+}
+
+Engine::EngineState Engine::state() const
+{
+	Q_D(const Engine);
+	return d->engineModel->state();
 }
 
 void Engine::start()
@@ -254,14 +269,9 @@ void EnginePrivate::setupStateMachine()
 			this, &EnginePrivate::_q_stopTableSync);
 	connect(engineModel, &EngineDataModel::errorOccured,
 			this, &EnginePrivate::_q_errorOccured);
+	QObject::connect(engineModel, &EngineDataModel::stateChanged,
+					 q, std::bind(&Engine::stateChanged, q, sph::_1, Engine::QPrivateSignal{}));
 	engineModel->setupModel(setup->authenticator, connector);
-
-	// --- debug states ---
-	if (logEngine().isDebugEnabled()) {
-		QObject::connect(engineMachine, &QScxmlStateMachine::reachedStableState, q, [this]() {
-			qCDebug(logEngine) << "Statemachine reached stable state:" << engineMachine->activeStateNames(false);
-		});
-	}
 
 	engineMachine->start();
 	qCDebug(logEngine) << "Started engine statemachine";
@@ -310,8 +320,10 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 			this, &EnginePrivate::_q_tableStopped);
 	connect(model, &TableDataModel::errorOccured,
 			this, &EnginePrivate::_q_tableErrorOccured);
+	QObject::connect(model, &TableDataModel::stateChanged,
+					 q, std::bind(&Engine::tableStateChanged, q, name, sph::_1, Engine::QPrivateSignal{}));
 	QObject::connect(model, &TableDataModel::liveSyncEnabledChanged,
-					 q, std::bind(&Engine::liveSyncEnabledChanged, (Engine*)q, name, sph::_1, Engine::QPrivateSignal{}));
+					 q, std::bind(&Engine::liveSyncEnabledChanged, q, name, sph::_1, Engine::QPrivateSignal{}));
 
 	model->setupModel(name, watcher, connector, setup->transformer);
 	machine->start();

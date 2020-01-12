@@ -7,6 +7,7 @@
 
 #include <QtCore/QPointer>
 #include <QtCore/QStringList>
+#include <QtCore/QLoggingCategory>
 
 #include <QtScxml/QScxmlCppDataModel>
 
@@ -16,6 +17,8 @@ class EngineDataModel : public QScxmlCppDataModel
 {
 	Q_OBJECT
 	Q_SCXML_DATAMODEL
+
+	Q_PROPERTY(Engine::EngineState state READ state NOTIFY stateChanged)
 
 public:
 	enum class StopEvent {
@@ -31,13 +34,14 @@ public:
 					RemoteConnector *connector);
 
 	bool isSyncActive() const;
+	Engine::EngineState state() const;
 
 public Q_SLOTS:
 	void start();
 	void stop();
 	void cancel(const EnginePrivate::ErrorInfo &error);
 
-	bool logOut();
+	void logOut();
 	bool deleteAccount();
 
 	void allTablesStopped();
@@ -46,6 +50,8 @@ Q_SIGNALS:
 	void startTableSync(QPrivateSignal = {});
 	void stopTableSync(QPrivateSignal = {});
 	void errorOccured(const EnginePrivate::ErrorInfo &info, QPrivateSignal = {});
+
+	void stateChanged(Engine::EngineState state, QPrivateSignal = {});
 
 private /*scripts*/:
 	bool hasError() const;
@@ -56,6 +62,9 @@ private /*scripts*/:
 	void emitError();
 
 private Q_SLOTS:
+	// engine
+	void reachedStableState();
+	void log(const QString &label, const QString &msg);
 	// authenticator
 	void signInSuccessful(const QString &userId, const QString &idToken);
 	void signInFailed(const QString &errorMessage);
@@ -73,6 +82,8 @@ private:
 	StopEvent _stopEv = StopEvent::Stop;
 	QList<EnginePrivate::ErrorInfo> _errors;
 };
+
+Q_DECLARE_LOGGING_CATEGORY(logEngineSm)
 
 }
 

@@ -24,6 +24,8 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 	Q_PROPERTY(IAuthenticator* authenticator READ authenticator CONSTANT)
 	Q_PROPERTY(ICloudTransformer* transformer READ transformer CONSTANT)
 
+	Q_PROPERTY(EngineState state READ state NOTIFY stateChanged)
+
 public:
 	enum class ResyncFlag {
 		Upload = 0x01,
@@ -52,6 +54,31 @@ public:
 		Unknown = -1
 	};
 	Q_ENUM(ErrorType)
+
+	enum class EngineState {
+		Inactive,
+		Error,
+		SigningIn,
+		DeletingAcc,
+		TableSync,
+		Stopping,
+
+		Invalid = -1
+	};
+	Q_ENUM(EngineState)
+
+	enum class TableState {
+		Inactive,
+		Error,
+		Initializing,
+		LiveSync,
+		Downloading,
+		Uploading,
+		Synchronized,
+
+		Invalid = -1
+	};
+	Q_ENUM(TableState)
 
 	void syncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
 					  bool autoActivateSync = true,
@@ -101,9 +128,11 @@ public:
 					 QSqlDatabase database);
 
 	bool isLiveSyncEnabled(const QString &table) const;
+	TableState tableState(const QString &table) const;
 
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
+	EngineState state() const;
 
 public Q_SLOTS:
 	void start();
@@ -123,6 +152,9 @@ Q_SIGNALS:
 					  const QString &errorMessage,
 					  const QVariant &errorData,
 					  QPrivateSignal = {});
+
+	void tableStateChanged(const QString &table, TableState state, QPrivateSignal = {});
+	void stateChanged(EngineState state, QPrivateSignal = {});
 
 private:
 	friend class Setup;

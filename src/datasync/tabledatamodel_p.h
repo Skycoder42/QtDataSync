@@ -11,6 +11,7 @@
 #include <QtCore/QQueue>
 #include <QtCore/QPointer>
 #include <QtCore/QTimer>
+#include <QtCore/QLoggingCategory>
 
 #include <QtScxml/QScxmlCppDataModel>
 
@@ -21,6 +22,7 @@ class TableDataModel : public QScxmlCppDataModel
 	Q_OBJECT
 	Q_SCXML_DATAMODEL
 
+	Q_PROPERTY(Engine::TableState state READ state NOTIFY stateChanged)
 	Q_PROPERTY(bool liveSyncEnabled READ isLiveSyncEnabled WRITE setLiveSyncEnabled NOTIFY liveSyncEnabledChanged)
 
 public:
@@ -32,6 +34,7 @@ public:
 					ICloudTransformer *transformer);
 
 	bool isRunning() const;
+	Engine::TableState state() const;
 	bool isLiveSyncEnabled() const;
 
 public Q_SLOTS:
@@ -47,6 +50,7 @@ Q_SIGNALS:
 					  const EnginePrivate::ErrorInfo &info,
 					  QPrivateSignal = {});
 
+	void stateChanged(Engine::TableState state, QPrivateSignal = {});
 	void liveSyncEnabledChanged(bool liveSyncEnabled, QPrivateSignal = {});
 
 private /*scripts*/:
@@ -61,6 +65,7 @@ private /*scripts*/:
 
 	void switchMode();
 	std::optional<QDateTime> lastSync();
+	QLoggingCategory logTableSm() const;
 
 	void cancelLiveSync(bool resetErrorCount = true);
 	void cancelPassiveSync();
@@ -68,6 +73,9 @@ private /*scripts*/:
 	void cancelAll();
 
 private Q_SLOTS:
+	// machine
+	void reachedStableState();
+	void log(const QString &label, const QString &msg);
 	// watcher
 	void triggerUpload(const QString &type);
 	void triggerResync(const QString &type, bool deleteTable);
@@ -90,7 +98,6 @@ private Q_SLOTS:
 	void transformError(const ObjectKey &key, const QString &message);
 
 private:
-
 	QPointer<DatabaseWatcher> _watcher;
 	QPointer<RemoteConnector> _connector;
 	QPointer<ICloudTransformer> _transformer;
@@ -101,6 +108,7 @@ private:
 
 	QString _type;
 	QString _escType;
+	QByteArray _logCatStr = "qt.datasync.Statemachine.Table.<Unknown>";
 
 	QDateTime _cachedLastSync;
 	QQueue<CloudData> _syncQueue;

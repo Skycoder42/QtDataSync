@@ -22,6 +22,13 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 	Q_ASSERT_X(!stateMachine()->isRunning(), Q_FUNC_INFO, "setupModel must be called before the statemachine is started");
 	_type = std::move(type);
 	_escType = transformer->escapeType(_type);
+	_logCatStr = "qt.datasync.Statemachine.Table." + _type.toUtf8();
+
+	// statemachine
+	connect(stateMachine(), &QScxmlStateMachine::reachedStableState,
+			this, &TableDataModel::reachedStableState);
+	connect(stateMachine(), &QScxmlStateMachine::log,
+			this, &TableDataModel::log);
 
 	_watcher = watcher;
 	connect(_watcher, &DatabaseWatcher::triggerSync,
@@ -59,6 +66,29 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 bool TableDataModel::isRunning() const
 {
 	return !stateMachine()->isActive(QStringLiteral("Stopped"));
+}
+
+Engine::TableState TableDataModel::state() const
+{
+	// "child" states
+	if (stateMachine()->isActive(QStringLiteral("Error")))
+		return Engine::TableState::Error;
+	else if (stateMachine()->isActive(QStringLiteral("LiveSync")))
+		return Engine::TableState::LiveSync;
+	else if (stateMachine()->isActive(QStringLiteral("Downloading")))
+		return Engine::TableState::Downloading;
+	else if (stateMachine()->isActive(QStringLiteral("Uploading")))
+		return Engine::TableState::Uploading;
+	else if (stateMachine()->isActive(QStringLiteral("Synchronized")))
+		return Engine::TableState::Synchronized;
+	// "compound" states
+	else if (stateMachine()->isActive(QStringLiteral("Stopped")))
+		return Engine::TableState::Inactive;
+	else if (stateMachine()->isActive(QStringLiteral("DelTable")) ||
+			 stateMachine()->isActive(QStringLiteral("Active")))
+		return Engine::TableState::Initializing;
+	else
+		return Engine::TableState::Invalid;
 }
 
 bool TableDataModel::isLiveSyncEnabled() const
@@ -177,6 +207,11 @@ std::optional<QDateTime> TableDataModel::lastSync()
 		return tStamp;
 }
 
+QLoggingCategory TableDataModel::logTableSm() const
+{
+	return QLoggingCategory{_logCatStr.constData()};
+}
+
 void TableDataModel::cancelLiveSync(bool resetErrorCount)
 {
 	if (_liveSyncToken != RemoteConnector::InvalidToken) {
@@ -210,6 +245,26 @@ void TableDataModel::cancelAll()
 	cancelUpload();
 	_cachedLastSync = {};
 	_syncQueue.clear();
+}
+
+void TableDataModel::reachedStableState()
+{
+	qCDebug(logTableSm) << "Reached state:" << stateMachine()->activeStateNames(true);
+	Q_EMIT stateChanged(state());
+}
+
+void TableDataModel::log(const QString &label, const QString &msg)
+{
+	if (label == QStringLiteral("debug"))
+		qCDebug(logTableSm).noquote() << msg;
+	else if (label == QStringLiteral("info"))
+		qCInfo(logTableSm).noquote() << msg;
+	else if (label == QStringLiteral("warning"))
+		qCWarning(logTableSm).noquote() << msg;
+	else if (label == QStringLiteral("critical"))
+		qCCritical(logTableSm).noquote() << msg;
+	else
+		qCDebug(logTableSm).noquote().nospace() << label << ": " << msg;
 }
 
 void TableDataModel::triggerUpload(const QString &type)
