@@ -37,6 +37,7 @@ private Q_SLOTS:
 	void testStoreData_data();
 	void testStoreData();
 	void testLoadData();
+	void testMarkCorrupted();
 
 	void testResync();
 
@@ -170,7 +171,7 @@ void DbWatcherTest::testAddTable()
 		after = QDateTime::currentDateTimeUtc();
 		VERIFY_CHANGED(4, before, after);
 
-		QTRY_COMPARE(syncSpy.size(), 2);
+		QTRY_COMPARE(syncSpy.size(), 1);
 		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
@@ -192,7 +193,7 @@ void DbWatcherTest::testAddTable()
 		VERIFY_CHANGED(4, before, after);
 		VERIFY_CHANGED(12, before, after);
 
-		QTRY_COMPARE(syncSpy.size(), 3);
+		QTRY_COMPARE(syncSpy.size(), 1);
 		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
@@ -211,7 +212,7 @@ void DbWatcherTest::testAddTable()
 		after = QDateTime::currentDateTimeUtc();
 		VERIFY_CHANGED(12, before, after);
 
-		QTRY_COMPARE(syncSpy.size(), 2);
+		QTRY_COMPARE(syncSpy.size(), 1);
 		QCOMPARE(syncSpy[0][0].toString(), TestTable);
 		syncSpy.clear();
 		QVERIFY(!syncSpy.wait(1000));
@@ -513,6 +514,31 @@ void DbWatcherTest::testLoadData()
 		}
 
 		QVERIFY(!_watcher->loadData(TestTable));
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void DbWatcherTest::testMarkCorrupted()
+{
+	try {
+		// modify corrupted
+		const auto tStamp = QDateTime::currentDateTimeUtc().addSecs(-15);
+		_watcher->markUnchanged({TestTable, QString::number(0)}, tStamp);
+		VERIFY_UNCHANGED(0, tStamp);
+		_watcher->markCorrupted({TestTable, QString::number(0)}, tStamp.addSecs(5));
+		VERIFY_CHANGED_STATE(0, tStamp, tStamp, DatabaseWatcher::ChangeState::Corrupted);
+
+		// add corrupted
+		Query testNonExistantQuery{_watcher->database()};
+		testNonExistantQuery.prepare(QStringLiteral("SELECT * "
+													"FROM TestData "
+													"WHERE Key == ?"));
+		testNonExistantQuery.addBindValue(4711);
+		testNonExistantQuery.exec();
+		QVERIFY(!testNonExistantQuery.first());
+		_watcher->markCorrupted({TestTable, QString::number(4711)}, tStamp);
+		VERIFY_CHANGED_STATE(4711, tStamp, tStamp, DatabaseWatcher::ChangeState::Corrupted);
 	} catch (std::exception &e) {
 		QFAIL(e.what());
 	}

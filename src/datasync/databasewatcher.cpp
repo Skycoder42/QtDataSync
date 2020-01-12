@@ -659,7 +659,8 @@ void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modif
 													"VALUES(?, ?, ?) "
 													"ON CONFLICT(pkey) DO UPDATE "
 													"SET changed = excluded.changed "
-													"WHERE pkey = excluded.pkey;"));
+													"WHERE pkey = excluded.pkey;")
+										 .arg(tableName(key.typeName, true)));
 		insertCorruptedQuery.addBindValue(key.id);
 		insertCorruptedQuery.addBindValue(modified.toUTC());
 		insertCorruptedQuery.addBindValue(static_cast<int>(ChangeState::Corrupted));
