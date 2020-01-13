@@ -1,8 +1,10 @@
 #include "engine.h"
+#include "setup.h"
 #include "engine_p.h"
 #include "enginedatamodel_p.h"
 #include "tabledatamodel_p.h"
 using namespace QtDataSync;
+using namespace QtDataSync::__private;
 namespace sph = std::placeholders;
 
 Q_LOGGING_CATEGORY(QtDataSync::logEngine, "qt.datasync.Engine")
@@ -128,13 +130,13 @@ Engine::TableState Engine::tableState(const QString &table) const
 FirebaseAuthenticator *Engine::authenticator() const
 {
 	Q_D(const Engine);
-	return d->setup->authenticator;
+	return d->authenticator;
 }
 
 ICloudTransformer *Engine::transformer() const
 {
 	Q_D(const Engine);
-	return d->setup->transformer;
+	return d->transformer;
 }
 
 Engine::EngineState Engine::state() const
@@ -205,17 +207,14 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	Q_D(Engine);
 	d->setup.swap(setup);
 	d->setup->finializeForEngine(this);
+	d->authenticator = setup->createAuthenticator(this);
+	d->transformer = setup->createTransformer(this);  // TODO create one per table?
 
-	d->connector = new RemoteConnector{this};
+	d->connector = new RemoteConnector{setup->firebase, this};
 	d->setupStateMachine();
 }
 
 
-
-const SetupPrivate *EnginePrivate::setupFor(const Engine *engine)
-{
-	return engine->d_func()->setup.data();
-}
 
 DatabaseWatcher *EnginePrivate::getWatcher(QSqlDatabase &&database)
 {
@@ -271,7 +270,7 @@ void EnginePrivate::setupStateMachine()
 			this, &EnginePrivate::_q_errorOccured);
 	QObject::connect(engineModel, &EngineDataModel::stateChanged,
 					 q, std::bind(&Engine::stateChanged, q, sph::_1, Engine::QPrivateSignal{}));
-	engineModel->setupModel(setup->authenticator, connector);
+	engineModel->setupModel(authenticator, connector);
 
 	engineMachine->start();
 	qCDebug(logEngine) << "Started engine statemachine";
@@ -326,7 +325,7 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 	QObject::connect(model, &TableDataModel::liveSyncEnabledChanged,
 					 q, std::bind(&Engine::liveSyncEnabledChanged, q, name, sph::_1, Engine::QPrivateSignal{}));
 
-	model->setupModel(name, watcher, connector, setup->transformer);
+	model->setupModel(name, watcher, connector, transformer);
 	machine->start();
 
 	tableMachines.insert(name, std::make_pair(machine, model));

@@ -5,8 +5,8 @@
 using namespace QtDataSync;
 using namespace QtRestClient;
 
-AnonAuth::AnonAuth(const QString &apiKey, QObject *parent) :
-	FirebaseAuthenticator{apiKey, parent}
+AnonAuth::AnonAuth(const QString &apiKey, QSettings *settings, QObject *parent) :
+	FirebaseAuthenticator{apiKey, settings, parent}
 {}
 
 void AnonAuth::abortSignIn()

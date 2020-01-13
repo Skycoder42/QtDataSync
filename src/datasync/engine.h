@@ -14,7 +14,9 @@ namespace QtDataSync {
 class FirebaseAuthenticator;
 class ICloudTransformer;
 
+namespace __private {
 class SetupPrivate;
+}
 
 class EnginePrivate;
 class Q_DATASYNC_EXPORT Engine : public QObject
@@ -157,6 +159,7 @@ Q_SIGNALS:
 	void stateChanged(EngineState state, QPrivateSignal = {});
 
 private:
+	friend class __private::SetupPrivate;
 	Q_DECLARE_PRIVATE(Engine)
 
 	Q_PRIVATE_SLOT(d_func(), void _q_startTableSync())
@@ -167,7 +170,7 @@ private:
 	Q_PRIVATE_SLOT(d_func(), void _q_tableStopped(const QString &))
 	Q_PRIVATE_SLOT(d_func(), void _q_tableErrorOccured(const QString &, const EnginePrivate::ErrorInfo &))
 
-	explicit Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent = nullptr);
+	explicit Engine(QScopedPointer<__private::SetupPrivate> &&setup, QObject *parent = nullptr);
 };
 
 class Q_DATASYNC_EXPORT TableException : public Exception

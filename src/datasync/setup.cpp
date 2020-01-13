@@ -1,6 +1,4 @@
 #include "setup.h"
-#include "setup_impl.h"
-#include "exception.h"
 #include "engine_p.h"
 #include <QtCore/QFile>
 #include <QtCore/QStandardPaths>
@@ -8,28 +6,17 @@
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
 using namespace QtDataSync;
+using namespace QtDataSync::__private;
 
 Q_LOGGING_CATEGORY(QtDataSync::logSetup, "qt.datasync.Setup")
 
-Engine *SetupPrivate::createEngine(FirebaseAuthenticator *authenticator, ICloudTransformer *transformer, QObject *parent)
+void SetupPrivate::init(SetupExtensionPrivate *authExt, SetupExtensionPrivate *transExt)
 {
-	return nullptr; // TODO new Engine{std::move(d), parent};
+	_authExt = authExt;
+	_transExt = transExt;
 }
 
-void SetupPrivate::finializeForEngine(Engine *engine)
-{
-	// TODO settings created AFTER auth creation!!!
-	if (settings)
-		settings->setParent(engine);
-	else {
-		settings = new QSettings{engine};
-		settings->beginGroup(QStringLiteral("qtdatasync"));
-	}
-	qCDebug(logSetup).noquote().nospace() << "Using settings: " << settings->fileName()
-										  << " (" << settings->group() << ")";
-}
-
-void SetupPrivate::readWebConfig(QIODevice *device, const std::function<void(QJsonObject)> &extender)
+void SetupPrivate::readWebConfig(QIODevice *device)
 {
 	QJsonParseError error;
 	const auto root = QJsonDocument::fromJson(device->readAll(), &error).object();
@@ -40,15 +27,13 @@ void SetupPrivate::readWebConfig(QIODevice *device, const std::function<void(QJs
 			throw JsonException{error, device};
 	}
 
-//	firebase.projectId = root[QStringLiteral("projectId")].toString();
-//	auth.firebaseApiKey = root[QStringLiteral("apiKey")].toString();
-//	auto jAuth = root[QStringLiteral("oAuth")].toObject();
-//	auth.oAuth.clientId = jAuth[QStringLiteral("clientID")].toString();
-//	auth.oAuth.secret = jAuth[QStringLiteral("clientSecret")].toString();
-//	auth.oAuth.port = static_cast<quint16>(jAuth[QStringLiteral("callbackPort")].toInt());
+	firebase.projectId = root[QStringLiteral("projectId")].toString();
+	firebase.apiKey = root[QStringLiteral("apiKey")].toString();
+	_authExt->extendFromWebConfig(root);
+	_transExt->extendFromWebConfig(root);
 }
 
-void SetupPrivate::readGSJsonConfig(QIODevice *device, const std::function<void(QJsonObject)> &extender)
+void SetupPrivate::readGSJsonConfig(QIODevice *device)
 {
 	QJsonParseError error;
 	const auto root = QJsonDocument::fromJson(device->readAll(), &error).object();
@@ -60,54 +45,142 @@ void SetupPrivate::readGSJsonConfig(QIODevice *device, const std::function<void(
 	}
 
 	// project id
-//	const auto project_info = root[QStringLiteral("project_info")].toObject();
-//	firebase.projectId = project_info[QStringLiteral("project_id")].toString();
+	const auto project_info = root[QStringLiteral("project_info")].toObject();
+	firebase.projectId = project_info[QStringLiteral("project_id")].toString();
 
-//	const auto clients = root[QStringLiteral("client")].toArray();
-//	for (const auto &clientV : clients) {
-//		const auto client = clientV.toObject();
+	// api key
+	const auto clients = root[QStringLiteral("client")].toArray();
+	for (const auto &clientV : clients) {
+		const auto client = clientV.toObject();
+		const auto api_keys = client[QStringLiteral("api_key")].toArray();
+		for (const auto &api_keyV : api_keys) {
+			const auto api_key = api_keyV.toObject();
+			firebase.apiKey = api_key[QStringLiteral("current_key")].toString();
+			if (!firebase.apiKey.isEmpty())
+				break;
+		}
 
-//		// api key
-//		const auto api_keys = client[QStringLiteral("api_key")].toArray();
-//		for (const auto &api_keyV : api_keys) {
-//			const auto api_key = api_keyV.toObject();
-//			auth.firebaseApiKey = api_key[QStringLiteral("current_key")].toString();
-//			if (!auth.firebaseApiKey.isEmpty())
-//				break;
-//		}
+		if (!firebase.apiKey.isEmpty())
+			break;
+	}
 
-//		// oAuth
-//		const auto oauth_clients = client[QStringLiteral("oauth_client")].toArray();
-//		for (const auto &oauth_clientV : oauth_clients) {
-//			const auto oauth_client = oauth_clientV.toObject();
-//			auth.oAuth.clientId = oauth_client[QStringLiteral("client_id")].toString();
-//			auth.oAuth.secret = oauth_client[QStringLiteral("client_secret")].toString();
-//			auth.oAuth.port = static_cast<quint16>(oauth_client[QStringLiteral("callback_port")].toInt());
-//			if (!auth.oAuth.clientId.isEmpty())
-//				break;
-//		}
-
-//		if (!auth.firebaseApiKey.isEmpty() &&
-//			!auth.oAuth.clientId.isEmpty())
-//			break;
-//	}
+	_authExt->extendFromGSJsonConfig(root);
+	_transExt->extendFromGSJsonConfig(root);
 }
 
-void SetupPrivate::readGSPlistConfig(QIODevice *device, const std::function<void(QSettings*)> &extender)
+void SetupPrivate::readGSPlistConfig(QIODevice *device)
 {
 #ifdef Q_OS_DARWIN
 	if (auto fDevice = qobject_cast<QFileDevice*>(device); fDevice) {
 		QSettings settings{fDevice->fileName(), QSettings::NativeFormat};
-//		firebase.projectId = settings.value(QStringLiteral("PROJECT_ID")).toString();
-//		auth.firebaseApiKey = settings.value(QStringLiteral("API_KEY")).toString();
-//		auth.oAuth.clientId = settings.value(QStringLiteral("CLIENT_ID")).toString();
-//		auth.oAuth.secret = settings.value(QStringLiteral("CLIENT_SECRET")).toString();
-//		auth.oAuth.port = static_cast<quint16>(settings.value(QStringLiteral("CALLBACK_PORT")).toInt());
+		firebase.projectId = settings.value(QStringLiteral("PROJECT_ID")).toString();
+		firebase.apiKey = settings.value(QStringLiteral("API_KEY")).toString();
+		_authExt->extendFromGSPlistConfig(&settings);
+		_transExt->extendFromGSPlistConfig(&settings);
 	} else
 		throw PListException{device};
 #else
 	throw PListException{device};
 #endif
+}
+
+Engine *SetupPrivate::createEngine(QScopedPointer<QtDataSync::__private::SetupPrivate> &&self, QObject *parent)
+{
+	return new Engine{std::move(self), parent};
+}
+
+void SetupPrivate::finializeForEngine(Engine *engine)
+{
+	if (settings)
+		settings->setParent(engine);
+	else {
+		settings = new QSettings{engine};
+		settings->beginGroup(QStringLiteral("qtdatasync"));
+	}
+	qCDebug(logSetup).noquote().nospace() << "Using settings: " << settings->fileName()
+										  << " (" << settings->group() << ")";
+}
+
+FirebaseAuthenticator *SetupPrivate::createAuthenticator(QObject *parent)
+{
+	const auto authenticator = qobject_cast<FirebaseAuthenticator*>(_authExt->createInstance(*this, parent));
+	if (authenticator)
+		return authenticator;
+	else
+		throw SetupException{QStringLiteral("Setup authentication extender did not create a valid FirebaseAuthenticator instance")};
+}
+
+ICloudTransformer *SetupPrivate::createTransformer(QObject *parent)
+{
+	const auto transformer = qobject_cast<ICloudTransformer*>(_transExt->createInstance(*this, parent));
+	if (transformer)
+		return transformer;
+	else
+		throw SetupException{QStringLiteral("Setup transformation extender did not create a valid FirebaseAuthenticator instance")};
+}
+
+
+
+
+
+SetupExtensionPrivate::SetupExtensionPrivate() = default;
+
+SetupExtensionPrivate::SetupExtensionPrivate(SetupExtensionPrivate &&other) noexcept = default;
+
+SetupExtensionPrivate &SetupExtensionPrivate::operator=(SetupExtensionPrivate &&other) noexcept = default;
+
+SetupExtensionPrivate::~SetupExtensionPrivate() = default;
+
+void SetupExtensionPrivate::extendFromWebConfig(const QJsonObject &) {}
+
+void SetupExtensionPrivate::extendFromGSJsonConfig(const QJsonObject &) {}
+
+void SetupExtensionPrivate::extendFromGSPlistConfig(QSettings *) {}
+
+
+
+void OAuthExtensionPrivate::extendFromWebConfig(const QJsonObject &config)
+{
+	const auto jAuth = config[QStringLiteral("oAuth")].toObject();
+	clientId = jAuth[QStringLiteral("clientID")].toString();
+	secret = jAuth[QStringLiteral("clientSecret")].toString();
+	port = static_cast<quint16>(jAuth[QStringLiteral("callbackPort")].toInt());
+}
+
+void OAuthExtensionPrivate::extendFromGSJsonConfig(const QJsonObject &config)
+{
+	const auto clients = config[QStringLiteral("client")].toArray();
+	for (const auto &clientV : clients) {
+		const auto client = clientV.toObject();
+		const auto oauth_clients = client[QStringLiteral("oauth_client")].toArray();
+		for (const auto &oauth_clientV : oauth_clients) {
+			const auto oauth_client = oauth_clientV.toObject();
+			clientId = oauth_client[QStringLiteral("client_id")].toString();
+			secret = oauth_client[QStringLiteral("client_secret")].toString();
+			port = static_cast<quint16>(oauth_client[QStringLiteral("callback_port")].toInt());
+			if (!clientId.isEmpty())
+				return;
+		}
+	}
+}
+
+void OAuthExtensionPrivate::extendFromGSPlistConfig(QSettings *config)
+{
+	clientId = config->value(QStringLiteral("CLIENT_ID")).toString();
+	secret = config->value(QStringLiteral("CLIENT_SECRET")).toString();
+	port = static_cast<quint16>(config->value(QStringLiteral("CALLBACK_PORT")).toInt());
+}
+
+QObject *OAuthExtensionPrivate::createInstance(const SetupPrivate &d, QObject *parent)
+{
+	return new OAuthAuthenticator {
+		d.firebase.apiKey,
+		clientId,
+		secret,
+		port,
+		d.settings,
+		parent
+	};
 }
 
 

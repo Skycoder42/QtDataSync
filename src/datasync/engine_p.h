@@ -41,7 +41,9 @@ public:
 		QVariant data;
 	};
 
-	QScopedPointer<SetupPrivate> setup;
+	QScopedPointer<__private::SetupPrivate> setup;
+	FirebaseAuthenticator *authenticator = nullptr;
+	ICloudTransformer *transformer = nullptr;
 	RemoteConnector *connector = nullptr;
 	QHash<QString, DatabaseWatcher*> watchers;
 
@@ -53,8 +55,6 @@ public:
 #ifndef QTDATASYNC_NO_NTP
 	NtpSync *ntpSync = nullptr;
 #endif
-
-	static const SetupPrivate *setupFor(const Engine *engine);
 
 	DatabaseWatcher *getWatcher(QSqlDatabase &&database);
 	DatabaseWatcher *findWatcher(const QString &name);

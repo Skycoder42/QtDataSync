@@ -2,7 +2,6 @@
 #define QTDATASYNC_AUTHENTICATOR_H
 
 #include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/engine.h"
 
 #include <QtCore/qobject.h>
 #include <QtCore/qsettings.h>

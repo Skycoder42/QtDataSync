@@ -3,6 +3,7 @@
 #include <QtCore/QAtomicInteger>
 #include <QtCore/QRegularExpression>
 using namespace QtDataSync;
+using namespace QtDataSync::__private;
 using namespace QtDataSync::firebase;
 using namespace QtDataSync::firebase::realtimedb;
 using namespace std::chrono;
@@ -14,8 +15,8 @@ const QByteArray RemoteConnector::NullETag {"null_etag"};
 
 #define CANCEL_IF(token) if (!_cancelCache.remove(cancelToken)) return
 
-RemoteConnector::RemoteConnector(Engine *engine) :
-	QObject{engine}
+RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QObject *parent) :
+	QObject{parent}
 {
 #ifdef Q_ATOMIC_INT8_IS_SUPPORTED
 	static QAtomicInteger<bool> rmcReg = false;
@@ -33,8 +34,7 @@ RemoteConnector::RemoteConnector(Engine *engine) :
 		QtJsonSerializer::SerializerBase::registerOptionalConverters<Data>();
 	}
 
-	const auto setup = EnginePrivate::setupFor(engine);
-	_limit = setup->firebase.realtimedb.readLimit;
+	_limit = config.readLimit;
 
 	_client = new JsonSuffixClient{this};
 	const auto serializer = _client->serializer();
@@ -46,8 +46,8 @@ RemoteConnector::RemoteConnector(Engine *engine) :
 	_client->setModernAttributes();
 	_client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
 	_client->setBaseUrl(QUrl{QStringLiteral("https://%1.firebaseio.com/datasync")
-								 .arg(setup->firebase.realtimedb.projectId)});
-	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(setup->firebase.realtimedb.readTimeOut));
+								 .arg(config.projectId)});
+	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(config.readTimeOut));
 	_client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
 }
 

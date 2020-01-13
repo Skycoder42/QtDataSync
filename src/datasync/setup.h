@@ -2,9 +2,10 @@
 #define QTDATASYNC_SETUP_H
 
 #include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/engine.h"
-#include "QtDataSync/exception.h"
 #include "QtDataSync/setup_impl.h"
+#include "QtDataSync/exception.h"
+#include "QtDataSync/authenticator.h"
+#include "QtDataSync/cloudtransformer.h"
 
 #include <chrono>
 
@@ -14,61 +15,53 @@
 
 namespace QtDataSync {
 
-class OAuthAuthenticator;
-
 // basic extenders for any non specialized setup
 template <typename TSetup, typename TAuthenticator>
 class SetupAuthenticationExtension
 {
 protected:
-	void extendAuthFromConfig(const QJsonObject &config);
-#ifdef Q_OS_DARWIN
-	void extendAuthFromConfig(QSettings *config);
-#endif
+	inline __private::SetupExtensionPrivate *authD() {
+		return &d;
+	}
 
-	FirebaseAuthenticator *createAuthenticator(const QString &apiKey, QSettings *settings);
+private:
+	__private::DefaultAuthExtensionPrivate<TAuthenticator> d;
 };
 
 template <typename TSetup, typename TCloudTransformer>
 class SetupTransformerExtension
 {
 protected:
-	void extendTransformFromConfig(const QJsonObject &config);
-#ifdef Q_OS_DARWIN
-	void extendTransformFromConfig(QSettings *config);
-#endif
+	inline __private::SetupExtensionPrivate *transformD() {
+		return &d;
+	}
 
-	ICloudTransformer *createTransformer();
+private:
+	__private::DefaultTransformerExtensionPrivate<TCloudTransformer> d;
 };
 
-class SetupPrivate;
-template <typename TAuthenticator, typename TCloudTransformer>
+
+template <typename TAuthenticator = OAuthAuthenticator, typename TCloudTransformer = PlainCloudTransformer>
 class Setup :
   public SetupAuthenticationExtension<Setup<TAuthenticator, TCloudTransformer>, TAuthenticator>,
   public SetupTransformerExtension<Setup<TAuthenticator, TCloudTransformer>, TCloudTransformer>
 {
-	Q_DISABLE_COPY(Setup)
+	static_assert (std::is_base_of_v<FirebaseAuthenticator, TAuthenticator>, "TAuthenticator must extend FirebaseAuthenticator");
+	static_assert (std::is_base_of_v<ICloudTransformer, TCloudTransformer>, "TCloudTransformer must implement ICloudTransformer");
+	Q_DISABLE_COPY_MOVE(Setup)
 
 public:
-	using ConfigType = SetupPrivate::ConfigType;
+	using ConfigType = __private::SetupPrivate::ConfigType;
 	using AuthExtension = SetupAuthenticationExtension<Setup<TAuthenticator, TCloudTransformer>, TAuthenticator>;
 	using TransformExtension = SetupTransformerExtension<Setup<TAuthenticator, TCloudTransformer>, TCloudTransformer>;
 
 	inline Setup() :
-		d{new SetupPrivate{}}
-	{}
-	inline Setup(Setup &&other) noexcept {
-		d.swap(other.d);
+		d{new __private::SetupPrivate{}}
+	{
+		d->init(this->authD(), this->transformD());
 	}
-	inline Setup &operator=(Setup &&other) noexcept {
-		d.swap(other.d);
-		return *this;
-	}
-	inline ~Setup() = default;
 
-	inline void swap(Setup &other) {
-		d.swap(other.d);
-	}
+	inline ~Setup() = default;
 
 	static Setup fromConfig(const QString &configPath, ConfigType configType);
 	static Setup fromConfig(QIODevice *configDevice, ConfigType configType);
@@ -79,22 +72,22 @@ public:
 	}
 
 	inline Setup &setFirebaseProjectId(QString projectId) {
-		d->projectId = std::move(projectId);
+		d->firebase.projectId = std::move(projectId);
 		return *this;
 	}
 
 	inline Setup &setFirebaseWebApiKey(QString webApiKey) {
-		d->apiKey = std::move(webApiKey);
+		d->firebase.apiKey = std::move(webApiKey);
 		return *this;
 	}
 
 	inline Setup &setRemoteReadTimeout(std::chrono::milliseconds timeout) {
-		d->readTimeOut = std::move(timeout);
+		d->firebase.readTimeOut = std::move(timeout);
 		return *this;
 	}
 
 	inline Setup &setRemotePageLimit(int limit) {
-		d->readLimit = limit;
+		d->firebase.readLimit = limit;
 		return *this;
 	}
 
@@ -107,50 +100,51 @@ public:
 #endif
 
 	inline Engine *createEngine(QObject *parent = nullptr) {
-		return d->createEngine(AuthExtension::createAuthenticator(d->apiKey, d->settings),
-							   TransformExtension::createTransformer(),
-							   parent);
-	}
-
-	inline friend Q_DATASYNC_EXPORT void swap(Setup& lhs, Setup& rhs) {
-		lhs.swap(rhs);
+		return __private::SetupPrivate::createEngine(std::move(d), parent);
 	}
 
 private:
-	QScopedPointer<SetupPrivate> d;
+	friend class SetupPrivate;
+	QScopedPointer<__private::SetupPrivate> d;
 };
+
+class Q_DATASYNC_EXPORT SetupException : public Exception
+{
+public:
+	SetupException(QString error);
+
+	QString qWhat() const override;
+
+	void raise() const override;
+	ExceptionBase *clone() const override;
+
+protected:
+	QString _error;
+};
+
+// ------------- implementation -------------
 
 template <typename TSetup>
 class SetupAuthenticationExtension<TSetup, OAuthAuthenticator>
 {
 public:
 	inline TSetup &setOAuthClientId(QString clientId) {
-		d->clientId = std::move(clientId);
+		d.clientId = std::move(clientId);
 		return *static_cast<TSetup>(this);
 	}
 
 	inline TSetup &setOAuthClientSecret(QString secret) {
-		d->secret = std::move(secret);
+		d.secret = std::move(secret);
 		return *static_cast<TSetup>(this);
 	}
 
 	inline TSetup &setOAuthClientCallbackPort(quint16 port) {
-		d->port = port;
+		d.port = port;
 		return *static_cast<TSetup>(this);
 	}
 
-protected:
-	void extendAuthFromConfig(const QJsonObject &config);
-#ifdef Q_OS_DARWIN
-	void extendAuthFromConfig(QSettings *config);
-#endif
-
-	FirebaseAuthenticator *createAuthenticator(const QString &apiKey, QSettings *settings) {
-		return nullptr; // TODO create -> move to seperate header?
-	}
-
 private:
-	QScopedPointer<OAuthExtenderPrivate> d;
+	__private::OAuthExtensionPrivate d;
 };
 
 template<typename TAuthenticator, typename TCloudTransformer>
@@ -168,40 +162,17 @@ Setup<TAuthenticator, TCloudTransformer> Setup<TAuthenticator, TCloudTransformer
 	Setup<TAuthenticator, TCloudTransformer> setup;
 	switch (configType) {
 	case ConfigType::WebConfig:
-		setup.readWebConfig(configDevice, [&](const QJsonObject &config){
-			setup.extendAuthFromConfig(config);
-			setup.extendTransformFromConfig(config);
-		});
+		setup.d->readWebConfig(configDevice);
 		break;
 	case ConfigType::GoogleServicesJson:
-		setup.readGSJsonConfig(configDevice, [&](const QJsonObject &config){
-			setup.extendAuthFromConfig(config);
-			setup.extendTransformFromConfig(config);
-		});
+		setup.d->readGSJsonConfig(configDevice);
 		break;
 	case ConfigType::GoogleServicesPlist:
-		setup.readGSPlistConfig(configDevice, [&](QSettings *config){
-			setup.extendAuthFromConfig(config);
-			setup.extendTransformFromConfig(config);
-		});
+		setup.d->readGSPlistConfig(configDevice);
 		break;
 	}
 	return setup;
 }
-
-class Q_DATASYNC_EXPORT SetupException : public Exception
-{
-public:
-	SetupException(QString error);
-
-	QString qWhat() const override;
-
-	void raise() const override;
-	ExceptionBase *clone() const override;
-
-protected:
-	QString _error;
-};
 
 }
 

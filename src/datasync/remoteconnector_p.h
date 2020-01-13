@@ -5,6 +5,7 @@
 #include "engine.h"
 #include "objectkey.h"
 #include "cloudtransformer.h"
+#include "setup_impl.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QLoggingCategory>
@@ -25,7 +26,7 @@ public:
 	static constexpr int CodeETagMismatch = 412;
 	static const QByteArray NullETag;
 
-	explicit RemoteConnector(Engine *engine);
+	explicit RemoteConnector(const __private::SetupPrivate::FirebaseConfig &config, QObject *parent);
 
 	bool isActive() const;
 	void setUser(QString userId);
