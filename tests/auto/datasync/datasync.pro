@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+	AuthenticatorTest \
 	DbWatcherTest \
 	RemoteConnectorTest \
 #	StatemachineTest \
