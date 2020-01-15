@@ -1,11 +1,16 @@
 #include <QtTest>
-#include <QtDataSync>
 
-#include <QtDataSync/private/engine_p.h>
+#include <QtDataSync/authenticator.h>
+#define private public
+#include <QtDataSync/setup_impl.h>
+#undef private
+
+#include <QtDataSync/private/firebaseauthenticator_p.h>
 #include <QtDataSync/private/remoteconnector_p.h>
 
 #include "anonauth.h"
 using namespace QtDataSync;
+using namespace std::chrono_literals;
 
 #define VERIFY_SPY(sigSpy, errorSpy) QVERIFY2(sigSpy.wait(), qUtf8Printable(errorSpy.value(0).value(0).toString()))
 
@@ -30,7 +35,7 @@ private:
 	static const QString Table;
 
 	QTemporaryDir _tDir;
-	AnonAuth *_authenticator = nullptr;
+	FirebaseAuthenticator *_authenticator = nullptr;
 	RemoteConnector *_connector = nullptr;
 
 	void doAuth();
@@ -43,15 +48,20 @@ void RemoteConnectorTest::initTestCase()
 	qRegisterMetaType<ObjectKey>();  // TODO move to datasync
 
 	try {
-		auto engine = Setup::fromConfig(QStringLiteral(SRCDIR "../../../ci/web-config.json"), Setup::ConfigType::WebConfig)
-						  .setSettings(new QSettings{_tDir.filePath(QStringLiteral("config.ini")), QSettings::IniFormat})
-						  .setRemotePageLimit(7)  // force small pages to test paging
-						  .createEngine(this);
-		_authenticator = new AnonAuth{this};
-		_authenticator->init(engine->sett);
-		_connector = new RemoteConnector{engine};
-		_connector->setParent(this);
-		delete engine;
+		QFile configFile{QStringLiteral(SRCDIR "../../../ci/web-config.json")};
+		QVERIFY2(configFile.open(QIODevice::ReadOnly | QIODevice::Text), qUtf8Printable(configFile.errorString()));
+		__private::SetupPrivate setup;
+		setup.readGSJsonConfig(&configFile);
+
+		auto settings = new QSettings{_tDir.filePath(QStringLiteral("config.ini")), QSettings::IniFormat, this};
+		_authenticator = new FirebaseAuthenticator {
+			new AnonAuth{},
+			setup.firebase.apiKey,
+			settings,
+			this
+		};
+		setup.firebase.readLimit = 7;
+		_connector = new RemoteConnector{setup.firebase, this};
 		doAuth();
 	} catch (std::exception &e) {
 		QFAIL(e.what());
@@ -60,22 +70,18 @@ void RemoteConnectorTest::initTestCase()
 
 void RemoteConnectorTest::cleanupTestCase()
 {
-//	if (_connector) {
-//		QSignalSpy delSpy{_connector, &RemoteConnector::removedUser};
-//		_connector->removeUser();
-//		qDebug() << "deleteTable" << delSpy.wait();
+	if (_connector) {
+		QSignalSpy delSpy{_connector, &RemoteConnector::removedUser};
+		_connector->removeUser();
+		qDebug() << "deleteTable" << delSpy.wait();
 
-//		QSignalSpy accDelSpy{_engine->authenticator(), &IAuthenticator::accountDeleted};
-//		_engine->authenticator()->deleteUser();
-//		if (accDelSpy.wait())
-//			qDebug() << "deleteAcc" << accDelSpy[0][0].toBool();
-//		else
-//			qDebug() << "deleteAcc did not fire";
-//	}
-
-//	_connector.clear();
-//	if (_engine)
-//		_engine->deleteLater();
+		QSignalSpy accDelSpy{_authenticator, &FirebaseAuthenticator::accountDeleted};
+		_authenticator->deleteUser();
+		if (accDelSpy.wait())
+			qDebug() << "deleteAcc" << accDelSpy[0][0].toBool();
+		else
+			qDebug() << "deleteAcc did not fire";
+	}
 }
 
 void RemoteConnectorTest::testUploadData()

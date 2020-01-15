@@ -2,19 +2,26 @@
 #define QTDATASYNC_SETUP_IMPL_H
 
 #include "QtDataSync/qtdatasync_global.h"
+#include "QtDataSync/authenticator.h"
 
 #include <QtCore/qdir.h>
+#include <QtCore/qhash.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qloggingcategory.h>
 
 namespace QtDataSync {
 
-class FirebaseAuthenticator;
 class ICloudTransformer;
 class Engine;
 
 template <typename TAuthenticator, typename TCloudTransformer>
 class Setup;
+
+enum class ConfigType {
+	WebConfig,
+	GoogleServicesJson,
+	GoogleServicesPlist
+};
 
 namespace __private {
 
@@ -29,11 +36,11 @@ public:
 	SetupExtensionPrivate &operator=(SetupExtensionPrivate &&other) noexcept;
 	virtual ~SetupExtensionPrivate();
 
-	virtual void extendFromWebConfig(const QJsonObject &config);;
-	virtual void extendFromGSJsonConfig(const QJsonObject &config);;
-	virtual void extendFromGSPlistConfig(QSettings *config);;
+	virtual void extendFromWebConfig(const QJsonObject &config);
+	virtual void extendFromGSJsonConfig(const QJsonObject &config);
+	virtual void extendFromGSPlistConfig(QSettings *config);
 
-	virtual QObject *createInstance(const SetupPrivate &d, QObject *parent) = 0;
+	virtual QObject *createInstance(QObject *parent) = 0;
 };
 
 class Q_DATASYNC_EXPORT SetupPrivate
@@ -43,12 +50,6 @@ class Q_DATASYNC_EXPORT SetupPrivate
 	friend class QtDataSync::Engine;
 
 public:
-	enum class ConfigType {  // TODO move to namespace
-		WebConfig,
-		GoogleServicesJson,
-		GoogleServicesPlist
-	};
-
 	struct FirebaseConfig {
 		QString projectId;
 		QString apiKey;
@@ -76,7 +77,7 @@ private:
 
 	static Engine *createEngine(QScopedPointer<SetupPrivate> &&self, QObject *parent);
 	void finializeForEngine(Engine *engine);
-	FirebaseAuthenticator *createAuthenticator(QObject *parent);
+	IAuthenticator *createAuthenticator(QObject *parent);
 	ICloudTransformer *createTransformer(QObject *parent);
 };
 
@@ -84,8 +85,8 @@ template <typename TAuthenticator>
 class DefaultAuthExtensionPrivate final : public SetupExtensionPrivate
 {
 public:
-	inline QObject *createInstance(const SetupPrivate &d, QObject *parent) final {
-		return new TAuthenticator{d.firebase.apiKey, d.settings, parent};
+	inline QObject *createInstance(QObject *parent) final {
+		return new TAuthenticator{parent};
 	}
 };
 
@@ -93,22 +94,38 @@ template <typename TCloudTransformer>
 class DefaultTransformerExtensionPrivate final : public SetupExtensionPrivate
 {
 public:
-	inline QObject *createInstance(const SetupPrivate &, QObject *parent) final {
+	inline QObject *createInstance(QObject *parent) final {
 		return new TCloudTransformer{parent};
 	}
 };
 
-class OAuthExtensionPrivate final : public SetupExtensionPrivate
+template <typename... TAuthenticators>
+class AuthenticationSelectorPrivate final : public SetupExtensionPrivate
 {
 public:
-	QString clientId;
-	QString secret;
-	quint16 port = 0;
+	QHash<int, SetupExtensionPrivate*> selectDs;
 
-	void extendFromWebConfig(const QJsonObject &config) override;
-	void extendFromGSJsonConfig(const QJsonObject &config) override;
-	void extendFromGSPlistConfig(QSettings *config) override;
-	QObject *createInstance(const SetupPrivate &d, QObject *parent) final;
+	inline void extendFromWebConfig(const QJsonObject &config) final {
+		for (auto d : qAsConst(selectDs))
+			d->extendFromWebConfig(config);
+	}
+
+	inline void extendFromGSJsonConfig(const QJsonObject &config) final {
+		for (auto d : qAsConst(selectDs))
+			d->extendFromGSJsonConfig(config);
+	}
+
+	inline void extendFromGSPlistConfig(QSettings *config) final {
+		for (auto d : qAsConst(selectDs))
+			d->extendFromGSPlistConfig(config);
+	}
+
+	inline QObject *createInstance(QObject *parent) final {
+		auto selector = new AuthenticationSelector<TAuthenticators...>{parent};
+		for (auto it = selectDs.constBegin(), end = selectDs.constEnd(); it != end; ++it)
+			selector->addAuthenticator(it.key(), it.value()->createInstance(selector));
+		return selector;
+	}
 };
 
 }

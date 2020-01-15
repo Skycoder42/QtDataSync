@@ -101,9 +101,9 @@ void SetupPrivate::finializeForEngine(Engine *engine)
 										  << " (" << settings->group() << ")";
 }
 
-FirebaseAuthenticator *SetupPrivate::createAuthenticator(QObject *parent)
+IAuthenticator *SetupPrivate::createAuthenticator(QObject *parent)
 {
-	const auto authenticator = qobject_cast<FirebaseAuthenticator*>(_authExt->createInstance(*this, parent));
+	const auto authenticator = qobject_cast<IAuthenticator*>(_authExt->createInstance(parent));
 	if (authenticator)
 		return authenticator;
 	else
@@ -112,7 +112,7 @@ FirebaseAuthenticator *SetupPrivate::createAuthenticator(QObject *parent)
 
 ICloudTransformer *SetupPrivate::createTransformer(QObject *parent)
 {
-	const auto transformer = qobject_cast<ICloudTransformer*>(_transExt->createInstance(*this, parent));
+	const auto transformer = qobject_cast<ICloudTransformer*>(_transExt->createInstance(parent));
 	if (transformer)
 		return transformer;
 	else
@@ -136,52 +136,6 @@ void SetupExtensionPrivate::extendFromWebConfig(const QJsonObject &) {}
 void SetupExtensionPrivate::extendFromGSJsonConfig(const QJsonObject &) {}
 
 void SetupExtensionPrivate::extendFromGSPlistConfig(QSettings *) {}
-
-
-
-void OAuthExtensionPrivate::extendFromWebConfig(const QJsonObject &config)
-{
-	const auto jAuth = config[QStringLiteral("oAuth")].toObject();
-	clientId = jAuth[QStringLiteral("clientID")].toString();
-	secret = jAuth[QStringLiteral("clientSecret")].toString();
-	port = static_cast<quint16>(jAuth[QStringLiteral("callbackPort")].toInt());
-}
-
-void OAuthExtensionPrivate::extendFromGSJsonConfig(const QJsonObject &config)
-{
-	const auto clients = config[QStringLiteral("client")].toArray();
-	for (const auto &clientV : clients) {
-		const auto client = clientV.toObject();
-		const auto oauth_clients = client[QStringLiteral("oauth_client")].toArray();
-		for (const auto &oauth_clientV : oauth_clients) {
-			const auto oauth_client = oauth_clientV.toObject();
-			clientId = oauth_client[QStringLiteral("client_id")].toString();
-			secret = oauth_client[QStringLiteral("client_secret")].toString();
-			port = static_cast<quint16>(oauth_client[QStringLiteral("callback_port")].toInt());
-			if (!clientId.isEmpty())
-				return;
-		}
-	}
-}
-
-void OAuthExtensionPrivate::extendFromGSPlistConfig(QSettings *config)
-{
-	clientId = config->value(QStringLiteral("CLIENT_ID")).toString();
-	secret = config->value(QStringLiteral("CLIENT_SECRET")).toString();
-	port = static_cast<quint16>(config->value(QStringLiteral("CALLBACK_PORT")).toInt());
-}
-
-QObject *OAuthExtensionPrivate::createInstance(const SetupPrivate &d, QObject *parent)
-{
-	return new OAuthAuthenticator {
-		d.firebase.apiKey,
-		clientId,
-		secret,
-		port,
-		d.settings,
-		parent
-	};
-}
 
 
 

@@ -4,6 +4,7 @@
 #include "QtDataSync/qtdatasync_global.h"
 
 #include <QtCore/qobject.h>
+#include <QtCore/qhash.h>
 #include <QtCore/qsettings.h>
 
 namespace QtRestClient {
@@ -12,29 +13,30 @@ class RestClient;
 
 namespace QtDataSync {
 
-class FirebaseAuthenticatorPrivate;
-class Q_DATASYNC_EXPORT FirebaseAuthenticator : public QObject
+namespace __private {
+template <typename... TAuthenticators>
+class AuthenticationSelectorPrivate;
+}
+
+class FirebaseAuthenticator;
+
+class IAuthenticatorPrivate;
+class Q_DATASYNC_EXPORT IAuthenticator : public QObject
 {
 	Q_OBJECT
 
-public Q_SLOTS:
-	void signIn();
-	virtual void logOut();
-	virtual void deleteUser();
+public:
+	void init(FirebaseAuthenticator *fbAuth);
 
-	void abortRequest();
-
-Q_SIGNALS:
-	void signInSuccessful(const QString &userId, const QString &idToken, QPrivateSignal = {});
-	void signInFailed(const QString &errorMessage, QPrivateSignal = {});
-	void accountDeleted(bool success, QPrivateSignal = {});
+	virtual void signIn() = 0;
+	virtual void logOut() = 0;
+	virtual void abortRequest() = 0;
 
 protected:
-	FirebaseAuthenticator(const QString &apiKey, QSettings *settings, QObject *parent = nullptr);
-	FirebaseAuthenticator(FirebaseAuthenticatorPrivate &dd, QObject *parent);
+	IAuthenticator(QObject *parent = nullptr);
+	IAuthenticator(IAuthenticatorPrivate &dd, QObject *parent);
 
-	virtual void firebaseSignIn() = 0;
-	virtual void abortSignIn() = 0;
+	virtual void init();
 
 	QSettings *settings() const;
 	QtRestClient::RestClient *client() const;
@@ -47,48 +49,58 @@ protected:
 	void failSignIn(const QString &errorMessage);
 
 private:
-	Q_DECLARE_PRIVATE(FirebaseAuthenticator)
-
-	Q_PRIVATE_SLOT(d_func(), void _q_refreshToken())
-	Q_PRIVATE_SLOT(d_func(), void _q_apiError(const QString &, int, QtRestClient::RestReply::Error))
+	Q_DECLARE_PRIVATE(IAuthenticator);
 };
 
-class OAuthAuthenticatorPrivate;
-class Q_DATASYNC_EXPORT OAuthAuthenticator final : public FirebaseAuthenticator
+class AuthenticationSelectorBasePrivate;
+class Q_DATASYNC_EXPORT AuthenticationSelectorBase : public IAuthenticator
 {
 	Q_OBJECT
 
-	Q_PROPERTY(bool preferNative READ doesPreferNative WRITE setPreferNative NOTIFY preferNativeChanged)
+	Q_PROPERTY(bool selectionStored READ isSelectionStored WRITE setSelectionStored NOTIFY selectionStoredChanged)
+	Q_PROPERTY(IAuthenticator* selected READ selected NOTIFY selectedChanged)
 
 public:
-	explicit OAuthAuthenticator(const QString &firebaseApiKey,
-								const QString &googleClientId,
-								const QString &googleClientSecret,
-								quint16 googleCallbackPort,
-								QSettings *settings,
-								QObject *parent = nullptr);
+	Q_INVOKABLE QList<int> selectionTypes() const;
+	Q_INVOKABLE IAuthenticator *authenticator(int metaTypeId) const;
+	Q_INVOKABLE IAuthenticator *select(int metaTypeId, bool autoSignIn = true);
 
-	bool doesPreferNative() const;
+	bool isSelectionStored() const;
+	IAuthenticator* selected() const;
 
+	void init() final;
+	void signIn() final;
 	void logOut() final;
+	void abortRequest() final;
 
 public Q_SLOTS:
-	void setPreferNative(bool preferNative);
+	void setSelectionStored(bool selectionStored);
 
 Q_SIGNALS:
-	void signInRequested(const QUrl &authUrl);
+	void selectAuthenticator(const QList<int> &metaTypeIds, QPrivateSignal = {});
 
-	void preferNativeChanged(bool preferNative, QPrivateSignal);
+	void selectionStoredChanged(bool selectionStored, QPrivateSignal = {});
+	void selectedChanged(IAuthenticator* selected, QPrivateSignal = {});
 
 protected:
-	void firebaseSignIn() final;
-	void abortSignIn() final;
+	AuthenticationSelectorBase(QObject *parent);
 
 private:
-	Q_DECLARE_PRIVATE(OAuthAuthenticator)
+	template <typename... TAuthenticators>
+	friend class __private::AuthenticationSelectorPrivate;
+	Q_DECLARE_PRIVATE(AuthenticationSelectorBase);
 
-	Q_PRIVATE_SLOT(d_func(), void _q_firebaseSignIn())
-	Q_PRIVATE_SLOT(d_func(), void _q_oAuthError(const QString &, const QString &))
+	void addAuthenticator(int metaTypeId, IAuthenticator *authenticator);
+};
+
+template <typename... TAuthenticators>
+class AuthenticationSelector final : public AuthenticationSelectorBase
+{
+	static_assert (std::conjunction_v<std::is_base_of_v<IAuthenticator, TAuthenticators>...>, "All TAuthenticators must extend IAuthenticator");
+public:
+	inline AuthenticationSelector(QObject *parent) :
+		AuthenticationSelectorBase{parent}
+	{}
 };
 
 }

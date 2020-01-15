@@ -11,7 +11,7 @@
 
 namespace QtDataSync {
 
-class FirebaseAuthenticator;
+class IAuthenticator;
 class ICloudTransformer;
 
 namespace __private {
@@ -23,7 +23,7 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 {
 	Q_OBJECT
 
-	Q_PROPERTY(FirebaseAuthenticator* authenticator READ authenticator CONSTANT)
+	Q_PROPERTY(IAuthenticator* authenticator READ authenticator CONSTANT)
 	Q_PROPERTY(ICloudTransformer* transformer READ transformer CONSTANT)
 
 	Q_PROPERTY(EngineState state READ state NOTIFY stateChanged)
@@ -132,7 +132,7 @@ public:
 	bool isLiveSyncEnabled(const QString &table) const;
 	TableState tableState(const QString &table) const;
 
-	FirebaseAuthenticator *authenticator() const;
+	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
 	EngineState state() const;
 

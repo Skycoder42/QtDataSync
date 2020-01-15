@@ -5,6 +5,7 @@
 #include "authenticator.h"
 
 #include "setup_impl.h"
+#include "firebaseauthenticator_p.h"
 #include "databasewatcher_p.h"
 #include "remoteconnector_p.h"
 

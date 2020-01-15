@@ -20,7 +20,7 @@ template <typename TSetup, typename TAuthenticator>
 class SetupAuthenticationExtension
 {
 protected:
-	inline __private::SetupExtensionPrivate *authD() {
+	inline __private::SetupExtensionPrivate *authenticatorD() {
 		return &d;
 	}
 
@@ -41,24 +41,32 @@ private:
 };
 
 
-template <typename TAuthenticator = OAuthAuthenticator, typename TCloudTransformer = PlainCloudTransformer>
+template <typename TAuthenticator, typename TCloudTransformer = PlainCloudTransformer>
 class Setup :
   public SetupAuthenticationExtension<Setup<TAuthenticator, TCloudTransformer>, TAuthenticator>,
   public SetupTransformerExtension<Setup<TAuthenticator, TCloudTransformer>, TCloudTransformer>
 {
-	static_assert (std::is_base_of_v<FirebaseAuthenticator, TAuthenticator>, "TAuthenticator must extend FirebaseAuthenticator");
+	static_assert (std::is_base_of_v<IAuthenticator, TAuthenticator>, "TAuthenticator must extend IAuthenticator or AuthenticationSelector<...>");
 	static_assert (std::is_base_of_v<ICloudTransformer, TCloudTransformer>, "TCloudTransformer must implement ICloudTransformer");
-	Q_DISABLE_COPY_MOVE(Setup)
+	Q_DISABLE_COPY(Setup)
 
 public:
-	using ConfigType = __private::SetupPrivate::ConfigType;
 	using AuthExtension = SetupAuthenticationExtension<Setup<TAuthenticator, TCloudTransformer>, TAuthenticator>;
 	using TransformExtension = SetupTransformerExtension<Setup<TAuthenticator, TCloudTransformer>, TCloudTransformer>;
 
 	inline Setup() :
 		d{new __private::SetupPrivate{}}
 	{
-		d->init(this->authD(), this->transformD());
+		d->init(this->authenticatorD(), this->transformD());
+	}
+
+	inline Setup(Setup &&other) noexcept {
+		d.swap(other.d);
+	}
+
+	inline Setup &operator=(Setup &&other) noexcept {
+		d.swap(other.d);
+		return *this;
 	}
 
 	inline ~Setup() = default;
@@ -124,31 +132,36 @@ protected:
 
 // ------------- implementation -------------
 
-template <typename TSetup>
-class SetupAuthenticationExtension<TSetup, OAuthAuthenticator>
+template <typename TSetup, typename... TAuthenticators>
+class SetupAuthenticationExtension<TSetup, AuthenticationSelector<TAuthenticators...>> : public SetupAuthenticationExtension<TSetup, TAuthenticators>...
 {
+	Q_DISABLE_COPY(SetupAuthenticationExtension)
 public:
-	inline TSetup &setOAuthClientId(QString clientId) {
-		d.clientId = std::move(clientId);
-		return *static_cast<TSetup>(this);
+	inline SetupAuthenticationExtension() :
+		d{
+			{std::make_pair(qMetaTypeId<TAuthenticators>(), SetupAuthenticationExtension<TSetup, TAuthenticators>::authenticatorD())...}
+		}
+	{}
+	inline SetupAuthenticationExtension(SetupAuthenticationExtension &&) noexcept = default;
+	inline SetupAuthenticationExtension &operator=(SetupAuthenticationExtension &&) noexcept = default;
+
+	template <typename TAuth>
+	inline SetupAuthenticationExtension<TSetup, TAuth> &authExtension() {
+		static_assert (std::is_base_of_v<SetupAuthenticationExtension<TSetup, TAuth>, SetupAuthenticationExtension<TSetup, AuthenticationSelector<TAuthenticators...>>>, "TAuth must be one of the specified authenticators");
+		return *this;
 	}
 
-	inline TSetup &setOAuthClientSecret(QString secret) {
-		d.secret = std::move(secret);
-		return *static_cast<TSetup>(this);
-	}
-
-	inline TSetup &setOAuthClientCallbackPort(quint16 port) {
-		d.port = port;
-		return *static_cast<TSetup>(this);
+protected:
+	inline __private::SetupExtensionPrivate *authenticatorD() {
+		return &d;
 	}
 
 private:
-	__private::OAuthExtensionPrivate d;
+	__private::AuthenticationSelectorPrivate<TAuthenticators...> d;
 };
 
 template<typename TAuthenticator, typename TCloudTransformer>
-Setup<TAuthenticator, TCloudTransformer> Setup<TAuthenticator, TCloudTransformer>::fromConfig(const QString &configPath, Setup::ConfigType configType)
+Setup<TAuthenticator, TCloudTransformer> Setup<TAuthenticator, TCloudTransformer>::fromConfig(const QString &configPath, ConfigType configType)
 {
 	QFile configFile{configPath};
 	if (!configFile.open(QIODevice::ReadOnly | QIODevice::Text))

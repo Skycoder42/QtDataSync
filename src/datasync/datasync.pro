@@ -15,6 +15,9 @@ HEADERS += \
 	firebase/firebaseapibase_p.h \
 	firebase/realtimedb/querymap_p.h \
 	firebase/realtimedb/servertimestamp_p.h \
+	firebaseauthenticator_p.h \
+	googleauthenticator.h \
+	googleauthenticator_p.h \
 	googleoauthflow_p.h \
 	objectkey.h \
 	qtdatasync_global.h \
@@ -33,6 +36,8 @@ SOURCES += \
 	firebase/firebaseapibase.cpp \
 	firebase/realtimedb/querymap.cpp \
 	firebase/realtimedb/servertimestamp.cpp \
+	firebaseauthenticator.cpp \
+	googleauthenticator.cpp \
 	googleoauthflow.cpp \
 	objectkey.cpp \
 	remoteconnector.cpp \

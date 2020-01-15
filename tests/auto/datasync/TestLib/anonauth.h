@@ -5,20 +5,18 @@
 
 #include <QtNetwork/QNetworkReply>
 
-#include <QtDataSync/FirebaseAuthenticator>
+#include <QtDataSync/IAuthenticator>
 
-class AnonAuth : public QtDataSync::FirebaseAuthenticator
+class AnonAuth : public QtDataSync::IAuthenticator
 {
 	Q_OBJECT
 
 public:
-	explicit AnonAuth(const QString &apiKey, QSettings *settings, QObject *parent = nullptr);
+	explicit AnonAuth(QObject *parent = nullptr);
 
-public Q_SLOTS:
-	void abortSignIn() override;
-
-protected:
-	void firebaseSignIn() override;
+	void signIn() override;
+	void logOut() override;
+	void abortRequest() override;
 
 private:
 	QPointer<QNetworkReply> _authReply;

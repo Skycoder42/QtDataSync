@@ -127,10 +127,10 @@ Engine::TableState Engine::tableState(const QString &table) const
 		return TableState::Invalid;
 }
 
-FirebaseAuthenticator *Engine::authenticator() const
+IAuthenticator *Engine::authenticator() const
 {
 	Q_D(const Engine);
-	return d->authenticator;
+	return d->authenticator->authenticator();
 }
 
 ICloudTransformer *Engine::transformer() const
@@ -207,7 +207,12 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	Q_D(Engine);
 	d->setup.swap(setup);
 	d->setup->finializeForEngine(this);
-	d->authenticator = setup->createAuthenticator(this);
+	d->authenticator = new FirebaseAuthenticator {
+		setup->createAuthenticator(this),
+		d->setup->firebase.apiKey,
+		d->setup->settings,
+		this
+	};
 	d->transformer = setup->createTransformer(this);  // TODO create one per table?
 
 	d->connector = new RemoteConnector{setup->firebase, this};
