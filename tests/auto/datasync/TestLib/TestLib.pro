@@ -1,8 +1,15 @@
 TEMPLATE = lib
 
-QT = core datasync
+QT = core testlib datasync datasync-private
 
 CONFIG += staticlib
+
+debug_and_release {
+	CONFIG(debug, debug|release):SUFFIX = /debug
+	CONFIG(release, debug|release):SUFFIX = /release
+}
+INCLUDEPATH += \
+	$$OUT_PWD/../../../../src/datasync/$$QRESTBUILDER_DIR$${SUFFIX}
 
 HEADERS += \
 	anonauth.h \

@@ -7,6 +7,7 @@ SUBDIRS += \
 #	StatemachineTest \
 	TestLib
 
+AuthenticatorTest.depends += TestLib
 RemoteConnectorTest.depends += TestLib
 
 prepareRecursiveTarget(run-tests)

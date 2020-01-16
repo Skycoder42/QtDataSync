@@ -59,14 +59,18 @@ void IAuthenticator::completeSignIn(QString localId, QString idToken, QString re
 		d->fbAuth->storeFbConfig();
 		d->fbAuth->startRefreshTimer();
 		Q_EMIT d->fbAuth->signInSuccessful(d->fbAuth->_localId, d->fbAuth->_idToken);
+		Q_EMIT d->fbAuth->_auth->closeGui();  // emit close of "primary" authenticator
 	}
 }
 
 void IAuthenticator::failSignIn(const QString &errorMessage)
 {
 	Q_D(IAuthenticator);
-	if (d->fbAuth)
+	if (d->fbAuth) {
 		Q_EMIT d->fbAuth->signInFailed(errorMessage);
+		Q_EMIT d->fbAuth->_auth->closeGui();  // emit close of "primary" authenticator
+	} else
+		Q_EMIT closeGui();
 }
 
 
@@ -186,6 +190,8 @@ void AuthenticationSelectorBase::addAuthenticator(int metaTypeId, IAuthenticator
 		authenticator->deleteLater();
 	} else {
 		authenticator->setParent(this);
+		connect(authenticator, &IAuthenticator::guiError,
+				this, &AuthenticationSelectorBase::guiError);
 		d->authenticators.insert(metaTypeId, authenticator);
 	}
 }

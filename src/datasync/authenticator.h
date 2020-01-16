@@ -25,12 +25,20 @@ class Q_DATASYNC_EXPORT IAuthenticator : public QObject
 {
 	Q_OBJECT
 
+protected:
+	struct QProtectedSignal {};
+
 public:
 	void init(FirebaseAuthenticator *fbAuth);
 
+	// internal methods! do not call
 	virtual void signIn() = 0;
 	virtual void logOut() = 0;
 	virtual void abortRequest() = 0;
+
+Q_SIGNALS:
+	void guiError(const QString &message, QProtectedSignal = {});
+	void closeGui(QPrivateSignal = {});
 
 protected:
 	IAuthenticator(QObject *parent = nullptr);
