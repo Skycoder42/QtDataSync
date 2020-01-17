@@ -518,7 +518,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		checkNewerQuery.addBindValue(key.id);
 		checkNewerQuery.exec();
 		if (checkNewerQuery.first()) {
-			const auto localMod = checkNewerQuery.value(0).toDateTime();
+			const auto localMod = checkNewerQuery.value(0).toDateTime().toUTC();
 			if (localMod > data.modified()) {
 				qCDebug(logDbWatcher) << "Data with id" << key
 									  << "was modified in the cloud, but is newer locally."
@@ -613,7 +613,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 		if (nextDataQuery.first()) {
 			LocalData data;
 			data.setKey({name, nextDataQuery.value(0).toString()});
-			data.setModified(nextDataQuery.value(1).toDateTime());
+			data.setModified(nextDataQuery.value(1).toDateTime().toUTC());
 			if (const auto fData = nextDataQuery.value(2); !fData.isNull()) {
 				const auto record = nextDataQuery.record();
 				QVariantHash tableData;
@@ -634,13 +634,30 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modified)
 {
 	try {
+		ExTransaction transact{_db, key};
+
+		ExQuery getStampQuery{_db, ErrorScope::Table, key.typeName};
+		getStampQuery.prepare(QStringLiteral("SELECT tstamp "
+											 "FROM %1 "
+											 "WHERE pkey == ?")
+								  .arg(tableName(key.typeName, true)));
+		getStampQuery.addBindValue(key.id);
+		getStampQuery.exec();
+		if (getStampQuery.first()) {
+			if (getStampQuery.value(0).toDateTime().toUTC() != modified.toUTC()) {
+				qCDebug(logDbWatcher) << "Entry with id" << key
+									  << "was modified after beeing uploaded (timestamp changed)";
+				transact.commit();
+				return;
+			}
+		}
+
 		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.typeName};
 		markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
-												  "SET changed = ?, tstamp = ? "
-												  "WHERE pkey = ?;")
+												  "SET changed = ? "
+												  "WHERE pkey == ?;")
 									   .arg(tableName(key.typeName, true)));
 		markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
-		markUnchangedQuery.addBindValue(modified.toUTC());
 		markUnchangedQuery.addBindValue(key.id);
 		markUnchangedQuery.exec();
 		qCDebug(logDbWatcher) << "Updated metadata for id" << key;

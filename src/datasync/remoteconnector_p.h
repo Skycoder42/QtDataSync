@@ -24,7 +24,6 @@ public:
 
 	static constexpr int CodeNotFound = 404;
 	static constexpr int CodeETagMismatch = 412;
-	static const QByteArray NullETag;
 
 	explicit RemoteConnector(const __private::SetupPrivate::FirebaseConfig &config, QObject *parent);
 

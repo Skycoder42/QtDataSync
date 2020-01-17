@@ -3,7 +3,7 @@
 <!-- See https://firebase.google.com/docs/database/rest/start -->
 <RestApi name="ApiClient"
 		 namespace="QtDataSync::firebase::realtimedb"
-		 base="FirebaseApiBase"
+		 base="ApiBase"
 		 except="Error">
 	<Include>optional</Include>
 	<Include>QtCore/QHash</Include>

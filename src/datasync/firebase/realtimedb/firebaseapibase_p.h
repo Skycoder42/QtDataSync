@@ -3,25 +3,27 @@
 
 #include <QtCore/QObject>
 
-namespace QtDataSync::firebase {
+namespace QtDataSync::firebase::realtimedb {
 
-class FirebaseApiBase : public QObject
+class ApiBase : public QObject
 {
 	Q_OBJECT
 
 public:
+	static const QByteArray NullETag;
+
 	class ETagSetter
 	{
 		Q_DISABLE_COPY_MOVE(ETagSetter)
 	public:
-		ETagSetter(FirebaseApiBase *api, QByteArray eTag);
+		ETagSetter(ApiBase *api, QByteArray eTag);
 		~ETagSetter();
 
 	private:
-		FirebaseApiBase *_api;
+		ApiBase *_api;
 	};
 
-	explicit FirebaseApiBase(QObject *parent = nullptr);
+	explicit ApiBase(QObject *parent = nullptr);
 
 protected:
 	QByteArray getETag() const;

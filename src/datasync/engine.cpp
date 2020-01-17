@@ -36,7 +36,9 @@ void Engine::syncTable(const QString &table, bool enableLiveSync, QSqlDatabase d
 {
 	Q_D(Engine);
 	if (!database.isOpen())
-		throw TableException{{}, QStringLiteral("Database not open"), database.lastError()};
+		throw TableException{table, QStringLiteral("Database not open"), database.lastError()};
+	if (d->tableMachines.contains(table))
+		throw TableException{table, QStringLiteral("Table already synchronized"), {}};
 	d->getWatcher(std::move(database))->addTable(table, enableLiveSync, fields, primaryKeyType);
 }
 
@@ -307,6 +309,13 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 	Q_Q(Engine);
 	const auto watcher = qobject_cast<DatabaseWatcher*>(q->sender());
 	Q_ASSERT(watcher);
+
+	if (tableMachines.contains(name)) {
+		qCWarning(logEngine) << "Table with name" << name
+							 << "already synchronized. Cannot be added again!";
+		watcher->dropTable(name);
+		return;
+	}
 
 	auto machine = new TableStateMachine{q};
 	auto model = new TableDataModel{machine};

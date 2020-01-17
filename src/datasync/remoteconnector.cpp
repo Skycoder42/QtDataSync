@@ -11,8 +11,6 @@ using namespace std::chrono_literals;
 
 Q_LOGGING_CATEGORY(QtDataSync::logRmc, "qt.datasync.RemoteConnector")
 
-const QByteArray RemoteConnector::NullETag {"null_etag"};
-
 #define CANCEL_IF(token) if (!_cancelCache.remove(cancelToken)) return
 
 RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QObject *parent) :
@@ -136,7 +134,7 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 		CANCEL_IF(cancelToken);
 		if (!replyData) {
 			// no data on the server -> upload with null tag
-			doUpload(data, NullETag, cancelToken);
+			doUpload(data, ApiBase::NullETag, cancelToken);
 		} else if (replyData->modified() >= data.modified()) {
 			// data was modified on the server after modified locally -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
@@ -318,7 +316,7 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, Cancallat
 		return;
 	}
 	// data on server is older -> upload
-	FirebaseApiBase::ETagSetter eTagSetter{_api, std::move(eTag)};
+	ApiBase::ETagSetter eTagSetter{_api, std::move(eTag)};
 	const auto reply = _api->uploadData({data.data(), data.modified(), ServerTimestamp{}},
 										data.key().typeName,
 										data.key().id);
