@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="MailApplyResetRequest"
+			namespace="QtDataSync::firebase::auth"
+			base="OobCodeRequest"
+			registerConverters="false">
+	<Include local="true">oobcoderequest.h</Include>
+
+	<Property key="newPassword" type="QString"/>
+</RestGadget>

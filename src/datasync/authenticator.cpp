@@ -47,6 +47,24 @@ QtRestClient::RestClient *IAuthenticator::client() const
 		return nullptr;
 }
 
+QString IAuthenticator::eMail() const
+{
+	Q_D(const IAuthenticator);
+	if (d->fbAuth)
+		return d->fbAuth->_email;
+	else
+		return {};
+}
+
+QString IAuthenticator::idToken() const
+{
+	Q_D(const IAuthenticator);
+	if (d->fbAuth)
+		return d->fbAuth->_idToken;
+	else
+		return {};
+}
+
 void IAuthenticator::completeSignIn(QString localId, QString idToken, QString refreshToken, const QDateTime &expiresAt, QString email)
 {
 	Q_D(IAuthenticator);

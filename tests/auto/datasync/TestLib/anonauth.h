@@ -14,6 +14,8 @@ class AnonAuth : public QtDataSync::IAuthenticator
 public:
 	explicit AnonAuth(QObject *parent = nullptr);
 
+	void forceExpire(const QDateTime &when);
+
 	void signIn() override;
 	void logOut() override;
 	void abortRequest() override;

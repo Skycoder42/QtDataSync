@@ -48,6 +48,8 @@ protected:
 
 	QSettings *settings() const;
 	QtRestClient::RestClient *client() const;
+	QString eMail() const;
+	QString idToken() const;
 
 	void completeSignIn(QString localId,
 						QString idToken,

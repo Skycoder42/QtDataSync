@@ -19,6 +19,8 @@ HEADERS += \
 	googleauthenticator.h \
 	googleauthenticator_p.h \
 	googleoauthflow_p.h \
+	mailauthenticator.h \
+	mailauthenticator_p.h \
 	objectkey.h \
 	qtdatasync_global.h \
 	remoteconnector_p.h \
@@ -39,6 +41,7 @@ SOURCES += \
 	firebaseauthenticator.cpp \
 	googleauthenticator.cpp \
 	googleoauthflow.cpp \
+	mailauthenticator.cpp \
 	objectkey.cpp \
 	remoteconnector.cpp \
 	setup.cpp \
@@ -51,6 +54,11 @@ REST_API_FILES += \
 	firebase/auth/errorelement.xml \
 	firebase/auth/errorcontent.xml \
 	firebase/auth/refreshresponse.xml \
+	firebase/auth/mailapplyresetrequest.xml \
+	firebase/auth/mailauthrequest.xml \
+	firebase/auth/mailresetdata.xml \
+	firebase/auth/mailverifyrequest.xml \
+	firebase/auth/oobcoderequest.xml \
 	firebase/auth/signinrequest.xml \
 	firebase/auth/signinresponse.xml \
 	firebase/realtimedb/data.xml \

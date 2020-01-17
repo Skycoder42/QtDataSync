@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="OobCodeRequest"
+			namespace="QtDataSync::firebase::auth"
+			registerConverters="false">
+	<Property key="oobCode" type="QString"/>
+</RestGadget>

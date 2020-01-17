@@ -114,7 +114,7 @@ void GoogleAuthenticatorPrivate::_q_firebaseSignIn()
 			qCCritical(logOAuth) << "Another account with the same credentials already exists!"
 								 << "The user must log in with that account instead or link the two accounts!";
 			q->failSignIn(GoogleAuthenticator::tr("Another account with the same credentials already exists! "
-												 "You have to log in with that account instead or link the two accounts!"));
+												  "You have to log in with that account instead or link the two accounts!"));
 			return;
 		}
 		qCDebug(logOAuth) << "Firebase sign in successful";
@@ -127,12 +127,12 @@ void GoogleAuthenticatorPrivate::_q_firebaseSignIn()
 						  response.email());
 	});
 	reply->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
-			Q_Q(GoogleAuthenticator);
-			FirebaseAuthenticator::logError(error, code, errorType);
-			qCCritical(logOAuth) << "Failed to sign in to firebase with google OAuth credentials -"
-								 << "make shure google OAuth authentication has been enabled in the firebase console!";
-			q->failSignIn(GoogleAuthenticator::tr("Google Authentication was not accepted by firebase"));
-		}, &FirebaseAuthenticator::translateError);
+		Q_Q(GoogleAuthenticator);
+		FirebaseAuthenticator::logError(error, code, errorType);
+		qCCritical(logOAuth) << "Failed to sign in to firebase with google OAuth credentials -"
+							 << "make shure google OAuth authentication has been enabled in the firebase console!";
+		q->failSignIn(GoogleAuthenticator::tr("Google Authentication was not accepted by firebase"));
+	}, &FirebaseAuthenticator::translateError);
 }
 
 void GoogleAuthenticatorPrivate::_q_oAuthError(const QString &error, const QString &errorDescription)
@@ -144,7 +144,7 @@ void GoogleAuthenticatorPrivate::_q_oAuthError(const QString &error, const QStri
 	if (aborted)
 		aborted = false;
 	else
-		q->failSignIn(GoogleAuthenticator::tr("Failed to sign in with Google-Account!"));
+		Q_EMIT q->guiError(GoogleAuthenticator::tr("Failed to sign in with Google-Account!"));
 }
 
 void GoogleAuthenticatorPrivate::loadOaConfig()

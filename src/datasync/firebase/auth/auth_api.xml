@@ -3,12 +3,18 @@
 <RestApi name="ApiClient"
 		 namespace="QtDataSync::firebase::auth"
 		 except="Error">
+	<Include>QtCore/QLocale</Include>
 	<Include local="true">qtdatasync_global.h</Include>
 	<Include local="true">auth_error.h</Include>
 	<Include local="true">refreshresponse.h</Include>
 	<Include local="true">deleterequest.h</Include>
 	<Include local="true">signinrequest.h</Include>
 	<Include local="true">signinresponse.h</Include>
+	<Include local="true">mailauthrequest.h</Include>
+	<Include local="true">mailverifyrequest.h</Include>
+	<Include local="true">oobcoderequest.h</Include>
+	<Include local="true">mailresetdata.h</Include>
+	<Include local="true">mailapplyresetrequest.h</Include>
 
 	<BaseUrl apiVersion="1">https://identitytoolkit.googleapis.com</BaseUrl>
 	<Parameter key="key">&lt;firebaseApiKey&gt;</Parameter>
@@ -31,5 +37,44 @@
 			body="SignInRequest"
 			returns="SignInResponse">
 		<Path>accounts:signInWithIdp</Path>
+	</Method>
+
+	<!-- Sign Up -->
+	<Method name="mailSignUp"
+			verb="POST"
+			body="MailAuthRequest"
+			returns="SignInResponse">
+		<Path>accounts:signUp</Path>
+	</Method>
+	<Method name="mailRequestVerify"
+			verb="POST"
+			body="MailVerifyRequest">
+		<Path>accounts:sendOobCode</Path>
+		<Header key="X-Firebase-Locale" expr="true">QLocale{}.name().toUtf8()</Header>
+	</Method>
+	<Method name="mailDoVerify"
+			verb="POST"
+			body="OobCodeRequest">
+		<Path>accounts:update</Path>
+	</Method>
+	<!-- Sign in -->
+	<Method name="mailSignIn"
+			verb="POST"
+			body="MailAuthRequest"
+			returns="SignInResponse">
+		<Path>accounts:signInWithPassword</Path>
+	</Method>
+	<!-- Reset password -->
+	<Method name="mailRequestReset"
+			verb="POST"
+			body="MailResetData">
+		<Path>accounts:sendOobCode</Path>
+		<Header key="X-Firebase-Locale" expr="true">QLocale{}.name().toUtf8()</Header>
+	</Method>
+	<Method name="mailApplyReset"
+			verb="POST"
+			body="MailApplyResetRequest"
+			returns="MailResetData">
+		<Path>accounts:resetPassword</Path>
 	</Method>
 </RestApi>

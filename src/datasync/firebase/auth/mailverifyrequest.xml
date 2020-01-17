@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RestGadget name="MailVerifyRequest"
+			namespace="QtDataSync::firebase::auth"
+			registerConverters="false">
+	<Property key="idToken" type="QString"/>
+	<Property key="requestType" type="QString" asStr="true">VERIFY_EMAIL</Property>
+</RestGadget>
