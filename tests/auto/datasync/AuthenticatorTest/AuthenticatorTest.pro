@@ -10,8 +10,6 @@ TARGET = tst_authenticator
 SOURCES += \
 	tst_authenticator.cpp
 
-LOGGING_RULES = "$$LOGGING_RULES;qt.datasync.FirebaseAuthenticator.warning=false"
-
 include($$PWD/../testlib.pri)
 include($$PWD/../../testrun.pri)
 

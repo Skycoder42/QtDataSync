@@ -47,6 +47,8 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QOb
 								 .arg(config.projectId)});
 	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(config.readTimeOut));
 	_client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
+
+	// TODO use nam network accessibility, test with example!!!
 }
 
 bool RemoteConnector::isActive() const

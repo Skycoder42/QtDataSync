@@ -4,6 +4,13 @@
 #include <QtDataSync/private/databasewatcher_p.h>
 using namespace QtDataSync;
 
+namespace {
+
+const QDateTime past = QDateTime::currentDateTimeUtc().addDays(-1);
+const QDateTime future = QDateTime::currentDateTimeUtc().addDays(1);
+
+}
+
 #define VERIFY_CHANGED_STATE(key, before, after, state) do { \
 	Query testChangedQuery{_watcher->database()}; \
 	testChangedQuery.prepare(QStringLiteral("SELECT tstamp, changed " \
@@ -20,7 +27,9 @@ using namespace QtDataSync;
 } while(false)
 
 #define VERIFY_CHANGED(key, before, after) VERIFY_CHANGED_STATE(key, before, after, DatabaseWatcher::ChangeState::Changed)
-#define VERIFY_UNCHANGED(key, when) VERIFY_CHANGED_STATE(key, when, when, DatabaseWatcher::ChangeState::Unchanged)
+#define VERIFY_UNCHANGED0(key) VERIFY_CHANGED_STATE(key, past, future, DatabaseWatcher::ChangeState::Unchanged)
+#define VERIFY_UNCHANGED1(key, when) VERIFY_CHANGED_STATE(key, when, when, DatabaseWatcher::ChangeState::Unchanged)
+#define VERIFY_UNCHANGED2(key, before, after) VERIFY_CHANGED_STATE(key, before, after, DatabaseWatcher::ChangeState::Unchanged)
 
 class DbWatcherTest : public QObject
 {
@@ -41,7 +50,7 @@ private Q_SLOTS:
 
 	void testResync();
 
-	void testReactivate();
+	void testDropAndReactivate();
 	void testUnsyncTable();
 	void testDbActions();
 
@@ -66,6 +75,8 @@ const QString DbWatcherTest::TestTable = QStringLiteral("TestData");
 
 void DbWatcherTest::initTestCase()
 {
+	qRegisterMetaType<DatabaseWatcher::ErrorScope>("ErrorScope");
+
 	_watcher = new DatabaseWatcher{QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"))};
 	auto db = _watcher->database();
 	QVERIFY(db.isValid());
@@ -156,8 +167,8 @@ void DbWatcherTest::testAddTable()
 		QVERIFY(!syncSpy.wait(1000));
 
 		// clear changed flag
-		_watcher->markUnchanged({TestTable, QStringLiteral("4")}, after);
-		VERIFY_UNCHANGED(4, after);
+		markChanged(DatabaseWatcher::ChangeState::Unchanged);
+		VERIFY_UNCHANGED0(4);
 
 		// verify update trigger
 		Query updateQuery{_watcher->database()};
@@ -177,8 +188,8 @@ void DbWatcherTest::testAddTable()
 		QVERIFY(!syncSpy.wait(1000));
 
 		// clear changed flag
-		_watcher->markUnchanged({TestTable, QStringLiteral("4")}, after);
-		VERIFY_UNCHANGED(4, after);
+		markChanged(DatabaseWatcher::ChangeState::Unchanged);
+		VERIFY_UNCHANGED0(4);
 
 		// verify rename trigger
 		Query renameQuery{_watcher->database()};
@@ -199,8 +210,8 @@ void DbWatcherTest::testAddTable()
 		QVERIFY(!syncSpy.wait(1000));
 
 		// clear changed flag
-		_watcher->markUnchanged({TestTable, QStringLiteral("12")}, after);
-		VERIFY_UNCHANGED(12, after);
+		markChanged(DatabaseWatcher::ChangeState::Unchanged);
+		VERIFY_UNCHANGED0(12);
 
 		// verify delete trigger
 		Query deleteQuery{_watcher->database()};
@@ -495,6 +506,7 @@ void DbWatcherTest::testLoadData()
 			QCOMPARE(markChangedQuery.numRowsAffected(), 1);
 		}
 
+		// test changed
 		for (auto i = 0; i < 5; ++i) {
 			const auto mTime = baseTime.addSecs(-60 + (10 * i));
 			QVariantHash data;
@@ -509,8 +521,12 @@ void DbWatcherTest::testLoadData()
 			QCOMPARE(lChanged->data(), data);
 
 			VERIFY_CHANGED(i, mTime, mTime);
+			// mark unchanged invalid tstamp
+			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime.addSecs(3));
+			VERIFY_CHANGED(i, mTime, mTime);
+			// mark unchanged valid tstamp
 			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime);
-			VERIFY_UNCHANGED(i, mTime);
+			VERIFY_UNCHANGED1(i, mTime);
 		}
 
 		QVERIFY(!_watcher->loadData(TestTable));
@@ -523,11 +539,11 @@ void DbWatcherTest::testMarkCorrupted()
 {
 	try {
 		// modify corrupted
-		const auto tStamp = QDateTime::currentDateTimeUtc().addSecs(-15);
-		_watcher->markUnchanged({TestTable, QString::number(0)}, tStamp);
-		VERIFY_UNCHANGED(0, tStamp);
+		const auto tStamp = QDateTime::currentDateTimeUtc();
+		markChanged(DatabaseWatcher::ChangeState::Unchanged);
+		VERIFY_UNCHANGED2(0, past, tStamp);
 		_watcher->markCorrupted({TestTable, QString::number(0)}, tStamp.addSecs(5));
-		VERIFY_CHANGED_STATE(0, tStamp, tStamp, DatabaseWatcher::ChangeState::Corrupted);
+		VERIFY_CHANGED_STATE(0, past, tStamp, DatabaseWatcher::ChangeState::Corrupted); // old timestamp
 
 		// add corrupted
 		Query testNonExistantQuery{_watcher->database()};
@@ -593,12 +609,11 @@ void DbWatcherTest::testResync()
 	QCOMPARE(testEmpty.value(0).toInt(), 0);
 }
 
-void DbWatcherTest::testReactivate()
+void DbWatcherTest::testDropAndReactivate()
 {
 	try {
 		QCOMPARE(_watcher->tables(), {TestTable});
-		delete _watcher;
-		_watcher = new DatabaseWatcher{QSqlDatabase::database(), this};
+		_watcher->dropAllTables();
 		QCOMPARE(_watcher->hasTables(), false);
 		_watcher->reactivateTables(false);
 		QCOMPARE(_watcher->tables(), {TestTable});

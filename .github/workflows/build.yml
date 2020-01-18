@@ -84,7 +84,7 @@ jobs:
         id: cache-qt
         with:
           path: qt/${{matrix.version}}/${{matrix.platform}}
-          key: qt-${{matrix.version}}-${{matrix.platform}}
+          key: qt-${{matrix.version}}-${{matrix.platform}}-2
       - uses: Skycoder42/action-setup-qt@master
         id: qt
         with:

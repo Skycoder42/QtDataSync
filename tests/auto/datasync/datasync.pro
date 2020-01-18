@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	AuthenticatorTest \
 	DbWatcherTest \
-	RemoteConnectorTest \
+#	RemoteConnectorTest \
 #	StatemachineTest \
 	TestLib
 

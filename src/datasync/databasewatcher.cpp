@@ -575,8 +575,17 @@ void DatabaseWatcher::storeData(const LocalData &data)
 			deleteQuery.exec();
 			qCDebug(logDbWatcher) << "Removed local data for id" << key;
 		}
+
 		// update modified, mark unchanged -> now in sync with remote
-		markUnchanged(key, data.modified());
+		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.typeName};
+		markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
+												  "SET changed = ?, tstamp = ? "
+												  "WHERE pkey == ?;")
+									   .arg(tableName(key.typeName, true)));
+		markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
+		markUnchangedQuery.addBindValue(data.modified().toUTC());
+		markUnchangedQuery.addBindValue(key.id);
+		markUnchangedQuery.exec();
 
 		// update last sync
 		updateLastSync(key.typeName, data.uploaded());
@@ -661,6 +670,8 @@ void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modif
 		markUnchangedQuery.addBindValue(key.id);
 		markUnchangedQuery.exec();
 		qCDebug(logDbWatcher) << "Updated metadata for id" << key;
+
+		transact.commit();
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
 		error.emitFor(this);
