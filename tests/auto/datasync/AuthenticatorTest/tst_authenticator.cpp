@@ -26,7 +26,6 @@ private Q_SLOTS:
 	void testDeleteAccount();
 
 private:
-	QTemporaryDir _tDir;
 	FirebaseAuthenticator *_authenticator = nullptr;
 };
 
@@ -35,12 +34,8 @@ void AuthenticatorTest::initTestCase()
 	auto setup = TestLib::loadSetup();
 	QVERIFY(setup);
 	QVERIFY(!setup->firebase.apiKey.isEmpty());
-	_authenticator = new FirebaseAuthenticator {
-		new AnonAuth{this},
-		setup->firebase.apiKey,
-		new QSettings{_tDir.filePath(QStringLiteral("config.ini")), QSettings::IniFormat, this},
-		this
-	};
+	_authenticator = TestLib::createAuth(*setup, this);
+	QVERIFY(_authenticator);
 }
 
 void AuthenticatorTest::cleanupTestCase()

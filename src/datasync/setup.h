@@ -112,7 +112,7 @@ public:
 	}
 
 private:
-	friend class SetupPrivate;
+	friend class __private::SetupPrivate;
 	QScopedPointer<__private::SetupPrivate> d;
 };
 

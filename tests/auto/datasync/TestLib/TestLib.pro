@@ -1,8 +1,7 @@
 TEMPLATE = lib
+CONFIG += static
 
 QT = core testlib datasync datasync-private
-
-CONFIG += staticlib
 
 debug_and_release {
 	CONFIG(debug, debug|release):SUFFIX = /debug

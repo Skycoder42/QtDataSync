@@ -4,6 +4,7 @@
 #define private public
 #include <QtDataSync/setup_impl.h>
 #undef private
+#include "anonauth.h"
 #include <QtDataSync/private/firebaseauthenticator_p.h>
 using namespace QtDataSync;
 using namespace QtDataSync::__private;
@@ -17,6 +18,8 @@ public:
 		return nullptr;
 	}
 };
+
+QTemporaryDir tDir;
 
 }
 
@@ -38,6 +41,37 @@ std::optional<SetupPrivate> TestLib::loadSetup(const QString &path)
 		}
 	}();
 	return setup;
+}
+
+FirebaseAuthenticator *TestLib::createAuth(const SetupPrivate &setup, QObject *parent)
+{
+	return new FirebaseAuthenticator {
+		new AnonAuth{parent},
+		setup.firebase.apiKey,
+		new QSettings{tDir.filePath(QStringLiteral("config.ini")), QSettings::IniFormat, parent},
+		parent
+	};
+}
+
+std::optional<std::pair<QString, QString>> TestLib::doAuth(FirebaseAuthenticator *auth)
+{
+	std::optional<std::pair<QString, QString>> res;
+	[&](){
+		QSignalSpy signInSpy{auth, &FirebaseAuthenticator::signInSuccessful};
+		QVERIFY(signInSpy.isValid());
+		QSignalSpy errorSpy{auth, &FirebaseAuthenticator::signInFailed};
+		QVERIFY(errorSpy.isValid());
+
+		auth->signIn();
+		QVERIFY(signInSpy.wait());
+		QCOMPARE(signInSpy.size(), 1);
+		QCOMPARE(errorSpy.size(), 0);
+
+		res = std::make_pair(signInSpy[0][0].toString(),
+							 signInSpy[0][1].toString());
+
+	}();
+	return res;
 }
 
 void TestLib::rmAcc(FirebaseAuthenticator *auth)
