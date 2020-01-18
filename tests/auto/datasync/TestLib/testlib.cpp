@@ -1,9 +1,5 @@
 #include "testlib.h"
 #include <QtTest>
-#include <QtDataSync/authenticator.h>
-#define private public
-#include <QtDataSync/setup_impl.h>
-#undef private
 #include "anonauth.h"
 #include <QtDataSync/private/firebaseauthenticator_p.h>
 using namespace QtDataSync;
@@ -11,43 +7,15 @@ using namespace QtDataSync::__private;
 
 namespace {
 
-class DummyExtender : public __private::SetupExtensionPrivate
-{
-public:
-	QObject *createInstance(QObject *) override {
-		return nullptr;
-	}
-};
-
 QTemporaryDir tDir;
 
 }
 
-std::optional<SetupPrivate> TestLib::loadSetup(const QString &path)
-{
-	std::optional<SetupPrivate> setup;
-	[&](){
-		try {
-			QFile configFile{path};
-			QVERIFY(configFile.exists());
-			QVERIFY2(configFile.open(QIODevice::ReadOnly | QIODevice::Text), qUtf8Printable(configFile.errorString()));
-			setup = __private::SetupPrivate{};
-			setup->_authExt = new DummyExtender{};
-			setup->_transExt = new DummyExtender{};
-			setup->readWebConfig(&configFile);
-		} catch (std::exception &e) {
-			setup.reset();
-			QFAIL(e.what());
-		}
-	}();
-	return setup;
-}
-
-FirebaseAuthenticator *TestLib::createAuth(const SetupPrivate &setup, QObject *parent)
+FirebaseAuthenticator *TestLib::createAuth(const QString &apiKey, QObject *parent)
 {
 	return new FirebaseAuthenticator {
 		new AnonAuth{parent},
-		setup.firebase.apiKey,
+		apiKey,
 		new QSettings{tDir.filePath(QStringLiteral("config.ini")), QSettings::IniFormat, parent},
 		parent
 	};

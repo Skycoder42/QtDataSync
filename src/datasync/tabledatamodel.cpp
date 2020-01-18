@@ -178,10 +178,20 @@ void TableDataModel::scheduleLsRestart()
 	_lsRestartTimer->start(seconds{static_cast<qint64>(std::pow(5, _lsErrorCnt - 1))});
 }
 
+void TableDataModel::clearLsRestart()
+{
+	_lsRestartTimer->stop();
+}
+
 void TableDataModel::delTable()
 {
 	Q_ASSERT_X(_passiveSyncToken == RemoteConnector::InvalidToken, Q_FUNC_INFO, "_passiveSyncToken should be invalid");
 	_passiveSyncToken = _connector->removeTable(_escType);
+}
+
+void TableDataModel::emitStop()
+{
+	Q_EMIT stopped(_type);
 }
 
 void TableDataModel::switchMode()

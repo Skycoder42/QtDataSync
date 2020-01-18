@@ -61,7 +61,9 @@ private /*scripts*/:
 	void uploadData();
 	void emitError();
 	void scheduleLsRestart();
+	void clearLsRestart();
 	void delTable();
+	void emitStop();
 
 	void switchMode();
 	std::optional<QDateTime> lastSync();

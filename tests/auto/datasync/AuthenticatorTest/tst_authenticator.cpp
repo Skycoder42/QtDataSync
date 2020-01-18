@@ -31,10 +31,7 @@ private:
 
 void AuthenticatorTest::initTestCase()
 {
-	auto setup = TestLib::loadSetup();
-	QVERIFY(setup);
-	QVERIFY(!setup->firebase.apiKey.isEmpty());
-	_authenticator = TestLib::createAuth(*setup, this);
+	_authenticator = TestLib::createAuth(QStringLiteral(FIREBASE_API_KEY), this);
 	QVERIFY(_authenticator);
 }
 

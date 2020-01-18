@@ -1,11 +1,4 @@
 #include <QtTest>
-
-#include <QtDataSync/authenticator.h>
-#define private public
-#include <QtDataSync/setup_impl.h>
-#undef private
-
-#include <QtDataSync/private/firebaseauthenticator_p.h>
 #include <QtDataSync/private/remoteconnector_p.h>
 
 #include "anonauth.h"
@@ -48,17 +41,21 @@ void RemoteConnectorTest::initTestCase()
 	qRegisterMetaType<ObjectKey>();  // TODO move to datasync
 
 	try {
+		const __private::SetupPrivate::FirebaseConfig config {
+			QStringLiteral(FIREBASE_PROJECT_ID),
+			QStringLiteral(FIREBASE_API_KEY),
+			1min,
+			7
+		};
+
 		// authenticate
-		auto setup = TestLib::loadSetup();
-		QVERIFY(setup);
-		_authenticator = TestLib::createAuth(*setup, this);
+		_authenticator = TestLib::createAuth(config.apiKey, this);
 		QVERIFY(_authenticator);
 		auto authRes = TestLib::doAuth(_authenticator);
 		QVERIFY(authRes);
 
 		// create rmc
-		setup->firebase.readLimit = 7;
-		_connector = new RemoteConnector{setup->firebase, this};
+		_connector = new RemoteConnector{config, this};
 		_connector->setUser(authRes->first);
 		_connector->setIdToken(authRes->second);
 		QVERIFY(_connector->isActive());
