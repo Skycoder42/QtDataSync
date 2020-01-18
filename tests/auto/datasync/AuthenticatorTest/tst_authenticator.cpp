@@ -89,7 +89,7 @@ void AuthenticatorTest::testRefresh()
 
 	// trigger automated refresh
 	_authenticator->_expiresAt = QDateTime::currentDateTimeUtc().addSecs(63); // 1min 3s
-	_authenticator->startRefreshTimer();
+	_authenticator->_refreshTimer->start(3s);
 	VERIFY_SPY_T(successSpy, failSpy, 8000);
 	QCOMPARE(successSpy.size(), 1);
 	QCOMPARE(successSpy[0][0].toString(), oldId);

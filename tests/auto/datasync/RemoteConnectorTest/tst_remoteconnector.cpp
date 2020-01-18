@@ -27,6 +27,7 @@ private Q_SLOTS:
 	void testRemoveUser();
 
 private:
+	static constexpr RemoteConnector::CancallationToken InvalidToken = std::numeric_limits<RemoteConnector::CancallationToken>::max();
 	static const QString Table;
 
 	QTemporaryDir _tDir;
@@ -100,7 +101,7 @@ void RemoteConnectorTest::testUploadData()
 		});
 		data.setModified(modified);
 		const auto token = _connector->uploadChange(data);
-		QVERIFY(token != RemoteConnector::InvalidToken);
+		QVERIFY(token != InvalidToken);
 
 		VERIFY_SPY(uploadSpy, errorSpy);
 		QCOMPARE(uploadSpy.size(), 1);
@@ -123,7 +124,7 @@ void RemoteConnectorTest::testUploadData()
 		});
 		data.setModified(modified);
 		const auto token = _connector->uploadChange(data);
-		QVERIFY(token != RemoteConnector::InvalidToken);
+		QVERIFY(token != InvalidToken);
 
 		VERIFY_SPY(uploadSpy, errorSpy);
 		QCOMPARE(uploadSpy.size(), 1);
@@ -143,7 +144,7 @@ void RemoteConnectorTest::testUploadData()
 		data.setData(std::nullopt);
 		data.setModified(modified);
 		const auto token = _connector->uploadChange(data);
-		QVERIFY(token != RemoteConnector::InvalidToken);
+		QVERIFY(token != InvalidToken);
 
 		VERIFY_SPY(uploadSpy, errorSpy);
 		QCOMPARE(uploadSpy.size(), 1);
@@ -160,7 +161,7 @@ void RemoteConnectorTest::testUploadData()
 		std::nullopt,
 		earlyTime
 	});
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(syncSpy, errorSpy);
 	QCOMPARE(syncSpy.size(), 1);
 	QCOMPARE(syncSpy[0][0].toString(), Table);
@@ -189,7 +190,7 @@ void RemoteConnectorTest::testGetChanges()
 	QVERIFY(errorSpy.isValid());
 
 	auto token = _connector->getChanges(Table, {});  // get any changes
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(doneSpy, errorSpy);
 	QCOMPARE(doneSpy.size(), 1);
 	QCOMPARE(downloadSpy.size(), 2);
@@ -233,7 +234,7 @@ void RemoteConnectorTest::testGetChanges()
 	doneSpy.clear();
 	downloadSpy.clear();
 	token = _connector->getChanges(Table, nextSync);  // get any changes
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(doneSpy, errorSpy);
 	QCOMPARE(doneSpy.size(), 1);
 	QCOMPARE(downloadSpy.size(), 1);
@@ -265,9 +266,9 @@ void RemoteConnectorTest::testConflict()
 		QDateTime::currentDateTimeUtc()
 	};
 	const auto token1 = _connector->uploadChange(ulData);
-	QVERIFY(token1 != RemoteConnector::InvalidToken);
+	QVERIFY(token1 != InvalidToken);
 	const auto token2 = _connector->uploadChange(ulData);
-	QVERIFY(token2 != RemoteConnector::InvalidToken);
+	QVERIFY(token2 != InvalidToken);
 	VERIFY_SPY(uploadSpy, errorSpy);
 	if (syncSpy.isEmpty())
 		VERIFY_SPY(syncSpy, errorSpy);
@@ -290,7 +291,7 @@ void RemoteConnectorTest::testCancel()
 
 	// cancel download
 	auto token = _connector->getChanges(Table, QDateTime{});
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	_connector->cancel(token);
 	QVERIFY(!downloadSpy.wait());
 
@@ -300,7 +301,7 @@ void RemoteConnectorTest::testCancel()
 		std::nullopt,
 		QDateTime::currentDateTimeUtc()
 	});
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	_connector->cancel(token);
 	QVERIFY(!uploadSpy.wait());
 
@@ -335,7 +336,7 @@ void RemoteConnectorTest::testLiveSync()
 		});
 		data.setModified(modified);
 		const auto token = _connector->uploadChange(data);
-		QVERIFY(token != RemoteConnector::InvalidToken);
+		QVERIFY(token != InvalidToken);
 
 		VERIFY_SPY(uploadSpy, errorSpy);
 		QCOMPARE(uploadSpy.size(), 1);
@@ -347,7 +348,7 @@ void RemoteConnectorTest::testLiveSync()
 
 	// start live sync since tstamp and verify data
 	const auto liveToken = _connector->startLiveSync(Table, tStamp);
-	QVERIFY(liveToken != RemoteConnector::InvalidToken);
+	QVERIFY(liveToken != InvalidToken);
 	VERIFY_SPY(doneSpy, errorSpy);
 	QCOMPARE(doneSpy.size(), 1);  // ignores paging limit
 	QCOMPARE(downloadSpy.size(), 1);
@@ -378,7 +379,7 @@ void RemoteConnectorTest::testLiveSync()
 		QDateTime::currentDateTimeUtc()
 	};
 	const auto token = _connector->uploadChange(data);
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(uploadSpy, errorSpy);
 	if (downloadSpy.isEmpty())
 		VERIFY_SPY(downloadSpy, errorSpy);
@@ -409,7 +410,7 @@ void RemoteConnectorTest::testRemoveTable()
 	QVERIFY(errorSpy.isValid());
 
 	auto token = _connector->removeTable(Table);
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(removedSpy, errorSpy);
 	QCOMPARE(removedSpy.size(), 1);
 	QCOMPARE(removedSpy[0][0].toString(), Table);
@@ -421,7 +422,7 @@ void RemoteConnectorTest::testRemoveTable()
 	QVERIFY(downloadSpy.isValid());
 
 	token = _connector->getChanges(Table, {});
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(doneSpy, errorSpy);
 	QCOMPARE(doneSpy.size(), 1);
 	QCOMPARE(downloadSpy.size(), 0);
@@ -440,7 +441,7 @@ void RemoteConnectorTest::testRemoveUser()
 		std::nullopt,
 		QDateTime::currentDateTimeUtc(),
 	});
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(uploadSpy, errorSpy);
 	QCOMPARE(uploadSpy.size(), 1);
 
@@ -448,13 +449,13 @@ void RemoteConnectorTest::testRemoveUser()
 	QVERIFY(removedSpy.isValid());
 
 	token = _connector->removeUser();
-	QVERIFY(token != RemoteConnector::InvalidToken);
+	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(removedSpy, errorSpy);
 	QCOMPARE(removedSpy.size(), 1);
 
 	// get changes must throw an error
 	token = _connector->getChanges(Table, {});
-	QCOMPARE(token,  RemoteConnector::InvalidToken);
+	QCOMPARE(token,  InvalidToken);
 	if (errorSpy.isEmpty())
 		QVERIFY(errorSpy.wait());
 	QCOMPARE(errorSpy.size(), 1);
