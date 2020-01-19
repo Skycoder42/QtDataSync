@@ -93,11 +93,6 @@ jobs:
           packages: skycoder42.jsonserializer,skycoder42.restclient
           install-args: --addRepository https://install.skycoder42.de/qtmodules/${{matrix.repository}} --verbose
           cachedir: qt/${{matrix.version}}/${{matrix.platform}}
-      - name: install 7z
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          brew update
-          brew install p7zip
       - name: qmake
         run: |
           qmake CONFIG+=install_ok QT_PLATFORM=${{matrix.platform}}

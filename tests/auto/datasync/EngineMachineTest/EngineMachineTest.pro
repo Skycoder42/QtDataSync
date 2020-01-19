@@ -5,17 +5,17 @@ QT = core testlib datasync
 CONFIG += console
 CONFIG -= app_bundle
 
-TARGET = tst_tablemachine
+TARGET = tst_enginemachine
 
 HEADERS += \
-	tabledatamodel_p.h
+	enginedatamodel_p.h
 
 SOURCES += \
-	tabledatamodel.cpp \
-	tst_tablemachine.cpp
+	enginedatamodel.cpp \
+	tst_enginemachine.cpp
 
 STATECHARTS += \
-	$$PWD/../../../../src/datasync/tablestatemachine_p.scxml
+	$$PWD/../../../../src/datasync/enginestatemachine_p.scxml
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 

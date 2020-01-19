@@ -87,6 +87,11 @@ bool EngineDataModel::hasError() const
 	return !_errors.isEmpty();
 }
 
+void EngineDataModel::signIn()
+{
+	_authenticator->signIn();
+}
+
 void EngineDataModel::stop(EngineDataModel::StopEvent event)
 {
 	_stopEv = event;
@@ -150,9 +155,12 @@ void EngineDataModel::signInFailed(const QString &errorMessage)
 
 void EngineDataModel::accountDeleted(bool success)
 {
-	if (!success)
+	if (success)
+		stateMachine()->submitEvent(QStringLiteral("delAccDone"));
+	else {
 		_errors.append({Engine::ErrorType::Network, tr("Failed to delete user from authentication server!"), {}});
-	stop(StopEvent::Stop);
+		stop(StopEvent::Stop);
+	}
 }
 
 void EngineDataModel::removedUser()

@@ -52,6 +52,7 @@ void TableMachineTest::cleanupTestCase()
 void TableMachineTest::testPassivSyncFlow()
 {
 	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
 
 	_machine->stop();
 	_machine->start();
@@ -257,6 +258,7 @@ void TableMachineTest::testPassivSyncFlow()
 void TableMachineTest::testLiveSyncFlow()
 {
 	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
 
 	_machine->stop();
 	_machine->start();
@@ -417,6 +419,7 @@ void TableMachineTest::testLiveSyncFlow()
 void TableMachineTest::testSyncModeTransitions()
 {
 	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
 
 	_machine->stop();
 	_machine->start();
@@ -546,6 +549,7 @@ void TableMachineTest::testSyncModeTransitions()
 void TableMachineTest::testDelTableFlows()
 {
 	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
 
 	_machine->stop();
 	_machine->start();
@@ -599,6 +603,7 @@ void TableMachineTest::testDelTableFlows()
 void TableMachineTest::testErrors()
 {
 	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
 
 	_machine->stop();
 	_machine->start();

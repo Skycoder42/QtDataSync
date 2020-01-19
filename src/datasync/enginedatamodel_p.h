@@ -56,6 +56,7 @@ Q_SIGNALS:
 private /*scripts*/:
 	bool hasError() const;
 
+	void signIn();
 	void stop(StopEvent event);
 	void removeUser();
 	void cancelRmUser();

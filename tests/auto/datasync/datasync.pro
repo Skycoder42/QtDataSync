@@ -5,8 +5,8 @@ SUBDIRS += \
 	AuthenticatorTest \
 	RemoteConnectorTest \
 	DbWatcherTest \
-#	StatemachineTest \
-	TableMachineTest
+	TableMachineTest \
+	EngineMachineTest
 
 AuthenticatorTest.depends += TestLib
 RemoteConnectorTest.depends += TestLib AuthenticatorTest

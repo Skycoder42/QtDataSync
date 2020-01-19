@@ -43,6 +43,7 @@ public /*members*/:
 	bool _procReady = true;
 	bool _delTable = false;
 
+private:
 	QHash<QByteArray, int> _calls;
 };
 
