@@ -59,7 +59,7 @@ void CloudTransformerTest::testTransform_data()
 
 	QTest::addRow("keys.complex") << LocalData {
 		QStringLiteral("QMap<QString, int>"),
-		QStringLiteral("kdsvj\"!\'§383942¬{¬¼½³¼²³¼²{{32423}}"),
+		QString::fromWCharArray(L"kdsvj\"!\'§383942¬{¬¼½³¼²³¼²{{32423}}"),
 		std::nullopt,
 		tStamp,
 		QDateTime{}
