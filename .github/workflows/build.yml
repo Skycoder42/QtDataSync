@@ -17,7 +17,7 @@ jobs:
           - msvc2017
           - winrt_x64_msvc2017
           - winrt_x86_msvc2017
-          - winrt_armv7_msvc2017
+          #- winrt_armv7_msvc2017  # Stange build error with MSVC2017 in VS2019
           - mingw73_64
           - mingw73_32
           - clang_64
@@ -46,9 +46,9 @@ jobs:
           - platform: winrt_x86_msvc2017
             os: windows-latest
             repository: windows_x86
-          #- platform: winrt_armv7_msvc2017
-          #  os: windows-latest
-          #  repository: windows_x86
+          - platform: winrt_armv7_msvc2017
+            os: windows-latest
+            repository: windows_x86
           - platform: mingw73_64
             os: windows-latest
             repository: windows_x86
