@@ -1,11 +1,12 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+	TestLib \
 	AuthenticatorTest \
-	DbWatcherTest \
 	RemoteConnectorTest \
+	DbWatcherTest \
 #	StatemachineTest \
-	TestLib
+	TableMachineTest
 
 AuthenticatorTest.depends += TestLib
 RemoteConnectorTest.depends += TestLib AuthenticatorTest

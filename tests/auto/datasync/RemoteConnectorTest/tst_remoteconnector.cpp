@@ -1,5 +1,6 @@
 #include <QtTest>
 #include <QtDataSync/private/remoteconnector_p.h>
+#include <array>
 
 #include "anonauth.h"
 #include "testlib.h"
