@@ -5,6 +5,7 @@ SUBDIRS += \
 	AuthenticatorTest \
 	RemoteConnectorTest \
 	DbWatcherTest \
+	CloudTransformerTest \
 	TableMachineTest \
 	EngineMachineTest
 

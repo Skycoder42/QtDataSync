@@ -71,9 +71,9 @@ public Q_SLOTS:
 	virtual void transformDownload(const CloudData &data) = 0;
 
 Q_SIGNALS:
-	void transformUploadDone(const CloudData &data);
-	void transformDownloadDone(const LocalData &data);
-	void transformError(const ObjectKey &key, const QString &message);
+	void transformUploadDone(const QtDataSync::CloudData &data);
+	void transformDownloadDone(const QtDataSync::LocalData &data);
+	void transformError(const QtDataSync::ObjectKey &key, const QString &message);
 
 protected:
 	explicit ICloudTransformer(QObject *parent = nullptr);
