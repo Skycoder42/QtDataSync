@@ -7,7 +7,7 @@
 	- get client id and secret
 	- also from https://console.developers.google.com
 	- add oauth screen
-	- update origins, handlers
+	- update origins (127.0.0.1, not "localhost"), handlers
 	- restrict api keys
 - add realtime database
 - add security rules

@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 		if (parser.positionalArguments().size() < 1)
 			parser.showHelp(EXIT_FAILURE);
 
-		auto dsEngine = Setup<GoogleAuthenticator>::fromConfig(parser.positionalArguments()[0], ConfigType::GoogleServicesJson)
+		auto dsEngine = Setup<GoogleAuthenticator>::fromConfig(parser.positionalArguments()[0], ConfigType::WebConfig)
 							.enableNtpSync()
 							.createEngine(qApp);
 

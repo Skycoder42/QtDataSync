@@ -210,14 +210,14 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	d->setup.swap(setup);
 	d->setup->finializeForEngine(this);
 	d->authenticator = new FirebaseAuthenticator {
-		setup->createAuthenticator(this),
+		d->setup->createAuthenticator(this),
 		d->setup->firebase.apiKey,
 		d->setup->settings,
 		this
 	};
-	d->transformer = setup->createTransformer(this);  // TODO create one per table?
+	d->transformer = d->setup->createTransformer(this);  // TODO create one per table?
 
-	d->connector = new RemoteConnector{setup->firebase, this};
+	d->connector = new RemoteConnector{d->setup->firebase, this};
 	d->setupStateMachine();
 }
 

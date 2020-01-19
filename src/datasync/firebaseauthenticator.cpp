@@ -48,9 +48,6 @@ FirebaseAuthenticator::FirebaseAuthenticator(IAuthenticator *authenticator, cons
 		QtJsonSerializer::SerializerBase::registerListConverters<ErrorContent>();
 	}
 
-	// initialize auth
-	_auth->init(this);
-
 	// timer
 	_refreshTimer->setSingleShot(true);
 	_refreshTimer->setTimerType(Qt::VeryCoarseTimer);
@@ -67,6 +64,9 @@ FirebaseAuthenticator::FirebaseAuthenticator(IAuthenticator *authenticator, cons
 	_api = new ApiClient{client->rootClass(), this};
 	client->setParent(_api);
 	loadFbConfig();
+
+	// initialize auth
+	_auth->init(this);
 }
 
 IAuthenticator *FirebaseAuthenticator::authenticator() const
