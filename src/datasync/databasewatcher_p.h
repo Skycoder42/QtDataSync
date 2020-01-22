@@ -97,17 +97,27 @@ private Q_SLOTS:
 private:
 	friend class SqlException;
 
-	QSqlDatabase _db;
+	struct TableInfo {
+		QStringList fields;
+		std::optional<std::pair<QString, int>> pKeyCache;
 
-	QHash<QString, QStringList> _tables;
-	QHash<QString, QString> _pKeyCache;
+		inline TableInfo(QStringList fields = {}) :
+			fields{std::move(fields)}
+		{}
+	};
+
+	QSqlDatabase _db;
+	QHash<QString, TableInfo> _tables;
 
 	QString sqlTypeName(const QSqlField &field) const;
 	QString tableName(const QString &table, bool asSyncTable = false) const;
 	QString fieldName(const QString &field) const;
 
-	QString getPKey(const QString &table);
+	std::pair<QString, int> getPKey(const QString &table);
 	void updateLastSync(const QString &table, const QDateTime &uploaded);
+
+	QString encodeKey(const QVariant &key, int type) const;
+	QVariant decodeKey(const QString &key, int type) const;
 };
 
 class Q_DATASYNC_EXPORT SqlException : public Exception
