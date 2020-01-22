@@ -501,6 +501,7 @@ std::optional<QDateTime> DatabaseWatcher::lastSync(const QString &tableName)
 void DatabaseWatcher::storeData(const LocalData &data)
 {
 	const auto key = data.key();
+	const auto &tableFields = _tables[data.key().typeName];
 	try {
 		ExTransaction transact{_db, key};
 
@@ -536,19 +537,25 @@ void DatabaseWatcher::storeData(const LocalData &data)
 			// try to insert as a new value
 			QStringList insertKeys;
 			QStringList updateKeys;
+			QVariantList queryData;
 			insertKeys.reserve(value->size());
 			updateKeys.reserve(value->size());
-			for (auto it = value->keyBegin(), end = value->keyEnd(); it != end; ++it) {
-				const auto fName = fieldName(*it);
-				insertKeys.append(fName);
-				updateKeys.append(QStringLiteral("%1 = excluded.%1").arg(fName));
+			queryData.reserve(value->size());
+			auto realSize = 0;
+			for (auto it = value->begin(), end = value->end(); it != end; ++it) {
+				if (tableFields.isEmpty() || tableFields.contains(it.key())) {
+					const auto fName = fieldName(it.key());
+					insertKeys.append(fName);
+					updateKeys.append(QStringLiteral("%1 = excluded.%1").arg(fName));
+					queryData.append(*it);
+					++realSize;
+				}
 			}
 			const auto paramPlcs = QVector<QString>{
-				value->size(),
+				realSize,
 				QString{QLatin1Char('?')}
 			}.toList();
 
-			// TODO okay so? can fail if other unique statements conflict
 			ExQuery upsertQuery{_db, ErrorScope::Entry, key};
 			upsertQuery.prepare(QStringLiteral("INSERT INTO %1 "
 											   "(%2) "
@@ -561,7 +568,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 										 paramPlcs.join(QStringLiteral(", ")),
 										 pKey,
 										 updateKeys.join(QStringLiteral(", "))));
-			for (const auto &val : *value)
+			for (const auto &val : qAsConst(queryData))
 				upsertQuery.addBindValue(val);
 			upsertQuery.exec();
 			qCDebug(logDbWatcher) << "Updated local data from cloud data for id" << key;
@@ -600,20 +607,29 @@ void DatabaseWatcher::storeData(const LocalData &data)
 
 std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 {
+	const auto &tableFields = _tables[name];
 	try {
 		ExTransaction transact{_db, name};
 
 		const auto pKey = getPKey(name);
 
+		QStringList dataFields;
+		if (tableFields.isEmpty())
+			dataFields.append(QStringLiteral("dataTable.*"));
+		else {
+			for (const auto &field : qAsConst(tableFields))
+				dataFields.append(QStringLiteral("dataTable.%1").arg(fieldName(field)));
+		}
 		ExQuery nextDataQuery{_db, ErrorScope::Table, name};
-		nextDataQuery.prepare(QStringLiteral("SELECT syncTable.pkey, syncTable.tstamp, dataTable.* "
-											 "FROM %1 AS syncTable "
-											 "LEFT JOIN %2 AS dataTable "
-											 "ON syncTable.pkey == dataTable.%3 "
+		nextDataQuery.prepare(QStringLiteral("SELECT syncTable.pkey, syncTable.tstamp, %1 "
+											 "FROM %2 AS syncTable "
+											 "LEFT JOIN %3 AS dataTable "
+											 "ON syncTable.pkey == dataTable.%4 "
 											 "WHERE syncTable.changed == ? "
 											 "ORDER BY syncTable.tstamp ASC "
 											 "LIMIT 1")
-								  .arg(tableName(name, true),
+								  .arg(dataFields.join(QStringLiteral(", ")),
+									   tableName(name, true),
 									   tableName(name),
 									   pKey));
 		nextDataQuery.addBindValue(static_cast<int>(ChangeState::Changed));

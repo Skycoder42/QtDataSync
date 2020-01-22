@@ -4,7 +4,7 @@
 <context>
     <name>QtDataSync::DatabaseWatcher</name>
     <message>
-        <location filename="../datasync/databasewatcher.cpp" line="+812"/>
+        <location filename="../datasync/databasewatcher.cpp" line="+828"/>
         <source>Failed to modify local data %1!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -112,7 +112,7 @@
 <context>
     <name>QtDataSync::RemoteConnector</name>
     <message>
-        <location filename="../datasync/remoteconnector.cpp" line="+171"/>
+        <location filename="../datasync/remoteconnector.cpp" line="+172"/>
         <source>Failed to remove table from server</source>
         <translation type="unfinished"></translation>
     </message>

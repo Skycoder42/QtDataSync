@@ -2,6 +2,7 @@
 #include "engine_p.h"
 #include <QtCore/QAtomicInteger>
 #include <QtCore/QRegularExpression>
+#include <QtJsonSerializer/JsonSerializer>
 using namespace QtDataSync;
 using namespace QtDataSync::__private;
 using namespace QtDataSync::firebase;
