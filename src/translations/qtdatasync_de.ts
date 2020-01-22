@@ -4,7 +4,7 @@
 <context>
     <name>QtDataSync::DatabaseWatcher</name>
     <message>
-        <location filename="../datasync/databasewatcher.cpp" line="+784"/>
+        <location filename="../datasync/databasewatcher.cpp" line="+812"/>
         <source>Failed to modify local data %1!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -32,7 +32,7 @@
 <context>
     <name>QtDataSync::Engine</name>
     <message>
-        <location filename="../datasync/engine.cpp" line="+317"/>
+        <location filename="../datasync/engine.cpp" line="+326"/>
         <source>Failed to initialize processor</source>
         <translation type="unfinished"></translation>
     </message>
@@ -40,7 +40,7 @@
 <context>
     <name>QtDataSync::EngineDataModel</name>
     <message>
-        <location filename="../datasync/enginedatamodel.cpp" line="+154"/>
+        <location filename="../datasync/enginedatamodel.cpp" line="+161"/>
         <source>Failed to delete user from authentication server!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -73,6 +73,39 @@
     <message>
         <location line="+13"/>
         <source>Failed to sign in with Google-Account!</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QtDataSync::MailAuthenticator</name>
+    <message>
+        <location filename="../datasync/mailauthenticator.cpp" line="+75"/>
+        <source>Sign-Up was rejected. Either not a valid email address or it is already in use!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>Sign-In was rejected. Invalid email or wrong password!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Invalid verification code!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>Invalid email - could not send passwort reset code!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>Invalid code - password was not reset!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+70"/>
+        <source>Failed to send account verification e-mail!</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -137,7 +170,7 @@
 <context>
     <name>QtDataSync::TableDataModel</name>
     <message numerus="yes">
-        <location filename="../datasync/tabledatamodel.cpp" line="+388"/>
+        <location filename="../datasync/tabledatamodel.cpp" line="+398"/>
         <source> Reconnecting (attempt %n)…</source>
         <translation type="unfinished">
             <numerusform></numerusform>

@@ -11,8 +11,6 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qshareddata.h>
 
-#include <QtJsonSerializer/JsonSerializer>
-
 namespace QtDataSync {
 
 namespace __private {
@@ -99,19 +97,8 @@ class Q_DATASYNC_EXPORT PlainCloudTransformer final : public ISynchronousCloudTr
 {
 	Q_OBJECT
 
-	Q_PROPERTY(QtJsonSerializer::JsonSerializer* serializer READ serializer WRITE setSerializer NOTIFY serializerChanged)
-
 public:
 	explicit PlainCloudTransformer(QObject *parent = nullptr);
-	explicit PlainCloudTransformer(QtJsonSerializer::JsonSerializer *serializer, QObject *parent = nullptr);
-
-	QtJsonSerializer::JsonSerializer *serializer() const;
-
-public Q_SLOTS:
-	void setSerializer(QtJsonSerializer::JsonSerializer *serializer);
-
-Q_SIGNALS:
-	void serializerChanged(QtJsonSerializer::JsonSerializer *serializer, QPrivateSignal = {});
 
 protected:
 	QJsonObject transformUploadSync(const QVariantHash &data) const final;

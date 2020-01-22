@@ -10,8 +10,18 @@ namespace QtDataSync {
 class Q_DATASYNC_EXPORT PlainCloudTransformerPrivate : public QObjectPrivate
 {
 	Q_DECLARE_PUBLIC(PlainCloudTransformer)
+
 public:
-	QtJsonSerializer::JsonSerializer *serializer = nullptr;
+	static const QString MarkerByteArray;
+	static const QString MarkerUrl;
+	static const QString MarkerDateTime;
+	static const QString MarkerUuid;
+	static const QString MarkerVariant;
+
+	QJsonValue serialize(const QVariant &data) const;
+	QVariant deserialize(const QJsonValue &json) const;
+
+	QJsonValue writeVariant(const QVariant &data, const QString &marker = MarkerByteArray);
 };
 
 }

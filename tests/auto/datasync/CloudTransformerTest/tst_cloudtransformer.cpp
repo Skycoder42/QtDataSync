@@ -15,6 +15,8 @@ private Q_SLOTS:
 
 private:
 	PlainCloudTransformer *_transformer = nullptr;
+
+	QString serialize(const QVariant &data);
 };
 
 void CloudTransformerTest::initTestCase()
@@ -77,8 +79,14 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key0"), true},
 			{QStringLiteral("key1"), 42},
 			{QStringLiteral("key2"), 1.3},
-			{QStringLiteral("key4"), QVariant::fromValue(nullptr)},
-			{QStringLiteral("key5"), QStringLiteral("test")},
+			{QStringLiteral("key3"), QVariant::fromValue(nullptr)},
+			{QStringLiteral("key4"), QStringLiteral("test")},
+			{QStringLiteral("key5"), QVariantList{1, 2, 3}},
+			{QStringLiteral("key6"), QVariantHash {
+				{QStringLiteral("a"), 1},
+				{QStringLiteral("b"), 2},
+				{QStringLiteral("c"), 3},
+			}}
 		},
 		tStamp,
 		QDateTime{}
@@ -88,8 +96,128 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key0"), true},
 			{QStringLiteral("key1"), 42},
 			{QStringLiteral("key2"), 1.3},
-			{QStringLiteral("key4"), QJsonValue::Null},
-			{QStringLiteral("key5"), QStringLiteral("test")},
+			{QStringLiteral("key3"), QJsonValue::Null},
+			{QStringLiteral("key4"), QStringLiteral("test")},
+			{QStringLiteral("key5"), QJsonArray{1, 2, 3}},
+			{QStringLiteral("key6"), QJsonObject {
+				{QStringLiteral("a"), 1},
+				{QStringLiteral("b"), 2},
+				{QStringLiteral("c"), 3},
+			}}
+		},
+		tStamp,
+		QDateTime{}
+	};
+
+	QTest::addRow("data.bytearray") << LocalData {
+		QStringLiteral("SimpleType"), QStringLiteral("simpleKey"),
+		QVariantHash {
+			{QStringLiteral("key"), QByteArray{"Hello World"}}
+		},
+		tStamp,
+		QDateTime{}
+	} << CloudData {
+		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
+		QJsonObject {
+			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_b"), QStringLiteral("SGVsbG8gV29ybGQ=")}}
+		},
+		tStamp,
+		QDateTime{}
+	};
+
+	QTest::addRow("data.url") << LocalData {
+		QStringLiteral("SimpleType"), QStringLiteral("simpleKey"),
+		QVariantHash {
+			{QStringLiteral("key"), QUrl{QStringLiteral("https://example.com/test?b=4&a=2#um")}}
+		},
+		tStamp,
+		QDateTime{}
+	} << CloudData {
+		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
+		QJsonObject {
+			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_u"), QStringLiteral("https://example.com/test?b=4&a=2#um")}}
+		},
+		tStamp,
+		QDateTime{}
+	};
+
+	QTest::addRow("data.datetime") << LocalData {
+		QStringLiteral("SimpleType"), QStringLiteral("simpleKey"),
+		QVariantHash {
+			{QStringLiteral("key"), QDateTime{{2010, 10, 5}, {14, 27, 7, 550}, Qt::UTC}}
+		},
+		tStamp,
+		QDateTime{}
+	} << CloudData {
+		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
+		QJsonObject {
+			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_d"), QStringLiteral("2010-10-05T14:27:07.550Z")}}
+		},
+		tStamp,
+		QDateTime{}
+	};
+
+	const auto uuid = QUuid::createUuid();
+	QTest::addRow("data.uuid") << LocalData {
+		QStringLiteral("SimpleType"), QStringLiteral("simpleKey"),
+		QVariantHash {
+			{QStringLiteral("key"), uuid}
+		},
+		tStamp,
+		QDateTime{}
+	} << CloudData {
+		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
+		QJsonObject {
+			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_i"), uuid.toString(QUuid::WithoutBraces)}}
+		},
+		tStamp,
+		QDateTime{}
+	};
+
+	QTest::addRow("data.integers") << LocalData {
+		QStringLiteral("SimpleType"), QStringLiteral("simpleKey"),
+		QVariantHash {
+			{QStringLiteral("keyC"), std::numeric_limits<char>::max()},
+			{QStringLiteral("keyI8"), std::numeric_limits<qint8>::min()},
+			{QStringLiteral("keyU8"), std::numeric_limits<quint8>::max()},
+			{QStringLiteral("keyI16"), std::numeric_limits<qint16>::min()},
+			{QStringLiteral("keyU16"), std::numeric_limits<quint16>::max()},
+			{QStringLiteral("keyI32"), std::numeric_limits<qint32>::min()},
+			{QStringLiteral("keyU32"), std::numeric_limits<quint32>::max()},
+			{QStringLiteral("keyI64"), std::numeric_limits<qint64>::min()},
+			{QStringLiteral("keyU64"), std::numeric_limits<quint64>::max()},
+		},
+		tStamp,
+		QDateTime{}
+	} << CloudData {
+		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
+		QJsonObject {
+			{QStringLiteral("keyC"), static_cast<int>(std::numeric_limits<char>::max())},
+			{QStringLiteral("keyI8"), static_cast<int>(std::numeric_limits<qint8>::min())},
+			{QStringLiteral("keyU8"), static_cast<int>(std::numeric_limits<quint8>::max())},
+			{QStringLiteral("keyI16"), static_cast<int>(std::numeric_limits<qint16>::min())},
+			{QStringLiteral("keyU16"), static_cast<int>(std::numeric_limits<quint16>::max())},
+			{QStringLiteral("keyI32"), static_cast<int>(std::numeric_limits<qint32>::min())},
+			{QStringLiteral("keyU32"), QJsonArray{QStringLiteral("__qtds_v"), QDataStream::Qt_DefaultCompiledVersion, serialize(std::numeric_limits<quint32>::max())}},
+			{QStringLiteral("keyI64"), QJsonArray{QStringLiteral("__qtds_v"), QDataStream::Qt_DefaultCompiledVersion, serialize(std::numeric_limits<qint64>::min())}},
+			{QStringLiteral("keyU64"), QJsonArray{QStringLiteral("__qtds_v"), QDataStream::Qt_DefaultCompiledVersion, serialize(std::numeric_limits<quint64>::max())}},
+		},
+		tStamp,
+		QDateTime{}
+	};
+
+	const QPoint p{42, 24};
+	QTest::addRow("data.point") << LocalData {
+		QStringLiteral("SimpleType"), QStringLiteral("simpleKey"),
+		QVariantHash {
+			{QStringLiteral("key"), p},
+		},
+		tStamp,
+		QDateTime{}
+	} << CloudData {
+		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
+		QJsonObject {
+			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_v"), QDataStream::Qt_DefaultCompiledVersion, serialize(p)}},
 		},
 		tStamp,
 		QDateTime{}
@@ -123,6 +251,14 @@ void CloudTransformerTest::testTransform()
 	QTRY_COMPARE(transDownSpy.size(), 1);
 	QVERIFY2(errorSpy.isEmpty(), qUtf8Printable(errorSpy.value(0).value(1).toString()));
 	QCOMPARE(transDownSpy[0][0].value<LocalData>(), local);
+}
+
+QString CloudTransformerTest::serialize(const QVariant &data)
+{
+	QByteArray ba;
+	QDataStream stream{&ba, QIODevice::WriteOnly};
+	stream << data;
+	return QString::fromUtf8(ba.toBase64());
 }
 
 QTEST_MAIN(CloudTransformerTest)
