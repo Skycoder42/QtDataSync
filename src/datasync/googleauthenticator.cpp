@@ -199,6 +199,18 @@ void GoogleAuthenticatorExtensionPrivate::extendFromGSPlistConfig(QSettings *con
 	port = static_cast<quint16>(config->value(QStringLiteral("CALLBACK_PORT")).toInt());
 }
 
+void GoogleAuthenticatorExtensionPrivate::testConfigSatisfied(const QLoggingCategory &logCat)
+{
+	if (clientId.isEmpty())
+		qCWarning(logCat).noquote() << "Unable to find the Google OAuth client-ID in the configuration file";
+	else {
+		if (clientId.isEmpty())
+			qCWarning(logCat).noquote() << "Unable to find the Google OAuth client-secret in the configuration file";
+		if (port == 0)
+			qCWarning(logCat).noquote() << "Unable to find the Google OAuth callback-port in the configuration file";
+	}
+}
+
 QObject *GoogleAuthenticatorExtensionPrivate::createInstance(QObject *parent)
 {
 	return new GoogleAuthenticator {

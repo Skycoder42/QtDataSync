@@ -58,6 +58,7 @@ public:
 	void extendFromWebConfig(const QJsonObject &config) final;
 	void extendFromGSJsonConfig(const QJsonObject &config) final;
 	void extendFromGSPlistConfig(QSettings *config) final;
+	void testConfigSatisfied(const QLoggingCategory &logCat) final;
 	QObject *createInstance(QObject *parent) final;
 };
 

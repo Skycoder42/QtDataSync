@@ -39,6 +39,7 @@ public:
 	virtual void extendFromWebConfig(const QJsonObject &config);
 	virtual void extendFromGSJsonConfig(const QJsonObject &config);
 	virtual void extendFromGSPlistConfig(QSettings *config);
+	virtual void testConfigSatisfied(const QLoggingCategory &logCat);
 
 	virtual QObject *createInstance(QObject *parent) = 0;
 };
@@ -74,6 +75,7 @@ private:
 	void readWebConfig(QIODevice *device);
 	void readGSJsonConfig(QIODevice *device);
 	void readGSPlistConfig(QIODevice *device);
+	void testConfigRes();
 
 	static Engine *createEngine(QScopedPointer<SetupPrivate> &&self, QObject *parent);
 	void finializeForEngine(Engine *engine);

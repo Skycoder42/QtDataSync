@@ -31,6 +31,7 @@ void SetupPrivate::readWebConfig(QIODevice *device)
 	firebase.apiKey = root[QStringLiteral("apiKey")].toString();
 	_authExt->extendFromWebConfig(root);
 	_transExt->extendFromWebConfig(root);
+	testConfigRes();
 }
 
 void SetupPrivate::readGSJsonConfig(QIODevice *device)
@@ -66,6 +67,7 @@ void SetupPrivate::readGSJsonConfig(QIODevice *device)
 
 	_authExt->extendFromGSJsonConfig(root);
 	_transExt->extendFromGSJsonConfig(root);
+	testConfigRes();
 }
 
 void SetupPrivate::readGSPlistConfig(QIODevice *device)
@@ -77,11 +79,22 @@ void SetupPrivate::readGSPlistConfig(QIODevice *device)
 		firebase.apiKey = settings.value(QStringLiteral("API_KEY")).toString();
 		_authExt->extendFromGSPlistConfig(&settings);
 		_transExt->extendFromGSPlistConfig(&settings);
+		testConfigRes();
 	} else
 		throw PListException{device};
 #else
 	throw PListException{device};
 #endif
+}
+
+void SetupPrivate::testConfigRes()
+{
+	if (firebase.projectId.isEmpty())
+		qCWarning(logSetup).noquote() << "Unable to find the firebase project id in the configuration file";
+	if (firebase.apiKey.isEmpty())
+		qCWarning(logSetup).noquote() << "Unable to find the firebase Web-API-Key id in the configuration file";
+	_authExt->testConfigSatisfied(logSetup());
+	_transExt->testConfigSatisfied(logSetup());
 }
 
 Engine *SetupPrivate::createEngine(QScopedPointer<QtDataSync::__private::SetupPrivate> &&self, QObject *parent)
@@ -136,6 +149,8 @@ void SetupExtensionPrivate::extendFromWebConfig(const QJsonObject &) {}
 void SetupExtensionPrivate::extendFromGSJsonConfig(const QJsonObject &) {}
 
 void SetupExtensionPrivate::extendFromGSPlistConfig(QSettings *) {}
+
+void SetupExtensionPrivate::testConfigSatisfied(const QLoggingCategory &) {}
 
 
 

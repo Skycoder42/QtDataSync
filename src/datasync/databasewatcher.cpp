@@ -1,5 +1,5 @@
 #include "databasewatcher_p.h"
-
+#include <QtCore/QMetaEnum>
 #include <QtSql/QSqlRecord>
 #include <QtSql/QSqlIndex>
 
