@@ -1,6 +1,6 @@
 TARGET = QtDataSync
 
-QT = core restclient networkauth sql scxml core-private
+QT = core restclient networkauth sql scxml remoteobjects core-private
 MODULE_CONFIG += $$CPP_VERSION
 
 HEADERS += \
@@ -66,6 +66,9 @@ REST_API_FILES += \
 	firebase/realtimedb/realtimedb_api.xml \
 	firebase/realtimedb/realtimedb_error.xml
 
+REPC_MERGED = \
+	asyncwatcher.rep
+
 QSCXMLC_NAMESPACE = QtDataSync
 STATECHARTS += \
 	enginestatemachine_p.scxml \
@@ -94,6 +97,3 @@ win32 {
 } else:mac {
 	QMAKE_TARGET_BUNDLE_PREFIX = "com.skycoder42."
 }
-
-DISTFILES += \
-	syncflow.qmodel

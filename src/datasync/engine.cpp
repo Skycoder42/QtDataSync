@@ -216,8 +216,11 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 		this
 	};
 	d->transformer = d->setup->createTransformer(this);  // TODO create one per table?
-
 	d->connector = new RemoteConnector{d->setup->firebase, this};
+
+	d->asyncWatcher = new AsyncWatcherPrivate{this};
+	// TODO setup ro
+
 	d->setupStateMachine();
 }
 
@@ -410,6 +413,22 @@ void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &
 	default:
 		Q_UNREACHABLE();
 	}
+}
+
+
+
+AsyncWatcherPrivate::AsyncWatcherPrivate(Engine *engine) :
+	AsyncWatcherSource{engine},
+	_engine{engine}
+{}
+
+void AsyncWatcherPrivate::activate(const QString &name)
+{
+	// find the matching state machine and trigger and upload
+	const auto d = _engine->d_func();
+	const auto [machine, model] = d->tableMachines.value(name);
+	if (model)
+		model->triggerExtUpload();
 }
 
 

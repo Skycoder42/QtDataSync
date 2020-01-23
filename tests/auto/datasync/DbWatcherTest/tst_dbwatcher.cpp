@@ -44,7 +44,6 @@ private Q_SLOTS:
 
 	void testStoreData_data();
 	void testStoreData();
-	void testShouldStore();
 	void testLoadData();
 	void testMarkCorrupted();
 

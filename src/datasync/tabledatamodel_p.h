@@ -41,6 +41,7 @@ public Q_SLOTS:
 	void start();
 	void stop();
 	void triggerSync(bool force);
+	void triggerExtUpload();
 
 	void setLiveSyncEnabled(bool liveSyncEnabled);
 

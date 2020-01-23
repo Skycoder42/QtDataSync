@@ -113,6 +113,11 @@ void TableDataModel::triggerSync(bool force)
 	stateMachine()->submitEvent(QStringLiteral("triggerSync"));
 }
 
+void TableDataModel::triggerExtUpload()
+{
+	stateMachine()->submitEvent(QStringLiteral("triggerUpload"));
+}
+
 void TableDataModel::setLiveSyncEnabled(bool liveSyncEnabled)
 {
 	if (_liveSync == liveSyncEnabled)

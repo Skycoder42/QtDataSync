@@ -160,6 +160,7 @@ Q_SIGNALS:
 
 private:
 	friend class __private::SetupPrivate;
+	friend class AsyncWatcherPrivate;
 	Q_DECLARE_PRIVATE(Engine)
 
 	Q_PRIVATE_SLOT(d_func(), void _q_startTableSync())
