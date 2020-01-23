@@ -218,8 +218,12 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	d->transformer = d->setup->createTransformer(this);  // TODO create one per table?
 	d->connector = new RemoteConnector{d->setup->firebase, this};
 
+	// create async watcher and enable remoting
 	d->asyncWatcher = new AsyncWatcherPrivate{this};
-	// TODO setup ro
+	if (d->setup->roNode) {
+		d->setup->roNode->enableRemoting(d->asyncWatcher);
+		qCDebug(logSetup) << "Enabled remoting of async watcher API";
+	}
 
 	d->setupStateMachine();
 }
@@ -349,10 +353,17 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 	model->setLiveSyncEnabled(liveSync);
 	if (engineModel->isSyncActive())
 		model->start();
+
+	// notify external watcher
+	Q_EMIT asyncWatcher->tableAdded(name, watcher->database().connectionName());
 }
 
 void EnginePrivate::_q_tableRemoved(const QString &name)
 {
+	Q_Q(Engine);
+	const auto watcher = qobject_cast<DatabaseWatcher*>(q->sender());
+	Q_ASSERT(watcher);
+
 	auto tm = tableMachines.take(name);
 	if (tm.second->isRunning())
 		tm.second->stop();
@@ -360,6 +371,9 @@ void EnginePrivate::_q_tableRemoved(const QString &name)
 		tm.first->stop();
 		tm.first->deleteLater();
 	}
+
+	// notify external watcher
+	Q_EMIT asyncWatcher->tableRemoved(name, watcher->database().connectionName());
 }
 
 void EnginePrivate::_q_tableStopped(const QString &table)
@@ -418,14 +432,25 @@ void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &
 
 
 AsyncWatcherPrivate::AsyncWatcherPrivate(Engine *engine) :
-	AsyncWatcherSource{engine},
-	_engine{engine}
+	AsyncWatcherSource{engine}
 {}
+
+QList<QPair<QString, QString>> AsyncWatcherPrivate::activeTables() const
+{
+	const auto d = static_cast<Engine*>(parent())->d_func();
+	QList<QPair<QString, QString>> tables;
+	for (const auto &watcher : qAsConst(d->watchers)) {
+		const auto dbName = watcher->database().connectionName();
+		for (const auto &table : watcher->tables())
+			tables.append({table, dbName});
+	}
+	return tables;
+}
 
 void AsyncWatcherPrivate::activate(const QString &name)
 {
 	// find the matching state machine and trigger and upload
-	const auto d = _engine->d_func();
+	const auto d = static_cast<Engine*>(parent())->d_func();
 	const auto [machine, model] = d->tableMachines.value(name);
 	if (model)
 		model->triggerExtUpload();

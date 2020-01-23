@@ -5,5 +5,5 @@ class AsyncWatcher
 	SIGNAL(tableAdded(const QString &name, const QString &connection))
 	SIGNAL(tableRemoved(const QString &name, const QString &connection))
 
-	SLOT(activate(const QString &name))
+	SLOT(void activate(const QString &name))
 };

@@ -4,7 +4,7 @@
 <context>
     <name>QtDataSync::DatabaseWatcher</name>
     <message>
-        <location filename="../datasync/databasewatcher.cpp" line="+828"/>
+        <location filename="../datasync/databasewatcher.cpp" line="+935"/>
         <source>Failed to modify local data %1!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -32,7 +32,7 @@
 <context>
     <name>QtDataSync::Engine</name>
     <message>
-        <location filename="../datasync/engine.cpp" line="+326"/>
+        <location filename="../datasync/engine.cpp" line="+333"/>
         <source>Failed to initialize processor</source>
         <translation type="unfinished"></translation>
     </message>
@@ -170,7 +170,7 @@
 <context>
     <name>QtDataSync::TableDataModel</name>
     <message numerus="yes">
-        <location filename="../datasync/tabledatamodel.cpp" line="+398"/>
+        <location filename="../datasync/tabledatamodel.cpp" line="+407"/>
         <source> Reconnecting (attempt %n)…</source>
         <translation type="unfinished">
             <numerusform></numerusform>

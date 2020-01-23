@@ -17,8 +17,6 @@
 #include <QtCore/QQueue>
 #include <QtCore/QLoggingCategory>
 
-#include <QtRemoteObjects/QRemoteObjectHostBase>
-
 #include "enginestatemachine_p.h"
 #include "tablestatemachine_p.h"
 #include "rep_asyncwatcher_merged.h"
@@ -37,13 +35,10 @@ class AsyncWatcherPrivate final : public AsyncWatcherSource
 public:
 	AsyncWatcherPrivate(Engine *engine);
 
-	QList<QPair<QString, QString> > activeTables() const final;
+	QList<QPair<QString, QString>> activeTables() const final;
 
 public Q_SLOTS:
 	void activate(const QString &name) final;
-
-private:
-	Engine *_engine;
 };
 
 class Q_DATASYNC_EXPORT EnginePrivate : public QObjectPrivate
@@ -66,8 +61,6 @@ public:
 	ICloudTransformer *transformer = nullptr;
 	RemoteConnector *connector = nullptr;
 	QHash<QString, DatabaseWatcher*> watchers;
-
-	QRemoteObjectHostBase *roHost = nullptr;
 	AsyncWatcherPrivate *asyncWatcher = nullptr;
 
 	EngineStateMachine *engineMachine = nullptr;

@@ -5,6 +5,7 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
+#include <QtRemoteObjects/QRemoteObjectHost>
 using namespace QtDataSync;
 using namespace QtDataSync::__private;
 
@@ -112,6 +113,11 @@ void SetupPrivate::finializeForEngine(Engine *engine)
 	}
 	qCDebug(logSetup).noquote().nospace() << "Using settings: " << settings->fileName()
 										  << " (" << settings->group() << ")";
+
+	if (roNode)
+		roNode->setParent(engine);
+	else if (roUrl.isValid())
+		roNode = new QRemoteObjectHost{roUrl, engine};
 }
 
 IAuthenticator *SetupPrivate::createAuthenticator(QObject *parent)

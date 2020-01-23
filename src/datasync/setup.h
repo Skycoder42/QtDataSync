@@ -99,6 +99,18 @@ public:
 		return *this;
 	}
 
+	inline Setup &setAsyncUrl(QUrl url) {
+		d->roUrl = std::move(url);
+		d->roNode = nullptr;
+		return *this;
+	}
+
+	inline Setup &setAsyncHost(QRemoteObjectHostBase *node) {
+		d->roUrl.clear();
+		d->roNode = node;
+		return *this;
+	}
+
 #ifndef QTDATASYNC_NO_NTP
 	inline Setup &enableNtpSync(QString hostName = QStringLiteral("pool.ntp.org"), quint16 port = 123) {
 		d->ntpAddress = std::move(hostName);

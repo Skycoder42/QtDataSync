@@ -7,7 +7,10 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qsettings.h>
+#include <QtCore/qurl.h>
 #include <QtCore/qloggingcategory.h>
+
+class QRemoteObjectHostBase;
 
 namespace QtDataSync {
 
@@ -64,6 +67,8 @@ public:
 #endif
 
 	QSettings *settings = nullptr;
+	QUrl roUrl;
+	QRemoteObjectHostBase *roNode = nullptr;
 
 private:
 	SetupExtensionPrivate *_authExt;
