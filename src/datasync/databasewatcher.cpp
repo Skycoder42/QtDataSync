@@ -498,6 +498,26 @@ std::optional<QDateTime> DatabaseWatcher::lastSync(const QString &tableName)
 	}
 }
 
+bool DatabaseWatcher::shouldStore(const ObjectKey &key, const CloudData &data)
+{
+	try {
+		ExTransaction transact{_db, key};
+		const auto [pKey, pKeyType] = getPKey(key.typeName);
+		const auto res = shouldStoreImpl({
+			key,
+			std::nullopt,
+			data.modified(),
+			data.uploaded()
+		}, decodeKey(key.id, pKeyType));
+		transact.commit();
+		return res;
+	} catch (SqlException &error) {
+		qCCritical(logDbWatcher) << error.what();
+		error.emitFor(this);
+		return false;
+	}
+}
+
 void DatabaseWatcher::storeData(const LocalData &data)
 {
 	const auto key = data.key();
@@ -512,26 +532,10 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		const auto escSyncName = tableName(key.typeName, true);
 
 		// check if newer
-		ExQuery checkNewerQuery{_db, ErrorScope::Table, key.typeName};
-		checkNewerQuery.prepare(QStringLiteral("SELECT tstamp "
-											   "FROM %1 "
-											   "WHERE pkey = ?;")
-									.arg(escSyncName));
-		checkNewerQuery.addBindValue(escKey);
-		checkNewerQuery.exec();
-		if (checkNewerQuery.first()) {
-			const auto localMod = checkNewerQuery.value(0).toDateTime().toUTC();
-			if (localMod > data.modified()) {
-				qCDebug(logDbWatcher) << "Data with id" << key
-									  << "was modified in the cloud, but is newer locally."
-									  << "Local date:" << localMod
-									  << "Cloud date:" << data.modified();
-				updateLastSync(key.typeName, data.uploaded());
-				transact.commit();
-				return;
-			}
-		} else
-			qCDebug(logDbWatcher) << "No local data for id" << key;
+		if (!shouldStoreImpl(data, escKey)) {
+			transact.commit();
+			return;
+		}
 
 		// update the actual data
 		if (const auto value = data.data(); value) {
@@ -807,6 +811,33 @@ void DatabaseWatcher::updateLastSync(const QString &table, const QDateTime &uplo
 	updateMetaQuery.addBindValue(uploaded.toUTC());
 	updateMetaQuery.addBindValue(table);
 	updateMetaQuery.exec();
+}
+
+bool DatabaseWatcher::shouldStoreImpl(const LocalData &data, const QVariant &escKey)
+{
+	const auto key = data.key();
+	ExQuery checkNewerQuery{_db, ErrorScope::Table, key.typeName};
+	checkNewerQuery.prepare(QStringLiteral("SELECT tstamp "
+										   "FROM %1 "
+										   "WHERE pkey = ?;")
+								.arg(tableName(key.typeName, true)));
+	checkNewerQuery.addBindValue(escKey);
+	checkNewerQuery.exec();
+	if (checkNewerQuery.first()) {
+		const auto localMod = checkNewerQuery.value(0).toDateTime().toUTC();
+		if (localMod > data.modified()) {
+			qCDebug(logDbWatcher) << "Data with id" << key
+								  << "was modified in the cloud, but is newer locally."
+								  << "Local date:" << localMod
+								  << "Cloud date:" << data.modified();
+			updateLastSync(key.typeName, data.uploaded());
+			return false;
+		} else
+			return true;
+	} else {
+		qCDebug(logDbWatcher) << "No local data for id" << key;
+		return true;
+	}
 }
 
 QString DatabaseWatcher::encodeKey(const QVariant &key, int type) const

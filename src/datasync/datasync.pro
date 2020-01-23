@@ -1,6 +1,7 @@
 TARGET = QtDataSync
 
 QT = core restclient networkauth sql scxml core-private
+MODULE_CONFIG += $$CPP_VERSION
 
 HEADERS += \
 	authenticator.h \

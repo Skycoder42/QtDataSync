@@ -74,6 +74,8 @@ public:
 
 	// sync functions
 	std::optional<QDateTime> lastSync(const QString &tableName);
+	bool shouldStore(const ObjectKey &key,
+					 const CloudData &data);
 	void storeData(const LocalData &data);
 	std::optional<LocalData> loadData(const QString &name);
 	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
@@ -115,6 +117,7 @@ private:
 
 	std::pair<QString, int> getPKey(const QString &table);
 	void updateLastSync(const QString &table, const QDateTime &uploaded);
+	bool shouldStoreImpl(const LocalData &data, const QVariant &escKey);
 
 	QString encodeKey(const QVariant &key, int type) const;
 	QVariant decodeKey(const QString &key, int type) const;

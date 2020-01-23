@@ -149,9 +149,13 @@ void TableDataModel::downloadChanges()
 
 void TableDataModel::processDownload()
 {
-	if (!_syncQueue.isEmpty())
-		_transformer->transformDownload(_syncQueue.dequeue());
-	else {
+	if (!_syncQueue.isEmpty()) {
+		const auto data = _syncQueue.dequeue();
+		if (_watcher->shouldStore(_transformer->unescapeKey(data.key()), data))
+			_transformer->transformDownload(data);
+		else
+			stateMachine()->submitEvent(QStringLiteral("procContinue"));
+	} else {
 		_cachedLastSync = {};
 		stateMachine()->submitEvent(QStringLiteral("procReady"));  // done with processing downloaded data
 	}
