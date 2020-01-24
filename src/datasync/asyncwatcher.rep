@@ -1,6 +1,6 @@
 class AsyncWatcher
 {
-	PROP(QList<QPair<QString, QString>> activeTables READONLY)
+	PROP(QList<QPair<QString, QString>> activeTables={} CONSTANT)
 
 	SIGNAL(tableAdded(const QString &name, const QString &connection))
 	SIGNAL(tableRemoved(const QString &name, const QString &connection))

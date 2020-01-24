@@ -28,14 +28,14 @@ namespace QtDataSync {
 class EngineDataModel;
 class TableDataModel;
 
-class AsyncWatcherPrivate final : public AsyncWatcherSource
+class AsyncWatcherBackend final : public AsyncWatcherSource
 {
 	Q_OBJECT
 
 public:
-	AsyncWatcherPrivate(Engine *engine);
+	AsyncWatcherBackend(Engine *engine);
 
-	QList<QPair<QString, QString>> activeTables() const final;
+	Q_INVOKABLE QList<QPair<QString, QString>> activeTables() const final;
 
 public Q_SLOTS:
 	void activate(const QString &name) final;
@@ -56,12 +56,14 @@ public:
 		QVariant data;
 	};
 
+	static AsyncWatcherBackend *obtainAWB(Engine *engine);
+
 	QScopedPointer<__private::SetupPrivate> setup;
 	FirebaseAuthenticator *authenticator = nullptr;
 	ICloudTransformer *transformer = nullptr;
 	RemoteConnector *connector = nullptr;
 	QHash<QString, DatabaseWatcher*> watchers;
-	AsyncWatcherPrivate *asyncWatcher = nullptr;
+	AsyncWatcherBackend *asyncWatcher = nullptr;
 
 	EngineStateMachine *engineMachine = nullptr;
 	QPointer<EngineDataModel> engineModel;

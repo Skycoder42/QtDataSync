@@ -219,7 +219,7 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	d->connector = new RemoteConnector{d->setup->firebase, this};
 
 	// create async watcher and enable remoting
-	d->asyncWatcher = new AsyncWatcherPrivate{this};
+	d->asyncWatcher = new AsyncWatcherBackend{this};
 	if (d->setup->roNode) {
 		d->setup->roNode->enableRemoting(d->asyncWatcher);
 		qCDebug(logSetup) << "Enabled remoting of async watcher API";
@@ -229,6 +229,11 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 }
 
 
+
+AsyncWatcherBackend *EnginePrivate::obtainAWB(Engine *engine)
+{
+	return engine->d_func()->asyncWatcher;
+}
 
 DatabaseWatcher *EnginePrivate::getWatcher(QSqlDatabase &&database)
 {
@@ -431,11 +436,11 @@ void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &
 
 
 
-AsyncWatcherPrivate::AsyncWatcherPrivate(Engine *engine) :
+AsyncWatcherBackend::AsyncWatcherBackend(Engine *engine) :
 	AsyncWatcherSource{engine}
 {}
 
-QList<QPair<QString, QString>> AsyncWatcherPrivate::activeTables() const
+QList<QPair<QString, QString>> AsyncWatcherBackend::activeTables() const
 {
 	const auto d = static_cast<Engine*>(parent())->d_func();
 	QList<QPair<QString, QString>> tables;
@@ -447,7 +452,7 @@ QList<QPair<QString, QString>> AsyncWatcherPrivate::activeTables() const
 	return tables;
 }
 
-void AsyncWatcherPrivate::activate(const QString &name)
+void AsyncWatcherBackend::activate(const QString &name)
 {
 	// find the matching state machine and trigger and upload
 	const auto d = static_cast<Engine*>(parent())->d_func();

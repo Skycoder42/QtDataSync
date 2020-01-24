@@ -4,6 +4,8 @@ QT = core restclient networkauth sql scxml remoteobjects core-private
 MODULE_CONFIG += $$CPP_VERSION
 
 HEADERS += \
+	asyncwatcher.h \
+	asyncwatcher_p.h \
 	authenticator.h \
 	authenticator_p.h \
 	cloudtransformer.h \
@@ -30,6 +32,7 @@ HEADERS += \
 	tabledatamodel_p.h
 
 SOURCES += \
+	asyncwatcher.cpp \
 	authenticator.cpp \
 	cloudtransformer.cpp \
 	databasewatcher.cpp \
