@@ -1,5 +1,6 @@
 #include "setup.h"
 #include "engine_p.h"
+#include "enginethread.h"
 #include <QtCore/QFile>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QJsonDocument>
@@ -101,6 +102,11 @@ void SetupPrivate::testConfigRes()
 Engine *SetupPrivate::createEngine(QScopedPointer<QtDataSync::__private::SetupPrivate> &&self, QObject *parent)
 {
 	return new Engine{std::move(self), parent};
+}
+
+EngineThread *SetupPrivate::createThreadedEngine(QScopedPointer<SetupPrivate> &&self, QtDataSync::__private::SetupPrivate::ThreadInitFunc &&initFn, QObject *parent)
+{
+	return new EngineThread{std::move(self), std::move(initFn), parent};
 }
 
 void SetupPrivate::finializeForEngine(Engine *engine)

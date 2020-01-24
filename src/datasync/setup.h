@@ -53,6 +53,7 @@ class Setup :
 public:
 	using AuthExtension = SetupAuthenticationExtension<Setup<TAuthenticator, TCloudTransformer>, TAuthenticator>;
 	using TransformExtension = SetupTransformerExtension<Setup<TAuthenticator, TCloudTransformer>, TCloudTransformer>;
+	using ThreadInitFunc = __private::SetupPrivate::ThreadInitFunc;
 
 	inline Setup() :
 		d{new __private::SetupPrivate{}}
@@ -121,6 +122,10 @@ public:
 
 	inline Engine *createEngine(QObject *parent = nullptr) {
 		return __private::SetupPrivate::createEngine(std::move(d), parent);
+	}
+
+	inline EngineThread *createThreadedEngine(ThreadInitFunc initFn, QObject *parent = nullptr) {
+		return __private::SetupPrivate::createThreadedEngine(std::move(d), std::move(initFn), parent);
 	}
 
 private:

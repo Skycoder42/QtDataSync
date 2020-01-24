@@ -3,6 +3,7 @@
 #include "engine_p.h"
 #include "enginedatamodel_p.h"
 #include "tabledatamodel_p.h"
+#include <QtCore/QEventLoop>
 using namespace QtDataSync;
 using namespace QtDataSync::__private;
 namespace sph = std::placeholders;
@@ -147,6 +148,50 @@ Engine::EngineState Engine::state() const
 	return d->engineModel->state();
 }
 
+bool Engine::isRunning() const
+{
+	Q_D(const Engine);
+	switch (d->engineModel->state()) {
+	case EngineState::Inactive:
+	case EngineState::Error:
+	case EngineState::Invalid:
+		return false;
+	case EngineState::SigningIn:
+	case EngineState::TableSync:
+	case EngineState::Stopping:
+	case EngineState::DeletingAcc:
+		return true;
+	default:
+		Q_UNREACHABLE();
+	}
+}
+
+bool Engine::waitForStopped(std::optional<std::chrono::milliseconds> timeout)
+{
+	if (!isRunning())
+		return true;
+
+	QEventLoop stopLoop;
+	connect(this, &Engine::stateChanged,
+			&stopLoop, [&](Engine::EngineState state){
+				if (state == EngineState::Inactive ||
+					state == EngineState::Error)
+					stopLoop.quit();
+			});
+
+	if (timeout) {
+		auto timer = new QTimer{&stopLoop};
+		timer->setSingleShot(true);
+		connect(timer, &QTimer::timeout,
+				&stopLoop, [&]() {
+					stopLoop.exit(EXIT_FAILURE);
+				});
+		timer->start(*timeout);
+	}
+
+	return stopLoop.exec() == EXIT_SUCCESS;
+}
+
 void Engine::start()
 {
 	Q_D(Engine);
@@ -215,7 +260,7 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 		d->setup->settings,
 		this
 	};
-	d->transformer = d->setup->createTransformer(this);  // TODO create one per table?
+	d->transformer = d->setup->createTransformer(this);
 	d->connector = new RemoteConnector{d->setup->firebase, this};
 
 	// create async watcher and enable remoting

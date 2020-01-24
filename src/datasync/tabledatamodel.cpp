@@ -132,7 +132,7 @@ void TableDataModel::setLiveSyncEnabled(bool liveSyncEnabled)
 
 void TableDataModel::initSync()
 {
-	Q_ASSERT(_transformer);  // TODO make a factory, one instance per statemachine
+	Q_ASSERT(_transformer);
 	Q_ASSERT(_watcher);
 	Q_ASSERT(_connector);
 	switchMode();

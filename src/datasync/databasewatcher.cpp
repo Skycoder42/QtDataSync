@@ -159,7 +159,6 @@ void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QString
 											  escPKey));
 			qCDebug(logDbWatcher) << "Created sync table update trigger index for" << name;
 
-			// TODO not good like that, somehow link old/new and upload old with new data
 			ExQuery createRenameTrigger{_db, ErrorScope::Table, name};
 			createRenameTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
 													"AFTER UPDATE ON %3 "

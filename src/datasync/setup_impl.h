@@ -10,12 +10,15 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qloggingcategory.h>
 
+#include <QtCore/qfuture.h>
+
 class QRemoteObjectHostBase;
 
 namespace QtDataSync {
 
 class ICloudTransformer;
 class Engine;
+class EngineThread;
 
 template <typename TAuthenticator, typename TCloudTransformer>
 class Setup;
@@ -54,6 +57,8 @@ class Q_DATASYNC_EXPORT SetupPrivate
 	friend class QtDataSync::Engine;
 
 public:
+	using ThreadInitFunc = std::function<void(Engine*, QThread*)>;
+
 	struct FirebaseConfig {
 		QString projectId;
 		QString apiKey;
@@ -83,6 +88,7 @@ private:
 	void testConfigRes();
 
 	static Engine *createEngine(QScopedPointer<SetupPrivate> &&self, QObject *parent);
+	static EngineThread *createThreadedEngine(QScopedPointer<SetupPrivate> &&self, ThreadInitFunc &&initFn, QObject *parent);
 	void finializeForEngine(Engine *engine);
 	IAuthenticator *createAuthenticator(QObject *parent);
 	ICloudTransformer *createTransformer(QObject *parent);

@@ -14,6 +14,8 @@ HEADERS += \
 	engine.h \
 	engine_p.h \
 	enginedatamodel_p.h \
+	enginethread.h \
+	enginethread_p.h \
 	exception.h \
 	firebase/realtimedb/firebaseapibase_p.h \
 	firebase/realtimedb/querymap_p.h \
@@ -38,6 +40,7 @@ SOURCES += \
 	databasewatcher.cpp \
 	engine.cpp \
 	enginedatamodel.cpp \
+	enginethread.cpp \
 	exception.cpp \
 	firebase/realtimedb/firebaseapibase.cpp \
 	firebase/realtimedb/querymap.cpp \

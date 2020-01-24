@@ -4,6 +4,9 @@
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/exception.h"
 
+#include <chrono>
+#include <optional>
+
 #include <QtCore/qobject.h>
 
 #include <QtSql/qsqldatabase.h>
@@ -136,6 +139,9 @@ public:
 	ICloudTransformer* transformer() const;
 	EngineState state() const;
 
+	Q_INVOKABLE bool isRunning() const;
+	bool waitForStopped(std::optional<std::chrono::milliseconds> timeout = std::nullopt);
+
 public Q_SLOTS:
 	void start();
 	void stop();
@@ -161,6 +167,7 @@ Q_SIGNALS:
 private:
 	friend class __private::SetupPrivate;
 	friend class AsyncWatcherBackend;
+	friend class EngineThread;
 	Q_DECLARE_PRIVATE(Engine)
 
 	Q_PRIVATE_SLOT(d_func(), void _q_startTableSync())
