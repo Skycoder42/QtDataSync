@@ -62,6 +62,27 @@ private:
 	Q_DECLARE_PRIVATE(IAuthenticator);
 };
 
+class OAuthAuthenticatorPrivate;
+class Q_DATASYNC_EXPORT OAuthAuthenticator : public IAuthenticator
+{
+	Q_OBJECT
+
+public:
+	void abortRequest() override;
+
+protected:
+	OAuthAuthenticator(QObject *parent = nullptr);
+	OAuthAuthenticator(OAuthAuthenticatorPrivate &dd, QObject *parent);
+
+	void init() override;
+	void signInWithToken(const QUrl &requestUri,
+						 const QString &provider,
+						 const QString &token);
+
+private:
+	Q_DECLARE_PRIVATE(OAuthAuthenticator);
+};
+
 class AuthenticationSelectorBasePrivate;
 class Q_DATASYNC_EXPORT AuthenticationSelectorBase : public IAuthenticator
 {

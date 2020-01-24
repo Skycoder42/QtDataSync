@@ -8,7 +8,7 @@
 namespace QtDataSync {
 
 class GoogleAuthenticatorPrivate;
-class Q_DATASYNC_EXPORT GoogleAuthenticator final : public IAuthenticator
+class Q_DATASYNC_EXPORT GoogleAuthenticator final : public OAuthAuthenticator
 {
 	Q_OBJECT
 
@@ -35,7 +35,7 @@ Q_SIGNALS:
 	void preferNativeChanged(bool preferNative, QPrivateSignal);
 
 protected:
-	void init() override;
+	void init() final;
 
 private:
 	Q_DECLARE_PRIVATE(GoogleAuthenticator)

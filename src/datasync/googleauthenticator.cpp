@@ -6,10 +6,10 @@ using namespace QtDataSync::__private;
 using namespace QtDataSync::firebase;
 using namespace QtDataSync::firebase::auth;
 
-Q_LOGGING_CATEGORY(QtDataSync::logOAuth, "qt.datasync.GoogleAuthenticator")
+Q_LOGGING_CATEGORY(QtDataSync::logGAuth, "qt.datasync.GoogleAuthenticator")
 
 GoogleAuthenticator::GoogleAuthenticator(const QString &clientId, const QString &clientSecret, quint16 callbackPort, QObject *parent) :
-	IAuthenticator{*new GoogleAuthenticatorPrivate{}, parent}
+	OAuthAuthenticator{*new GoogleAuthenticatorPrivate{}, parent}
 {
 	Q_D(GoogleAuthenticator);
 	d->oAuthFlow = new GoogleOAuthFlow{callbackPort, nullptr, this};
@@ -37,13 +37,13 @@ void GoogleAuthenticator::signIn()
 	d->aborted = false;
 	if (!d->oAuthFlow->idToken().isEmpty() &&
 		d->oAuthFlow->expirationAt().toUTC() > QDateTime::currentDateTimeUtc()) { // valid id token -> done
-		qCDebug(logOAuth) << "OAuth-token still valid - sign in successfull";
+		qCDebug(logGAuth) << "OAuth-token still valid - sign in successfull";
 		d->_q_firebaseSignIn();
 	} else if (!d->oAuthFlow->refreshToken().isEmpty()) { // valid refresh token -> do the refresh
-		qCDebug(logOAuth) << "OAuth-token expired - refreshing...";
+		qCDebug(logGAuth) << "OAuth-token expired - refreshing...";
 		d->oAuthFlow->refreshAccessToken();
 	} else { // no token or refresh token -> run full oauth flow
-		qCDebug(logOAuth) << "OAuth-token invalid or expired - signing in...";
+		qCDebug(logGAuth) << "OAuth-token invalid or expired - signing in...";
 		d->clearOaConfig();
 		d->oAuthFlow->grant();
 	}
@@ -59,13 +59,10 @@ void GoogleAuthenticator::logOut()
 
 void GoogleAuthenticator::abortRequest()
 {
+	OAuthAuthenticator::abortRequest();
 	Q_D(GoogleAuthenticator);
-	if (d->lastReply)
-		d->lastReply->abort();
-	else {
-		d->aborted = true;
-		failSignIn(tr("Sign-In aborted!"));  // TODO only if running
-	}
+	d->aborted = true;
+	failSignIn(tr("Sign-In aborted!"));  // TODO only if running!!!
 }
 
 void GoogleAuthenticator::setPreferNative(bool preferNative)
@@ -80,9 +77,9 @@ void GoogleAuthenticator::setPreferNative(bool preferNative)
 
 void GoogleAuthenticator::init()
 {
+	OAuthAuthenticator::init();
 	Q_D(GoogleAuthenticator);
 	d->oAuthFlow->setNetworkAccessManager(client()->manager());
-	d->api = new ApiClient{client()->rootClass(), this};
 	d->loadOaConfig();
 }
 
@@ -100,45 +97,16 @@ void GoogleAuthenticatorPrivate::_q_firebaseSignIn()
 		return;
 	}
 
-	qCDebug(logOAuth) << "OAuth-token granted - signing in to firebase...";
 	storeOaConfig();
-
-	SignInRequest request;
-	request.setRequestUri(oAuthFlow->requestUrl());
-	request.setPostBody(QStringLiteral("id_token=%1&providerId=google.com").arg(oAuthFlow->idToken()));
-	const auto reply = api->oAuthSignIn(request);
-	lastReply = reply->networkReply();
-	reply->onSucceeded(q, [this](int, const SignInResponse &response) {
-		Q_Q(GoogleAuthenticator);
-		if (response.needConfirmation()) {
-			qCCritical(logOAuth) << "Another account with the same credentials already exists!"
-								 << "The user must log in with that account instead or link the two accounts!";
-			q->failSignIn(GoogleAuthenticator::tr("Another account with the same credentials already exists! "
-												  "You have to log in with that account instead or link the two accounts!"));
-			return;
-		}
-		qCDebug(logOAuth) << "Firebase sign in successful";
-		if (!response.emailVerified())
-			qCWarning(logOAuth) << "Account-Mail was not verified!";
-		q->completeSignIn(response.localId(),
-						  response.idToken(),
-						  response.refreshToken(),
-						  QDateTime::currentDateTimeUtc().addSecs(response.expiresIn()),
-						  response.email());
-	});
-	reply->onAllErrors(q, [this](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
-		Q_Q(GoogleAuthenticator);
-		FirebaseAuthenticator::logError(error, code, errorType);
-		qCCritical(logOAuth) << "Failed to sign in to firebase with google OAuth credentials -"
-							 << "make shure google OAuth authentication has been enabled in the firebase console!";
-		q->failSignIn(GoogleAuthenticator::tr("Google Authentication was not accepted by firebase"));
-	}, &FirebaseAuthenticator::translateError);
+	q->signInWithToken(oAuthFlow->requestUrl(),
+					   QStringLiteral("google.com"),
+					   oAuthFlow->idToken());
 }
 
 void GoogleAuthenticatorPrivate::_q_oAuthError(const QString &error, const QString &errorDescription)
 {
 	Q_Q(GoogleAuthenticator);
-	qCCritical(logOAuth).nospace() << "OAuth flow failed with error " << error
+	qCCritical(logGAuth).nospace() << "OAuth flow failed with error " << error
 								   << ": " << qUtf8Printable(errorDescription);
 	clearOaConfig();
 	if (aborted)

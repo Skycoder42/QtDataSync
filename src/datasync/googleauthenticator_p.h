@@ -11,7 +11,7 @@
 
 namespace QtDataSync {
 
-class Q_DATASYNC_EXPORT GoogleAuthenticatorPrivate : public IAuthenticatorPrivate
+class Q_DATASYNC_EXPORT GoogleAuthenticatorPrivate : public OAuthAuthenticatorPrivate
 {
 	Q_DECLARE_PUBLIC(GoogleAuthenticator)
 
@@ -20,10 +20,7 @@ public:
 	static const QString OAuthRefreshTokenKey;
 
 	GoogleOAuthFlow *oAuthFlow = nullptr;
-	firebase::auth::ApiClient *api = nullptr;
-
 	bool aborted = false;
-	QPointer<QNetworkReply> lastReply;
 
 	bool preferNative = true;
 
@@ -35,7 +32,7 @@ public:
 	void clearOaConfig();
 };
 
-Q_DECLARE_LOGGING_CATEGORY(logOAuth)
+Q_DECLARE_LOGGING_CATEGORY(logGAuth)
 
 }
 

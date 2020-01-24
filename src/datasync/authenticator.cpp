@@ -9,6 +9,7 @@ using namespace std::chrono;
 using namespace std::chrono_literals;
 
 Q_LOGGING_CATEGORY(QtDataSync::logAuth, "qt.datasync.IAuthenticator")
+Q_LOGGING_CATEGORY(QtDataSync::logOAuth, "qt.datasync.OAuthAuthenticator")
 Q_LOGGING_CATEGORY(QtDataSync::logSelector, "qt.datasync.AuthenticationSelector")
 
 void IAuthenticator::init(FirebaseAuthenticator *fbAuth)
@@ -89,6 +90,64 @@ void IAuthenticator::failSignIn(const QString &errorMessage)
 		Q_EMIT d->fbAuth->_auth->closeGui();  // emit close of "primary" authenticator
 	} else
 		Q_EMIT closeGui();
+}
+
+
+
+void OAuthAuthenticator::abortRequest()
+{
+	Q_D(OAuthAuthenticator);
+	if (d->lastReply)
+		d->lastReply->abort();
+}
+
+OAuthAuthenticator::OAuthAuthenticator(QObject *parent) :
+	OAuthAuthenticator{*new OAuthAuthenticatorPrivate{}, parent}
+{}
+
+OAuthAuthenticator::OAuthAuthenticator(OAuthAuthenticatorPrivate &dd, QObject *parent) :
+	IAuthenticator{dd, parent}
+{}
+
+void OAuthAuthenticator::init()
+{
+	Q_D(OAuthAuthenticator);
+	d->api = new ApiClient{client()->rootClass(), this};
+}
+
+void OAuthAuthenticator::signInWithToken(const QUrl &requestUri, const QString &provider, const QString &token)
+{
+	Q_D(OAuthAuthenticator);
+	qCDebug(logOAuth) << "OAuth-token granted - signing in to firebase with provider" << provider;
+
+	SignInRequest request;
+	request.setRequestUri(requestUri);
+	request.setPostBody(QStringLiteral("providerId=%1&id_token=%2").arg(provider, token));
+	const auto reply = d->api->oAuthSignIn(request);
+	d->lastReply = reply->networkReply();
+	reply->onSucceeded(this, [this](int, const SignInResponse &response) {
+		if (response.needConfirmation()) {
+			qCCritical(logOAuth) << "Another account with the same credentials already exists!"
+								 << "The user must log in with that account instead or link the two accounts!";
+			failSignIn(tr("Another account with the same credentials already exists! "
+						  "You have to log in with that account instead or link the two accounts!"));
+			return;
+		}
+		qCDebug(logOAuth) << "Firebase sign in successful";
+		if (!response.emailVerified())
+			qCWarning(logOAuth) << "Account-Mail was not verified!";
+		completeSignIn(response.localId(),
+					   response.idToken(),
+					   response.refreshToken(),
+					   QDateTime::currentDateTimeUtc().addSecs(response.expiresIn()),
+					   response.email());
+	});
+	reply->onAllErrors(this, [this, provider](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
+			FirebaseAuthenticator::logError(error, code, errorType);
+			qCCritical(logOAuth) << "Failed to sign in to firebase with provider" << provider
+								 << "- make shure the provider has been enabled in the firebase console!";
+			failSignIn(tr("Authentication with provider \"%1\" was not accepted by firebase").arg(provider));
+		}, &FirebaseAuthenticator::translateError);
 }
 
 

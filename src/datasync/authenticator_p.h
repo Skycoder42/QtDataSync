@@ -21,6 +21,15 @@ public:
 	QPointer<FirebaseAuthenticator> fbAuth;
 };
 
+class Q_DATASYNC_EXPORT OAuthAuthenticatorPrivate : public IAuthenticatorPrivate
+{
+	Q_DECLARE_PUBLIC(OAuthAuthenticator)
+
+public:
+	firebase::auth::ApiClient *api = nullptr;
+	QPointer<QNetworkReply> lastReply;
+};
+
 class Q_DATASYNC_EXPORT AuthenticationSelectorBasePrivate : public IAuthenticatorPrivate
 {
 	Q_DECLARE_PUBLIC(AuthenticationSelectorBase)
@@ -35,6 +44,7 @@ public:
 };
 
 Q_DECLARE_LOGGING_CATEGORY(logAuth)
+Q_DECLARE_LOGGING_CATEGORY(logOAuth)
 Q_DECLARE_LOGGING_CATEGORY(logSelector)
 
 }
