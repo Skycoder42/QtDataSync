@@ -17,6 +17,7 @@ FirebaseAuthenticator *TestLib::createAuth(const QString &apiKey, QObject *paren
 		new AnonAuth{parent},
 		apiKey,
 		new QSettings{tDir.filePath(QStringLiteral("config.ini")), QSettings::IniFormat, parent},
+		new QNetworkAccessManager{parent},
 		parent
 	};
 }

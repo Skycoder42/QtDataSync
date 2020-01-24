@@ -57,7 +57,11 @@ void RemoteConnectorTest::initTestCase()
 		QVERIFY(authRes);
 
 		// create rmc
-		_connector = new RemoteConnector{config, this};
+		_connector = new RemoteConnector{
+			config,
+			new QNetworkAccessManager{this},
+			this
+		};
 		_connector->setUser(authRes->first);
 		_connector->setIdToken(authRes->second);
 		QVERIFY(_connector->isActive());

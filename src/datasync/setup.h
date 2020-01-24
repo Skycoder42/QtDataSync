@@ -75,11 +75,6 @@ public:
 	static Setup fromConfig(const QString &configPath, ConfigType configType);
 	static Setup fromConfig(QIODevice *configDevice, ConfigType configType);
 
-	inline Setup &setSettings(QSettings *settings) {
-		d->settings = settings;
-		return *this;
-	}
-
 	inline Setup &setFirebaseProjectId(QString projectId) {
 		d->firebase.projectId = std::move(projectId);
 		return *this;
@@ -97,6 +92,16 @@ public:
 
 	inline Setup &setRemotePageLimit(int limit) {
 		d->firebase.readLimit = limit;
+		return *this;
+	}
+
+	inline Setup &setSettings(QSettings *settings) {
+		d->settings = settings;
+		return *this;
+	}
+
+	inline Setup &setNetworkAccessManager(QNetworkAccessManager *nam) {
+		d->nam = nam;
 		return *this;
 	}
 

@@ -26,6 +26,7 @@ public:
 	explicit FirebaseAuthenticator(IAuthenticator *authenticator,
 								   const QString &apiKey,
 								   QSettings *settings,
+								   QNetworkAccessManager *nam,
 								   QObject *parent = nullptr);
 
 	IAuthenticator *authenticator() const;

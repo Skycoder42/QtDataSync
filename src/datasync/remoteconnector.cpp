@@ -14,7 +14,7 @@ Q_LOGGING_CATEGORY(QtDataSync::logRmc, "qt.datasync.RemoteConnector")
 
 #define CANCEL_IF(token) if (!_cancelCache.remove(cancelToken)) return
 
-RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QObject *parent) :
+RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNetworkAccessManager *nam, QObject *parent) :
 	QObject{parent}
 {
 #ifdef Q_ATOMIC_INT8_IS_SUPPORTED
@@ -36,12 +36,12 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QOb
 	_limit = config.readLimit;
 
 	_client = new JsonSuffixClient{this};
+	_client->setManager(nam);
 	const auto serializer = _client->serializer();
 	serializer->setAllowDefaultNull(true);
 	serializer->addJsonTypeConverter<ServerTimestampConverter>();
 	serializer->addJsonTypeConverter<AccurateTimestampConverter>();
 	serializer->addJsonTypeConverter<QueryMapConverter>();
-	_client->manager()->setStrictTransportSecurityEnabled(true);
 	_client->setModernAttributes();
 	_client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
 	_client->setBaseUrl(QUrl{QStringLiteral("https://%1.firebaseio.com/datasync")

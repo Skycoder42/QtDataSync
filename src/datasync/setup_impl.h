@@ -10,8 +10,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qloggingcategory.h>
 
-#include <QtCore/qfuture.h>
-
+class QNetworkAccessManager;
 class QRemoteObjectHostBase;
 
 namespace QtDataSync {
@@ -72,6 +71,7 @@ public:
 #endif
 
 	QSettings *settings = nullptr;
+	QNetworkAccessManager *nam = nullptr;
 	QUrl roUrl;
 	QRemoteObjectHostBase *roNode = nullptr;
 

@@ -258,10 +258,15 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 		d->setup->createAuthenticator(this),
 		d->setup->firebase.apiKey,
 		d->setup->settings,
+		d->setup->nam,
 		this
 	};
 	d->transformer = d->setup->createTransformer(this);
-	d->connector = new RemoteConnector{d->setup->firebase, this};
+	d->connector = new RemoteConnector{
+		d->setup->firebase,
+		d->setup->nam,
+		this
+	};
 
 	// create async watcher and enable remoting
 	d->asyncWatcher = new AsyncWatcherBackend{this};

@@ -120,6 +120,14 @@ void SetupPrivate::finializeForEngine(Engine *engine)
 	qCDebug(logSetup).noquote().nospace() << "Using settings: " << settings->fileName()
 										  << " (" << settings->group() << ")";
 
+	if (nam)
+		nam->setParent(engine);
+	else {
+		nam = new QNetworkAccessManager{engine};
+		nam->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+		nam->setStrictTransportSecurityEnabled(true);
+	}
+
 	if (roNode)
 		roNode->setParent(engine);
 	else if (roUrl.isValid())
