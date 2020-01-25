@@ -325,7 +325,7 @@ void RemoteConnectorTest::testLiveSync()
 	QVERIFY(doneSpy.isValid());
 	QSignalSpy uploadSpy{_connector, &RemoteConnector::uploadedData};
 	QVERIFY(uploadSpy.isValid());
-	QSignalSpy errorSpy{_connector, &RemoteConnector::liveSyncError};
+	QSignalSpy errorSpy{_connector, &RemoteConnector::networkError};
 	QVERIFY(errorSpy.isValid());
 
 	// upload changes since tstamp to test as the sync

@@ -29,19 +29,20 @@ public /*scripts*/:
 	DECL_SCRIPT(uploadData)
 	DECL_SCRIPT(initSync)
 	DECL_SCRIPT(initLiveSync)
-	DECL_SCRIPT(scheduleLsRestart)
-	DECL_SCRIPT(clearLsRestart)
+	DECL_SCRIPT(scheduleRestart)
+	DECL_SCRIPT(clearRestart)
 	DECL_SCRIPT(cancelPassiveSync)
 	DECL_SCRIPT(cancelLiveSync)
 	DECL_SCRIPT(cancelAll)
 	DECL_SCRIPT(delTable)
+	DECL_SCRIPT(tryExit)
 	DECL_SCRIPT(emitError)
-	DECL_SCRIPT(emitStop)
 
 public /*members*/:
 	bool _dlReady = true;
 	bool _procReady = true;
 	bool _delTable = false;
+	bool _exit = false;
 
 private:
 	QHash<QByteArray, int> _calls;

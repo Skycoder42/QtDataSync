@@ -25,8 +25,9 @@ void AnonAuth::signIn()
 							data.value(QStringLiteral("refreshToken")).toString(),
 							QDateTime::currentDateTimeUtc().addSecs(data.value(QStringLiteral("expiresIn")).toString().toInt()),
 							data.value(QStringLiteral("email")).toString());
-		 })->onAllErrors(this, [this](const QString &error, int, QtRestClient::RestReply::Error){
-			failSignIn(error);
+		 })->onAllErrors(this, [this](const QString &error, int code, QtRestClient::RestReply::Error type){
+			qCritical() << "AnonAuth:" << type << code << error;
+			failSignIn();
 		});
 }
 
