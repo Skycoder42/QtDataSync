@@ -1,9 +1,11 @@
+POD TableEvent(QString table, QString connection)
+
 class AsyncWatcher
 {
-	PROP(QList<QPair<QString, QString>> activeTables={} CONSTANT)
+	PROP(QList<TableEvent> activeTables={} CONSTANT)
 
-	SIGNAL(tableAdded(const QString &name, const QString &connection))
-	SIGNAL(tableRemoved(const QString &name, const QString &connection))
+	SIGNAL(tableAdded(const TableEvent &event))
+	SIGNAL(tableRemoved(const TableEvent &event))
 
 	SLOT(void activate(const QString &name))
 };

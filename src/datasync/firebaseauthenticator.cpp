@@ -139,7 +139,7 @@ void FirebaseAuthenticator::refreshToken()
 	reply->onSucceeded(this, [this](int, const RefreshResponse &response) {
 		if (response.token_type() != QStringLiteral("Bearer")) {
 			qCCritical(logFbAuth) << "Invalid token type" << response.token_type();
-			Q_EMIT signInFailed(tr("Failed renew firebase connection! Please try to sign in again."));
+			Q_EMIT signInFailed();
 			return;
 		}
 		qCDebug(logFbAuth) << "Firebase-token refresh successful";

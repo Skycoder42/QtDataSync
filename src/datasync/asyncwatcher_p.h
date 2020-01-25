@@ -34,7 +34,7 @@ public:
 
 	QHash<QString, DbInfo> namedConnections;
 	QList<DbInfo> unnamedConnections;
-	QList<std::pair<QString, QString>> allTables;
+	QList<TableEvent> allTables;
 
 	void initForEngine();
 	void initForRemote();
@@ -42,8 +42,8 @@ public:
 	void _q_nodeError(QRemoteObjectNode::ErrorCode error);
 	void _q_nodeInitialized();
 
-	void _q_tableAdded(const QString &name, const QString &connection);
-	void _q_tableRemoved(const QString &name, const QString &connection);
+	void _q_tableAdded(const TableEvent &event);
+	void _q_tableRemoved(const TableEvent &event);
 
 	void _q_tableEvent(const QString &name);
 

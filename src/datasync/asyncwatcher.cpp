@@ -54,7 +54,7 @@ void AsyncWatcher::addDatabase(QSqlDatabase database)
 								d, &AsyncWatcherPrivate::_q_tableEvent)
 	});
 	for (const auto &tInfo : qAsConst(d->allTables))
-		d->watch(database, tInfo.first);
+		d->watch(database, tInfo.table());
 }
 
 void AsyncWatcher::addDatabase(QSqlDatabase database, const QString &originalConnection)
@@ -66,8 +66,8 @@ void AsyncWatcher::addDatabase(QSqlDatabase database, const QString &originalCon
 								d, &AsyncWatcherPrivate::_q_tableEvent)
 	});
 	for (const auto &tInfo : qAsConst(d->allTables)) {
-		if (tInfo.second == originalConnection)
-			d->watch(database, tInfo.first);
+		if (tInfo.connection() == originalConnection)
+			d->watch(database, tInfo.table());
 	}
 }
 
@@ -109,15 +109,15 @@ void AsyncWatcherPrivate::initForEngine()
 			this, &AsyncWatcherPrivate::_q_tableRemoved,
 			Qt::QueuedConnection);
 
-	QList<QPair<QString, QString>> aTables;
+	QList<TableEvent> aTables;
 	const auto conType = backend->thread() == QThread::currentThread() ?
 		Qt::DirectConnection :
 		Qt::BlockingQueuedConnection;
 	if (QMetaObject::invokeMethod(backend, "activeTables",
 								  conType,
-								  QReturnArgument<QList<QPair<QString, QString>>>("QList<QPair<QString, QString>>", aTables))) {
-		for (const auto &tInfo : qAsConst(aTables))
-			_q_tableAdded(tInfo.first, tInfo.second);
+								  Q_RETURN_ARG(QList<TableEvent>, aTables))) {
+		for (const auto &tEvent : qAsConst(aTables))
+			_q_tableAdded(tEvent);
 	} else
 		qCCritical(logAsyncWatcher) << "Failed to obtain initial table list from engine";
 }
@@ -151,31 +151,31 @@ void AsyncWatcherPrivate::_q_nodeError(QRemoteObjectNode::ErrorCode error)
 void AsyncWatcherPrivate::_q_nodeInitialized()
 {
 	for (const auto &tInfo : rep->activeTables())
-		_q_tableAdded(tInfo.first, tInfo.second);
+		_q_tableAdded(tInfo);
 }
 
-void AsyncWatcherPrivate::_q_tableAdded(const QString &name, const QString &connection)
+void AsyncWatcherPrivate::_q_tableAdded(const TableEvent &event)
 {
-	qCDebug(logAsyncWatcher) << "Watching table" << name
-							 << "of original connection" << connection;
-	allTables.append(std::make_pair(name, connection));
-	const auto namedIt = namedConnections.find(connection);
+	qCDebug(logAsyncWatcher) << "Watching table" << event.table()
+							 << "of original connection" << event.connection();
+	allTables.append(event);
+	const auto namedIt = namedConnections.find(event.connection());
 	if (namedIt != namedConnections.end())
-		watch(namedIt->db, name);
+		watch(namedIt->db, event.table());
 	for (auto &db : unnamedConnections)
-		watch(db.db, name);
+		watch(db.db, event.table());
 }
 
-void AsyncWatcherPrivate::_q_tableRemoved(const QString &name, const QString &connection)
+void AsyncWatcherPrivate::_q_tableRemoved(const TableEvent &event)
 {
-	qCDebug(logAsyncWatcher) << "Stopping table watch for" << name
-							 << "of original connection" << connection;
-	allTables.removeOne(std::make_pair(name, connection));
-	const auto namedIt = namedConnections.find(connection);
+	qCDebug(logAsyncWatcher) << "Stopping table watch for" << event.table()
+							 << "of original connection" << event.connection();
+	allTables.removeOne(event);
+	const auto namedIt = namedConnections.find(event.connection());
 	if (namedIt != namedConnections.end())
-		unwatch(namedIt->db, name);
+		unwatch(namedIt->db, event.table());
 	for (auto &db : unnamedConnections)
-		unwatch(db.db, name);
+		unwatch(db.db, event.table());
 }
 
 void AsyncWatcherPrivate::_q_tableEvent(const QString &name)
@@ -207,12 +207,12 @@ void AsyncWatcherPrivate::unwatch(QSqlDatabase &db, const QString &tableName)
 void AsyncWatcherPrivate::unwatchAll(QSqlDatabase &db, const QString &conName)
 {
 	if (conName.isEmpty()) {
-		for (const auto &tInfo : qAsConst(allTables))
-			unwatch(db, tInfo.first);
+		for (const auto &tEvent : qAsConst(allTables))
+			unwatch(db, tEvent.table());
 	} else {
-		for (const auto &tInfo : qAsConst(allTables)) {
-			if (tInfo.second == conName)
-				unwatch(db, tInfo.first);
+		for (const auto &tEvent : qAsConst(allTables)) {
+			if (tEvent.connection() == conName)
+				unwatch(db, tEvent.table());
 		}
 	}
 }

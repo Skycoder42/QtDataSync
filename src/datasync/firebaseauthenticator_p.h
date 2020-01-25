@@ -40,7 +40,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void signInSuccessful(const QString &userId, const QString &idToken, QPrivateSignal = {});
-	void signInFailed(const QString &errorMessage, QPrivateSignal = {});
+	void signInFailed(QPrivateSignal = {});
 	void accountDeleted(bool success, QPrivateSignal = {});
 
 private Q_SLOTS:

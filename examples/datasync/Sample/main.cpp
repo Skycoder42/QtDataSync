@@ -14,6 +14,7 @@
 #include <QtDataSync/Setup>
 #include <QtDataSync/GoogleAuthenticator>
 using namespace QtDataSync;
+using namespace std::chrono_literals;
 
 int main(int argc, char *argv[])
 {
@@ -39,8 +40,12 @@ int main(int argc, char *argv[])
 		auto dsEngine = Setup<GoogleAuthenticator>::fromConfig(parser.positionalArguments()[0], ConfigType::WebConfig)
 							.enableNtpSync()
 							.createEngine(qApp);
-
-		// TODO stop logic
+		QObject::connect(qApp, &QCoreApplication::aboutToQuit, [dsEngine](){
+			if (dsEngine->isRunning()) {
+				dsEngine->stop();
+				dsEngine->waitForStopped(5s);
+			}
+		});
 
 		// create database
 		const QDir dbDir{QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)};

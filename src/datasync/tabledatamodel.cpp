@@ -7,13 +7,13 @@ using namespace std::chrono_literals;
 
 TableDataModel::TableDataModel(QObject *parent) :
 	QScxmlCppDataModel{parent},
-	_lsRestartTimer{new QTimer{this}}
+	_restartTimer{new QTimer{this}}
 {
-	_lsRestartTimer->setSingleShot(true);
-	_lsRestartTimer->setTimerType(Qt::VeryCoarseTimer);
-	connect(_lsRestartTimer, &QTimer::timeout,
+	_restartTimer->setSingleShot(true);
+	_restartTimer->setTimerType(Qt::VeryCoarseTimer);
+	connect(_restartTimer, &QTimer::timeout,
 			this, [this]() {
-				stateMachine()->submitEvent(QStringLiteral("continueLiveSync"));
+				stateMachine()->submitEvent(QStringLiteral("retry"));
 			});
 }
 
@@ -29,6 +29,8 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::reachedStableState);
 	connect(stateMachine(), &QScxmlStateMachine::log,
 			this, &TableDataModel::log);
+	connect(stateMachine(), &QScxmlStateMachine::finished,
+			this, &TableDataModel::finished);
 
 	_watcher = watcher;
 	connect(_watcher, &DatabaseWatcher::triggerSync,
@@ -49,8 +51,6 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::triggerDownload);
 	connect(_connector, &RemoteConnector::networkError,
 			this, &TableDataModel::networkError);
-	connect(_connector, &RemoteConnector::liveSyncError,
-			this, &TableDataModel::liveSyncError);
 	connect(_connector, &RemoteConnector::liveSyncExpired,
 			this, &TableDataModel::liveSyncExpired);
 
@@ -63,16 +63,17 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::transformError);
 }
 
-bool TableDataModel::isRunning() const
-{
-	return !stateMachine()->isActive(QStringLiteral("Stopped"));
-}
-
 Engine::TableState TableDataModel::state() const
 {
 	// "child" states
-	if (stateMachine()->isActive(QStringLiteral("Error")))
+	if (!stateMachine()->isRunning())
+		return Engine::TableState::Inactive;
+	else if (stateMachine()->isActive(QStringLiteral("NetworkError")))
+		return Engine::TableState::TemporaryError;
+	else if (stateMachine()->isActive(QStringLiteral("Error")))
 		return Engine::TableState::Error;
+	else if (stateMachine()->isActive(QStringLiteral("Offline")))
+		return Engine::TableState::Offline;
 	else if (stateMachine()->isActive(QStringLiteral("LiveSync")))
 		return Engine::TableState::LiveSync;
 	else if (stateMachine()->isActive(QStringLiteral("Downloading")))
@@ -82,10 +83,9 @@ Engine::TableState TableDataModel::state() const
 	else if (stateMachine()->isActive(QStringLiteral("Synchronized")))
 		return Engine::TableState::Synchronized;
 	// "compound" states
-	else if (stateMachine()->isActive(QStringLiteral("Stopped")))
+	else if (stateMachine()->isActive(QStringLiteral("Inactive")))
 		return Engine::TableState::Inactive;
-	else if (stateMachine()->isActive(QStringLiteral("DelTable")) ||
-			 stateMachine()->isActive(QStringLiteral("Active")))
+	else if (stateMachine()->isActive(QStringLiteral("Active")))
 		return Engine::TableState::Initializing;
 	else
 		return Engine::TableState::Invalid;
@@ -103,6 +103,12 @@ void TableDataModel::start()
 
 void TableDataModel::stop()
 {
+	stateMachine()->submitEvent(QStringLiteral("stop"));
+}
+
+void TableDataModel::exit()
+{
+	_exit = true;
 	stateMachine()->submitEvent(QStringLiteral("stop"));
 }
 
@@ -126,7 +132,8 @@ void TableDataModel::setLiveSyncEnabled(bool liveSyncEnabled)
 	_liveSync = liveSyncEnabled;
 	Q_EMIT liveSyncEnabledChanged(_liveSync);
 
-	if (!stateMachine()->isActive(QStringLiteral("Init")))
+	if (stateMachine()->isRunning() &&
+		!stateMachine()->isActive(QStringLiteral("Init")))
 		switchMode();
 }
 
@@ -135,12 +142,15 @@ void TableDataModel::initSync()
 	Q_ASSERT(_transformer);
 	Q_ASSERT(_watcher);
 	Q_ASSERT(_connector);
-	switchMode();
+	if (_connector->isOnline())
+		switchMode();
+	else
+		stateMachine()->submitEvent(QStringLiteral("goOffline"));
 }
 
 void TableDataModel::initLiveSync()
 {
-	cancelLiveSync(false);
+	cancelLiveSync();
 	if (const auto tStamp = lastSync(); tStamp)
 		_liveSyncToken = _connector->startLiveSync(_type, *tStamp);
 }
@@ -182,14 +192,15 @@ void TableDataModel::emitError()
 	_errors.clear();
 }
 
-void TableDataModel::scheduleLsRestart()
+void TableDataModel::scheduleRestart()
 {
-	_lsRestartTimer->start(seconds{static_cast<qint64>(std::pow(5, _lsErrorCnt - 1))});
+	_restartTimer->start(seconds{static_cast<qint64>(std::pow(5, _netErrorCnt))});
+	_netErrorCnt = std::max<quint64>(_netErrorCnt + 1, 3);
 }
 
-void TableDataModel::clearLsRestart()
+void TableDataModel::clearRestart()
 {
-	_lsRestartTimer->stop();
+	_restartTimer->stop();
 }
 
 void TableDataModel::delTable()
@@ -198,9 +209,9 @@ void TableDataModel::delTable()
 	_passiveSyncToken = _connector->removeTable(_escType);
 }
 
-void TableDataModel::emitStop()
+void TableDataModel::tryExit()
 {
-	Q_EMIT stopped(_type);
+
 }
 
 void TableDataModel::switchMode()
@@ -231,14 +242,12 @@ QLoggingCategory TableDataModel::logTableSm() const
 	return QLoggingCategory{_logCatStr.constData()};
 }
 
-void TableDataModel::cancelLiveSync(bool resetErrorCount)
+void TableDataModel::cancelLiveSync()
 {
 	if (_liveSyncToken != RemoteConnector::InvalidToken) {
 		_connector->cancel(_liveSyncToken);
 		_liveSyncToken = RemoteConnector::InvalidToken;
 	}
-	if (resetErrorCount)
-		_lsErrorCnt = 0;
 }
 
 void TableDataModel::cancelPassiveSync()
@@ -286,6 +295,12 @@ void TableDataModel::log(const QString &label, const QString &msg)
 		qCDebug(logTableSm).noquote().nospace() << label << ": " << msg;
 }
 
+void TableDataModel::finished()
+{
+	_exit = false;
+	Q_EMIT exited(_type);
+}
+
 void TableDataModel::triggerUpload(const QString &type)
 {
 	if (type == _type)
@@ -305,7 +320,7 @@ void TableDataModel::triggerResync(const QString &type, bool deleteTable)
 	}
 }
 
-void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QString &message, const QVariant &key, const QSqlError &sqlError)
+void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QVariant &key, const QSqlError &sqlError)
 {
 	// filter signal, as multiple statemachines may use the same watcher
 	EnginePrivate::ErrorInfo error;
@@ -331,7 +346,6 @@ void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QStr
 	}
 
 	if (error.type != Engine::ErrorType::Unknown) {
-		error.message = message;
 		error.data = QVariantMap {
 			{QStringLiteral("key"), key},
 			{QStringLiteral("sqlError"), QVariant::fromValue(sqlError)}
@@ -339,6 +353,14 @@ void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QStr
 		_errors.append(error);
 		stateMachine()->submitEvent(QStringLiteral("error"));
 	}
+}
+
+void TableDataModel::onlineChanged(bool online)
+{
+	if (online)
+		stateMachine()->submitEvent(QStringLiteral("goOnline"));
+	else
+		stateMachine()->submitEvent(QStringLiteral("goOffline"));
 }
 
 void TableDataModel::downloadedData(const QString &type, const QList<CloudData> &data)
@@ -355,7 +377,7 @@ void TableDataModel::syncDone(const QString &type)
 {
 	if (type == _escType) {
 		_passiveSyncToken = RemoteConnector::InvalidToken;
-		_lsErrorCnt = 0;
+		_netErrorCnt = 0;
 		stateMachine()->submitEvent(QStringLiteral("dlReady"));
 	}
 }
@@ -385,36 +407,21 @@ void TableDataModel::removedTable(const QString &type)
 	}
 }
 
-void TableDataModel::networkError(const QString &error, const QString &type)
+void TableDataModel::networkError(const QString &type, bool temporary)
 {
 	if (type == _escType) {
-		_errors.append({
-			Engine::ErrorType::Network,
-			error,
-			type
-		});
-		stateMachine()->submitEvent(QStringLiteral("error"));
-	}
-}
-
-void TableDataModel::liveSyncError(const QString &error, const QString &type, bool reconnect)
-{
-	if (type == _escType) {
-		_liveSyncToken = RemoteConnector::InvalidToken;
-		if (reconnect && _lsErrorCnt++ < 3) {
-			Q_EMIT errorOccured(_type, {
-									Engine::ErrorType::LiveSyncSoft,
-									error + tr(" Reconnecting (attempt %n)…", "", _lsErrorCnt),
-									type
-								});
-			stateMachine()->submitEvent(QStringLiteral("lsError"));
+		if (temporary) {
+			_errors.append({
+				Engine::ErrorType::Temporary,
+				type
+			});
+			stateMachine()->submitEvent(QStringLiteral("netError"));
 		} else {
-			setLiveSyncEnabled(false);  // disable livesync for this table
-			Q_EMIT errorOccured(_type, {
-									Engine::ErrorType::LiveSyncHard,
-									error + tr(" Live-synchronization has been disabled!"),
-									type
-								});
+			_errors.append({
+				Engine::ErrorType::Network,
+				type
+			});
+			stateMachine()->submitEvent(QStringLiteral("error"));
 		}
 	}
 }
@@ -424,8 +431,7 @@ void TableDataModel::liveSyncExpired(const QString &type)
 	// automatically reconnect without user notice
 	if (type == _escType) {
 		_liveSyncToken = RemoteConnector::InvalidToken;
-		_lsErrorCnt = 0;
-		stateMachine()->submitEvent(QStringLiteral("lsError"));
+		stateMachine()->submitEvent(QStringLiteral("forceSync"));
 	}
 }
 
@@ -443,13 +449,12 @@ void TableDataModel::transformUploadDone(const CloudData &data)
 		_uploadToken = _connector->uploadChange(data);
 }
 
-void TableDataModel::transformError(const ObjectKey &key, const QString &message)
+void TableDataModel::transformError(const ObjectKey &key)
 {
 	if (key.typeName == _type) {
 		_watcher->markCorrupted(key, QDateTime::currentDateTimeUtc());
 		_errors.append({
 			Engine::ErrorType::Transform,
-			message,
 			key
 		});
 		stateMachine()->submitEvent(QStringLiteral("error"));

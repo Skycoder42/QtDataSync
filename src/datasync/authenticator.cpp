@@ -82,11 +82,11 @@ void IAuthenticator::completeSignIn(QString localId, QString idToken, QString re
 	}
 }
 
-void IAuthenticator::failSignIn(const QString &errorMessage)
+void IAuthenticator::failSignIn()
 {
 	Q_D(IAuthenticator);
 	if (d->fbAuth) {
-		Q_EMIT d->fbAuth->signInFailed(errorMessage);
+		Q_EMIT d->fbAuth->signInFailed();
 		Q_EMIT d->fbAuth->_auth->closeGui();  // emit close of "primary" authenticator
 	} else
 		Q_EMIT closeGui();
@@ -129,8 +129,8 @@ void OAuthAuthenticator::signInWithToken(const QUrl &requestUri, const QString &
 		if (response.needConfirmation()) {
 			qCCritical(logOAuth) << "Another account with the same credentials already exists!"
 								 << "The user must log in with that account instead or link the two accounts!";
-			failSignIn(tr("Another account with the same credentials already exists! "
-						  "You have to log in with that account instead or link the two accounts!"));
+			Q_EMIT guiError(tr("Another account with the same credentials already exists! "
+							   "You have to log in with that account instead or link the two accounts!"));
 			return;
 		}
 		qCDebug(logOAuth) << "Firebase sign in successful";
@@ -143,11 +143,11 @@ void OAuthAuthenticator::signInWithToken(const QUrl &requestUri, const QString &
 					   response.email());
 	});
 	reply->onAllErrors(this, [this, provider](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
-			FirebaseAuthenticator::logError(error, code, errorType);
-			qCCritical(logOAuth) << "Failed to sign in to firebase with provider" << provider
-								 << "- make shure the provider has been enabled in the firebase console!";
-			failSignIn(tr("Authentication with provider \"%1\" was not accepted by firebase").arg(provider));
-		}, &FirebaseAuthenticator::translateError);
+		FirebaseAuthenticator::logError(error, code, errorType);
+		qCCritical(logOAuth) << "Failed to sign in to firebase with provider" << provider
+							 << "- make shure the provider has been enabled in the firebase console!";
+		failSignIn();
+	}, &FirebaseAuthenticator::translateError);
 }
 
 

@@ -35,6 +35,11 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNe
 
 	_limit = config.readLimit;
 
+	connect(nam, &QNetworkAccessManager::networkAccessibleChanged,
+			this, [this](){
+				Q_EMIT onlineChanged(isOnline());
+			});
+
 	_client = new JsonSuffixClient{this};
 	_client->setManager(nam);
 	const auto serializer = _client->serializer();
@@ -48,8 +53,6 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNe
 								 .arg(config.projectId)});
 	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(config.readTimeOut));
 	_client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
-
-	// TODO use nam network accessibility, test with example!!!
 }
 
 bool RemoteConnector::isActive() const
@@ -73,7 +76,8 @@ void RemoteConnector::setIdToken(const QString &idToken)
 RemoteConnector::CancallationToken RemoteConnector::startLiveSync(const QString &type, const QDateTime &since)
 {
 	if (!_api) {
-		Q_EMIT networkError(tr("User is not logged in yet"), type);
+		qCWarning(logRmc) << "Unable to start live sync - user is not logged in yet";
+		Q_EMIT networkError(type, false);
 		return InvalidToken;
 	}
 
@@ -96,7 +100,8 @@ RemoteConnector::CancallationToken RemoteConnector::startLiveSync(const QString 
 RemoteConnector::CancallationToken RemoteConnector::getChanges(const QString &type, const QDateTime &since, const CancallationToken continueToken)
 {
 	if (!_api) {
-		Q_EMIT networkError(tr("User is not logged in yet"), type);
+		qCWarning(logRmc) << "Unable to get changes - user is not logged in yet";
+		Q_EMIT networkError(type, false);
 		return InvalidToken;
 	}
 	const auto reply = _api->listChangedData(type, since.toUTC().toMSecsSinceEpoch(), _limit);
@@ -119,8 +124,7 @@ RemoteConnector::CancallationToken RemoteConnector::getChanges(const QString &ty
 			Q_EMIT syncDone(type);
 	})->onAllErrors(this, [this, type, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		CANCEL_IF(cancelToken);
-		apiError(error, code, errorType);
-		Q_EMIT networkError(tr("Failed to download latests changed data"), type);
+		evalNetError(error, code, errorType, type);
 	}, &RemoteConnector::translateError);
 	return cancelToken;
 }
@@ -128,7 +132,8 @@ RemoteConnector::CancallationToken RemoteConnector::getChanges(const QString &ty
 RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData &data)
 {
 	if (!_api) {
-		Q_EMIT networkError(tr("User is not logged in yet"), data.key().typeName);
+		qCWarning(logRmc) << "Unable to upload change - user is not logged in yet";
+		Q_EMIT networkError(data.key().typeName, false);
 		return InvalidToken;
 	}
 	const auto reply = _api->getData(data.key().typeName, data.key().id);
@@ -149,8 +154,7 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 		}
 	})->onAllErrors(this, [this, type = data.key().typeName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		CANCEL_IF(cancelToken);
-		apiError(error, code, errorType);
-		Q_EMIT networkError(tr("Failed to verify data version before uploading"), type);
+		evalNetError(error, code, errorType, type);
 	}, &RemoteConnector::translateError);
 	return cancelToken;
 }
@@ -158,7 +162,8 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 RemoteConnector::CancallationToken RemoteConnector::removeTable(const QString &type)
 {
 	if (!_api) {
-		Q_EMIT networkError(tr("User is not logged in yet"), type);
+		qCWarning(logRmc) << "Unable to remove table - user is not logged in yet";
+		Q_EMIT networkError(type, false);
 		return InvalidToken;
 	}
 	const auto reply = _api->removeTable(type);
@@ -168,8 +173,7 @@ RemoteConnector::CancallationToken RemoteConnector::removeTable(const QString &t
 		Q_EMIT removedTable(type);
 	})->onAllErrors(this, [this, type, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		CANCEL_IF(cancelToken);
-		apiError(error, code, errorType);
-		Q_EMIT networkError(tr("Failed to remove table from server"), type);
+		evalNetError(error, code, errorType, type);
 	}, &RemoteConnector::translateError);
 	return cancelToken;
 }
@@ -177,7 +181,8 @@ RemoteConnector::CancallationToken RemoteConnector::removeTable(const QString &t
 RemoteConnector::CancallationToken RemoteConnector::removeUser()
 {
 	if (!_api) {
-		Q_EMIT networkError(tr("User is not logged in yet"), {});
+		qCWarning(logRmc) << "Unable to remove all user tables - user is not logged in yet";
+		Q_EMIT networkError({}, false);
 		return InvalidToken;
 	}
 	const auto reply = _api->removeUser();
@@ -189,8 +194,7 @@ RemoteConnector::CancallationToken RemoteConnector::removeUser()
 		Q_EMIT removedUser();
 	})->onAllErrors(this, [this, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		CANCEL_IF(cancelToken);
-		apiError(error, code, errorType);
-		Q_EMIT networkError(tr("Failed to delete user from server"), {});
+		evalNetError(error, code, errorType, QString{});
 	}, &RemoteConnector::translateError);
 	return cancelToken;
 }
@@ -208,11 +212,56 @@ void RemoteConnector::cancel(const QList<CancallationToken> &tokenList)
 		cancel(token);
 }
 
-void RemoteConnector::apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType)
+bool RemoteConnector::isOnline() const
+{
+	switch (_client->manager()->networkAccessible()) {
+	case QNetworkAccessManager::NotAccessible:
+		return false;
+	case QNetworkAccessManager::Accessible:
+	case QNetworkAccessManager::UnknownAccessibility:
+		return true;
+	default:
+		Q_UNREACHABLE();
+	}
+}
+
+void RemoteConnector::evalNetError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType, std::optional<QString> type)
 {
 	qCWarning(logRmc) << "Realtime-database request failed with reason" << errorType
 					  << "and code" << errorCode
 					  << "- error message:" << qUtf8Printable(errorString);
+
+	if (type) {
+		if (errorType == QtRestClient::RestReply::Error::Network) {
+			switch (static_cast<QNetworkReply::NetworkError>(errorCode)) {
+			case QNetworkReply::NoError:
+			case QNetworkReply::ConnectionRefusedError:
+			case QNetworkReply::RemoteHostClosedError:
+			case QNetworkReply::HostNotFoundError:
+			case QNetworkReply::TimeoutError:
+			//case QNetworkReply::SslHandshakeFailedError:
+			case QNetworkReply::TemporaryNetworkFailureError:
+			case QNetworkReply::NetworkSessionFailedError:
+			case QNetworkReply::BackgroundRequestNotAllowedError:
+			case QNetworkReply::UnknownNetworkError:
+			case QNetworkReply::ProxyConnectionRefusedError:
+			case QNetworkReply::ProxyConnectionClosedError:
+			case QNetworkReply::ProxyNotFoundError:
+			case QNetworkReply::ProxyTimeoutError:
+			case QNetworkReply::UnknownProxyError:
+			case QNetworkReply::ProtocolFailure:
+			case QNetworkReply::InternalServerError:
+			case QNetworkReply::ServiceUnavailableError:
+			case QNetworkReply::UnknownServerError:
+				Q_EMIT networkError(*type, true);
+				break;
+			default:
+				Q_EMIT networkError(*type, false);
+				break;
+			}
+		} else
+			Q_EMIT networkError(*type, false);
+	}
 }
 
 void RemoteConnector::streamEvent(const QString &type, const CancallationToken cancelToken)
@@ -243,38 +292,22 @@ void RemoteConnector::streamClosed(const QString &type, const CancallationToken 
 	// get ev stream (with scope to delete after this method
 	QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> eventStream{qobject_cast<QNetworkReply*>(sender())};
 	Q_ASSERT_X(eventStream, Q_FUNC_INFO, "Unexpected sender - not a QNetworkReply");
-	// clear event cache
-	_eventCache.remove(type);
 	// verify not canceled yet
 	CANCEL_IF(cancelToken);
 
-	const auto code = eventStream->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-	qCWarning(logRmc) << "Event stream broken with error code" << code
-					  << "and message:" << qUtf8Printable(eventStream->errorString());
-
-	switch (eventStream->error()) {
-	// acceptable error codes to retry to connect
-	case QNetworkReply::NoError:
-	case QNetworkReply::RemoteHostClosedError:
-	case QNetworkReply::TimeoutError:
-	case QNetworkReply::TemporaryNetworkFailureError:
-	case QNetworkReply::NetworkSessionFailedError:
-	case QNetworkReply::ProxyConnectionClosedError:
-	case QNetworkReply::ProxyTimeoutError:
-	case QNetworkReply::InternalServerError:
-	case QNetworkReply::ServiceUnavailableError:
-	case QNetworkReply::UnknownNetworkError:
-	case QNetworkReply::UnknownProxyError:
-	case QNetworkReply::ProtocolFailure:
-	case QNetworkReply::UnknownServerError:
-	// stopped by user -> abort was called -> soft reconnect
-	case QNetworkReply::OperationCanceledError:
-		Q_EMIT liveSyncError(tr("Live-synchronization connection broken with recoverable error!"), type, true);
-		break;
-	// inacceptable error codes that indicate a hard failure
-	default:
-		Q_EMIT liveSyncError(tr("Live-synchronization connection broken with unrecoverable error!"), type, false);
-		break;
+	// clear event cache
+	_eventCache.remove(type);
+	// create an error event
+	if (eventStream->error() == QNetworkReply::NoError) {
+		evalNetError(eventStream->errorString(),
+					 eventStream->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+					 QtRestClient::RestReply::Error::Failure,
+					 type);
+	} else {
+		evalNetError(eventStream->errorString(),
+					 eventStream->error(),
+					 QtRestClient::RestReply::Error::Network,
+					 type);
 	}
 }
 
@@ -315,7 +348,8 @@ QString RemoteConnector::timeString(const milliseconds &time)
 void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, CancallationToken cancelToken)
 {
 	if (!_api) {
-		Q_EMIT networkError(tr("User is not logged in yet"), data.key().typeName);
+		qCWarning(logRmc) << "Unable to upload data - user is not logged in yet";
+		Q_EMIT networkError(data.key().typeName, false);
 		return;
 	}
 	// data on server is older -> upload
@@ -333,10 +367,8 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, Cancallat
 			// data was changed on the server since checked -> trigger sync
 			qCDebug(logRmc) << "Server data was changed since the ETag was requested - triggering sync";
 			Q_EMIT triggerSync(type);
-		} else {
-			apiError(error, code, errorType);
-			Q_EMIT networkError(tr("Failed to upload data"), type);
-		}
+		} else
+			evalNetError(error, code, errorType, type);
 	}, &RemoteConnector::translateError);
 }
 
@@ -399,7 +431,7 @@ void RemoteConnector::processStreamEvent(const QString &type, EventData &data, C
 								  << "and path" << evPath
 								  << "triggered serialization error:" << e.what();
 				cancel(cancelToken);
-				Q_EMIT liveSyncError(tr("Live-synchronization received invalid data"), type, true);
+				Q_EMIT networkError(type, true);
 			}
 		}
 	} else if (data.event == "keep-alive")
@@ -408,7 +440,7 @@ void RemoteConnector::processStreamEvent(const QString &type, EventData &data, C
 		for (const auto &data : qAsConst(data.data))
 			qCWarning(logRmc).noquote() << "Event-stream canceled with reason:" << data.toString();
 		cancel(cancelToken);
-		Q_EMIT liveSyncError(tr("Live-synchronization was stopped by the remote server"), type, true);
+		Q_EMIT networkError(type, true);
 	} else if (data.event == "auth_revoked") {
 		qCDebug(logRmc) << "Event-stream closed because the authentication expired - reconnecting…";
 		cancel(cancelToken);

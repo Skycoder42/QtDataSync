@@ -56,7 +56,7 @@ protected:
 						QString refreshToken,
 						const QDateTime &expiresAt,
 						QString email);
-	void failSignIn(const QString &errorMessage);
+	void failSignIn();
 
 private:
 	Q_DECLARE_PRIVATE(IAuthenticator);

@@ -34,16 +34,18 @@ bool GoogleAuthenticator::doesPreferNative() const
 void GoogleAuthenticator::signIn()
 {
 	Q_D(GoogleAuthenticator);
-	d->aborted = false;
 	if (!d->oAuthFlow->idToken().isEmpty() &&
 		d->oAuthFlow->expirationAt().toUTC() > QDateTime::currentDateTimeUtc()) { // valid id token -> done
 		qCDebug(logGAuth) << "OAuth-token still valid - sign in successfull";
+		d->oAuthState = GoogleAuthenticatorPrivate::OAuthState::Inactive;
 		d->_q_firebaseSignIn();
 	} else if (!d->oAuthFlow->refreshToken().isEmpty()) { // valid refresh token -> do the refresh
 		qCDebug(logGAuth) << "OAuth-token expired - refreshing...";
+		d->oAuthState = GoogleAuthenticatorPrivate::OAuthState::Active;
 		d->oAuthFlow->refreshAccessToken();
 	} else { // no token or refresh token -> run full oauth flow
 		qCDebug(logGAuth) << "OAuth-token invalid or expired - signing in...";
+		d->oAuthState = GoogleAuthenticatorPrivate::OAuthState::Active;
 		d->clearOaConfig();
 		d->oAuthFlow->grant();
 	}
@@ -52,6 +54,7 @@ void GoogleAuthenticator::signIn()
 void GoogleAuthenticator::logOut()
 {
 	Q_D(GoogleAuthenticator);
+	d->oAuthState = GoogleAuthenticatorPrivate::OAuthState::Inactive;
 	d->oAuthFlow->setIdToken({});
 	d->oAuthFlow->setRefreshToken({});
 	d->clearOaConfig();
@@ -61,8 +64,8 @@ void GoogleAuthenticator::abortRequest()
 {
 	OAuthAuthenticator::abortRequest();
 	Q_D(GoogleAuthenticator);
-	d->aborted = true;
-	failSignIn(tr("Sign-In aborted!"));  // TODO only if running!!!
+	if (d->oAuthState == GoogleAuthenticatorPrivate::OAuthState::Active)
+		d->oAuthState = GoogleAuthenticatorPrivate::OAuthState::Aborted;
 }
 
 void GoogleAuthenticator::setPreferNative(bool preferNative)
@@ -91,11 +94,13 @@ const QString GoogleAuthenticatorPrivate::OAuthRefreshTokenKey = QStringLiteral(
 void GoogleAuthenticatorPrivate::_q_firebaseSignIn()
 {
 	Q_Q(GoogleAuthenticator);
-	if (aborted) {
-		aborted = false;
+	if (oAuthState == OAuthState::Aborted) {
+		oAuthState = OAuthState::Inactive;
 		clearOaConfig();
+		q->failSignIn();
 		return;
-	}
+	} else
+		oAuthState = OAuthState::Inactive;
 
 	storeOaConfig();
 	q->signInWithToken(oAuthFlow->requestUrl(),
@@ -109,10 +114,11 @@ void GoogleAuthenticatorPrivate::_q_oAuthError(const QString &error, const QStri
 	qCCritical(logGAuth).nospace() << "OAuth flow failed with error " << error
 								   << ": " << qUtf8Printable(errorDescription);
 	clearOaConfig();
-	if (aborted)
-		aborted = false;
+	if (oAuthState == OAuthState::Aborted)
+		q->failSignIn();
 	else
 		Q_EMIT q->guiError(GoogleAuthenticator::tr("Failed to sign in with Google-Account!"));
+	oAuthState = OAuthState::Inactive;
 }
 
 void GoogleAuthenticatorPrivate::loadOaConfig()

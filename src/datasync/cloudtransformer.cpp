@@ -7,6 +7,8 @@
 #include <QtCore/QDataStream>
 using namespace QtDataSync;
 
+Q_LOGGING_CATEGORY(QtDataSync::logTrans, "qt.datasync.ICloudTransformer")
+
 QString ICloudTransformer::escapeType(const QString &name)
 {
 	return QString::fromUtf8(QUrl::toPercentEncoding(name));
@@ -51,20 +53,25 @@ void ISynchronousCloudTransformer::transformUpload(const LocalData &data)
 			Q_EMIT transformUploadDone({escapeKey(data.key()), transformUploadSync(*data.data()), data});
 		else
 			Q_EMIT transformUploadDone({escapeKey(data.key()), std::nullopt, data});
-	} catch (QString &error) {
-		Q_EMIT transformError(data.key(), error);
+	} catch (std::exception &e) {
+		qCWarning(logTrans) << "Failed to transform upload for key" << data.key()
+							<< "with error:" << e.what();
+		Q_EMIT transformError(data.key());
 	}
 }
 
 void ISynchronousCloudTransformer::transformDownload(const CloudData &data)
 {
+	const auto unEscKey = unescapeKey(data.key());
 	try {
 		if (data.data())
-			Q_EMIT transformDownloadDone({unescapeKey(data.key()), transformDownloadSync(*data.data()), data});
+			Q_EMIT transformDownloadDone({unEscKey, transformDownloadSync(*data.data()), data});
 		else
-			Q_EMIT transformDownloadDone({unescapeKey(data.key()), std::nullopt, data});
-	} catch (QString &error) {
-		Q_EMIT transformError(unescapeKey(data.key()), error);
+			Q_EMIT transformDownloadDone({unEscKey, std::nullopt, data});
+	} catch (std::exception &e) {
+		qCWarning(logTrans) << "Failed to transform download for key" << unEscKey
+							<< "with error:" << e.what();
+		Q_EMIT transformError(unEscKey);
 	}
 }
 
@@ -232,7 +239,7 @@ QVariant PlainCloudTransformerPrivate::deserialize(const QJsonValue &json) const
 				if (stream.commitTransaction())
 					return res;
 				else
-					throw QStringLiteral("Failed to parse received variant with status: %1").arg(stream.status());
+					throw VariantException{QStringLiteral("Failed to parse received variant with status: %1").arg(stream.status())};
 			} else {
 				QVariantList res;
 				res.reserve(arr.size());
@@ -245,4 +252,25 @@ QVariant PlainCloudTransformerPrivate::deserialize(const QJsonValue &json) const
 	default:
 		Q_UNREACHABLE();
 	}
+}
+
+
+
+VariantException::VariantException(QString error) :
+	_error{std::move(error)}
+{}
+
+QString VariantException::qWhat() const
+{
+	return _error;
+}
+
+void VariantException::raise() const
+{
+	throw *this;
+}
+
+ExceptionBase *VariantException::clone() const
+{
+	return new VariantException{*this};
 }

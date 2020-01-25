@@ -33,20 +33,20 @@ public:
 					RemoteConnector *connector,
 					ICloudTransformer *transformer);
 
-	bool isRunning() const;
 	Engine::TableState state() const;
 	bool isLiveSyncEnabled() const;
 
 public Q_SLOTS:
 	void start();
 	void stop();
+	void exit();
 	void triggerSync(bool force);
 	void triggerExtUpload();
 
 	void setLiveSyncEnabled(bool liveSyncEnabled);
 
 Q_SIGNALS:
-	void stopped(const QString &table, QPrivateSignal = {});
+	void exited(const QString &table, QPrivateSignal = {});
 	void errorOccured(const QString &table,
 					  const EnginePrivate::ErrorInfo &info,
 					  QPrivateSignal = {});
@@ -61,16 +61,16 @@ private /*scripts*/:
 	void processDownload();
 	void uploadData();
 	void emitError();
-	void scheduleLsRestart();
-	void clearLsRestart();
+	void scheduleRestart();
+	void clearRestart();
 	void delTable();
-	void emitStop();
+	void tryExit();
 
 	void switchMode();
 	std::optional<QDateTime> lastSync();
 	QLoggingCategory logTableSm() const;
 
-	void cancelLiveSync(bool resetErrorCount = true);
+	void cancelLiveSync();
 	void cancelPassiveSync();
 	void cancelUpload();
 	void cancelAll();
@@ -79,26 +79,26 @@ private Q_SLOTS:
 	// machine
 	void reachedStableState();
 	void log(const QString &label, const QString &msg);
+	void finished();
 	// watcher
 	void triggerUpload(const QString &type);
 	void triggerResync(const QString &type, bool deleteTable);
 	void databaseError(DatabaseWatcher::ErrorScope scope,
-					   const QString &message,
 					   const QVariant &key,
 					   const QSqlError &sqlError);
 	// connector
+	void onlineChanged(bool online);
 	void downloadedData(const QString &type, const QList<CloudData> &data);
 	void syncDone(const QString &type);
 	void uploadedData(const ObjectKey &key, const QDateTime &modified);
 	void triggerDownload(const QString &type);
 	void removedTable(const QString &type);
-	void networkError(const QString &error, const QString &type);
-	void liveSyncError(const QString &error, const QString &type, bool reconnect);
+	void networkError(const QString &type, bool temporary);
 	void liveSyncExpired(const QString &type);
 	// transformer
 	void transformDownloadDone(const LocalData &data);
 	void transformUploadDone(const CloudData &data);
-	void transformError(const ObjectKey &key, const QString &message);
+	void transformError(const ObjectKey &key);
 
 private:
 	QPointer<DatabaseWatcher> _watcher;
@@ -117,14 +117,15 @@ private:
 	QQueue<CloudData> _syncQueue;
 
 	QList<EnginePrivate::ErrorInfo> _errors;
-	quint64 _lsErrorCnt = 0;
-	QTimer *_lsRestartTimer;
+	quint64 _netErrorCnt = 0;
+	QTimer *_restartTimer;
 
 	// statemachine variables
 	bool _liveSync = false;
 	bool _delTable = false;
 	bool _dlReady = true;
 	bool _procReady = true;
+	bool _exit = false;
 };
 
 }

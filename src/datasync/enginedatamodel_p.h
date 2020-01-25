@@ -68,11 +68,11 @@ private Q_SLOTS:
 	void log(const QString &label, const QString &msg);
 	// authenticator
 	void signInSuccessful(const QString &userId, const QString &idToken);
-	void signInFailed(const QString &errorMessage);
+	void signInFailed();
 	void accountDeleted(bool success);
 	// connector
 	void removedUser();
-	void networkError(const QString &error, const QString &type);
+	void networkError(const QString &type, bool temporary);
 
 private:
 	QPointer<FirebaseAuthenticator> _authenticator;

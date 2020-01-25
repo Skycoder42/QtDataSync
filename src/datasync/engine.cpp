@@ -115,8 +115,8 @@ void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabas
 bool Engine::isLiveSyncEnabled(const QString &table) const
 {
 	Q_D(const Engine);
-	if (const auto tm = d->tableMachines.value(table); tm.second)
-		return tm.second->isLiveSyncEnabled();
+	if (const auto tm = d->tableMachines.value(table); tm.model)
+		return tm.model->isLiveSyncEnabled();
 	else
 		return false;
 }
@@ -124,8 +124,8 @@ bool Engine::isLiveSyncEnabled(const QString &table) const
 Engine::TableState Engine::tableState(const QString &table) const
 {
 	Q_D(const Engine);
-	if (const auto tm = d->tableMachines.value(table); tm.second)
-		return tm.second->state();
+	if (const auto tm = d->tableMachines.value(table); tm.model)
+		return tm.model->state();
 	else
 		return TableState::Invalid;
 }
@@ -230,7 +230,7 @@ void Engine::triggerSync(bool reconnectLiveSync)
 {
 	Q_D(Engine);
 	for (const auto &tm : d->tableMachines)
-		tm.second->triggerSync(reconnectLiveSync);
+		tm.model->triggerSync(reconnectLiveSync);
 }
 
 void Engine::setLiveSyncEnabled(bool liveSyncEnabled)
@@ -244,8 +244,8 @@ void Engine::setLiveSyncEnabled(const QString &table, bool liveSyncEnabled)
 {
 	Q_D(Engine);
 	auto tm = d->tableMachines.value(table);
-	if (tm.second)
-		tm.second->setLiveSyncEnabled(liveSyncEnabled);
+	if (tm.model)
+		tm.model->setLiveSyncEnabled(liveSyncEnabled);
 }
 
 Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
@@ -347,23 +347,28 @@ void EnginePrivate::setupStateMachine()
 
 void EnginePrivate::_q_startTableSync()
 {
-	for (const auto &tm : qAsConst(tableMachines))
-		tm.second->start();
+	for (const auto &tm : qAsConst(tableMachines)) {
+		tm.machine->start();
+		//TODO start model too
+	}
 }
 
 void EnginePrivate::_q_stopTableSync()
 {
 	for (auto it = tableMachines.constBegin(), end = tableMachines.constEnd(); it != end; ++it) {
-		if (it->second->isRunning())
+		if (it->machine->isRunning()) {
 			stopCache.insert(it.key());
-		it->second->stop();
+			it->model->exit();
+		}
 	}
+	if (stopCache.isEmpty())
+		engineModel->allTablesStopped();
 }
 
 void EnginePrivate::_q_errorOccured(const ErrorInfo &info)
 {
 	Q_Q(Engine);
-	Q_EMIT q->errorOccured(info.type, info.message, info.data);
+	Q_EMIT q->errorOccured(info.type, info.data);
 }
 
 void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
@@ -385,14 +390,13 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 	if (!machine->init()) {
 		_q_tableErrorOccured(name, {
 								 ErrorType::Table,
-								 Engine::tr("Failed to initialize processor"),
 								 {}
 							 });
 		return;
 	}
 
 	Q_ASSERT(model);
-	connect(model, &TableDataModel::stopped,
+	connect(model, &TableDataModel::exited,
 			this, &EnginePrivate::_q_tableStopped);
 	connect(model, &TableDataModel::errorOccured,
 			this, &EnginePrivate::_q_tableErrorOccured);
@@ -402,15 +406,14 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 					 q, std::bind(&Engine::liveSyncEnabledChanged, q, name, sph::_1, Engine::QPrivateSignal{}));
 
 	model->setupModel(name, watcher, connector, transformer);
-	machine->start();
-
-	tableMachines.insert(name, std::make_pair(machine, model));
 	model->setLiveSyncEnabled(liveSync);
+
+	tableMachines.insert(name, {machine, model});
 	if (engineModel->isSyncActive())
-		model->start();
+		machine->start();  // TODO start model too
 
 	// notify external watcher
-	Q_EMIT asyncWatcher->tableAdded(name, watcher->database().connectionName());
+	Q_EMIT asyncWatcher->tableAdded(TableEvent{name, watcher->database().connectionName()});
 }
 
 void EnginePrivate::_q_tableRemoved(const QString &name)
@@ -420,15 +423,13 @@ void EnginePrivate::_q_tableRemoved(const QString &name)
 	Q_ASSERT(watcher);
 
 	auto tm = tableMachines.take(name);
-	if (tm.second->isRunning())
-		tm.second->stop();
-	else {
-		tm.first->stop();
-		tm.first->deleteLater();
-	}
+	if (tm.machine->isRunning())
+		tm.model->exit();
+	else
+		tm.machine->deleteLater();
 
 	// notify external watcher
-	Q_EMIT asyncWatcher->tableRemoved(name, watcher->database().connectionName());
+	Q_EMIT asyncWatcher->tableRemoved(TableEvent{name, watcher->database().connectionName()});
 }
 
 void EnginePrivate::_q_tableStopped(const QString &table)
@@ -438,9 +439,7 @@ void EnginePrivate::_q_tableStopped(const QString &table)
 	if (!tableMachines.contains(table)) {
 		auto model = qobject_cast<TableDataModel*>(q->sender());
 		Q_ASSERT(model);
-		auto sm = model->stateMachine();
-		sm->stop();
-		sm->deleteLater();
+		model->stateMachine()->deleteLater();
 	}
 
 	if (stopCache.remove(table) && stopCache.isEmpty())
@@ -450,7 +449,6 @@ void EnginePrivate::_q_tableStopped(const QString &table)
 void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &info)
 {
 	Q_Q(Engine);
-	// TODO special treatment for network and live hard sync error -> reconnect on net state change?!?
 	switch (info.type) {
 	// global errors that need the engine to be stopped
 	case Engine::ErrorType::Unknown:	// better safe then sorry
@@ -464,20 +462,19 @@ void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &
 		if (const auto watcher = findWatcher(table); watcher)
 			watcher->dropTable(table);
 		Q_FALLTHROUGH();
-	case Engine::ErrorType::LiveSyncSoft:	// automatically reconnected
-	case Engine::ErrorType::LiveSyncHard:	// will have automatically disabled live sync before this slot already
+	case Engine::ErrorType::Temporary:		// has automatic retry
 	case Engine::ErrorType::Entry:			// has been marked corrupted
 	case Engine::ErrorType::Transform:		// has been marked corrupted
-		Q_EMIT q->errorOccured(info.type, info.message, info.data);
+		Q_EMIT q->errorOccured(info.type, info.data);
 		break;
 	// special errors
 	case Engine::ErrorType::Transaction:
 		// transaction errors are temporary -> restart table sync (but still report the error)
-		if (const auto tm = tableMachines.value(table); tm.second) {
-			tm.second->stop();
-			tm.second->start();
+		if (const auto tm = tableMachines.value(table); tm.model) {
+			tm.model->stop();
+			tm.model->start();
 		}
-		Q_EMIT q->errorOccured(info.type, info.message, info.data);
+		Q_EMIT q->errorOccured(info.type, info.data);
 		break;
 	default:
 		Q_UNREACHABLE();
@@ -490,14 +487,14 @@ AsyncWatcherBackend::AsyncWatcherBackend(Engine *engine) :
 	AsyncWatcherSource{engine}
 {}
 
-QList<QPair<QString, QString>> AsyncWatcherBackend::activeTables() const
+QList<TableEvent> AsyncWatcherBackend::activeTables() const
 {
 	const auto d = static_cast<Engine*>(parent())->d_func();
-	QList<QPair<QString, QString>> tables;
+	QList<TableEvent> tables;
 	for (const auto &watcher : qAsConst(d->watchers)) {
 		const auto dbName = watcher->database().connectionName();
 		for (const auto &table : watcher->tables())
-			tables.append({table, dbName});
+			tables.append(TableEvent{table, dbName});
 	}
 	return tables;
 }

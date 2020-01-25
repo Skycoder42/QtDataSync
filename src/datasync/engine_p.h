@@ -35,7 +35,7 @@ class AsyncWatcherBackend final : public AsyncWatcherSource
 public:
 	AsyncWatcherBackend(Engine *engine);
 
-	Q_INVOKABLE QList<QPair<QString, QString>> activeTables() const final;
+	Q_INVOKABLE QList<TableEvent> activeTables() const final;
 
 public Q_SLOTS:
 	void activate(const QString &name) final;
@@ -52,8 +52,12 @@ public:
 
 	struct ErrorInfo {
 		ErrorType type = ErrorType::Unknown;
-		QString message;
 		QVariant data;
+	};
+
+	struct TableInfo {
+		TableStateMachine *machine = nullptr;
+		QPointer<TableDataModel> model;
 	};
 
 	static AsyncWatcherBackend *obtainAWB(Engine *engine);
@@ -67,7 +71,7 @@ public:
 
 	EngineStateMachine *engineMachine = nullptr;
 	QPointer<EngineDataModel> engineModel;
-	QHash<QString, std::pair<TableStateMachine*, QPointer<TableDataModel>>> tableMachines;
+	QHash<QString, TableInfo> tableMachines;
 	QSet<QString> stopCache;
 
 #ifndef QTDATASYNC_NO_NTP

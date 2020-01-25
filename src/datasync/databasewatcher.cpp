@@ -927,30 +927,6 @@ QSqlError SqlException::error() const
 	return _error;
 }
 
-QString SqlException::message() const
-{
-	switch (_scope) {
-	case ErrorScope::Entry:
-		return DatabaseWatcher::tr("Failed to modify local data %1!")
-			.arg(_key.value<ObjectKey>().toString());
-	case ErrorScope::Table:
-		return DatabaseWatcher::tr("Corrupted metadata table for %1 - "
-								   "try to re-synchronize it!")
-			.arg(_key.toString());
-	case ErrorScope::Database:
-		return DatabaseWatcher::tr("Corrupted synchronization system table%1. "
-								   "Try to re-synchronize all tables!")
-			.arg(_key.isNull() ?
-					QString{} :
-					DatabaseWatcher::tr(" (Accessing for %1)").arg(_key.toString()));
-	case ErrorScope::Transaction:
-		return DatabaseWatcher::tr("Temporary Database error. "
-								   "You can ignore this error, unless it shows up repeatedly!");
-	default:
-		Q_UNREACHABLE();
-	}
-}
-
 void SqlException::raise() const
 {
 	throw *this;
@@ -971,10 +947,7 @@ QString SqlException::qWhat() const
 
 void SqlException::emitFor(DatabaseWatcher *watcher) const
 {
-	Q_EMIT watcher->databaseError(_scope,
-								  message(),
-								  _key,
-								  _error);
+	Q_EMIT watcher->databaseError(_scope, _key, _error);
 }
 
 

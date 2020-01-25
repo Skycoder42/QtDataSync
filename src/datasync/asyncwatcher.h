@@ -39,8 +39,8 @@ private:
 
 	Q_PRIVATE_SLOT(d_func(), void _q_nodeError(QRemoteObjectNode::ErrorCode))
 	Q_PRIVATE_SLOT(d_func(), void _q_nodeInitialized())
-	Q_PRIVATE_SLOT(d_func(), void _q_tableAdded(const QString &, const QString &))
-	Q_PRIVATE_SLOT(d_func(), void _q_tableRemoved(const QString &, const QString &))
+	Q_PRIVATE_SLOT(d_func(), void _q_tableAdded(const TableEvent &))
+	Q_PRIVATE_SLOT(d_func(), void _q_tableRemoved(const TableEvent &))
 	Q_PRIVATE_SLOT(d_func(), void _q_tableEvent(const QString &))
 };
 

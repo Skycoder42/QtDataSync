@@ -47,9 +47,8 @@ public:
 	Q_DECLARE_FLAGS(ResyncMode, ResyncFlag)
 
 	enum class ErrorType {
-		Network = 0,
-		LiveSyncSoft,
-		LiveSyncHard,
+		Temporary = 0,
+		Network,
 		Entry,
 		Table,
 		Database,
@@ -75,6 +74,8 @@ public:
 	enum class TableState {
 		Inactive,
 		Error,
+		TemporaryError,
+		Offline,
 		Initializing,
 		LiveSync,
 		Downloading,
@@ -156,10 +157,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void liveSyncEnabledChanged(const QString &table, bool liveSyncEnabled, QPrivateSignal = {});
-	void errorOccured(ErrorType type,
-					  const QString &errorMessage,
-					  const QVariant &errorData,
-					  QPrivateSignal = {});
+	void errorOccured(ErrorType type, const QVariant &errorData, QPrivateSignal = {});
 
 	void tableStateChanged(const QString &table, TableState state, QPrivateSignal = {});
 	void stateChanged(EngineState state, QPrivateSignal = {});

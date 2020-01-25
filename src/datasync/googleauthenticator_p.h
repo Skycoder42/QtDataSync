@@ -16,11 +16,17 @@ class Q_DATASYNC_EXPORT GoogleAuthenticatorPrivate : public OAuthAuthenticatorPr
 	Q_DECLARE_PUBLIC(GoogleAuthenticator)
 
 public:
+	enum class OAuthState {
+		Inactive,
+		Active,
+		Aborted
+	};
+
 	static const QString OAuthGroupKey;
 	static const QString OAuthRefreshTokenKey;
 
 	GoogleOAuthFlow *oAuthFlow = nullptr;
-	bool aborted = false;
+	OAuthState oAuthState = OAuthState::Inactive;
 
 	bool preferNative = true;
 

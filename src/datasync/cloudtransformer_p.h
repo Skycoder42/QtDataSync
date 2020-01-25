@@ -2,6 +2,9 @@
 #define QTDATASYNC_ICLOUDTRANSFORMER_P_H
 
 #include "cloudtransformer.h"
+#include "exception.h"
+
+#include <QtCore/QLoggingCategory>
 
 #include <QtCore/private/qobject_p.h>
 
@@ -23,6 +26,21 @@ public:
 
 	QJsonValue writeVariant(const QVariant &data, const QString &marker = MarkerByteArray);
 };
+
+class VariantException : public Exception
+{
+public:
+	VariantException(QString error);
+
+	QString qWhat() const override;
+	void raise() const override;
+	ExceptionBase *clone() const override;
+
+private:
+	QString _error;
+};
+
+Q_DECLARE_LOGGING_CATEGORY(logTrans)
 
 }
 

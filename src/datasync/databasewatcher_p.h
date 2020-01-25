@@ -88,7 +88,6 @@ Q_SIGNALS:
 	void triggerResync(const QString &tableName, bool deleteTable, QPrivateSignal = {});
 
 	void databaseError(ErrorScope scope,
-					   const QString &message,
 					   const QVariant &key,
 					   const QSqlError &sqlError,
 					   QPrivateSignal = {});
@@ -135,7 +134,6 @@ public:
 	ErrorScope scope() const;
 	QVariant key() const;
 	QSqlError error() const;
-	QString message() const;
 
 	void raise() const override;
 	ExceptionBase *clone() const override;

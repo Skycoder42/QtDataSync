@@ -147,9 +147,9 @@ void EngineDataModel::signInSuccessful(const QString &userId, const QString &idT
 	stateMachine()->submitEvent(QStringLiteral("signedIn"));
 }
 
-void EngineDataModel::signInFailed(const QString &errorMessage)
+void EngineDataModel::signInFailed()
 {
-	_errors.append({Engine::ErrorType::Network, errorMessage, {}});
+	_errors.append({Engine::ErrorType::Network, {}});
 	stop(StopEvent::Stop);
 }
 
@@ -158,7 +158,7 @@ void EngineDataModel::accountDeleted(bool success)
 	if (success)
 		stateMachine()->submitEvent(QStringLiteral("delAccDone"));
 	else {
-		_errors.append({Engine::ErrorType::Network, tr("Failed to delete user from authentication server!"), {}});
+		_errors.append({Engine::ErrorType::Network, {}});
 		stop(StopEvent::Stop);
 	}
 }
@@ -168,10 +168,15 @@ void EngineDataModel::removedUser()
 	_authenticator->deleteUser();
 }
 
-void EngineDataModel::networkError(const QString &error, const QString &type)
+void EngineDataModel::networkError(const QString &type, bool temporary)
 {
 	if (type.isEmpty()) {
-		_errors.append({Engine::ErrorType::Network, error, {}});
+		_errors.append({
+			temporary ?
+				Engine::ErrorType::Temporary :
+				Engine::ErrorType::Network,
+			{}
+		});
 		stop(StopEvent::Stop);
 	}
 }

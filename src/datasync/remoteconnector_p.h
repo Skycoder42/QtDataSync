@@ -18,6 +18,8 @@ class Q_DATASYNC_EXPORT RemoteConnector : public QObject
 {
 	Q_OBJECT
 
+	Q_PROPERTY(bool online READ isOnline NOTIFY onlineChanged)
+
 public:
 	using CancallationToken = quint64;
 	static constexpr CancallationToken InvalidToken = std::numeric_limits<CancallationToken>::max();
@@ -42,6 +44,8 @@ public:
 	void cancel(CancallationToken token);
 	void cancel(const QList<CancallationToken> &tokenList);
 
+	bool isOnline() const;
+
 Q_SIGNALS:
 	void downloadedData(const QString &type, const QList<QtDataSync::CloudData> &data, QPrivateSignal = {});
 	void syncDone(const QString &type, QPrivateSignal = {});
@@ -50,12 +54,16 @@ Q_SIGNALS:
 	void removedTable(const QString &type, QPrivateSignal = {});
 	void removedUser(QPrivateSignal = {});
 
-	void networkError(const QString &error, const QString &type, QPrivateSignal = {});
-	void liveSyncError(const QString &error, const QString &type, bool reconnect, QPrivateSignal = {});
+	void networkError(const QString &type, bool temporary, QPrivateSignal = {});
 	void liveSyncExpired(const QString &type, QPrivateSignal = {});
 
+	void onlineChanged(bool online, QPrivateSignal = {});
+
 private Q_SLOTS:
-	void apiError(const QString &errorString, int errorCode, QtRestClient::RestReply::Error errorType);
+	void evalNetError(const QString &errorString,
+					  int errorCode,
+					  QtRestClient::RestReply::Error errorType,
+					  std::optional<QString> type = std::nullopt);
 
 	void streamEvent(const QString &type, const CancallationToken cancelToken);
 	void streamClosed(const QString &type, const CancallationToken cancelToken);
