@@ -16,6 +16,7 @@ namespace QtDataSync {
 
 class IAuthenticator;
 class ICloudTransformer;
+class TableSyncController;
 
 namespace __private {
 class SetupPrivate;
@@ -71,21 +72,6 @@ public:
 	};
 	Q_ENUM(EngineState)
 
-	enum class TableState {
-		Inactive,
-		Error,
-		TemporaryError,
-		Offline,
-		Initializing,
-		LiveSync,
-		Downloading,
-		Uploading,
-		Synchronized,
-
-		Invalid = -1
-	};
-	Q_ENUM(TableState)
-
 	void syncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
 					  bool autoActivateSync = true,
 					  bool enableLiveSync = false,
@@ -133,15 +119,14 @@ public:
 					 ResyncMode direction,
 					 QSqlDatabase database);
 
-	bool isLiveSyncEnabled(const QString &table) const;
-	TableState tableState(const QString &table) const;
+	Q_INVOKABLE TableSyncController *createController(QString table, QObject *parent = nullptr) const;
 
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
 	EngineState state() const;
 
 	Q_INVOKABLE bool isRunning() const;
-	bool waitForStopped(std::optional<std::chrono::milliseconds> timeout = std::nullopt);
+	bool waitForStopped(std::optional<std::chrono::milliseconds> timeout = std::nullopt) const;
 
 public Q_SLOTS:
 	void start();
@@ -150,16 +135,11 @@ public Q_SLOTS:
 	void deleteAccount();
 
 	void triggerSync(bool reconnectLiveSync = false);
-
 	void setLiveSyncEnabled(bool liveSyncEnabled);
-	void setLiveSyncEnabled(const QString &table,
-							bool liveSyncEnabled);
 
 Q_SIGNALS:
-	void liveSyncEnabledChanged(const QString &table, bool liveSyncEnabled, QPrivateSignal = {});
 	void errorOccured(ErrorType type, const QVariant &errorData, QPrivateSignal = {});
 
-	void tableStateChanged(const QString &table, TableState state, QPrivateSignal = {});
 	void stateChanged(EngineState state, QPrivateSignal = {});
 
 private:

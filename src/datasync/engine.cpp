@@ -1,6 +1,7 @@
 #include "engine.h"
-#include "setup.h"
 #include "engine_p.h"
+#include "setup.h"
+#include "tablesynccontroller.h"
 #include "enginedatamodel_p.h"
 #include "tabledatamodel_p.h"
 #include <QtCore/QEventLoop>
@@ -112,22 +113,13 @@ void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabas
 	d->getWatcher(std::move(database))->resyncTable(table, direction);
 }
 
-bool Engine::isLiveSyncEnabled(const QString &table) const
+TableSyncController *Engine::createController(QString table, QObject *parent) const
 {
 	Q_D(const Engine);
-	if (const auto tm = d->tableMachines.value(table); tm.model)
-		return tm.model->isLiveSyncEnabled();
+	if (const auto tInfo = d->tableMachines.value(table); tInfo.model)
+		return new TableSyncController{std::move(table), tInfo.model, parent};
 	else
-		return false;
-}
-
-Engine::TableState Engine::tableState(const QString &table) const
-{
-	Q_D(const Engine);
-	if (const auto tm = d->tableMachines.value(table); tm.model)
-		return tm.model->state();
-	else
-		return TableState::Invalid;
+		return nullptr;
 }
 
 IAuthenticator *Engine::authenticator() const
@@ -166,7 +158,7 @@ bool Engine::isRunning() const
 	}
 }
 
-bool Engine::waitForStopped(std::optional<std::chrono::milliseconds> timeout)
+bool Engine::waitForStopped(std::optional<std::chrono::milliseconds> timeout) const
 {
 	if (!isRunning())
 		return true;
@@ -236,16 +228,8 @@ void Engine::triggerSync(bool reconnectLiveSync)
 void Engine::setLiveSyncEnabled(bool liveSyncEnabled)
 {
 	Q_D(Engine);
-	for (auto it = d->tableMachines.keyBegin(), end = d->tableMachines.keyEnd(); it != end; ++it)
-		setLiveSyncEnabled(*it, liveSyncEnabled);
-}
-
-void Engine::setLiveSyncEnabled(const QString &table, bool liveSyncEnabled)
-{
-	Q_D(Engine);
-	auto tm = d->tableMachines.value(table);
-	if (tm.model)
-		tm.model->setLiveSyncEnabled(liveSyncEnabled);
+	for (auto it = d->tableMachines.begin(), end = d->tableMachines.end(); it != end; ++it)
+		it->model->setLiveSyncEnabled(liveSyncEnabled);
 }
 
 Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
@@ -349,17 +333,16 @@ void EnginePrivate::_q_startTableSync()
 {
 	for (const auto &tm : qAsConst(tableMachines)) {
 		tm.machine->start();
-		//TODO start model too
+		tm.model->start(true);
 	}
 }
 
 void EnginePrivate::_q_stopTableSync()
 {
 	for (auto it = tableMachines.constBegin(), end = tableMachines.constEnd(); it != end; ++it) {
-		if (it->machine->isRunning()) {
+		it->model->exit();
+		if (it->machine->isRunning())
 			stopCache.insert(it.key());
-			it->model->exit();
-		}
 	}
 	if (stopCache.isEmpty())
 		engineModel->allTablesStopped();
@@ -400,17 +383,15 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 			this, &EnginePrivate::_q_tableStopped);
 	connect(model, &TableDataModel::errorOccured,
 			this, &EnginePrivate::_q_tableErrorOccured);
-	QObject::connect(model, &TableDataModel::stateChanged,
-					 q, std::bind(&Engine::tableStateChanged, q, name, sph::_1, Engine::QPrivateSignal{}));
-	QObject::connect(model, &TableDataModel::liveSyncEnabledChanged,
-					 q, std::bind(&Engine::liveSyncEnabledChanged, q, name, sph::_1, Engine::QPrivateSignal{}));
 
 	model->setupModel(name, watcher, connector, transformer);
 	model->setLiveSyncEnabled(liveSync);
 
 	tableMachines.insert(name, {machine, model});
-	if (engineModel->isSyncActive())
-		machine->start();  // TODO start model too
+	if (engineModel->isSyncActive()) {
+		machine->start();
+		model->start(true);
+	}
 
 	// notify external watcher
 	Q_EMIT asyncWatcher->tableAdded(TableEvent{name, watcher->database().connectionName()});

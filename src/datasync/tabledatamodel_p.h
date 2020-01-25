@@ -1,9 +1,9 @@
 #ifndef QTDATASYNC_TABLEDATAMODEL_H
 #define QTDATASYNC_TABLEDATAMODEL_H
 
-#include "engine.h"
-
 #include "cloudtransformer.h"
+#include "tablesynccontroller.h"
+
 #include "databasewatcher_p.h"
 #include "remoteconnector_p.h"
 #include "engine_p.h"
@@ -22,10 +22,13 @@ class TableDataModel : public QScxmlCppDataModel
 	Q_OBJECT
 	Q_SCXML_DATAMODEL
 
-	Q_PROPERTY(Engine::TableState state READ state NOTIFY stateChanged)
+	Q_PROPERTY(SyncState state READ state NOTIFY stateChanged)
 	Q_PROPERTY(bool liveSyncEnabled READ isLiveSyncEnabled WRITE setLiveSyncEnabled NOTIFY liveSyncEnabledChanged)
 
 public:
+	using SyncState = TableSyncController::SyncState;
+	using ErrorType = Engine::ErrorType;
+
 	explicit TableDataModel(QObject *parent = nullptr);
 
 	void setupModel(QString type,
@@ -33,11 +36,11 @@ public:
 					RemoteConnector *connector,
 					ICloudTransformer *transformer);
 
-	Engine::TableState state() const;
+	SyncState state() const;
 	bool isLiveSyncEnabled() const;
 
 public Q_SLOTS:
-	void start();
+	void start(bool restart = false);
 	void stop();
 	void exit();
 	void triggerSync(bool force);
@@ -51,7 +54,7 @@ Q_SIGNALS:
 					  const EnginePrivate::ErrorInfo &info,
 					  QPrivateSignal = {});
 
-	void stateChanged(Engine::TableState state, QPrivateSignal = {});
+	void stateChanged(SyncState state, QPrivateSignal = {});
 	void liveSyncEnabledChanged(bool liveSyncEnabled, QPrivateSignal = {});
 
 private /*scripts*/:
@@ -121,6 +124,7 @@ private:
 	QTimer *_restartTimer;
 
 	// statemachine variables
+	bool _autoStart = true;
 	bool _liveSync = false;
 	bool _delTable = false;
 	bool _dlReady = true;

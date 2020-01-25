@@ -63,32 +63,34 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::transformError);
 }
 
-Engine::TableState TableDataModel::state() const
+TableDataModel::SyncState TableDataModel::state() const
 {
-	// "child" states
+	// engines exited
 	if (!stateMachine()->isRunning())
-		return Engine::TableState::Inactive;
+		return SyncState::Disabled;
+	// "child" states
 	else if (stateMachine()->isActive(QStringLiteral("NetworkError")))
-		return Engine::TableState::TemporaryError;
+		return SyncState::TemporaryError;
 	else if (stateMachine()->isActive(QStringLiteral("Error")))
-		return Engine::TableState::Error;
+		return SyncState::Error;
 	else if (stateMachine()->isActive(QStringLiteral("Offline")))
-		return Engine::TableState::Offline;
+		return SyncState::Offline;
 	else if (stateMachine()->isActive(QStringLiteral("LiveSync")))
-		return Engine::TableState::LiveSync;
+		return SyncState::LiveSync;
 	else if (stateMachine()->isActive(QStringLiteral("Downloading")))
-		return Engine::TableState::Downloading;
+		return SyncState::Downloading;
 	else if (stateMachine()->isActive(QStringLiteral("Uploading")))
-		return Engine::TableState::Uploading;
+		return SyncState::Uploading;
 	else if (stateMachine()->isActive(QStringLiteral("Synchronized")))
-		return Engine::TableState::Synchronized;
+		return SyncState::Synchronized;
 	// "compound" states
 	else if (stateMachine()->isActive(QStringLiteral("Inactive")))
-		return Engine::TableState::Inactive;
+		return SyncState::Stopped;
 	else if (stateMachine()->isActive(QStringLiteral("Active")))
-		return Engine::TableState::Initializing;
+		return SyncState::Initializing;
+	// edge case
 	else
-		return Engine::TableState::Invalid;
+		return SyncState::Invalid;
 }
 
 bool TableDataModel::isLiveSyncEnabled() const
@@ -96,32 +98,44 @@ bool TableDataModel::isLiveSyncEnabled() const
 	return _liveSync;
 }
 
-void TableDataModel::start()
+void TableDataModel::start(bool restart)
 {
-	stateMachine()->submitEvent(QStringLiteral("start"));
+	if (stateMachine()->isRunning()) {
+		if (!restart || _autoStart) {
+			_autoStart = true;
+			stateMachine()->submitEvent(QStringLiteral("start"));
+		}
+	}
 }
 
 void TableDataModel::stop()
 {
-	stateMachine()->submitEvent(QStringLiteral("stop"));
+	if (stateMachine()->isRunning())
+		stateMachine()->submitEvent(QStringLiteral("stop"));
 }
 
 void TableDataModel::exit()
 {
-	_exit = true;
-	stateMachine()->submitEvent(QStringLiteral("stop"));
+	if (stateMachine()->isRunning()) {
+		_autoStart = !stateMachine()->isActive(QStringLiteral("Stopped"));
+		_exit = true;
+		stateMachine()->submitEvent(QStringLiteral("stop"));
+	}
 }
 
 void TableDataModel::triggerSync(bool force)
 {
-	if (force)
-		stateMachine()->submitEvent(QStringLiteral("forceSync"));
-	stateMachine()->submitEvent(QStringLiteral("triggerSync"));
+	if (stateMachine()->isRunning()) {
+		if (force)
+			stateMachine()->submitEvent(QStringLiteral("forceSync"));
+		stateMachine()->submitEvent(QStringLiteral("triggerSync"));
+	}
 }
 
 void TableDataModel::triggerExtUpload()
 {
-	stateMachine()->submitEvent(QStringLiteral("triggerUpload"));
+	if (stateMachine()->isRunning())
+		stateMachine()->submitEvent(QStringLiteral("triggerUpload"));
 }
 
 void TableDataModel::setLiveSyncEnabled(bool liveSyncEnabled)

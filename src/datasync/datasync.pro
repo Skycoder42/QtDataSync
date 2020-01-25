@@ -31,7 +31,9 @@ HEADERS += \
 	remoteconnector_p.h \
 	setup.h \
 	setup_impl.h \
-	tabledatamodel_p.h
+	tabledatamodel_p.h \
+	tablesynccontroller.h \
+	tablesynccontroller_p.h
 
 SOURCES += \
 	asyncwatcher.cpp \
@@ -52,7 +54,8 @@ SOURCES += \
 	objectkey.cpp \
 	remoteconnector.cpp \
 	setup.cpp \
-	tabledatamodel.cpp
+	tabledatamodel.cpp \
+	tablesynccontroller.cpp
 
 REST_API_FILES += \
 	firebase/auth/auth_api.xml \
