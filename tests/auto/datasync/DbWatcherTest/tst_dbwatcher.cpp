@@ -421,9 +421,9 @@ void DbWatcherTest::testStoreData()
 		QVERIFY(errorSpy.isValid());
 
 		auto lSync = _watcher->lastSync(TestTable);
+		QVERIFY(errorSpy.isEmpty());
 		QVERIFY(lSync);
 		QCOMPARE(*lSync, lastSync);
-		QVERIFY(errorSpy.isEmpty());
 
 		QVariantList oldData;
 		if (!isStored) {
@@ -471,9 +471,9 @@ void DbWatcherTest::testStoreData()
 		}
 
 		lSync = _watcher->lastSync(TestTable);
+		QVERIFY(errorSpy.isEmpty());
 		QVERIFY(lSync);
 		QCOMPARE(*lSync, data.uploaded());
-		QVERIFY(errorSpy.isEmpty());
 
 		// mark changed again
 		markChanged(DatabaseWatcher::ChangeState::Changed, data.key().id);
@@ -486,10 +486,14 @@ void DbWatcherTest::testStoreData()
 void DbWatcherTest::testLoadData()
 {
 	try {
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
 		// mark all unchanged
 		markChanged(DatabaseWatcher::ChangeState::Unchanged);
 
 		QVERIFY(!_watcher->loadData(TestTable));
+		QVERIFY(errorSpy.isEmpty());
 
 		// mark changed
 		const auto baseTime = QDateTime::currentDateTimeUtc();
@@ -512,6 +516,7 @@ void DbWatcherTest::testLoadData()
 			data[QStringLiteral("Key")] = i;
 			data[QStringLiteral("Value")] = QStringLiteral("data_%1").arg(i);
 			auto lChanged = _watcher->loadData(TestTable);
+			QVERIFY(errorSpy.isEmpty());
 			QVERIFY(lChanged);
 			QCOMPARE(lChanged->key().typeName, TestTable);
 			QCOMPARE(lChanged->key().id, QString::number(i));
@@ -522,13 +527,16 @@ void DbWatcherTest::testLoadData()
 			VERIFY_CHANGED(i, mTime, mTime);
 			// mark unchanged invalid tstamp
 			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime.addSecs(3));
+			QVERIFY(errorSpy.isEmpty());
 			VERIFY_CHANGED(i, mTime, mTime);
 			// mark unchanged valid tstamp
 			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime);
+			QVERIFY(errorSpy.isEmpty());
 			VERIFY_UNCHANGED1(i, mTime);
 		}
 
 		QVERIFY(!_watcher->loadData(TestTable));
+		QVERIFY(errorSpy.isEmpty());
 	} catch (std::exception &e) {
 		QFAIL(e.what());
 	}
@@ -537,11 +545,15 @@ void DbWatcherTest::testLoadData()
 void DbWatcherTest::testMarkCorrupted()
 {
 	try {
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
 		// modify corrupted
 		const auto tStamp = QDateTime::currentDateTimeUtc();
 		markChanged(DatabaseWatcher::ChangeState::Unchanged);
 		VERIFY_UNCHANGED2(0, past, tStamp);
 		_watcher->markCorrupted({TestTable, QString::number(0)}, tStamp.addSecs(5));
+		QVERIFY(errorSpy.isEmpty());
 		VERIFY_CHANGED_STATE(0, past, tStamp, DatabaseWatcher::ChangeState::Corrupted); // old timestamp
 
 		// add corrupted
@@ -553,6 +565,7 @@ void DbWatcherTest::testMarkCorrupted()
 		testNonExistantQuery.exec();
 		QVERIFY(!testNonExistantQuery.first());
 		_watcher->markCorrupted({TestTable, QString::number(4711)}, tStamp);
+		QVERIFY(errorSpy.isEmpty());
 		VERIFY_CHANGED_STATE(4711, tStamp, tStamp, DatabaseWatcher::ChangeState::Corrupted);
 	} catch (std::exception &e) {
 		QFAIL(e.what());
@@ -561,12 +574,17 @@ void DbWatcherTest::testMarkCorrupted()
 
 void DbWatcherTest::testResync()
 {
+	QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+	QVERIFY(errorSpy.isValid());
+
 	// test Download
 	auto lSync = _watcher->lastSync(TestTable);
+	QVERIFY(errorSpy.isEmpty());
 	QVERIFY(lSync);
 	QVERIFY(lSync->isValid());
 	_watcher->resyncTable(TestTable, Engine::ResyncFlag::Download);
 	lSync = _watcher->lastSync(TestTable);
+	QVERIFY(errorSpy.isEmpty());
 	QVERIFY(lSync);
 	QVERIFY(!lSync->isValid());
 
@@ -687,6 +705,9 @@ void DbWatcherTest::testDbActions()
 void DbWatcherTest::testBinaryKey()
 {
 	try {
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
 		// create and fill table
 		Query createQuery{_watcher->database()};
 		createQuery.exec(QStringLiteral("CREATE TABLE BinTest ("
@@ -707,6 +728,7 @@ void DbWatcherTest::testBinaryKey()
 				},
 				QDateTime::currentDateTimeUtc()
 			});
+			QVERIFY(errorSpy.isEmpty());
 
 			Query dataQuery{_watcher->database()};
 			dataQuery.prepare(QStringLiteral("SELECT Value "
@@ -729,6 +751,7 @@ void DbWatcherTest::testBinaryKey()
 
 		for (auto i = 0; i < 5; ++i) {
 			const auto data = _watcher->loadData(table);
+			QVERIFY(errorSpy.isEmpty());
 			QVERIFY(data);
 			QVERIFY(data->data());
 			QCOMPARE(data->key().id,
@@ -736,8 +759,10 @@ void DbWatcherTest::testBinaryKey()
 			QCOMPARE(QByteArray::fromBase64(data->key().id.toUtf8()),
 					 data->data()->value(QStringLiteral("Key")).toByteArray());
 			_watcher->markUnchanged(data->key(), data->modified());
+			QVERIFY(errorSpy.isEmpty());
 		}
 		QVERIFY(!_watcher->loadData(table));
+		QVERIFY(errorSpy.isEmpty());
 
 		_watcher->removeTable(table);
 	} catch (std::exception &e) {

@@ -244,12 +244,12 @@ void CloudTransformerTest::testTransform()
 
 	_transformer->transformUpload(local);
 	QTRY_COMPARE(transUpSpy.size(), 1);
-	QVERIFY2(errorSpy.isEmpty(), qUtf8Printable(errorSpy.value(0).value(0).toString()));
+	QVERIFY(errorSpy.isEmpty());
 	QCOMPARE(transUpSpy[0][0].value<CloudData>(), cloud);
 
 	_transformer->transformDownload(cloud);
 	QTRY_COMPARE(transDownSpy.size(), 1);
-	QVERIFY2(errorSpy.isEmpty(), qUtf8Printable(errorSpy.value(0).value(0).toString()));
+	QVERIFY(errorSpy.isEmpty());
 	QCOMPARE(transDownSpy[0][0].value<LocalData>(), local);
 }
 

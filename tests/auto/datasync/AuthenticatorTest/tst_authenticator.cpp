@@ -9,9 +9,6 @@
 using namespace QtDataSync;
 using namespace std::chrono_literals;
 
-#define VERIFY_SPY_T(sigSpy, errorSpy, timeout) QVERIFY2(sigSpy.wait(timeout), qUtf8Printable(errorSpy.value(0).value(0).toString()))
-#define VERIFY_SPY(sigSpy, errorSpy) VERIFY_SPY_T(sigSpy, errorSpy, 5000)
-
 class AuthenticatorTest : public QObject
 {
 	Q_OBJECT
@@ -52,10 +49,11 @@ void AuthenticatorTest::testLogin()
 
 	// should start anon auth with success
 	_authenticator->signIn();
-	VERIFY_SPY(successSpy, failSpy);
+	QVERIFY(successSpy.wait());
 	QCOMPARE(successSpy.size(), 1);
 	QVERIFY(!successSpy[0][0].toString().isEmpty());
 	QVERIFY(!successSpy[0][1].toString().isEmpty());
+	QVERIFY(failSpy.isEmpty());
 	const auto id = successSpy[0][0].toString();
 	const auto token = successSpy[0][1].toString();
 
@@ -81,19 +79,21 @@ void AuthenticatorTest::testRefresh()
 	// trigger refresh
 	const auto oldId = _authenticator->_localId;
 	_authenticator->signIn();
-	VERIFY_SPY(successSpy, failSpy);
+	QVERIFY(successSpy.wait());
 	QCOMPARE(successSpy.size(), 1);
 	QEXPECT_FAIL("", "Anonymous authentications cannot be refreshed", Abort);
 	QCOMPARE(successSpy[0][0].toString(), oldId);
 	QVERIFY(!successSpy[0][1].toString().isEmpty());
+	QVERIFY(failSpy.isEmpty());
 
 	// trigger automated refresh
 	_authenticator->_expiresAt = QDateTime::currentDateTimeUtc().addSecs(63); // 1min 3s
 	_authenticator->_refreshTimer->start(3s);
-	VERIFY_SPY_T(successSpy, failSpy, 8000);
+	QVERIFY(successSpy.wait(8000));
 	QCOMPARE(successSpy.size(), 1);
 	QCOMPARE(successSpy[0][0].toString(), oldId);
 	QVERIFY(!successSpy[0][1].toString().isEmpty());
+	QVERIFY(failSpy.isEmpty());
 }
 
 void AuthenticatorTest::testLogOut()

@@ -7,7 +7,7 @@
 using namespace QtDataSync;
 using namespace std::chrono_literals;
 
-#define VERIFY_SPY(sigSpy, errorSpy) QVERIFY2(sigSpy.wait(), qUtf8Printable(errorSpy.value(0).value(0).toString()))
+#define VERIFY_SPY(sigSpy, errorSpy) QVERIFY2(sigSpy.wait(), qUtf8Printable(QStringLiteral("Error on table: ") + errorSpy.value(0).value(0).toString()))
 
 class RemoteConnectorTest : public QObject
 {
@@ -23,6 +23,7 @@ private Q_SLOTS:
 	void testCancel();
 
 	void testLiveSync();
+	void testOfflineDetection();
 
 	void testRemoveTable();
 	void testRemoveUser();
@@ -32,6 +33,7 @@ private:
 	static const QString Table;
 
 	QTemporaryDir _tDir;
+	QNetworkAccessManager *_nam = nullptr;
 	FirebaseAuthenticator *_authenticator = nullptr;
 	RemoteConnector *_connector = nullptr;
 };
@@ -50,8 +52,10 @@ void RemoteConnectorTest::initTestCase()
 			7
 		};
 
+		_nam = new QNetworkAccessManager{this};
+
 		// authenticate
-		_authenticator = TestLib::createAuth(config.apiKey, this);
+		_authenticator = TestLib::createAuth(config.apiKey, this, _nam);
 		QVERIFY(_authenticator);
 		auto authRes = TestLib::doAuth(_authenticator);
 		QVERIFY(authRes);
@@ -59,7 +63,7 @@ void RemoteConnectorTest::initTestCase()
 		// create rmc
 		_connector = new RemoteConnector{
 			config,
-			new QNetworkAccessManager{this},
+			_nam,
 			this
 		};
 		_connector->setUser(authRes->first);
@@ -278,7 +282,7 @@ void RemoteConnectorTest::testConflict()
 	if (syncSpy.isEmpty())
 		VERIFY_SPY(syncSpy, errorSpy);
 	else
-		QVERIFY2(errorSpy.isEmpty(), qUtf8Printable(errorSpy.value(0).value(0).toString()));
+		QVERIFY(errorSpy.isEmpty());
 }
 
 void RemoteConnectorTest::testCancel()
@@ -389,7 +393,7 @@ void RemoteConnectorTest::testLiveSync()
 	if (downloadSpy.isEmpty())
 		VERIFY_SPY(downloadSpy, errorSpy);
 	else
-		QVERIFY2(errorSpy.isEmpty(), qUtf8Printable(errorSpy.value(0).value(0).toString()));
+		QVERIFY(errorSpy.isEmpty());
 	QCOMPARE(downloadSpy.size(), 1);
 	QCOMPARE(downloadSpy[0][0].toString(), Table);
 	QCOMPARE(downloadSpy[0][1].value<QList<CloudData>>().size(), 1);
@@ -405,6 +409,24 @@ void RemoteConnectorTest::testLiveSync()
 	_connector->uploadChange(data);
 	VERIFY_SPY(uploadSpy, errorSpy);
 	QVERIFY(!downloadSpy.wait());
+}
+
+void RemoteConnectorTest::testOfflineDetection()
+{
+	QSignalSpy onlineSpy{_connector, &RemoteConnector::onlineChanged};
+	QVERIFY(onlineSpy.isValid());
+
+	QCOMPARE(_connector->isOnline(), true);
+
+	_nam->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
+	QTRY_COMPARE(onlineSpy.size(), 1);
+	QCOMPARE(onlineSpy[0][0].toBool(), false);
+	QCOMPARE(_connector->isOnline(), false);
+
+	_nam->setNetworkAccessible(QNetworkAccessManager::Accessible);
+	QTRY_COMPARE(onlineSpy.size(), 2);
+	QCOMPARE(onlineSpy[1][0].toBool(), true);
+	QCOMPARE(_connector->isOnline(), true);
 }
 
 void RemoteConnectorTest::testRemoveTable()

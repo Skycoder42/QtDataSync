@@ -11,13 +11,13 @@ QTemporaryDir tDir;
 
 }
 
-FirebaseAuthenticator *TestLib::createAuth(const QString &apiKey, QObject *parent)
+FirebaseAuthenticator *TestLib::createAuth(const QString &apiKey, QObject *parent, QNetworkAccessManager *nam)
 {
 	return new FirebaseAuthenticator {
 		new AnonAuth{parent},
 		apiKey,
 		new QSettings{tDir.filePath(QStringLiteral("config.ini")), QSettings::IniFormat, parent},
-		new QNetworkAccessManager{parent},
+		nam ? nam : new QNetworkAccessManager{parent},
 		parent
 	};
 }
