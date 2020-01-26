@@ -57,9 +57,8 @@ void TableMachineTest::testPassivSyncFlow()
 	_machine->stop();
 	_machine->start();
 	QVERIFY(_machine->isRunning());
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
-	COMPARE_CALLED(_model, emitStop, 1);
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	VERIFY_EMPTY(_model);
 
 	// start sync
@@ -251,7 +250,6 @@ void TableMachineTest::testPassivSyncFlow()
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Inactive"));
 	COMPARE_CALLED(_model, cancelAll, 1);
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 }
 
@@ -265,7 +263,6 @@ void TableMachineTest::testLiveSyncFlow()
 	QVERIFY(_machine->isRunning());
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Inactive"));
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 
 	// start sync
@@ -412,7 +409,6 @@ void TableMachineTest::testLiveSyncFlow()
 				QStringLiteral("Inactive"));
 	COMPARE_CALLED(_model, cancelLiveSync, 1);
 	COMPARE_CALLED(_model, cancelAll, 1);
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 }
 
@@ -426,7 +422,6 @@ void TableMachineTest::testSyncModeTransitions()
 	QVERIFY(_machine->isRunning());
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Inactive"));
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 
 	// start in passive sync mode
@@ -542,7 +537,6 @@ void TableMachineTest::testSyncModeTransitions()
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Inactive"));
 	COMPARE_CALLED(_model, cancelAll, 1);
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 }
 
@@ -556,7 +550,6 @@ void TableMachineTest::testDelTableFlows()
 	QVERIFY(_machine->isRunning());
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Inactive"));
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 
 	// delete the table
@@ -595,7 +588,6 @@ void TableMachineTest::testDelTableFlows()
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Inactive"));
 	COMPARE_CALLED(_model, cancelPassiveSync, 1);
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 	QCOMPARE(_model->_delTable, false);
 }
@@ -610,7 +602,6 @@ void TableMachineTest::testErrors()
 	QVERIFY(_machine->isRunning());
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Inactive"));
-	COMPARE_CALLED(_model, emitStop, 1);
 	VERIFY_EMPTY(_model);
 
 	// start passive sync
@@ -638,7 +629,6 @@ void TableMachineTest::testErrors()
 				QStringLiteral("Error"));
 	COMPARE_CALLED(_model, cancelPassiveSync, 1);
 	COMPARE_CALLED(_model, cancelAll, 1);
-	COMPARE_CALLED(_model, emitStop, 1);
 	COMPARE_CALLED(_model, emitError, 1);
 	VERIFY_EMPTY(_model);
 
@@ -674,7 +664,6 @@ void TableMachineTest::testErrors()
 				QStringLiteral("Error"));
 	COMPARE_CALLED(_model, cancelLiveSync, 1);
 	COMPARE_CALLED(_model, cancelAll, 1);
-	COMPARE_CALLED(_model, emitStop, 1);
 	COMPARE_CALLED(_model, emitError, 1);
 	VERIFY_EMPTY(_model);
 
@@ -690,7 +679,6 @@ void TableMachineTest::testErrors()
 	TEST_STATES(QStringLiteral("Stopped"),
 				QStringLiteral("Error"));
 	COMPARE_CALLED(_model, cancelPassiveSync, 1);
-	COMPARE_CALLED(_model, emitStop, 1);
 	COMPARE_CALLED(_model, emitError, 1);
 	VERIFY_EMPTY(_model);
 	QCOMPARE(_model->_delTable, false);

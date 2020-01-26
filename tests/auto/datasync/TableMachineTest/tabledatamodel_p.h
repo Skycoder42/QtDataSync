@@ -5,6 +5,7 @@
 #include <QtScxml/QScxmlCppDataModel>
 
 #define DECL_SCRIPT(name) inline void name() { \
+	Q_UNUSED(&TableDataModel::name) \
 	++_calls[QByteArrayLiteral(#name)]; \
 }
 
