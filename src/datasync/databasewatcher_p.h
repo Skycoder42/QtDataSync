@@ -58,7 +58,11 @@ public:
 
 	void reactivateTables(bool liveSync);
 	void addAllTables(bool liveSync, QSql::TableType type = QSql::Tables);
-	void addTable(const QString &name, bool liveSync, const QStringList &fields = {}, QString primaryType = {});
+	void addTable(const QString &name,
+				  bool liveSync,
+				  const QStringList &fields = {},
+				  QString primaryType = {},
+				  const std::optional<std::pair<QString, QString>> &forgeinKey = std::nullopt);  // TODO swap param order
 
 	void dropAllTables();
 	void dropTable(const QString &name, bool removeRef = true);
@@ -101,6 +105,7 @@ private:
 	struct TableInfo {
 		QStringList fields;
 		std::optional<std::pair<QString, int>> pKeyCache;
+		std::optional<std::optional<std::pair<QString, QString>>> fKeyCache;
 
 		inline TableInfo(QStringList fields = {}) :
 			fields{std::move(fields)}
@@ -115,6 +120,7 @@ private:
 	QString fieldName(const QString &field) const;
 
 	std::pair<QString, int> getPKey(const QString &table);
+	std::optional<std::pair<QString, QString>> getFKey(const QString &table);
 	void updateLastSync(const QString &table, const QDateTime &uploaded);
 	bool shouldStoreImpl(const LocalData &data, const QVariant &escKey);
 

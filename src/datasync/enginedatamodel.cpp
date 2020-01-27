@@ -170,7 +170,7 @@ void EngineDataModel::removedUser()
 
 void EngineDataModel::networkError(const QString &type, bool temporary)
 {
-	if (type.isEmpty()) {
+	if (type.isEmpty()) {  // delete user is empty type
 		_errors.append({
 			temporary ?
 				Engine::ErrorType::Temporary :

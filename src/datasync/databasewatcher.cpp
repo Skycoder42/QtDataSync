@@ -70,7 +70,7 @@ void DatabaseWatcher::addAllTables(bool liveSync, QSql::TableType type)
 	}
 }
 
-void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QStringList &fields, QString primaryType)
+void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QStringList &fields, QString primaryType, const std::optional<std::pair<QString, QString> > &forgeinKey)
 {
 	const QString syncTableName = TablePrefix + name;
 
@@ -92,6 +92,8 @@ void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QString
 												 "	tableName	TEXT NOT NULL, "
 												 "	pkeyName	TEXT NOT NULL, "
 												 "	pkeyType	INTEGER NOT NULL, "
+												 "	fKeyTable	TEXT DEFAULT NULL, "
+												 "	fkeyName	TEXT DEFAULT NULL, "
 												 "	state		INTEGER NOT NULL DEFAULT 0 CHECK(state >= 0 AND state <= 2) , "
 												 "	lastSync	TEXT, "
 												 "	PRIMARY KEY(tableName) "
@@ -214,8 +216,8 @@ void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QString
 		// step 2.2: add to metadata table
 		ExQuery addMetaDataQuery{_db, ErrorScope::Table, name};
 		addMetaDataQuery.prepare(QStringLiteral("INSERT INTO %1 "
-												"(tableName, pkeyName, pkeyType, state, lastSync) "
-												"VALUES(?, ?, ?, ?, NULL) "
+												"(tableName, pkeyName, pkeyType, fKeyTable, fKeyName, state, lastSync) "
+												"VALUES(?, ?, ?, ?, ?, ?, NULL) "
 												"ON CONFLICT(tableName) DO UPDATE "
 												"SET state = excluded.state "
 												"WHERE tableName = excluded.tableName;")
@@ -223,6 +225,8 @@ void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QString
 		addMetaDataQuery.addBindValue(name);
 		addMetaDataQuery.addBindValue(pKey);
 		addMetaDataQuery.addBindValue(static_cast<int>(pIndex.field(0).type()));
+		addMetaDataQuery.addBindValue(forgeinKey ? forgeinKey->first : QVariant{}); // TODO test if NULL
+		addMetaDataQuery.addBindValue(forgeinKey ? forgeinKey->second : QVariant{}); // TODO test if NULL
 		addMetaDataQuery.addBindValue(static_cast<int>(TableState::Active));
 		addMetaDataQuery.exec();
 		qCInfo(logDbWatcher) << "Enabled synchronization for table" << name;
@@ -538,6 +542,12 @@ void DatabaseWatcher::storeData(const LocalData &data)
 
 		// update the actual data
 		if (const auto value = data.data(); value) {
+			// create parent entry if neccessary
+			const auto fKeyInfo = getFKey(key.typeName);
+			if (fKeyInfo) {
+				// TODO HERE
+			}
+
 			// try to insert as a new value
 			QStringList insertKeys;
 			QStringList updateKeys;
@@ -794,6 +804,32 @@ std::pair<QString, int> DatabaseWatcher::getPKey(const QString &table)
 	tInfo.pKeyCache = std::make_pair(fieldName(getPKeyQuery.value(0).toString()),
 									 getPKeyQuery.value(1).toInt());
 	return *tInfo.pKeyCache;
+}
+
+std::optional<std::pair<QString, QString>> DatabaseWatcher::getFKey(const QString &table)
+{
+	auto &tInfo = _tables[table];
+	if (tInfo.fKeyCache)
+		return *tInfo.fKeyCache;
+
+	ExQuery getFKeyQuery{_db, ErrorScope::Database, table};
+	getFKeyQuery.prepare(QStringLiteral("SELECT fkeyTable, fkeyName "
+										"FROM %1 "
+										"WHERE tableName = ?;")
+							 .arg(MetaTable));
+	getFKeyQuery.addBindValue(table);
+	getFKeyQuery.exec();
+	if (!getFKeyQuery.first())
+		throw SqlException{ErrorScope::Database, table, {}};
+
+	if (getFKeyQuery.value(0).isNull()) {
+		static const std::optional<std::pair<QString, QString>> nullVal = std::nullopt;
+		tInfo.fKeyCache = nullVal;
+	} else {
+		tInfo.fKeyCache = std::make_pair(tableName(getFKeyQuery.value(0).toString()),
+										 fieldName(getFKeyQuery.value(1).toString()));
+	}
+	return *tInfo.fKeyCache;
 }
 
 void DatabaseWatcher::updateLastSync(const QString &table, const QDateTime &uploaded)
