@@ -28,6 +28,9 @@ private Q_SLOTS:
 	void testSyncModeTransitions();
 	void testDelTableFlows();
 	void testErrors();
+	void testNetErrors();
+	void testOffline();
+	void testExit();
 
 private:
 	TableStateMachine *_machine = nullptr;
@@ -247,8 +250,8 @@ void TableMachineTest::testPassivSyncFlow()
 
 	// stop
 	_machine->submitEvent(QStringLiteral("stop"));
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	COMPARE_CALLED(_model, cancelAll, 1);
 	VERIFY_EMPTY(_model);
 }
@@ -261,8 +264,8 @@ void TableMachineTest::testLiveSyncFlow()
 	_machine->stop();
 	_machine->start();
 	QVERIFY(_machine->isRunning());
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	VERIFY_EMPTY(_model);
 
 	// start sync
@@ -386,27 +389,10 @@ void TableMachineTest::testLiveSyncFlow()
 	COMPARE_CALLED(_model, processDownload, 1);
 	VERIFY_EMPTY(_model);
 
-	// ls error
-	_machine->submitEvent(QStringLiteral("lsError"));
-	TEST_STATES(QStringLiteral("Active"),
-				QStringLiteral("LiveSync"),
-				QStringLiteral("LsError"));
-	COMPARE_CALLED(_model, cancelLiveSync, 1);
-	COMPARE_CALLED(_model, scheduleLsRestart, 1);
-	VERIFY_EMPTY(_model);
-
-	_machine->submitEvent(QStringLiteral("continueLiveSync"));
-	TEST_STATES(QStringLiteral("Active"),
-				QStringLiteral("LiveSync"),
-				QStringLiteral("LsStarting"));
-	COMPARE_CALLED(_model, clearLsRestart, 1);
-	COMPARE_CALLED(_model, initLiveSync, 1);
-	VERIFY_EMPTY(_model);
-
 	// stop
 	_machine->submitEvent(QStringLiteral("stop"));
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	COMPARE_CALLED(_model, cancelLiveSync, 1);
 	COMPARE_CALLED(_model, cancelAll, 1);
 	VERIFY_EMPTY(_model);
@@ -420,8 +406,8 @@ void TableMachineTest::testSyncModeTransitions()
 	_machine->stop();
 	_machine->start();
 	QVERIFY(_machine->isRunning());
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	VERIFY_EMPTY(_model);
 
 	// start in passive sync mode
@@ -534,8 +520,8 @@ void TableMachineTest::testSyncModeTransitions()
 
 	// stop
 	_machine->submitEvent(QStringLiteral("stop"));
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	COMPARE_CALLED(_model, cancelAll, 1);
 	VERIFY_EMPTY(_model);
 }
@@ -548,8 +534,8 @@ void TableMachineTest::testDelTableFlows()
 	_machine->stop();
 	_machine->start();
 	QVERIFY(_machine->isRunning());
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	VERIFY_EMPTY(_model);
 
 	// delete the table
@@ -561,7 +547,15 @@ void TableMachineTest::testDelTableFlows()
 	QCOMPARE(_model->_delTable, true);
 
 	_machine->submitEvent(QStringLiteral("start"));
-	TEST_STATES(QStringLiteral("DelTable"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("delTable"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("DelTable"));
+	COMPARE_CALLED(_model, cancelAll, 1);
 	COMPARE_CALLED(_model, delTable, 1);
 	VERIFY_EMPTY(_model);
 	QCOMPARE(_model->_delTable, true);
@@ -575,9 +569,24 @@ void TableMachineTest::testDelTableFlows()
 	QCOMPARE(_model->_delTable, false);
 
 	// delete while "running"
+	_machine->submitEvent(QStringLiteral("startPassiveSync"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("PassiveSync"),
+				QStringLiteral("Synchronizing"),
+				QStringLiteral("Downloading"),
+				QStringLiteral("DlFiber"),
+				QStringLiteral("DlRunning"),
+				QStringLiteral("ProcFiber"),
+				QStringLiteral("ProcRunning"));
+	COMPARE_CALLED(_model, downloadChanges, 1);
+	COMPARE_CALLED(_model, processDownload, 1);
+	VERIFY_EMPTY(_model);
+
 	_model->_delTable = true;
 	_machine->submitEvent(QStringLiteral("delTable"));
-	TEST_STATES(QStringLiteral("DelTable"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("DelTable"));
+	COMPARE_CALLED(_model, cancelPassiveSync, 1);
 	COMPARE_CALLED(_model, cancelAll, 1);
 	COMPARE_CALLED(_model, delTable, 1);
 	VERIFY_EMPTY(_model);
@@ -585,9 +594,10 @@ void TableMachineTest::testDelTableFlows()
 
 	// stop
 	_machine->submitEvent(QStringLiteral("stop"));
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	COMPARE_CALLED(_model, cancelPassiveSync, 1);
+	COMPARE_CALLED(_model, cancelAll, 1);
 	VERIFY_EMPTY(_model);
 	QCOMPARE(_model->_delTable, false);
 }
@@ -600,8 +610,8 @@ void TableMachineTest::testErrors()
 	_machine->stop();
 	_machine->start();
 	QVERIFY(_machine->isRunning());
-	TEST_STATES(QStringLiteral("Stopped"),
-				QStringLiteral("Inactive"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
 	VERIFY_EMPTY(_model);
 
 	// start passive sync
@@ -625,7 +635,7 @@ void TableMachineTest::testErrors()
 	VERIFY_EMPTY(_model);
 
 	_machine->submitEvent(QStringLiteral("error"));
-	TEST_STATES(QStringLiteral("Stopped"),
+	TEST_STATES(QStringLiteral("Inactive"),
 				QStringLiteral("Error"));
 	COMPARE_CALLED(_model, cancelPassiveSync, 1);
 	COMPARE_CALLED(_model, cancelAll, 1);
@@ -633,7 +643,7 @@ void TableMachineTest::testErrors()
 	VERIFY_EMPTY(_model);
 
 	_machine->submitEvent(QStringLiteral("error"));
-	TEST_STATES(QStringLiteral("Stopped"),
+	TEST_STATES(QStringLiteral("Inactive"),
 				QStringLiteral("Error"));
 	COMPARE_CALLED(_model, emitError, 1);
 	VERIFY_EMPTY(_model);
@@ -660,7 +670,7 @@ void TableMachineTest::testErrors()
 	VERIFY_EMPTY(_model);
 
 	_machine->submitEvent(QStringLiteral("error"));
-	TEST_STATES(QStringLiteral("Stopped"),
+	TEST_STATES(QStringLiteral("Inactive"),
 				QStringLiteral("Error"));
 	COMPARE_CALLED(_model, cancelLiveSync, 1);
 	COMPARE_CALLED(_model, cancelAll, 1);
@@ -670,18 +680,297 @@ void TableMachineTest::testErrors()
 	// error in delete table
 	_model->_delTable = true;
 	_machine->submitEvent(QStringLiteral("start"));
-	TEST_STATES(QStringLiteral("DelTable"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("delTable"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("DelTable"));
+	COMPARE_CALLED(_model, cancelAll, 1);
 	COMPARE_CALLED(_model, delTable, 1);
 	VERIFY_EMPTY(_model);
 	QCOMPARE(_model->_delTable, true);
 
 	_machine->submitEvent(QStringLiteral("error"));
-	TEST_STATES(QStringLiteral("Stopped"),
+	TEST_STATES(QStringLiteral("Inactive"),
 				QStringLiteral("Error"));
 	COMPARE_CALLED(_model, cancelPassiveSync, 1);
+	COMPARE_CALLED(_model, cancelAll, 1);
 	COMPARE_CALLED(_model, emitError, 1);
 	VERIFY_EMPTY(_model);
 	QCOMPARE(_model->_delTable, false);
+
+	// stop
+	_machine->submitEvent(QStringLiteral("stop"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
+	VERIFY_EMPTY(_model);
+}
+
+void TableMachineTest::testNetErrors()
+{
+	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
+
+	_machine->stop();
+	_machine->start();
+	QVERIFY(_machine->isRunning());
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
+	VERIFY_EMPTY(_model);
+
+	// start passive sync
+	_machine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("startPassiveSync"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("PassiveSync"),
+				QStringLiteral("Synchronizing"),
+				QStringLiteral("Downloading"),
+				QStringLiteral("DlFiber"),
+				QStringLiteral("DlRunning"),
+				QStringLiteral("ProcFiber"),
+				QStringLiteral("ProcRunning"));
+	COMPARE_CALLED(_model, downloadChanges, 1);
+	COMPARE_CALLED(_model, processDownload, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("netError"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("NetworkError"));
+	COMPARE_CALLED(_model, cancelPassiveSync, 1);
+	COMPARE_CALLED(_model, cancelAll, 1);
+	COMPARE_CALLED(_model, scheduleRestart, 1);
+	COMPARE_CALLED(_model, emitError, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("netError"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("NetworkError"));
+	COMPARE_CALLED(_model, emitError, 1);
+	VERIFY_EMPTY(_model);
+
+	// start live sync (from within error)
+	_machine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, clearRestart, 1);
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("startLiveSync"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("LiveSync"),
+				QStringLiteral("LsStarting"));
+	COMPARE_CALLED(_model, initLiveSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("dlReady"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("LiveSync"),
+				QStringLiteral("LsProcessInit"));
+	COMPARE_CALLED(_model, processDownload, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("netError"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("NetworkError"));
+	COMPARE_CALLED(_model, cancelLiveSync, 1);
+	COMPARE_CALLED(_model, cancelAll, 1);
+	COMPARE_CALLED(_model, scheduleRestart, 1);
+	COMPARE_CALLED(_model, emitError, 1);
+	VERIFY_EMPTY(_model);
+
+	// normal error in net error
+	_machine->submitEvent(QStringLiteral("error"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Error"));
+	COMPARE_CALLED(_model, clearRestart, 1);
+	COMPARE_CALLED(_model, emitError, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("netError"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Error"));
+	COMPARE_CALLED(_model, emitError, 1);
+	VERIFY_EMPTY(_model);
+
+	// error in delete table
+	_model->_delTable = true;
+	_machine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("delTable"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("DelTable"));
+	COMPARE_CALLED(_model, cancelAll, 1);
+	COMPARE_CALLED(_model, delTable, 1);
+	VERIFY_EMPTY(_model);
+	QCOMPARE(_model->_delTable, true);
+
+	_machine->submitEvent(QStringLiteral("netError"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("NetworkError"));
+	COMPARE_CALLED(_model, cancelPassiveSync, 1);
+	COMPARE_CALLED(_model, cancelAll, 1);
+	COMPARE_CALLED(_model, scheduleRestart, 1);
+	COMPARE_CALLED(_model, emitError, 1);
+	VERIFY_EMPTY(_model);
+	QCOMPARE(_model->_delTable, false);
+
+	// stop
+	_machine->submitEvent(QStringLiteral("stop"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
+	COMPARE_CALLED(_model, clearRestart, 1);
+	VERIFY_EMPTY(_model);
+}
+
+void TableMachineTest::testOffline()
+{
+	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
+
+	_machine->stop();
+	_machine->start();
+	QVERIFY(_machine->isRunning());
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
+	VERIFY_EMPTY(_model);
+
+	// start sync while offline
+	_machine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("goOffline"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Offline"));
+	COMPARE_CALLED(_model, cancelAll, 1);
+	VERIFY_EMPTY(_model);
+
+	// go online, start sync and go offline again
+	_machine->submitEvent(QStringLiteral("goOnline"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("startPassiveSync"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("PassiveSync"),
+				QStringLiteral("Synchronizing"),
+				QStringLiteral("Downloading"),
+				QStringLiteral("DlFiber"),
+				QStringLiteral("DlRunning"),
+				QStringLiteral("ProcFiber"),
+				QStringLiteral("ProcRunning"));
+	COMPARE_CALLED(_model, downloadChanges, 1);
+	COMPARE_CALLED(_model, processDownload, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("goOffline"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Offline"));
+	COMPARE_CALLED(_model, cancelPassiveSync, 1);
+	COMPARE_CALLED(_model, cancelAll, 1);
+	VERIFY_EMPTY(_model);
+
+	// ignores errors
+	_machine->submitEvent(QStringLiteral("netError"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Offline"));
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("error"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Offline"));
+	VERIFY_EMPTY(_model);
+
+	// start live sync, break connection with error and go offline
+	_machine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("startLiveSync"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("LiveSync"),
+				QStringLiteral("LsStarting"));
+	COMPARE_CALLED(_model, initLiveSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("dlReady"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("LiveSync"),
+				QStringLiteral("LsProcessInit"));
+	COMPARE_CALLED(_model, processDownload, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("netError"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("NetworkError"));
+	COMPARE_CALLED(_model, cancelLiveSync, 1);
+	COMPARE_CALLED(_model, cancelAll, 1);
+	COMPARE_CALLED(_model, scheduleRestart, 1);
+	COMPARE_CALLED(_model, emitError, 1);
+	VERIFY_EMPTY(_model);
+
+	_machine->submitEvent(QStringLiteral("goOffline"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Offline"));
+	COMPARE_CALLED(_model, clearRestart, 1);
+	VERIFY_EMPTY(_model);
+
+	// stop
+	_machine->submitEvent(QStringLiteral("stop"));
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
+	VERIFY_EMPTY(_model);
+}
+
+void TableMachineTest::testExit()
+{
+	QSignalSpy idleSpy{_machine, &TableStateMachine::reachedStableState};
+	QVERIFY(idleSpy.isValid());
+	QSignalSpy finishedSpy{_machine, &TableStateMachine::finished};
+	QVERIFY(finishedSpy.isValid());
+
+	_machine->stop();
+	_machine->start();
+	QVERIFY(_machine->isRunning());
+	TEST_STATES(QStringLiteral("Inactive"),
+				QStringLiteral("Stopped"));
+	VERIFY_EMPTY(_model);
+
+	// start and exit
+	_machine->submitEvent(QStringLiteral("start"));
+	TEST_STATES(QStringLiteral("Active"),
+				QStringLiteral("Init"));
+	COMPARE_CALLED(_model, initSync, 1);
+	VERIFY_EMPTY(_model);
+
+	_model->_exit = true;
+	_machine->submitEvent(QStringLiteral("stop"));
+	TEST_STATES(QStringLiteral("Final_1"));
+	COMPARE_CALLED(_model, cancelAll, 1);
+	VERIFY_EMPTY(_model);
+	QCOMPARE(_model->_exit, true);
+	_model->_exit = false;
+	QCOMPARE(finishedSpy.size(), 1);
+	QCOMPARE(_machine->isRunning(), false);
 }
 
 QTEST_MAIN(TableMachineTest)

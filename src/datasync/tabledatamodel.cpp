@@ -230,7 +230,9 @@ void TableDataModel::tryExit()
 
 void TableDataModel::switchMode()
 {
-	if (_liveSync)
+	if (_delTable)
+		stateMachine()->submitEvent(QStringLiteral("delTable"));
+	else if (_liveSync)
 		stateMachine()->submitEvent(QStringLiteral("startLiveSync"));
 	else
 		stateMachine()->submitEvent(QStringLiteral("startPassiveSync"));
@@ -326,7 +328,7 @@ void TableDataModel::triggerResync(const QString &type, bool deleteTable)
 	if (type == _type) {
 		if (deleteTable) {
 			_delTable = true;
-			stateMachine()->submitEvent(QStringLiteral("delTable"));
+			stateMachine()->submitEvent(QStringLiteral("ŝ"));
 		} else {
 			stateMachine()->submitEvent(QStringLiteral("forceSync"));
 			stateMachine()->submitEvent(QStringLiteral("triggerSync"));
