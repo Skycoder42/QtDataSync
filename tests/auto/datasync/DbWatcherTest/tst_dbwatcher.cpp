@@ -19,8 +19,10 @@ const QDateTime future = QDateTime::currentDateTimeUtc().addDays(1);
 	testChangedQuery.addBindValue(key); \
 	testChangedQuery.exec(); \
 	QVERIFY(testChangedQuery.next()); \
+	/*qDebug() << testChangedQuery.value(0) << before << after;*/ \
 	QVERIFY(testChangedQuery.value(0).toDateTime() >= before); \
 	QVERIFY(testChangedQuery.value(0).toDateTime() <= after); \
+	/*qDebug() << testChangedQuery.value(1) << state;*/ \
 	QCOMPARE(testChangedQuery.value(1).toInt(), static_cast<int>(state)); \
 	QVERIFY(!testChangedQuery.next()); \
 } while(false)
@@ -106,7 +108,7 @@ void DbWatcherTest::testAddTable()
 		QVERIFY(syncSpy.isValid());
 
 		auto before = QDateTime::currentDateTimeUtc();
-		_watcher->addTable(TestTable, false);
+		_watcher->addTable(TableConfig{TestTable, _watcher->database()});
 		auto after = QDateTime::currentDateTimeUtc();
 
 		QCOMPARE(_watcher->hasTables(), true);
@@ -120,6 +122,8 @@ void DbWatcherTest::testAddTable()
 		syncSpy.clear();
 
 		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::MetaTable));
+		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::FieldTable));
+		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::ReferenceTable));
 		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::TablePrefix + TestTable));
 
 		// verify meta state
@@ -295,7 +299,7 @@ void DbWatcherTest::testReaddTable()
 		QVERIFY(syncSpy.isValid());
 
 		auto before = QDateTime::currentDateTimeUtc();
-		_watcher->addTable(TestTable, false);
+		_watcher->addTable(TableConfig{TestTable, _watcher->database()});
 		auto after = QDateTime::currentDateTimeUtc();
 
 		QCOMPARE(_watcher->hasTables(), true);
@@ -654,6 +658,8 @@ void DbWatcherTest::testUnsyncTable()
 		QCOMPARE(_watcher->hasTables(), false);
 		QVERIFY(!_watcher->tables().contains(TestTable));
 		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::MetaTable));
+		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::FieldTable));
+		QVERIFY(_watcher->database().tables().contains(DatabaseWatcher::ReferenceTable));
 
 		QCOMPARE(removeSpy.size(), 1);
 		QCOMPARE(removeSpy[0][0].toString(), TestTable);
@@ -697,6 +703,8 @@ void DbWatcherTest::testDbActions()
 		_watcher->unsyncAllTables();
 		QCOMPARE(_watcher->hasTables(), false);
 		QVERIFY(!_watcher->database().tables().contains(DatabaseWatcher::MetaTable));
+		QVERIFY(!_watcher->database().tables().contains(DatabaseWatcher::FieldTable));
+		QVERIFY(!_watcher->database().tables().contains(DatabaseWatcher::ReferenceTable));
 	} catch (std::exception &e) {
 		QFAIL(e.what());
 	}
@@ -716,7 +724,7 @@ void DbWatcherTest::testBinaryKey()
 										");"));
 
 		const auto table = QStringLiteral("BinTest");
-		_watcher->addTable(table, true);
+		_watcher->addTable(TableConfig{table, _watcher->database()});
 
 		for (auto i = 5; i < 10; ++i) {
 			const auto key = QByteArray(i, static_cast<char>(i));

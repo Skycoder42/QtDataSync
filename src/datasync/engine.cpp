@@ -29,19 +29,26 @@ void Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool ena
 		watcher->addAllTables(enableLiveSync);
 }
 
-void Engine::syncTable(const QString &table, bool enableLiveSync, const QString &databaseConnection, const QStringList &fields, const QString &primaryKeyType)
+void Engine::syncTable(const QString &table, bool enableLiveSync, const QString &databaseConnection)
 {
-	return syncTable(table, enableLiveSync, QSqlDatabase::database(databaseConnection, true), fields, primaryKeyType);
+	return syncTable(table, enableLiveSync, QSqlDatabase::database(databaseConnection, true));
 }
 
-void Engine::syncTable(const QString &table, bool enableLiveSync, QSqlDatabase database, const QStringList &fields, const QString &primaryKeyType)
+void Engine::syncTable(const QString &table, bool enableLiveSync, QSqlDatabase database)
+{
+	TableConfig config{table, database};
+	config.setLiveSyncEnabled(enableLiveSync);
+	syncTable(config);
+}
+
+void Engine::syncTable(const TableConfig &config)
 {
 	Q_D(Engine);
-	if (!database.isOpen())
-		throw TableException{table, QStringLiteral("Database not open"), database.lastError()};
-	if (d->tableMachines.contains(table))
-		throw TableException{table, QStringLiteral("Table already synchronized"), {}};
-	d->getWatcher(std::move(database))->addTable(table, enableLiveSync, fields, primaryKeyType);
+	if (!config.connection().isOpen())
+		throw TableException{config.table(), QStringLiteral("Database not open"), config.connection().lastError()};
+	if (d->tableMachines.contains(config.table()))
+		throw TableException{config.table(), QStringLiteral("Table already synchronized"), {}};
+	d->getWatcher(config.connection())->addTable(config);
 }
 
 void Engine::removeDatabaseSync(const QString &databaseConnection, bool deactivateSync)
@@ -460,6 +467,116 @@ void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &
 	default:
 		Q_UNREACHABLE();
 	}
+}
+
+
+
+TableConfig::TableConfig(QString table, const QString &databaseConnection) :
+	TableConfig{std::move(table), QSqlDatabase::database(databaseConnection, true)}
+{}
+
+TableConfig::TableConfig(QString table, QSqlDatabase database) :
+	d{new TableConfigData{std::move(table), std::move(database)}}
+{}
+
+TableConfig::TableConfig(const TableConfig &other) = default;
+
+TableConfig::TableConfig(TableConfig &&other) noexcept = default;
+
+TableConfig &TableConfig::operator=(const TableConfig &other) = default;
+
+TableConfig &TableConfig::operator=(TableConfig &&other) noexcept = default;
+
+TableConfig::~TableConfig() = default;
+
+void TableConfig::swap(TableConfig &other)
+{
+	d.swap(other.d);
+}
+
+QString TableConfig::table() const
+{
+	return d->table;
+}
+
+QSqlDatabase TableConfig::connection() const
+{
+	return d->connection;
+}
+
+bool TableConfig::isLiveSyncEnabled() const
+{
+	return d->liveSyncEnabled;
+}
+
+bool TableConfig::forceCreate() const
+{
+	return d->forceCreate;
+}
+
+QString TableConfig::primaryKey() const
+{
+	return d->primaryKey;
+}
+
+QStringList TableConfig::fields() const
+{
+	return d->fields;
+}
+
+QList<TableConfig::Reference> TableConfig::references() const
+{
+	return d->references;
+}
+
+void TableConfig::setLiveSyncEnabled(bool liveSyncEnabled)
+{
+	d->liveSyncEnabled = liveSyncEnabled;
+}
+
+void TableConfig::setForceCreate(bool forceCreate)
+{
+	d->forceCreate = forceCreate;
+}
+
+void TableConfig::setPrimaryKey(QString primaryKey)
+{
+	d->primaryKey = std::move(primaryKey);
+}
+
+void TableConfig::resetPrimaryKey()
+{
+	d->primaryKey.clear();
+}
+
+void TableConfig::setFields(QStringList fields)
+{
+	d->fields = std::move(fields);
+}
+
+void TableConfig::addField(const QString &field)
+{
+	d->fields.append(field);
+}
+
+void TableConfig::resetFields()
+{
+	d->fields.clear();
+}
+
+void TableConfig::setReferences(QList<TableConfig::Reference> references)
+{
+	d->references = std::move(references);
+}
+
+void TableConfig::addReference(const TableConfig::Reference &reference)
+{
+	d->references.append(reference);
+}
+
+void TableConfig::resetReferences()
+{
+	d->references.clear();
 }
 
 

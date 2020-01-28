@@ -8,6 +8,8 @@ using namespace QtDataSync;
 Q_LOGGING_CATEGORY(QtDataSync::logDbWatcher, "qt.datasync.DatabaseWatcher")
 
 const QString DatabaseWatcher::MetaTable = QStringLiteral("__qtdatasync_meta_data");
+const QString DatabaseWatcher::FieldTable = QStringLiteral("__qtdatasync_sync_fields");
+const QString DatabaseWatcher::ReferenceTable = QStringLiteral("__qtdatasync_sync_references");
 const QString DatabaseWatcher::TablePrefix = QStringLiteral("__qtdatasync_sync_data_");
 
 DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, QObject *parent) :
@@ -49,8 +51,11 @@ void DatabaseWatcher::reactivateTables(bool liveSync)
 							   .arg(MetaTable));
 		getActiveQuery.addBindValue(static_cast<int>(TableState::Active));
 		getActiveQuery.exec();
-		while (getActiveQuery.next())
-			addTable(getActiveQuery.value(0).toString(), liveSync);
+		while (getActiveQuery.next()) {
+			TableConfig config{getActiveQuery.value(0).toString(), _db};
+			config.setLiveSyncEnabled(liveSync);
+			addTable(config);
+		}
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
 		throw TableException {
@@ -66,181 +71,165 @@ void DatabaseWatcher::addAllTables(bool liveSync, QSql::TableType type)
 	for (const auto &table : _db.tables(type)) {
 		if (table.startsWith(QStringLiteral("__qtdatasync_")))
 			continue;
-		addTable(table, liveSync);
+		TableConfig config{table, _db};
+		config.setLiveSyncEnabled(liveSync);
+		addTable(config);
 	}
 }
 
-void DatabaseWatcher::addTable(const QString &name, bool liveSync, const QStringList &fields, QString primaryType, const std::optional<std::pair<QString, QString> > &forgeinKey)
+void DatabaseWatcher::addTable(const TableConfig &config)
 {
+	const auto name = config.table();
 	const QString syncTableName = TablePrefix + name;
 
 	try {
-		// step 0: verify primary key
-		const auto pIndex = _db.primaryIndex(name);
-		if (pIndex.count() != 1) {
-			qCCritical(logDbWatcher) << "Cannot synchronize table" << name
-									 << "with composite primary key!";
-			throw TableException{name, QStringLiteral("Cannot synchronize table with composite primary key!"), _db.lastError()};
-		}
-		const auto pKey = pIndex.fieldName(0);
-		const auto escPKey = fieldName(pKey);
+		// step 1: create the global sync meta table
+		createMetaTables(name);
 
-		// step 1: create the global sync table
-		if (!_db.tables().contains(MetaTable)) {
-			ExQuery createTableQuery{_db, ErrorScope::Database, name};
-			createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
-												 "	tableName	TEXT NOT NULL, "
-												 "	pkeyName	TEXT NOT NULL, "
-												 "	pkeyType	INTEGER NOT NULL, "
-												 "	fKeyTable	TEXT DEFAULT NULL, "
-												 "	fkeyName	TEXT DEFAULT NULL, "
-												 "	state		INTEGER NOT NULL DEFAULT 0 CHECK(state >= 0 AND state <= 2) , "
-												 "	lastSync	TEXT, "
-												 "	PRIMARY KEY(tableName) "
-												 ") WITHOUT ROWID;")
-									  .arg(MetaTable));
-			qCInfo(logDbWatcher) << "Created sync metadata table";
-		} else
-			qCDebug(logDbWatcher) << "Sync metadata table already exist";
-
-		// step 2: update internal tables
+		// step 2: create internal tables
 		ExTransaction transact{_db, name};
-		// step 2.1: create the sync attachment table, if not existant yet
-		const auto escName = tableName(name);
-		const auto escSyncTableName = tableName(syncTableName);
-		if (!_db.tables().contains(syncTableName)) {
-			if (primaryType.isEmpty())
-				primaryType = sqlTypeName(_db.record(name).field(pKey));
+		const auto [pKeyName, pKeyType] = createSyncTables(config);
 
-			ExQuery createTableQuery{_db, ErrorScope::Table, name};
-			createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
-												 "	pkey	%2 NOT NULL, "
-												 "	tstamp	TEXT NOT NULL, "
-												 "	changed	INTEGER NOT NULL CHECK(changed >= 0 AND changed <= 2), "  // (unchanged, changed, deleted)
-												 "	PRIMARY KEY(pkey)"
-												 ");")
-									  .arg(escSyncTableName, primaryType));
-			qCDebug(logDbWatcher) << "Created sync table for" << name;
+		// step 3.1: check if already created
+		std::optional<TableInfo> info;
+		if (!config.forceCreate()) {
+			ExQuery getMetaQuery{_db, ErrorScope::Database, name};
+			getMetaQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType "
+												"FROM %1 "
+												"WHERE tableName == ?;")
+									 .arg(MetaTable));
+			getMetaQuery.addBindValue(name);
+			getMetaQuery.exec();
+			if (getMetaQuery.first()) {
+				info = TableInfo{};
+				info->pKeyInfo.first = getMetaQuery.value(0).toString();
+				info->pKeyInfo.second = getMetaQuery.value(1).toInt();
+			}
+		}
 
-			ExQuery createIndexQuery{_db, ErrorScope::Table, name};
-			createIndexQuery.exec(QStringLiteral("CREATE INDEX %1 ON %2 (changed ASC);")
-									  .arg(tableName(syncTableName + QStringLiteral("_idx_changed")),
-										   escSyncTableName));
-			qCDebug(logDbWatcher) << "Created sync table changed index for" << name;
+		// step 3.2: table is not synced yet -> create (or force replace)
+		if (!info) {
+			qCDebug(logDbWatcher) << "Creating or updating synchronization tables";
+			// step 3.2.1: add to metadata table (or update config fields)
+			ExQuery addMetaDataQuery{_db, ErrorScope::Database, name};
+			addMetaDataQuery.prepare(QStringLiteral("INSERT INTO %1 "
+													"(tableName, pkeyName, pkeyType, state, lastSync) "
+													"VALUES(?, ?, ?, ?, NULL) "
+													"ON CONFLICT(tableName) DO UPDATE "
+													"SET pkeyName = excluded.pkeyName, "
+													"    pkeyType = excluded.pkeyType, "
+													"    state = excluded.state "
+													"WHERE tableName == excluded.tableName;")
+										 .arg(MetaTable));
+			addMetaDataQuery.addBindValue(name);
+			addMetaDataQuery.addBindValue(pKeyName);
+			addMetaDataQuery.addBindValue(pKeyType);
+			addMetaDataQuery.addBindValue(static_cast<int>(TableState::Active));
+			addMetaDataQuery.exec();
+			qCDebug(logDbWatcher) << "Added sync meta entry for" << name;
 
-			ExQuery createInsertTrigger{_db, ErrorScope::Table, name};
-			createInsertTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
-													"AFTER INSERT ON %3 "
-													"FOR EACH ROW "
-													"BEGIN "
-														// add or replace, in case deleted still exists
-													"	INSERT OR REPLACE INTO %2 "
-													"	(pkey, tstamp, changed) "
-													"	VALUES(NEW.%4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1); "  // 1 == changed
-													"END;")
-										 .arg(tableName(syncTableName + QStringLiteral("_insert_trigger")),
-											  escSyncTableName,
-											  escName,
-											  escPKey));
-			qCDebug(logDbWatcher) << "Created sync table insert trigger index for" << name;
+			// step 3.2.2: Update field references
+			ExQuery clearFieldsQuery{_db, ErrorScope::Database, name};
+			clearFieldsQuery.prepare(QStringLiteral("DELETE FROM %1 "
+													"WHERE tableName == ?;")
+										 .arg(FieldTable));
+			clearFieldsQuery.addBindValue(name);
+			clearFieldsQuery.exec();
 
-			ExQuery createUpdateTrigger{_db, ErrorScope::Table, name};
-			createUpdateTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
-													"AFTER UPDATE ON %3 "
-													"FOR EACH ROW "
-													"WHEN NEW.%4 == OLD.%4 "
-													"BEGIN "
-														// set version and changed
-													"	UPDATE %2 "
-													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
-													"	WHERE pkey = NEW.%4; "
-													"END;")
-										 .arg(tableName(syncTableName + QStringLiteral("_update_trigger")),
-											  escSyncTableName,
-											  escName,
-											  escPKey));
-			qCDebug(logDbWatcher) << "Created sync table update trigger index for" << name;
+			for (const auto &field : config.fields()) {
+				ExQuery addFieldQuery{_db, ErrorScope::Database, name};
+				addFieldQuery.prepare(QStringLiteral("INSERT OR IGNORE INTO %1 "
+													 "(tableName, syncField) "
+													 "VALUES(?, ?);")
+										  .arg(FieldTable));
+				addFieldQuery.addBindValue(name);
+				addFieldQuery.addBindValue(field);
+				addFieldQuery.exec();
+			}
+			qCDebug(logDbWatcher) << "Stored custom table fields for" << name;
 
-			ExQuery createRenameTrigger{_db, ErrorScope::Table, name};
-			createRenameTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
-													"AFTER UPDATE ON %3 "
-													"FOR EACH ROW "
-													"WHEN NEW.%4 != OLD.%4 "
-													"BEGIN "
-														// mark old id as deleted
-													"	UPDATE %2 "
-													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
-													"	WHERE pkey = OLD.%4; "
-														// then insert (or replace) new entry with new id but same timestamp
-													"	INSERT OR REPLACE INTO %2 "
-													"	(pkey, tstamp, changed) "
-													"	VALUES(NEW.%4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1); "  // 1 == changed
-													"END;")
-										 .arg(tableName(syncTableName + QStringLiteral("_rename_trigger")),
-											  escSyncTableName,
-											  escName,
-											  escPKey));
-			qCDebug(logDbWatcher) << "Created sync table rename trigger index for" << name;
+			// step 3.2.3: Update foreign key references
+			ExQuery clearFKeysQuery{_db, ErrorScope::Database, name};
+			clearFKeysQuery.prepare(QStringLiteral("DELETE FROM %1 "
+												   "WHERE tableName == ?;")
+										.arg(ReferenceTable));
+			clearFKeysQuery.addBindValue(name);
+			clearFKeysQuery.exec();
 
-			ExQuery createDeleteTrigger{_db, ErrorScope::Table, name};
-			createDeleteTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
-													"AFTER DELETE ON %3 "
-													"FOR EACH ROW "
-													"BEGIN "
-														// set version and changed
-													"	UPDATE %2 "
-													"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
-													"	WHERE pkey = OLD.%4; "
-													"END;")
-										 .arg(tableName(syncTableName + QStringLiteral("_delete_trigger")),
-											  escSyncTableName,
-											  escName,
-											  escPKey));
-			qCDebug(logDbWatcher) << "Created sync table delete trigger index for" << name;
+			for (const auto &ref : config.references()) {
+				ExQuery addFKeyQuery{_db, ErrorScope::Database, name};
+				addFKeyQuery.prepare(QStringLiteral("INSERT OR IGNORE INTO %1 "
+													"(tableName, fKeyTable, fKeyField) "
+													"VALUES(?, ?, ?);")
+										 .arg(ReferenceTable));
+				addFKeyQuery.addBindValue(name);
+				addFKeyQuery.addBindValue(ref.first);
+				addFKeyQuery.addBindValue(ref.second);
+				addFKeyQuery.exec();
+			}
+			qCDebug(logDbWatcher) << "Stored custom table fields for" << name;
 
-			ExQuery inflateTableQuery{_db, ErrorScope::Table, name};
-			inflateTableQuery.exec(QStringLiteral("INSERT INTO %1 "
-												  "(pkey, tstamp, changed) "
-												  "SELECT %3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1 "
-												  "FROM %2;")
-									   .arg(escSyncTableName,
-											escName,
-											escPKey));
-			qCDebug(logDbWatcher) << "Inflated sync table for" << name
-								  << "with current data of that table";
+			// step 3.2.4: commit transaction and add table
+			transact.commit();
+			// pre-populate caches with initial values
+			_tables.insert(name, {
+									 std::make_pair(pKeyName, pKeyType),
+									 config.fields(),
+									 config.references()
+								 });
+			qCInfo(logDbWatcher) << "Added/Updated and enabled synchronization for table" << name;
+		} else { // step 3.2: table is synced -> enable and load config
+			qCDebug(logDbWatcher) << "Enabeling synchronization tables";
+			// step 3.3.1: just enable synchronisation, don't update fields
+			ExQuery enableMetaDataQuery{_db, ErrorScope::Database, name};
+			enableMetaDataQuery.prepare(QStringLiteral("UPDATE %1 "
+													   "SET state = ? "
+													   "WHERE tableName == ?;")
+											.arg(MetaTable));
+			enableMetaDataQuery.addBindValue(static_cast<int>(TableState::Active));
+			enableMetaDataQuery.addBindValue(name);
+			enableMetaDataQuery.exec();
+			qCDebug(logDbWatcher) << "Activated sync meta entry for" << name;
 
-			qCInfo(logDbWatcher) << "Created synchronization tables for table" << name;
-		} else
-			qCDebug(logDbWatcher) << "Sync tables for table" << name << "already exist";
+			// step 3.3.2: get all fields
+			ExQuery getFieldsQuery{_db, ErrorScope::Database, name};
+			getFieldsQuery.prepare(QStringLiteral("SELECT syncField "
+												  "FROM %1 "
+												  "WHERE tableName == ?;")
+									   .arg(FieldTable));
+			getFieldsQuery.addBindValue(name);
+			getFieldsQuery.exec();
+			while (getFieldsQuery.next())
+				info->fields.append(getFieldsQuery.value(0).toString());
+			qCDebug(logDbWatcher) << "Loaded sync fields for" << name;
 
-		// step 2.2: add to metadata table
-		ExQuery addMetaDataQuery{_db, ErrorScope::Table, name};
-		addMetaDataQuery.prepare(QStringLiteral("INSERT INTO %1 "
-												"(tableName, pkeyName, pkeyType, fKeyTable, fKeyName, state, lastSync) "
-												"VALUES(?, ?, ?, ?, ?, ?, NULL) "
-												"ON CONFLICT(tableName) DO UPDATE "
-												"SET state = excluded.state "
-												"WHERE tableName = excluded.tableName;")
-								 .arg(MetaTable));
-		addMetaDataQuery.addBindValue(name);
-		addMetaDataQuery.addBindValue(pKey);
-		addMetaDataQuery.addBindValue(static_cast<int>(pIndex.field(0).type()));
-		addMetaDataQuery.addBindValue(forgeinKey ? forgeinKey->first : QVariant{}); // TODO test if NULL
-		addMetaDataQuery.addBindValue(forgeinKey ? forgeinKey->second : QVariant{}); // TODO test if NULL
-		addMetaDataQuery.addBindValue(static_cast<int>(TableState::Active));
-		addMetaDataQuery.exec();
-		qCInfo(logDbWatcher) << "Enabled synchronization for table" << name;
+			// step 3.3.3: get all references
+			ExQuery getReferencesQuery{_db, ErrorScope::Database, name};
+			getReferencesQuery.prepare(QStringLiteral("SELECT fKeyTable, fKeyField "
+													  "FROM %1 "
+													  "WHERE tableName == ?;")
+										   .arg(ReferenceTable));
+			getReferencesQuery.addBindValue(name);
+			getReferencesQuery.exec();
+			while (getReferencesQuery.next()) {
+				info->references.append(std::make_pair(getReferencesQuery.value(0).toString(),
+													  getReferencesQuery.value(1).toString()));
+			}
+			qCDebug(logDbWatcher) << "Loaded sync references for" << name;
 
-		// step 2.3: commit transaction
-		transact.commit();
+			// step 3.2.4: commit transaction and add table
+			transact.commit();
+			// leave caches empty, will be loaded on demand
+			_tables.insert(name, *info);
+			qCInfo(logDbWatcher) << "Enabled synchronization for table" << name;
+		}
 
 		// step 3: register notification hook for the table
-		_tables.insert(name, fields);
 		if (!_db.driver()->subscribeToNotification(name))
 			qCWarning(logDbWatcher) << "Unable to register update notification hook for table" << name;  // no hard error, as data is still synced, just not live
 
 		// step 4: emit signals
-		Q_EMIT tableAdded(name, liveSync);
+		Q_EMIT tableAdded(name, config.isLiveSyncEnabled());
 		Q_EMIT triggerSync(name);
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
@@ -315,6 +304,13 @@ void DatabaseWatcher::unsyncAllTables()
 		// step 2: if empty -> drop the table
 		if (checkMetaQuery.first() && checkMetaQuery.value(0) == 0) {
 			checkMetaQuery.finish();
+
+			ExQuery dropReferencesTable{_db, ErrorScope::Database, {}};
+			dropReferencesTable.exec(QStringLiteral("DROP TABLE %1;").arg(ReferenceTable));
+
+			ExQuery dropFieldsTable{_db, ErrorScope::Database, {}};
+			dropFieldsTable.exec(QStringLiteral("DROP TABLE %1;").arg(FieldTable));
+
 			ExQuery dropMetaTable{_db, ErrorScope::Database, {}};
 			dropMetaTable.exec(QStringLiteral("DROP TABLE %1;").arg(MetaTable));
 			qCInfo(logDbWatcher) << "Dropped all synchronization data";
@@ -406,7 +402,7 @@ void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direct
 
 		const auto escName = tableName(name);
 		const auto escSyncName = tableName(name, true);
-		const auto [pKey, pKeyType] = getPKey(name);
+		const auto [pKey, pKeyType] = _tables[name].pKeyInfo;
 
 		if (direction.testFlag(Engine::ResyncFlag::ClearLocalData)) {
 			ExQuery clearLocalQuery{_db, ErrorScope::Table, name};
@@ -425,7 +421,7 @@ void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direct
 													"FROM %2;")
 										 .arg(escSyncName,
 											  escName,
-											  pKey));
+											  fieldName(pKey)));
 		} else {
 			if (direction.testFlag(Engine::ResyncFlag::Upload)) {
 				ExQuery markAllChangedQuery{_db, ErrorScope::Table, name};
@@ -445,7 +441,7 @@ void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direct
 														"FROM %2;")
 											 .arg(escSyncName,
 												  escName,
-												  pKey));
+												  fieldName(pKey)));
 			}
 		}
 
@@ -505,7 +501,7 @@ bool DatabaseWatcher::shouldStore(const ObjectKey &key, const CloudData &data)
 {
 	try {
 		ExTransaction transact{_db, key};
-		const auto [pKey, pKeyType] = getPKey(key.typeName);
+		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
 		const auto res = shouldStoreImpl({
 			key,
 			std::nullopt,
@@ -529,7 +525,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		ExTransaction transact{_db, key};
 
 		// retrieve the primary key
-		const auto [pKey, pKeyType] = getPKey(key.typeName);
+		const auto [pKey, pKeyType] = tInfo.pKeyInfo;
 		const auto escKey = decodeKey(key.id, pKeyType);
 		const auto escTableName = tableName(key.typeName);
 		const auto escSyncName = tableName(key.typeName, true);
@@ -542,10 +538,46 @@ void DatabaseWatcher::storeData(const LocalData &data)
 
 		// update the actual data
 		if (const auto value = data.data(); value) {
-			// create parent entry if neccessary
-			const auto fKeyInfo = getFKey(key.typeName);
-			if (fKeyInfo) {
-				// TODO HERE
+			// create parent entries for all references
+			for (const auto &ref : tInfo.references) {  // (table, field)
+				qCDebug(logDbWatcher) << "Ensuring existance of parent entry in table" << ref.first;
+				// get old parent state
+				ExQuery getParentState{_db, ErrorScope::Table, ref.first};
+				getParentState.prepare(QStringLiteral("SELECT tstamp, changed "
+													  "FROM %1 "
+													  "WHERE pkey == ?")
+										   .arg(tableName(ref.first, true)));
+				getParentState.addBindValue(escKey);
+				getParentState.exec();
+
+				// insert parent if not existant yet
+				ExQuery createDefaultParent{_db, ErrorScope::Table, ref.first};
+				createDefaultParent.prepare(QStringLiteral("INSERT OR IGNORE INTO %1 "
+														   "(%2) "
+														   "VALUES(?);")
+												.arg(tableName(ref.first),
+													 fieldName(ref.second)));
+				createDefaultParent.addBindValue(escKey);
+				createDefaultParent.exec();
+
+				// restore parent state to before beeing inserted (as parent creates are not synchronized)
+				if (createDefaultParent.numRowsAffected() != 0) {
+					ExQuery fixParentState{_db, ErrorScope::Table, ref.first};
+					if (getParentState.first()) {
+						fixParentState.prepare(QStringLiteral("UPDATE %1 "
+															  "SET tstamp = ?, changed = ? "
+															  "WHERE pkey == ?;")
+												   .arg(tableName(ref.first, true)));
+						fixParentState.addBindValue(getParentState.value(0));
+						fixParentState.addBindValue(getParentState.value(1));
+					} else {
+						fixParentState.prepare(QStringLiteral("DELETE FROM %1 "
+															  "WHERE pkey == ?;")
+												   .arg(tableName(ref.first, true)));
+					}
+					fixParentState.addBindValue(escKey);
+					fixParentState.exec();
+				}
 			}
 
 			// try to insert as a new value
@@ -580,7 +612,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 									.arg(escTableName,
 										 insertKeys.join(QStringLiteral(", ")),
 										 paramPlcs.join(QStringLiteral(", ")),
-										 pKey,
+										 fieldName(pKey),
 										 updateKeys.join(QStringLiteral(", "))));
 			for (const auto &val : qAsConst(queryData))
 				upsertQuery.addBindValue(val);
@@ -591,7 +623,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 			ExQuery deleteQuery{_db, ErrorScope::Entry, key};
 			deleteQuery.prepare(QStringLiteral("DELETE FROM %1 "
 											   "WHERE %2 == ?;")
-									.arg(escTableName, pKey));
+									.arg(escTableName, fieldName(pKey)));
 			deleteQuery.addBindValue(escKey);
 			deleteQuery.exec();
 			qCDebug(logDbWatcher) << "Removed local data for id" << key;
@@ -625,7 +657,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 	try {
 		ExTransaction transact{_db, name};
 
-		const auto [pKey, pKeyType] = getPKey(name);
+		const auto [pKey, pKeyType] = _tables[name].pKeyInfo;
 
 		QStringList dataFields;
 		if (tInfo.fields.isEmpty())
@@ -645,7 +677,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 								  .arg(dataFields.join(QStringLiteral(", ")),
 									   tableName(name, true),
 									   tableName(name),
-									   pKey));
+									   fieldName(pKey)));
 		nextDataQuery.addBindValue(static_cast<int>(ChangeState::Changed));
 		nextDataQuery.exec();
 
@@ -675,7 +707,7 @@ void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modif
 	try {
 		ExTransaction transact{_db, key};
 
-		const auto [pKey, pKeyType] = getPKey(key.typeName);
+		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
 		const auto escKey = decodeKey(key.id, pKeyType);
 
 		ExQuery getStampQuery{_db, ErrorScope::Table, key.typeName};
@@ -716,7 +748,7 @@ void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modif
 	try {
 		ExTransaction transact{_db, key};
 
-		const auto [pKey, pKeyType] = getPKey(key.typeName);
+		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
 		const auto escKey = decodeKey(key.id, pKeyType);
 
 		ExQuery insertCorruptedQuery{_db, ErrorScope::Table, key.typeName};
@@ -785,51 +817,181 @@ QString DatabaseWatcher::fieldName(const QString &field) const
 	return _db.driver()->escapeIdentifier(field, QSqlDriver::FieldName);
 }
 
-std::pair<QString, int> DatabaseWatcher::getPKey(const QString &table)
+void DatabaseWatcher::createMetaTables(const QString &table)
 {
-	auto &tInfo = _tables[table];
-	if (tInfo.pKeyCache)
-		return *tInfo.pKeyCache;
+	ExTransaction transact{_db, table};
 
-	ExQuery getPKeyQuery{_db, ErrorScope::Database, table};
-	getPKeyQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType "
-										"FROM %1 "
-										"WHERE tableName = ?;")
-							 .arg(MetaTable));
-	getPKeyQuery.addBindValue(table);
-	getPKeyQuery.exec();
-	if (!getPKeyQuery.first())
-		throw SqlException{ErrorScope::Database, table, {}};
+	if (!_db.tables().contains(MetaTable)) {
+		ExQuery createTableQuery{_db, ErrorScope::Database, table};
+		createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
+											 "	tableName	TEXT NOT NULL, "
+											 "	pkeyName	TEXT NOT NULL, "
+											 "	pkeyType	INTEGER NOT NULL, "
+											 "	state		INTEGER NOT NULL DEFAULT 0 CHECK(state >= 0 AND state <= 2) , "
+											 "	lastSync	TEXT, "
+											 "	PRIMARY KEY(tableName) "
+											 ") WITHOUT ROWID;")
+								  .arg(MetaTable));
+		qCInfo(logDbWatcher) << "Created sync metadata table";
+	} else
+		qCDebug(logDbWatcher) << "Sync metadata table already exist";
 
-	tInfo.pKeyCache = std::make_pair(fieldName(getPKeyQuery.value(0).toString()),
-									 getPKeyQuery.value(1).toInt());
-	return *tInfo.pKeyCache;
+	if (!_db.tables().contains(FieldTable)) {
+		ExQuery createTableQuery{_db, ErrorScope::Database, table};
+		createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
+											 "	tableName	TEXT NOT NULL, "
+											 "	syncField	TEXT NOT NULL, "
+											 "	PRIMARY KEY(tableName, syncField), "
+											 "	FOREIGN KEY(tableName) REFERENCES %2(tableName) ON UPDATE CASCADE ON DELETE CASCADE"
+											 ") WITHOUT ROWID;")
+								  .arg(FieldTable, MetaTable));
+		qCInfo(logDbWatcher) << "Created sync fields table";
+	} else
+		qCDebug(logDbWatcher) << "Sync fields table already exist";
+
+	if (!_db.tables().contains(ReferenceTable)) {
+		ExQuery createTableQuery{_db, ErrorScope::Database, table};
+		createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
+											 "	tableName	TEXT NOT NULL, "
+											 "	fKeyTable	TEXT NOT NULL, "
+											 "	fKeyField	TEXT NOT NULL, "
+											 "	PRIMARY KEY(tableName, fKeyTable, fKeyField), "
+											 "	FOREIGN KEY(tableName) REFERENCES %2(tableName) ON UPDATE CASCADE ON DELETE CASCADE"
+											 ") WITHOUT ROWID;")
+								  .arg(ReferenceTable, MetaTable));
+		qCInfo(logDbWatcher) << "Created sync references table";
+	} else
+		qCDebug(logDbWatcher) << "Sync references table already exist";
+
+	transact.commit();
 }
 
-std::optional<std::pair<QString, QString>> DatabaseWatcher::getFKey(const QString &table)
+DatabaseWatcher::PKeyInfo DatabaseWatcher::createSyncTables(const TableConfig &config)
 {
-	auto &tInfo = _tables[table];
-	if (tInfo.fKeyCache)
-		return *tInfo.fKeyCache;
+	const auto name = config.table();
+	const auto escName = tableName(name);
+	const QString syncTableName = TablePrefix + name;
+	const auto escSyncTableName = tableName(syncTableName);
 
-	ExQuery getFKeyQuery{_db, ErrorScope::Database, table};
-	getFKeyQuery.prepare(QStringLiteral("SELECT fkeyTable, fkeyName "
-										"FROM %1 "
-										"WHERE tableName = ?;")
-							 .arg(MetaTable));
-	getFKeyQuery.addBindValue(table);
-	getFKeyQuery.exec();
-	if (!getFKeyQuery.first())
-		throw SqlException{ErrorScope::Database, table, {}};
-
-	if (getFKeyQuery.value(0).isNull()) {
-		static const std::optional<std::pair<QString, QString>> nullVal = std::nullopt;
-		tInfo.fKeyCache = nullVal;
-	} else {
-		tInfo.fKeyCache = std::make_pair(tableName(getFKeyQuery.value(0).toString()),
-										 fieldName(getFKeyQuery.value(1).toString()));
+	// obtain the primary key to use here
+	auto pKey = config.primaryKey();
+	if (pKey.isEmpty()) {
+		const auto pIndex = _db.primaryIndex(name);
+		if (pIndex.count() != 1) {
+			qCCritical(logDbWatcher) << "Cannot synchronize table" << name
+									 << "with composite primary key!";
+			throw TableException{config.table(), QStringLiteral("Cannot synchronize table with composite primary key!"), _db.lastError()};
+		}
+		pKey = pIndex.fieldName(0);
 	}
-	return *tInfo.fKeyCache;
+	const auto escPKey = fieldName(pKey);
+	const auto pField = _db.record(name).field(pKey);
+
+	if (!_db.tables().contains(syncTableName)) {
+		const auto primaryType = sqlTypeName(pField);
+
+		ExQuery createTableQuery{_db, ErrorScope::Table, name};
+		createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
+											 "	pkey	%2 NOT NULL, "
+											 "	tstamp	TEXT NOT NULL, "
+											 "	changed	INTEGER NOT NULL CHECK(changed >= 0 AND changed <= 2), "  // (unchanged, changed, corrupted)
+											 "	PRIMARY KEY(pkey)"
+											 ");")
+								  .arg(escSyncTableName, primaryType));
+		qCDebug(logDbWatcher) << "Created sync table for" << name;
+
+		ExQuery createIndexQuery{_db, ErrorScope::Table, name};
+		createIndexQuery.exec(QStringLiteral("CREATE INDEX %1 ON %2 (changed ASC);")
+								  .arg(tableName(syncTableName + QStringLiteral("_idx_changed")),
+									   escSyncTableName));
+		qCDebug(logDbWatcher) << "Created sync table changed index for" << name;
+
+		ExQuery createInsertTrigger{_db, ErrorScope::Table, name};
+		createInsertTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
+												"AFTER INSERT ON %3 "
+												"FOR EACH ROW "
+												"BEGIN "
+												// add or replace, in case deleted still exists
+												"	INSERT OR REPLACE INTO %2 "
+												"	(pkey, tstamp, changed) "
+												"	VALUES(NEW.%4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1); "  // 1 == changed
+												"END;")
+									 .arg(tableName(syncTableName + QStringLiteral("_insert_trigger")),
+										  escSyncTableName,
+										  escName,
+										  escPKey));
+		qCDebug(logDbWatcher) << "Created sync table insert trigger index for" << name;
+
+		ExQuery createUpdateTrigger{_db, ErrorScope::Table, name};
+		createUpdateTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
+												"AFTER UPDATE ON %3 "
+												"FOR EACH ROW "
+												"WHEN NEW.%4 == OLD.%4 "
+												"BEGIN "
+												// set version and changed
+												"	UPDATE %2 "
+												"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
+												"	WHERE pkey = NEW.%4; "
+												"END;")
+									 .arg(tableName(syncTableName + QStringLiteral("_update_trigger")),
+										  escSyncTableName,
+										  escName,
+										  escPKey));
+		qCDebug(logDbWatcher) << "Created sync table update trigger index for" << name;
+
+		ExQuery createRenameTrigger{_db, ErrorScope::Table, name};
+		createRenameTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
+												"AFTER UPDATE ON %3 "
+												"FOR EACH ROW "
+												"WHEN NEW.%4 != OLD.%4 "
+												"BEGIN "
+												// mark old id as deleted
+												"	UPDATE %2 "
+												"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
+												"	WHERE pkey = OLD.%4; "
+												// then insert (or replace) new entry with new id but same timestamp
+												"	INSERT OR REPLACE INTO %2 "
+												"	(pkey, tstamp, changed) "
+												"	VALUES(NEW.%4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1); "  // 1 == changed
+												"END;")
+									 .arg(tableName(syncTableName + QStringLiteral("_rename_trigger")),
+										  escSyncTableName,
+										  escName,
+										  escPKey));
+		qCDebug(logDbWatcher) << "Created sync table rename trigger index for" << name;
+
+		ExQuery createDeleteTrigger{_db, ErrorScope::Table, name};
+		createDeleteTrigger.exec(QStringLiteral("CREATE TRIGGER %1 "
+												"AFTER DELETE ON %3 "
+												"FOR EACH ROW "
+												"BEGIN "
+												// set version and changed
+												"	UPDATE %2 "
+												"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
+												"	WHERE pkey = OLD.%4; "
+												"END;")
+									 .arg(tableName(syncTableName + QStringLiteral("_delete_trigger")),
+										  escSyncTableName,
+										  escName,
+										  escPKey));
+		qCDebug(logDbWatcher) << "Created sync table delete trigger index for" << name;
+
+		ExQuery inflateTableQuery{_db, ErrorScope::Table, name};
+		inflateTableQuery.exec(QStringLiteral("INSERT INTO %1 "
+											  "(pkey, tstamp, changed) "
+											  "SELECT %3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1 "
+											  "FROM %2;")
+								   .arg(escSyncTableName,
+										escName,
+										escPKey));
+		qCDebug(logDbWatcher) << "Inflated sync table for" << name
+							  << "with current data of that table";
+
+		qCInfo(logDbWatcher) << "Created synchronization tables for table" << name;
+	} else
+		qCDebug(logDbWatcher) << "Sync tables for table" << name << "already exist";
+
+	return std::make_pair(pKey, pField.type());
 }
 
 void DatabaseWatcher::updateLastSync(const QString &table, const QDateTime &uploaded)

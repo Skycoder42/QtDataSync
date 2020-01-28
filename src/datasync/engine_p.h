@@ -41,6 +41,26 @@ public Q_SLOTS:
 	void activate(const QString &name) final;
 };
 
+class TableConfigData : public QSharedData
+{
+public:
+	using Reference = TableConfig::Reference;
+
+	QString table;
+	QSqlDatabase connection;
+
+	bool liveSyncEnabled = false;
+	bool forceCreate = false;
+	QString primaryKey;
+	QStringList fields;
+	QList<Reference> references;
+
+	inline TableConfigData(QString &&table, QSqlDatabase &&connection) :
+		table{std::move(table)},
+		connection{std::move(connection)}
+	{}
+};
+
 class Q_DATASYNC_EXPORT EnginePrivate : public QObjectPrivate
 {
 	Q_DECLARE_PUBLIC(Engine)

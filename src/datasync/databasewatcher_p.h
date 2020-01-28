@@ -45,6 +45,8 @@ public:
 	Q_ENUM(ChangeState)
 
 	static const QString MetaTable;
+	static const QString FieldTable;
+	static const QString ReferenceTable;
 	static const QString TablePrefix;
 
 	explicit DatabaseWatcher(QSqlDatabase &&db, QObject *parent = nullptr);
@@ -58,11 +60,7 @@ public:
 
 	void reactivateTables(bool liveSync);
 	void addAllTables(bool liveSync, QSql::TableType type = QSql::Tables);
-	void addTable(const QString &name,
-				  bool liveSync,
-				  const QStringList &fields = {},
-				  QString primaryType = {},
-				  const std::optional<std::pair<QString, QString>> &forgeinKey = std::nullopt);  // TODO swap param order
+	void addTable(const TableConfig &config);
 
 	void dropAllTables();
 	void dropTable(const QString &name, bool removeRef = true);
@@ -102,13 +100,21 @@ private Q_SLOTS:
 private:
 	friend class SqlException;
 
-	struct TableInfo {
-		QStringList fields;
-		std::optional<std::pair<QString, int>> pKeyCache;
-		std::optional<std::optional<std::pair<QString, QString>>> fKeyCache;
+	using PKeyInfo = std::pair<QString, int>;
 
-		inline TableInfo(QStringList fields = {}) :
-			fields{std::move(fields)}
+	struct TableInfo {
+		PKeyInfo pKeyInfo;
+		QStringList fields;
+		QList<TableConfig::Reference> references;
+
+		inline TableInfo() = default;
+
+		inline TableInfo(PKeyInfo &&pKeyInfo,
+						 QStringList &&fields,
+						 QList<TableConfig::Reference> &&references) :
+			pKeyInfo{std::move(pKeyInfo)},
+			fields{std::move(fields)},
+			references{std::move(references)}
 		{}
 	};
 
@@ -119,8 +125,9 @@ private:
 	QString tableName(const QString &table, bool asSyncTable = false) const;
 	QString fieldName(const QString &field) const;
 
-	std::pair<QString, int> getPKey(const QString &table);
-	std::optional<std::pair<QString, QString>> getFKey(const QString &table);
+	void createMetaTables(const QString &table);
+	PKeyInfo createSyncTables(const TableConfig &config);
+
 	void updateLastSync(const QString &table, const QDateTime &uploaded);
 	bool shouldStoreImpl(const LocalData &data, const QVariant &escKey);
 
