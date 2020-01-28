@@ -7,5 +7,5 @@
 	<Property key="code" type="int">0</Property>
 	<Property key="message" type="QString"/>
 	<Property key="status" type="QString"/>
-	<Property key="errors" type="QList&lt;ErrorElement&gt;"/>
+	<Property key="errors" type="QList&lt;QtDataSync::firebase::auth::ErrorElement&gt;"/>
 </RestGadget>

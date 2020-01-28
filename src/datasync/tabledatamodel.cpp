@@ -359,6 +359,10 @@ void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QVar
 			(key.userType() == qMetaTypeId<ObjectKey>() && key.value<ObjectKey>().typeName == _type))
 			error.type = Engine::ErrorType::Transaction;
 		break;
+	case DatabaseWatcher::ErrorScope::Version:
+		if (const auto keyStr = key.toString(); keyStr == _type)
+			error.type = Engine::ErrorType::Version;
+		break;
 	}
 
 	if (error.type != Engine::ErrorType::Unknown) {

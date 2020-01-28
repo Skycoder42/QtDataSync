@@ -44,8 +44,7 @@ FirebaseAuthenticator::FirebaseAuthenticator(IAuthenticator *authenticator, cons
 	static QAtomicInteger<quint16> authReg = false;
 #endif
 	if (authReg.testAndSetOrdered(false, true)) {
-		qRegisterMetaType<ErrorContent>("ErrorContent");
-		QtJsonSerializer::SerializerBase::registerListConverters<ErrorContent>();
+		QtJsonSerializer::SerializerBase::registerListConverters<ErrorElement>();
 	}
 
 	// timer

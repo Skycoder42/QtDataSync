@@ -17,7 +17,8 @@ HEADERS += \
 	enginethread.h \
 	enginethread_p.h \
 	exception.h \
-	firebase/realtimedb/firebaseapibase_p.h \
+	firebase/realtimedb/apibase_p.h \
+	firebase/realtimedb/data_globals_p.h \
 	firebase/realtimedb/querymap_p.h \
 	firebase/realtimedb/servertimestamp_p.h \
 	firebaseauthenticator_p.h \
@@ -44,7 +45,7 @@ SOURCES += \
 	enginedatamodel.cpp \
 	enginethread.cpp \
 	exception.cpp \
-	firebase/realtimedb/firebaseapibase.cpp \
+	firebase/realtimedb/apibase.cpp \
 	firebase/realtimedb/querymap.cpp \
 	firebase/realtimedb/servertimestamp.cpp \
 	firebaseauthenticator.cpp \

@@ -49,7 +49,8 @@ void RemoteConnectorTest::initTestCase()
 			QStringLiteral(FIREBASE_PROJECT_ID),
 			QStringLiteral(FIREBASE_API_KEY),
 			1min,
-			7
+			7,
+			false
 		};
 
 		_nam = new QNetworkAccessManager{this};

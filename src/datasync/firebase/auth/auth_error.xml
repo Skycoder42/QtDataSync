@@ -4,5 +4,5 @@
 			registerConverters="false">
 	<Include local="true">errorcontent.h</Include>
 
-	<Property key="error" type="ErrorContent"/>
+	<Property key="error" type="QtDataSync::firebase::auth::ErrorContent"/>
 </RestGadget>

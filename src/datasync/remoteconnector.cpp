@@ -23,13 +23,14 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNe
 	static QAtomicInteger<quint16> rmcReg = false;
 #endif
 	if (rmcReg.testAndSetOrdered(false, true)) {
-		qRegisterMetaType<ServerTimestamp>("ServerTimestamp");
-		qRegisterMetaType<Timestamp>("Timestamp");
-		qRegisterMetaType<Content>("Content");
+		// register with name, is as they are typdefs of standard Qt types, not just internal ones
+		qRegisterMetaType<Content>("QtDataSync::firebase::realtimedb::Content");
+		qRegisterMetaType<Version>("QtDataSync::firebase::realtimedb::Version");
 
 		QtJsonSerializer::SerializerBase::registerVariantConverters<QDateTime, ServerTimestamp>();
 		QtJsonSerializer::SerializerBase::registerOptionalConverters<QJsonObject>();
 		QtJsonSerializer::SerializerBase::registerVariantConverters<std::optional<QJsonObject>, bool>();
+		QtJsonSerializer::SerializerBase::registerOptionalConverters<QVersionNumber>();
 		QtJsonSerializer::SerializerBase::registerOptionalConverters<Data>();
 	}
 

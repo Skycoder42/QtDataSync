@@ -3,12 +3,6 @@
 
 #include "qtdatasync_global.h"
 
-#include <variant>
-#include <optional>
-
-#include <QtCore/QDateTime>
-#include <QtCore/QJsonObject>
-
 #include <QtJsonSerializer/TypeConverter>
 
 namespace QtDataSync::firebase::realtimedb {
@@ -33,31 +27,8 @@ inline constexpr uint qHash(const ServerTimestamp &, uint seed = 0) {
 	return seed;
 }
 
-using Timestamp = std::variant<QDateTime, ServerTimestamp>;
-using Content = std::variant<std::optional<QJsonObject>, bool>;
-
 }
 
-// WORKAROUND: declare qHash std::variant and std::optional
-namespace std {
-
-template <typename... TArgs>
-inline constexpr uint qHash(const variant<TArgs...> &var, uint seed = 0) {
-	return std::visit([seed](const auto &data) {
-		return ::qHash(data, seed);
-	}, var);
-}
-
-template <typename T>
-inline constexpr uint qHash(const optional<T> &opt, uint seed = 0) {
-	return opt ? ::qHash(*opt, seed) : ~seed;
-}
-
-}
-
-Q_DECLARE_METATYPE(std::optional<QJsonObject>)
 Q_DECLARE_METATYPE(QtDataSync::firebase::realtimedb::ServerTimestamp)
-Q_DECLARE_METATYPE(QtDataSync::firebase::realtimedb::Timestamp)
-Q_DECLARE_METATYPE(QtDataSync::firebase::realtimedb::Content)
 
 #endif // QTDATASYNC_FIREBASE_REALTIMEDB_SERVERTIMESTAMP_H
