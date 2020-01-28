@@ -95,6 +95,11 @@ public:
 		return *this;
 	}
 
+	inline Setup &setTransactionMode(TransactionMode mode) {
+		d->transactionMode = mode;
+		return *this;
+	}
+
 	inline Setup &setSettings(QSettings *settings) {
 		d->settings = settings;
 		return *this;

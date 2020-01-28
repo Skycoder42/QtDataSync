@@ -12,9 +12,10 @@ const QString DatabaseWatcher::FieldTable = QStringLiteral("__qtdatasync_sync_fi
 const QString DatabaseWatcher::ReferenceTable = QStringLiteral("__qtdatasync_sync_references");
 const QString DatabaseWatcher::TablePrefix = QStringLiteral("__qtdatasync_sync_data_");
 
-DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, QObject *parent) :
+DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, TransactionMode mode, QObject *parent) :
 	QObject{parent},
-	_db{std::move(db)}
+	_db{std::move(db)},
+	_mode{mode}
 {
 	auto driver = _db.driver();
 	connect(driver, qOverload<const QString &>(&QSqlDriver::notification),
@@ -87,7 +88,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 		createMetaTables(name);
 
 		// step 2: create internal tables
-		ExTransaction transact{_db, name};
+		ExTransaction transact{_db, _mode, name};
 		const auto [pKeyName, pKeyType] = createSyncTables(config);
 
 		// step 3.1: check if already created
@@ -294,7 +295,7 @@ void DatabaseWatcher::unsyncAllTables()
 	_tables.clear();
 
 	try {
-		ExTransaction transact{_db, {}};
+		ExTransaction transact{_db, _mode, {}};
 
 		// step 1: check if metadata table is empty
 		ExQuery checkMetaQuery{_db, ErrorScope::Database, {}};
@@ -336,7 +337,7 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 		removeTable(name, removeRef);
 
 		// step 2: remove all sync stuff
-		ExTransaction transact{_db, name};
+		ExTransaction transact{_db, _mode, name};
 
 		// step 2.1 remove sync metadata
 		ExQuery removeMetaData{_db, ErrorScope::Database, name};
@@ -398,7 +399,7 @@ void DatabaseWatcher::resyncAllTables(Engine::ResyncMode direction)
 void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direction)
 {
 	try {
-		ExTransaction transact{_db, name};
+		ExTransaction transact{_db, _mode, name};
 
 		const auto escName = tableName(name);
 		const auto escSyncName = tableName(name, true);
@@ -500,7 +501,7 @@ std::optional<QDateTime> DatabaseWatcher::lastSync(const QString &tableName)
 bool DatabaseWatcher::shouldStore(const ObjectKey &key, const CloudData &data)
 {
 	try {
-		ExTransaction transact{_db, key};
+		ExTransaction transact{_db, _mode, key};
 		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
 		const auto res = shouldStoreImpl({
 			key,
@@ -522,7 +523,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 	const auto key = data.key();
 	const auto &tInfo = _tables[key.typeName];
 	try {
-		ExTransaction transact{_db, key};
+		ExTransaction transact{_db, _mode, key};
 
 		// retrieve the primary key
 		const auto [pKey, pKeyType] = tInfo.pKeyInfo;
@@ -655,7 +656,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 {
 	const auto &tInfo = _tables[name];
 	try {
-		ExTransaction transact{_db, name};
+		ExTransaction transact{_db, _mode, name};
 
 		const auto [pKey, pKeyType] = _tables[name].pKeyInfo;
 
@@ -705,7 +706,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modified)
 {
 	try {
-		ExTransaction transact{_db, key};
+		ExTransaction transact{_db, _mode, key};
 
 		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
 		const auto escKey = decodeKey(key.id, pKeyType);
@@ -746,7 +747,7 @@ void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modif
 void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modified)
 {
 	try {
-		ExTransaction transact{_db, key};
+		ExTransaction transact{_db, _mode, key};
 
 		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
 		const auto escKey = decodeKey(key.id, pKeyType);
@@ -819,7 +820,7 @@ QString DatabaseWatcher::fieldName(const QString &field) const
 
 void DatabaseWatcher::createMetaTables(const QString &table)
 {
-	ExTransaction transact{_db, table};
+	ExTransaction transact{_db, _mode, table};
 
 	if (!_db.tables().contains(MetaTable)) {
 		ExQuery createTableQuery{_db, ErrorScope::Database, table};
@@ -1176,12 +1177,33 @@ void ExQuery::exec(const QString &query)
 
 ExTransaction::ExTransaction() = default;
 
-ExTransaction::ExTransaction(QSqlDatabase db, QVariant key) :
+ExTransaction::ExTransaction(QSqlDatabase db, TransactionMode mode, QVariant key) :
 	_db{db},
 	_key{std::move(key)}
 {
-	if (!_db->transaction())
-		throw SqlException{ErrorScope::Transaction, _key, _db->lastError()};
+	switch (mode) {
+	case TransactionMode::Default:
+		if (!_db->transaction())
+			throw SqlException{ErrorScope::Transaction, _key, _db->lastError()};
+		break;
+	case TransactionMode::Deferred: {
+		ExQuery transactQuery{*_db, ErrorScope::Transaction, _key};
+		transactQuery.exec(QStringLiteral("BEGIN DEFERRED TRANSACTION"));
+		break;
+	}
+	case TransactionMode::Immeditate: {
+		ExQuery transactQuery{*_db, ErrorScope::Transaction, _key};
+		transactQuery.exec(QStringLiteral("BEGIN IMMEDIATE TRANSACTION"));
+		break;
+	}
+	case TransactionMode::Exclusive: {
+		ExQuery transactQuery{*_db, ErrorScope::Transaction, _key};
+		transactQuery.exec(QStringLiteral("BEGIN EXCLUSIVE TRANSACTION"));
+		break;
+	}
+	default:
+		Q_UNREACHABLE();
+	}
 }
 
 ExTransaction::ExTransaction(ExTransaction &&other) noexcept :

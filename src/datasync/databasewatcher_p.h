@@ -5,6 +5,7 @@
 #include "cloudtransformer.h"
 #include "exception.h"
 #include "engine.h"
+#include "setup_impl.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QDateTime>
@@ -49,7 +50,9 @@ public:
 	static const QString ReferenceTable;
 	static const QString TablePrefix;
 
-	explicit DatabaseWatcher(QSqlDatabase &&db, QObject *parent = nullptr);
+	explicit DatabaseWatcher(QSqlDatabase &&db,
+							 TransactionMode mode,
+							 QObject *parent = nullptr);
 
 	QSqlDatabase database() const;
 
@@ -119,6 +122,7 @@ private:
 	};
 
 	QSqlDatabase _db;
+	TransactionMode _mode;
 	QHash<QString, TableInfo> _tables;
 
 	QString sqlTypeName(const QSqlField &field) const;
@@ -184,7 +188,7 @@ public:
 	using ErrorScope = DatabaseWatcher::ErrorScope;
 
 	ExTransaction();
-	ExTransaction(QSqlDatabase db, QVariant key);
+	ExTransaction(QSqlDatabase db, TransactionMode mode, QVariant key);
 	ExTransaction(ExTransaction &&other) noexcept;
 	ExTransaction &operator=(ExTransaction &&other) noexcept;
 	~ExTransaction();

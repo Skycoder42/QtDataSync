@@ -80,7 +80,11 @@ void DbWatcherTest::initTestCase()
 {
 	qRegisterMetaType<DatabaseWatcher::ErrorScope>("ErrorScope");
 
-	_watcher = new DatabaseWatcher{QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"))};
+	_watcher = new DatabaseWatcher {
+		QSqlDatabase::addDatabase(QStringLiteral("QSQLITE")),
+		TransactionMode::Default,
+		this
+	};
 	auto db = _watcher->database();
 	QVERIFY(db.isValid());
 	db.setDatabaseName(_tDir.filePath(QStringLiteral("test.db")));

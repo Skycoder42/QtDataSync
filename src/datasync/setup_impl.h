@@ -28,6 +28,13 @@ enum class ConfigType {
 	GoogleServicesPlist
 };
 
+enum class TransactionMode {
+	Default,
+	Deferred,
+	Immeditate,
+	Exclusive,
+};
+
 namespace __private {
 
 class SetupPrivate;
@@ -65,15 +72,19 @@ public:
 		int readLimit = 100;
 	} firebase;
 
-#ifndef QTDATASYNC_NO_NTP
-	QString ntpAddress;
-	quint16 ntpPort = 123;
-#endif
+	TransactionMode transactionMode = TransactionMode::Default;
 
 	QSettings *settings = nullptr;
 	QNetworkAccessManager *nam = nullptr;
 	QUrl roUrl;
 	QRemoteObjectHostBase *roNode = nullptr;
+
+#ifndef QTDATASYNC_NO_NTP
+	QString ntpAddress;
+	quint16 ntpPort = 123;
+#endif
+
+	QList<void*> attachments;  // Reserved for future changes to not break binary compability
 
 private:
 	SetupExtensionPrivate *_authExt;
