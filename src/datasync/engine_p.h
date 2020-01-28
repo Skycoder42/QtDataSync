@@ -49,6 +49,7 @@ public:
 	QString table;
 	QSqlDatabase connection;
 
+	QVersionNumber version;
 	bool liveSyncEnabled = false;
 	bool forceCreate = false;
 	QString primaryKey;

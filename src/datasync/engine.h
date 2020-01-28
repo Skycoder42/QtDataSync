@@ -8,7 +8,9 @@
 #include <optional>
 
 #include <QtCore/qobject.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qshareddata.h>
+#include <QtCore/qversionnumber.h>
 
 #include <QtSql/qsqldatabase.h>
 #include <QtSql/qsqlerror.h>
@@ -30,6 +32,8 @@ class Q_DATASYNC_EXPORT TableConfig
 
 	Q_PROPERTY(QString table READ table CONSTANT)
 	Q_PROPERTY(QSqlDatabase connection READ connection CONSTANT)
+
+	Q_PROPERTY(QVersionNumber version READ version WRITE setVersion RESET resetVersion)
 
 	Q_PROPERTY(bool liveSyncEnabled READ isLiveSyncEnabled WRITE setLiveSyncEnabled)
 	Q_PROPERTY(bool forceCreate READ forceCreate WRITE setForceCreate)
@@ -56,12 +60,15 @@ public:
 
 	QString table() const;
 	QSqlDatabase connection() const;
+	QVersionNumber version() const;
 	bool isLiveSyncEnabled() const;
 	bool forceCreate() const;
 	QString primaryKey() const;
 	QStringList fields() const;
 	QList<Reference> references() const;
 
+	void setVersion(QVersionNumber version);
+	void resetVersion();
 	void setLiveSyncEnabled(bool liveSyncEnabled);
 	void setForceCreate(bool forceCreate);
 	void setPrimaryKey(QString primaryKey);

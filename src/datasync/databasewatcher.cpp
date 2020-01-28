@@ -95,16 +95,19 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 		std::optional<TableInfo> info;
 		if (!config.forceCreate()) {
 			ExQuery getMetaQuery{_db, ErrorScope::Database, name};
-			getMetaQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType "
+			getMetaQuery.prepare(QStringLiteral("SELECT version, pkeyName, pkeyType "
 												"FROM %1 "
 												"WHERE tableName == ?;")
 									 .arg(MetaTable));
 			getMetaQuery.addBindValue(name);
 			getMetaQuery.exec();
 			if (getMetaQuery.first()) {
-				info = TableInfo{};
-				info->pKeyInfo.first = getMetaQuery.value(0).toString();
-				info->pKeyInfo.second = getMetaQuery.value(1).toInt();
+				const auto oldVersion = getMetaQuery.value(0).value<QVersionNumber>();
+				if (oldVersion == config.version()) {  // version has not changed or both are NULL -> just active, otherwise recreate
+					info = TableInfo{};
+					info->pKeyInfo.first = getMetaQuery.value(1).toString();
+					info->pKeyInfo.second = getMetaQuery.value(2).toInt();
+				}
 			}
 		}
 
@@ -114,8 +117,8 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 			// step 3.2.1: add to metadata table (or update config fields)
 			ExQuery addMetaDataQuery{_db, ErrorScope::Database, name};
 			addMetaDataQuery.prepare(QStringLiteral("INSERT INTO %1 "
-													"(tableName, pkeyName, pkeyType, state, lastSync) "
-													"VALUES(?, ?, ?, ?, NULL) "
+													"(tableName, version, pkeyName, pkeyType, state, lastSync) "
+													"VALUES(?, ?, ?, ?, ?, NULL) "
 													"ON CONFLICT(tableName) DO UPDATE "
 													"SET pkeyName = excluded.pkeyName, "
 													"    pkeyType = excluded.pkeyType, "
@@ -123,6 +126,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 													"WHERE tableName == excluded.tableName;")
 										 .arg(MetaTable));
 			addMetaDataQuery.addBindValue(name);
+			addMetaDataQuery.addBindValue(config.version().isNull() ? QVariant{} : QVariant::fromValue(config.version()));
 			addMetaDataQuery.addBindValue(pKeyName);
 			addMetaDataQuery.addBindValue(pKeyType);
 			addMetaDataQuery.addBindValue(static_cast<int>(TableState::Active));
@@ -130,6 +134,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 			qCDebug(logDbWatcher) << "Added sync meta entry for" << name;
 
 			// step 3.2.2: Update field references
+			// step 3.2.2.1: Clear previous fields
 			ExQuery clearFieldsQuery{_db, ErrorScope::Database, name};
 			clearFieldsQuery.prepare(QStringLiteral("DELETE FROM %1 "
 													"WHERE tableName == ?;")
@@ -137,7 +142,16 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 			clearFieldsQuery.addBindValue(name);
 			clearFieldsQuery.exec();
 
-			for (const auto &field : config.fields()) {
+			// step 3.2.2.2: if versioned and no explicit fields, populate with all current fields
+			auto fields = config.fields();
+			if (fields.isEmpty() && !config.version().isNull()) {
+				const auto record = _db.record(name);
+				fields.reserve(record.count());
+				for (auto i = 0, max = record.count(); i < max; ++i)
+					fields.append(record.fieldName(i));
+			}
+			// step 3.2.2.3: Store fields
+			for (const auto &field : qAsConst(fields)) {
 				ExQuery addFieldQuery{_db, ErrorScope::Database, name};
 				addFieldQuery.prepare(QStringLiteral("INSERT OR IGNORE INTO %1 "
 													 "(tableName, syncField) "
@@ -150,6 +164,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 			qCDebug(logDbWatcher) << "Stored custom table fields for" << name;
 
 			// step 3.2.3: Update foreign key references
+			// step 3.2.3.1: Clear previous references
 			ExQuery clearFKeysQuery{_db, ErrorScope::Database, name};
 			clearFKeysQuery.prepare(QStringLiteral("DELETE FROM %1 "
 												   "WHERE tableName == ?;")
@@ -157,6 +172,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 			clearFKeysQuery.addBindValue(name);
 			clearFKeysQuery.exec();
 
+			// step 3.2.3.2: Store references
 			for (const auto &ref : config.references()) {
 				ExQuery addFKeyQuery{_db, ErrorScope::Database, name};
 				addFKeyQuery.prepare(QStringLiteral("INSERT OR IGNORE INTO %1 "
@@ -175,7 +191,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 			// pre-populate caches with initial values
 			_tables.insert(name, {
 									 std::make_pair(pKeyName, pKeyType),
-									 config.fields(),
+									 std::move(fields),
 									 config.references()
 								 });
 			qCInfo(logDbWatcher) << "Added/Updated and enabled synchronization for table" << name;
@@ -826,10 +842,11 @@ void DatabaseWatcher::createMetaTables(const QString &table)
 		ExQuery createTableQuery{_db, ErrorScope::Database, table};
 		createTableQuery.exec(QStringLiteral("CREATE TABLE %1 ( "
 											 "	tableName	TEXT NOT NULL, "
+											 "	version		TEXT, "  // can be NULL if unversioned
 											 "	pkeyName	TEXT NOT NULL, "
 											 "	pkeyType	INTEGER NOT NULL, "
 											 "	state		INTEGER NOT NULL DEFAULT 0 CHECK(state >= 0 AND state <= 2) , "
-											 "	lastSync	TEXT, "
+											 "	lastSync	TEXT, "  // can be NULL if not synced yet
 											 "	PRIMARY KEY(tableName) "
 											 ") WITHOUT ROWID;")
 								  .arg(MetaTable));

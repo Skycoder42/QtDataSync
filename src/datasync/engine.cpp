@@ -504,6 +504,11 @@ QSqlDatabase TableConfig::connection() const
 	return d->connection;
 }
 
+QVersionNumber TableConfig::version() const
+{
+	return d->version;
+}
+
 bool TableConfig::isLiveSyncEnabled() const
 {
 	return d->liveSyncEnabled;
@@ -527,6 +532,16 @@ QStringList TableConfig::fields() const
 QList<TableConfig::Reference> TableConfig::references() const
 {
 	return d->references;
+}
+
+void TableConfig::setVersion(QVersionNumber version)
+{
+	d->version = version;
+}
+
+void TableConfig::resetVersion()
+{
+	d->version = {};
 }
 
 void TableConfig::setLiveSyncEnabled(bool liveSyncEnabled)
