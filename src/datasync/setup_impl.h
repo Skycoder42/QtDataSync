@@ -70,6 +70,7 @@ public:
 		QString apiKey;
 		std::chrono::milliseconds readTimeOut {std::chrono::minutes{15}};
 		int readLimit = 100;
+		bool syncTableVersions = false;
 	} firebase;
 
 	TransactionMode transactionMode = TransactionMode::Default;

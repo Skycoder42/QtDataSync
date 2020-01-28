@@ -95,6 +95,11 @@ public:
 		return *this;
 	}
 
+	inline Setup &setSyncTableVersions(bool syncTableVersions) {
+		d->firebase.syncTableVersions = syncTableVersions;
+		return *this;
+	}
+
 	inline Setup &setTransactionMode(TransactionMode mode) {
 		d->transactionMode = mode;
 		return *this;

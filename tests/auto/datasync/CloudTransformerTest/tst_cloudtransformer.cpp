@@ -39,11 +39,13 @@ void CloudTransformerTest::testTransform_data()
 		QStringLiteral("SimpleType"), QStringLiteral("simpleKey"),
 		std::nullopt,
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
 		std::nullopt,
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -51,11 +53,13 @@ void CloudTransformerTest::testTransform_data()
 		QStringLiteral("SimpleType"), QStringLiteral("42"),
 		std::nullopt,
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_42"),
 		std::nullopt,
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -64,12 +68,14 @@ void CloudTransformerTest::testTransform_data()
 		QString::fromWCharArray(L"kdsvj\"!\'§383942¬{¬¼½³¼²³¼²{{32423}}"),
 		std::nullopt,
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("QMap%3CQString%2C%20int%3E"),
 		QStringLiteral("_kdsvj%22%21%27%C2%A7383942%C2%AC%7B%C2%AC%C2%BC%C2%BD%C2%B3%C2%BC%C2%B2%C2%B3%C2%BC%C2%B2%7B%7B32423%7D%7D"),
 		std::nullopt,
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -89,6 +95,7 @@ void CloudTransformerTest::testTransform_data()
 			}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
@@ -106,6 +113,7 @@ void CloudTransformerTest::testTransform_data()
 			}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -115,6 +123,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QByteArray{"Hello World"}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
@@ -122,6 +131,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_b"), QStringLiteral("SGVsbG8gV29ybGQ=")}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -131,6 +141,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QUrl{QStringLiteral("https://example.com/test?b=4&a=2#um")}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
@@ -138,6 +149,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_u"), QStringLiteral("https://example.com/test?b=4&a=2#um")}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -147,6 +159,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QDateTime{{2010, 10, 5}, {14, 27, 7, 550}, Qt::UTC}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
@@ -154,6 +167,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_d"), QStringLiteral("2010-10-05T14:27:07.550Z")}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -164,6 +178,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), uuid}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
@@ -171,6 +186,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_i"), uuid.toString(QUuid::WithoutBraces)}}
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -188,6 +204,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("keyU64"), std::numeric_limits<quint64>::max()},
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
@@ -203,6 +220,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("keyU64"), QJsonArray{QStringLiteral("__qtds_v"), QDataStream::Qt_DefaultCompiledVersion, serialize(std::numeric_limits<quint64>::max())}},
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 
@@ -213,6 +231,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), p},
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	} << CloudData {
 		QStringLiteral("SimpleType"), QStringLiteral("_simpleKey"),
@@ -220,6 +239,7 @@ void CloudTransformerTest::testTransform_data()
 			{QStringLiteral("key"), QJsonArray{QStringLiteral("__qtds_v"), QDataStream::Qt_DefaultCompiledVersion, serialize(p)}},
 		},
 		tStamp,
+		std::nullopt,
 		QDateTime{}
 	};
 }

@@ -8,5 +8,6 @@
 
 	<Property key="data" type="Content">std::nullopt</Property>
 	<Property key="modified" type="QDateTime"/>
+	<Property key="version" type="std::optional&lt;QVersionNumber&gt;"/>
 	<Property key="uploaded" type="Timestamp"/>
 </RestGadget>

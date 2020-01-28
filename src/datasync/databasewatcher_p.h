@@ -28,7 +28,8 @@ public:
 		Entry = static_cast<int>(Engine::ErrorType::Entry),
 		Table = static_cast<int>(Engine::ErrorType::Table),
 		Database = static_cast<int>(Engine::ErrorType::Database),
-		Transaction = static_cast<int>(Engine::ErrorType::Transaction)
+		Transaction = static_cast<int>(Engine::ErrorType::Transaction),
+		Version = static_cast<int>(Engine::ErrorType::Version)
 	};
 	Q_ENUM(ErrorScope)
 
@@ -106,15 +107,18 @@ private:
 	using PKeyInfo = std::pair<QString, int>;
 
 	struct TableInfo {
+		std::optional<QVersionNumber> version;
 		PKeyInfo pKeyInfo;
 		QStringList fields;
 		QList<TableConfig::Reference> references;
 
 		inline TableInfo() = default;
 
-		inline TableInfo(PKeyInfo &&pKeyInfo,
+		inline TableInfo(std::optional<QVersionNumber> &&version,
+						 PKeyInfo &&pKeyInfo,
 						 QStringList &&fields,
 						 QList<TableConfig::Reference> &&references) :
+			version{std::move(version)},
 			pKeyInfo{std::move(pKeyInfo)},
 			fields{std::move(fields)},
 			references{std::move(references)}
@@ -134,6 +138,7 @@ private:
 
 	void updateLastSync(const QString &table, const QDateTime &uploaded);
 	bool shouldStoreImpl(const LocalData &data, const QVariant &escKey);
+	void verifyVersion(const TableInfo &tInfo, const LocalData &data);
 
 	QString encodeKey(const QVariant &key, int type) const;
 	QVariant decodeKey(const QString &key, int type) const;
@@ -162,6 +167,20 @@ protected:
 	ErrorScope _scope;
 	QVariant _key;
 	QSqlError _error;
+};
+
+class Q_DATASYNC_EXPORT InvalidVersionException : public SqlException
+{
+public:
+	InvalidVersionException(const QString &table, QVersionNumber local, QVersionNumber remote);
+
+	QString qWhat() const override;
+	void raise() const override;
+	ExceptionBase *clone() const override;
+
+protected:
+	QVersionNumber _local;
+	QVersionNumber _remote;
 };
 
 class Q_DATASYNC_EXPORT ExQuery : public QSqlQuery

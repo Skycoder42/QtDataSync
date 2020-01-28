@@ -168,7 +168,8 @@ void RemoteConnectorTest::testUploadData()
 	const auto token = _connector->uploadChange({
 		Table, QStringLiteral("_0"),
 		std::nullopt,
-		earlyTime
+		earlyTime,
+		std::nullopt
 	});
 	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(syncSpy, errorSpy);
@@ -272,7 +273,8 @@ void RemoteConnectorTest::testConflict()
 	CloudData ulData {
 		Table, QStringLiteral("_key"),
 		std::nullopt,
-		QDateTime::currentDateTimeUtc()
+		QDateTime::currentDateTimeUtc(),
+		std::nullopt
 	};
 	const auto token1 = _connector->uploadChange(ulData);
 	QVERIFY(token1 != InvalidToken);
@@ -308,7 +310,8 @@ void RemoteConnectorTest::testCancel()
 	token = _connector->uploadChange({
 		Table, QStringLiteral("_key"),
 		std::nullopt,
-		QDateTime::currentDateTimeUtc()
+		QDateTime::currentDateTimeUtc(),
+		std::nullopt
 	});
 	QVERIFY(token != InvalidToken);
 	_connector->cancel(token);
@@ -385,7 +388,8 @@ void RemoteConnectorTest::testLiveSync()
 	CloudData data {
 		Table, QStringLiteral("_key"),
 		std::nullopt,
-		QDateTime::currentDateTimeUtc()
+		QDateTime::currentDateTimeUtc(),
+		std::nullopt
 	};
 	const auto token = _connector->uploadChange(data);
 	QVERIFY(token != InvalidToken);
@@ -467,6 +471,7 @@ void RemoteConnectorTest::testRemoveUser()
 		Table, QStringLiteral("_key"),
 		std::nullopt,
 		QDateTime::currentDateTimeUtc(),
+		std::nullopt
 	});
 	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(uploadSpy, errorSpy);

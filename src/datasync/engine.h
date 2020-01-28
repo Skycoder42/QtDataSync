@@ -117,6 +117,7 @@ public:
 		Database,
 		Transaction,
 		Transform,
+		Version,
 
 		Unknown = -1
 	};

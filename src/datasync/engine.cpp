@@ -440,8 +440,9 @@ void EnginePrivate::_q_tableErrorOccured(const QString &table, const ErrorInfo &
 	switch (info.type) {
 	// global errors that need the engine to be stopped
 	case Engine::ErrorType::Unknown:	// better safe then sorry
-	case Engine::ErrorType::Network:	// network errors prevent syncing, until network is back
+	case Engine::ErrorType::Network:	// network errors that are not connection breaks are globally critical
 	case Engine::ErrorType::Database:	// affects the whole database -> stop syncing
+	case Engine::ErrorType::Version:	// application is outdated and needs to be updated -> stop syncing
 		engineModel->cancel(info);
 		break;
 	// local errors that only affect certain datasets, tables or even nothing

@@ -79,15 +79,16 @@ private:
 	QtRestClient::RestClient *_client = nullptr;
 	firebase::realtimedb::ApiClient *_api = nullptr;
 	int _limit = 100;
+	bool _syncTableVersions = false;
 
 	CancallationToken _cancelCtr = 0;
 	QHash<CancallationToken, QPointer<QNetworkReply>> _cancelCache;
 
 	QHash<QString, EventData> _eventCache;
 
-	static CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data, bool skipUploaded = false);
 	static QString translateError(const QtDataSync::firebase::realtimedb::Error &error, int code);
 
+	CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data, bool skipUploaded = false) const;
 	CancallationToken acquireToken(QNetworkReply *reply, const CancallationToken overwriteToken = InvalidToken);
 	inline CancallationToken acquireToken(QtRestClient::RestReply *reply, const CancallationToken overwriteToken = InvalidToken) {
 		return acquireToken(reply->networkReply(), overwriteToken);

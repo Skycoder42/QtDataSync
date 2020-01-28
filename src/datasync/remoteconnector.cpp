@@ -34,6 +34,7 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNe
 	}
 
 	_limit = config.readLimit;
+	_syncTableVersions = config.syncTableVersions;
 
 	connect(nam, &QNetworkAccessManager::networkAccessibleChanged,
 			this, [this](){
@@ -311,19 +312,20 @@ void RemoteConnector::streamClosed(const QString &type, const CancallationToken 
 	}
 }
 
-CloudData RemoteConnector::dlData(ObjectKey key, const Data &data, bool skipUploaded)
+QString RemoteConnector::translateError(const Error &error, int)
+{
+	return error.error();
+}
+
+CloudData RemoteConnector::dlData(ObjectKey key, const Data &data, bool skipUploaded) const
 {
 	return {
 		std::move(key),
 		std::get<std::optional<QJsonObject>>(data.data()),
 		data.modified(),
+		_syncTableVersions ? data.version() : std::nullopt,
 		skipUploaded ? QDateTime{} : std::get<QDateTime>(data.uploaded())
 	};
-}
-
-QString RemoteConnector::translateError(const Error &error, int)
-{
-	return error.error();
 }
 
 RemoteConnector::CancallationToken RemoteConnector::acquireToken(QNetworkReply *reply, const CancallationToken overwriteToken)
@@ -354,7 +356,12 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, Cancallat
 	}
 	// data on server is older -> upload
 	ApiBase::ETagSetter eTagSetter{_api, std::move(eTag)};
-	const auto reply = _api->uploadData({data.data(), data.modified(), ServerTimestamp{}},
+	const auto reply = _api->uploadData({
+											data.data(),
+											data.modified(),
+											_syncTableVersions ? data.version() : std::nullopt,
+											ServerTimestamp{}
+										},
 										data.key().typeName,
 										data.key().id);
 	cancelToken = acquireToken(reply, cancelToken);

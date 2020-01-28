@@ -8,6 +8,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qjsonobject.h>
+#include <QtCore/qversionnumber.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qshareddata.h>
 
@@ -23,8 +24,17 @@ class SyncData
 {
 public:
 	SyncData();
-	SyncData(ObjectKey key, std::optional<T> data, QDateTime modified, QDateTime uploaded = {});
-	SyncData(QString type, QString key, std::optional<T> data, QDateTime modified, QDateTime uploaded = {});
+	SyncData(ObjectKey key,
+			 std::optional<T> data,
+			 QDateTime modified,
+			 std::optional<QVersionNumber> version,
+			 QDateTime uploaded = {});
+	SyncData(QString type,
+			 QString key,
+			 std::optional<T> data,
+			 QDateTime modified,
+			 std::optional<QVersionNumber> version,
+			 QDateTime uploaded = {});
 	SyncData(const SyncData &other) = default;
 	SyncData(SyncData &&other) noexcept = default;
 	SyncData &operator=(const SyncData &other) = default;
@@ -40,11 +50,13 @@ public:
 	ObjectKey key() const;
 	std::optional<T> data() const;
 	QDateTime modified() const;
+	std::optional<QVersionNumber> version() const;
 	QDateTime uploaded() const;
 
 	void setKey(ObjectKey key);
 	void setData(std::optional<T> data);
 	void setModified(QDateTime modified);
+	void setVersion(std::optional<QVersionNumber> version);
 	void setUploaded(QDateTime uploaded);
 
 private:
@@ -117,6 +129,7 @@ struct SyncDataData : public QSharedData {
 	ObjectKey key;
 	std::optional<T> data = std::nullopt;
 	QDateTime modified;
+	std::optional<QVersionNumber> version = std::nullopt;
 	QDateTime uploaded;
 };
 
@@ -130,18 +143,19 @@ SyncData<T>::SyncData() :
 {}
 
 template <typename T>
-SyncData<T>::SyncData(ObjectKey key, std::optional<T> data, QDateTime modified, QDateTime uploaded) :
-	d{new __private::SyncDataData<T>{{}, std::move(key), std::move(data), std::move(modified), std::move(uploaded)}}
+SyncData<T>::SyncData(ObjectKey key, std::optional<T> data, QDateTime modified, std::optional<QVersionNumber> version, QDateTime uploaded) :
+	d{new __private::SyncDataData<T>{{}, std::move(key), std::move(data), std::move(modified), std::move(version), std::move(uploaded)}}
 {}
 
 template <typename T>
-SyncData<T>::SyncData(QString type, QString key, std::optional<T> data, QDateTime modified, QDateTime uploaded) :
-	SyncData{{std::move(type), std::move(key)}, std::move(data), std::move(modified), std::move(uploaded)}
+SyncData<T>::SyncData(QString type, QString key, std::optional<T> data, QDateTime modified, std::optional<QVersionNumber> version, QDateTime uploaded) :
+	SyncData{{std::move(type), std::move(key)}, std::move(data), std::move(modified), std::move(version), std::move(uploaded)}
 {}
+
 template <typename T>
 template<typename TOther>
 SyncData<T>::SyncData(ObjectKey key, std::optional<T> data, const SyncData<TOther> &other) :
-	SyncData{std::move(key), std::move(data), other.modified(), other.uploaded()}
+	SyncData{std::move(key), std::move(data), other.modified(), other.version(), other.uploaded()}
 {}
 
 template<typename T>
@@ -151,6 +165,7 @@ bool SyncData<T>::operator==(const SyncData &other) const
 			   d->key == other.d->key &&
 			   d->data == other.d->data &&
 			   d->modified == other.d->modified &&
+			   d->version == other.d->version &&
 			   d->uploaded == other.d->uploaded);
 }
 
@@ -161,6 +176,7 @@ bool SyncData<T>::operator!=(const SyncData &other) const
 			   d->key != other.d->key ||
 			   d->data != other.d->data ||
 			   d->modified != other.d->modified ||
+			   d->version != other.d->version ||
 			   d->uploaded != other.d->uploaded);
 }
 
@@ -180,6 +196,12 @@ template <typename T>
 QDateTime SyncData<T>::modified() const
 {
 	return d->modified;
+}
+
+template<typename T>
+std::optional<QVersionNumber> SyncData<T>::version() const
+{
+	return d->version;
 }
 
 template<typename T>
@@ -204,6 +226,12 @@ template <typename T>
 void SyncData<T>::setModified(QDateTime modified)
 {
 	d->modified = std::move(modified);
+}
+
+template<typename T>
+void SyncData<T>::setVersion(std::optional<QVersionNumber> version)
+{
+	d->version = std::move(version);
 }
 
 template<typename T>

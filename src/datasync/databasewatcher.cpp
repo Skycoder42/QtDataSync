@@ -105,6 +105,9 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 				const auto oldVersion = getMetaQuery.value(0).value<QVersionNumber>();
 				if (oldVersion == config.version()) {  // version has not changed or both are NULL -> just active, otherwise recreate
 					info = TableInfo{};
+					info->version = oldVersion.isNull() ?
+										std::optional<QVersionNumber>(std::nullopt) :
+										oldVersion;
 					info->pKeyInfo.first = getMetaQuery.value(1).toString();
 					info->pKeyInfo.second = getMetaQuery.value(2).toInt();
 				}
@@ -190,6 +193,9 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 			transact.commit();
 			// pre-populate caches with initial values
 			_tables.insert(name, {
+									 config.version().isNull() ?
+										std::optional<QVersionNumber>(std::nullopt) :
+										config.version(),
 									 std::make_pair(pKeyName, pKeyType),
 									 std::move(fields),
 									 config.references()
@@ -516,15 +522,15 @@ std::optional<QDateTime> DatabaseWatcher::lastSync(const QString &tableName)
 
 bool DatabaseWatcher::shouldStore(const ObjectKey &key, const CloudData &data)
 {
+	const auto &tInfo = _tables[key.typeName];
 	try {
+		// check if version acceptable
+		const LocalData lData {key, std::nullopt, data};
+		verifyVersion(tInfo, lData);
+
 		ExTransaction transact{_db, _mode, key};
 		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
-		const auto res = shouldStoreImpl({
-			key,
-			std::nullopt,
-			data.modified(),
-			data.uploaded()
-		}, decodeKey(key.id, pKeyType));
+		const auto res = shouldStoreImpl(lData, decodeKey(key.id, pKeyType));
 		transact.commit();
 		return res;
 	} catch (SqlException &error) {
@@ -539,7 +545,8 @@ void DatabaseWatcher::storeData(const LocalData &data)
 	const auto key = data.key();
 	const auto &tInfo = _tables[key.typeName];
 	try {
-		ExTransaction transact{_db, _mode, key};
+		// check if version acceptable
+		verifyVersion(tInfo, data);
 
 		// retrieve the primary key
 		const auto [pKey, pKeyType] = tInfo.pKeyInfo;
@@ -547,6 +554,8 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		const auto escTableName = tableName(key.typeName);
 		const auto escSyncName = tableName(key.typeName, true);
 
+		// begin processing
+		ExTransaction transact{_db, _mode, key};
 		// check if newer
 		if (!shouldStoreImpl(data, escKey)) {
 			transact.commit();
@@ -604,18 +613,16 @@ void DatabaseWatcher::storeData(const LocalData &data)
 			insertKeys.reserve(value->size());
 			updateKeys.reserve(value->size());
 			queryData.reserve(value->size());
-			auto realSize = 0;
 			for (auto it = value->begin(), end = value->end(); it != end; ++it) {
 				if (tInfo.fields.isEmpty() || tInfo.fields.contains(it.key())) {
 					const auto fName = fieldName(it.key());
 					insertKeys.append(fName);
 					updateKeys.append(QStringLiteral("%1 = excluded.%1").arg(fName));
 					queryData.append(*it);
-					++realSize;
 				}
 			}
 			const auto paramPlcs = QVector<QString>{
-				realSize,
+				queryData.size(),
 				QString{QLatin1Char('?')}
 			}.toList();
 
@@ -702,6 +709,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 			LocalData data;
 			data.setKey({name, encodeKey(nextDataQuery.value(0), pKeyType)});
 			data.setModified(nextDataQuery.value(1).toDateTime().toUTC());
+			data.setVersion(tInfo.version);
 			if (const auto fData = nextDataQuery.value(2); !fData.isNull()) {
 				const auto record = nextDataQuery.record();
 				QVariantHash tableData;
@@ -1055,6 +1063,13 @@ bool DatabaseWatcher::shouldStoreImpl(const LocalData &data, const QVariant &esc
 	}
 }
 
+void DatabaseWatcher::verifyVersion(const DatabaseWatcher::TableInfo &tInfo, const LocalData &data)
+{
+	if (tInfo.version && data.version() &&
+		tInfo.version < data.version())
+		throw InvalidVersionException{data.key().typeName, *tInfo.version, *data.version()};
+}
+
 QString DatabaseWatcher::encodeKey(const QVariant &key, int type) const
 {
 	// only handle SQLite types
@@ -1164,6 +1179,30 @@ QString SqlException::qWhat() const
 void SqlException::emitFor(DatabaseWatcher *watcher) const
 {
 	Q_EMIT watcher->databaseError(_scope, _key, _error);
+}
+
+
+
+InvalidVersionException::InvalidVersionException(const QString &table, QVersionNumber local, QVersionNumber remote) :
+	SqlException{ErrorScope::Version, table, {}},
+	_local{std::move(local)},
+	_remote{std::move(remote)}
+{}
+
+QString InvalidVersionException::qWhat() const
+{
+	return QStringLiteral("Received data with version \"%1\", which is newer than the local version \"%2\" - aborting sync until updated!")
+		.arg(_remote.toString(), _local.toString());
+}
+
+void InvalidVersionException::raise() const
+{
+	throw *this;
+}
+
+ExceptionBase *InvalidVersionException::clone() const
+{
+	return new InvalidVersionException{*this};
 }
 
 

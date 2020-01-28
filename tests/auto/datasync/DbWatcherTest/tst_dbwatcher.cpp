@@ -367,6 +367,7 @@ void DbWatcherTest::testStoreData_data()
 										 {QStringLiteral("Value"), 20}
 									 },
 									 QDateTime::currentDateTimeUtc().addSecs(-10),
+									 std::nullopt,
 									 lastSync
 								 }
 							  << QDateTime::currentDateTimeUtc().addSecs(-10)
@@ -382,6 +383,7 @@ void DbWatcherTest::testStoreData_data()
 											 {QStringLiteral("Value"), 42}
 										 },
 										 QDateTime::currentDateTimeUtc().addSecs(-5),
+										 std::nullopt,
 										 lastSync
 									 }
 								  << QDateTime::currentDateTimeUtc().addSecs(-5)
@@ -397,6 +399,7 @@ void DbWatcherTest::testStoreData_data()
 											 {QStringLiteral("Value"), 20}
 										 },
 										 QDateTime::currentDateTimeUtc().addSecs(-10),
+										 std::nullopt,
 										 lastSync
 									 }
 								  << QDateTime::currentDateTimeUtc().addSecs(-5)
@@ -409,6 +412,7 @@ void DbWatcherTest::testStoreData_data()
 										TestTable, QString::number(20),
 										std::nullopt,
 										QDateTime::currentDateTimeUtc().addSecs(-5),
+										std::nullopt,
 										lastSync
 									}
 								 << QDateTime::currentDateTimeUtc().addSecs(-5)
@@ -738,7 +742,8 @@ void DbWatcherTest::testBinaryKey()
 					{QStringLiteral("Key"), key},
 					{QStringLiteral("Value"), i/10.0},
 				},
-				QDateTime::currentDateTimeUtc()
+				QDateTime::currentDateTimeUtc(),
+				std::nullopt
 			});
 			QVERIFY(errorSpy.isEmpty());
 
