@@ -397,7 +397,7 @@ void DbWatcherTest::testStoreData_data()
 	QTest::addColumn<DatabaseWatcher::ChangeState>("changed");
 	QTest::addColumn<bool>("isStored");
 
-	auto lastSync = QDateTime::currentDateTimeUtc().addSecs(-5);
+	auto lastSync = QDateTime::currentDateTimeUtc().addSecs(-10);
 	QTest::newRow("storeNew") << QDateTime{}
 							  << LocalData {
 									 TestTable, QString::number(20),
@@ -457,6 +457,35 @@ void DbWatcherTest::testStoreData_data()
 								 << QDateTime::currentDateTimeUtc().addSecs(-5)
 								 << DatabaseWatcher::ChangeState::Unchanged
 								 << true;
+
+	lastSync = lastSync.addSecs(1);
+	QTest::newRow("storeVersioned") << lastSync.addSecs(-1)
+									<< LocalData {
+										   TestTable, QString::number(77),
+										   QVariantHash{
+											   {QStringLiteral("Key"), 77},
+											   {QStringLiteral("Value"), 77}
+										   },
+										   QDateTime::currentDateTimeUtc().addSecs(-10),
+										   QVersionNumber{1,2,3},
+										   lastSync
+									   }
+									<< QDateTime::currentDateTimeUtc().addSecs(-10)
+									<< DatabaseWatcher::ChangeState::Unchanged
+									<< true;
+
+	lastSync = lastSync.addSecs(1);
+	QTest::newRow("deleteVersioned") << lastSync.addSecs(-1)
+									 << LocalData {
+											TestTable, QString::number(77),
+											std::nullopt,
+											QDateTime::currentDateTimeUtc().addSecs(-5),
+											QVersionNumber{3,2,1},
+											lastSync
+										}
+									 << QDateTime::currentDateTimeUtc().addSecs(-5)
+									 << DatabaseWatcher::ChangeState::Unchanged
+									 << true;
 }
 
 void DbWatcherTest::testStoreData()
@@ -492,7 +521,7 @@ void DbWatcherTest::testStoreData()
 		}
 
 		// check if new data should be stored
-		const auto canStore = _watcher->shouldStore(data.key(), CloudData{data.key(), std::nullopt, data});
+		auto canStore = _watcher->shouldStore(data.key(), CloudData{data.key(), std::nullopt, data});
 		QVERIFY(errorSpy.isEmpty());
 		QCOMPARE(canStore, isStored);
 
@@ -1514,6 +1543,15 @@ void DbWatcherTest::testVersionedTable()
 			});
 			QTRY_COMPARE(errorSpy.size(), 1);
 			errorSpy.clear();
+
+			// test should store unversioned
+			_watcher->shouldStore({table, QString::number(1)}, {
+				table, QString::number(4),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
 		}
 
 		{
@@ -1543,6 +1581,16 @@ void DbWatcherTest::testVersionedTable()
 				QVersionNumber{2,0,1}
 			});
 			QTRY_COMPARE(errorSpy.size(), 1);
+			errorSpy.clear();
+
+			// test store unversioned
+			_watcher->storeData({
+				table, QString::number(4),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
 		}
 
 		_watcher->unsyncTable(table);

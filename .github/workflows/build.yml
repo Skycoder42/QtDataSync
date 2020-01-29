@@ -97,15 +97,15 @@ jobs:
         run: |
           qmake CONFIG+=install_ok QT_PLATFORM=${{matrix.platform}}
           ${{steps.qt.outputs.make}} qmake_all
-        env:
-          FIREBASE_PROJECT_ID: ${{secrets.FIREBASE_PROJECT_ID}}
-          FIREBASE_API_KEY: ${{secrets.FIREBASE_API_KEY}}
       - name: make module
         run: |
           ${{steps.qt.outputs.make}}
           ${{steps.qt.outputs.make}} INSTALL_ROOT="${{steps.qt.outputs.installdir}}" install
       - name: make tests
         if: steps.qt.outputs.tests == 'true'
+        env:
+          FIREBASE_PROJECT_ID: ${{secrets.FIREBASE_PROJECT_ID}}
+          FIREBASE_API_KEY: ${{secrets.FIREBASE_API_KEY}}
         run: |
           ${{steps.qt.outputs.make}} all
           ${{steps.qt.outputs.make}} ${{steps.qt.outputs.testflags}} run-tests
