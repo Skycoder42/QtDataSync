@@ -10,6 +10,8 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qloggingcategory.h>
 
+#include <QtNetwork/qsslconfiguration.h>
+
 class QNetworkAccessManager;
 class QRemoteObjectHostBase;
 
@@ -80,6 +82,7 @@ public:
 
 	QSettings *settings = nullptr;
 	QNetworkAccessManager *nam = nullptr;
+	std::optional<QSslConfiguration> sslConfig = std::nullopt;
 	QUrl roUrl;
 	QRemoteObjectHostBase *roNode = nullptr;
 

@@ -31,7 +31,7 @@ QString FirebaseAuthenticator::translateError(const Error &error, int code)
 	return QStringLiteral("Request failed with status code %1").arg(code);
 }
 
-FirebaseAuthenticator::FirebaseAuthenticator(IAuthenticator *authenticator, const QString &apiKey, QSettings *settings, QNetworkAccessManager *nam, QObject *parent) :
+FirebaseAuthenticator::FirebaseAuthenticator(IAuthenticator *authenticator, const QString &apiKey, QSettings *settings, QNetworkAccessManager *nam, const std::optional<QSslConfiguration> &sslConfig, QObject *parent) :
 	QObject{parent},
 	_auth{authenticator},
 	_settings{settings},
@@ -56,6 +56,8 @@ FirebaseAuthenticator::FirebaseAuthenticator(IAuthenticator *authenticator, cons
 	// api
 	auto client = new QtRestClient::RestClient{QtRestClient::RestClient::DataMode::Json, this};
 	client->setManager(nam);
+	if (sslConfig)
+		client->setSslConfiguration(*sslConfig);
 	client->setModernAttributes();
 	client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
 	client->setBaseUrl(QUrl{QStringLiteral("https://identitytoolkit.googleapis.com")});

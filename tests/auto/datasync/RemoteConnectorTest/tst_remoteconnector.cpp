@@ -68,8 +68,9 @@ void RemoteConnectorTest::initTestCase()
 		settings1->beginGroup(QStringLiteral("rmc1"));
 		_rmc1 = new RemoteConnector{
 			config,
-			_nam,
 			settings1,
+			_nam,
+			std::nullopt,
 			this
 		};
 		_rmc1->setUser(authRes->first);
@@ -81,8 +82,9 @@ void RemoteConnectorTest::initTestCase()
 		settings2->beginGroup(QStringLiteral("rmc2"));
 		_rmc2 = new RemoteConnector{
 			config,
-			_nam,
 			settings2,
+			_nam,
+			std::nullopt,
 			this
 		};
 		_rmc2->setUser(authRes->first);

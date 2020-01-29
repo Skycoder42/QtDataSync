@@ -16,7 +16,7 @@ Q_LOGGING_CATEGORY(QtDataSync::logRmc, "qt.datasync.RemoteConnector")
 
 const QString RemoteConnector::DeviceIdKey = QStringLiteral("rmc/deviceId");
 
-RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNetworkAccessManager *nam, QSettings *settings, QObject *parent) :
+RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QSettings *settings, QNetworkAccessManager *nam, const std::optional<QSslConfiguration> &sslConfig, QObject *parent) :
 	QObject{parent},
 	_settings{settings},
 	_client{new JsonSuffixClient{this}}
@@ -47,17 +47,19 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNe
 			});
 
 	_client->setManager(nam);
-	const auto serializer = _client->serializer();
-	serializer->setAllowDefaultNull(true);
-	serializer->addJsonTypeConverter<ServerTimestampConverter>();
-	serializer->addJsonTypeConverter<AccurateTimestampConverter>();
-	serializer->addJsonTypeConverter<QueryMapConverter>();
+	if (sslConfig)
+		_client->setSslConfiguration(*sslConfig);
 	_client->setModernAttributes();
 	_client->addRequestAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
 	_client->setBaseUrl(QUrl{QStringLiteral("https://%1.firebaseio.com/datasync")
 								 .arg(config.projectId)});
 	_client->addGlobalParameter(QStringLiteral("timeout"), timeString(config.readTimeOut));
 	_client->addGlobalParameter(QStringLiteral("writeSizeLimit"), QStringLiteral("unlimited"));
+	const auto serializer = _client->serializer();
+	serializer->setAllowDefaultNull(true);
+	serializer->addJsonTypeConverter<ServerTimestampConverter>();
+	serializer->addJsonTypeConverter<AccurateTimestampConverter>();
+	serializer->addJsonTypeConverter<QueryMapConverter>();
 }
 
 bool RemoteConnector::isActive() const
@@ -196,7 +198,7 @@ void RemoteConnector::logOut(bool clearDevId)
 		_api = nullptr;
 	}
 	if (clearDevId) {
-		_devId = {};
+		_devId = QUuid{};
 		_settings->remove(DeviceIdKey);
 	}
 }

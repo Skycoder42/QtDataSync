@@ -27,6 +27,7 @@ public:
 								   const QString &apiKey,
 								   QSettings *settings,
 								   QNetworkAccessManager *nam,
+								   const std::optional<QSslConfiguration> &sslConfig,
 								   QObject *parent = nullptr);
 
 	IAuthenticator *authenticator() const;

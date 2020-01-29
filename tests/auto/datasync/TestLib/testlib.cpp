@@ -23,6 +23,7 @@ FirebaseAuthenticator *TestLib::createAuth(const QString &apiKey, QObject *paren
 		apiKey,
 		settings ? settings : createSettings(parent),
 		nam ? nam : new QNetworkAccessManager{parent},
+		std::nullopt,
 		parent
 	};
 }

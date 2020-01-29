@@ -120,6 +120,11 @@ public:
 		return *this;
 	}
 
+	inline Setup &setSslConfiguration(std::optional<QSslConfiguration> configuration) {
+		d->sslConfig = std::move(configuration);
+		return *this;
+	}
+
 	inline Setup &setAsyncUrl(QUrl url) {
 		d->roUrl = std::move(url);
 		d->roNode = nullptr;

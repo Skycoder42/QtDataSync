@@ -75,7 +75,7 @@ TableDataModel::SyncState TableDataModel::state() const
 		return SyncState::Error;
 	else if (stateMachine()->isActive(QStringLiteral("Offline")))
 		return SyncState::Offline;
-	else if (stateMachine()->isActive(QStringLiteral("LiveSync")))
+	else if (stateMachine()->isActive(QStringLiteral("LsActive")))
 		return SyncState::LiveSync;
 	else if (stateMachine()->isActive(QStringLiteral("Downloading")))
 		return SyncState::Downloading;
@@ -88,7 +88,7 @@ TableDataModel::SyncState TableDataModel::state() const
 		return SyncState::Stopped;
 	else if (stateMachine()->isActive(QStringLiteral("Active")))
 		return SyncState::Initializing;
-	// edge case
+	// fallback case
 	else
 		return SyncState::Invalid;
 }

@@ -31,8 +31,9 @@ public:
 	static const QString DeviceIdKey;
 
 	explicit RemoteConnector(const __private::SetupPrivate::FirebaseConfig &config,
-							 QNetworkAccessManager *nam,
 							 QSettings *settings,
+							 QNetworkAccessManager *nam,
+							 const std::optional<QSslConfiguration> &sslConfig,
 							 QObject *parent);
 
 	bool isActive() const;

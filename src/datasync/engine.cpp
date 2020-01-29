@@ -257,13 +257,15 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 		d->setup->firebase.apiKey,
 		d->setup->settings,
 		d->setup->nam,
+		d->setup->sslConfig,
 		this
 	};
 	d->transformer = d->setup->createTransformer(this);
-	d->connector = new RemoteConnector{
+	d->connector = new RemoteConnector {
 		d->setup->firebase,
-		d->setup->nam,
 		d->setup->settings,
+		d->setup->nam,
+		d->setup->sslConfig,
 		this
 	};
 
