@@ -2,15 +2,19 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	TestLib \
-	AuthenticatorTest \
-	RemoteConnectorTest \
 	DbWatcherTest \
 	CloudTransformerTest \
 	TableMachineTest \
 	EngineMachineTest
 
-AuthenticatorTest.depends += TestLib
-RemoteConnectorTest.depends += TestLib AuthenticatorTest
+!no_firebase_tests {
+	SUBDIRS += \
+		AuthenticatorTest \
+		RemoteConnectorTest
+
+		AuthenticatorTest.depends += TestLib
+		RemoteConnectorTest.depends += TestLib AuthenticatorTest
+}
 
 prepareRecursiveTarget(run-tests)
 QMAKE_EXTRA_TARGETS += run-tests

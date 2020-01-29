@@ -2,6 +2,11 @@
 #include <QtCore/QDebug>
 using namespace QtDataSync;
 
+bool ObjectKey::isValid() const
+{
+	return !typeName.isEmpty();
+}
+
 QString ObjectKey::toString() const
 {
 	return QStringLiteral("[%1:%2]").arg(typeName, id);

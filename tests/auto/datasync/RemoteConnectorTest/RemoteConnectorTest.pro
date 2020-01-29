@@ -24,8 +24,8 @@ SOURCES += \
 	tst_remoteconnector.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
-DEFINES += FIREBASE_API_KEY=\\\"$$(FIREBASE_API_KEY)\\\"
-DEFINES += FIREBASE_PROJECT_ID=\\\"$$(FIREBASE_PROJECT_ID)\\\"
+DEFINES += $$envDefine(FIREBASE_PROJECT_ID)
+DEFINES += $$envDefine(FIREBASE_API_KEY)
 
 include($$PWD/../testlib.pri)
 include($$PWD/../../testrun.pri)

@@ -17,6 +17,7 @@ struct Q_DATASYNC_EXPORT ObjectKey
 	//! The id of the dataset (it's USER property)
 	QString id;
 
+	bool isValid() const;
 	QString toString() const;
 
 	//! Equality operator

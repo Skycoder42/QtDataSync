@@ -18,7 +18,7 @@ SOURCES += \
 	tst_authenticator.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
-DEFINES += FIREBASE_API_KEY=\\\"$$(FIREBASE_API_KEY)\\\"
+DEFINES += $$envDefine(FIREBASE_API_KEY)
 
 include($$PWD/../testlib.pri)
 include($$PWD/../../testrun.pri)

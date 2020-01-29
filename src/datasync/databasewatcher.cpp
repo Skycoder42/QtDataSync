@@ -187,7 +187,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 				addFKeyQuery.addBindValue(ref.second);
 				addFKeyQuery.exec();
 			}
-			qCDebug(logDbWatcher) << "Stored custom table fields for" << name;
+			qCDebug(logDbWatcher) << "Stored table field references for" << name;
 
 			// step 3.2.4: commit transaction and add table
 			transact.commit();
@@ -361,13 +361,38 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 		// step 2: remove all sync stuff
 		ExTransaction transact{_db, _mode, name};
 
-		// step 2.1 remove sync metadata
-		ExQuery removeMetaData{_db, ErrorScope::Database, name};
-		removeMetaData.prepare(QStringLiteral("DELETE FROM %1 "
-											  "WHERE tableName == ?;")
-								   .arg(MetaTable));
-		removeMetaData.addBindValue(name);
-		removeMetaData.exec();
+		// step 2.0 check foreign keys enabled
+		ExQuery getFKeyState{_db, ErrorScope::Database, name};
+		getFKeyState.exec(QStringLiteral("PRAGMA foreign_keys;"));
+		if (!getFKeyState.first() || !getFKeyState.value(0).toBool()) {  // pragma not found or disabled
+			getFKeyState.finish();
+
+			// step 2.1 remove sync references
+			ExQuery removeRefsQuery{_db, ErrorScope::Database, name};
+			removeRefsQuery.prepare(QStringLiteral("DELETE FROM %1 "
+												   "WHERE tableName == ?;")
+										.arg(ReferenceTable));
+			removeRefsQuery.addBindValue(name);
+			removeRefsQuery.exec();
+			qCDebug(logDbWatcher) << "Removed sync references for" << name;
+
+			// step 2.2 remove sync fields
+			ExQuery removeFieldsQuery{_db, ErrorScope::Database, name};
+			removeFieldsQuery.prepare(QStringLiteral("DELETE FROM %1 "
+													 "WHERE tableName == ?;")
+										  .arg(FieldTable));
+			removeFieldsQuery.addBindValue(name);
+			removeFieldsQuery.exec();
+			qCDebug(logDbWatcher) << "Removed sync fields for" << name;
+		}
+
+		// step 2.3 remove sync metadata
+		ExQuery removeMetaDataQuery{_db, ErrorScope::Database, name};
+		removeMetaDataQuery.prepare(QStringLiteral("DELETE FROM %1 "
+												   "WHERE tableName == ?;")
+										.arg(MetaTable));
+		removeMetaDataQuery.addBindValue(name);
+		removeMetaDataQuery.exec();
 		qCDebug(logDbWatcher) << "Removed metadata for" << name;
 
 		// step 2.2 remove specific sync tables
