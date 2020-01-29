@@ -67,8 +67,9 @@ private Q_SLOTS:
 	void testStoreCustomFields();
 	void testUnsyncCustomFields();
 	void testVersionedTable();
-
 	void testReferences();
+
+	void testNoPersistDelete();
 
 private:
 	static const QString TestTable;
@@ -87,8 +88,8 @@ private:
 	DatabaseWatcher *_watcher;
 
 	void fillDb();
-	void markChanged(DatabaseWatcher::ChangeState state, const QString &key = {});
-	void markChanged(DatabaseWatcher::ChangeState state, const QtDataSync::DatasetId &key);
+	void markChanged(DatabaseWatcher::ChangeState state, const QString &key = {}, DatabaseWatcher *watcher = nullptr);
+	void markChanged(DatabaseWatcher::ChangeState state, const QtDataSync::DatasetId &key, DatabaseWatcher *watcher = nullptr);
 };
 
 const QString DbWatcherTest::TestTable = QStringLiteral("TestData");
@@ -100,7 +101,7 @@ void DbWatcherTest::initTestCase()
 	qDebug().noquote() << "Test directory:" << _tDir.path();
 	_watcher = new DatabaseWatcher {
 		QSqlDatabase::addDatabase(QStringLiteral("QSQLITE")),
-		TransactionMode::Default,
+		{TransactionMode::Default, true},
 		this
 	};
 	auto db = _watcher->database();
@@ -612,11 +613,11 @@ void DbWatcherTest::testLoadData()
 
 			VERIFY_CHANGED(i, mTime, mTime);
 			// mark unchanged invalid tstamp
-			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime.addSecs(3));
+			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime.addSecs(3), false);
 			QVERIFY(errorSpy.isEmpty());
 			VERIFY_CHANGED(i, mTime, mTime);
 			// mark unchanged valid tstamp
-			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime);
+			_watcher->markUnchanged({TestTable, QString::number(i)}, mTime, false);
 			QVERIFY(errorSpy.isEmpty());
 			VERIFY_UNCHANGED1(i, mTime);
 		}
@@ -849,7 +850,7 @@ void DbWatcherTest::testBinaryKey()
 					 QString::fromUtf8(data->data()->value(QStringLiteral("Key")).toByteArray().toBase64()));
 			QCOMPARE(QByteArray::fromBase64(data->key().key.toUtf8()),
 					 data->data()->value(QStringLiteral("Key")).toByteArray());
-			_watcher->markUnchanged(data->key(), data->modified());
+			_watcher->markUnchanged(data->key(), data->modified(), false);
 			QVERIFY(errorSpy.isEmpty());
 		}
 		QVERIFY(!_watcher->loadData(table));
@@ -986,7 +987,7 @@ void DbWatcherTest::testPKey()
 			_watcher->markCorrupted(key, QDateTime::currentDateTimeUtc());
 			QVERIFY(errorSpy.isEmpty());
 			VERIFY_CHANGED_STATE_KEY(key, lData->modified(), lData->modified(), DatabaseWatcher::ChangeState::Corrupted);
-			_watcher->markUnchanged(key, lData->modified());
+			_watcher->markUnchanged(key, lData->modified(), false);
 			QVERIFY(errorSpy.isEmpty());
 			VERIFY_CHANGED_STATE_KEY(key, lData->modified(), lData->modified(), DatabaseWatcher::ChangeState::Unchanged);
 			QVERIFY(!_watcher->loadData(table));
@@ -1351,7 +1352,7 @@ void DbWatcherTest::testStoreCustomFields()
 		auto lData = _watcher->loadData(QStringLiteral("FieldTest"));
 		QCOMPARE(*lData, loadData);
 		// mark unchanged
-		_watcher->markUnchanged(loadData.key(), loadData.modified());
+		_watcher->markUnchanged(loadData.key(), loadData.modified(), false);
 		VERIFY_CHANGED_STATE_KEY(loadData.key(), loadData.modified(), loadData.modified(), DatabaseWatcher::ChangeState::Unchanged);
 	} catch (std::exception &e) {
 		QFAIL(e.what());
@@ -1780,6 +1781,7 @@ void DbWatcherTest::testReferences()
 			QVERIFY(getParent2Query.next());
 			QVERIFY(getParent2Query.value(0).isNull());
 			QVERIFY(!getParent2Query.next());
+
 			// should not have a changed entry
 			Query testChangedQuery{_watcher};
 			testChangedQuery.prepare(QStringLiteral("SELECT tstamp, changed "
@@ -1827,6 +1829,116 @@ void DbWatcherTest::testReferences()
 	}
 }
 
+void DbWatcherTest::testNoPersistDelete()
+{
+	try {
+		// create new watcher without persisting
+		using sptr = QScopedPointer<DatabaseWatcher, QScopedPointerDeleteLater>;
+		sptr wPtr {new DatabaseWatcher {
+			QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("testCon2")),
+			{TransactionMode::Default, false},
+			this
+		}};
+		auto _watcher = wPtr.data();
+		auto db = _watcher->database();
+		QVERIFY(db.isValid());
+		db.setDatabaseName(_tDir.filePath(QStringLiteral("test2.db")));
+		QVERIFY2(db.open(), qUtf8Printable(db.lastError().text()));
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
+		// create table and add data
+		Query createQuery{db};
+		createQuery.exec(QStringLiteral("CREATE TABLE NoPersistData ("
+										"	Key		INTEGER NOT NULL PRIMARY KEY, "
+										"	Value	TEXT NOT NULL "
+										");"));
+		for (auto i = 0; i < 5; ++i) {
+			Query fillQuery{db};
+			fillQuery.prepare(QStringLiteral("INSERT INTO NoPersistData "
+											 "(Key, Value) "
+											 "VALUES(?, ?)"));
+			fillQuery.addBindValue(i);
+			fillQuery.addBindValue(QStringLiteral("data_%1").arg(i));
+			fillQuery.exec();
+		}
+
+		// add table
+		const auto table = QStringLiteral("NoPersistData");
+		const auto before = QDateTime::currentDateTimeUtc();
+		_watcher->addTable(table);
+		const auto after = QDateTime::currentDateTimeUtc();
+
+		const auto mod = QDateTime::currentDateTimeUtc();
+		{
+			// modify dataset 0
+			DatasetId key{table, QString::number(0)};
+			VERIFY_CHANGED_STATE_KEY(key, before, after, DatabaseWatcher::ChangeState::Changed);
+			_watcher->storeData({
+				key,
+				QVariantHash {
+					{QStringLiteral("Key"), 0},
+					{QStringLiteral("Value"), QStringLiteral("baum")}
+				},
+				mod,
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
+			VERIFY_CHANGED_STATE_KEY(key, mod, mod, DatabaseWatcher::ChangeState::Unchanged);
+		}
+
+		{
+			// delete dataset 1
+			DatasetId key {table, QString::number(1)};
+			VERIFY_CHANGED_STATE_KEY(key, before, after, DatabaseWatcher::ChangeState::Changed);
+			_watcher->storeData({
+				key,
+				std::nullopt,
+				mod,
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
+			Query testChangedQuery{_watcher};
+			testChangedQuery.prepare(QStringLiteral("SELECT tstamp, changed "
+													"FROM __qtdatasync_sync_data_NoPersistData "
+													"WHERE pkey == ?;"));
+			testChangedQuery.addBindValue(key.key);
+			testChangedQuery.exec();
+			QVERIFY(!testChangedQuery.next());
+		}
+
+		{
+			// mark dataset 0 unchanged
+			DatasetId key{table, QString::number(0)};
+			markChanged(DatabaseWatcher::ChangeState::Changed, key, _watcher);
+			VERIFY_CHANGED_STATE_KEY(key, mod, mod, DatabaseWatcher::ChangeState::Changed);
+			_watcher->markUnchanged(key, mod, false);
+			QVERIFY(errorSpy.isEmpty());
+			VERIFY_CHANGED_STATE_KEY(key, mod, mod, DatabaseWatcher::ChangeState::Unchanged);
+		}
+
+		{
+			// mark dataset 0 unchanged (as if deleted)
+			DatasetId key{table, QString::number(0)};
+			markChanged(DatabaseWatcher::ChangeState::Changed, key, _watcher);
+			VERIFY_CHANGED_STATE_KEY(key, mod, mod, DatabaseWatcher::ChangeState::Changed);
+			_watcher->markUnchanged(key, mod, true);
+			QVERIFY(errorSpy.isEmpty());
+			Query testChangedQuery{_watcher};
+			testChangedQuery.prepare(QStringLiteral("SELECT tstamp, changed "
+													"FROM __qtdatasync_sync_data_NoPersistData "
+													"WHERE pkey == ?;"));
+			testChangedQuery.addBindValue(key.key);
+			testChangedQuery.exec();
+			QVERIFY(!testChangedQuery.next());
+		}
+
+		_watcher->unsyncTable(table);
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
 void DbWatcherTest::fillDb()
 {
 	try {
@@ -1850,22 +1962,22 @@ void DbWatcherTest::fillDb()
 	}
 }
 
-void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const QString &key)
+void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const QString &key, DatabaseWatcher *watcher)
 {
-	markChanged(state, {TestTable, key});
+	markChanged(state, {TestTable, key}, watcher);
 }
 
-void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const DatasetId &key)
+void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const DatasetId &key, DatabaseWatcher *watcher)
 {
 	if (key.key.isEmpty()) {
-		Query markChangedQuery{_watcher};
+		Query markChangedQuery{watcher ? watcher : _watcher};
 		markChangedQuery.prepare(QStringLiteral("UPDATE %1 "
 												"SET changed = ?;")
 									 .arg(DatabaseWatcher::TablePrefix + key.tableName));
 		markChangedQuery.addBindValue(static_cast<int>(state));
 		markChangedQuery.exec();
 	} else {
-		Query markChangedQuery{_watcher};
+		Query markChangedQuery{watcher ? watcher : _watcher};
 		markChangedQuery.prepare(QStringLiteral("UPDATE %1 "
 												"SET changed = ? "
 												"WHERE pkey == ?;")

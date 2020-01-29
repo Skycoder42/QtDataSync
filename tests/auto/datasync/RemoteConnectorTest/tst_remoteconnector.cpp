@@ -133,7 +133,8 @@ void RemoteConnectorTest::testUploadData()
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
 		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
-		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
+		QCOMPARE(uploadSpy1[0][1].toDateTime(), modified);
+		QCOMPARE(uploadSpy1[0][2].toBool(), false);
 		QVERIFY(downloadSpy1.isEmpty());
 		QVERIFY(syncSpy1.isEmpty());
 		uploadSpy1.clear();
@@ -156,7 +157,8 @@ void RemoteConnectorTest::testUploadData()
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
 		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
-		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
+		QCOMPARE(uploadSpy1[0][1].toDateTime(), modified);
+		QCOMPARE(uploadSpy1[0][2].toBool(), false);
 		QVERIFY(downloadSpy1.isEmpty());
 		QVERIFY(syncSpy1.isEmpty());
 		uploadSpy1.clear();
@@ -176,7 +178,8 @@ void RemoteConnectorTest::testUploadData()
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
 		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
-		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
+		QCOMPARE(uploadSpy1[0][1].toDateTime(), modified);
+		QCOMPARE(uploadSpy1[0][2].toBool(), true);
 		QVERIFY(downloadSpy1.isEmpty());
 		QVERIFY(syncSpy1.isEmpty());
 		uploadSpy1.clear();
@@ -302,7 +305,8 @@ void RemoteConnectorTest::testOutdated()
 	VERIFY_SPY(uploadSpy1, errorSpy1);
 	QCOMPARE(uploadSpy1.size(), 1);
 	QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), data.key());
-	QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), data.modified());
+	QCOMPARE(uploadSpy1[0][1].toDateTime(), data.modified());
+	QCOMPARE(uploadSpy1[0][2].toBool(), true);
 	QVERIFY(downloadSpy1.isEmpty());
 	QVERIFY(syncSpy1.isEmpty());
 	uploadSpy1.clear();
@@ -318,7 +322,8 @@ void RemoteConnectorTest::testOutdated()
 	VERIFY_SPY(uploadSpy1, errorSpy1);
 	QCOMPARE(uploadSpy1.size(), 1);
 	QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), data.key());
-	QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), data.modified());
+	QCOMPARE(uploadSpy1[0][1].toDateTime(), data.modified());
+	QCOMPARE(uploadSpy1[0][2].toBool(), false);
 	QVERIFY(downloadSpy1.isEmpty());
 	QVERIFY(syncSpy1.isEmpty());
 	uploadSpy1.clear();
@@ -458,7 +463,8 @@ void RemoteConnectorTest::testLiveSync()
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
 		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
-		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
+		QCOMPARE(uploadSpy1[0][1].toDateTime(), modified);
+		QCOMPARE(uploadSpy1[0][2].toBool(), false);
 		QVERIFY(downloadSpy1.isEmpty());
 		uploadSpy1.clear();
 	}
@@ -591,7 +597,7 @@ void RemoteConnectorTest::testRemoveUser()
 	QVERIFY(errorSpy.isValid());
 
 	auto token = _rmc1->uploadChange({
-		Table, QStringLiteral("_key"),
+		Table, QStringLiteral("_key_rmuser"),
 		std::nullopt,
 		QDateTime::currentDateTimeUtc(),
 		std::nullopt

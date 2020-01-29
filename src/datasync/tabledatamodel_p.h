@@ -94,7 +94,7 @@ private Q_SLOTS:
 	void onlineChanged(bool online);
 	void downloadedData(const QString &type, const QList<CloudData> &data);
 	void syncDone(const QString &type);
-	void uploadedData(const DatasetId &key, const QDateTime &modified);
+	void uploadedData(const DatasetId &key, const QDateTime &modified, bool deleted);
 	void triggerDownload(const QString &type);
 	void removedTable(const QString &type);
 	void networkError(const QString &type, bool temporary);

@@ -54,7 +54,7 @@ public:
 Q_SIGNALS:
 	void downloadedData(const QString &type, const QList<QtDataSync::CloudData> &data, QPrivateSignal = {});
 	void syncDone(const QString &type, QPrivateSignal = {});
-	void uploadedData(const QtDataSync::DatasetId &key, const QDateTime &modified, QPrivateSignal = {});
+	void uploadedData(const QtDataSync::DatasetId &key, const QDateTime &modified, bool deleted, QPrivateSignal = {});
 	void triggerSync(const QString &type, QPrivateSignal = {});
 	void removedTable(const QString &type, QPrivateSignal = {});
 	void removedUser(QPrivateSignal = {});

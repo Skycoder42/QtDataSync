@@ -153,7 +153,7 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 		} else if (replyData->modified() == data.modified() &&
 				   replyData->device() == deviceId()) {
 			// data is same as local (same devId and tstamp) -> emit done
-			Q_EMIT uploadedData(data.key(), data.modified());
+			Q_EMIT uploadedData(data.key(), data.modified(), !data.data());
 		} else if (replyData->modified() >= data.modified()) {
 			// data was modified on the server after modified locally -> ignore upload and treat as download, trigger sync
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
@@ -399,9 +399,9 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, Cancallat
 										data.key().tableName,
 										data.key().key);
 	cancelToken = acquireToken(reply, cancelToken);
-	reply->onSucceeded(this, [this, key = data.key(), mod = data.modified(), cancelToken](int) {
+	reply->onSucceeded(this, [this, key = data.key(), mod = data.modified(), deleted = !data.data(), cancelToken](int) {
 		CANCEL_IF(cancelToken);
-		Q_EMIT uploadedData(key, mod);
+		Q_EMIT uploadedData(key, mod, deleted);
 	})->onAllErrors(this, [this, type = data.key().tableName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType){
 		CANCEL_IF(cancelToken);
 		if (errorType == QtRestClient::RestReply::Error::Failure && code == CodeETagMismatch) {

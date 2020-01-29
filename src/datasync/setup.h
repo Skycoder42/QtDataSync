@@ -101,7 +101,12 @@ public:
 	}
 
 	inline Setup &setTransactionMode(TransactionMode mode) {
-		d->transactionMode = mode;
+		d->database.transactionMode = mode;
+		return *this;
+	}
+
+	inline Setup &setPersistDeletes(bool persistDeletes) {
+		d->database.persistDeletes = persistDeletes;
 		return *this;
 	}
 

@@ -289,7 +289,7 @@ DatabaseWatcher *EnginePrivate::getWatcher(QSqlDatabase &&database)
 	Q_Q(Engine);
 	auto watcherIt = watchers.find(database.connectionName());
 	if (watcherIt == watchers.end()) {
-		auto watcher = new DatabaseWatcher{std::move(database), setup->transactionMode, q};
+		auto watcher = new DatabaseWatcher{std::move(database), setup->database, q};
 		// enforce direct connections, must be handled as part of the add/remove in the watcher
 		connect(watcher, &DatabaseWatcher::tableAdded,
 				this, &EnginePrivate::_q_tableAdded,

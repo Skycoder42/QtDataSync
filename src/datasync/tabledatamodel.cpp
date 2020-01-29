@@ -407,11 +407,11 @@ void TableDataModel::syncDone(const QString &type)
 	}
 }
 
-void TableDataModel::uploadedData(const DatasetId &key, const QDateTime &modified)
+void TableDataModel::uploadedData(const DatasetId &key, const QDateTime &modified, bool deleted)
 {
 	if (key.tableName == _escType) {
 		_uploadToken = RemoteConnector::InvalidToken;
-		_watcher->markUnchanged(_transformer->unescapeKey(key), modified);
+		_watcher->markUnchanged(_transformer->unescapeKey(key), modified, deleted);
 		stateMachine()->submitEvent(QStringLiteral("ulContinue"));  // upload next data
 	}
 }

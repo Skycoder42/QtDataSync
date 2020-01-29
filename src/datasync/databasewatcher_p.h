@@ -24,6 +24,8 @@ class Q_DATASYNC_EXPORT DatabaseWatcher : public QObject
 	Q_OBJECT
 
 public:
+	using DatabaseConfig = __private::SetupPrivate::DatabaseConfig;
+
 	enum class ErrorScope {
 		Entry = static_cast<int>(Engine::ErrorType::Entry),
 		Table = static_cast<int>(Engine::ErrorType::Table),
@@ -52,7 +54,7 @@ public:
 	static const QString TablePrefix;
 
 	explicit DatabaseWatcher(QSqlDatabase &&db,
-							 TransactionMode mode,
+							 DatabaseConfig config,
 							 QObject *parent = nullptr);
 
 	QSqlDatabase database() const;
@@ -84,7 +86,7 @@ public:
 					 const CloudData &data);
 	void storeData(const LocalData &data);
 	std::optional<LocalData> loadData(const QString &name);
-	void markUnchanged(const DatasetId &key, const QDateTime &modified);
+	void markUnchanged(const DatasetId &key, const QDateTime &modified, bool deleted);
 	void markCorrupted(const DatasetId &key, const QDateTime &modified);
 
 Q_SIGNALS:
@@ -126,7 +128,7 @@ private:
 	};
 
 	QSqlDatabase _db;
-	TransactionMode _mode;
+	DatabaseConfig _config;
 	QHash<QString, TableInfo> _tables;
 
 	QString sqlTypeName(const QSqlField &field) const;

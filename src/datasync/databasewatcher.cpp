@@ -12,10 +12,10 @@ const QString DatabaseWatcher::FieldTable = QStringLiteral("__qtdatasync_sync_fi
 const QString DatabaseWatcher::ReferenceTable = QStringLiteral("__qtdatasync_sync_references");
 const QString DatabaseWatcher::TablePrefix = QStringLiteral("__qtdatasync_sync_data_");
 
-DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, TransactionMode mode, QObject *parent) :
+DatabaseWatcher::DatabaseWatcher(QSqlDatabase &&db, DatabaseConfig config, QObject *parent) :
 	QObject{parent},
 	_db{std::move(db)},
-	_mode{mode}
+	_config{config}
 {
 	auto driver = _db.driver();
 	connect(driver, qOverload<const QString &>(&QSqlDriver::notification),
@@ -88,7 +88,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 		createMetaTables(name);
 
 		// step 2: create internal tables
-		ExTransaction transact{_db, _mode, name};
+		ExTransaction transact{_db, _config.transactionMode, name};
 		auto pKeyInfo = createSyncTables(config);
 		const auto &[pKeyName, pKeyType] = pKeyInfo;
 
@@ -329,7 +329,7 @@ void DatabaseWatcher::unsyncAllTables()
 	_tables.clear();
 
 	try {
-		ExTransaction transact{_db, _mode, {}};
+		ExTransaction transact{_db, _config.transactionMode, {}};
 
 		// step 1: check if metadata table is empty
 		ExQuery checkMetaQuery{_db, ErrorScope::Database, {}};
@@ -371,7 +371,7 @@ void DatabaseWatcher::unsyncTable(const QString &name, bool removeRef)
 		removeTable(name, removeRef);
 
 		// step 2: remove all sync stuff
-		ExTransaction transact{_db, _mode, name};
+		ExTransaction transact{_db, _config.transactionMode, name};
 
 		// step 2.0 check foreign keys enabled
 		ExQuery getFKeyState{_db, ErrorScope::Database, name};
@@ -458,7 +458,7 @@ void DatabaseWatcher::resyncAllTables(Engine::ResyncMode direction)
 void DatabaseWatcher::resyncTable(const QString &name, Engine::ResyncMode direction)
 {
 	try {
-		ExTransaction transact{_db, _mode, name};
+		ExTransaction transact{_db, _config.transactionMode, name};
 
 		const auto escName = tableName(name);
 		const auto escSyncName = tableName(name, true);
@@ -565,7 +565,7 @@ bool DatabaseWatcher::shouldStore(const DatasetId &key, const CloudData &data)
 		const LocalData lData {key, std::nullopt, data};
 		verifyVersion(tInfo, lData);
 
-		ExTransaction transact{_db, _mode, key};
+		ExTransaction transact{_db, _config.transactionMode, key};
 		const auto [pKey, pKeyType] = _tables[key.tableName].pKeyInfo;
 		const auto res = shouldStoreImpl(lData, decodeKey(key.key, pKeyType));
 		transact.commit();
@@ -592,7 +592,7 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		const auto escSyncName = tableName(key.tableName, true);
 
 		// begin processing
-		ExTransaction transact{_db, _mode, key};
+		ExTransaction transact{_db, _config.transactionMode, key};
 		// check if newer
 		if (!shouldStoreImpl(data, escKey)) {
 			transact.commit();
@@ -690,14 +690,21 @@ void DatabaseWatcher::storeData(const LocalData &data)
 			qCDebug(logDbWatcher) << "Removed local data for id" << key;
 		}
 
-		// update modified, mark unchanged -> now in sync with remote
 		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.tableName};
-		markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
-												  "SET changed = ?, tstamp = ? "
-												  "WHERE pkey == ?;")
-									   .arg(tableName(key.tableName, true)));
-		markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
-		markUnchangedQuery.addBindValue(data.modified().toUTC());
+		if (!_config.persistDeletes && !data.data()) {
+			// remove change state of deleted entry
+			markUnchangedQuery.prepare(QStringLiteral("DELETE FROM %1 "
+													  "WHERE pkey == ?;")
+										   .arg(tableName(key.tableName, true)));
+		} else {
+			// update modified, mark unchanged -> now in sync with remote
+			markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
+													  "SET changed = ?, tstamp = ? "
+													  "WHERE pkey == ?;")
+										   .arg(tableName(key.tableName, true)));
+			markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
+			markUnchangedQuery.addBindValue(data.modified().toUTC());
+		}
 		markUnchangedQuery.addBindValue(escKey);
 		markUnchangedQuery.exec();
 
@@ -716,7 +723,7 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 {
 	const auto &tInfo = _tables[name];
 	try {
-		ExTransaction transact{_db, _mode, name};
+		ExTransaction transact{_db, _config.transactionMode, name};
 
 		const auto [pKey, pKeyType] = _tables[name].pKeyInfo;
 
@@ -764,10 +771,10 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 	}
 }
 
-void DatabaseWatcher::markUnchanged(const DatasetId &key, const QDateTime &modified)
+void DatabaseWatcher::markUnchanged(const DatasetId &key, const QDateTime &modified, bool deleted)
 {
 	try {
-		ExTransaction transact{_db, _mode, key};
+		ExTransaction transact{_db, _config.transactionMode, key};
 
 		const auto [pKey, pKeyType] = _tables[key.tableName].pKeyInfo;
 		const auto escKey = decodeKey(key.key, pKeyType);
@@ -789,11 +796,19 @@ void DatabaseWatcher::markUnchanged(const DatasetId &key, const QDateTime &modif
 		}
 
 		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.tableName};
-		markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
-												  "SET changed = ? "
-												  "WHERE pkey == ?;")
-									   .arg(tableName(key.tableName, true)));
-		markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
+		if (!_config.persistDeletes && deleted) {
+			// remove change state of deleted entry
+			markUnchangedQuery.prepare(QStringLiteral("DELETE FROM %1 "
+													  "WHERE pkey == ?;")
+										   .arg(tableName(key.tableName, true)));
+		} else {
+			// update modified, mark unchanged -> now in sync with remote
+			markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
+													  "SET changed = ? "
+													  "WHERE pkey == ?;")
+										   .arg(tableName(key.tableName, true)));
+			markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
+		}
 		markUnchangedQuery.addBindValue(escKey);
 		markUnchangedQuery.exec();
 		qCDebug(logDbWatcher) << "Updated metadata for id" << key;
@@ -808,7 +823,7 @@ void DatabaseWatcher::markUnchanged(const DatasetId &key, const QDateTime &modif
 void DatabaseWatcher::markCorrupted(const DatasetId &key, const QDateTime &modified)
 {
 	try {
-		ExTransaction transact{_db, _mode, key};
+		ExTransaction transact{_db, _config.transactionMode, key};
 
 		const auto [pKey, pKeyType] = _tables[key.tableName].pKeyInfo;
 		const auto escKey = decodeKey(key.key, pKeyType);
@@ -829,7 +844,7 @@ void DatabaseWatcher::markCorrupted(const DatasetId &key, const QDateTime &modif
 		transact.commit();
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
-		// do not emit, as it is done by the caller!
+		error.emitFor(this);
 	}
 }
 
@@ -881,7 +896,7 @@ QString DatabaseWatcher::fieldName(const QString &field) const
 
 void DatabaseWatcher::createMetaTables(const QString &table)
 {
-	ExTransaction transact{_db, _mode, table};
+	ExTransaction transact{_db, _config.transactionMode, table};
 
 	if (!_db.tables().contains(MetaTable)) {
 		ExQuery createTableQuery{_db, ErrorScope::Database, table};

@@ -73,7 +73,10 @@ public:
 		bool syncTableVersions = true;
 	} firebase;
 
-	TransactionMode transactionMode = TransactionMode::Default;
+	struct DatabaseConfig {
+		TransactionMode transactionMode = TransactionMode::Default;
+		bool persistDeletes = true;
+	} database;
 
 	QSettings *settings = nullptr;
 	QNetworkAccessManager *nam = nullptr;
