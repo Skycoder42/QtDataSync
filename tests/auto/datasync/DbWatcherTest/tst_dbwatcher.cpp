@@ -61,10 +61,12 @@ private Q_SLOTS:
 
 	void testBinaryKey();
 
+	void testPKey();
 	void testSyncCustomFields();
 	void testStoreCustomFields_data();
 	void testStoreCustomFields();
 	void testUnsyncCustomFields();
+	void testVersionedTable();
 
 	void testReferences();
 
@@ -95,6 +97,7 @@ void DbWatcherTest::initTestCase()
 {
 	qRegisterMetaType<DatabaseWatcher::ErrorScope>("ErrorScope");
 
+	qDebug().noquote() << "Test directory:" << _tDir.path();
 	_watcher = new DatabaseWatcher {
 		QSqlDatabase::addDatabase(QStringLiteral("QSQLITE")),
 		TransactionMode::Default,
@@ -824,6 +827,235 @@ void DbWatcherTest::testBinaryKey()
 	}
 }
 
+void DbWatcherTest::testPKey()
+{
+	try {
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
+		// create custom pkey table
+		Query createQuery{_watcher};
+		createQuery.exec(QStringLiteral("CREATE TABLE PKeyTest ("
+										"	AutoKey		INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+										"	TestKey		INTEGER NOT NULL UNIQUE, "
+										"	Value		REAL NOT NULL"
+										");"));
+
+		const auto table = QStringLiteral("PKeyTest");
+		TableConfig config{table, _watcher->database()};
+
+		{
+			config.setPrimaryKey(QStringLiteral("TestKey"));
+			_watcher->addTable(config);
+
+			// verify correct pkey
+			Query pKeyQuery{_watcher};
+			pKeyQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType, state "
+											   "FROM __qtdatasync_meta_data "
+											   "WHERE tableName == ?;"));
+			pKeyQuery.addBindValue(table);
+			pKeyQuery.exec();
+			QVERIFY(pKeyQuery.next());
+			QCOMPARE(pKeyQuery.value(0).toString(), config.primaryKey());
+			QCOMPARE(pKeyQuery.value(1).toInt(), static_cast<int>(QMetaType::Int));
+			QCOMPARE(pKeyQuery.value(2).toInt(), static_cast<int>(DatabaseWatcher::TableState::Active));
+			QVERIFY(!pKeyQuery.next());
+		}
+
+		{
+			// remove sync
+			config.setPrimaryKey(QStringLiteral("Value"));
+			_watcher->removeTable(table);
+
+			// test pkey still there
+			Query rmPKeyQuery{_watcher};
+			rmPKeyQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType, state "
+											   "FROM __qtdatasync_meta_data "
+											   "WHERE tableName == ?;"));
+			rmPKeyQuery.addBindValue(table);
+			rmPKeyQuery.exec();
+			QVERIFY(rmPKeyQuery.next());
+			QCOMPARE(rmPKeyQuery.value(0).toString(), QStringLiteral("TestKey"));
+			QCOMPARE(rmPKeyQuery.value(1).toInt(), static_cast<int>(QMetaType::Int));
+			QCOMPARE(rmPKeyQuery.value(2).toInt(), static_cast<int>(DatabaseWatcher::TableState::Inactive));
+			QVERIFY(!rmPKeyQuery.next());
+
+			// add again, no force
+			_watcher->addTable(config);
+
+			// verify correct pkey
+			Query addPkeyQuery{_watcher};
+			addPkeyQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType, state "
+												"FROM __qtdatasync_meta_data "
+												"WHERE tableName == ?;"));
+			addPkeyQuery.addBindValue(table);
+			addPkeyQuery.exec();
+			QVERIFY(addPkeyQuery.next());
+			QCOMPARE(addPkeyQuery.value(0).toString(), QStringLiteral("TestKey"));
+			QCOMPARE(addPkeyQuery.value(1).toInt(), static_cast<int>(QMetaType::Int));
+			QCOMPARE(addPkeyQuery.value(2).toInt(), static_cast<int>(DatabaseWatcher::TableState::Active));
+			QVERIFY(!addPkeyQuery.next());
+		}
+
+		{
+			// add again, with force -> will fail
+			config.setPrimaryKey(QStringLiteral("Value"));
+			config.setForceCreate(true);
+			_watcher->dropTable(table);  // no test needed is part of remove
+			QVERIFY_EXCEPTION_THROWN(_watcher->addTable(config), TableException);
+
+			// keep force, but use same primary key -> will work
+			config.setPrimaryKey(QStringLiteral("TestKey"));
+			_watcher->addTable(config);
+
+			// verify correct pkey
+			Query pKeyQuery{_watcher};
+			pKeyQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType, state "
+											 "FROM __qtdatasync_meta_data "
+											 "WHERE tableName == ?;"));
+			pKeyQuery.addBindValue(table);
+			pKeyQuery.exec();
+			QVERIFY(pKeyQuery.next());
+			QCOMPARE(pKeyQuery.value(0).toString(), config.primaryKey());
+			QCOMPARE(pKeyQuery.value(1).toInt(), static_cast<int>(QMetaType::Int));
+			QCOMPARE(pKeyQuery.value(2).toInt(), static_cast<int>(DatabaseWatcher::TableState::Active));
+			QVERIFY(!pKeyQuery.next());
+		}
+
+		const ObjectKey key{table, QString::number(42)};
+		{
+			// store data and verify insert trigger works
+			Query insertQuery{_watcher};
+			insertQuery.prepare(QStringLiteral("INSERT INTO PKeyTest "
+											   "(TestKey, Value) "
+											   "VALUES(?, ?);"));
+			insertQuery.addBindValue(42);
+			insertQuery.addBindValue(4.2);
+			const auto before = QDateTime::currentDateTimeUtc();
+			insertQuery.exec();
+			const auto after = QDateTime::currentDateTimeUtc();
+			VERIFY_CHANGED_STATE_KEY(key, before, after, DatabaseWatcher::ChangeState::Changed);
+
+			// test load data
+			auto lData = _watcher->loadData(table);
+			QVERIFY(errorSpy.isEmpty());
+			QVERIFY(lData);
+			QCOMPARE(lData->key(), key);
+			QVERIFY(lData->data());
+			QCOMPARE(lData->data()->value(QStringLiteral("AutoKey")).toInt(), 1);  // first AINC value for a clear database
+			QCOMPARE(lData->data()->value(QStringLiteral("TestKey")).toInt(), 42);
+			QCOMPARE(lData->data()->value(QStringLiteral("Value")).toDouble(), 4.2);
+			QVERIFY(lData->modified() >= before);
+			QVERIFY(lData->modified() <= after);
+
+			// mark corrupted, then unchanged
+			_watcher->markCorrupted(key, QDateTime::currentDateTimeUtc());
+			QVERIFY(errorSpy.isEmpty());
+			VERIFY_CHANGED_STATE_KEY(key, lData->modified(), lData->modified(), DatabaseWatcher::ChangeState::Corrupted);
+			_watcher->markUnchanged(key, lData->modified());
+			QVERIFY(errorSpy.isEmpty());
+			VERIFY_CHANGED_STATE_KEY(key, lData->modified(), lData->modified(), DatabaseWatcher::ChangeState::Unchanged);
+			QVERIFY(!_watcher->loadData(table));
+		}
+
+		auto newMod = QDateTime::currentDateTimeUtc().addSecs(1);
+		{
+			// store update
+			_watcher->storeData({
+				key,
+				QVariantHash {
+					{QStringLiteral("AutoKey"), 1},
+					{QStringLiteral("TestKey"), 42},
+					{QStringLiteral("Value"), 4.2}
+				},
+				newMod,
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
+			VERIFY_CHANGED_STATE_KEY(key, newMod, newMod, DatabaseWatcher::ChangeState::Unchanged);
+			Query getUpdateQuery {_watcher};
+			getUpdateQuery.prepare(QStringLiteral("SELECT AutoKey, TestKey, Value "
+												  "FROM PKeyTest "
+												  "WHERE AutoKey == ? AND TestKey == ?"));
+			getUpdateQuery.addBindValue(1);
+			getUpdateQuery.addBindValue(42);
+			getUpdateQuery.exec();
+			QVERIFY(getUpdateQuery.next());
+			QCOMPARE(getUpdateQuery.value(0).toInt(), 1);
+			QCOMPARE(getUpdateQuery.value(1).toInt(), 42);
+			QCOMPARE(getUpdateQuery.value(2).toDouble(), 4.2);
+			QVERIFY(!getUpdateQuery.next());
+		}
+
+		{
+			// store delete
+			newMod = newMod.addSecs(1);
+			_watcher->storeData({
+				key,
+				std::nullopt,
+				newMod,
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
+			VERIFY_CHANGED_STATE_KEY(key, newMod, newMod, DatabaseWatcher::ChangeState::Unchanged);
+			Query getDeleteQuery {_watcher};
+			getDeleteQuery.prepare(QStringLiteral("SELECT AutoKey, TestKey, Value "
+												  "FROM PKeyTest "
+												  "WHERE AutoKey == ? AND TestKey == ?"));
+			getDeleteQuery.addBindValue(1);
+			getDeleteQuery.addBindValue(42);
+			getDeleteQuery.exec();
+			QVERIFY(!getDeleteQuery.next());
+		}
+
+		{
+			// store insert
+			const ObjectKey key2{table, QString::number(24)};
+			newMod = newMod.addSecs(1);
+			_watcher->storeData({
+				key2,
+				QVariantHash {
+					{QStringLiteral("AutoKey"), 5},
+					{QStringLiteral("TestKey"), 24},
+					{QStringLiteral("Value"), 2.4}
+				},
+				newMod,
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
+			VERIFY_CHANGED_STATE_KEY(key2, newMod, newMod, DatabaseWatcher::ChangeState::Unchanged);
+			Query getInsertQuery {_watcher};
+			getInsertQuery.prepare(QStringLiteral("SELECT AutoKey, TestKey, Value "
+												  "FROM PKeyTest "
+												  "WHERE AutoKey == ? AND TestKey == ?"));
+			getInsertQuery.addBindValue(5);
+			getInsertQuery.addBindValue(24);
+			getInsertQuery.exec();
+			QVERIFY(getInsertQuery.next());
+			QCOMPARE(getInsertQuery.value(0).toInt(), 5);
+			QCOMPARE(getInsertQuery.value(1).toInt(), 24);
+			QCOMPARE(getInsertQuery.value(2).toDouble(), 2.4);
+			QVERIFY(!getInsertQuery.next());
+		}
+
+		{
+			// unsync table
+			_watcher->unsyncTable(table);
+
+			// test pkey entry gone now
+			Query rmPKeyQuery{_watcher};
+			rmPKeyQuery.prepare(QStringLiteral("SELECT pkeyName, pkeyType, state "
+											   "FROM __qtdatasync_meta_data "
+											   "WHERE tableName == ?;"));
+			rmPKeyQuery.addBindValue(table);
+			rmPKeyQuery.exec();
+			QVERIFY(!rmPKeyQuery.first());
+		}
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
 void DbWatcherTest::testSyncCustomFields()
 {
 	try {
@@ -1106,6 +1338,14 @@ void DbWatcherTest::testUnsyncCustomFields()
 	fieldsQuery.addBindValue(table);
 	fieldsQuery.exec();
 	QVERIFY(!fieldsQuery.first());
+}
+
+void DbWatcherTest::testVersionedTable()
+{
+	try {
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
 }
 
 void DbWatcherTest::testReferences()

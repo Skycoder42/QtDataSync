@@ -92,30 +92,42 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 		const auto [pKeyName, pKeyType] = createSyncTables(config);
 
 		// step 3.1: check if already created
+		ExQuery getMetaQuery{_db, ErrorScope::Database, name};
+		getMetaQuery.prepare(QStringLiteral("SELECT version, pkeyName, pkeyType "
+											"FROM %1 "
+											"WHERE tableName == ?;")
+								 .arg(MetaTable));
+		getMetaQuery.addBindValue(name);
+		getMetaQuery.exec();
 		std::optional<TableInfo> info;
-		if (!config.forceCreate()) {
-			ExQuery getMetaQuery{_db, ErrorScope::Database, name};
-			getMetaQuery.prepare(QStringLiteral("SELECT version, pkeyName, pkeyType "
-												"FROM %1 "
-												"WHERE tableName == ?;")
-									 .arg(MetaTable));
-			getMetaQuery.addBindValue(name);
-			getMetaQuery.exec();
-			if (getMetaQuery.first()) {
-				const auto oldVersion = getMetaQuery.value(0).value<QVersionNumber>();
-				if (oldVersion == config.version()) {  // version has not changed or both are NULL -> just active, otherwise recreate
-					info = TableInfo{};
-					info->version = oldVersion.isNull() ?
-										std::optional<QVersionNumber>(std::nullopt) :
-										oldVersion;
-					info->pKeyInfo.first = getMetaQuery.value(1).toString();
-					info->pKeyInfo.second = getMetaQuery.value(2).toInt();
-				}
+		if (getMetaQuery.first()) {
+			const auto oldVersion = getMetaQuery.value(0).value<QVersionNumber>();
+			if (oldVersion == config.version()) {  // version has not changed or both are NULL -> just active, otherwise recreate
+				info = TableInfo{};
+				info->version = oldVersion.isNull() ?
+													std::optional<QVersionNumber>(std::nullopt) :
+													oldVersion;
+				info->pKeyInfo.first = getMetaQuery.value(1).toString();
+				info->pKeyInfo.second = getMetaQuery.value(2).toInt();
 			}
 		}
 
-		// step 3.2: table is not synced yet -> create (or force replace)
-		if (!info) {
+		// step 3.2: table is not synced yet or force enabled -> create
+		if (config.forceCreate() || !info) {
+			// step 3.2.0: check if the force would change the primary key
+			if (info && !config.primaryKey().isEmpty()) {
+				if (info->pKeyInfo.first != config.primaryKey()) {
+					qCCritical(logDbWatcher) << "Cannot change primary of already synchronized table" << name
+											 << "from" << info->pKeyInfo.first
+											 << "to" << config.primaryKey();
+					throw TableException {
+						name,
+						QStringLiteral("Cannot change the primary key of an already synchronized table! Unsync it first"),
+						QSqlError{}
+					};
+				}
+			}
+
 			qCDebug(logDbWatcher) << "Creating or updating synchronization tables";
 			// step 3.2.1: add to metadata table (or update config fields)
 			ExQuery addMetaDataQuery{_db, ErrorScope::Database, name};
