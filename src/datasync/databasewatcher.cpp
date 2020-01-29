@@ -89,7 +89,8 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 
 		// step 2: create internal tables
 		ExTransaction transact{_db, _mode, name};
-		const auto [pKeyName, pKeyType] = createSyncTables(config);
+		auto pKeyInfo = createSyncTables(config);
+		const auto &[pKeyName, pKeyType] = pKeyInfo;
 
 		// step 3.1: check if already created
 		ExQuery getMetaQuery{_db, ErrorScope::Database, name};
@@ -101,25 +102,22 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 		getMetaQuery.exec();
 		std::optional<TableInfo> info;
 		if (getMetaQuery.first()) {
-			const auto oldVersion = getMetaQuery.value(0).value<QVersionNumber>();
-			if (oldVersion == config.version()) {  // version has not changed or both are NULL -> just active, otherwise recreate
-				info = TableInfo{};
-				info->version = oldVersion.isNull() ?
-													std::optional<QVersionNumber>(std::nullopt) :
-													oldVersion;
-				info->pKeyInfo.first = getMetaQuery.value(1).toString();
-				info->pKeyInfo.second = getMetaQuery.value(2).toInt();
-			}
+			info = TableInfo{};
+			info->version = getMetaQuery.value(0).isNull() ?
+								std::optional<QVersionNumber>(std::nullopt) :
+								QVersionNumber::fromString(getMetaQuery.value(0).toString());
+			info->pKeyInfo.first = getMetaQuery.value(1).toString();
+			info->pKeyInfo.second = getMetaQuery.value(2).toInt();
 		}
 
-		// step 3.2: table is not synced yet or force enabled -> create
-		if (config.forceCreate() || !info) {
+		// step 3.2: table is not synced yet, force enabled or the version changed -> create
+		if (!info || config.forceCreate() || config.version() != info->version.value_or(QVersionNumber{})) {
 			// step 3.2.0: check if the force would change the primary key
-			if (info && !config.primaryKey().isEmpty()) {
-				if (info->pKeyInfo.first != config.primaryKey()) {
+			if (info) {
+				if (info->pKeyInfo != pKeyInfo) {
 					qCCritical(logDbWatcher) << "Cannot change primary of already synchronized table" << name
-											 << "from" << info->pKeyInfo.first
-											 << "to" << config.primaryKey();
+											 << "from" << info->pKeyInfo.first << "(type: " << QMetaType::typeName(info->pKeyInfo.second) << ")"
+											 << "to" << pKeyName << "(type: " << QMetaType::typeName(pKeyType) << ")";
 					throw TableException {
 						name,
 						QStringLiteral("Cannot change the primary key of an already synchronized table! Unsync it first"),
@@ -135,13 +133,14 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 													"(tableName, version, pkeyName, pkeyType, state, lastSync) "
 													"VALUES(?, ?, ?, ?, ?, NULL) "
 													"ON CONFLICT(tableName) DO UPDATE "
-													"SET pkeyName = excluded.pkeyName, "
+													"SET version = excluded.version, "
+													"    pkeyName = excluded.pkeyName, "
 													"    pkeyType = excluded.pkeyType, "
 													"    state = excluded.state "
 													"WHERE tableName == excluded.tableName;")
 										 .arg(MetaTable));
 			addMetaDataQuery.addBindValue(name);
-			addMetaDataQuery.addBindValue(config.version().isNull() ? QVariant{} : QVariant::fromValue(config.version()));
+			addMetaDataQuery.addBindValue(config.version().isNull() ? QVariant{} : config.version().toString());
 			addMetaDataQuery.addBindValue(pKeyName);
 			addMetaDataQuery.addBindValue(pKeyType);
 			addMetaDataQuery.addBindValue(static_cast<int>(TableState::Active));
@@ -165,6 +164,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 				for (auto i = 0, max = record.count(); i < max; ++i)
 					fields.append(record.fieldName(i));
 			}
+
 			// step 3.2.2.3: Store fields
 			for (const auto &field : qAsConst(fields)) {
 				ExQuery addFieldQuery{_db, ErrorScope::Database, name};
@@ -208,7 +208,7 @@ void DatabaseWatcher::addTable(const TableConfig &config)
 									 config.version().isNull() ?
 										std::optional<QVersionNumber>(std::nullopt) :
 										config.version(),
-									 std::make_pair(pKeyName, pKeyType),
+									 std::move(pKeyInfo),
 									 std::move(fields),
 									 config.references()
 								 });
@@ -991,7 +991,7 @@ DatabaseWatcher::PKeyInfo DatabaseWatcher::createSyncTables(const TableConfig &c
 												"FOR EACH ROW "
 												"WHEN NEW.%4 == OLD.%4 "
 												"BEGIN "
-												// set version and changed
+												// set tstamp and changed
 												"	UPDATE %2 "
 												"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
 												"	WHERE pkey = NEW.%4; "
@@ -1028,7 +1028,7 @@ DatabaseWatcher::PKeyInfo DatabaseWatcher::createSyncTables(const TableConfig &c
 												"AFTER DELETE ON %3 "
 												"FOR EACH ROW "
 												"BEGIN "
-												// set version and changed
+												// set tstamp and changed
 												"	UPDATE %2 "
 												"	SET tstamp = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), changed = 1 "  // 1 == changed
 												"	WHERE pkey = OLD.%4; "

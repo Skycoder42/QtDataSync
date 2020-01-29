@@ -491,6 +491,11 @@ void DbWatcherTest::testStoreData()
 			}
 		}
 
+		// check if new data should be stored
+		const auto canStore = _watcher->shouldStore(data.key(), CloudData{data.key(), std::nullopt, data});
+		QVERIFY(errorSpy.isEmpty());
+		QCOMPARE(canStore, isStored);
+
 		// store new data
 		_watcher->storeData(data);
 		QVERIFY(errorSpy.isEmpty());
@@ -1343,6 +1348,204 @@ void DbWatcherTest::testUnsyncCustomFields()
 void DbWatcherTest::testVersionedTable()
 {
 	try {
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
+		// create table
+		Query createQuery{_watcher};
+		createQuery.exec(QStringLiteral("CREATE TABLE VersionedTable ("
+										"	Key		INTEGER NOT NULL PRIMARY KEY, "
+										"	Value	REAL NOT NULL "
+										");"));
+
+		const auto table = QStringLiteral("VersionedTable");
+		TableConfig config{table, _watcher->database()};
+
+		{
+			config.setVersion({1});
+			_watcher->addTable(config);
+
+			// verify version in metadata
+			Query getMetaQuery{_watcher};
+			getMetaQuery.prepare(QStringLiteral("SELECT version, pkeyName, pkeyType, state "
+												"FROM __qtdatasync_meta_data "
+												"WHERE tableName == ?;"));
+			getMetaQuery.addBindValue(table);
+			getMetaQuery.exec();
+			QVERIFY(getMetaQuery.next());
+			QCOMPARE(getMetaQuery.value(0).toString(), config.version().toString());
+			QCOMPARE(getMetaQuery.value(1).toString(), QStringLiteral("Key"));
+			QCOMPARE(getMetaQuery.value(2).toInt(), static_cast<int>(QMetaType::Int));
+			QCOMPARE(getMetaQuery.value(3).toInt(), static_cast<int>(DatabaseWatcher::TableState::Active));
+			QVERIFY(!getMetaQuery.next());
+
+			// verify fields
+			Query fieldsQuery{_watcher};
+			fieldsQuery.prepare(QStringLiteral("SELECT syncField "
+											   "FROM __qtdatasync_sync_fields "
+											   "WHERE tableName == ?;"));
+			fieldsQuery.addBindValue(table);
+			fieldsQuery.exec();
+			QStringList xFields = {QStringLiteral("Key"), QStringLiteral("Value")};
+			while (!xFields.isEmpty()) {
+				QVERIFY(fieldsQuery.next());
+				QCOMPARE(xFields.removeAll(fieldsQuery.value(0).toString()), 1);
+			}
+			QVERIFY(!fieldsQuery.next());
+		}
+
+		{
+			// add a field, but don't change version
+			Query alterQuery{_watcher};
+			alterQuery.exec(QStringLiteral("ALTER TABLE VersionedTable "
+										   "ADD NewValue REAL NOT NULL DEFAULT 0.1;"));
+
+			_watcher->dropTable(table);
+			_watcher->addTable(config);
+
+			// verify version in metadata
+			Query getMetaQuery{_watcher};
+			getMetaQuery.prepare(QStringLiteral("SELECT version, pkeyName, pkeyType, state "
+												"FROM __qtdatasync_meta_data "
+												"WHERE tableName == ?;"));
+			getMetaQuery.addBindValue(table);
+			getMetaQuery.exec();
+			QVERIFY(getMetaQuery.next());
+			QCOMPARE(getMetaQuery.value(0).toString(), config.version().toString());
+			QCOMPARE(getMetaQuery.value(1).toString(), QStringLiteral("Key"));
+			QCOMPARE(getMetaQuery.value(2).toInt(), static_cast<int>(QMetaType::Int));
+			QCOMPARE(getMetaQuery.value(3).toInt(), static_cast<int>(DatabaseWatcher::TableState::Active));
+			QVERIFY(!getMetaQuery.next());
+
+			// verify fields
+			Query fieldsQuery{_watcher};
+			fieldsQuery.prepare(QStringLiteral("SELECT syncField "
+											   "FROM __qtdatasync_sync_fields "
+											   "WHERE tableName == ?;"));
+			fieldsQuery.addBindValue(table);
+			fieldsQuery.exec();
+			QStringList xFields = {QStringLiteral("Key"), QStringLiteral("Value")};
+			while (!xFields.isEmpty()) {
+				QVERIFY(fieldsQuery.next());
+				QCOMPARE(xFields.removeAll(fieldsQuery.value(0).toString()), 1);
+			}
+			QVERIFY(!fieldsQuery.next());
+		}
+
+		{
+			// change version
+			config.setVersion({2});
+			_watcher->dropTable(table);
+			_watcher->addTable(config);
+
+			// verify version in metadata
+			Query getMetaQuery{_watcher};
+			getMetaQuery.prepare(QStringLiteral("SELECT version, pkeyName, pkeyType, state "
+												"FROM __qtdatasync_meta_data "
+												"WHERE tableName == ?;"));
+			getMetaQuery.addBindValue(table);
+			getMetaQuery.exec();
+			QVERIFY(getMetaQuery.next());
+			QCOMPARE(getMetaQuery.value(0).toString(), config.version().toString());
+			QCOMPARE(getMetaQuery.value(1).toString(), QStringLiteral("Key"));
+			QCOMPARE(getMetaQuery.value(2).toInt(), static_cast<int>(QMetaType::Int));
+			QCOMPARE(getMetaQuery.value(3).toInt(), static_cast<int>(DatabaseWatcher::TableState::Active));
+			QVERIFY(!getMetaQuery.next());
+
+			// verify fields
+			Query fieldsQuery{_watcher};
+			fieldsQuery.prepare(QStringLiteral("SELECT syncField "
+											   "FROM __qtdatasync_sync_fields "
+											   "WHERE tableName == ?;"));
+			fieldsQuery.addBindValue(table);
+			fieldsQuery.exec();
+			QStringList xFields = {QStringLiteral("Key"), QStringLiteral("Value"), QStringLiteral("NewValue")};
+			while (!xFields.isEmpty()) {
+				QVERIFY(fieldsQuery.next());
+				QCOMPARE(xFields.removeAll(fieldsQuery.value(0).toString()), 1);
+			}
+			QVERIFY(!fieldsQuery.next());
+		}
+
+		{
+			// test load data has version
+			const ObjectKey key{table, QString::number(0)};
+			Query insertQuery{_watcher};
+			insertQuery.prepare(QStringLiteral("INSERT INTO VersionedTable "
+											   "(Key, Value, NewValue) "
+											   "VALUES(?, ?, ?);"));
+			insertQuery.addBindValue(0);
+			insertQuery.addBindValue(0.1);
+			insertQuery.addBindValue(0.2);
+			insertQuery.exec();
+
+			auto lData = _watcher->loadData(table);
+			QVERIFY(errorSpy.isEmpty());
+			QVERIFY(lData);
+			QCOMPARE(lData->key(), key);
+			QCOMPARE(lData->version(), config.version());
+		}
+
+		{
+			// test should store same version
+			_watcher->shouldStore({table, QString::number(1)}, {
+				table, QString::number(1),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				config.version()
+			});
+			QVERIFY(errorSpy.isEmpty());
+
+			// test store older version
+			_watcher->shouldStore({table, QString::number(2)}, {
+				table, QString::number(2),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				QVersionNumber{1,5}
+			});
+			QVERIFY(errorSpy.isEmpty());
+
+			// test store newer version -> fails
+			_watcher->shouldStore({table, QString::number(3)}, {
+				table, QString::number(3),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				QVersionNumber{2,0,1}
+			});
+			QTRY_COMPARE(errorSpy.size(), 1);
+			errorSpy.clear();
+		}
+
+		{
+			// test store same version
+			_watcher->storeData({
+				table, QString::number(1),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				config.version()
+			});
+			QVERIFY(errorSpy.isEmpty());
+
+			// test store older version
+			_watcher->storeData({
+				table, QString::number(2),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				QVersionNumber{1,5}
+			});
+			QVERIFY(errorSpy.isEmpty());
+
+			// test store newer version -> fails
+			_watcher->storeData({
+				table, QString::number(3),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc(),
+				QVersionNumber{2,0,1}
+			});
+			QTRY_COMPARE(errorSpy.size(), 1);
+		}
+
+		_watcher->unsyncTable(table);
 	} catch (std::exception &e) {
 		QFAIL(e.what());
 	}
@@ -1362,7 +1565,7 @@ void DbWatcherTest::testReferences()
 		Query create1Query{_watcher};
 		create1Query.exec(QStringLiteral("CREATE TABLE RefTestParent1 ("
 										 "	Key		INTEGER NOT NULL PRIMARY KEY, "
-										 "	Value	READ NOT NULL DEFAULT 4.2 "
+										 "	Value	REAL NOT NULL DEFAULT 4.2 "
 										 ");"));
 		Query create2Query{_watcher};
 		create2Query.exec(QStringLiteral("CREATE TABLE RefTestParent2 ("
