@@ -114,18 +114,16 @@ RemoteConnector::CancallationToken RemoteConnector::getChanges(const QString &ty
 	reply->onSucceeded(this, [this, type, since, cancelToken](int, const QueryMap &data) {
 		CANCEL_IF(cancelToken);
 		// get all changed data and pass to storage
-		qCDebug(logRmc) << "listChangedData returned" << data.size() << "entries";
-		if (!data.isEmpty()) {
-			QList<CloudData> dlList;
-			dlList.reserve(data.size());
-			for (auto it = data.begin(), end = data.end(); it != end; ++it) {
-				if (it->second.device() != deviceId())  // skip data of this device
-					dlList.append(dlData({type, it->first}, it->second));
-				else
-					qCDebug(logRmc) << "Skipping processing of change data from this device";
-			}
-			Q_EMIT downloadedData(type, dlList);
+		QList<CloudData> dlList;
+		dlList.reserve(data.size());
+		for (auto it = data.begin(), end = data.end(); it != end; ++it) {
+			if (it->second.device() != deviceId())
+				dlList.append(dlData({type, it->first}, it->second));
 		}
+		qCDebug(logRmc) << "listChangedData returned" << data.size() << "entries"
+						<< "of which" << dlList.size() << "are new for this device";
+		if (!dlList.isEmpty())
+			Q_EMIT downloadedData(type, dlList);
 		// if as much data as possible by limit, fetch more with new last sync
 		if (data.size() == _limit)
 			getChanges(type, std::get<QDateTime>(data.last().second.uploaded()), cancelToken);
@@ -448,17 +446,16 @@ void RemoteConnector::processStreamEvent(const QString &type, EventData &data, C
 			try {
 				if (evPath == QStringLiteral("/")) {
 					auto initData = serializer->deserialize<QueryMap>(evData);
-					if (!initData.isEmpty()) {
-						QList<CloudData> dlList;
-						dlList.reserve(initData.size());
-						for (auto it = initData.begin(), end = initData.end(); it != end; ++it) {
-							if (it->second.device() != deviceId())
-								dlList.append(dlData({type, it->first}, it->second));
-							else
-								qCDebug(logRmc) << "Skipping processing of live data from this device";
-						}
-						Q_EMIT downloadedData(type, dlList);
+					QList<CloudData> dlList;
+					dlList.reserve(initData.size());
+					for (auto it = initData.begin(), end = initData.end(); it != end; ++it) {
+						if (it->second.device() != deviceId())
+							dlList.append(dlData({type, it->first}, it->second));
 					}
+					qCDebug(logRmc) << "liveSync initialized with" << initData.size() << "entries"
+									<< "of which" << dlList.size() << "are new for this device";
+					if (!dlList.isEmpty())
+						Q_EMIT downloadedData(type, dlList);
 					Q_EMIT syncDone(type);
 				} else {
 					static const QRegularExpression pathRegexp {QStringLiteral(R"__(^\/([^\/]+)$)__")};
