@@ -4,6 +4,8 @@
 #include "QtDataSync/qtdatasync_global.h"
 #include "QtDataSync/authenticator.h"
 
+#include <optional>
+
 #include <QtCore/qdir.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qsettings.h>

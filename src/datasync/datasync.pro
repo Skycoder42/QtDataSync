@@ -30,6 +30,7 @@ HEADERS += \
 	mailauthenticator_p.h \
 	qtdatasync_global.h \
 	remoteconnector_p.h \
+	settingsadaptor_p.h \
 	setup.h \
 	setup_impl.h \
 	tabledatamodel_p.h \
@@ -54,6 +55,7 @@ SOURCES += \
 	googleoauthflow.cpp \
 	mailauthenticator.cpp \
 	remoteconnector.cpp \
+	settingsadaptor.cpp \
 	setup.cpp \
 	tabledatamodel.cpp \
 	tablesynccontroller.cpp
