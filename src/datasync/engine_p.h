@@ -100,7 +100,7 @@ public:
 #endif
 
 	DatabaseWatcher *getWatcher(QSqlDatabase &&database);
-	DatabaseWatcher *findWatcher(const QString &name);
+	DatabaseWatcher *findWatcher(const QString &name) const;
 	void dropWatcher(const QString &dbName);
 
 	void setupStateMachine();

@@ -3,7 +3,7 @@
 
 #include "qtdatasync_global.h"
 #include "engine.h"
-#include "objectkey.h"
+#include "datasetid.h"
 #include "cloudtransformer.h"
 #include "setup_impl.h"
 
@@ -54,7 +54,7 @@ public:
 Q_SIGNALS:
 	void downloadedData(const QString &type, const QList<QtDataSync::CloudData> &data, QPrivateSignal = {});
 	void syncDone(const QString &type, QPrivateSignal = {});
-	void uploadedData(const QtDataSync::ObjectKey &key, const QDateTime &modified, QPrivateSignal = {});
+	void uploadedData(const QtDataSync::DatasetId &key, const QDateTime &modified, QPrivateSignal = {});
 	void triggerSync(const QString &type, QPrivateSignal = {});
 	void removedTable(const QString &type, QPrivateSignal = {});
 	void removedUser(QPrivateSignal = {});
@@ -96,7 +96,7 @@ private:
 	static QString translateError(const QtDataSync::firebase::realtimedb::Error &error, int code);
 
 	QUuid deviceId();
-	CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data, bool skipUploaded = false) const;
+	CloudData dlData(DatasetId key, const firebase::realtimedb::Data &data, bool skipUploaded = false) const;
 	CancallationToken acquireToken(QNetworkReply *reply, const CancallationToken overwriteToken = InvalidToken);
 	inline CancallationToken acquireToken(QtRestClient::RestReply *reply, const CancallationToken overwriteToken = InvalidToken) {
 		return acquireToken(reply->networkReply(), overwriteToken);

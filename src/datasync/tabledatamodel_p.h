@@ -38,6 +38,7 @@ public:
 
 	SyncState state() const;
 	bool isLiveSyncEnabled() const;
+	QSqlDatabase database() const;
 
 public Q_SLOTS:
 	void start(bool restart = false);
@@ -93,7 +94,7 @@ private Q_SLOTS:
 	void onlineChanged(bool online);
 	void downloadedData(const QString &type, const QList<CloudData> &data);
 	void syncDone(const QString &type);
-	void uploadedData(const ObjectKey &key, const QDateTime &modified);
+	void uploadedData(const DatasetId &key, const QDateTime &modified);
 	void triggerDownload(const QString &type);
 	void removedTable(const QString &type);
 	void networkError(const QString &type, bool temporary);
@@ -101,7 +102,7 @@ private Q_SLOTS:
 	// transformer
 	void transformDownloadDone(const LocalData &data);
 	void transformUploadDone(const CloudData &data);
-	void transformError(const ObjectKey &key);
+	void transformError(const DatasetId &key);
 
 private:
 	QPointer<DatabaseWatcher> _watcher;

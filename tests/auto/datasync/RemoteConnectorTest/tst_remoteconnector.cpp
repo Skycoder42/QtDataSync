@@ -44,7 +44,7 @@ const QString RemoteConnectorTest::Table = QStringLiteral("RmcTestData");
 
 void RemoteConnectorTest::initTestCase()
 {
-	qRegisterMetaType<ObjectKey>();  // TODO move to datasync
+	qRegisterMetaType<DatasetId>();  // TODO move to datasync
 
 	try {
 		const __private::SetupPrivate::FirebaseConfig config {
@@ -118,7 +118,7 @@ void RemoteConnectorTest::testUploadData()
 
 	// upload unchanged data
 	for (auto i = 0; i < 10; ++i) {
-		const ObjectKey key {Table, QStringLiteral("_%1").arg(i)};
+		const DatasetId key {Table, QStringLiteral("_%1").arg(i)};
 		const auto modified = QDateTime::currentDateTimeUtc();
 		CloudData data;
 		data.setKey(key);
@@ -132,7 +132,7 @@ void RemoteConnectorTest::testUploadData()
 
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
-		QCOMPARE(uploadSpy1[0][0].value<ObjectKey>(), key);
+		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
 		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
 		QVERIFY(downloadSpy1.isEmpty());
 		QVERIFY(syncSpy1.isEmpty());
@@ -141,7 +141,7 @@ void RemoteConnectorTest::testUploadData()
 
 	// replace data
 	for (auto i = 0; i < 10; i += 2) {
-		const ObjectKey key {Table, QStringLiteral("_%1").arg(i)};
+		const DatasetId key {Table, QStringLiteral("_%1").arg(i)};
 		const auto modified = QDateTime::currentDateTimeUtc();
 		CloudData data;
 		data.setKey(key);
@@ -155,7 +155,7 @@ void RemoteConnectorTest::testUploadData()
 
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
-		QCOMPARE(uploadSpy1[0][0].value<ObjectKey>(), key);
+		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
 		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
 		QVERIFY(downloadSpy1.isEmpty());
 		QVERIFY(syncSpy1.isEmpty());
@@ -164,7 +164,7 @@ void RemoteConnectorTest::testUploadData()
 
 	// delete data
 	for (auto i = 1; i < 10; i += 2) {
-		const ObjectKey key {Table, QStringLiteral("_%1").arg(i)};
+		const DatasetId key {Table, QStringLiteral("_%1").arg(i)};
 		const auto modified = QDateTime::currentDateTimeUtc();
 		CloudData data;
 		data.setKey(key);
@@ -175,7 +175,7 @@ void RemoteConnectorTest::testUploadData()
 
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
-		QCOMPARE(uploadSpy1[0][0].value<ObjectKey>(), key);
+		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
 		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
 		QVERIFY(downloadSpy1.isEmpty());
 		QVERIFY(syncSpy1.isEmpty());
@@ -232,8 +232,8 @@ void RemoteConnectorTest::testGetChanges()
 		const auto &data = allData[i];
 		if (i > 0)
 			QVERIFY(data.uploaded() >= allData[i -1].uploaded());
-		QCOMPARE(data.key().typeName, Table);
-		QCOMPARE(data.key().id, QStringLiteral("_%1").arg(key));
+		QCOMPARE(data.key().tableName, Table);
+		QCOMPARE(data.key().key, QStringLiteral("_%1").arg(key));
 		if (key % 2 == 0) {
 			const QJsonObject resData {
 				{QStringLiteral("Key"), key},
@@ -264,8 +264,8 @@ void RemoteConnectorTest::testGetChanges()
 		const auto key = keys[i + 5];
 		qDebug() << "index" << i << "key" << key;
 		const auto &data = allData[i];
-		QCOMPARE(data.key().typeName, Table);
-		QCOMPARE(data.key().id, QStringLiteral("_%1").arg(key));
+		QCOMPARE(data.key().tableName, Table);
+		QCOMPARE(data.key().key, QStringLiteral("_%1").arg(key));
 	}
 }
 
@@ -291,7 +291,7 @@ void RemoteConnectorTest::testOutdated()
 
 	// upload outdated data from same client
 	const auto earlyTime = QDateTime::currentDateTimeUtc().addDays(-1);
-	ObjectKey ulKey {Table, QStringLiteral("_1")};
+	DatasetId ulKey {Table, QStringLiteral("_1")};
 	auto token = _rmc1->uploadChange({
 		ulKey,
 		std::nullopt,
@@ -302,14 +302,14 @@ void RemoteConnectorTest::testOutdated()
 
 	VERIFY_SPY(uploadSpy1, errorSpy1);
 	QCOMPARE(uploadSpy1.size(), 1);
-	QCOMPARE(uploadSpy1[0][0].value<ObjectKey>(), ulKey);
+	QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), ulKey);
 	QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), earlyTime);
 	QVERIFY(downloadSpy1.isEmpty());
 	QVERIFY(syncSpy1.isEmpty());
 	uploadSpy1.clear();
 
 	// upload outdated data from different client
-	ulKey = ObjectKey{Table, QStringLiteral("_0")};
+	ulKey = DatasetId{Table, QStringLiteral("_0")};
 	token = _rmc2->uploadChange({
 		ulKey,
 		std::nullopt,
@@ -437,7 +437,7 @@ void RemoteConnectorTest::testLiveSync()
 	// upload changes since tstamp to test as the sync
 	const auto tStamp = QDateTime::currentDateTimeUtc();
 	for (auto i = 0; i < 10; ++i) {
-		const ObjectKey key {Table, QStringLiteral("_%1").arg(i)};
+		const DatasetId key {Table, QStringLiteral("_%1").arg(i)};
 		const auto modified = QDateTime::currentDateTimeUtc();
 		CloudData data;
 		data.setKey(key);
@@ -451,7 +451,7 @@ void RemoteConnectorTest::testLiveSync()
 
 		VERIFY_SPY(uploadSpy1, errorSpy1);
 		QCOMPARE(uploadSpy1.size(), 1);
-		QCOMPARE(uploadSpy1[0][0].value<ObjectKey>(), key);
+		QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), key);
 		QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), modified);
 		QVERIFY(downloadSpy1.isEmpty());
 		uploadSpy1.clear();
@@ -479,8 +479,8 @@ void RemoteConnectorTest::testLiveSync()
 		const auto &data = allData[i];
 		if (i > 0)
 			QVERIFY(data.uploaded() >= allData[i - 1].uploaded());
-		QCOMPARE(data.key().typeName, Table);
-		QCOMPARE(data.key().id, QStringLiteral("_%1").arg(i));
+		QCOMPARE(data.key().tableName, Table);
+		QCOMPARE(data.key().key, QStringLiteral("_%1").arg(i));
 		const QJsonObject resData {
 			{QStringLiteral("Key"), i},
 			{QStringLiteral("Value"), QStringLiteral("data_%1").arg(i)}

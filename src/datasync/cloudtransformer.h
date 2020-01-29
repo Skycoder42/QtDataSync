@@ -2,7 +2,7 @@
 #define QTDATASYNC_ICLOUDTRANSFORMER_H
 
 #include "QtDataSync/qtdatasync_global.h"
-#include "QtDataSync/objectkey.h"
+#include "QtDataSync/datasetid.h"
 
 #include <optional>
 
@@ -24,7 +24,7 @@ class SyncData
 {
 public:
 	SyncData();
-	SyncData(ObjectKey key,
+	SyncData(DatasetId key,
 			 std::optional<T> data,
 			 QDateTime modified,
 			 std::optional<QVersionNumber> version,
@@ -42,18 +42,18 @@ public:
 	~SyncData() = default;
 
 	template <typename TOther>
-	SyncData(ObjectKey key, std::optional<T> data, const SyncData<TOther> &other);
+	SyncData(DatasetId key, std::optional<T> data, const SyncData<TOther> &other);
 
 	bool operator==(const SyncData &other) const;
 	bool operator!=(const SyncData &other) const;
 
-	ObjectKey key() const;
+	DatasetId key() const;
 	std::optional<T> data() const;
 	QDateTime modified() const;
 	std::optional<QVersionNumber> version() const;
 	QDateTime uploaded() const;
 
-	void setKey(ObjectKey key);
+	void setKey(DatasetId key);
 	void setData(std::optional<T> data);
 	void setModified(QDateTime modified);
 	void setVersion(std::optional<QVersionNumber> version);
@@ -73,8 +73,8 @@ class Q_DATASYNC_EXPORT ICloudTransformer : public QObject
 public:
 	virtual QString escapeType(const QString &name);
 	virtual QString unescapeType(const QString &name);
-	virtual ObjectKey escapeKey(const ObjectKey &key);
-	virtual ObjectKey unescapeKey(const ObjectKey &key);
+	virtual DatasetId escapeKey(const DatasetId &key);
+	virtual DatasetId unescapeKey(const DatasetId &key);
 
 public Q_SLOTS:
 	virtual void transformUpload(const LocalData &data) = 0;
@@ -83,7 +83,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void transformUploadDone(const QtDataSync::CloudData &data);
 	void transformDownloadDone(const QtDataSync::LocalData &data);
-	void transformError(const QtDataSync::ObjectKey &key);
+	void transformError(const QtDataSync::DatasetId &key);
 
 protected:
 	explicit ICloudTransformer(QObject *parent = nullptr);
@@ -126,7 +126,7 @@ namespace __private {
 
 template <typename T>
 struct SyncDataData : public QSharedData {
-	ObjectKey key;
+	DatasetId key;
 	std::optional<T> data = std::nullopt;
 	QDateTime modified;
 	std::optional<QVersionNumber> version = std::nullopt;
@@ -143,7 +143,7 @@ SyncData<T>::SyncData() :
 {}
 
 template <typename T>
-SyncData<T>::SyncData(ObjectKey key, std::optional<T> data, QDateTime modified, std::optional<QVersionNumber> version, QDateTime uploaded) :
+SyncData<T>::SyncData(DatasetId key, std::optional<T> data, QDateTime modified, std::optional<QVersionNumber> version, QDateTime uploaded) :
 	d{new __private::SyncDataData<T>{{}, std::move(key), std::move(data), std::move(modified), std::move(version), std::move(uploaded)}}
 {}
 
@@ -154,7 +154,7 @@ SyncData<T>::SyncData(QString type, QString key, std::optional<T> data, QDateTim
 
 template <typename T>
 template<typename TOther>
-SyncData<T>::SyncData(ObjectKey key, std::optional<T> data, const SyncData<TOther> &other) :
+SyncData<T>::SyncData(DatasetId key, std::optional<T> data, const SyncData<TOther> &other) :
 	SyncData{std::move(key), std::move(data), other.modified(), other.version(), other.uploaded()}
 {}
 
@@ -181,7 +181,7 @@ bool SyncData<T>::operator!=(const SyncData &other) const
 }
 
 template <typename T>
-ObjectKey SyncData<T>::key() const
+DatasetId SyncData<T>::key() const
 {
 	return d->key;
 }
@@ -211,7 +211,7 @@ QDateTime SyncData<T>::uploaded() const
 }
 
 template <typename T>
-void SyncData<T>::setKey(ObjectKey key)
+void SyncData<T>::setKey(DatasetId key)
 {
 	d->key = std::move(key);
 }

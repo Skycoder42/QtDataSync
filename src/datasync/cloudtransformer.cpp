@@ -19,20 +19,20 @@ QString ICloudTransformer::unescapeType(const QString &name)
 	return QUrl::fromPercentEncoding(name.toUtf8());
 }
 
-ObjectKey ICloudTransformer::escapeKey(const ObjectKey &key)
+DatasetId ICloudTransformer::escapeKey(const DatasetId &key)
 {
 	return {
-		escapeType(key.typeName),
-		QLatin1Char('_') + QString::fromUtf8(QUrl::toPercentEncoding(key.id)) // prepend _ to not have arrays
+		escapeType(key.tableName),
+		QLatin1Char('_') + QString::fromUtf8(QUrl::toPercentEncoding(key.key)) // prepend _ to not have arrays
 	};
 }
 
-ObjectKey ICloudTransformer::unescapeKey(const ObjectKey &key)
+DatasetId ICloudTransformer::unescapeKey(const DatasetId &key)
 {
-	Q_ASSERT_X(key.id.startsWith(QLatin1Char('_')), Q_FUNC_INFO, "Invalid object key. id should start with an _");
+	Q_ASSERT_X(key.key.startsWith(QLatin1Char('_')), Q_FUNC_INFO, "Invalid object key. id should start with an _");
 	return {
-		unescapeType(key.typeName),
-		QUrl::fromPercentEncoding(key.id.mid(1).toUtf8())  // remove _ at beginning
+		unescapeType(key.tableName),
+		QUrl::fromPercentEncoding(key.key.mid(1).toUtf8())  // remove _ at beginning
 	};
 }
 

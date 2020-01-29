@@ -140,10 +140,10 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 {
 	if (!_api) {
 		qCWarning(logRmc) << "Unable to upload change - user is not logged in yet";
-		Q_EMIT networkError(data.key().typeName, false);
+		Q_EMIT networkError(data.key().tableName, false);
 		return InvalidToken;
 	}
-	const auto reply = _api->getData(data.key().typeName, data.key().id);
+	const auto reply = _api->getData(data.key().tableName, data.key().key);
 	const auto cancelToken = acquireToken(reply);
 	reply->onSucceeded(this, [this, data, reply, cancelToken](int, const std::optional<Data> &replyData) {
 		CANCEL_IF(cancelToken);
@@ -154,13 +154,13 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 				   replyData->modified() >= data.modified()) {
 			// data was modified on the server after modified locally by another device -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
-			Q_EMIT downloadedData(data.key().typeName, {dlData(data.key(), *replyData, true)});
-			Q_EMIT triggerSync(data.key().typeName);
+			Q_EMIT downloadedData(data.key().tableName, {dlData(data.key(), *replyData, true)});
+			Q_EMIT triggerSync(data.key().tableName);
 		} else {
 			// data on server is older or was modified by this device -> upload
 			doUpload(data, reply->networkReply()->rawHeader("ETag"), cancelToken);
 		}
-	})->onAllErrors(this, [this, type = data.key().typeName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
+	})->onAllErrors(this, [this, type = data.key().tableName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		CANCEL_IF(cancelToken);
 		evalNetError(error, code, errorType, type);
 	}, &RemoteConnector::translateError);
@@ -347,7 +347,7 @@ QUuid RemoteConnector::deviceId()
 	return _devId;
 }
 
-CloudData RemoteConnector::dlData(ObjectKey key, const Data &data, bool skipUploaded) const
+CloudData RemoteConnector::dlData(DatasetId key, const Data &data, bool skipUploaded) const
 {
 	return {
 		std::move(key),
@@ -381,7 +381,7 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, Cancallat
 {
 	if (!_api) {
 		qCWarning(logRmc) << "Unable to upload data - user is not logged in yet";
-		Q_EMIT networkError(data.key().typeName, false);
+		Q_EMIT networkError(data.key().tableName, false);
 		return;
 	}
 	// data on server is older -> upload
@@ -393,13 +393,13 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, Cancallat
 											ServerTimestamp{},
 											deviceId()
 										},
-										data.key().typeName,
-										data.key().id);
+										data.key().tableName,
+										data.key().key);
 	cancelToken = acquireToken(reply, cancelToken);
 	reply->onSucceeded(this, [this, key = data.key(), mod = data.modified(), cancelToken](int) {
 		CANCEL_IF(cancelToken);
 		Q_EMIT uploadedData(key, mod);
-	})->onAllErrors(this, [this, type = data.key().typeName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType){
+	})->onAllErrors(this, [this, type = data.key().tableName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType){
 		CANCEL_IF(cancelToken);
 		if (errorType == QtRestClient::RestReply::Error::Failure && code == CodeETagMismatch) {
 			// data was changed on the server since checked -> trigger sync

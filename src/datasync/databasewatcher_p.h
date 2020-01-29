@@ -80,12 +80,12 @@ public:
 
 	// sync functions
 	std::optional<QDateTime> lastSync(const QString &tableName);
-	bool shouldStore(const ObjectKey &key,
+	bool shouldStore(const DatasetId &key,
 					 const CloudData &data);
 	void storeData(const LocalData &data);
 	std::optional<LocalData> loadData(const QString &name);
-	void markUnchanged(const ObjectKey &key, const QDateTime &modified);
-	void markCorrupted(const ObjectKey &key, const QDateTime &modified);
+	void markUnchanged(const DatasetId &key, const QDateTime &modified);
+	void markCorrupted(const DatasetId &key, const QDateTime &modified);
 
 Q_SIGNALS:
 	void tableAdded(const QString &tableName, bool liveSync, QPrivateSignal = {});

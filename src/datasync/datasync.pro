@@ -11,6 +11,7 @@ HEADERS += \
 	cloudtransformer.h \
 	cloudtransformer_p.h \
 	databasewatcher_p.h \
+	datasetid.h \
 	engine.h \
 	engine_p.h \
 	enginedatamodel_p.h \
@@ -27,7 +28,6 @@ HEADERS += \
 	googleoauthflow_p.h \
 	mailauthenticator.h \
 	mailauthenticator_p.h \
-	objectkey.h \
 	qtdatasync_global.h \
 	remoteconnector_p.h \
 	setup.h \
@@ -41,6 +41,7 @@ SOURCES += \
 	authenticator.cpp \
 	cloudtransformer.cpp \
 	databasewatcher.cpp \
+	datasetid.cpp \
 	engine.cpp \
 	enginedatamodel.cpp \
 	enginethread.cpp \
@@ -52,7 +53,6 @@ SOURCES += \
 	googleauthenticator.cpp \
 	googleoauthflow.cpp \
 	mailauthenticator.cpp \
-	objectkey.cpp \
 	remoteconnector.cpp \
 	setup.cpp \
 	tabledatamodel.cpp \

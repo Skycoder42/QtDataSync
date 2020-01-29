@@ -179,6 +179,7 @@ public:
 					 ResyncMode direction,
 					 QSqlDatabase database);
 
+	QSqlDatabase database(const QString &table) const;
 	Q_INVOKABLE TableSyncController *createController(QString table, QObject *parent = nullptr) const;
 
 	IAuthenticator *authenticator() const;

@@ -256,8 +256,8 @@ void CloudTransformerTest::testTransform()
 	QSignalSpy errorSpy{_transformer, &ICloudTransformer::transformError};
 	QVERIFY(errorSpy.isValid());
 
-	QCOMPARE(_transformer->escapeType(local.key().typeName), cloud.key().typeName);
-	QCOMPARE(_transformer->unescapeType(cloud.key().typeName), local.key().typeName);
+	QCOMPARE(_transformer->escapeType(local.key().tableName), cloud.key().tableName);
+	QCOMPARE(_transformer->unescapeType(cloud.key().tableName), local.key().tableName);
 
 	QCOMPARE(_transformer->escapeKey(local.key()), cloud.key());
 	QCOMPARE(_transformer->unescapeKey(cloud.key()), local.key());

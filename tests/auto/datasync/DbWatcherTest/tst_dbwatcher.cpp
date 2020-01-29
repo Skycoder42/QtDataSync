@@ -34,7 +34,7 @@ const QDateTime future = QDateTime::currentDateTimeUtc().addDays(1);
 #define VERIFY_UNCHANGED1(key, when) VERIFY_CHANGED_STATE(key, when, when, DatabaseWatcher::ChangeState::Unchanged)
 #define VERIFY_UNCHANGED2(key, before, after) VERIFY_CHANGED_STATE(key, before, after, DatabaseWatcher::ChangeState::Unchanged)
 
-#define VERIFY_CHANGED_STATE_KEY(key, before, after, state) VERIFY_CHANGED_STATE_BASE((key).id, before, after, state, (key).typeName)
+#define VERIFY_CHANGED_STATE_KEY(datasetId, before, after, state) VERIFY_CHANGED_STATE_BASE((datasetId).key, before, after, state, (datasetId).tableName)
 
 class DbWatcherTest : public QObject
 {
@@ -88,7 +88,7 @@ private:
 
 	void fillDb();
 	void markChanged(DatabaseWatcher::ChangeState state, const QString &key = {});
-	void markChanged(DatabaseWatcher::ChangeState state, const QtDataSync::ObjectKey &key);
+	void markChanged(DatabaseWatcher::ChangeState state, const QtDataSync::DatasetId &key);
 };
 
 const QString DbWatcherTest::TestTable = QStringLiteral("TestData");
@@ -511,7 +511,7 @@ void DbWatcherTest::testStoreData()
 			getOldData.prepare(QStringLiteral("SELECT Key, Value "
 											  "FROM TestData "
 											  "WHERE Key == ?;"));
-			getOldData.addBindValue(data.key().id);
+			getOldData.addBindValue(data.key().key);
 			getOldData.exec();
 			if (getOldData.next()) {
 				oldData.append(getOldData.value(0));
@@ -529,12 +529,12 @@ void DbWatcherTest::testStoreData()
 		_watcher->storeData(data);
 		QVERIFY(errorSpy.isEmpty());
 
-		VERIFY_CHANGED_STATE(data.key().id, modified, modified, changed);
+		VERIFY_CHANGED_STATE(data.key().key, modified, modified, changed);
 		Query checkDataQuery{_watcher};
 		checkDataQuery.prepare(QStringLiteral("SELECT Key, Value "
 											  "FROM TestData "
 											  "WHERE Key == ?;"));
-		checkDataQuery.addBindValue(data.key().id);
+		checkDataQuery.addBindValue(data.key().key);
 		checkDataQuery.exec();
 		if (isStored) {
 			if (data.data()) {
@@ -562,7 +562,7 @@ void DbWatcherTest::testStoreData()
 
 		// mark changed again
 		markChanged(DatabaseWatcher::ChangeState::Changed, data.key());
-		VERIFY_CHANGED(data.key().id, modified, modified);
+		VERIFY_CHANGED(data.key().key, modified, modified);
 	} catch (std::exception &e) {
 		QFAIL(e.what());
 	}
@@ -603,8 +603,8 @@ void DbWatcherTest::testLoadData()
 			auto lChanged = _watcher->loadData(TestTable);
 			QVERIFY(errorSpy.isEmpty());
 			QVERIFY(lChanged);
-			QCOMPARE(lChanged->key().typeName, TestTable);
-			QCOMPARE(lChanged->key().id, QString::number(i));
+			QCOMPARE(lChanged->key().tableName, TestTable);
+			QCOMPARE(lChanged->key().key, QString::number(i));
 			QCOMPARE(lChanged->modified(), mTime);
 			QCOMPARE(lChanged->version(), std::nullopt);
 			QVERIFY(!lChanged->uploaded().isValid());
@@ -845,9 +845,9 @@ void DbWatcherTest::testBinaryKey()
 			QVERIFY(errorSpy.isEmpty());
 			QVERIFY(data);
 			QVERIFY(data->data());
-			QCOMPARE(data->key().id,
+			QCOMPARE(data->key().key,
 					 QString::fromUtf8(data->data()->value(QStringLiteral("Key")).toByteArray().toBase64()));
-			QCOMPARE(QByteArray::fromBase64(data->key().id.toUtf8()),
+			QCOMPARE(QByteArray::fromBase64(data->key().key.toUtf8()),
 					 data->data()->value(QStringLiteral("Key")).toByteArray());
 			_watcher->markUnchanged(data->key(), data->modified());
 			QVERIFY(errorSpy.isEmpty());
@@ -956,7 +956,7 @@ void DbWatcherTest::testPKey()
 			QVERIFY(!pKeyQuery.next());
 		}
 
-		const ObjectKey key{table, QString::number(42)};
+		const DatasetId key{table, QString::number(42)};
 		{
 			// store data and verify insert trigger works
 			Query insertQuery{_watcher};
@@ -1044,7 +1044,7 @@ void DbWatcherTest::testPKey()
 
 		{
 			// store insert
-			const ObjectKey key2{table, QString::number(24)};
+			const DatasetId key2{table, QString::number(24)};
 			newMod = newMod.addSecs(1);
 			_watcher->storeData({
 				key2,
@@ -1331,7 +1331,7 @@ void DbWatcherTest::testStoreCustomFields()
 		localDataQuery.prepare(QStringLiteral("SELECT a, b, c, d, e "
 											  "FROM FieldTest "
 											  "WHERE Key == ?"));
-		localDataQuery.addBindValue(storeData.key().id);
+		localDataQuery.addBindValue(storeData.key().key);
 		localDataQuery.exec();
 		if (values.isEmpty())
 			QVERIFY(!localDataQuery.next());
@@ -1498,7 +1498,7 @@ void DbWatcherTest::testVersionedTable()
 
 		{
 			// test load data has version
-			const ObjectKey key{table, QString::number(0)};
+			const DatasetId key{table, QString::number(0)};
 			Query insertQuery{_watcher};
 			insertQuery.prepare(QStringLiteral("INSERT INTO VersionedTable "
 											   "(Key, Value, NewValue) "
@@ -1730,9 +1730,9 @@ void DbWatcherTest::testReferences()
 		}
 
 		{
-			const ObjectKey pKey1{parent1, QString::number(0)};
-			const ObjectKey pKey2{parent2, QString::number(0)};
-			const ObjectKey cKey{child, QString::number(0)};
+			const DatasetId pKey1{parent1, QString::number(0)};
+			const DatasetId pKey2{parent2, QString::number(0)};
+			const DatasetId cKey{child, QString::number(0)};
 
 			// add data to parent
 			Query addParent1Query{_watcher};
@@ -1855,13 +1855,13 @@ void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const QStrin
 	markChanged(state, {TestTable, key});
 }
 
-void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const ObjectKey &key)
+void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const DatasetId &key)
 {
-	if (key.id.isEmpty()) {
+	if (key.key.isEmpty()) {
 		Query markChangedQuery{_watcher};
 		markChangedQuery.prepare(QStringLiteral("UPDATE %1 "
 												"SET changed = ?;")
-									 .arg(DatabaseWatcher::TablePrefix + key.typeName));
+									 .arg(DatabaseWatcher::TablePrefix + key.tableName));
 		markChangedQuery.addBindValue(static_cast<int>(state));
 		markChangedQuery.exec();
 	} else {
@@ -1869,9 +1869,9 @@ void DbWatcherTest::markChanged(DatabaseWatcher::ChangeState state, const Object
 		markChangedQuery.prepare(QStringLiteral("UPDATE %1 "
 												"SET changed = ? "
 												"WHERE pkey == ?;")
-									 .arg(DatabaseWatcher::TablePrefix + key.typeName));
+									 .arg(DatabaseWatcher::TablePrefix + key.tableName));
 		markChangedQuery.addBindValue(static_cast<int>(state));
-		markChangedQuery.addBindValue(key.id);
+		markChangedQuery.addBindValue(key.key);
 		markChangedQuery.exec();
 	}
 }

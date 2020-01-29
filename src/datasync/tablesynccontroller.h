@@ -5,6 +5,8 @@
 
 #include <QtCore/qobject.h>
 
+class QSqlDatabase;
+
 namespace QtDataSync {
 
 class Engine;
@@ -43,6 +45,8 @@ public:
 	bool isValid() const;
 	SyncState syncState() const;
 	bool isLiveSyncEnabled() const;
+
+	QSqlDatabase database() const;
 
 public Q_SLOTS:
 	void start();

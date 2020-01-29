@@ -120,6 +120,13 @@ void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabas
 	d->getWatcher(std::move(database))->resyncTable(table, direction);
 }
 
+QSqlDatabase Engine::database(const QString &table) const
+{
+	Q_D(const Engine);
+	const auto watcher = d->findWatcher(table);
+	return watcher ? watcher->database() : QSqlDatabase{};
+}
+
 TableSyncController *Engine::createController(QString table, QObject *parent) const
 {
 	Q_D(const Engine);
@@ -295,7 +302,7 @@ DatabaseWatcher *EnginePrivate::getWatcher(QSqlDatabase &&database)
 	return *watcherIt;
 }
 
-DatabaseWatcher *EnginePrivate::findWatcher(const QString &name)
+DatabaseWatcher *EnginePrivate::findWatcher(const QString &name) const
 {
 	for (const auto watcher : qAsConst(watchers)) {
 		if (watcher->hasTable(name))

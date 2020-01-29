@@ -32,6 +32,12 @@ bool TableSyncController::isLiveSyncEnabled() const
 		false;
 }
 
+QSqlDatabase TableSyncController::database() const
+{
+	Q_D(const TableSyncController);
+	return d->model->database();
+}
+
 void TableSyncController::start()
 {
 	Q_D(TableSyncController);

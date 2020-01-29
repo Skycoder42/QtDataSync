@@ -557,17 +557,17 @@ std::optional<QDateTime> DatabaseWatcher::lastSync(const QString &tableName)
 	}
 }
 
-bool DatabaseWatcher::shouldStore(const ObjectKey &key, const CloudData &data)
+bool DatabaseWatcher::shouldStore(const DatasetId &key, const CloudData &data)
 {
-	const auto &tInfo = _tables[key.typeName];
+	const auto &tInfo = _tables[key.tableName];
 	try {
 		// check if version acceptable
 		const LocalData lData {key, std::nullopt, data};
 		verifyVersion(tInfo, lData);
 
 		ExTransaction transact{_db, _mode, key};
-		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
-		const auto res = shouldStoreImpl(lData, decodeKey(key.id, pKeyType));
+		const auto [pKey, pKeyType] = _tables[key.tableName].pKeyInfo;
+		const auto res = shouldStoreImpl(lData, decodeKey(key.key, pKeyType));
 		transact.commit();
 		return res;
 	} catch (SqlException &error) {
@@ -580,16 +580,16 @@ bool DatabaseWatcher::shouldStore(const ObjectKey &key, const CloudData &data)
 void DatabaseWatcher::storeData(const LocalData &data)
 {
 	const auto key = data.key();
-	const auto &tInfo = _tables[key.typeName];
+	const auto &tInfo = _tables[key.tableName];
 	try {
 		// check if version acceptable
 		verifyVersion(tInfo, data);
 
 		// retrieve the primary key
 		const auto [pKey, pKeyType] = tInfo.pKeyInfo;
-		const auto escKey = decodeKey(key.id, pKeyType);
-		const auto escTableName = tableName(key.typeName);
-		const auto escSyncName = tableName(key.typeName, true);
+		const auto escKey = decodeKey(key.key, pKeyType);
+		const auto escTableName = tableName(key.tableName);
+		const auto escSyncName = tableName(key.tableName, true);
 
 		// begin processing
 		ExTransaction transact{_db, _mode, key};
@@ -691,18 +691,18 @@ void DatabaseWatcher::storeData(const LocalData &data)
 		}
 
 		// update modified, mark unchanged -> now in sync with remote
-		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.typeName};
+		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.tableName};
 		markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
 												  "SET changed = ?, tstamp = ? "
 												  "WHERE pkey == ?;")
-									   .arg(tableName(key.typeName, true)));
+									   .arg(tableName(key.tableName, true)));
 		markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
 		markUnchangedQuery.addBindValue(data.modified().toUTC());
 		markUnchangedQuery.addBindValue(escKey);
 		markUnchangedQuery.exec();
 
 		// update last sync
-		updateLastSync(key.typeName, data.uploaded());
+		updateLastSync(key.tableName, data.uploaded());
 		transact.commit();
 	} catch (SqlException &error) {
 		qCCritical(logDbWatcher) << error.what();
@@ -764,19 +764,19 @@ std::optional<LocalData> DatabaseWatcher::loadData(const QString &name)
 	}
 }
 
-void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modified)
+void DatabaseWatcher::markUnchanged(const DatasetId &key, const QDateTime &modified)
 {
 	try {
 		ExTransaction transact{_db, _mode, key};
 
-		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
-		const auto escKey = decodeKey(key.id, pKeyType);
+		const auto [pKey, pKeyType] = _tables[key.tableName].pKeyInfo;
+		const auto escKey = decodeKey(key.key, pKeyType);
 
-		ExQuery getStampQuery{_db, ErrorScope::Table, key.typeName};
+		ExQuery getStampQuery{_db, ErrorScope::Table, key.tableName};
 		getStampQuery.prepare(QStringLiteral("SELECT tstamp "
 											 "FROM %1 "
 											 "WHERE pkey == ?")
-								  .arg(tableName(key.typeName, true)));
+								  .arg(tableName(key.tableName, true)));
 		getStampQuery.addBindValue(escKey);
 		getStampQuery.exec();
 		if (getStampQuery.first()) {
@@ -788,11 +788,11 @@ void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modif
 			}
 		}
 
-		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.typeName};
+		ExQuery markUnchangedQuery{_db, ErrorScope::Table, key.tableName};
 		markUnchangedQuery.prepare(QStringLiteral("UPDATE %1 "
 												  "SET changed = ? "
 												  "WHERE pkey == ?;")
-									   .arg(tableName(key.typeName, true)));
+									   .arg(tableName(key.tableName, true)));
 		markUnchangedQuery.addBindValue(static_cast<int>(ChangeState::Unchanged));
 		markUnchangedQuery.addBindValue(escKey);
 		markUnchangedQuery.exec();
@@ -805,22 +805,22 @@ void DatabaseWatcher::markUnchanged(const ObjectKey &key, const QDateTime &modif
 	}
 }
 
-void DatabaseWatcher::markCorrupted(const ObjectKey &key, const QDateTime &modified)
+void DatabaseWatcher::markCorrupted(const DatasetId &key, const QDateTime &modified)
 {
 	try {
 		ExTransaction transact{_db, _mode, key};
 
-		const auto [pKey, pKeyType] = _tables[key.typeName].pKeyInfo;
-		const auto escKey = decodeKey(key.id, pKeyType);
+		const auto [pKey, pKeyType] = _tables[key.tableName].pKeyInfo;
+		const auto escKey = decodeKey(key.key, pKeyType);
 
-		ExQuery insertCorruptedQuery{_db, ErrorScope::Table, key.typeName};
+		ExQuery insertCorruptedQuery{_db, ErrorScope::Table, key.tableName};
 		insertCorruptedQuery.prepare(QStringLiteral("INSERT INTO %1 "
 													"(pkey, tstamp, changed) "
 													"VALUES(?, ?, ?) "
 													"ON CONFLICT(pkey) DO UPDATE "
 													"SET changed = excluded.changed "
 													"WHERE pkey = excluded.pkey;")
-										 .arg(tableName(key.typeName, true)));
+										 .arg(tableName(key.tableName, true)));
 		insertCorruptedQuery.addBindValue(escKey);
 		insertCorruptedQuery.addBindValue(modified.toUTC());
 		insertCorruptedQuery.addBindValue(static_cast<int>(ChangeState::Corrupted));
@@ -1076,11 +1076,11 @@ void DatabaseWatcher::updateLastSync(const QString &table, const QDateTime &uplo
 bool DatabaseWatcher::shouldStoreImpl(const LocalData &data, const QVariant &escKey)
 {
 	const auto key = data.key();
-	ExQuery checkNewerQuery{_db, ErrorScope::Table, key.typeName};
+	ExQuery checkNewerQuery{_db, ErrorScope::Table, key.tableName};
 	checkNewerQuery.prepare(QStringLiteral("SELECT tstamp "
 										   "FROM %1 "
 										   "WHERE pkey = ?;")
-								.arg(tableName(key.typeName, true)));
+								.arg(tableName(key.tableName, true)));
 	checkNewerQuery.addBindValue(escKey);
 	checkNewerQuery.exec();
 	if (checkNewerQuery.first()) {
@@ -1090,7 +1090,7 @@ bool DatabaseWatcher::shouldStoreImpl(const LocalData &data, const QVariant &esc
 								  << "was modified in the cloud, but is newer locally."
 								  << "Local date:" << localMod
 								  << "Cloud date:" << data.modified();
-			updateLastSync(key.typeName, data.uploaded());
+			updateLastSync(key.tableName, data.uploaded());
 			return false;
 		} else
 			return true;
@@ -1104,7 +1104,7 @@ void DatabaseWatcher::verifyVersion(const DatabaseWatcher::TableInfo &tInfo, con
 {
 	if (tInfo.version && data.version() &&
 		tInfo.version < data.version())
-		throw InvalidVersionException{data.key().typeName, *tInfo.version, *data.version()};
+		throw InvalidVersionException{data.key().tableName, *tInfo.version, *data.version()};
 }
 
 QString DatabaseWatcher::encodeKey(const QVariant &key, int type) const

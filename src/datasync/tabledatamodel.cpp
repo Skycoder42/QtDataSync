@@ -98,6 +98,11 @@ bool TableDataModel::isLiveSyncEnabled() const
 	return _liveSync;
 }
 
+QSqlDatabase TableDataModel::database() const
+{
+	return _watcher->database();
+}
+
 void TableDataModel::start(bool restart)
 {
 	if (stateMachine()->isRunning()) {
@@ -342,7 +347,7 @@ void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QVar
 	EnginePrivate::ErrorInfo error;
 	switch (scope) {
 	case DatabaseWatcher::ErrorScope::Entry:
-		if (key.value<ObjectKey>().typeName == _type)
+		if (key.value<DatasetId>().tableName == _type)
 			error.type = Engine::ErrorType::Entry;
 		break;
 	case DatabaseWatcher::ErrorScope::Table:
@@ -356,7 +361,7 @@ void TableDataModel::databaseError(DatabaseWatcher::ErrorScope scope, const QVar
 		break;
 	case DatabaseWatcher::ErrorScope::Transaction:
 		if ((key.userType() == QMetaType::QString && key.toString() == _type) ||
-			(key.userType() == qMetaTypeId<ObjectKey>() && key.value<ObjectKey>().typeName == _type))
+			(key.userType() == qMetaTypeId<DatasetId>() && key.value<DatasetId>().tableName == _type))
 			error.type = Engine::ErrorType::Transaction;
 		break;
 	case DatabaseWatcher::ErrorScope::Version:
@@ -402,9 +407,9 @@ void TableDataModel::syncDone(const QString &type)
 	}
 }
 
-void TableDataModel::uploadedData(const ObjectKey &key, const QDateTime &modified)
+void TableDataModel::uploadedData(const DatasetId &key, const QDateTime &modified)
 {
-	if (key.typeName == _escType) {
+	if (key.tableName == _escType) {
 		_uploadToken = RemoteConnector::InvalidToken;
 		_watcher->markUnchanged(_transformer->unescapeKey(key), modified);
 		stateMachine()->submitEvent(QStringLiteral("ulContinue"));  // upload next data
@@ -457,7 +462,7 @@ void TableDataModel::liveSyncExpired(const QString &type)
 
 void TableDataModel::transformDownloadDone(const LocalData &data)
 {
-	if (data.key().typeName == _type && stateMachine()->isActive(QStringLiteral("Active"))) {
+	if (data.key().tableName == _type && stateMachine()->isActive(QStringLiteral("Active"))) {
 		_watcher->storeData(data);
 		stateMachine()->submitEvent(QStringLiteral("procContinue"));  // process next downloaded data
 	}
@@ -465,13 +470,13 @@ void TableDataModel::transformDownloadDone(const LocalData &data)
 
 void TableDataModel::transformUploadDone(const CloudData &data)
 {
-	if (data.key().typeName == _escType && stateMachine()->isActive(QStringLiteral("Active")))
+	if (data.key().tableName == _escType && stateMachine()->isActive(QStringLiteral("Active")))
 		_uploadToken = _connector->uploadChange(data);
 }
 
-void TableDataModel::transformError(const ObjectKey &key)
+void TableDataModel::transformError(const DatasetId &key)
 {
-	if (key.typeName == _type) {
+	if (key.tableName == _type) {
 		_watcher->markCorrupted(key, QDateTime::currentDateTimeUtc());
 		_errors.append({
 			Engine::ErrorType::Transform,
