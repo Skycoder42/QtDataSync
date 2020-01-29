@@ -150,14 +150,17 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 		if (!replyData) {
 			// no data on the server -> upload with null tag
 			doUpload(data, ApiBase::NullETag, cancelToken);
-		} else if (replyData->device() != deviceId() &&
-				   replyData->modified() >= data.modified()) {
-			// data was modified on the server after modified locally by another device -> ignore upload
+		} else if (replyData->modified() == data.modified() &&
+				   replyData->device() == deviceId()) {
+			// data is same as local (same devId and tstamp) -> emit done
+			Q_EMIT uploadedData(data.key(), data.modified());
+		} else if (replyData->modified() >= data.modified()) {
+			// data was modified on the server after modified locally -> ignore upload and treat as download, trigger sync
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
 			Q_EMIT downloadedData(data.key().tableName, {dlData(data.key(), *replyData, true)});
 			Q_EMIT triggerSync(data.key().tableName);
 		} else {
-			// data on server is older or was modified by this device -> upload
+			// data on server is older -> upload
 			doUpload(data, reply->networkReply()->rawHeader("ETag"), cancelToken);
 		}
 	})->onAllErrors(this, [this, type = data.key().tableName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {

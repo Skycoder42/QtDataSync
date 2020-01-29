@@ -289,33 +289,43 @@ void RemoteConnectorTest::testOutdated()
 	QSignalSpy errorSpy2{_rmc2, &RemoteConnector::networkError};
 	QVERIFY(errorSpy2.isValid());
 
-	// upload outdated data from same client
-	const auto earlyTime = QDateTime::currentDateTimeUtc().addDays(-1);
-	DatasetId ulKey {Table, QStringLiteral("_1")};
-	auto token = _rmc1->uploadChange({
-		ulKey,
+	// upload new data
+	CloudData data {
+		{Table, QStringLiteral("_key_outdated")},
 		std::nullopt,
-		earlyTime,
+		QDateTime::currentDateTimeUtc().addSecs(1),
 		std::nullopt
-	});
+	};
+	auto token = _rmc1->uploadChange(data);
 	QVERIFY(token != InvalidToken);
 
 	VERIFY_SPY(uploadSpy1, errorSpy1);
 	QCOMPARE(uploadSpy1.size(), 1);
-	QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), ulKey);
-	QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), earlyTime);
+	QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), data.key());
+	QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), data.modified());
+	QVERIFY(downloadSpy1.isEmpty());
+	QVERIFY(syncSpy1.isEmpty());
+	uploadSpy1.clear();
+
+	// upload same data from same client again
+	data.setData(QJsonObject {
+		{QStringLiteral("Key"), 1},
+		{QStringLiteral("Value"), QJsonValue::Null}
+	});
+	token = _rmc1->uploadChange(data);
+	QVERIFY(token != InvalidToken);
+
+	VERIFY_SPY(uploadSpy1, errorSpy1);
+	QCOMPARE(uploadSpy1.size(), 1);
+	QCOMPARE(uploadSpy1[0][0].value<DatasetId>(), data.key());
+	QCOMPARE(uploadSpy1[0][1].value<QDateTime>(), data.modified());
 	QVERIFY(downloadSpy1.isEmpty());
 	QVERIFY(syncSpy1.isEmpty());
 	uploadSpy1.clear();
 
 	// upload outdated data from different client
-	ulKey = DatasetId{Table, QStringLiteral("_0")};
-	token = _rmc2->uploadChange({
-		ulKey,
-		std::nullopt,
-		earlyTime.addSecs(-5),
-		std::nullopt
-	});
+	data.setModified(data.modified().addSecs(-1));
+	token = _rmc2->uploadChange(data);
 	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(syncSpy2, errorSpy2);
 	QCOMPARE(syncSpy2.size(), 1);
@@ -324,13 +334,9 @@ void RemoteConnectorTest::testOutdated()
 	QCOMPARE(downloadSpy2[0][0].toString(), Table);
 	QCOMPARE(downloadSpy2[0][1].value<QList<CloudData>>().size(), 1);
 	const auto cData = downloadSpy2[0][1].value<QList<CloudData>>()[0];
-	QCOMPARE(cData.key(), ulKey);
-	const QJsonObject oldData {
-		{QStringLiteral("Key"), 0},
-		{QStringLiteral("Value"), QStringLiteral("data_2")}
-	};
-	QCOMPARE(cData.data(), oldData);
-	QVERIFY(cData.modified() > earlyTime);
+	QCOMPARE(cData.key(), data.key());
+	QVERIFY(!cData.data());
+	QCOMPARE(cData.modified(), data.modified().addSecs(1));
 	QVERIFY(!uploadSpy2.wait());
 }
 
@@ -344,7 +350,7 @@ void RemoteConnectorTest::testConflict()
 	QVERIFY(errorSpy.isValid());
 
 	CloudData ulData {
-		Table, QStringLiteral("_key"),
+		Table, QStringLiteral("_key_conflict"),
 		std::nullopt,
 		QDateTime::currentDateTimeUtc(),
 		std::nullopt
@@ -392,7 +398,7 @@ void RemoteConnectorTest::testCancel()
 
 	// cancel upload
 	token = _rmc1->uploadChange({
-		Table, QStringLiteral("_key"),
+		Table, QStringLiteral("_key_cancel"),
 		std::nullopt,
 		QDateTime::currentDateTimeUtc(),
 		std::nullopt
