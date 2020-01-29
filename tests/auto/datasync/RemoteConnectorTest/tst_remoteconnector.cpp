@@ -20,6 +20,7 @@ private Q_SLOTS:
 	void testUploadData();
 	void testGetChanges();
 	void testOutdated();
+	void testVersions();
 	void testConflict();
 	void testCancel();
 
@@ -36,6 +37,7 @@ private:
 	QTemporaryDir _tDir;
 	QNetworkAccessManager *_nam = nullptr;
 	FirebaseAuthenticator *_authenticator = nullptr;
+	QSettings *_settings1 = nullptr;
 	RemoteConnector *_rmc1 = nullptr;
 	RemoteConnector *_rmc2 = nullptr;
 };
@@ -47,7 +49,7 @@ void RemoteConnectorTest::initTestCase()
 	qRegisterMetaType<DatasetId>();  // TODO move to datasync
 
 	try {
-		const __private::SetupPrivate::FirebaseConfig config {
+		__private::SetupPrivate::FirebaseConfig config {
 			QStringLiteral(FIREBASE_PROJECT_ID),
 			QStringLiteral(FIREBASE_API_KEY),
 			1min,
@@ -64,11 +66,11 @@ void RemoteConnectorTest::initTestCase()
 		QVERIFY(authRes);
 
 		// create rmc1
-		auto settings1 = TestLib::createSettings(this);
-		settings1->beginGroup(QStringLiteral("rmc1"));
+		_settings1 = TestLib::createSettings(this);
+		_settings1->beginGroup(QStringLiteral("rmc1"));
 		_rmc1 = new RemoteConnector{
 			config,
-			settings1,
+			_settings1,
 			_nam,
 			std::nullopt,
 			this
@@ -78,6 +80,7 @@ void RemoteConnectorTest::initTestCase()
 		QVERIFY(_rmc1->isActive());
 
 		// create rmc2
+		config.syncTableVersions = true;
 		auto settings2 = TestLib::createSettings(this);
 		settings2->beginGroup(QStringLiteral("rmc2"));
 		_rmc2 = new RemoteConnector{
@@ -219,7 +222,7 @@ void RemoteConnectorTest::testGetChanges()
 	QCOMPARE(downloadSpy2.size(), 2);
 	QCOMPARE(downloadSpy2[0][0].toString(), Table);
 	QCOMPARE(downloadSpy2[0][1].value<QList<CloudData>>().size(), 7);
-	QCOMPARE(downloadSpy2[0][0].toString(), Table);
+	QCOMPARE(downloadSpy2[1][0].toString(), Table);
 	QCOMPARE(downloadSpy2[1][1].value<QList<CloudData>>().size(), 4);
 	QCOMPARE(downloadSpy2[0][1].value<QList<CloudData>>()[6], downloadSpy2[1][1].value<QList<CloudData>>()[0]);
 
@@ -345,6 +348,112 @@ void RemoteConnectorTest::testOutdated()
 	QVERIFY(!cData.data());
 	QCOMPARE(cData.modified(), data.modified().addSecs(1));
 	QVERIFY(!uploadSpy2.wait());
+}
+
+void RemoteConnectorTest::testVersions()
+{
+	QSignalSpy uploadSpy1{_rmc1, &RemoteConnector::uploadedData};
+	QVERIFY(uploadSpy1.isValid());
+	QSignalSpy syncSpy1{_rmc1, &RemoteConnector::triggerSync};
+	QVERIFY(syncSpy1.isValid());
+	QSignalSpy downloadSpy1{_rmc1, &RemoteConnector::downloadedData};
+	QVERIFY(downloadSpy1.isValid());
+	QSignalSpy doneSpy1{_rmc1, &RemoteConnector::syncDone};
+	QVERIFY(doneSpy1.isValid());
+	QSignalSpy errorSpy1{_rmc1, &RemoteConnector::networkError};
+	QVERIFY(errorSpy1.isValid());
+
+	QSignalSpy uploadSpy2{_rmc2, &RemoteConnector::uploadedData};
+	QVERIFY(uploadSpy2.isValid());
+	QSignalSpy syncSpy2{_rmc2, &RemoteConnector::triggerSync};
+	QVERIFY(syncSpy2.isValid());
+	QSignalSpy downloadSpy2{_rmc2, &RemoteConnector::downloadedData};
+	QVERIFY(downloadSpy2.isValid());
+	QSignalSpy doneSpy2{_rmc2, &RemoteConnector::syncDone};
+	QVERIFY(doneSpy2.isValid());
+	QSignalSpy errorSpy2{_rmc2, &RemoteConnector::networkError};
+	QVERIFY(errorSpy2.isValid());
+
+	// upload version via rmc1 -> should be dropped
+	const QVersionNumber testVersion{1,2,3};
+	auto tStart = QDateTime::currentDateTimeUtc();
+	auto token = _rmc1->uploadChange({
+		Table, QStringLiteral("_key_versioned1"),
+		std::nullopt,
+		QDateTime::currentDateTimeUtc(),
+		testVersion
+	});
+	QVERIFY(token != InvalidToken);
+	VERIFY_SPY(uploadSpy1, errorSpy1);
+	QCOMPARE(uploadSpy1.size(), 1);
+	QVERIFY(downloadSpy1.isEmpty());
+	uploadSpy1.clear();
+
+	// download via rmc2 (would have version if set)
+	token = _rmc2->getChanges(Table, tStart);
+	QVERIFY(token != InvalidToken);
+	VERIFY_SPY(doneSpy2, errorSpy2);
+	QCOMPARE(doneSpy2.size(), 1);
+	QCOMPARE(downloadSpy2.size(), 1);
+	QCOMPARE(downloadSpy2[0][0].toString(), Table);
+	QCOMPARE(downloadSpy2[0][1].value<QList<CloudData>>().size(), 1);
+	auto dlData = downloadSpy2[0][1].value<QList<CloudData>>().first();
+	QCOMPARE(dlData.key().tableName, Table);
+	QCOMPARE(dlData.key().key, QStringLiteral("_key_versioned1"));
+	QVERIFY(!dlData.data());
+	QCOMPARE(dlData.version(), std::nullopt);
+	doneSpy2.clear();
+	downloadSpy2.clear();
+
+	// upload versioned via rmc2 (should be stored)
+	tStart = QDateTime::currentDateTimeUtc();
+	token = _rmc2->uploadChange({
+		Table, QStringLiteral("_key_versioned2"),
+		std::nullopt,
+		QDateTime::currentDateTimeUtc(),
+		testVersion
+	});
+	QVERIFY(token != InvalidToken);
+	VERIFY_SPY(uploadSpy2, errorSpy2);
+	QCOMPARE(uploadSpy2.size(), 1);
+	QVERIFY(downloadSpy2.isEmpty());
+	uploadSpy2.clear();
+
+	// trigger an invalid upload to simulate a download of that data -> version should be present
+	token = _rmc2->uploadChange({
+		Table, QStringLiteral("_key_versioned2"),
+		std::nullopt,
+		QDateTime::currentDateTimeUtc().addDays(-1),
+		std::nullopt
+	});
+	QVERIFY(token != InvalidToken);
+	VERIFY_SPY(syncSpy2, errorSpy2);
+	QCOMPARE(downloadSpy2.size(), 1);
+	QCOMPARE(downloadSpy2[0][0].toString(), Table);
+	QCOMPARE(downloadSpy2[0][1].value<QList<CloudData>>().size(), 1);
+	dlData = downloadSpy2[0][1].value<QList<CloudData>>().first();
+	QCOMPARE(dlData.key().tableName, Table);
+	QCOMPARE(dlData.key().key, QStringLiteral("_key_versioned2"));
+	QVERIFY(!dlData.data());
+	QCOMPARE(dlData.version(), testVersion);
+	QVERIFY(uploadSpy2.isEmpty());
+	uploadSpy2.clear();
+
+	// download via rmc1 -> no version
+	token = _rmc1->getChanges(Table, tStart);
+	QVERIFY(token != InvalidToken);
+	VERIFY_SPY(doneSpy1, errorSpy1);
+	QCOMPARE(doneSpy1.size(), 1);
+	QCOMPARE(downloadSpy1.size(), 1);
+	QCOMPARE(downloadSpy1[0][0].toString(), Table);
+	QCOMPARE(downloadSpy1[0][1].value<QList<CloudData>>().size(), 1);
+	dlData = downloadSpy1[0][1].value<QList<CloudData>>().first();
+	QCOMPARE(dlData.key().tableName, Table);
+	QCOMPARE(dlData.key().key, QStringLiteral("_key_versioned2"));
+	QVERIFY(!dlData.data());
+	QCOMPARE(dlData.version(), std::nullopt);
+	doneSpy1.clear();
+	downloadSpy1.clear();
 }
 
 void RemoteConnectorTest::testConflict()
@@ -611,10 +720,12 @@ void RemoteConnectorTest::testRemoveUser()
 	QSignalSpy removedSpy{_rmc1, &RemoteConnector::removedUser};
 	QVERIFY(removedSpy.isValid());
 
+	QVERIFY(_settings1->contains(RemoteConnector::DeviceIdKey));
 	token = _rmc1->removeUser();
 	QVERIFY(token != InvalidToken);
 	VERIFY_SPY(removedSpy, errorSpy);
 	QCOMPARE(removedSpy.size(), 1);
+	QVERIFY(!_settings1->contains(RemoteConnector::DeviceIdKey));
 
 	// get changes must throw an error
 	token = _rmc1->getChanges(Table, {});
