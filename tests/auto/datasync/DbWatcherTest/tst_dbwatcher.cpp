@@ -66,6 +66,8 @@ private Q_SLOTS:
 	void testStoreCustomFields();
 	void testUnsyncCustomFields();
 
+	void testReferences();
+
 private:
 	static const QString TestTable;
 
@@ -1104,6 +1106,234 @@ void DbWatcherTest::testUnsyncCustomFields()
 	fieldsQuery.addBindValue(table);
 	fieldsQuery.exec();
 	QVERIFY(!fieldsQuery.first());
+}
+
+void DbWatcherTest::testReferences()
+{
+	try {
+		QSignalSpy errorSpy{_watcher, &DatabaseWatcher::databaseError};
+		QVERIFY(errorSpy.isValid());
+
+		// enable referential integrity
+		Query pragmaOnQuery{_watcher};
+		pragmaOnQuery.exec(QStringLiteral("PRAGMA foreign_keys = ON;"));
+
+		// create and sync tables
+		Query create1Query{_watcher};
+		create1Query.exec(QStringLiteral("CREATE TABLE RefTestParent1 ("
+										 "	Key		INTEGER NOT NULL PRIMARY KEY, "
+										 "	Value	READ NOT NULL DEFAULT 4.2 "
+										 ");"));
+		Query create2Query{_watcher};
+		create2Query.exec(QStringLiteral("CREATE TABLE RefTestParent2 ("
+										 "	Key		INTEGER NOT NULL PRIMARY KEY, "
+										 "	Value	TEXT "
+										 ");"));
+		Query create3Query{_watcher};
+		create3Query.exec(QStringLiteral("CREATE TABLE RefTestChild ("
+										 "	Key1	INTEGER NOT NULL PRIMARY KEY, "
+										 "	Key2	INTEGER NOT NULL, "
+										 "	Value	TEXT NOT NULL, "
+										 "	FOREIGN KEY(Key1) REFERENCES RefTestParent1(Key) ON UPDATE CASCADE ON DELETE CASCADE, "
+										 "	FOREIGN KEY(Key2) REFERENCES RefTestParent2(Key) ON UPDATE CASCADE ON DELETE CASCADE "
+										 ");"));
+
+		const auto parent1 = QStringLiteral("RefTestParent1");
+		const auto parent2 = QStringLiteral("RefTestParent2");
+		const auto child = QStringLiteral("RefTestChild");
+
+		// add parent tables
+		_watcher->addTable(parent1);
+		_watcher->addTable(parent2);
+
+		// add child
+		TableConfig config{child, _watcher->database()};
+		{
+			// only add 1 ref
+			config.setReferences({std::make_pair(parent1, QStringLiteral("Key"))});
+			_watcher->addTable(config);
+
+			// verify correct refs
+			Query refsQuery{_watcher};
+			refsQuery.prepare(QStringLiteral("SELECT fKeyTable, fKeyField "
+											 "FROM __qtdatasync_sync_references "
+											 "WHERE tableName == ?;"));
+			refsQuery.addBindValue(child);
+			refsQuery.exec();
+			auto xRefs = config.references();
+			while (!xRefs.isEmpty()) {
+				QVERIFY(refsQuery.next());
+				QCOMPARE(xRefs.removeAll(std::make_pair(refsQuery.value(0).toString(),
+														refsQuery.value(1).toString())),
+						 1);
+			}
+			QVERIFY(!refsQuery.next());
+		}
+
+		{
+			// remove sync
+			config.setReferences({std::make_pair(parent2, QStringLiteral("Key"))});
+			_watcher->removeTable(child);
+
+			// test refs still there
+			Query rmRefsQuery{_watcher};
+			rmRefsQuery.prepare(QStringLiteral("SELECT fKeyTable, fKeyField "
+												 "FROM __qtdatasync_sync_references "
+												 "WHERE tableName == ?;"));
+			rmRefsQuery.addBindValue(child);
+			rmRefsQuery.exec();
+			QList<TableConfig::Reference> xRefs {std::make_pair(parent1, QStringLiteral("Key"))};
+			while (!xRefs.isEmpty()) {
+				QVERIFY(rmRefsQuery.next());
+				QCOMPARE(xRefs.removeAll(std::make_pair(rmRefsQuery.value(0).toString(),
+														rmRefsQuery.value(1).toString())),
+						 1);
+			}
+			QVERIFY(!rmRefsQuery.next());
+
+			// add again, no force
+			_watcher->addTable(config);
+
+			// verify correct (old) refs
+			Query addRefsQuery{_watcher};
+			addRefsQuery.prepare(QStringLiteral("SELECT fKeyTable, fKeyField "
+												"FROM __qtdatasync_sync_references "
+												"WHERE tableName == ?;"));
+			addRefsQuery.addBindValue(child);
+			addRefsQuery.exec();
+			xRefs = QList<TableConfig::Reference>{std::make_pair(parent1, QStringLiteral("Key"))};
+			while (!xRefs.isEmpty()) {
+				QVERIFY(addRefsQuery.next());
+				QCOMPARE(xRefs.removeAll(std::make_pair(addRefsQuery.value(0).toString(),
+														addRefsQuery.value(1).toString())),
+						 1);
+			}
+			QVERIFY(!addRefsQuery.next());
+		}
+
+		{
+			// add again, with force
+			config.setReferences({
+				std::make_pair(parent1, QStringLiteral("Key")),
+				std::make_pair(parent2, QStringLiteral("Key"))
+			});
+			config.setForceCreate(true);
+			_watcher->dropTable(child);  // no test needed is part of remove
+			_watcher->addTable(config);
+
+			// verify correct fields
+			Query refsQuery{_watcher};
+			refsQuery.prepare(QStringLiteral("SELECT fKeyTable, fKeyField "
+											 "FROM __qtdatasync_sync_references "
+											 "WHERE tableName == ?;"));
+			refsQuery.addBindValue(child);
+			refsQuery.exec();
+			auto xRefs = config.references();
+			while (!xRefs.isEmpty()) {
+				QVERIFY(refsQuery.next());
+				QCOMPARE(xRefs.removeAll(std::make_pair(refsQuery.value(0).toString(),
+														refsQuery.value(1).toString())),
+						 1);
+			}
+			QVERIFY(!refsQuery.next());
+		}
+
+		{
+			const ObjectKey pKey1{parent1, QString::number(0)};
+			const ObjectKey pKey2{parent2, QString::number(0)};
+			const ObjectKey cKey{child, QString::number(0)};
+
+			// add data to parent
+			Query addParent1Query{_watcher};
+			addParent1Query.prepare(QStringLiteral("INSERT INTO RefTestParent1 "
+												   "(Key, Value) "
+												   "VALUES(?, ?);"));
+			addParent1Query.addBindValue(0);
+			addParent1Query.addBindValue(0.5);
+			addParent1Query.exec();
+			markChanged(DatabaseWatcher::ChangeState::Unchanged, pKey1);
+
+			// store dataset
+			auto mod = QDateTime::currentDateTimeUtc().addSecs(5);
+			_watcher->storeData(LocalData {
+				child, QString::number(0),
+				QVariantHash {
+					{QStringLiteral("Key1"), 0},
+					{QStringLiteral("Key2"), 0},
+					{QStringLiteral("Value"), QStringLiteral("baum")}
+				},
+				mod,
+				std::nullopt
+			});
+			QVERIFY(errorSpy.isEmpty());
+
+			// parent 1 has data -> unchanged
+			VERIFY_CHANGED_STATE_KEY(pKey1, QDateTime{}, mod.addSecs(-4), DatabaseWatcher::ChangeState::Unchanged);
+			Query getParent1Query{_watcher};
+			getParent1Query.prepare(QStringLiteral("SELECT Value "
+												   "FROM RefTestParent1 "
+												   "WHERE Key == ?;"));
+			getParent1Query.addBindValue(0);
+			getParent1Query.exec();
+			QVERIFY(getParent1Query.next());
+			QCOMPARE(getParent1Query.value(0).toDouble(), 0.5);
+			QVERIFY(!getParent1Query.next());
+
+			// parent 2 was added as default
+			Query getParent2Query{_watcher};
+			getParent2Query.prepare(QStringLiteral("SELECT Value "
+												   "FROM RefTestParent2 "
+												   "WHERE Key == ?;"));
+			getParent2Query.addBindValue(0);
+			getParent2Query.exec();
+			QVERIFY(getParent2Query.next());
+			QVERIFY(getParent2Query.value(0).isNull());
+			QVERIFY(!getParent2Query.next());
+			// should not have a changed entry
+			Query testChangedQuery{_watcher};
+			testChangedQuery.prepare(QStringLiteral("SELECT tstamp, changed "
+													"FROM __qtdatasync_sync_data_RefTestParent2 "
+													"WHERE pkey == ?;"));
+			testChangedQuery.addBindValue(0);
+			testChangedQuery.exec();
+			QVERIFY(!testChangedQuery.next());
+
+			// child was added
+			Query getChildQuery{_watcher};
+			getChildQuery.prepare(QStringLiteral("SELECT Key1, Key2, Value "
+												 "FROM RefTestChild "
+												 "WHERE Key1 == ? AND Key2 == ?"));
+			getChildQuery.addBindValue(0);
+			getChildQuery.addBindValue(0);
+			getChildQuery.exec();
+			QVERIFY(getChildQuery.next());
+			QCOMPARE(getChildQuery.value(0).toInt(), 0);
+			QCOMPARE(getChildQuery.value(1).toInt(), 0);
+			QCOMPARE(getChildQuery.value(2).toString(), QStringLiteral("baum"));
+			QVERIFY(!getChildQuery.next());
+			VERIFY_CHANGED_STATE_KEY(cKey, mod, mod, DatabaseWatcher::ChangeState::Unchanged);
+		}
+
+		{
+			// unsync table
+			_watcher->unsyncTable(child);
+
+			// test refs gone now
+			Query rmRefsQuery{_watcher};
+			rmRefsQuery.prepare(QStringLiteral("SELECT fKeyTable, fKeyField "
+											   "FROM __qtdatasync_sync_references "
+											   "WHERE tableName == ?;"));
+			rmRefsQuery.addBindValue(child);
+			rmRefsQuery.exec();
+			QVERIFY(!rmRefsQuery.first());
+		}
+
+		// disable referential integrity
+		Query pragmaOffQuery{_watcher};
+		pragmaOffQuery.exec(QStringLiteral("PRAGMA foreign_keys = OFF;"));
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
 }
 
 void DbWatcherTest::fillDb()
