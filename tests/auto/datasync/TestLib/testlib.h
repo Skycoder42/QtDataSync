@@ -4,6 +4,7 @@
 #include <optional>
 
 #include <QtCore/QObject>
+#include <QtCore/QSettings>
 
 #include <QtNetwork/QNetworkAccessManager>
 
@@ -21,7 +22,11 @@ class SetupPrivate;
 class TestLib
 {
 public:
-	static QtDataSync::FirebaseAuthenticator *createAuth(const QString &apiKey, QObject *parent, QNetworkAccessManager *nam = nullptr);
+	static QSettings *createSettings(QObject *parent);
+	static QtDataSync::FirebaseAuthenticator *createAuth(const QString &apiKey,
+														 QObject *parent,
+														 QNetworkAccessManager *nam = nullptr,
+														 QSettings *settings = nullptr);
 	static std::optional<std::pair<QString, QString>> doAuth(QtDataSync::FirebaseAuthenticator *auth);
 	static void rmAcc(QtDataSync::FirebaseAuthenticator *auth);
 };

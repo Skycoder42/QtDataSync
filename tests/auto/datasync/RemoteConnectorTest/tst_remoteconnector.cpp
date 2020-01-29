@@ -56,7 +56,8 @@ void RemoteConnectorTest::initTestCase()
 		_nam = new QNetworkAccessManager{this};
 
 		// authenticate
-		_authenticator = TestLib::createAuth(config.apiKey, this, _nam);
+		auto settings = TestLib::createSettings(this);
+		_authenticator = TestLib::createAuth(config.apiKey, this, _nam, settings);
 		QVERIFY(_authenticator);
 		auto authRes = TestLib::doAuth(_authenticator);
 		QVERIFY(authRes);
@@ -65,6 +66,7 @@ void RemoteConnectorTest::initTestCase()
 		_connector = new RemoteConnector{
 			config,
 			_nam,
+			settings,
 			this
 		};
 		_connector->setUser(authRes->first);

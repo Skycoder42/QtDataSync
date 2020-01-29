@@ -14,8 +14,12 @@ Q_LOGGING_CATEGORY(QtDataSync::logRmc, "qt.datasync.RemoteConnector")
 
 #define CANCEL_IF(token) if (!_cancelCache.remove(cancelToken)) return
 
-RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNetworkAccessManager *nam, QObject *parent) :
-	QObject{parent}
+const QString RemoteConnector::DeviceIdKey = QStringLiteral("rmc/deviceId");
+
+RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNetworkAccessManager *nam, QSettings *settings, QObject *parent) :
+	QObject{parent},
+	_settings{settings},
+	_client{new JsonSuffixClient{this}}
 {
 #ifdef Q_ATOMIC_INT8_IS_SUPPORTED
 	static QAtomicInteger<bool> rmcReg = false;
@@ -42,7 +46,6 @@ RemoteConnector::RemoteConnector(const SetupPrivate::FirebaseConfig &config, QNe
 				Q_EMIT onlineChanged(isOnline());
 			});
 
-	_client = new JsonSuffixClient{this};
 	_client->setManager(nam);
 	const auto serializer = _client->serializer();
 	serializer->setAllowDefaultNull(true);
@@ -65,7 +68,7 @@ bool RemoteConnector::isActive() const
 void RemoteConnector::setUser(QString userId)
 {
 	if (_api)
-		_api->deleteLater();
+		logOut(false);
 	_api = new ApiClient{_client->createClass(userId, this), this};
 }
 
@@ -115,8 +118,12 @@ RemoteConnector::CancallationToken RemoteConnector::getChanges(const QString &ty
 		if (!data.isEmpty()) {
 			QList<CloudData> dlList;
 			dlList.reserve(data.size());
-			for (auto it = data.begin(), end = data.end(); it != end; ++it)
-				dlList.append(dlData({type, it->first}, it->second));
+			for (auto it = data.begin(), end = data.end(); it != end; ++it) {
+				if (it->second.device() != deviceId())  // skip data of this device
+					dlList.append(dlData({type, it->first}, it->second));
+				else
+					qCDebug(logRmc) << "Skipping processing of change data from this device";
+			}
 			Q_EMIT downloadedData(type, dlList);
 		}
 		// if as much data as possible by limit, fetch more with new last sync
@@ -145,13 +152,14 @@ RemoteConnector::CancallationToken RemoteConnector::uploadChange(const CloudData
 		if (!replyData) {
 			// no data on the server -> upload with null tag
 			doUpload(data, ApiBase::NullETag, cancelToken);
-		} else if (replyData->modified() >= data.modified()) {
-			// data was modified on the server after modified locally -> ignore upload
+		} else if (replyData->device() != deviceId() &&
+				   replyData->modified() >= data.modified()) {
+			// data was modified on the server after modified locally by another device -> ignore upload
 			qCDebug(logRmc) << "Server data is newer than local data when trying to upload - triggering sync";
 			Q_EMIT downloadedData(data.key().typeName, {dlData(data.key(), *replyData, true)});
 			Q_EMIT triggerSync(data.key().typeName);
 		} else {
-			// data on server is older -> upload
+			// data on server is older or was modified by this device -> upload
 			doUpload(data, reply->networkReply()->rawHeader("ETag"), cancelToken);
 		}
 	})->onAllErrors(this, [this, type = data.key().typeName, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
@@ -180,6 +188,18 @@ RemoteConnector::CancallationToken RemoteConnector::removeTable(const QString &t
 	return cancelToken;
 }
 
+void RemoteConnector::logOut(bool clearDevId)
+{
+	if (_api) {
+		_api->deleteLater();
+		_api = nullptr;
+	}
+	if (clearDevId) {
+		_devId = {};
+		_settings->remove(DeviceIdKey);
+	}
+}
+
 RemoteConnector::CancallationToken RemoteConnector::removeUser()
 {
 	if (!_api) {
@@ -191,8 +211,7 @@ RemoteConnector::CancallationToken RemoteConnector::removeUser()
 	const auto cancelToken = acquireToken(reply);
 	reply->onSucceeded(this, [this, cancelToken](int) {
 		CANCEL_IF(cancelToken);
-		_api->deleteLater();
-		_api = nullptr;
+		logOut();
 		Q_EMIT removedUser();
 	})->onAllErrors(this, [this, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		CANCEL_IF(cancelToken);
@@ -318,6 +337,18 @@ QString RemoteConnector::translateError(const Error &error, int)
 	return error.error();
 }
 
+QUuid RemoteConnector::deviceId()
+{
+	if (_devId.isNull()) {
+		if (!_settings->contains(DeviceIdKey)) {
+			_settings->setValue(DeviceIdKey, QUuid::createUuid());
+			_settings->sync();
+		}
+		_devId = _settings->value(DeviceIdKey).toUuid();
+	}
+	return _devId;
+}
+
 CloudData RemoteConnector::dlData(ObjectKey key, const Data &data, bool skipUploaded) const
 {
 	return {
@@ -361,7 +392,8 @@ void RemoteConnector::doUpload(const CloudData &data, QByteArray eTag, Cancallat
 											data.data(),
 											data.modified(),
 											_syncTableVersions ? data.version() : std::nullopt,
-											ServerTimestamp{}
+											ServerTimestamp{},
+											deviceId()
 										},
 										data.key().typeName,
 										data.key().id);
@@ -419,18 +451,23 @@ void RemoteConnector::processStreamEvent(const QString &type, EventData &data, C
 					if (!initData.isEmpty()) {
 						QList<CloudData> dlList;
 						dlList.reserve(initData.size());
-						for (auto it = initData.begin(), end = initData.end(); it != end; ++it)
-							dlList.append(dlData({type, it->first}, it->second));
+						for (auto it = initData.begin(), end = initData.end(); it != end; ++it) {
+							if (it->second.device() != deviceId())
+								dlList.append(dlData({type, it->first}, it->second));
+							else
+								qCDebug(logRmc) << "Skipping processing of live data from this device";
+						}
 						Q_EMIT downloadedData(type, dlList);
 					}
 					Q_EMIT syncDone(type);
 				} else {
 					static const QRegularExpression pathRegexp {QStringLiteral(R"__(^\/([^\/]+)$)__")};
 					if (const auto match = pathRegexp.match(evPath); match.hasMatch()) {
-						Q_EMIT downloadedData(type, {dlData(
-														{type, match.captured(1)},
-														serializer->deserialize<Data>(evData))
-													});
+						const auto data = serializer->deserialize<Data>(evData);
+						if (data.device() != deviceId())
+							Q_EMIT downloadedData(type, {dlData({type, match.captured(1)}, data)});
+						else
+							qCDebug(logRmc) << "Skipping processing of live data from this device";
 					} else
 						qCDebug(logRmc) << "Ignoring put event of" << type << "for unsupported data path" << evPath;
 				}

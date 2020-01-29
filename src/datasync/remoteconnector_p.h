@@ -8,6 +8,7 @@
 #include "setup_impl.h"
 
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 #include <QtCore/QLoggingCategory>
 
 #include "realtimedb_api.h"
@@ -27,8 +28,11 @@ public:
 	static constexpr int CodeNotFound = 404;
 	static constexpr int CodeETagMismatch = 412;
 
+	static const QString DeviceIdKey;
+
 	explicit RemoteConnector(const __private::SetupPrivate::FirebaseConfig &config,
 							 QNetworkAccessManager *nam,
+							 QSettings *settings,
 							 QObject *parent);
 
 	bool isActive() const;
@@ -39,6 +43,7 @@ public:
 	CancallationToken getChanges(const QString &type, const QDateTime &since, const CancallationToken continueToken = InvalidToken);
 	CancallationToken uploadChange(const CloudData &data);
 	CancallationToken removeTable(const QString &type);
+	void logOut(bool clearDevId = true);
 	CancallationToken removeUser();
 
 	void cancel(CancallationToken token);
@@ -76,7 +81,8 @@ private:
 		void reset();
 	};
 
-	QtRestClient::RestClient *_client = nullptr;
+	QPointer<QSettings> _settings;
+	QtRestClient::RestClient *_client;
 	firebase::realtimedb::ApiClient *_api = nullptr;
 	int _limit = 100;
 	bool _syncTableVersions = false;
@@ -84,10 +90,12 @@ private:
 	CancallationToken _cancelCtr = 0;
 	QHash<CancallationToken, QPointer<QNetworkReply>> _cancelCache;
 
+	QUuid _devId;
 	QHash<QString, EventData> _eventCache;
 
 	static QString translateError(const QtDataSync::firebase::realtimedb::Error &error, int code);
 
+	QUuid deviceId();
 	CloudData dlData(ObjectKey key, const firebase::realtimedb::Data &data, bool skipUploaded = false) const;
 	CancallationToken acquireToken(QNetworkReply *reply, const CancallationToken overwriteToken = InvalidToken);
 	inline CancallationToken acquireToken(QtRestClient::RestReply *reply, const CancallationToken overwriteToken = InvalidToken) {

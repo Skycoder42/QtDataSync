@@ -256,6 +256,7 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 	d->connector = new RemoteConnector{
 		d->setup->firebase,
 		d->setup->nam,
+		d->setup->settings,
 		this
 	};
 

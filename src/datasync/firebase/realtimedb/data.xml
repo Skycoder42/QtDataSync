@@ -4,10 +4,12 @@
 			registerConverters="false">
 	<Include>variant</Include>
 	<Include>QtCore/QDateTime</Include>
+	<Include>QtCore/QUuid</Include>
 	<Include local="true">data_globals_p.h</Include>
 
 	<Property key="data" type="QtDataSync::firebase::realtimedb::Content">std::nullopt</Property>
 	<Property key="modified" type="QDateTime"/>
 	<Property key="version" type="QtDataSync::firebase::realtimedb::Version">std::nullopt</Property>
 	<Property key="uploaded" type="QtDataSync::firebase::realtimedb::Timestamp"/>
+	<Property key="device" type="QUuid"/>
 </RestGadget>

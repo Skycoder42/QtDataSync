@@ -62,6 +62,7 @@ void EngineDataModel::cancel(const EnginePrivate::ErrorInfo &error)
 
 void EngineDataModel::logOut()
 {
+	_connector->logOut();
 	_authenticator->logOut();
 	stop(StopEvent::LogOut);  // only triggeres flow if already logged in
 }
