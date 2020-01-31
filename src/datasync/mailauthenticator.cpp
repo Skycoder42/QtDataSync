@@ -33,28 +33,6 @@ bool MailAuthenticator::requireVerification() const
 	return d->requireVerification;
 }
 
-void MailAuthenticator::signIn()
-{
-	Q_D(const MailAuthenticator);
-	Q_EMIT showSignInDialog(d->rememberMail ?
-								settings()->value(MailAuthenticatorPrivate::MailKey).toString() :
-								QString{});
-}
-
-void MailAuthenticator::logOut()
-{
-	Q_D(MailAuthenticator);
-	d->cachedSignUp.reset();
-	d->cachedExpiresAt = {};
-}
-
-void MailAuthenticator::abortRequest()
-{
-	Q_D(const MailAuthenticator);
-	if (d->lastReply)
-		d->lastReply->abort();
-}
-
 void MailAuthenticator::signUp(const QString &mail, const QString &password)
 {
 	Q_D(MailAuthenticator);
@@ -193,6 +171,28 @@ void MailAuthenticator::init()
 										d->rememberMail)
 						  .toBool();
 	d->api = new ApiClient{client()->rootClass(), this};
+}
+
+void MailAuthenticator::signIn()
+{
+	Q_D(const MailAuthenticator);
+	Q_EMIT showSignInDialog(d->rememberMail ?
+								settings()->value(MailAuthenticatorPrivate::MailKey).toString() :
+								QString{});
+}
+
+void MailAuthenticator::logOut()
+{
+	Q_D(MailAuthenticator);
+	d->cachedSignUp.reset();
+	d->cachedExpiresAt = {};
+}
+
+void MailAuthenticator::abortRequest()
+{
+	Q_D(const MailAuthenticator);
+	if (d->lastReply)
+		d->lastReply->abort();
 }
 
 QString MailAuthenticatorPrivate::pwHash(const QString &password) const

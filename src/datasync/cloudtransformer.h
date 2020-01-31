@@ -77,8 +77,8 @@ public:
 	virtual DatasetId unescapeKey(const DatasetId &key);
 
 public Q_SLOTS:
-	virtual void transformUpload(const LocalData &data) = 0;
-	virtual void transformDownload(const CloudData &data) = 0;
+	virtual void transformUpload(const QtDataSync::LocalData &data) = 0;
+	virtual void transformDownload(const QtDataSync::CloudData &data) = 0;
 
 Q_SIGNALS:
 	void transformUploadDone(const QtDataSync::CloudData &data);

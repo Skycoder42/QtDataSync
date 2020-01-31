@@ -22,20 +22,17 @@ public:
 
 	bool doesPreferNative() const;
 
-	void signIn() final;
-	void logOut() final;
-	void abortRequest() final;
-
 public Q_SLOTS:
 	void setPreferNative(bool preferNative);
 
 Q_SIGNALS:
-	void signInRequested(const QUrl &authUrl);
-
 	void preferNativeChanged(bool preferNative, QPrivateSignal);
 
 protected:
 	void init() final;
+	void signIn() final;
+	void logOut() final;
+	void abortRequest() final;
 
 private:
 	Q_DECLARE_PRIVATE(GoogleAuthenticator)

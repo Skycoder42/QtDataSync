@@ -90,8 +90,8 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 {
 	Q_OBJECT
 
-	Q_PROPERTY(IAuthenticator* authenticator READ authenticator CONSTANT)
-	Q_PROPERTY(ICloudTransformer* transformer READ transformer CONSTANT)
+	Q_PROPERTY(QtDataSync::IAuthenticator* authenticator READ authenticator CONSTANT)
+	Q_PROPERTY(QtDataSync::ICloudTransformer* transformer READ transformer CONSTANT)
 
 	Q_PROPERTY(EngineState state READ state NOTIFY stateChanged)
 
@@ -199,7 +199,7 @@ public:
 							QObject *parent = nullptr);
 
 	QSqlDatabase database(const QString &table) const;
-	Q_INVOKABLE TableSyncController *createController(QString table, QObject *parent = nullptr) const;
+	Q_INVOKABLE QtDataSync::TableSyncController *createController(QString table, QObject *parent = nullptr) const;
 
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;

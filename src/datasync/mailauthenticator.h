@@ -24,10 +24,6 @@ public:
 	bool rememberMail() const;
 	bool requireVerification() const;
 
-	void signIn() override;
-	void logOut() override;
-	void abortRequest() override;
-
 public Q_SLOTS:
 	void signUp(const QString &mail, const QString &password);
 	void signIn(const QString &mail, const QString &password);
@@ -52,6 +48,9 @@ Q_SIGNALS:
 
 protected:
 	void init() override;
+	void signIn() override;
+	void logOut() override;
+	void abortRequest() override;
 
 private:
 	Q_DECLARE_PRIVATE(MailAuthenticator)

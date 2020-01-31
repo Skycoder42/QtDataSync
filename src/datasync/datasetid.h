@@ -12,13 +12,19 @@ namespace QtDataSync {
 //! Defines a unique key to identify a dataset globally
 struct Q_DATASYNC_EXPORT DatasetId
 {
+	Q_GADGET
+
+	Q_PROPERTY(QString tableName MEMBER tableName)
+	Q_PROPERTY(QString key MEMBER key)
+
+public:
 	//! The name of the type the dataset is of
 	QString tableName;
 	//! The id of the dataset (it's USER property)
 	QString key;
 
-	bool isValid() const;
-	QString toString() const;
+	Q_INVOKABLE bool isValid() const;
+	Q_INVOKABLE QString toString() const;
 
 	//! Equality operator
 	bool operator==(const DatasetId &other) const;

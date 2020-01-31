@@ -12,7 +12,7 @@
 <context>
     <name>QtDataSync::MailAuthenticator</name>
     <message>
-        <location filename="../datasync/mailauthenticator.cpp" line="+75"/>
+        <location filename="../datasync/mailauthenticator.cpp" line="+53"/>
         <source>Sign-Up was rejected. Either not a valid email address or it is already in use!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -37,7 +37,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+70"/>
+        <location line="+92"/>
         <source>Failed to send account verification e-mail!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -45,7 +45,7 @@
 <context>
     <name>QtDataSync::OAuthAuthenticator</name>
     <message>
-        <location filename="../datasync/authenticator.cpp" line="+132"/>
+        <location filename="../datasync/authenticator.cpp" line="+125"/>
         <source>Another account with the same credentials already exists! You have to log in with that account instead or link the two accounts!</source>
         <translation type="unfinished"></translation>
     </message>

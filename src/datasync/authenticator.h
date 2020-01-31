@@ -31,11 +31,6 @@ protected:
 public:
 	void init(FirebaseAuthenticator *fbAuth);
 
-	// internal methods! do not call
-	virtual void signIn() = 0;
-	virtual void logOut() = 0;
-	virtual void abortRequest() = 0;
-
 Q_SIGNALS:
 	void guiError(const QString &message, QProtectedSignal = {});
 	void closeGui(QPrivateSignal = {});
@@ -45,6 +40,9 @@ protected:
 	IAuthenticator(IAuthenticatorPrivate &dd, QObject *parent);
 
 	virtual void init();
+	virtual void signIn() = 0;
+	virtual void logOut() = 0;
+	virtual void abortRequest() = 0;
 
 	QSettings *settings() const;
 	QtRestClient::RestClient *client() const;
@@ -59,6 +57,8 @@ protected:
 	void failSignIn();
 
 private:
+	friend class AuthenticationSelectorBase;
+	friend class FirebaseAuthenticator;
 	Q_DECLARE_PRIVATE(IAuthenticator);
 };
 
@@ -67,8 +67,8 @@ class Q_DATASYNC_EXPORT OAuthAuthenticator : public IAuthenticator
 {
 	Q_OBJECT
 
-public:
-	void abortRequest() override;
+Q_SIGNALS:
+	void signInRequested(const QUrl &authUrl);
 
 protected:
 	OAuthAuthenticator(QObject *parent = nullptr);
@@ -78,6 +78,7 @@ protected:
 	void signInWithToken(const QUrl &requestUri,
 						 const QString &provider,
 						 const QString &token);
+	void abortRequest() override;
 
 private:
 	Q_DECLARE_PRIVATE(OAuthAuthenticator);
@@ -89,20 +90,15 @@ class Q_DATASYNC_EXPORT AuthenticationSelectorBase : public IAuthenticator
 	Q_OBJECT
 
 	Q_PROPERTY(bool selectionStored READ isSelectionStored WRITE setSelectionStored NOTIFY selectionStoredChanged)
-	Q_PROPERTY(IAuthenticator* selected READ selected NOTIFY selectedChanged)
+	Q_PROPERTY(QtDataSync::IAuthenticator* selected READ selected NOTIFY selectedChanged)
 
 public:
 	Q_INVOKABLE QList<int> selectionTypes() const;
-	Q_INVOKABLE IAuthenticator *authenticator(int metaTypeId) const;
-	Q_INVOKABLE IAuthenticator *select(int metaTypeId, bool autoSignIn = true);
+	Q_INVOKABLE QtDataSync::IAuthenticator *authenticator(int metaTypeId) const;
+	Q_INVOKABLE QtDataSync::IAuthenticator *select(int metaTypeId, bool autoSignIn = true);
 
 	bool isSelectionStored() const;
 	IAuthenticator* selected() const;
-
-	void init() final;
-	void signIn() final;
-	void logOut() final;
-	void abortRequest() final;
 
 public Q_SLOTS:
 	void setSelectionStored(bool selectionStored);
@@ -111,10 +107,15 @@ Q_SIGNALS:
 	void selectAuthenticator(const QList<int> &metaTypeIds, QPrivateSignal = {});
 
 	void selectionStoredChanged(bool selectionStored, QPrivateSignal = {});
-	void selectedChanged(IAuthenticator* selected, QPrivateSignal = {});
+	void selectedChanged(QtDataSync::IAuthenticator* selected, QPrivateSignal = {});
 
 protected:
 	AuthenticationSelectorBase(QObject *parent);
+
+	void init() final;
+	void signIn() final;
+	void logOut() final;
+	void abortRequest() final;
 
 private:
 	template <typename... TAuthenticators>

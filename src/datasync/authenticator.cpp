@@ -94,13 +94,6 @@ void IAuthenticator::failSignIn()
 
 
 
-void OAuthAuthenticator::abortRequest()
-{
-	Q_D(OAuthAuthenticator);
-	if (d->lastReply)
-		d->lastReply->abort();
-}
-
 OAuthAuthenticator::OAuthAuthenticator(QObject *parent) :
 	OAuthAuthenticator{*new OAuthAuthenticatorPrivate{}, parent}
 {}
@@ -148,6 +141,13 @@ void OAuthAuthenticator::signInWithToken(const QUrl &requestUri, const QString &
 							 << "- make shure the provider has been enabled in the firebase console!";
 		failSignIn();
 	}, &FirebaseAuthenticator::translateError);
+}
+
+void OAuthAuthenticator::abortRequest()
+{
+	Q_D(OAuthAuthenticator);
+	if (d->lastReply)
+		d->lastReply->abort();
 }
 
 
@@ -199,6 +199,20 @@ IAuthenticator *AuthenticationSelectorBase::selected() const
 	return d->activeAuth;
 }
 
+void AuthenticationSelectorBase::setSelectionStored(bool selectionStored)
+{
+	Q_D(AuthenticationSelectorBase);
+	if (selectionStored == d->selectionStored)
+		return;
+
+	d->selectionStored = selectionStored;
+	Q_EMIT selectionStoredChanged(d->selectionStored);
+}
+
+AuthenticationSelectorBase::AuthenticationSelectorBase(QObject *parent) :
+	IAuthenticator{*new AuthenticationSelectorBasePrivate{}, parent}
+{}
+
 void AuthenticationSelectorBase::init()
 {
 	Q_D(AuthenticationSelectorBase);
@@ -242,20 +256,6 @@ void AuthenticationSelectorBase::abortRequest()
 	for (auto auth : qAsConst(d->authenticators))
 		auth->abortRequest();
 }
-
-void AuthenticationSelectorBase::setSelectionStored(bool selectionStored)
-{
-	Q_D(AuthenticationSelectorBase);
-	if (selectionStored == d->selectionStored)
-		return;
-
-	d->selectionStored = selectionStored;
-	Q_EMIT selectionStoredChanged(d->selectionStored);
-}
-
-AuthenticationSelectorBase::AuthenticationSelectorBase(QObject *parent) :
-	IAuthenticator{*new AuthenticationSelectorBasePrivate{}, parent}
-{}
 
 void AuthenticationSelectorBase::addAuthenticator(int metaTypeId, IAuthenticator *authenticator)
 {

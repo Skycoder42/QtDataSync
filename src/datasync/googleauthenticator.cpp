@@ -31,6 +31,24 @@ bool GoogleAuthenticator::doesPreferNative() const
 	return d->preferNative;
 }
 
+void GoogleAuthenticator::setPreferNative(bool preferNative)
+{
+	Q_D(GoogleAuthenticator);
+	if (d->preferNative == preferNative)
+		return;
+
+	d->preferNative = preferNative;
+	emit preferNativeChanged(d->preferNative, {});
+}
+
+void GoogleAuthenticator::init()
+{
+	OAuthAuthenticator::init();
+	Q_D(GoogleAuthenticator);
+	d->oAuthFlow->setNetworkAccessManager(client()->manager());
+	d->loadOaConfig();
+}
+
 void GoogleAuthenticator::signIn()
 {
 	Q_D(GoogleAuthenticator);
@@ -66,24 +84,6 @@ void GoogleAuthenticator::abortRequest()
 	Q_D(GoogleAuthenticator);
 	if (d->oAuthState == GoogleAuthenticatorPrivate::OAuthState::Active)
 		d->oAuthState = GoogleAuthenticatorPrivate::OAuthState::Aborted;
-}
-
-void GoogleAuthenticator::setPreferNative(bool preferNative)
-{
-	Q_D(GoogleAuthenticator);
-	if (d->preferNative == preferNative)
-		return;
-
-	d->preferNative = preferNative;
-	emit preferNativeChanged(d->preferNative, {});
-}
-
-void GoogleAuthenticator::init()
-{
-	OAuthAuthenticator::init();
-	Q_D(GoogleAuthenticator);
-	d->oAuthFlow->setNetworkAccessManager(client()->manager());
-	d->loadOaConfig();
 }
 
 

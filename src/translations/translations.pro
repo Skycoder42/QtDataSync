@@ -1,6 +1,8 @@
 TEMPLATE = aux
 
-QDEP_LUPDATE_INPUTS += $$PWD/../datasync
+QDEP_LUPDATE_INPUTS += \
+	$$PWD/../datasync
+	$$PWD/../imports/datasync
 
 TRANSLATIONS += \
 	qtdatasync_de.ts \
