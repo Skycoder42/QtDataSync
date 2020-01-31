@@ -3,6 +3,8 @@ TARGET = QtDataSync
 QT = core restclient networkauth sql scxml remoteobjects core-private
 MODULE_CONFIG += $$CPP_VERSION
 
+DEFINES += "QT_DATASYNC_SETTINGS_VERSION=\\\"$$MODULE_VERSION_IMPORT\\\""
+
 HEADERS += \
 	asyncwatcher.h \
 	asyncwatcher_p.h \

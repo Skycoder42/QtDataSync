@@ -120,6 +120,66 @@ void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabas
 	d->getWatcher(std::move(database))->resyncTable(table, direction);
 }
 
+QSettings *Engine::syncSettings(QObject *parent)
+{
+	return syncSettings(true, parent);
+}
+
+QSettings *Engine::syncSettings(bool enableLiveSync, QObject *parent)
+{
+	return syncSettings(enableLiveSync, QSqlDatabase::database(), parent);
+}
+
+QSettings *Engine::syncSettings(bool enableLiveSync, const QString &databaseConnection, QObject *parent)
+{
+	return syncSettings(enableLiveSync, QSqlDatabase::database(databaseConnection, true), parent);
+}
+
+QSettings *Engine::syncSettings(bool enableLiveSync, QSqlDatabase database, QObject *parent)
+{
+	return syncSettings(enableLiveSync, database, QStringLiteral("qtdatasync_settings"), parent);
+}
+
+QSettings *Engine::syncSettings(bool enableLiveSync, const QString &databaseConnection, const QString &tableName, QObject *parent)
+{
+	return syncSettings(enableLiveSync, QSqlDatabase::database(databaseConnection, true), tableName, parent);
+}
+
+QSettings *Engine::syncSettings(bool enableLiveSync, QSqlDatabase database, QString tableName, QObject *parent)
+{
+	Q_D(Engine);
+	// register/get the format
+	const auto format = SettingsAdaptor::registerFormat();
+	if (format == QSettings::InvalidFormat) {
+		qCCritical(logEngine) << "Failed to register settings format for the datasync SQL settings tables";
+		return nullptr;
+	}
+
+	// get the adaptor
+	auto adaptor = d->settingsAdaptors.value(tableName);
+	if (!adaptor) {
+		// create settings table
+		if (!SettingsAdaptor::createTable(database, tableName))
+			return nullptr;
+		// synchronize settings table
+		try {
+			TableConfig config{tableName, database};
+			config.setLiveSyncEnabled(enableLiveSync);
+			config.setVersion(QVersionNumber::fromString(QStringLiteral(QT_DATASYNC_SETTINGS_VERSION)));
+			syncTable(config);
+		} catch (TableException &e) {
+			qCCritical(logEngine) << e.what();
+			return nullptr;
+		}
+		// create and store adaptor
+		adaptor = new SettingsAdaptor{this, std::move(tableName), database};
+		d->settingsAdaptors.insert(tableName, adaptor);
+	}
+
+	// create settings
+	return new QSettings{adaptor->path(), format, parent};
+}
+
 QSqlDatabase Engine::database(const QString &table) const
 {
 	Q_D(const Engine);

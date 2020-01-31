@@ -11,6 +11,7 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qversionnumber.h>
+#include <QtCore/qsettings.h>
 
 #include <QtSql/qsqldatabase.h>
 #include <QtSql/qsqlerror.h>
@@ -178,6 +179,24 @@ public:
 	void resyncTable(const QString &table,
 					 ResyncMode direction,
 					 QSqlDatabase database);
+
+	QSettings *syncSettings(QObject *parent = nullptr);
+	QSettings *syncSettings(bool enableLiveSync,
+							QObject *parent = nullptr);
+	QSettings *syncSettings(bool enableLiveSync,
+							const QString &databaseConnection,
+							QObject *parent = nullptr);
+	QSettings *syncSettings(bool enableLiveSync,
+							QSqlDatabase database,
+							QObject *parent = nullptr);
+	QSettings *syncSettings(bool enableLiveSync,
+							const QString &databaseConnection,
+							const QString &tableName,
+							QObject *parent = nullptr);
+	QSettings *syncSettings(bool enableLiveSync,
+							QSqlDatabase database,
+							QString tableName,
+							QObject *parent = nullptr);
 
 	QSqlDatabase database(const QString &table) const;
 	Q_INVOKABLE TableSyncController *createController(QString table, QObject *parent = nullptr) const;
