@@ -1,21 +1,23 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-	TestLib \
-	DbWatcherTest \
 	CloudTransformerTest \
+	DbWatcherTest \
+	EngineMachineTest \
 	TableMachineTest \
-	EngineMachineTest
+	TestLib
 
 !no_firebase_tests {
 	SUBDIRS += \
 		AuthenticatorTest \
+		EngineDataModelTest \
 		RemoteConnectorTest \
-		EngineDataModelTest
+		TableDataModelTest
 
 	AuthenticatorTest.depends += TestLib
 	RemoteConnectorTest.depends += TestLib AuthenticatorTest
 	EngineDataModelTest.depends += TestLib AuthenticatorTest RemoteConnectorTest
+	TableDataModelTest.depends += TestLib AuthenticatorTest RemoteConnectorTest DbWatcherTest CloudTransformerTest
 }
 
 prepareRecursiveTarget(run-tests)

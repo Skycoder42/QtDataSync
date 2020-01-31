@@ -333,7 +333,7 @@ void TableDataModel::triggerResync(const QString &type, bool deleteTable)
 	if (type == _type) {
 		if (deleteTable) {
 			_delTable = true;
-			stateMachine()->submitEvent(QStringLiteral("ŝ"));
+			stateMachine()->submitEvent(QStringLiteral("delTable"));
 		} else {
 			stateMachine()->submitEvent(QStringLiteral("forceSync"));
 			stateMachine()->submitEvent(QStringLiteral("triggerSync"));

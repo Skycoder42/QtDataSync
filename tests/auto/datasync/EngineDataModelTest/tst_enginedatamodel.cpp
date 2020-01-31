@@ -4,6 +4,7 @@
 
 #include "enginestatemachine_p.h"
 #include "enginedatamodel_p.h"
+#include "fakeauth.h"
 using namespace QtDataSync;
 using namespace std::chrono_literals;
 
@@ -25,6 +26,8 @@ private Q_SLOTS:
 	void testLogoutFlow();
 	void testDeleteAcc();
 	void testExternalError();
+
+	void testAuthCancel();
 
 private:
 	using EngineState = Engine::EngineState;
@@ -355,6 +358,56 @@ void EngineDataModelTest::testExternalError()
 	VERIFY_STATE(_machine, "Inactive");
 
 	QVERIFY(errorSpy.isEmpty());
+}
+
+void EngineDataModelTest::testAuthCancel()
+{
+	try {
+		__private::SetupPrivate::FirebaseConfig config;
+
+		auto settings = TestLib::createSettings(this);
+		auto nam = new QNetworkAccessManager{this};
+		// authenticator
+		auto auth = new FirebaseAuthenticator {
+			new FakeAuth{this},
+			{},
+			settings,
+			nam,
+			std::nullopt,
+			this
+		};
+
+		// create rmc
+		auto rmc = new RemoteConnector{
+			config,
+			settings,
+			nam,
+			std::nullopt,
+			this
+		};
+
+		// create machine/model
+		auto machine = new EngineStateMachine{this};
+		auto model = new EngineDataModel{machine};
+		machine->setDataModel(model);
+		QVERIFY(machine->init());
+		model->setupModel(auth, rmc);
+
+		// start machine and wait for sign up
+		machine->start();
+		model->start();
+		QTRY_COMPARE(model->state(), EngineState::SigningIn);
+		QCOMPARE(model->isSyncActive(), false);
+		VERIFY_STATE(machine, "SigningIn");
+
+		// send stop
+		model->stop();
+		QTRY_COMPARE(model->state(), EngineState::Inactive);
+		QCOMPARE(model->isSyncActive(), false);
+		VERIFY_STATE(machine, "Inactive");
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
 }
 
 QTEST_MAIN(EngineDataModelTest)

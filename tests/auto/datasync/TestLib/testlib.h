@@ -29,6 +29,8 @@ public:
 														 QSettings *settings = nullptr);
 	static std::optional<std::pair<QString, QString>> doAuth(QtDataSync::FirebaseAuthenticator *auth);
 	static void rmAcc(QtDataSync::FirebaseAuthenticator *auth);
+
+	static QString tmpPath(const QString &fileName);
 };
 
 #endif // TESTLIB_H

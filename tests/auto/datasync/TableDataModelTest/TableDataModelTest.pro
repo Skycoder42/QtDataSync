@@ -5,22 +5,20 @@ QT = core testlib datasync datasync-private
 CONFIG += console
 CONFIG -= app_bundle
 
-TARGET = tst_enginedatamodel
+TARGET = tst_tabledatamodel
 
 DS_SRC_DIR = $$PWD/../../../../src/datasync
 
 HEADERS += \
-	$$DS_SRC_DIR/enginedatamodel_p.h \
-	fakeauth.h
+	$$DS_SRC_DIR/tabledatamodel_p.h
 
 SOURCES += \
-	$$DS_SRC_DIR/enginedatamodel.cpp \
-	fakeauth.cpp \
-	tst_enginedatamodel.cpp
+	$$DS_SRC_DIR/tabledatamodel.cpp \
+	tst_tabledatamodel.cpp
 
 QSCXMLC_NAMESPACE = QtDataSync
 STATECHARTS += \
-	$$DS_SRC_DIR/enginestatemachine_p.scxml
+	$$DS_SRC_DIR/tablestatemachine_p.scxml
 
 debug_and_release {
 	CONFIG(debug, debug|release):SUFFIX = /debug

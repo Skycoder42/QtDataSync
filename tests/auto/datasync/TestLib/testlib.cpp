@@ -58,3 +58,8 @@ void TestLib::rmAcc(FirebaseAuthenticator *auth)
 	else
 		qDebug() << "deleteAcc did not fire";
 }
+
+QString TestLib::tmpPath(const QString &fileName)
+{
+	return tDir.filePath(fileName);
+}
