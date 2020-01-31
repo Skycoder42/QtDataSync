@@ -41,7 +41,11 @@ bool EngineDataModel::isSyncActive() const
 Engine::EngineState EngineDataModel::state() const
 {
 	const auto mo = QMetaEnum::fromType<Engine::EngineState>();
-	return static_cast<Engine::EngineState>(mo.keyToValue(qUtf8Printable(stateMachine()->activeStateNames(true).last())));
+	const auto states = stateMachine()->activeStateNames(true);
+	if (states.isEmpty())
+		return Engine::EngineState::Inactive;
+	else
+		return static_cast<Engine::EngineState>(mo.keyToValue(qUtf8Printable(states.last())));
 }
 
 void EngineDataModel::start()
