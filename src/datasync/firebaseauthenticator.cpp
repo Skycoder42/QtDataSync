@@ -100,6 +100,7 @@ void FirebaseAuthenticator::logOut()
 	clearFbConfig();
 
 	_auth->logOut();
+	qCDebug(logFbAuth) << "Logged out user";
 }
 
 void FirebaseAuthenticator::deleteUser()

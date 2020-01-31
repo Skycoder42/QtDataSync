@@ -201,6 +201,7 @@ void RemoteConnector::logOut(bool clearDevId)
 		_devId = QUuid{};
 		_settings->remove(DeviceIdKey);
 	}
+	qCDebug(logRmc) << "Logged out user";
 }
 
 RemoteConnector::CancallationToken RemoteConnector::removeUser()
@@ -214,6 +215,7 @@ RemoteConnector::CancallationToken RemoteConnector::removeUser()
 	const auto cancelToken = acquireToken(reply);
 	reply->onSucceeded(this, [this, cancelToken](int) {
 		CANCEL_IF(cancelToken);
+		qCDebug(logRmc) << "Removed all firebase user tables";
 		logOut();
 		Q_EMIT removedUser();
 	})->onAllErrors(this, [this, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {

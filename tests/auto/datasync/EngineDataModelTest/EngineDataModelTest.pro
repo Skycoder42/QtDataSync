@@ -34,6 +34,7 @@ INCLUDEPATH += \
 	$$OUT_PWD/../../../../src/datasync \
 	$$OUT_PWD/../../../../src/datasync/$$QRESTBUILDER_DIR$${SUFFIX} \
 	$$OUT_PWD/../../../../src/datasync/$$QSCXMLC_DIR$${SUFFIX} \
+DEPENDPATH += $$DS_SRC_DIR
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 DEFINES += $$envDefine(FIREBASE_PROJECT_ID)
