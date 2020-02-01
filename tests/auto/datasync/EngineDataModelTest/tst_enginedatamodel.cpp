@@ -107,7 +107,7 @@ void EngineDataModelTest::testSyncFlow()
 	QSignalSpy errorSpy{_model, &EngineDataModel::errorOccured};
 	QVERIFY(errorSpy.isValid());
 
-	QCOMPARE(_model->state(), EngineState::Inactive);
+	QCOMPARE(_model->state(), EngineState::Invalid);
 	QCOMPARE(_model->isSyncActive(), false);
 
 	_machine->start();
@@ -313,11 +313,9 @@ void EngineDataModelTest::testExternalError()
 	// error in error
 	testError.data = 66;
 	_model->cancel(testError);
-	QTRY_COMPARE(stateSpy.size(), 1);
-	QCOMPARE(getState(stateSpy), EngineState::Error);
+	QTRY_COMPARE(errorSpy.size(), 1);
 	QCOMPARE(_model->state(), EngineState::Error);
 	QCOMPARE(_model->isSyncActive(), false);
-	QCOMPARE(errorSpy.size(), 1);
 	QCOMPARE(errorSpy.takeFirst()[0].value<EnginePrivate::ErrorInfo>(), testError);
 	VERIFY_STATE(_machine, "Error");
 

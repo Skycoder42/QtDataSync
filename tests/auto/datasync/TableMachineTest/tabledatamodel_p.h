@@ -36,7 +36,6 @@ public /*scripts*/:
 	DECL_SCRIPT(cancelLiveSync)
 	DECL_SCRIPT(cancelAll)
 	DECL_SCRIPT(delTable)
-	DECL_SCRIPT(tryExit)
 	DECL_SCRIPT(emitError)
 
 public /*members*/:

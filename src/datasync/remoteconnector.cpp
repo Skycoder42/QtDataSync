@@ -183,6 +183,7 @@ RemoteConnector::CancallationToken RemoteConnector::removeTable(const QString &t
 	const auto cancelToken = acquireToken(reply);
 	reply->onSucceeded(this, [this, type, cancelToken](int) {
 		CANCEL_IF(cancelToken);
+		qCDebug(logRmc) << "Deleted table for type" << type;
 		Q_EMIT removedTable(type);
 	})->onAllErrors(this, [this, type, cancelToken](const QString &error, int code, QtRestClient::RestReply::Error errorType) {
 		CANCEL_IF(cancelToken);

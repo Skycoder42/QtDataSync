@@ -78,6 +78,8 @@ private:
 	QPointer<FirebaseAuthenticator> _authenticator;
 	QPointer<RemoteConnector> _connector;
 
+	Engine::EngineState _currentState = Engine::EngineState::Invalid;
+
 	RemoteConnector::CancallationToken _rmUserToken = RemoteConnector::InvalidToken;
 
 	StopEvent _stopEv = StopEvent::Stop;

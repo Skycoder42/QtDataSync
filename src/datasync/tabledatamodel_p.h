@@ -68,7 +68,6 @@ private /*scripts*/:
 	void scheduleRestart();
 	void clearRestart();
 	void delTable();
-	void tryExit();
 
 	void switchMode();
 	std::optional<QDateTime> lastSync();
@@ -116,6 +115,7 @@ private:
 	QString _type;
 	QString _escType;
 	QByteArray _logCatStr = "qt.datasync.Statemachine.Table.<Unknown>";
+	SyncState _currentState = SyncState::Disabled;
 
 	QDateTime _cachedLastSync;
 	QQueue<CloudData> _syncQueue;

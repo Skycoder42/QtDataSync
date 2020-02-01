@@ -19,6 +19,8 @@ private Q_SLOTS:
 	void cleanupTestCase();
 
 	void testPassivSyncFlow();
+	void testDeleteTable();
+	void testLiveSyncFlow();
 
 private:
 	using SyncState = TableDataModel::SyncState;
@@ -30,9 +32,12 @@ private:
 		inline Query(QSqlDatabase db) :
 			ExQuery{db, DatabaseWatcher::ErrorScope::Database, {}}
 		{}
+		inline Query(DatabaseWatcher *watcher) :
+			Query{watcher->database()}
+		{}
 	};
 
-	QSqlDatabase _db;
+	DatabaseWatcher *_watcher = nullptr;
 	FirebaseAuthenticator *_auth = nullptr;
 	RemoteConnector *_testCon = nullptr;
 	TableStateMachine *_machine = nullptr;
@@ -56,19 +61,17 @@ void TableDataModelTest::initTestCase()
 		auto nam = new QNetworkAccessManager{this};
 
 		// database
-		_db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));
-		QVERIFY(_db.isValid());
-		_db.setDatabaseName(TestLib::tmpPath(QStringLiteral("test.db")));
-		QVERIFY(_db.open());
-		Query createQuery{_db};
+		_watcher = new DatabaseWatcher{QSqlDatabase::addDatabase(QStringLiteral("QSQLITE")), {}, this};
+		auto db = _watcher->database();
+		QVERIFY(db.isValid());
+		db.setDatabaseName(TestLib::tmpPath(QStringLiteral("test.db")));
+		QVERIFY(db.open());
+		Query createQuery{_watcher};
 		createQuery.exec(QStringLiteral("CREATE TABLE TableDataModelTest ( "
 										"	Key		INTEGER NOT NULL PRIMARY KEY, "
 										"	Value	REAL NOT NULL"
 										");"));
-
-		// watcher
-		auto watcher = new DatabaseWatcher{std::move(_db), {}, this};
-		watcher->addTable(TableConfig{TestTable, _db});
+		_watcher->addTable(TableConfig{TestTable, db});
 
 		// fb config
 		const __private::SetupPrivate::FirebaseConfig config {
@@ -117,7 +120,7 @@ void TableDataModelTest::initTestCase()
 		_machine->setDataModel(_model);
 		QVERIFY(_machine->init());
 		_model->setupModel(TestTable,
-						   watcher,
+						   _watcher,
 						   rmc,
 						   new PlainCloudTransformer{this});
 	} catch (std::exception &e) {
@@ -181,13 +184,12 @@ void TableDataModelTest::testPassivSyncFlow()
 
 		// trigger fake uplaod (still no data)
 		_model->triggerExtUpload();
-		QTRY_COMPARE_WITH_TIMEOUT(stateSpy.size(), 1, 10000);
+		QVERIFY(!stateSpy.wait(5000));
 		QCOMPARE(_model->state(), SyncState::Synchronized);
-		QCOMPARE(getState(stateSpy), SyncState::Synchronized);
 
 		// add local data to trigger an upload
 		for (auto i = 0; i < 5; ++i) {
-			Query insertQuery{_db};
+			Query insertQuery{_watcher};
 			insertQuery.prepare(QStringLiteral("INSERT INTO TableDataModelTest "
 											   "(Key, Value) "
 											   "VALUES(?, ?)"));
@@ -195,10 +197,9 @@ void TableDataModelTest::testPassivSyncFlow()
 			insertQuery.addBindValue(i * 0.1);
 			insertQuery.exec();
 		}
-		QTRY_COMPARE_WITH_TIMEOUT(stateSpy.size(), 10, 10000);
+		QTRY_COMPARE_WITH_TIMEOUT(stateSpy.size(), 2, 10000);
 		QCOMPARE(_model->state(), SyncState::Synchronized);
-		for (auto i = 0; i < 9; ++i)  // 5 triggers (last is 1 upload) + 4 uploads
-			QCOMPARE(getState(stateSpy), SyncState::Uploading);
+		QCOMPARE(getState(stateSpy), SyncState::Uploading);
 		QCOMPARE(getState(stateSpy), SyncState::Synchronized);
 
 		// verify data via rmc
@@ -209,7 +210,11 @@ void TableDataModelTest::testPassivSyncFlow()
 		QCOMPARE(rmcDownloadSpy.size(), 1);
 		QCOMPARE(rmcDownloadSpy[0][0].toString(), TestTable);
 		QCOMPARE(rmcDownloadSpy[0][1].value<QList<CloudData>>().size(), 5);
-		// TODO verify actual data
+		auto dCtr = 0;
+		for (const auto &data : rmcDownloadSpy[0][1].value<QList<CloudData>>()) {
+			QCOMPARE(data.key().tableName, TestTable);
+			QCOMPARE(data.key().key, QStringLiteral("_%1").arg(dCtr++));
+		}
 		QVERIFY(rmcErrorSpy.isEmpty());
 
 		// trigger sync -> nothing downloaded
@@ -236,24 +241,142 @@ void TableDataModelTest::testPassivSyncFlow()
 
 		// trigger sync -> should download those changes
 		_model->triggerSync(false);
-		QTRY_COMPARE_WITH_TIMEOUT(stateSpy.size(), 6, 10000);
+		QTRY_COMPARE_WITH_TIMEOUT(stateSpy.size(), 2, 10000);
 		QCOMPARE(_model->state(), SyncState::Synchronized);
 		QCOMPARE(getState(stateSpy), SyncState::Downloading);
-		for (auto i = 0; i < 5; ++i)
-			QCOMPARE(getState(stateSpy), SyncState::Synchronized);
-		// TODO verify local data
+		QCOMPARE(getState(stateSpy), SyncState::Synchronized);
+		// test local data
+		{
+			Query testLocalQuery{_watcher};
+			testLocalQuery.exec(QStringLiteral("SELECT Key, Value "
+											   "FROM TableDataModelTest "
+											   "ORDER BY Key ASC;"));
+			for (auto i = 0; i < 2; ++i) {
+				QVERIFY(testLocalQuery.next());
+				QCOMPARE(testLocalQuery.value(0), i);
+				QCOMPARE(testLocalQuery.value(1), 0.1 * i);
+			}
+			QVERIFY(!testLocalQuery.next());
+		}
 
 		// trigger sync again -> should only download the one last change -> no effect
+		_model->triggerSync(false);
+		QTRY_COMPARE_WITH_TIMEOUT(stateSpy.size(), 2, 10000);
+		QCOMPARE(_model->state(), SyncState::Synchronized);
+		QCOMPARE(getState(stateSpy), SyncState::Downloading);
+		QCOMPARE(getState(stateSpy), SyncState::Synchronized);
+		// test local data
+		{
+			Query testLocalQuery{_watcher};
+			testLocalQuery.exec(QStringLiteral("SELECT Key, Value "
+											   "FROM TableDataModelTest "
+											   "ORDER BY Key ASC;"));
+			for (auto i = 0; i < 2; ++i) {
+				QVERIFY(testLocalQuery.next());
+				QCOMPARE(testLocalQuery.value(0), i);
+				QCOMPARE(testLocalQuery.value(1), 0.1 * i);
+			}
+			QVERIFY(!testLocalQuery.next());
+		}
+
+		// upload data and change local, then sync
+		// upload 1, 2
+		for (auto i = 1; i < 3; ++i) {
+			token = _testCon->uploadChange({
+				TestTable, QStringLiteral("_%1").arg(i),
+				std::nullopt,
+				QDateTime::currentDateTimeUtc().addSecs(5),
+				std::nullopt
+			});
+			QVERIFY(token != RemoteConnector::InvalidToken);
+			VERIFY_SPY(rmcUploadSpy, rmcErrorSpy);
+			QCOMPARE(rmcUploadSpy.size(), 1);
+			QVERIFY(rmcErrorSpy.isEmpty());
+			rmcUploadSpy.clear();
+		}
+		// update 2, 3, 4
+		for (auto i = 2; i < 5; ++i) {
+			Query insertQuery{_watcher};
+			insertQuery.prepare(QStringLiteral("INSERT INTO TableDataModelTest "
+											   "(Key, Value) "
+											   "VALUES(?, ?)"));
+			insertQuery.addBindValue(i);
+			insertQuery.addBindValue(i * 0.01);
+			insertQuery.exec();
+		}
+		// trigger sync
 		_model->triggerSync(false);
 		QTRY_COMPARE_WITH_TIMEOUT(stateSpy.size(), 3, 10000);
 		QCOMPARE(_model->state(), SyncState::Synchronized);
 		QCOMPARE(getState(stateSpy), SyncState::Downloading);
+		QCOMPARE(getState(stateSpy), SyncState::Uploading);
 		QCOMPARE(getState(stateSpy), SyncState::Synchronized);
-		QCOMPARE(getState(stateSpy), SyncState::Synchronized);
-		// TODO verify local data
+		// test local data
+		{
+			Query testLocalQuery{_watcher};
+			testLocalQuery.exec(QStringLiteral("SELECT Key, Value "
+											   "FROM TableDataModelTest "
+											   "ORDER BY Key ASC;"));
+			for (auto i : {0, 3, 4}) {
+				QVERIFY(testLocalQuery.next());
+				QCOMPARE(testLocalQuery.value(0), i);
+				QCOMPARE(testLocalQuery.value(1), 0.01 * i);
+			}
+			QVERIFY(!testLocalQuery.next());
+		}
+
+		// stop sync
+		_model->stop();
+		QTRY_COMPARE(_model->state(), SyncState::Stopped);
+		QCOMPARE(stateSpy.size(), 1);
+		QCOMPARE(getState(stateSpy), SyncState::Stopped);
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(exitSpy.isEmpty());
 	} catch(std::exception &e) {
 		QFAIL(e.what());
 	}
+}
+
+void TableDataModelTest::testDeleteTable()
+{
+	try {
+		QSignalSpy stateSpy{_model, &TableDataModel::stateChanged};
+		QVERIFY(stateSpy.isValid());
+		QSignalSpy exitSpy{_model, &TableDataModel::exited};
+		QVERIFY(exitSpy.isValid());
+		QSignalSpy errorSpy{_model, &TableDataModel::errorOccured};
+		QVERIFY(errorSpy.isValid());
+
+		// trigger a full resync before starting -> nothing
+		_watcher->resyncTable(TestTable, Engine::ResyncFlag::SyncAll | Engine::ResyncFlag::ClearAll);
+		QVERIFY(!stateSpy.wait(5000));
+		QCOMPARE(_model->state(), SyncState::Stopped);
+
+		// start table sync (no data on both sides)
+		_model->start();
+		QTRY_COMPARE_WITH_TIMEOUT(_model->state(), SyncState::Synchronized, 10000);
+		QCOMPARE(stateSpy.size(), 3);
+		QCOMPARE(getState(stateSpy), SyncState::Initializing);
+		QCOMPARE(getState(stateSpy), SyncState::Downloading);
+		QCOMPARE(getState(stateSpy), SyncState::Synchronized);
+
+		// TODO upload data and then test delete while running!!!
+
+		// stop sync
+		_model->stop();
+		QTRY_COMPARE(_model->state(), SyncState::Stopped);
+		QCOMPARE(stateSpy.size(), 1);
+		QCOMPARE(getState(stateSpy), SyncState::Stopped);
+		QVERIFY(errorSpy.isEmpty());
+		QVERIFY(exitSpy.isEmpty());
+	} catch(std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void TableDataModelTest::testLiveSyncFlow()
+{
+
 }
 
 QTEST_MAIN(TableDataModelTest)

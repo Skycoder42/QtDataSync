@@ -467,7 +467,7 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 	tableMachines.insert(name, {machine, model});
 	if (engineModel->isSyncActive()) {
 		machine->start();
-		model->start(true);
+		model->start();
 	}
 
 	// notify external watcher

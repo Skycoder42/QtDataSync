@@ -40,12 +40,7 @@ bool EngineDataModel::isSyncActive() const
 
 Engine::EngineState EngineDataModel::state() const
 {
-	const auto mo = QMetaEnum::fromType<Engine::EngineState>();
-	const auto states = stateMachine()->activeStateNames(true);
-	if (states.isEmpty())
-		return Engine::EngineState::Inactive;
-	else
-		return static_cast<Engine::EngineState>(mo.keyToValue(qUtf8Printable(states.last())));
+	return _currentState;
 }
 
 void EngineDataModel::start()
@@ -127,7 +122,15 @@ void EngineDataModel::emitError()
 void EngineDataModel::reachedStableState()
 {
 	qCDebug(logEngineSm) << "Reached state:" << stateMachine()->activeStateNames(true);
-	Q_EMIT stateChanged(state());
+	const auto oldState = _currentState;
+	const auto mo = QMetaEnum::fromType<Engine::EngineState>();
+	const auto states = stateMachine()->activeStateNames(true);
+	if (states.isEmpty())
+		_currentState = Engine::EngineState::Inactive;
+	else
+		_currentState = static_cast<Engine::EngineState>(mo.keyToValue(qUtf8Printable(states.last())));
+	if (_currentState != oldState)
+		Q_EMIT stateChanged(_currentState);
 }
 
 void EngineDataModel::log(const QString &label, const QString &msg)

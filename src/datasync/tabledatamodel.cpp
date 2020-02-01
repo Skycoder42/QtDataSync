@@ -49,6 +49,8 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::uploadedData);
 	connect(_connector, &RemoteConnector::triggerSync,
 			this, &TableDataModel::triggerDownload);
+	connect(_connector, &RemoteConnector::removedTable,
+			this, &TableDataModel::removedTable);
 	connect(_connector, &RemoteConnector::networkError,
 			this, &TableDataModel::networkError);
 	connect(_connector, &RemoteConnector::liveSyncExpired,
@@ -65,32 +67,7 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 
 TableDataModel::SyncState TableDataModel::state() const
 {
-	// engines exited
-	if (!stateMachine()->isRunning())
-		return SyncState::Disabled;
-	// "child" states
-	else if (stateMachine()->isActive(QStringLiteral("NetworkError")))
-		return SyncState::TemporaryError;
-	else if (stateMachine()->isActive(QStringLiteral("Error")))
-		return SyncState::Error;
-	else if (stateMachine()->isActive(QStringLiteral("Offline")))
-		return SyncState::Offline;
-	else if (stateMachine()->isActive(QStringLiteral("LsActive")))
-		return SyncState::LiveSync;
-	else if (stateMachine()->isActive(QStringLiteral("Downloading")))
-		return SyncState::Downloading;
-	else if (stateMachine()->isActive(QStringLiteral("Uploading")))
-		return SyncState::Uploading;
-	else if (stateMachine()->isActive(QStringLiteral("Synchronized")))
-		return SyncState::Synchronized;
-	// "compound" states
-	else if (stateMachine()->isActive(QStringLiteral("Inactive")))
-		return SyncState::Stopped;
-	else if (stateMachine()->isActive(QStringLiteral("Active")))
-		return SyncState::Initializing;
-	// fallback case
-	else
-		return SyncState::Invalid;
+	return _currentState;
 }
 
 bool TableDataModel::isLiveSyncEnabled() const
@@ -105,16 +82,16 @@ QSqlDatabase TableDataModel::database() const
 
 void TableDataModel::start(bool restart)
 {
+	_autoStart = _autoStart || !restart;
 	if (stateMachine()->isRunning()) {
-		if (!restart || _autoStart) {
-			_autoStart = true;
+		if (_autoStart)
 			stateMachine()->submitEvent(QStringLiteral("start"));
-		}
 	}
 }
 
 void TableDataModel::stop()
 {
+	_autoStart = false;
 	if (stateMachine()->isRunning())
 		stateMachine()->submitEvent(QStringLiteral("stop"));
 }
@@ -228,11 +205,6 @@ void TableDataModel::delTable()
 	_passiveSyncToken = _connector->removeTable(_escType);
 }
 
-void TableDataModel::tryExit()
-{
-
-}
-
 void TableDataModel::switchMode()
 {
 	if (_delTable)
@@ -299,7 +271,36 @@ void TableDataModel::cancelAll()
 void TableDataModel::reachedStableState()
 {
 	qCDebug(logTableSm) << "Reached state:" << stateMachine()->activeStateNames(true);
-	Q_EMIT stateChanged(state());
+	// engines exited
+	const auto oldState = _currentState;
+	if (!stateMachine()->isRunning())
+		_currentState = SyncState::Disabled;
+	// "child" states
+	else if (stateMachine()->isActive(QStringLiteral("NetworkError")))
+		_currentState = SyncState::TemporaryError;
+	else if (stateMachine()->isActive(QStringLiteral("Error")))
+		_currentState = SyncState::Error;
+	else if (stateMachine()->isActive(QStringLiteral("Offline")))
+		_currentState = SyncState::Offline;
+	else if (stateMachine()->isActive(QStringLiteral("LsActive")))
+		_currentState = SyncState::LiveSync;
+	else if (stateMachine()->isActive(QStringLiteral("Downloading")))
+		_currentState = SyncState::Downloading;
+	else if (stateMachine()->isActive(QStringLiteral("Uploading")))
+		_currentState = SyncState::Uploading;
+	else if (stateMachine()->isActive(QStringLiteral("Synchronized")))
+		_currentState = SyncState::Synchronized;
+	// "compound" states
+	else if (stateMachine()->isActive(QStringLiteral("Inactive")))
+		_currentState = SyncState::Stopped;
+	else if (stateMachine()->isActive(QStringLiteral("Active")))
+		_currentState = SyncState::Initializing;
+	// fallback case
+	else
+		_currentState = SyncState::Invalid;
+
+	if (_currentState != oldState)
+		Q_EMIT stateChanged(_currentState);
 }
 
 void TableDataModel::log(const QString &label, const QString &msg)
