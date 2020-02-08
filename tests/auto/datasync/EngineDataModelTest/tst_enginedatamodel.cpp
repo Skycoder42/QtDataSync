@@ -14,6 +14,15 @@ Q_DECLARE_METATYPE(EnginePrivate::ErrorInfo)
 #define TRY_VERIFY_STATE(machine, state) QTRY_COMPARE(machine->activeStateNames(true), QStringList{QStringLiteral(state)})
 #define VERIFY_SPY(sigSpy, errorSpy) QVERIFY2(sigSpy.wait(), qUtf8Printable(QStringLiteral("Error: ") + errorSpy.value(0).value(0).toString()))
 
+namespace QtDataSync {
+
+bool operator==(const EnginePrivate::ErrorInfo &lhs, const EnginePrivate::ErrorInfo &rhs) {
+	return lhs.type == rhs.type &&
+		   lhs.data == rhs.data;
+}
+
+}
+
 class EngineDataModelTest : public QObject
 {
 	Q_OBJECT
@@ -40,11 +49,6 @@ private:
 		return spy.takeFirst()[0].value<EngineState>();
 	}
 };
-
-bool operator==(const EnginePrivate::ErrorInfo &lhs, const EnginePrivate::ErrorInfo &rhs) {
-	return lhs.type == rhs.type &&
-		   lhs.data == rhs.data;
-}
 
 void EngineDataModelTest::initTestCase()
 {
