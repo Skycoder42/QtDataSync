@@ -1,6 +1,6 @@
 name: CI build
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -48,10 +48,8 @@ jobs:
             os: windows-latest
           - platform: mingw73_64
             os: windows-latest
-            extrapkg: ",qtwebengine"
           - platform: mingw73_32
             os: windows-latest
-            extrapkg: ",qtwebengine"
           - platform: clang_64
             os: macos-latest
             extrapkg: ",qtwebengine"
