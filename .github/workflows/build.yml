@@ -26,6 +26,7 @@ jobs:
         include:
           - platform: gcc_64
             os: ubuntu-latest
+            extrapkg: ",qtwebengine"
             examples: true
             docs: true
           - platform: android
@@ -35,8 +36,10 @@ jobs:
             emsdk: sdk-fastcomp-1.38.27-64bit
           - platform: msvc2017_64
             os: windows-latest
+            extrapkg: ",qtwebengine"
           - platform: msvc2017
             os: windows-latest
+            extrapkg: ",qtwebengine"
           - platform: winrt_x64_msvc2017
             os: windows-latest
           - platform: winrt_x86_msvc2017
@@ -45,10 +48,13 @@ jobs:
             os: windows-latest
           - platform: mingw73_64
             os: windows-latest
+            extrapkg: ",qtwebengine"
           - platform: mingw73_32
             os: windows-latest
+            extrapkg: ",qtwebengine"
           - platform: clang_64
             os: macos-latest
+            extrapkg: ",qtwebengine"
           - platform: ios
             os: macos-latest
 
@@ -80,7 +86,7 @@ jobs:
         with:
           version: ${{matrix.version}}
           platform: ${{matrix.platform}}
-          packages: qtnetworkauth,qtwebengine,skycoder42.jsonserializer,skycoder42.restclient
+          packages: qtnetworkauth,skycoder42.jsonserializer,skycoder42.restclient${{matrix.extrapkg}}
           flat-sources: https://install.skycoder42.de/qtmodules/
           cachedir: qt/${{matrix.version}}/${{matrix.platform}}
       - name: qmake
