@@ -127,4 +127,6 @@ Q_DECLARE_LOGGING_CATEGORY(logEngine)
 
 }
 
+Q_DECLARE_METATYPE(QtDataSync::EnginePrivate::ErrorInfo);
+
 #endif // QTDATASYNC_ENGINE_P_H

@@ -8,8 +8,6 @@
 using namespace QtDataSync;
 using namespace std::chrono_literals;
 
-Q_DECLARE_METATYPE(EnginePrivate::ErrorInfo)
-
 #define VERIFY_STATE(machine, state) QCOMPARE(machine->activeStateNames(true), QStringList{QStringLiteral(state)})
 #define TRY_VERIFY_STATE(machine, state) QTRY_COMPARE(machine->activeStateNames(true), QStringList{QStringLiteral(state)})
 #define VERIFY_SPY(sigSpy, errorSpy) QVERIFY2(sigSpy.wait(), qUtf8Printable(QStringLiteral("Error: ") + errorSpy.value(0).value(0).toString()))

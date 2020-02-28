@@ -55,6 +55,8 @@ void TableDataModel::setupModel(QString type, DatabaseWatcher *watcher, RemoteCo
 			this, &TableDataModel::networkError);
 	connect(_connector, &RemoteConnector::liveSyncExpired,
 			this, &TableDataModel::liveSyncExpired);
+	connect(_connector, &RemoteConnector::onlineChanged,
+			this, &TableDataModel::onlineChanged);
 
 	_transformer = transformer;
 	connect(_transformer, &ICloudTransformer::transformDownloadDone,

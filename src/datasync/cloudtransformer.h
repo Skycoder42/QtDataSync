@@ -105,7 +105,7 @@ protected:
 };
 
 class PlainCloudTransformerPrivate;
-class Q_DATASYNC_EXPORT PlainCloudTransformer final : public ISynchronousCloudTransformer
+class Q_DATASYNC_EXPORT PlainCloudTransformer : public ISynchronousCloudTransformer
 {
 	Q_OBJECT
 
@@ -113,8 +113,8 @@ public:
 	explicit PlainCloudTransformer(QObject *parent = nullptr);
 
 protected:
-	QJsonObject transformUploadSync(const QVariantHash &data) const final;
-	QVariantHash transformDownloadSync(const QJsonObject &data) const final;
+	QJsonObject transformUploadSync(const QVariantHash &data) const override;
+	QVariantHash transformDownloadSync(const QJsonObject &data) const override;
 
 private:
 	Q_DECLARE_PRIVATE(PlainCloudTransformer)

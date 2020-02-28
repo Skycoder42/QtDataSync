@@ -10,10 +10,12 @@ TARGET = tst_tabledatamodel
 DS_SRC_DIR = $$PWD/../../../../src/datasync
 
 HEADERS += \
-	$$DS_SRC_DIR/tabledatamodel_p.h
+	$$DS_SRC_DIR/tabledatamodel_p.h \
+	failablecloudtransformer.h
 
 SOURCES += \
 	$$DS_SRC_DIR/tabledatamodel.cpp \
+	failablecloudtransformer.cpp \
 	tst_tabledatamodel.cpp
 
 QSCXMLC_NAMESPACE = QtDataSync
