@@ -67,17 +67,17 @@ class SetupAuthenticationExtension<TSetup, GoogleAuthenticator>
 public:
 	inline TSetup &setOAuthClientId(QString clientId) {
 		d.clientId = std::move(clientId);
-		return *static_cast<TSetup>(this);
+		return *static_cast<TSetup*>(this);
 	}
 
 	inline TSetup &setOAuthClientSecret(QString secret) {
 		d.secret = std::move(secret);
-		return *static_cast<TSetup>(this);
+		return *static_cast<TSetup*>(this);
 	}
 
 	inline TSetup &setOAuthClientCallbackPort(quint16 port) {
 		d.port = port;
-		return *static_cast<TSetup>(this);
+		return *static_cast<TSetup*>(this);
 	}
 
 protected:
@@ -90,5 +90,7 @@ private:
 };
 
 }
+
+Q_DECLARE_METATYPE(QtDataSync::GoogleAuthenticator*)
 
 #endif // QTDATASYNC_GOOGLEAUTHENTICATOR_H

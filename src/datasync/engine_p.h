@@ -84,6 +84,7 @@ public:
 		QPointer<TableDataModel> model;
 	};
 
+	static EnginePrivate *getD(Engine *engine);
 	static AsyncWatcherBackend *obtainAWB(Engine *engine);
 
 	QScopedPointer<__private::SetupPrivate> setup;

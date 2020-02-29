@@ -4,6 +4,7 @@ SUBDIRS += \
 	CloudTransformerTest \
 	DbWatcherTest \
 	EngineMachineTest \
+	SetupTest \
 	TableMachineTest \
 	TestLib
 

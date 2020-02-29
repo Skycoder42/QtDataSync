@@ -128,11 +128,23 @@ private:
 template <typename... TAuthenticators>
 class AuthenticationSelector final : public AuthenticationSelectorBase
 {
-	static_assert (std::conjunction_v<std::is_base_of_v<IAuthenticator, TAuthenticators>...>, "All TAuthenticators must extend IAuthenticator");
+	static_assert (std::conjunction_v<std::is_base_of<IAuthenticator, TAuthenticators>...>, "All TAuthenticators must extend IAuthenticator");
 public:
 	inline AuthenticationSelector(QObject *parent) :
 		AuthenticationSelectorBase{parent}
 	{}
+
+	template <typename TAuthenticator>
+	inline TAuthenticator *authenticator() const {
+		static_assert (std::disjunction_v<std::is_same<TAuthenticator, TAuthenticators>...>, "TAuthenticator must be one of TAuthenticators");
+		return static_cast<TAuthenticator*>(AuthenticationSelectorBase::authenticator(qMetaTypeId<TAuthenticator*>()));
+	}
+
+	template <typename TAuthenticator>
+	TAuthenticator *select(bool autoSignIn = true) {
+		static_assert (std::disjunction_v<std::is_same<TAuthenticator, TAuthenticators>...>, "TAuthenticator must be one of TAuthenticators");
+		return static_cast<TAuthenticator*>(AuthenticationSelectorBase::select(qMetaTypeId<TAuthenticator*>(), autoSignIn));
+	}
 };
 
 }

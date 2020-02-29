@@ -47,6 +47,11 @@ void SetupPrivate::readGSJsonConfig(QIODevice *device)
 			throw JsonException{error, device};
 	}
 
+	// check version
+	const auto configuration_version = QVersionNumber::fromString(root[QStringLiteral("configuration_version")].toString());
+	if (configuration_version > QVersionNumber{1})
+		qCWarning(logSetup) << "Unsupported google services json version:" << configuration_version;
+
 	// project id
 	const auto project_info = root[QStringLiteral("project_info")].toObject();
 	firebase.projectId = project_info[QStringLiteral("project_id")].toString();
@@ -77,6 +82,12 @@ void SetupPrivate::readGSPlistConfig(QIODevice *device)
 #ifdef Q_OS_DARWIN
 	if (auto fDevice = qobject_cast<QFileDevice*>(device); fDevice) {
 		QSettings settings{fDevice->fileName(), QSettings::NativeFormat};
+
+		// check version
+		const auto plistVersion = QVersionNumber::fromString(settings.value(QStringLiteral("PLIST_VERSION")).toString());
+		if (plistVersion > QVersionNumber{1})
+			qCWarning(logSetup) << "Unsupported google services plist version:" << plistVersion;
+
 		firebase.projectId = settings.value(QStringLiteral("PROJECT_ID")).toString();
 		firebase.apiKey = settings.value(QStringLiteral("API_KEY")).toString();
 		_authExt->extendFromGSPlistConfig(&settings);

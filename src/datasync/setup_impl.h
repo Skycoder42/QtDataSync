@@ -136,7 +136,10 @@ template <typename... TAuthenticators>
 class AuthenticationSelectorPrivate final : public SetupExtensionPrivate
 {
 public:
-	QHash<int, SetupExtensionPrivate*> selectDs;
+	template <typename... TArgs>
+	AuthenticationSelectorPrivate(TArgs&&... args) :
+		selectDs{std::forward<TArgs>(args)...}
+	{}
 
 	inline void extendFromWebConfig(const QJsonObject &config) final {
 		for (auto d : qAsConst(selectDs))
@@ -153,12 +156,20 @@ public:
 			d->extendFromGSPlistConfig(config);
 	}
 
+	inline void testConfigSatisfied(const QLoggingCategory &logCat) final {
+		for (auto d : qAsConst(selectDs))
+			d->testConfigSatisfied(logCat);
+	}
+
 	inline QObject *createInstance(QObject *parent) final {
 		auto selector = new AuthenticationSelector<TAuthenticators...>{parent};
 		for (auto it = selectDs.constBegin(), end = selectDs.constEnd(); it != end; ++it)
-			selector->addAuthenticator(it.key(), it.value()->createInstance(selector));
+			selector->addAuthenticator(it.key(), qobject_cast<IAuthenticator*>(it.value()->createInstance(selector)));
 		return selector;
 	}
+
+private:
+	QHash<int, SetupExtensionPrivate*> selectDs;
 };
 
 }

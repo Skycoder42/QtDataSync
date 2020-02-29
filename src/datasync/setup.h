@@ -180,9 +180,7 @@ class SetupAuthenticationExtension<TSetup, AuthenticationSelector<TAuthenticator
 	Q_DISABLE_COPY(SetupAuthenticationExtension)
 public:
 	inline SetupAuthenticationExtension() :
-		d{
-			{std::make_pair(qMetaTypeId<TAuthenticators>(), SetupAuthenticationExtension<TSetup, TAuthenticators>::authenticatorD())...}
-		}
+		d{std::make_pair(qMetaTypeId<TAuthenticators*>(), SetupAuthenticationExtension<TSetup, TAuthenticators>::authenticatorD())...}
 	{}
 	inline SetupAuthenticationExtension(SetupAuthenticationExtension &&) noexcept = default;
 	inline SetupAuthenticationExtension &operator=(SetupAuthenticationExtension &&) noexcept = default;

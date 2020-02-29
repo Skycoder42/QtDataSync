@@ -58,4 +58,6 @@ private:
 
 }
 
+Q_DECLARE_METATYPE(QtDataSync::MailAuthenticator*)
+
 #endif // QTDATASYNC_MAILAUTHENTICATOR_H

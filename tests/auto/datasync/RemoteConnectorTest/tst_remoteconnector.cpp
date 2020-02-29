@@ -738,5 +738,3 @@ void RemoteConnectorTest::testRemoveUser()
 QTEST_MAIN(RemoteConnectorTest)
 
 #include "tst_remoteconnector.moc"
-
-

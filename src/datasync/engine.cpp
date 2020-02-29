@@ -336,10 +336,16 @@ Engine::Engine(QScopedPointer<SetupPrivate> &&setup, QObject *parent) :
 		qCDebug(logSetup) << "Enabled remoting of async watcher API";
 	}
 
+	d->setup->nam->setParent(this); // reparent, because rest clients take ownership
 	d->setupStateMachine();
 }
 
 
+
+EnginePrivate *EnginePrivate::getD(Engine *engine)
+{
+	return engine->d_func();
+}
 
 AsyncWatcherBackend *EnginePrivate::obtainAWB(Engine *engine)
 {
