@@ -39,10 +39,10 @@ bool SettingsAdaptor::createTable(QSqlDatabase database, const QString &table)
 	return true;
 }
 
-SettingsAdaptor::SettingsAdaptor(Engine *engine, QString &&table, QSqlDatabase database) :
+SettingsAdaptor::SettingsAdaptor(Engine *engine, QString table, QSqlDatabase database) :
 	QObject{engine},
-	_info{std::move(table), database.connectionName(), 0},
-	_syncFile{new QTemporaryFile{QStringLiteral("qtds_settings_XXXXXX.qtdssl"), this}},
+	_info{database.connectionName(), std::move(table), 0},
+	_syncFile{new QTemporaryFile{QDir::temp().absoluteFilePath(QStringLiteral("qtds_settings.XXXXXX.qtdssl")), this}},
 	_controller{engine->createController(_info.tableName, this)}
 {
 	_syncFile->open();
@@ -54,7 +54,8 @@ SettingsAdaptor::SettingsAdaptor(Engine *engine, QString &&table, QSqlDatabase d
 
 	connect(database.driver(), qOverload<const QString &>(&QSqlDriver::notification),
 			this, &SettingsAdaptor::tableEvent);
-	if (!database.driver()->subscribeToNotification(_info.tableName)) {
+	if (!database.driver()->subscribedToNotifications().contains(_info.tableName) &&
+		!database.driver()->subscribeToNotification(_info.tableName)) {
 		qCWarning(logSettings) << "Failed to register notification hook for settings table" << _info.tableName
 							   << "- sync will still work, but changes may not be detected in realtime";
 	}

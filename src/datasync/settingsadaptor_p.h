@@ -33,7 +33,7 @@ public:
 	static bool createTable(QSqlDatabase database, const QString &table);
 
 	explicit SettingsAdaptor(Engine *engine,
-							 QString &&table,
+							 QString table,
 							 QSqlDatabase database);
 
 	QString path() const;

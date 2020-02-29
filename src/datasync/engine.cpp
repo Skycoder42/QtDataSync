@@ -11,6 +11,8 @@ namespace sph = std::placeholders;
 
 Q_LOGGING_CATEGORY(QtDataSync::logEngine, "qt.datasync.Engine")
 
+const QString Engine::DefaultSettingsTableName = QStringLiteral("qtdatasync_settings");
+
 void Engine::syncDatabase(DbSyncMode dbSyncMode, const QString &databaseConnection)
 {
 	return syncDatabase(dbSyncMode, QSqlDatabase::database(databaseConnection, true));
@@ -128,7 +130,7 @@ QSettings *Engine::syncSettings(bool enableLiveSync, const QString &databaseConn
 
 QSettings *Engine::syncSettings(bool enableLiveSync, QSqlDatabase database, QObject *parent)
 {
-	return syncSettings(enableLiveSync, database, QStringLiteral("qtdatasync_settings"), parent);
+	return syncSettings(enableLiveSync, database, DefaultSettingsTableName, parent);
 }
 
 QSettings *Engine::syncSettings(bool enableLiveSync, const QString &databaseConnection, const QString &tableName, QObject *parent)
@@ -156,14 +158,14 @@ QSettings *Engine::syncSettings(bool enableLiveSync, QSqlDatabase database, QStr
 		try {
 			TableConfig config{tableName, database};
 			config.setLiveSyncEnabled(enableLiveSync);
-			config.setVersion(QVersionNumber::fromString(QStringLiteral(QT_DATASYNC_SETTINGS_VERSION)));
+			config.setVersion(QT_DATASYNC_SETTINGS_VERSION);
 			syncTable(config);
 		} catch (TableException &e) {
 			qCCritical(logEngine) << e.what();
 			return nullptr;
 		}
 		// create and store adaptor
-		adaptor = new SettingsAdaptor{this, std::move(tableName), database};
+		adaptor = new SettingsAdaptor{this, tableName, database};
 		d->settingsAdaptors.insert(tableName, adaptor);
 	}
 

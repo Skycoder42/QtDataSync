@@ -150,6 +150,8 @@ public:
 	};
 	Q_ENUM(EngineState)
 
+	static const QString DefaultSettingsTableName;
+
 	void syncDatabase(DbSyncMode dbSyncMode = DbSyncFlag::Default,
 					  const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
 	void syncDatabase(DbSyncMode dbSyncMode,

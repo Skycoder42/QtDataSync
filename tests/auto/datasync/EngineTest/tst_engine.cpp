@@ -118,21 +118,29 @@ void EngineTest::initTestCase()
 void EngineTest::cleanupTestCase()
 {
 	try {
-		if (_engine && _engine->isRunning()) {
-			QSignalSpy stateSpy{_engine, &Engine::stateChanged};
-			QVERIFY(stateSpy.isValid());
-			_engine->deleteAccount();
-			for (auto i = 0; i < 50; ++i) {
-				if (stateSpy.wait(100)) {
-					if (stateSpy.last()[0].value<EngineState>() == EngineState::Inactive) {
-						qDebug() << "deleted account";
-						return;
+		if (_engine) {
+			if (_engine->isRunning()) {
+				QSignalSpy stateSpy{_engine, &Engine::stateChanged};
+				QVERIFY(stateSpy.isValid());
+				_engine->deleteAccount();
+				for (auto i = 0; i < 50; ++i) {
+					if (stateSpy.wait(100)) {
+						if (stateSpy.last()[0].value<EngineState>() == EngineState::Inactive) {
+							qDebug() << "deleted account";
+							return;
+						}
 					}
 				}
-			}
-			qDebug() << "failed to delete account";
+				qDebug() << "failed to delete account";
+
+				_engine->stop();
+				_engine->waitForStopped(10s);
+			} else
+				qDebug() << "engine inactive - not deleting account";
+			_engine->deleteLater();
 		} else
 			qDebug() << "engine inactive - not deleting account";
+
 	} catch(std::exception &e) {
 		QFAIL(e.what());
 	}
