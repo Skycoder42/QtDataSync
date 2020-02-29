@@ -3,8 +3,9 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	datasync \
 	imports \
-	translations \
-	firebase-server
+	translations
+
+cloud_functions: SUBDIRS += firebase-server
 
 imports.depends += datasync
 

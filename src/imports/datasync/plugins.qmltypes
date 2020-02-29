@@ -72,6 +72,29 @@ Module {
         isCreatable: false
         exportMetaObjectRevisions: [0]
         Enum {
+            name: "DbSyncMode"
+            values: {
+                "None": 0,
+                "ResyncTables": 1,
+                "SyncAllTables": 2,
+                "EnableLiveSync": 4,
+                "Default": 1
+            }
+        }
+        Enum {
+            name: "ResyncMode"
+            values: {
+                "Upload": 1,
+                "Download": 2,
+                "CheckLocalData": 4,
+                "CleanLocalData": 13,
+                "ClearLocalData": 18,
+                "ClearServerData": 33,
+                "SyncAll": 3,
+                "ClearAll": 51
+            }
+        }
+        Enum {
             name: "ErrorType"
             values: {
                 "Temporary": 0,
@@ -110,14 +133,19 @@ Module {
             isPointer: true
         }
         Property { name: "state"; type: "EngineState"; isReadonly: true }
+        Property { name: "tables"; type: "QStringList"; isReadonly: true }
         Signal {
             name: "errorOccured"
-            Parameter { name: "type"; type: "ErrorType" }
+            Parameter { name: "type"; type: "Engine::ErrorType" }
             Parameter { name: "errorData"; type: "QVariant" }
         }
         Signal {
             name: "stateChanged"
-            Parameter { name: "state"; type: "EngineState" }
+            Parameter { name: "state"; type: "Engine::EngineState" }
+        }
+        Signal {
+            name: "tablesChanged"
+            Parameter { name: "tables"; type: "QStringList" }
         }
         Method { name: "start" }
         Method { name: "stop" }
@@ -325,7 +353,7 @@ Module {
         }
         Signal {
             name: "syncStateChanged"
-            Parameter { name: "syncState"; type: "SyncState" }
+            Parameter { name: "syncState"; type: "TableSyncController::SyncState" }
         }
         Signal {
             name: "liveSyncEnabledChanged"

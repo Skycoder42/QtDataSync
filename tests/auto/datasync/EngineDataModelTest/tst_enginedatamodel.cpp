@@ -109,7 +109,7 @@ void EngineDataModelTest::testSyncFlow()
 	QSignalSpy errorSpy{_model, &EngineDataModel::errorOccured};
 	QVERIFY(errorSpy.isValid());
 
-	QCOMPARE(_model->state(), EngineState::Invalid);
+	QCOMPARE(_model->state(), EngineState::Inactive);
 	QCOMPARE(_model->isSyncActive(), false);
 
 	_machine->start();
@@ -117,8 +117,7 @@ void EngineDataModelTest::testSyncFlow()
 	TRY_VERIFY_STATE(_machine, "Inactive");
 	QCOMPARE(_model->state(), EngineState::Inactive);
 	QCOMPARE(_model->isSyncActive(), false);
-	QCOMPARE(stateSpy.size(), 1);
-	QCOMPARE(getState(stateSpy), EngineState::Inactive);
+	QCOMPARE(stateSpy.size(), 0);
 
 	_model->start();
 	QTRY_COMPARE(startSpy.size(), 1);

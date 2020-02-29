@@ -19,6 +19,8 @@
 
 namespace QtDataSync {
 
+class ExTransaction;
+
 class Q_DATASYNC_EXPORT DatabaseWatcher : public QObject
 {
 	Q_OBJECT

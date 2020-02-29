@@ -95,7 +95,20 @@ class Q_DATASYNC_EXPORT Engine : public QObject
 
 	Q_PROPERTY(EngineState state READ state NOTIFY stateChanged)
 
+	Q_PROPERTY(QStringList tables READ tables NOTIFY tablesChanged)
+
 public:
+	enum class DbSyncFlag {
+		None = 0x00,
+		ResyncTables = 0x01,
+		SyncAllTables = 0x02,
+		EnableLiveSync = 0x04,
+
+		Default = ResyncTables
+	};
+	Q_DECLARE_FLAGS(DbSyncMode, DbSyncFlag)
+	Q_FLAG(DbSyncMode)
+
 	enum class ResyncFlag {
 		Upload = 0x01,
 		Download = 0x02,
@@ -109,6 +122,7 @@ public:
 		ClearAll = (ClearLocalData | ClearServerData),
 	};
 	Q_DECLARE_FLAGS(ResyncMode, ResyncFlag)
+	Q_FLAG(ResyncMode)
 
 	enum class ErrorType {
 		Temporary = 0,
@@ -136,14 +150,10 @@ public:
 	};
 	Q_ENUM(EngineState)
 
-	void syncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection),
-					  bool autoActivateSync = true,
-					  bool enableLiveSync = false,
-					  bool addAllTables = false);
-	void syncDatabase(QSqlDatabase database,
-					  bool autoActivateSync = true,
-					  bool enableLiveSync = false,
-					  bool addAllTables = false);
+	void syncDatabase(DbSyncMode dbSyncMode = DbSyncFlag::Default,
+					  const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
+	void syncDatabase(DbSyncMode dbSyncMode,
+					  QSqlDatabase database);
 
 	void syncTable(const QString &table,
 				   bool enableLiveSync = false,
@@ -157,28 +167,18 @@ public:
 							bool deactivateSync = false);
 	void removeDatabaseSync(QSqlDatabase database,
 							bool deactivateSync = false);
-	void removeTableSync(const QString &table,
-						 const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
-	void removeTableSync(const QString &table,
-						 QSqlDatabase database);
+	void removeTableSync(const QString &table);
 
 	void unsyncDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
 	void unsyncDatabase(QSqlDatabase database);
-	void unsyncTable(const QString &table,
-					 const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
-	void unsyncTable(const QString &table,
-					 QSqlDatabase database);
+	void unsyncTable(const QString &table);
 
 	void resyncDatabase(ResyncMode direction = ResyncFlag::SyncAll,
 						const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
 	void resyncDatabase(ResyncMode direction,
 						QSqlDatabase database);
 	void resyncTable(const QString &table,
-					 ResyncMode direction = ResyncFlag::SyncAll,
-					 const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
-	void resyncTable(const QString &table,
-					 ResyncMode direction,
-					 QSqlDatabase database);
+					 ResyncMode direction);
 
 	QSettings *syncSettings(QObject *parent = nullptr);
 	QSettings *syncSettings(bool enableLiveSync,
@@ -204,6 +204,7 @@ public:
 	IAuthenticator *authenticator() const;
 	ICloudTransformer* transformer() const;
 	EngineState state() const;
+	QStringList tables() const;
 
 	Q_INVOKABLE bool isRunning() const;
 	bool waitForStopped(std::optional<std::chrono::milliseconds> timeout = std::nullopt) const;
@@ -218,9 +219,10 @@ public Q_SLOTS:
 	void setLiveSyncEnabled(bool liveSyncEnabled);
 
 Q_SIGNALS:
-	void errorOccured(ErrorType type, const QVariant &errorData, QPrivateSignal = {});
+	void errorOccured(Engine::ErrorType type, const QVariant &errorData, QPrivateSignal = {});
 
-	void stateChanged(EngineState state, QPrivateSignal = {});
+	void stateChanged(Engine::EngineState state, QPrivateSignal = {});
+	void tablesChanged(const QStringList &tables, QPrivateSignal = {});
 
 private:
 	friend class __private::SetupPrivate;
@@ -261,6 +263,7 @@ protected:
 }
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QtDataSync::Engine::ResyncMode)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QtDataSync::Engine::DbSyncMode)
 
 Q_DECLARE_METATYPE(QSqlError)
 

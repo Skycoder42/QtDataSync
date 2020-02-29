@@ -57,7 +57,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void validChanged(bool valid, QPrivateSignal = {});
-	void syncStateChanged(SyncState syncState, QPrivateSignal = {});
+	void syncStateChanged(TableSyncController::SyncState syncState, QPrivateSignal = {});
 	void liveSyncEnabledChanged(bool liveSyncEnabled, QPrivateSignal = {});
 
 private:

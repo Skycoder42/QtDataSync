@@ -91,7 +91,7 @@ void SetupTest::setSetters()
 		conf.setProtocol(QSsl::TlsV1_3);
 		ptr engine {Setup<MailAuthenticator>()
 					   .setFirebaseProjectId(QStringLiteral("project"))
-					   .setFirebaseWebApiKey(QStringLiteral("key"))
+					   .setFirebaseApiKey(QStringLiteral("key"))
 					   .setRemoteReadTimeout(10s)
 					   .setRemotePageLimit(5)
 					   .setSyncTableVersions(false)
@@ -184,7 +184,6 @@ void SetupTest::testGoogleExtensions()
 
 void SetupTest::testAuthSelectionExtensions()
 {
-	// TODO extract to auth select test
 	try {
 		// auth select
 		Setup<AuthenticationSelector<GoogleAuthenticator, MailAuthenticator, DummyAuth>> setup;

@@ -17,6 +17,11 @@ void AnonAuth::setOverwriteExpire(std::optional<std::chrono::seconds> delta)
 
 void AnonAuth::signIn()
 {
+	if (block) {
+		qDebug() << "blocking sign in request";
+		return;
+	}
+
 	qDebug() << "Creating anonymous user";
 	auto reply = client()->rootClass()->callRaw(RestClass::PostVerb,
 												QStringLiteral("accounts:signUp"),
@@ -27,8 +32,10 @@ void AnonAuth::signIn()
 	reply->onSucceeded(this, [this](const QJsonObject &data) {
 			 const auto delta = _expireOw.value_or(seconds{data.value(QStringLiteral("expiresIn")).toString().toInt()});
 			 qDebug() << "Anonymous user created (expires in:" << delta.count() << "seconds)";
-			 completeSignIn(data.value(QStringLiteral("localId")).toString(),
-							data.value(QStringLiteral("idToken")).toString(),
+			 localId = data.value(QStringLiteral("localId")).toString();
+			 idToken = data.value(QStringLiteral("idToken")).toString();
+			 completeSignIn(localId,
+							idToken,
 							data.value(QStringLiteral("refreshToken")).toString(),
 							QDateTime::currentDateTimeUtc().addSecs(delta.count()),
 							data.value(QStringLiteral("email")).toString());

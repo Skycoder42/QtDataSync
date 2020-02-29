@@ -125,5 +125,3 @@ void AuthenticatorTest::testDeleteAccount()
 QTEST_MAIN(AuthenticatorTest)
 
 #include "tst_authenticator.moc"
-
-

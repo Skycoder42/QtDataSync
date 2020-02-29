@@ -45,6 +45,10 @@ bool DatabaseWatcher::hasTable(const QString &name) const
 void DatabaseWatcher::reactivateTables(bool liveSync)
 {
 	try {
+		// do nothing if not metatable present
+		if (!_db.tables().contains(MetaTable))
+			return;
+
 		ExQuery getActiveQuery{_db, ErrorScope::Database, {}};
 		getActiveQuery.prepare(QStringLiteral("SELECT tableName "
 											  "FROM %1 "
@@ -72,6 +76,7 @@ void DatabaseWatcher::addAllTables(bool liveSync, QSql::TableType type)
 	for (const auto &table : _db.tables(type)) {
 		if (table.startsWith(QStringLiteral("__qtdatasync_")))
 			continue;
+		qCDebug(logDbWatcher) << "Found table to automatically add:" << table;
 		TableConfig config{table, _db};
 		config.setLiveSyncEnabled(liveSync);
 		addTable(config);

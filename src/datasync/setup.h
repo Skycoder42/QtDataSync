@@ -80,8 +80,8 @@ public:
 		return *this;
 	}
 
-	inline Setup &setFirebaseWebApiKey(QString webApiKey) {
-		d->firebase.apiKey = std::move(webApiKey);
+	inline Setup &setFirebaseApiKey(QString apiKey) {
+		d->firebase.apiKey = std::move(apiKey);
 		return *this;
 	}
 

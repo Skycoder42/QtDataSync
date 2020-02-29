@@ -11,22 +11,22 @@ namespace sph = std::placeholders;
 
 Q_LOGGING_CATEGORY(QtDataSync::logEngine, "qt.datasync.Engine")
 
-void Engine::syncDatabase(const QString &databaseConnection, bool autoActivateSync, bool enableLiveSync, bool addAllTables)
+void Engine::syncDatabase(DbSyncMode dbSyncMode, const QString &databaseConnection)
 {
-	return syncDatabase(QSqlDatabase::database(databaseConnection, true), autoActivateSync, enableLiveSync, addAllTables);
+	return syncDatabase(dbSyncMode, QSqlDatabase::database(databaseConnection, true));
 }
 
-void Engine::syncDatabase(QSqlDatabase database, bool autoActivateSync, bool enableLiveSync, bool addAllTables)
+void Engine::syncDatabase(DbSyncMode dbSyncMode, QSqlDatabase database)
 {
 	Q_D(Engine);
 	if (!database.isOpen())
 		throw TableException{{}, QStringLiteral("Database not open"), database.lastError()};
 
 	auto watcher = d->getWatcher(std::move(database));
-	if (autoActivateSync)
-		watcher->reactivateTables(enableLiveSync);
-	if (addAllTables)
-		watcher->addAllTables(enableLiveSync);
+	if (dbSyncMode.testFlag(DbSyncFlag::ResyncTables))
+		watcher->reactivateTables(dbSyncMode.testFlag(DbSyncFlag::EnableLiveSync));
+	if (dbSyncMode.testFlag(DbSyncFlag::SyncAllTables))
+		watcher->addAllTables(dbSyncMode.testFlag(DbSyncFlag::EnableLiveSync));
 }
 
 void Engine::syncTable(const QString &table, bool enableLiveSync, const QString &databaseConnection)
@@ -65,15 +65,12 @@ void Engine::removeDatabaseSync(QSqlDatabase database, bool deactivateSync)
 		d->dropWatcher(database.connectionName());
 }
 
-void Engine::removeTableSync(const QString &table, const QString &databaseConnection)
-{
-	removeTableSync(table, QSqlDatabase::database(databaseConnection, false));
-}
-
-void Engine::removeTableSync(const QString &table, QSqlDatabase database)
+void Engine::removeTableSync(const QString &table)
 {
 	Q_D(Engine);
-	d->getWatcher(std::move(database))->removeTable(table);
+	const auto watcher = d->findWatcher(table);
+	if (watcher)
+		watcher->removeTable(table);
 }
 
 void Engine::unsyncDatabase(const QString &databaseConnection)
@@ -87,15 +84,12 @@ void Engine::unsyncDatabase(QSqlDatabase database)
 	d->getWatcher(std::move(database))->unsyncAllTables();
 }
 
-void Engine::unsyncTable(const QString &table, const QString &databaseConnection)
-{
-	unsyncTable(table, QSqlDatabase::database(databaseConnection, true));
-}
-
-void Engine::unsyncTable(const QString &table, QSqlDatabase database)
+void Engine::unsyncTable(const QString &table)
 {
 	Q_D(Engine);
-	d->getWatcher(std::move(database))->unsyncTable(table);
+	const auto watcher = d->findWatcher(table);
+	if (watcher)
+		watcher->unsyncTable(table);
 }
 
 void Engine::resyncDatabase(ResyncMode direction, const QString &databaseConnection)
@@ -109,15 +103,12 @@ void Engine::resyncDatabase(ResyncMode direction, QSqlDatabase database)
 	d->getWatcher(std::move(database))->resyncAllTables(direction);
 }
 
-void Engine::resyncTable(const QString &table, ResyncMode direction, const QString &databaseConnection)
-{
-	resyncTable(table, direction, QSqlDatabase::database(databaseConnection, true));
-}
-
-void Engine::resyncTable(const QString &table, ResyncMode direction, QSqlDatabase database)
+void Engine::resyncTable(const QString &table, ResyncMode direction)
 {
 	Q_D(Engine);
-	d->getWatcher(std::move(database))->resyncTable(table, direction);
+	const auto watcher = d->findWatcher(table);
+	if (watcher)
+		watcher->resyncTable(table, direction);
 }
 
 QSettings *Engine::syncSettings(QObject *parent)
@@ -212,6 +203,12 @@ Engine::EngineState Engine::state() const
 {
 	Q_D(const Engine);
 	return d->engineModel->state();
+}
+
+QStringList Engine::tables() const
+{
+	Q_D(const Engine);
+	return d->tableMachines.keys();
 }
 
 bool Engine::isRunning() const
@@ -383,8 +380,7 @@ void EnginePrivate::dropWatcher(const QString &dbName)
 {
 	auto watcher = watchers.take(dbName);
 	if (watcher) {
-		for (const auto &table : watcher->tables())
-			_q_tableRemoved(table);
+		watcher->dropAllTables();
 		watcher->deleteLater();
 	}
 }
@@ -477,7 +473,9 @@ void EnginePrivate::_q_tableAdded(const QString &name, bool liveSync)
 	}
 
 	// notify external watcher
+	qCDebug(logEngine) << "Added table" << name;
 	Q_EMIT asyncWatcher->tableAdded(TableEvent{name, watcher->database().connectionName()});
+	Q_EMIT q->tablesChanged(tableMachines.keys());
 }
 
 void EnginePrivate::_q_tableRemoved(const QString &name)
@@ -493,7 +491,9 @@ void EnginePrivate::_q_tableRemoved(const QString &name)
 		tm.machine->deleteLater();
 
 	// notify external watcher
+	qCDebug(logEngine) << "Removed table" << name;
 	Q_EMIT asyncWatcher->tableRemoved(TableEvent{name, watcher->database().connectionName()});
+	Q_EMIT q->tablesChanged(tableMachines.keys());
 }
 
 void EnginePrivate::_q_tableStopped(const QString &table)
@@ -504,8 +504,10 @@ void EnginePrivate::_q_tableStopped(const QString &table)
 		auto model = qobject_cast<TableDataModel*>(q->sender());
 		Q_ASSERT(model);
 		model->stateMachine()->deleteLater();
+		qCDebug(logEngine) << "Deleted removed table machine for" << table;
 	}
 
+	qCDebug(logEngine) << "Table machine for table" << table << "stopped";
 	if (stopCache.remove(table) && stopCache.isEmpty())
 		engineModel->allTablesStopped();
 }

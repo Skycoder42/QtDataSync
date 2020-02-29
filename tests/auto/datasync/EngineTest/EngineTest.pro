@@ -5,16 +5,14 @@ QT = core testlib datasync datasync-private
 CONFIG += console
 CONFIG -= app_bundle
 
-TARGET = tst_setup
+TARGET = tst_engine
 
 DS_SRC_DIR = $$PWD/../../../../src/datasync
 
-HEADERS += \
-	extensions.h
+HEADERS +=
 
 SOURCES += \
-	extensions.cpp \
-	tst_setup.cpp
+	tst_engine.cpp
 
 debug_and_release {
 	CONFIG(debug, debug|release):SUFFIX = /debug
@@ -31,5 +29,8 @@ INCLUDEPATH += \
 DEPENDPATH += $$DS_SRC_DIR
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+DEFINES += $$envDefine(FIREBASE_PROJECT_ID)
+DEFINES += $$envDefine(FIREBASE_API_KEY)
 
+include($$PWD/../testlib.pri)
 include($$PWD/../../testrun.pri)

@@ -19,6 +19,10 @@ public:
 
 	void setOverwriteExpire(std::optional<std::chrono::seconds> delta);
 
+	bool block = false;
+	QString localId;
+	QString idToken;
+
 protected:
 	void signIn() override;
 	void logOut() override;
