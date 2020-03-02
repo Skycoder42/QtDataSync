@@ -11,7 +11,6 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qversionnumber.h>
-#include <QtCore/qsettings.h>
 
 #include <QtSql/qsqldatabase.h>
 #include <QtSql/qsqlerror.h>
@@ -150,8 +149,6 @@ public:
 	};
 	Q_ENUM(EngineState)
 
-	static const QString DefaultSettingsTableName;
-
 	void syncDatabase(DbSyncMode dbSyncMode = DbSyncFlag::Default,
 					  const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
 	void syncDatabase(DbSyncMode dbSyncMode,
@@ -181,24 +178,6 @@ public:
 						QSqlDatabase database);
 	void resyncTable(const QString &table,
 					 ResyncMode direction);
-
-	QSettings *syncSettings(QObject *parent = nullptr);
-	QSettings *syncSettings(bool enableLiveSync,
-							QObject *parent = nullptr);
-	QSettings *syncSettings(bool enableLiveSync,
-							const QString &databaseConnection,
-							QObject *parent = nullptr);
-	QSettings *syncSettings(bool enableLiveSync,
-							QSqlDatabase database,
-							QObject *parent = nullptr);
-	QSettings *syncSettings(bool enableLiveSync,
-							const QString &databaseConnection,
-							const QString &tableName,
-							QObject *parent = nullptr);
-	QSettings *syncSettings(bool enableLiveSync,
-							QSqlDatabase database,
-							QString tableName,
-							QObject *parent = nullptr);
 
 	QSqlDatabase database(const QString &table) const;
 	Q_INVOKABLE QtDataSync::TableSyncController *createController(QString table, QObject *parent = nullptr) const;

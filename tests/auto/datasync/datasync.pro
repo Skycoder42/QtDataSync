@@ -4,12 +4,9 @@ SUBDIRS += \
 	CloudTransformerTest \
 	DbWatcherTest \
 	EngineMachineTest \
-	SettingsTest \
 	SetupTest \
 	TableMachineTest \
 	TestLib
-
-SettingsTest.depends += TestLib SetupTest
 
 !no_firebase_tests {
 	SUBDIRS += \

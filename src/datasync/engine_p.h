@@ -8,7 +8,6 @@
 #include "firebaseauthenticator_p.h"
 #include "databasewatcher_p.h"
 #include "remoteconnector_p.h"
-#include "settingsadaptor_p.h"
 
 #ifndef QTDATASYNC_NO_NTP
 #include "ntpsync_p.h"
@@ -93,8 +92,6 @@ public:
 	RemoteConnector *connector = nullptr;
 	QHash<QString, DatabaseWatcher*> watchers;
 	AsyncWatcherBackend *asyncWatcher = nullptr;
-
-	QHash<QString, SettingsAdaptor*> settingsAdaptors;
 
 	EngineStateMachine *engineMachine = nullptr;
 	QPointer<EngineDataModel> engineModel;

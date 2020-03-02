@@ -11,8 +11,6 @@ namespace sph = std::placeholders;
 
 Q_LOGGING_CATEGORY(QtDataSync::logEngine, "qt.datasync.Engine")
 
-const QString Engine::DefaultSettingsTableName = QStringLiteral("qtdatasync_settings");
-
 void Engine::syncDatabase(DbSyncMode dbSyncMode, const QString &databaseConnection)
 {
 	return syncDatabase(dbSyncMode, QSqlDatabase::database(databaseConnection, true));
@@ -111,66 +109,6 @@ void Engine::resyncTable(const QString &table, ResyncMode direction)
 	const auto watcher = d->findWatcher(table);
 	if (watcher)
 		watcher->resyncTable(table, direction);
-}
-
-QSettings *Engine::syncSettings(QObject *parent)
-{
-	return syncSettings(true, parent);
-}
-
-QSettings *Engine::syncSettings(bool enableLiveSync, QObject *parent)
-{
-	return syncSettings(enableLiveSync, QSqlDatabase::database(), parent);
-}
-
-QSettings *Engine::syncSettings(bool enableLiveSync, const QString &databaseConnection, QObject *parent)
-{
-	return syncSettings(enableLiveSync, QSqlDatabase::database(databaseConnection, true), parent);
-}
-
-QSettings *Engine::syncSettings(bool enableLiveSync, QSqlDatabase database, QObject *parent)
-{
-	return syncSettings(enableLiveSync, database, DefaultSettingsTableName, parent);
-}
-
-QSettings *Engine::syncSettings(bool enableLiveSync, const QString &databaseConnection, const QString &tableName, QObject *parent)
-{
-	return syncSettings(enableLiveSync, QSqlDatabase::database(databaseConnection, true), tableName, parent);
-}
-
-QSettings *Engine::syncSettings(bool enableLiveSync, QSqlDatabase database, QString tableName, QObject *parent)
-{
-	Q_D(Engine);
-	// register/get the format
-	const auto format = SettingsAdaptor::registerFormat();
-	if (format == QSettings::InvalidFormat) {
-		qCCritical(logEngine) << "Failed to register settings format for the datasync SQL settings tables";
-		return nullptr;
-	}
-
-	// get the adaptor
-	auto adaptor = d->settingsAdaptors.value(tableName);
-	if (!adaptor) {
-		// create settings table
-		if (!SettingsAdaptor::createTable(database, tableName))
-			return nullptr;
-		// synchronize settings table
-		try {
-			TableConfig config{tableName, database};
-			config.setLiveSyncEnabled(enableLiveSync);
-			config.setVersion(QT_DATASYNC_SETTINGS_VERSION);
-			syncTable(config);
-		} catch (TableException &e) {
-			qCCritical(logEngine) << e.what();
-			return nullptr;
-		}
-		// create and store adaptor
-		adaptor = new SettingsAdaptor{this, tableName, database};
-		d->settingsAdaptors.insert(tableName, adaptor);
-	}
-
-	// create settings
-	return new QSettings{adaptor->path(), format, parent};
 }
 
 QSqlDatabase Engine::database(const QString &table) const
