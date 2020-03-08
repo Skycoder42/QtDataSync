@@ -87,15 +87,6 @@ jobs:
           packages: qtnetworkauth,skycoder42.jsonserializer,skycoder42.restclient${{matrix.extrapkg}}
           flat-sources: https://install.skycoder42.de/qtmodules/
           cachedir: qt/${{matrix.version}}/${{matrix.platform}}
-      - name: test python
-        shell: bash
-        run: |
-          which python || true
-          which python3 || true
-          which qdep || true
-          python -m pip install qdep || true
-          python3 -m pip install qdep || true
-          which qdep || true
       - name: qmake
         run: |
           qmake CONFIG+=install_ok QT_PLATFORM=${{matrix.platform}}
