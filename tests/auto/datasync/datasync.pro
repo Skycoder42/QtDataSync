@@ -10,6 +10,7 @@ SUBDIRS += \
 
 !no_firebase_tests {
 	SUBDIRS += \
+		AsyncWatcherTest \
 		AuthenticatorTest \
 		EngineDataModelTest \
 		EngineTest \
@@ -21,6 +22,7 @@ SUBDIRS += \
 	EngineDataModelTest.depends += TestLib RemoteConnectorTest
 	TableDataModelTest.depends += TestLib RemoteConnectorTest DbWatcherTest CloudTransformerTest
 	EngineTest.depends += TestLib EngineDataModelTest TableDataModelTest SetupTest
+	AsyncWatcherTest.depends += TestLib EngineTest
 }
 
 prepareRecursiveTarget(run-tests)

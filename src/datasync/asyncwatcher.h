@@ -34,6 +34,9 @@ public:
 	void removeDatabase(const QString &databaseConnection = QLatin1String(QSqlDatabase::defaultConnection));
 	void removeDatabase(QSqlDatabase database);
 
+Q_SIGNALS:
+	void initialized(QPrivateSignal = {});
+
 private:
 	Q_DECLARE_PRIVATE(AsyncWatcher)
 

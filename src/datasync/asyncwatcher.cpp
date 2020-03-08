@@ -75,7 +75,7 @@ void AsyncWatcher::removeDatabase(const QString &databaseConnection)
 {
 	Q_D(AsyncWatcher);
 	for (auto it = d->namedConnections.begin(), end = d->namedConnections.end(); it != end; ++it) {
-		if (it->db.databaseName() == databaseConnection) {
+		if (it->db.connectionName() == databaseConnection) {
 			d->unwatchAll(it->db, it.key());
 			disconnect(it->notifyCon);
 			d->namedConnections.erase(it);
@@ -84,7 +84,7 @@ void AsyncWatcher::removeDatabase(const QString &databaseConnection)
 	}
 
 	for (auto it = d->unnamedConnections.begin(), end = d->unnamedConnections.end(); it != end; ++it) {
-		if (it->db.databaseName() == databaseConnection) {
+		if (it->db.connectionName() == databaseConnection) {
 			d->unwatchAll(it->db);
 			disconnect(it->notifyCon);
 			d->unnamedConnections.erase(it);
@@ -100,6 +100,7 @@ void AsyncWatcher::removeDatabase(QSqlDatabase database)
 
 void AsyncWatcherPrivate::initForEngine()
 {
+	Q_Q(AsyncWatcher);
 	Q_ASSERT(engine);
 	backend = EnginePrivate::obtainAWB(engine);
 	connect(backend, &AsyncWatcherBackend::tableAdded,
@@ -118,6 +119,7 @@ void AsyncWatcherPrivate::initForEngine()
 								  Q_RETURN_ARG(QList<TableEvent>, aTables))) {
 		for (const auto &tEvent : qAsConst(aTables))
 			_q_tableAdded(tEvent);
+		QMetaObject::invokeMethod(q, "initialized", Qt::QueuedConnection);
 	} else
 		qCCritical(logAsyncWatcher) << "Failed to obtain initial table list from engine";
 }
@@ -150,8 +152,10 @@ void AsyncWatcherPrivate::_q_nodeError(QRemoteObjectNode::ErrorCode error)
 
 void AsyncWatcherPrivate::_q_nodeInitialized()
 {
+	Q_Q(AsyncWatcher);
 	for (const auto &tInfo : rep->activeTables())
 		_q_tableAdded(tInfo);
+	QMetaObject::invokeMethod(q, "initialized", Qt::QueuedConnection);
 }
 
 void AsyncWatcherPrivate::_q_tableAdded(const TableEvent &event)

@@ -52,7 +52,7 @@ private:
 			QSqlDatabase{std::move(db)}
 		{}
 		inline ~ScopedDb() {
-			const auto name = databaseName();
+			const auto name = connectionName();
 			close();
 			static_cast<QSqlDatabase&>(*this) = QSqlDatabase{};
 			QSqlDatabase::removeDatabase(name);
@@ -272,7 +272,7 @@ void EngineTest::testTableSync()
 		QCOMPARE(tCtr->table(), testTable);
 		QCOMPARE(tCtr->syncState(), SyncState::Disabled);
 		QCOMPARE(tCtr->isLiveSyncEnabled(), false);
-		QCOMPARE(tCtr->database().databaseName(), db.databaseName());
+		QCOMPARE(tCtr->database().connectionName(), db.connectionName());
 
 		// remove table (soft)
 		_engine->removeTableSync(testTable);
