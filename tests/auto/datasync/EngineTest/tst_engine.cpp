@@ -68,7 +68,7 @@ private:
 	QSqlDatabase createDb();
 	void addTable(QSqlDatabase db, const QString &name, int fill = 5);
 	int tableSize(QSqlDatabase db, const QString &name);
-	bool testEntry(QSqlDatabase db, const QString &name, int key);
+	bool testEntry(QSqlDatabase db, const QString &name, int key, bool exist = true);
 
 	static inline EngineState getEState(QSignalSpy &spy) {
 		return spy.takeFirst()[0].value<EngineState>();
@@ -459,7 +459,7 @@ void EngineTest::testSyncFlow()
 		QCOMPARE(controller->syncState(), SyncState::LiveSync);
 		QCOMPARE(tableSize(db, testTable), 5);
 		QVERIFY(testEntry(db, testTable, 5));
-		QVERIFY(!testEntry(db, testTable, 2));
+		QVERIFY(testEntry(db, testTable, 2, false));
 
 		// switch back to passive sync
 		controller->setLiveSyncEnabled(false);
@@ -658,7 +658,7 @@ int EngineTest::tableSize(QSqlDatabase db, const QString &name)
 	return sizeQuery.value(0).toInt();
 }
 
-bool EngineTest::testEntry(QSqlDatabase db, const QString &name, int key)
+bool EngineTest::testEntry(QSqlDatabase db, const QString &name, int key, bool exist)
 {
 	Query testQuery{db};
 	testQuery.prepare(QStringLiteral("SELECT Value "
@@ -667,9 +667,14 @@ bool EngineTest::testEntry(QSqlDatabase db, const QString &name, int key)
 						  .arg(db.driver()->escapeIdentifier(name, QSqlDriver::TableName)));
 	testQuery.addBindValue(key);
 	testQuery.exec();
-	if (!testQuery.first())
-		return false;
-	return testQuery.value(0).toReal() == key * 0.1;
+	auto ok = false;
+	[&](){
+		QCOMPARE(testQuery.first(), exist);
+		if (exist)
+			QCOMPARE(testQuery.value(0).toReal(), key * 0.1);
+		ok = true;
+	}();
+	return ok;
 }
 
 QTEST_MAIN(EngineTest)
