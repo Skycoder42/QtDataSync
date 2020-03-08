@@ -25,3 +25,8 @@ SUBDIRS += \
 
 prepareRecursiveTarget(run-tests)
 QMAKE_EXTRA_TARGETS += run-tests
+
+win32:!win32-g++ {
+	SUBDIRS -= SetupTest
+	EngineTest.depends -= SetupTest
+}
