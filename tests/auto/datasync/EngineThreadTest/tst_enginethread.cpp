@@ -17,13 +17,17 @@ private Q_SLOTS:
 	void cleanupTestCase();
 
 	void createEngineThread();
+	void deleteAccount();
+	void stopEngineThread();
 
 private:
+	using EngineState = Engine::EngineState;
 	EngineThread *_engineThread = nullptr;
 };
 
 void EngineThreadTest::initTestCase()
 {
+	qRegisterMetaType<Engine::EngineState>("Engine::EngineState");
 }
 
 void EngineThreadTest::cleanupTestCase()
@@ -31,31 +35,11 @@ void EngineThreadTest::cleanupTestCase()
 	try {
 		if (_engineThread) {
 			if (_engineThread->isRunning()) {
-				const auto engine = _engineThread->engine();
-				QSignalSpy stateSpy{engine, &Engine::stateChanged};
-				QVERIFY(stateSpy.isValid());
-				QMetaObject::invokeMethod(engine,
-										  "deleteAccount",
-										  Qt::QueuedConnection);
-				for (auto i = 0; i < 50; ++i) {
-					if (stateSpy.wait(100)) {
-						if (stateSpy.last()[0].value<Engine::EngineState>() == Engine::EngineState::Inactive) {
-							qDebug() << "deleted account";
-							return;
-						}
-					}
-				}
-				qDebug() << "failed to delete account";
-
 				_engineThread->quit();
-				QVERIFY(_engineThread->wait(5000));
-			} else
-				qDebug() << "engine thread inactive - not deleting account";
-
+				_engineThread->wait(5000);
+			}
 			_engineThread->deleteLater();
-		} else
-			qDebug() << "engine thread inactive - not deleting account";
-
+		}
 	} catch(std::exception &e) {
 		QFAIL(e.what());
 	}
@@ -64,25 +48,75 @@ void EngineThreadTest::cleanupTestCase()
 
 void EngineThreadTest::createEngineThread()
 {
-	auto called = false;
-	auto initFn = [&](Engine *engine, QThread *thread) {
-		QVERIFY(engine);
-		QCOMPARE(thread, _engineThread);
-		called = true;
-	};
+	try {
+		auto called = false;
+		auto initFn = [&](Engine *engine, QThread *thread) {
+			QVERIFY(engine);
+			QCOMPARE(thread, _engineThread);
+			engine->start();
+			called = true;
+		};
 
-	_engineThread = Setup<AnonAuth>()
-						.setFirebaseProjectId(QStringLiteral(FIREBASE_PROJECT_ID))
-						.setFirebaseApiKey(QStringLiteral(FIREBASE_API_KEY))
-						.setSettings(TestLib::createSettings(nullptr))
-						.createThreadedEngine(initFn, this);
-	QVERIFY(_engineThread);
-	QCOMPARE(called, false);
-	QVERIFY(!_engineThread->engine());
+		_engineThread = Setup<AnonAuth>()
+							.setFirebaseProjectId(QStringLiteral(FIREBASE_PROJECT_ID))
+							.setFirebaseApiKey(QStringLiteral(FIREBASE_API_KEY))
+							.setSettings(TestLib::createSettings(nullptr))
+							.createThreadedEngine(initFn, this);
+		QVERIFY(_engineThread);
+		QCOMPARE(called, false);
+		QVERIFY(!_engineThread->engine());
 
-	_engineThread->start();
-	QTRY_COMPARE(called, true);
+		const auto watcher = _engineThread->createWatcher(this);
+		QVERIFY(watcher.isStarted());
+		QVERIFY(watcher.isRunning());
+		QVERIFY(!watcher.isFinished());
+
+
+		QSignalSpy engineSpy{_engineThread, &EngineThread::engineCreated};
+		QVERIFY(engineSpy.isValid());
+
+		_engineThread->start();
+		QTRY_COMPARE(called, true);
+		QTRY_VERIFY(_engineThread->engine());
+		QTRY_VERIFY(watcher.isFinished());
+		QVERIFY(watcher.result());
+		QCOMPARE(engineSpy.size(), 1);
+		QCOMPARE(engineSpy[0][0].value<Engine*>(), _engineThread->engine());
+
+		const auto engine = _engineThread->engine();
+		QTRY_COMPARE(engine->state(), EngineState::TableSync);
+	} catch (std::exception &e) {
+		QFAIL(e.what());
+	}
+}
+
+void EngineThreadTest::deleteAccount()
+{
+	const auto engine = _engineThread->engine();
+	QVERIFY(engine);
+	QCOMPARE(engine->state(), EngineState::TableSync);
+	QSignalSpy stateSpy{engine, &Engine::stateChanged};
+	QVERIFY(stateSpy.isValid());
+
+	const auto auth = static_cast<AnonAuth*>(engine->authenticator());
+	QVERIFY(auth);
+	auth->block = true;
+	QMetaObject::invokeMethod(engine,
+							  "deleteAccount",
+							  Qt::QueuedConnection);
+	QVERIFY(stateSpy.wait());
+	QTRY_COMPARE(stateSpy.last()[0].value<Engine::EngineState>(), EngineState::SigningIn);
+}
+
+void EngineThreadTest::stopEngineThread()
+{
 	QVERIFY(_engineThread->engine());
+	QVERIFY(_engineThread->isRunning());
+
+	_engineThread->quit();
+	QVERIFY(_engineThread->wait(5000));
+
+	QVERIFY(!_engineThread->engine());
 }
 
 QTEST_MAIN(EngineThreadTest)

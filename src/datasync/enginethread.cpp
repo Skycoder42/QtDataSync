@@ -42,7 +42,7 @@ void EngineThread::run()
 {
 	// init
 	Engine engine{std::move(d->init->setup)};
-	d->init->initFn(d->engine, this);
+	d->init->initFn(&engine, this);
 	d->init = std::nullopt;
 	// notify frontend
 	d->engine.storeRelease(&engine);
