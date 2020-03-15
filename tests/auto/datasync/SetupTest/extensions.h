@@ -82,22 +82,23 @@ class SetupAuthenticationExtension<TSetup, DummyAuth>
 {
 public:
 	inline TSetup &setInvalid() {
-		d.invalid = true;
+		d->invalid = true;
 		return *static_cast<TSetup*>(this);
 	}
 
 	inline TSetup &setAuthValue(int value) {
-		d.value = value;
+		d->value = value;
 		return *static_cast<TSetup*>(this);
 	}
 
 protected:
-	inline __private::SetupExtensionPrivate *authenticatorD() {
-		return &d;
+	inline __private::SetupExtensionPrivate *createAuthenticatorD() {
+		d = new DummyExtensionPrivate<DummyAuth>{};
+		return d;
 	}
 
 private:
-	DummyExtensionPrivate<DummyAuth> d;
+	DummyExtensionPrivate<DummyAuth> *d = nullptr;
 };
 
 template <typename TSetup>
@@ -105,17 +106,18 @@ class SetupTransformerExtension<TSetup, DummyTransform>
 {
 public:
 	inline TSetup &setTransformValue(int value) {
-		d.value = value;
+		d->value = value;
 		return *static_cast<TSetup*>(this);
 	}
 
 protected:
-	inline __private::SetupExtensionPrivate *transformD() {
-		return &d;
+	inline __private::SetupExtensionPrivate *createTransformerD() {
+		d = new DummyExtensionPrivate<DummyTransform>{};
+		return d;
 	}
 
 private:
-	DummyExtensionPrivate<DummyTransform> d;
+	DummyExtensionPrivate<DummyTransform> *d = nullptr;
 };
 
 }

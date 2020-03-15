@@ -20,24 +20,26 @@ template <typename TSetup, typename TAuthenticator>
 class SetupAuthenticationExtension
 {
 protected:
-	inline __private::SetupExtensionPrivate *authenticatorD() {
-		return &d;
+	inline __private::SetupExtensionPrivate *createAuthenticatorD() {
+		d = new __private::DefaultAuthExtensionPrivate<TAuthenticator>{};
+		return d;
 	}
 
 private:
-	__private::DefaultAuthExtensionPrivate<TAuthenticator> d;
+	__private::DefaultAuthExtensionPrivate<TAuthenticator> *d = nullptr;
 };
 
 template <typename TSetup, typename TCloudTransformer>
 class SetupTransformerExtension
 {
 protected:
-	inline __private::SetupExtensionPrivate *transformD() {
-		return &d;
+	inline __private::SetupExtensionPrivate *createTransformerD() {
+		d = new __private::DefaultTransformerExtensionPrivate<TCloudTransformer>{};
+		return d;
 	}
 
 private:
-	__private::DefaultTransformerExtensionPrivate<TCloudTransformer> d;
+	__private::DefaultTransformerExtensionPrivate<TCloudTransformer> *d = nullptr;
 };
 
 
@@ -58,7 +60,7 @@ public:
 	inline Setup() :
 		d{new __private::SetupPrivate{}}
 	{
-		d->init(this->authenticatorD(), this->transformD());
+		d->init(this->createAuthenticatorD(), this->createTransformerD());
 	}
 
 	inline Setup(Setup &&other) noexcept {
@@ -179,9 +181,7 @@ class SetupAuthenticationExtension<TSetup, AuthenticationSelector<TAuthenticator
 {
 	Q_DISABLE_COPY(SetupAuthenticationExtension)
 public:
-	inline SetupAuthenticationExtension() :
-		d{std::make_pair(qMetaTypeId<TAuthenticators*>(), SetupAuthenticationExtension<TSetup, TAuthenticators>::authenticatorD())...}
-	{}
+	inline SetupAuthenticationExtension() = default;
 	inline SetupAuthenticationExtension(SetupAuthenticationExtension &&) noexcept = default;
 	inline SetupAuthenticationExtension &operator=(SetupAuthenticationExtension &&) noexcept = default;
 
@@ -192,12 +192,15 @@ public:
 	}
 
 protected:
-	inline __private::SetupExtensionPrivate *authenticatorD() {
-		return &d;
+	inline __private::SetupExtensionPrivate *createAuthenticatorD() {
+		d = new __private::AuthenticationSelectorPrivate<TAuthenticators...>{
+			std::make_pair(qMetaTypeId<TAuthenticators*>(), SetupAuthenticationExtension<TSetup, TAuthenticators>::createAuthenticatorD())...
+		};
+		return d;
 	}
 
 private:
-	__private::AuthenticationSelectorPrivate<TAuthenticators...> d;
+	__private::AuthenticationSelectorPrivate<TAuthenticators...> *d = nullptr;
 };
 
 template<typename TAuthenticator, typename TCloudTransformer>

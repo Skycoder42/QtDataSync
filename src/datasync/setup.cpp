@@ -14,8 +14,8 @@ Q_LOGGING_CATEGORY(QtDataSync::logSetup, "qt.datasync.Setup")
 
 void SetupPrivate::init(SetupExtensionPrivate *authExt, SetupExtensionPrivate *transExt)
 {
-	_authExt = authExt;
-	_transExt = transExt;
+	_authExt.reset(authExt);
+	_transExt.reset(transExt);
 }
 
 void SetupPrivate::readWebConfig(QIODevice *device)

@@ -97,8 +97,8 @@ public:
 	QList<void*> attachments;  // Reserved for future changes to not break binary compability
 
 private:
-	SetupExtensionPrivate *_authExt;
-	SetupExtensionPrivate *_transExt;
+	QScopedPointer<SetupExtensionPrivate> _authExt;
+	QScopedPointer<SetupExtensionPrivate> _transExt;
 
 	void init(SetupExtensionPrivate *authExt,
 			  SetupExtensionPrivate *transExt);

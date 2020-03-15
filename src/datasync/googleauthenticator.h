@@ -66,27 +66,28 @@ class SetupAuthenticationExtension<TSetup, GoogleAuthenticator>
 {
 public:
 	inline TSetup &setOAuthClientId(QString clientId) {
-		d.clientId = std::move(clientId);
+		d->clientId = std::move(clientId);
 		return *static_cast<TSetup*>(this);
 	}
 
 	inline TSetup &setOAuthClientSecret(QString secret) {
-		d.secret = std::move(secret);
+		d->secret = std::move(secret);
 		return *static_cast<TSetup*>(this);
 	}
 
 	inline TSetup &setOAuthClientCallbackPort(quint16 port) {
-		d.port = port;
+		d->port = port;
 		return *static_cast<TSetup*>(this);
 	}
 
 protected:
-	inline __private::SetupExtensionPrivate *authenticatorD() {
-		return &d;
+	inline __private::SetupExtensionPrivate *createAuthenticatorD() {
+		d = new __private::GoogleAuthenticatorExtensionPrivate{};
+		return d;
 	}
 
 private:
-	__private::GoogleAuthenticatorExtensionPrivate d;
+	__private::GoogleAuthenticatorExtensionPrivate *d = nullptr;
 };
 
 }
