@@ -8,6 +8,7 @@ EngineThread::EngineThread(QScopedPointer<__private::SetupPrivate> &&setup, __pr
 	d{new EngineThreadPrivate{}}
 {
 	d->init->setup.swap(setup);
+	d->init->setup->prepareForThread(this);
 	d->init->initFn = std::move(initFn);
 	setTerminationEnabled(true);
 }

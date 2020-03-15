@@ -14,6 +14,7 @@ SUBDIRS += \
 		AuthenticatorTest \
 		EngineDataModelTest \
 		EngineTest \
+		EngineThreadTest \
 		RemoteConnectorTest \
 		TableDataModelTest
 
@@ -23,6 +24,7 @@ SUBDIRS += \
 	TableDataModelTest.depends += TestLib RemoteConnectorTest DbWatcherTest CloudTransformerTest
 	EngineTest.depends += TestLib EngineDataModelTest TableDataModelTest SetupTest
 	AsyncWatcherTest.depends += TestLib EngineTest
+	EngineThreadTest.depends += TestLib EngineTest
 }
 
 prepareRecursiveTarget(run-tests)

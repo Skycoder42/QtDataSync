@@ -120,6 +120,16 @@ EngineThread *SetupPrivate::createThreadedEngine(QScopedPointer<SetupPrivate> &&
 	return new EngineThread{std::move(self), std::move(initFn), parent};
 }
 
+void SetupPrivate::prepareForThread(QThread *thread)
+{
+	for (const auto obj : QList<QObject*>{settings, nam, roNode}) {
+		if (obj) {
+			obj->setParent(nullptr);
+			obj->moveToThread(thread);
+		}
+	}
+}
+
 void SetupPrivate::finializeForEngine(Engine *engine)
 {
 	if (settings)
@@ -162,8 +172,6 @@ ICloudTransformer *SetupPrivate::createTransformer(QObject *parent)
 	else
 		throw SetupException{QStringLiteral("Setup transformation extender did not create a valid FirebaseAuthenticator instance")};
 }
-
-
 
 
 

@@ -65,6 +65,7 @@ class Q_DATASYNC_EXPORT SetupPrivate
 	template <typename TAuthenticator, typename TCloudTransformer>
 	friend class QtDataSync::Setup;
 	friend class QtDataSync::Engine;
+	friend class QtDataSync::EngineThread;
 
 public:
 	using ThreadInitFunc = std::function<void(Engine*, QThread*)>;
@@ -109,6 +110,7 @@ private:
 
 	static Engine *createEngine(QScopedPointer<SetupPrivate> &&self, QObject *parent);
 	static EngineThread *createThreadedEngine(QScopedPointer<SetupPrivate> &&self, ThreadInitFunc &&initFn, QObject *parent);
+	void prepareForThread(QThread *thread);
 	void finializeForEngine(Engine *engine);
 	IAuthenticator *createAuthenticator(QObject *parent);
 	ICloudTransformer *createTransformer(QObject *parent);
