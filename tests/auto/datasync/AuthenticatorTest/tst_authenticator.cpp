@@ -81,10 +81,10 @@ void AuthenticatorTest::testRefresh()
 	_authenticator->signIn();
 	QVERIFY(successSpy.wait());
 	QCOMPARE(successSpy.size(), 1);
-	QEXPECT_FAIL("", "Anonymous authentications cannot be refreshed", Abort);
 	QCOMPARE(successSpy[0][0].toString(), oldId);
 	QVERIFY(!successSpy[0][1].toString().isEmpty());
 	QVERIFY(failSpy.isEmpty());
+	successSpy.clear();
 
 	// trigger automated refresh
 	_authenticator->_expiresAt = QDateTime::currentDateTimeUtc().addSecs(63); // 1min 3s
@@ -94,6 +94,7 @@ void AuthenticatorTest::testRefresh()
 	QCOMPARE(successSpy[0][0].toString(), oldId);
 	QVERIFY(!successSpy[0][1].toString().isEmpty());
 	QVERIFY(failSpy.isEmpty());
+	successSpy.clear();
 }
 
 void AuthenticatorTest::testLogOut()
