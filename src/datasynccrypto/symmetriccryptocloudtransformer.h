@@ -4,39 +4,39 @@
 #include "QtDataSyncCrypto/qtdatasynccrypto_global.h"
 #include "QtDataSyncCrypto/qiodevicesource.h"
 #include "QtDataSyncCrypto/qiodevicesink.h"
+#include "QtDataSyncCrypto/securebytearray.h"
 
 #include <QtDataSync/cloudtransformer.h>
 
-#include <cryptopp/osrng.h>
 #include <cryptopp/filters.h>
 #include <cryptopp/gcm.h>
+#include <cryptopp/eax.h>
 #include <cryptopp/aes.h>
 
 namespace QtDataSync::Crypto {
 
-class Q_DATASYNC_CRYPTO_EXPORT SymmetricCryptoCloudTransformerBase : public ICloudTransformer
+class SymmetricCryptoCloudTransformerBasePrivate;
+class Q_DATASYNC_CRYPTO_EXPORT SymmetricCryptoCloudTransformerBase : public ISynchronousCloudTransformer
 {
 	Q_OBJECT
 
 public:
 	explicit SymmetricCryptoCloudTransformerBase(QObject *parent = nullptr);
 
-public Q_SLOTS:
-	void transformUpload(const LocalData &data) final;
-	void transformDownload(const CloudData &data) final;
-
 protected:
-	virtual QByteArray encrypt(const CryptoPP::SecByteBlock &key,
-							   const CryptoPP::SecByteBlock &iv,
-							   const QByteArray &plain) = 0;
-	virtual QByteArray decrypt(const CryptoPP::SecByteBlock &key,
-							   const CryptoPP::SecByteBlock &iv,
-							   const QByteArray &cipher) = 0;
+	QJsonObject transformUploadSync(const QVariantHash &data) const final;
+	QVariantHash transformDownloadSync(const QJsonObject &data) const final;
+
+	virtual size_t ivSize() const = 0;
+	virtual QByteArray encrypt(const SecureByteArray &key,
+							   const SecureByteArray &iv,
+							   const QByteArray &plain) const = 0;
+	virtual QByteArray decrypt(const SecureByteArray &key,
+							   const SecureByteArray &iv,
+							   const QByteArray &cipher) const = 0;
 
 private:
-	CryptoPP::AutoSeededRandomPool _rng;  // TODO move to private
-
-	QString base64Encode(const QByteArray &data) const;
+	Q_DECLARE_PRIVATE(SymmetricCryptoCloudTransformerBase)
 };
 
 template <template<class> class TScheme, class TCipher>
@@ -46,7 +46,12 @@ public:
 	using Cipher = TScheme<TCipher>;
 
 protected:
-	QByteArray encrypt(const CryptoPP::SecByteBlock &key, const CryptoPP::SecByteBlock &iv, const QByteArray &plain) override {
+	size_t ivSize() const override {
+		typename Cipher::Encryption e;
+		return e.IVSize();
+	}
+
+	QByteArray encrypt(const SecureByteArray &key, const SecureByteArray &iv, const QByteArray &plain) const override {
 		typename Cipher::Encryption encryptor;
 		encryptor.SetKeyWithIV(key, key.size(),
 							   iv, iv.size());
@@ -61,7 +66,7 @@ protected:
 		return cipher;
 	}
 
-	QByteArray decrypt(const CryptoPP::SecByteBlock &key, const CryptoPP::SecByteBlock &iv, const QByteArray &cipher) override {
+	QByteArray decrypt(const SecureByteArray &key, const SecureByteArray &iv, const QByteArray &cipher) const override {
 		typename Cipher::Decryption decryptor;
 		decryptor.SetKeyWithIV(key, key.size(),
 							   iv, iv.size());

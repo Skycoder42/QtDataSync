@@ -10,12 +10,15 @@ HEADERS += \
 	qiodevicesink.h \
 	qiodevicesource.h \
 	qtdatasynccrypto_global.h \
-	symmetriccryptocloudtransformer.h
+	securebytearray.h \
+	symmetriccryptocloudtransformer.h \
+	symmetriccryptocloudtransformer_p.h
 
 SOURCES += \
 	keymanager.cpp \
 	qiodevicesink.cpp \
 	qiodevicesource.cpp \
+	securebytearray.cpp \
 	symmetriccryptocloudtransformer.cpp
 
 load(qt_module)

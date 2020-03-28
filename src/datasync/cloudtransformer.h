@@ -100,8 +100,8 @@ protected:
 	explicit ISynchronousCloudTransformer(QObject *parent = nullptr);
 	ISynchronousCloudTransformer(QObjectPrivate &dd, QObject *parent = nullptr);
 
-	virtual QJsonObject transformUploadSync(const QVariantHash &data) const = 0;  // throws QString
-	virtual QVariantHash transformDownloadSync(const QJsonObject &data) const = 0;  // throws QString
+	virtual QJsonObject transformUploadSync(const QVariantHash &data) const = 0;
+	virtual QVariantHash transformDownloadSync(const QJsonObject &data) const = 0;
 };
 
 class PlainCloudTransformerPrivate;
