@@ -1,4 +1,3 @@
 TEMPLATE = subdirs
 
-SUBDIRS += \
-    cryptopp-qt/cryptopp-helper.pro
+equals(QTDATASYNC_CRYPTOPP, helper): SUBDIRS += cryptopp-qt/cryptopp-helper.pro

@@ -1,20 +1,26 @@
 TARGET = QtDataSyncCrypto
 
 QT = core datasync core-private datasync-private
-CONFIG += static
+!equals(QTDATASYNC_CRYPTOPP, dynamic): CONFIG += static
 MODULE_CONFIG += $$CPP_VERSION
 
 HEADERS += \
 	keymanager.h \
 	keymanager_p.h \
-	qtdatasynccrypto_global.h
+	qiodevicesink.h \
+	qiodevicesource.h \
+	qtdatasynccrypto_global.h \
+	symmetriccryptocloudtransformer.h
 
 SOURCES += \
-    keymanager.cpp
+	keymanager.cpp \
+	qiodevicesink.cpp \
+	qiodevicesource.cpp \
+	symmetriccryptocloudtransformer.cpp
 
 load(qt_module)
 
-QMAKE_USE_PRIVATE += cryptopp
+!loadCryptopp():error(Failed to load crypto++)
 
 win32 {
 	QMAKE_TARGET_PRODUCT = "$$TARGET"
