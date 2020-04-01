@@ -11,6 +11,11 @@ struct QIODeviceStorePrivate {
 	bool waiting = false;
 };
 
+struct QByteArraySourcePrivate {
+	QByteArray data {};
+	QBuffer buffer {};
+};
+
 }
 
 const char * const QIODeviceStore::DeviceParameter = "QIODevice";
@@ -148,21 +153,21 @@ QIODevice *QIODeviceSource::device() const
 
 QByteArraySource::QByteArraySource(BufferedTransformation *attachment) :
 	QIODeviceSource{attachment},
-	_buffer{new QBuffer{}}
+	d{new QByteArraySourcePrivate{}}
 {}
 
-QByteArraySource::QByteArraySource(const QByteArray &source, bool pumpAll, BufferedTransformation *attachment) :
+QByteArraySource::QByteArraySource(QByteArray source, bool pumpAll, BufferedTransformation *attachment) :
 	QIODeviceSource{attachment},
-	_buffer{new QBuffer{}}
+	d{new QByteArraySourcePrivate{std::move(source)}}
 {
-	_buffer->setData(source);
-	_buffer->open(QIODevice::ReadOnly);
-	SourceInitialize(pumpAll, MakeParameters(QIODeviceStore::DeviceParameter, static_cast<QIODevice*>(_buffer.data())));
+	d->buffer.setBuffer(&d->data);
+	d->buffer.open(QIODevice::ReadOnly);
+	SourceInitialize(pumpAll, MakeParameters(QIODeviceStore::DeviceParameter, static_cast<QIODevice*>(&d->buffer)));
 }
 
 const QByteArray &QByteArraySource::buffer() const
 {
-	return _buffer->data();
+	return d->data;
 }
 
 

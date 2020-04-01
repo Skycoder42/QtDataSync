@@ -8,6 +8,10 @@ struct QIODeviceSinkPrivate {
 	QIODevice *device = nullptr;
 };
 
+struct QByteArraySinkPrivate {
+	QBuffer buffer {};
+};
+
 }
 
 const char * const QIODeviceSink::DeviceParameter = "QIODevice";
@@ -86,20 +90,21 @@ size_t QIODeviceSink::Put2(const byte *inString, size_t length, int messageEnd, 
 
 
 QByteArraySink::QByteArraySink() :
-	QIODeviceSink{}
+	QIODeviceSink{},
+	d{new QByteArraySinkPrivate{}}
 {}
 
 QByteArraySink::QByteArraySink(QByteArray &sink) :
 	QIODeviceSink{},
-	_buffer{new QBuffer{&sink}}
+	d{new QByteArraySinkPrivate{QBuffer{&sink}}}
 {
-	_buffer->open(QIODevice::WriteOnly);
-	IsolatedInitialize(MakeParameters(DeviceParameter, static_cast<QIODevice*>(_buffer.data())));
+	d->buffer.open(QIODevice::WriteOnly);
+	IsolatedInitialize(MakeParameters(DeviceParameter, static_cast<QIODevice*>(&d->buffer)));
 }
 
 const QByteArray &QByteArraySink::buffer() const
 {
-	return _buffer->data();
+	return d->buffer.data();
 }
 
 

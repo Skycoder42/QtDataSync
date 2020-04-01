@@ -4,42 +4,41 @@
 #include "QtDataSyncCrypto/qtdatasynccrypto_global.h"
 
 #include <QtCore/qbytearray.h>
+#include <QtCore/qshareddata.h>
 
 #include <cryptopp/secblock.h>
 
 namespace QtDataSync::Crypto {
 
-class Q_DATASYNC_CRYPTO_EXPORT SecureByteArray : public QByteArray
+class SecureByteArrayData;
+class Q_DATASYNC_CRYPTO_EXPORT SecureByteArray
 {
 public:
-	SecureByteArray() = default;
-	SecureByteArray(const SecureByteArray &other) = default;
-	SecureByteArray(SecureByteArray &&other) noexcept = default;
-	SecureByteArray &operator=(const SecureByteArray &other) = default;
-	SecureByteArray &operator=(SecureByteArray &&other) noexcept = default;
+	SecureByteArray();
+	SecureByteArray(const SecureByteArray &other);
+	SecureByteArray(SecureByteArray &&other) noexcept;
+	SecureByteArray &operator=(const SecureByteArray &other);
+	SecureByteArray &operator=(SecureByteArray &&other) noexcept;
+	~SecureByteArray();
 
-	SecureByteArray(const QByteArray &other);
-	SecureByteArray(QByteArray &&other) noexcept;
-	SecureByteArray &operator=(const QByteArray &other);
-	SecureByteArray &operator=(QByteArray &&other) noexcept;
-
-	SecureByteArray(const char *data, int size = -1);
-	SecureByteArray(int size, char c);
-	SecureByteArray(int size, Qt::Initialization);
-
+	SecureByteArray(size_t size);
 	SecureByteArray(const CryptoPP::byte *data, size_t size);
-	SecureByteArray(size_t size, CryptoPP::byte b);
-	SecureByteArray(size_t size, Qt::Initialization);
+	SecureByteArray(const char *data, int size);
 
-	static SecureByteArray fromRawByteData(const CryptoPP::byte *data, size_t size);
+	bool isValid() const;
+	explicit operator bool() const;
+	bool operator!() const;
 
-	CryptoPP::byte *byteData();
-	const CryptoPP::byte *byteData() const;
-	const CryptoPP::byte *constByteData() const;
-	size_t byteSize() const;
+	size_t size() const;
+	const CryptoPP::byte *constData() const;
+	const CryptoPP::byte *data() const;
+	CryptoPP::byte *data();
 
-	operator CryptoPP::byte*();
-	operator const CryptoPP::byte*() const;
+	QByteArray toRaw() const;
+	static SecureByteArray fromRaw(const QByteArray &data);
+
+private:
+	QSharedDataPointer<SecureByteArrayData> d;
 };
 
 }

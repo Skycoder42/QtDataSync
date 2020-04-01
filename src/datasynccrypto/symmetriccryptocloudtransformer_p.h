@@ -17,6 +17,7 @@ public:
 
 	QString base64Encode(const QByteArray &data) const;
 	QByteArray base64Decode(const QString &data) const;
+	QByteArray base64Decode(const QJsonValue &data) const;
 };
 
 }

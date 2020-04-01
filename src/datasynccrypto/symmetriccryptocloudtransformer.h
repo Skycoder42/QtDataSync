@@ -2,9 +2,9 @@
 #define QTDATASYNC_CRYPTO_SYMMETRICCRYPTOCLOUDTRANSFORMER_H
 
 #include "QtDataSyncCrypto/qtdatasynccrypto_global.h"
+#include "QtDataSyncCrypto/securebytearray.h"
 #include "QtDataSyncCrypto/qiodevicesource.h"
 #include "QtDataSyncCrypto/qiodevicesink.h"
-#include "QtDataSyncCrypto/securebytearray.h"
 
 #include <QtDataSync/cloudtransformer.h>
 
@@ -53,8 +53,8 @@ protected:
 
 	QByteArray encrypt(const SecureByteArray &key, const SecureByteArray &iv, const QByteArray &plain) const override {
 		typename Cipher::Encryption encryptor;
-		encryptor.SetKeyWithIV(key, key.size(),
-							   iv, iv.size());
+		encryptor.SetKeyWithIV(key.data(), key.size(),
+							   iv.data(), iv.size());
 		QByteArray cipher;
 		QByteArraySource {
 			plain, true, new CryptoPP::AuthenticatedDecryptionFilter {
@@ -68,8 +68,8 @@ protected:
 
 	QByteArray decrypt(const SecureByteArray &key, const SecureByteArray &iv, const QByteArray &cipher) const override {
 		typename Cipher::Decryption decryptor;
-		decryptor.SetKeyWithIV(key, key.size(),
-							   iv, iv.size());
+		decryptor.SetKeyWithIV(key.data(), key.size(),
+							   iv.data(), iv.size());
 		QByteArray plain;
 		QByteArraySource {
 			cipher, true, new CryptoPP::AuthenticatedDecryptionFilter {

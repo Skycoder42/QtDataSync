@@ -39,6 +39,7 @@ private:
 	QScopedPointer<QIODeviceSinkPrivate> d;
 };
 
+struct QByteArraySinkPrivate;
 class Q_DATASYNC_CRYPTO_EXPORT QByteArraySink : public QIODeviceSink
 {
 public:
@@ -48,7 +49,7 @@ public:
 	const QByteArray &buffer() const;
 
 private:
-	QScopedPointer<QBuffer> _buffer;
+	QScopedPointer<QByteArraySinkPrivate> d;
 };
 
 }

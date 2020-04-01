@@ -16,11 +16,11 @@ QJsonObject SymmetricCryptoCloudTransformerBase::transformUploadSync(const QVari
 	stream << data;
 
 	SecureByteArray key;  // TODO get key
-	SecureByteArray iv{ivSize(), Qt::Uninitialized};
-	d->rng.GenerateBlock(iv, iv.size());
+	SecureByteArray iv{ivSize()};
+	d->rng.GenerateBlock(iv.data(), iv.size());
 	return QJsonObject {
 		{QStringLiteral("version"), stream.version()},
-		{QStringLiteral("salt"), d->base64Encode(iv)},  //  TODO store IV
+		{QStringLiteral("salt"), d->base64Encode(iv.toRaw())},  //  TODO store IV
 		{QStringLiteral("data"), d->base64Encode(encrypt(key, iv, plain))},
 	};
 }
@@ -30,8 +30,8 @@ QVariantHash SymmetricCryptoCloudTransformerBase::transformDownloadSync(const QJ
 	Q_D(const SymmetricCryptoCloudTransformerBase);
 
 	SecureByteArray key;  // TODO get key
-	const SecureByteArray iv = d->base64Decode(data[QStringLiteral("salt")].toString());
-	const auto plain = decrypt(key, iv, d->base64Decode(data[QStringLiteral("data")].toString()));
+	const SecureByteArray iv = SecureByteArray::fromRaw(d->base64Decode(data[QStringLiteral("salt")]));
+	const auto plain = decrypt(key, iv, d->base64Decode(data[QStringLiteral("data")]));
 
 	QVariantHash result;
 	QDataStream stream{plain};
@@ -52,4 +52,9 @@ QString SymmetricCryptoCloudTransformerBasePrivate::base64Encode(const QByteArra
 QByteArray SymmetricCryptoCloudTransformerBasePrivate::base64Decode(const QString &data) const
 {
 	return QByteArray::fromBase64(data.toUtf8(), QByteArray::Base64Encoding);
+}
+
+QByteArray SymmetricCryptoCloudTransformerBasePrivate::base64Decode(const QJsonValue &data) const
+{
+	return base64Decode(data.toString());
 }

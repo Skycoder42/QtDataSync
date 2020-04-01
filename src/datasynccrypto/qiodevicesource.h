@@ -54,17 +54,18 @@ public:
 	QIODevice *device() const;
 };
 
+struct QByteArraySourcePrivate;
 class Q_DATASYNC_CRYPTO_EXPORT QByteArraySource : public QIODeviceSource
 {
 	Q_DISABLE_COPY(QByteArraySource)
 public:
 	QByteArraySource(CryptoPP::BufferedTransformation *attachment = nullptr);
-	QByteArraySource(const QByteArray &source, bool pumpAll, CryptoPP::BufferedTransformation *attachment = nullptr);
+	QByteArraySource(QByteArray source, bool pumpAll, CryptoPP::BufferedTransformation *attachment = nullptr);
 
 	const QByteArray &buffer() const;
 
 private:
-	QScopedPointer<QBuffer> _buffer;
+	QScopedPointer<QByteArraySourcePrivate> d;
 };
 
 }
