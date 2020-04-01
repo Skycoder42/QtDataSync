@@ -16,16 +16,20 @@
 namespace QtDataSync::Crypto {
 
 class SymmetricCryptoCloudTransformerBasePrivate;
-class Q_DATASYNC_CRYPTO_EXPORT SymmetricCryptoCloudTransformerBase : public ISynchronousCloudTransformer
+class Q_DATASYNC_CRYPTO_EXPORT SymmetricCryptoCloudTransformerBase : public ICloudTransformer
 {
 	Q_OBJECT
 
 public:
 	explicit SymmetricCryptoCloudTransformerBase(QObject *parent = nullptr);
 
+public Q_SLOTS:
+	void transformUpload(const LocalData &data) final;
+	void transformDownload(const CloudData &data) final;
+
 protected:
-	QJsonObject transformUploadSync(const QVariantHash &data) const final;
-	QVariantHash transformDownloadSync(const QJsonObject &data) const final;
+	QJsonObject transformUploadImpl(const SecureByteArray &key, const QVariantHash &data) const;
+	QVariantHash transformDownloadImpl(const SecureByteArray &key, const QJsonObject &data) const;
 
 	virtual size_t ivSize() const = 0;
 	virtual QByteArray encrypt(const SecureByteArray &key,

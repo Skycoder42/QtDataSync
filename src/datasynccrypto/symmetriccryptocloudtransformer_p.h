@@ -2,6 +2,7 @@
 #define QTDATASYNC_CRYPTO_SYMMETRICCRYPTOCLOUDTRANSFORMER_P_H
 
 #include "symmetriccryptocloudtransformer.h"
+#include "keymanager.h"
 
 #include <QtCore/private/qobject_p.h>
 
@@ -14,6 +15,7 @@ class Q_DATASYNC_CRYPTO_EXPORT SymmetricCryptoCloudTransformerBasePrivate : publ
 	Q_DECLARE_PUBLIC(SymmetricCryptoCloudTransformerBase)
 public:
 	mutable CryptoPP::AutoSeededRandomPool rng;
+	mutable KeyProvider keyProvider;
 
 	QString base64Encode(const QByteArray &data) const;
 	QByteArray base64Decode(const QString &data) const;

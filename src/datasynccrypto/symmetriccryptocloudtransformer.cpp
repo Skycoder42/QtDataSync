@@ -5,17 +5,72 @@ using namespace QtDataSync;
 using namespace QtDataSync::Crypto;
 
 SymmetricCryptoCloudTransformerBase::SymmetricCryptoCloudTransformerBase(QObject *parent) :
-	ISynchronousCloudTransformer{*new SymmetricCryptoCloudTransformerBasePrivate{}, parent}
+	ICloudTransformer{*new SymmetricCryptoCloudTransformerBasePrivate{}, parent}
 {}
 
-QJsonObject SymmetricCryptoCloudTransformerBase::transformUploadSync(const QVariantHash &data) const
+void SymmetricCryptoCloudTransformerBase::transformUpload(const LocalData &data)
+{
+	Q_D(const SymmetricCryptoCloudTransformerBase);
+	if (!data.data()) {
+		Q_EMIT transformUploadDone(CloudData {
+			escapeKey(data.key()),
+			std::nullopt,
+			data
+		});
+		return;
+	}
+
+	d->keyProvider.loadKey([this, data](const SecureByteArray &key) {
+		try {
+			Q_EMIT transformUploadDone(CloudData {
+				escapeKey(data.key()),
+				transformUploadImpl(key, data.data().value()),
+				data
+			});
+		} catch (std::exception &e) {
+			// TODO log error
+			Q_EMIT transformError(data.key());
+		}
+	}, [this, key = data.key()]() {
+		Q_EMIT transformError(key);
+	});
+}
+
+void SymmetricCryptoCloudTransformerBase::transformDownload(const CloudData &data)
+{
+	Q_D(const SymmetricCryptoCloudTransformerBase);
+	if (!data.data()) {
+		Q_EMIT transformDownloadDone(LocalData {
+			unescapeKey(data.key()),
+			std::nullopt,
+			data
+		});
+		return;
+	}
+
+	d->keyProvider.loadKey([this, data](const SecureByteArray &key) {
+		try {
+			Q_EMIT transformDownloadDone(LocalData {
+				unescapeKey(data.key()),
+				transformDownloadImpl(key, data.data().value()),
+				data
+			});
+		} catch (std::exception &e) {
+			// TODO log error
+			Q_EMIT transformError(unescapeKey(data.key()));
+		}
+	}, [this, key = unescapeKey(data.key())]() {
+		Q_EMIT transformError(key);
+	});
+}
+
+QJsonObject SymmetricCryptoCloudTransformerBase::transformUploadImpl(const SecureByteArray &key, const QVariantHash &data) const
 {
 	Q_D(const SymmetricCryptoCloudTransformerBase);
 	QByteArray plain;
 	QDataStream stream{&plain, QIODevice::WriteOnly};
 	stream << data;
 
-	SecureByteArray key;  // TODO get key
 	SecureByteArray iv{ivSize()};
 	d->rng.GenerateBlock(iv.data(), iv.size());
 	return QJsonObject {
@@ -25,11 +80,10 @@ QJsonObject SymmetricCryptoCloudTransformerBase::transformUploadSync(const QVari
 	};
 }
 
-QVariantHash SymmetricCryptoCloudTransformerBase::transformDownloadSync(const QJsonObject &data) const
+QVariantHash SymmetricCryptoCloudTransformerBase::transformDownloadImpl(const SecureByteArray &key, const QJsonObject &data) const
 {
 	Q_D(const SymmetricCryptoCloudTransformerBase);
 
-	SecureByteArray key;  // TODO get key
 	const SecureByteArray iv = SecureByteArray::fromRaw(d->base64Decode(data[QStringLiteral("salt")]));
 	const auto plain = decrypt(key, iv, d->base64Decode(data[QStringLiteral("data")]));
 
